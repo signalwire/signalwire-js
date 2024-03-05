@@ -3,10 +3,18 @@ import type {
   ChatMemberEventNames,
   ChatMessage,
   ChatMessageEventName,
+  ChatNamespace,
 } from '@signalwire/core'
 
 export type RealTimeChatApiEventsHandlerMapping = Record<
-  ChatMessageEventName,
+  `${ChatNamespace}.${ChatMessageEventName}`,
   (message: ChatMessage) => void
 > &
-  Record<ChatMemberEventNames, (member: ChatMember) => void>
+  Record<
+    `${ChatNamespace}.${ChatMemberEventNames}`,
+    (member: ChatMember) => void
+  >
+
+export type RealTimeChatEvents = {
+  [k in keyof RealTimeChatApiEventsHandlerMapping]: RealTimeChatApiEventsHandlerMapping[k]
+}

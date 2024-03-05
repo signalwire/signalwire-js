@@ -1,22 +1,19 @@
 import {
   getLogger,
   SagaIterator,
-  MapToPubSubShape,
-  VideoRecordingEvent,
-  RoomSessionRecording,
-  Rooms,
   VideoRecordingEventNames,
   stripNamespacePrefix,
+  VideoRecordingAction,
 } from '@signalwire/core'
 import { RoomSession } from '../RoomSession'
 import { VideoCallWorkerParams } from './videoCallingWorker'
+import { RoomSessionRecording } from '../RoomSessionRecording'
 
 export const videoRecordingWorker = function* (
-  options: VideoCallWorkerParams<MapToPubSubShape<VideoRecordingEvent>>
+  options: VideoCallWorkerParams<VideoRecordingAction>
 ): SagaIterator {
   getLogger().trace('videoRecordingWorker started')
   const {
-    instance: client,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
@@ -28,9 +25,8 @@ export const videoRecordingWorker = function* (
 
   let recordingInstance = get<RoomSessionRecording>(payload.recording.id)
   if (!recordingInstance) {
-    recordingInstance = Rooms.createRoomSessionRecordingObject({
-      // @ts-expect-error
-      store: client.store,
+    recordingInstance = new RoomSessionRecording({
+      roomSession: roomSessionInstance,
       payload,
     })
   } else {
@@ -44,9 +40,11 @@ export const videoRecordingWorker = function* (
     case 'video.recording.started':
     case 'video.recording.updated':
       roomSessionInstance.emit(event, recordingInstance)
+      recordingInstance.emit(event, recordingInstance)
       break
     case 'video.recording.ended':
       roomSessionInstance.emit(event, recordingInstance)
+      recordingInstance.emit(event, recordingInstance)
       remove<RoomSessionRecording>(payload.recording.id)
       break
     default:

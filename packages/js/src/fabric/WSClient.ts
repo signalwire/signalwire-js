@@ -1,7 +1,9 @@
 import { type UserOptions, getLogger, VertoSubscribe } from '@signalwire/core'
+import { Client } from '../Client'
+import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
-import { WSClientWorker } from './WSClientWorker'
 import { BaseRoomSession } from '../BaseRoomSession'
+import { wsClientWorker, unifiedEventsWatcher } from './workers'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -18,8 +20,12 @@ interface PushNotification {
   decrypted: Record<string, any>
 }
 
-interface WSClientOptions extends UserOptions {
+export interface WSClientOptions extends UserOptions {
+  /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
+  /** Disable ICE UDP transport policy */
+  disableUdpIceServers?: boolean
+  /** Call back function to receive the incoming call */
   onCallReceived?: (room: BaseRoomSession<unknown>) => unknown
 }
 
@@ -35,24 +41,29 @@ interface BuildInboundCallParams {
 }
 
 export class WSClient {
-  private wsClient: ReturnType<typeof createClient>
+  private wsClient: Client<RoomSession>
   private logger = getLogger()
 
   constructor(public options: WSClientOptions) {
-    this.wsClient = createClient({
+    this.wsClient = createClient<RoomSession>({
       host: this.options.host,
       token: this.options.token,
       debug: {
         logWsTraffic: true,
       },
       logLevel: 'debug',
+      unifiedEventing: true,
     })
+  }
+
+  get clientApi() {
+    return this.wsClient
   }
 
   connect() {
     // @ts-ignore
-    this.wsClient.runWorker('WSClientWorker', {
-      worker: WSClientWorker,
+    this.wsClient.runWorker('wsClientWorker', {
+      worker: wsClientWorker,
       initialState: {
         buildInboundCall: this.buildInboundCall,
       },
@@ -101,6 +112,8 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
+          eventsWatcher: unifiedEventsWatcher,
+          disableUdpIceServers: this.options.disableUdpIceServers || false,
         })
 
         // WebRTC connection left the room.

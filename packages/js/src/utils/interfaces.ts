@@ -37,6 +37,7 @@ import type {
   VideoRoomDeviceDisconnectedEventNames,
   DeviceDisconnectedEventParams,
   VideoRoomDeviceEventNames,
+  InternalUnifiedMethodTarget,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEvent } from '@signalwire/webrtc'
@@ -197,6 +198,8 @@ export interface MemberCommandWithValueParams extends MemberCommandParams {
 export interface BaseRoomInterface {
   join(): Promise<unknown>
   leave(): Promise<unknown>
+  self?: InternalUnifiedMethodTarget
+  target?: InternalUnifiedMethodTarget
 }
 
 export interface LocalOverlay {
@@ -461,3 +464,8 @@ export type PagingCursor =
       before?: never
       after: string
     }
+
+export interface AudioElement extends HTMLAudioElement {
+  sinkId?: string
+  setSinkId?: (id: string) => Promise<void>
+}

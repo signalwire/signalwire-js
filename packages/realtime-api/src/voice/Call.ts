@@ -1,120 +1,114 @@
 import {
+  CallingCallConnectEventParams,
+  CallingCall,
   uuid,
-  BaseComponentOptionsWithPayload,
-  connect,
-  EmitterContract,
-  extendComponent,
-  VoiceCallMethods,
-  VoiceCallContract,
   VoiceCallDisconnectReason,
-  VoicePlaylist,
-  VoiceCallPlayAudioMethodParams,
-  VoiceCallPlaySilenceMethodParams,
-  VoiceCallPlayRingtoneMethodParams,
-  VoiceCallPlayTTSMethodParams,
-  VoiceCallRecordMethodParams,
-  VoiceCallPromptMethodParams,
-  VoiceCallPromptAudioMethodParams,
-  VoiceCallPromptRingtoneMethodParams,
-  VoiceCallPromptTTSMethodParams,
-  VoiceCallCollectMethodParams,
-  toExternalJSON,
   toSnakeCaseKeys,
-  VoiceCallTapMethodParams,
-  VoiceCallTapAudioMethodParams,
+  CallingCallWaitForState,
   CallingCallState,
   VoiceCallConnectMethodParams,
+  toExternalJSON,
   VoiceCallConnectPhoneMethodParams,
   VoiceCallConnectSipMethodParams,
-  CallingCallConnectEventParams,
-  VoiceCallDetectMethodParams,
-  VoiceCallDetectMachineParams,
-  VoiceCallDetectFaxParams,
-  VoiceCallDetectDigitParams,
-  CallingCallWaitForState,
-  CallingCall,
-  configureStore,
-  BaseConsumer,
+  CallingCallConnectFailedEventParams,
 } from '@signalwire/core'
-import { RealTimeCallApiEvents } from '../types'
+import { ListenSubscriber } from '../ListenSubscriber'
+import {
+  CallCollectMethodParams,
+  CallDetectDigitParams,
+  CallDetectFaxParams,
+  CallDetectMachineParams,
+  CallDetectMethodParams,
+  CallPlayAudioMethodarams,
+  CallPlayMethodParams,
+  CallPlayRingtoneMethodParams,
+  CallPlaySilenceMethodParams,
+  CallPlayTTSMethodParams,
+  CallPromptAudioMethodParams,
+  CallPromptMethodParams,
+  CallPromptRingtoneMethodParams,
+  CallPromptTTSMethodParams,
+  CallRecordAudioMethodParams,
+  CallRecordMethodParams,
+  CallTapAudioMethodParams,
+  CallTapMethodParams,
+  RealTimeCallEvents,
+  RealTimeCallListeners,
+  RealtimeCallListenersEventsMapping,
+} from '../types'
 import { toInternalDevices, toInternalPlayParams } from './utils'
+import {
+  voiceCallCollectWorker,
+  voiceCallConnectWorker,
+  voiceCallDetectWorker,
+  voiceCallPlayWorker,
+  voiceCallRecordWorker,
+  voiceCallSendDigitsWorker,
+  voiceCallTapWorker,
+} from './workers'
 import { Playlist } from './Playlist'
-import { CallPlayback } from './CallPlayback'
-import { CallRecording } from './CallRecording'
-import { CallPrompt, createCallPromptObject } from './CallPrompt'
-import { CallTap } from './CallTap'
-import { CallDetect, createCallDetectObject } from './CallDetect'
-import { CallCollect, createCallCollectObject } from './CallCollect'
+import { Voice } from './Voice'
+import { CallPlayback, decoratePlaybackPromise } from './CallPlayback'
+import { CallRecording, decorateRecordingPromise } from './CallRecording'
+import { CallPrompt, decoratePromptPromise } from './CallPrompt'
+import { CallCollect, decorateCollectPromise } from './CallCollect'
+import { CallTap, decorateTapPromise } from './CallTap'
 import { DeviceBuilder } from './DeviceBuilder'
+import { CallDetect, decorateDetectPromise } from './CallDetect'
 
-export type EmitterTransformsEvents =
-  | 'calling.playback.start'
-  | 'calling.playback.started'
-  | 'calling.playback.updated'
-  | 'calling.playback.ended'
-  | 'calling.playback.failed'
-  | 'calling.recording.started'
-  | 'calling.recording.updated'
-  | 'calling.recording.ended'
-  | 'calling.recording.failed'
-  | 'calling.prompt.started'
-  | 'calling.prompt.updated'
-  | 'calling.prompt.ended'
-  | 'calling.prompt.failed'
-  | 'calling.tap.started'
-  | 'calling.tap.ended'
-  | 'calling.detect.started'
-  | 'calling.detect.ended'
-  | 'calling.collect.started'
-  | 'calling.collect.updated'
-  | 'calling.collect.ended'
-  | 'calling.collect.failed'
-  | 'calling.call.state'
-  // events not exposed
-  | 'calling.detect.updated'
-  | 'calling.connect.connected'
-
-export interface CallOptions
-  extends BaseComponentOptionsWithPayload<CallingCall> {
+interface CallOptions {
+  voice: Voice
+  payload?: CallingCall
   connectPayload?: CallingCallConnectEventParams
+  listeners?: RealTimeCallListeners
 }
 
-/**
- * A Call object represents an active call. You can get instances of a Call
- * object from a {@link Voice.Client}, by answering or initiating calls.
- */
-export interface Call
-  extends VoiceCallContract<Call>,
-    EmitterContract<RealTimeCallApiEvents> {
-  store: ReturnType<typeof configureStore>
-  setPayload: (payload: CallingCall) => void
-  setConnectPayload: (payload: CallingCallConnectEventParams) => void
-}
-
-export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
+export class Call extends ListenSubscriber<
+  RealTimeCallListeners,
+  RealTimeCallEvents
+> {
+  private _voice: Voice
+  private _context: string | undefined
   private _peer: Call | undefined
-  private _payload: CallingCall
-  private _connectPayload: CallingCallConnectEventParams
+  private _payload: CallingCall | undefined
+  private _connectPayload: CallingCallConnectEventParams | undefined
+  protected _eventMap: RealtimeCallListenersEventsMapping = {
+    onStateChanged: 'call.state',
+    onPlaybackStarted: 'playback.started',
+    onPlaybackUpdated: 'playback.updated',
+    onPlaybackFailed: 'playback.failed',
+    onPlaybackEnded: 'playback.ended',
+    onRecordingStarted: 'recording.started',
+    onRecordingUpdated: 'recording.updated',
+    onRecordingFailed: 'recording.failed',
+    onRecordingEnded: 'recording.ended',
+    onPromptStarted: 'prompt.started',
+    onPromptUpdated: 'prompt.updated',
+    onPromptFailed: 'prompt.failed',
+    onPromptEnded: 'prompt.ended',
+    onCollectStarted: 'collect.started',
+    onCollectInputStarted: 'collect.startOfInput',
+    onCollectUpdated: 'collect.updated',
+    onCollectFailed: 'collect.failed',
+    onCollectEnded: 'collect.ended',
+    onTapStarted: 'tap.started',
+    onTapEnded: 'tap.ended',
+    onDetectStarted: 'detect.started',
+    onDetectUpdated: 'detect.updated',
+    onDetectEnded: 'detect.ended',
+  }
 
   constructor(options: CallOptions) {
-    super(options)
+    super({ swClient: options.voice._sw })
 
+    this._voice = options.voice
     this._payload = options.payload
+    this._context = options.payload?.context
+    this._connectPayload = options.connectPayload
 
-    this.on('call.state', () => {
-      /**
-       * FIXME: this no-op listener is required for our EE transforms to
-       * update the call object via the `calling.call.state` transform
-       * and apply the "peer" property to the Proxy.
-       */
-    })
-
-    /**
-     * It will take care of keeping instances of this class
-     * up-to-date with the latest changes sent from the
-     * server. Changes will be available to the consumer via
-     * our Proxy API.
-     */
+    if (options.listeners) {
+      this.listen(options.listeners)
+    }
   }
 
   /** Unique id for this voice call */
@@ -135,15 +129,15 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
   }
 
   get tag() {
-    return this.__uuid
+    return this._payload?.tag
   }
 
   get nodeId() {
-    return this._payload.node_id
+    return this._payload?.node_id
   }
 
   get device() {
-    return this._payload.device
+    return this._payload?.device
   }
 
   /** The type of call. Only phone and sip are currently supported. */
@@ -174,10 +168,8 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
         (this.device?.params?.to_number || this.device?.params?.toNumber) ?? ''
       )
     }
-    return (
-      // @ts-expect-error
-      this.device?.params?.to ?? ''
-    )
+    // @ts-expect-error
+    return this.device?.params?.to ?? ''
   }
 
   get headers() {
@@ -198,7 +190,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
   }
 
   get context() {
-    return this._payload.context
+    return this._context
   }
 
   get connectState() {
@@ -209,17 +201,18 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
     return this._peer
   }
 
+  /** @internal */
   set peer(callInstance: Call | undefined) {
     this._peer = callInstance
   }
 
   /** @internal */
-  protected setPayload(payload: CallingCall) {
+  setPayload(payload: CallingCall) {
     this._payload = payload
   }
 
   /** @internal */
-  protected setConnectPayload(payload: CallingCallConnectEventParams) {
+  setConnectPayload(payload: CallingCallConnectEventParams) {
     this._connectPayload = payload
   }
 
@@ -234,7 +227,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * ```
    */
   hangup(reason: VoiceCallDisconnectReason = 'hangup') {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(
           new Error(
@@ -244,21 +237,23 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       }
 
       this.on('call.state', (params) => {
-        if (params.state === 'ended') {
-          resolve(new Error('Failed to hangup the call.'))
+        if (params.callState === 'ended') {
+          resolve()
         }
       })
 
-      this.execute({
-        method: 'calling.end',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          reason: reason,
-        },
-      }).catch((e) => {
-        reject(e)
-      })
+      this._client
+        .execute({
+          method: 'calling.end',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            reason: reason,
+          },
+        })
+        .catch((e) => {
+          reject(e)
+        })
     })
   }
 
@@ -277,13 +272,14 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
         reject(new Error(`Can't call pass() on a call without callId.`))
       }
 
-      this.execute({
-        method: 'calling.pass',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-        },
-      })
+      this._client
+        .execute({
+          method: 'calling.pass',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+          },
+        })
         .then(() => {
           resolve()
         })
@@ -299,13 +295,16 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * @example
    *
    * ```js
-   * client.on('call.received', async (call) => {
-   *   try {
-   *     await call.answer()
-   *     console.log('Inbound call answered')
-   *   } catch (error) {
-   *     console.error('Error answering inbound call', error)
-   *   }
+   * voice.client.listen({
+   *  topics: ['home'],
+   *  onCallReceived: async (call) => {
+   *    try {
+   *      await call.answer()
+   *      console.log('Inbound call answered')
+   *    } catch (error) {
+   *      console.error('Error answering inbound call', error)
+   *    }
+   *  }
    * })
    * ```
    */
@@ -323,15 +322,17 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
         }
       })
 
-      this.execute({
-        method: 'calling.answer',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-        },
-      }).catch((e) => {
-        reject(e)
-      })
+      this._client
+        .execute({
+          method: 'calling.answer',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+          },
+        })
+        .catch((e) => {
+          reject(e)
+        })
     })
   }
 
@@ -354,8 +355,10 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * ))
    * ```
    */
-  play(params: VoicePlaylist) {
-    return new Promise<CallPlayback>((resolve, reject) => {
+  play(params: CallPlayMethodParams) {
+    const promise = new Promise<CallPlayback>((resolve, reject) => {
+      const { playlist, listen } = params
+
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call play() on a call not established yet.`))
       }
@@ -375,16 +378,25 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
 
       const controlId = uuid()
 
-      this.execute({
-        method: 'calling.play',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: controlId,
-          volume: params.volume,
-          play: toInternalPlayParams(params.media),
+      this._client.runWorker('voiceCallPlayWorker', {
+        worker: voiceCallPlayWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
         },
       })
+
+      this._client
+        .execute({
+          method: 'calling.play',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            volume: playlist.volume,
+            play: toInternalPlayParams(playlist.media),
+          },
+        })
         .then(() => {
           // TODO: handle then?
         })
@@ -394,6 +406,8 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
           reject(e)
         })
     })
+
+    return decoratePlaybackPromise.call(this, promise)
   }
 
   /**
@@ -403,13 +417,12 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    *
    * ```js
    * const playback = await call.playAudio({ url: 'https://cdn.signalwire.com/default-music/welcome.mp3' });
-   * await playback.ended();
    * ```
    */
-  playAudio(params: VoiceCallPlayAudioMethodParams) {
-    const { volume, ...rest } = params
+  playAudio(params: CallPlayAudioMethodarams) {
+    const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Audio(rest))
-    return this.play(playlist)
+    return this.play({ playlist, listen })
   }
 
   /**
@@ -419,12 +432,12 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    *
    * ```js
    * const playback = await call.playSilence({ duration: 3 });
-   * await playback.ended();
    * ```
    */
-  playSilence(params: VoiceCallPlaySilenceMethodParams) {
-    const playlist = new Playlist().add(Playlist.Silence(params))
-    return this.play(playlist)
+  playSilence(params: CallPlaySilenceMethodParams) {
+    const { listen, ...rest } = params
+    const playlist = new Playlist().add(Playlist.Silence(rest))
+    return this.play({ playlist, listen })
   }
 
   /**
@@ -434,13 +447,12 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    *
    * ```js
    * const playback = await call.playRingtone({ name: 'it' });
-   * await playback.ended();
    * ```
    */
-  playRingtone(params: VoiceCallPlayRingtoneMethodParams) {
-    const { volume, ...rest } = params
+  playRingtone(params: CallPlayRingtoneMethodParams) {
+    const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Ringtone(rest))
-    return this.play(playlist)
+    return this.play({ playlist, listen })
   }
 
   /**
@@ -450,26 +462,26 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    *
    * ```js
    * const playback = await call.playTTS({ text: 'Welcome to SignalWire!' });
-   * await playback.ended();
    * ```
    */
-  playTTS(params: VoiceCallPlayTTSMethodParams) {
-    const { volume, ...rest } = params
+  playTTS(params: CallPlayTTSMethodParams) {
+    const { volume, listen, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.TTS(rest))
-    return this.play(playlist)
+    return this.play({ playlist, listen })
   }
 
   /**
    * Generic method to record a call. Please see {@link recordAudio}.
    */
-  record(params: VoiceCallRecordMethodParams) {
-    return new Promise<CallRecording>((resolve, reject) => {
+  record(params: CallRecordMethodParams) {
+    const promise = new Promise<CallRecording>((resolve, reject) => {
+      const { audio, listen } = params
+
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call record() on a call not established yet.`))
       }
 
       const resolveHandler = (callRecording: CallRecording) => {
-        this.off('recording.failed', rejectHandler)
         resolve(callRecording)
       }
 
@@ -482,17 +494,26 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       this.once('recording.failed', rejectHandler)
 
       const controlId = uuid()
-      const record = toSnakeCaseKeys(params)
+      const record = toSnakeCaseKeys({ audio })
 
-      this.execute({
-        method: 'calling.record',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: controlId,
-          record,
+      this._client.runWorker('voiceCallRecordWorker', {
+        worker: voiceCallRecordWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
         },
       })
+
+      this._client
+        .execute({
+          method: 'calling.record',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            record,
+          },
+        })
         .then(() => {
           // TODO: handle then?
         })
@@ -502,6 +523,8 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
           reject(e)
         })
     })
+
+    return decorateRecordingPromise.call(this, promise)
   }
 
   /**
@@ -511,20 +534,23 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    *
    * ```js
    * const recording = await call.recordAudio({ direction: 'both' })
-   * await recording.stop()
    * ```
    */
-  recordAudio(params: VoiceCallRecordMethodParams['audio'] = {}) {
+  recordAudio(params: CallRecordAudioMethodParams = {}) {
+    const { listen, ...rest } = params
     return this.record({
-      audio: params,
+      audio: rest,
+      listen,
     })
   }
 
   /**
    * Generic method to prompt the user for input. Please see {@link promptAudio}, {@link promptRingtone}, {@link promptTTS}.
    */
-  prompt(params: VoiceCallPromptMethodParams) {
-    return new Promise<CallPrompt>((resolve, reject) => {
+  prompt(params: CallPromptMethodParams) {
+    const promise = new Promise<CallPrompt>((resolve, reject) => {
+      const { listen, ...rest } = params
+
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call record() on a call not established yet.`))
       }
@@ -536,36 +562,53 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
 
       const { volume, media } = params.playlist
       // TODO: move this to a method to build `collect`
-      const { initial_timeout, digits, speech } = toSnakeCaseKeys(params)
+      const { initial_timeout, digits, speech } = toSnakeCaseKeys(rest)
       const collect = {
         initial_timeout,
         digits,
         speech,
       }
 
-      this.execute({
-        method: 'calling.play_and_collect',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: controlId,
-          volume,
-          play: toInternalPlayParams(media),
-          collect,
+      this._client.runWorker('voiceCallPlayWorker', {
+        worker: voiceCallPlayWorker,
+        initialState: {
+          controlId,
         },
       })
+
+      this._client.runWorker('voiceCallCollectWorker', {
+        worker: voiceCallCollectWorker,
+        initialState: {
+          controlId,
+        },
+      })
+
+      this._client
+        .execute({
+          method: 'calling.play_and_collect',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            volume,
+            play: toInternalPlayParams(media),
+            collect,
+          },
+        })
         .then(() => {
-          const promptInstance = createCallPromptObject({
-            store: this.store,
+          const promptInstance = new CallPrompt({
+            call: this,
+            listeners: listen,
             // @ts-expect-error
             payload: {
               control_id: controlId,
-              call_id: this.id,
-              node_id: this.nodeId,
+              call_id: this.id!,
+              node_id: this.nodeId!,
             },
           })
-          this.instanceMap.set<CallPrompt>(controlId, promptInstance)
+          this._client.instanceMap.set<CallPrompt>(controlId, promptInstance)
           this.emit('prompt.started', promptInstance)
+          promptInstance.emit('prompt.started', promptInstance)
           resolve(promptInstance)
         })
         .catch((e) => {
@@ -573,6 +616,8 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
           reject(e)
         })
     })
+
+    return decoratePromptPromise.call(this, promise)
   }
 
   /**
@@ -594,7 +639,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
-  promptAudio(params: VoiceCallPromptAudioMethodParams) {
+  promptAudio(params: CallPromptAudioMethodParams) {
     const { url, volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(Playlist.Audio({ url }))
 
@@ -624,7 +669,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
-  promptRingtone(params: VoiceCallPromptRingtoneMethodParams) {
+  promptRingtone(params: CallPromptRingtoneMethodParams) {
     const { name, duration, volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(
       Playlist.Ringtone({ name, duration })
@@ -655,7 +700,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * const { type, digits, terminator } = await prompt.ended()
    * ```
    */
-  promptTTS(params: VoiceCallPromptTTSMethodParams) {
+  promptTTS(params: CallPromptTTSMethodParams) {
     const { text, language, gender, volume, ...rest } = params
     const playlist = new Playlist({ volume }).add(
       Playlist.TTS({ text, language, gender })
@@ -677,7 +722,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * ```
    */
   sendDigits(digits: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise<Call>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(
           new Error(`Can't call sendDigits() on a call not established yet.`)
@@ -721,17 +766,26 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
 
       const controlId = uuid()
 
-      this.execute({
-        method: 'calling.send_digits',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: controlId,
-          digits,
+      this._client.runWorker('voiceCallSendDigitsWorker', {
+        worker: voiceCallSendDigitsWorker,
+        initialState: {
+          controlId,
         },
-      }).catch((e) => {
-        reject(e)
       })
+
+      this._client
+        .execute({
+          method: 'calling.send_digits',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            digits,
+          },
+        })
+        .catch((e) => {
+          reject(e)
+        })
     })
   }
 
@@ -751,12 +805,10 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    *     uri: 'wss://example.domain.com/endpoint',
    *   },
    * })
-   *
-   * await tap.stop()
    * ```
    */
-  tap(params: VoiceCallTapMethodParams) {
-    return new Promise<CallTap>((resolve, reject) => {
+  tap(params: CallTapMethodParams) {
+    const promise = new Promise<CallTap>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call tap() on a call not established yet.`))
       }
@@ -780,24 +832,34 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       const {
         audio = {},
         device: { type, ...rest },
+        listen,
       } = params
 
-      this.execute({
-        method: 'calling.tap',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: controlId,
-          tap: {
-            type: 'audio',
-            params: audio,
-          },
-          device: {
-            type,
-            params: rest,
-          },
+      this._client.runWorker('voiceCallTapWorker', {
+        worker: voiceCallTapWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
         },
       })
+
+      this._client
+        .execute({
+          method: 'calling.tap',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            tap: {
+              type: 'audio',
+              params: audio,
+            },
+            device: {
+              type,
+              params: rest,
+            },
+          },
+        })
         .then(() => {
           // TODO: handle then?
         })
@@ -807,6 +869,8 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
           reject(e)
         })
     })
+
+    return decorateTapPromise.call(this, promise)
   }
 
   /**
@@ -826,9 +890,9 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * await tap.stop()
    * ```
    */
-  tapAudio(params: VoiceCallTapAudioMethodParams) {
-    const { direction, device } = params
-    return this.tap({ audio: { direction }, device })
+  tapAudio(params: CallTapAudioMethodParams) {
+    const { direction, ...rest } = params
+    return this.tap({ audio: { direction }, ...rest })
   }
 
   /**
@@ -862,11 +926,13 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
         reject(new Error(`Can't call connect() on a call not established yet.`))
       }
 
+      const _tag = uuid()
+
       // We can ignore the "ringback" error since we just want to cleanup "...rest"
       // @ts-expect-error
       const { devices, ringback, ...rest } = params
       const executeParams: Record<string, any> = {
-        tag: this.__uuid,
+        tag: _tag,
         ...toSnakeCaseKeys(rest),
       }
       if ('ringback' in params) {
@@ -889,7 +955,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
         resolve(payload)
       }
 
-      const rejectHandler = (payload: Call) => {
+      const rejectHandler = (payload: CallingCallConnectFailedEventParams) => {
         // @ts-expect-error
         this.off('connect.connected', resolveHandler)
         reject(toExternalJSON(payload))
@@ -900,22 +966,32 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       // @ts-expect-error
       this.once('connect.failed', rejectHandler)
 
-      this.execute({
-        method: 'calling.connect',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          tag: this.__uuid,
-          ...executeParams,
+      this._client.runWorker('voiceCallConnectWorker', {
+        worker: voiceCallConnectWorker,
+        initialState: {
+          voice: this._voice,
+          tag: _tag,
         },
-      }).catch((e) => {
-        // @ts-expect-error
-        this.off('connect.connected', resolveHandler)
-        // @ts-expect-error
-        this.off('connect.failed', rejectHandler)
-
-        reject(e)
       })
+
+      this._client
+        .execute({
+          method: 'calling.connect',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            tag: _tag,
+            ...executeParams,
+          },
+        })
+        .catch((e) => {
+          // @ts-expect-error
+          this.off('connect.connected', resolveHandler)
+          // @ts-expect-error
+          this.off('connect.failed', rejectHandler)
+
+          reject(e)
+        })
     })
   }
 
@@ -979,18 +1055,20 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       // @ts-expect-error
       this.once('connect.disconnected', resolveHandler)
 
-      this.execute({
-        method: 'calling.disconnect',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-        },
-      }).catch((e) => {
-        // @ts-expect-error
-        this.off('connect.disconnected', resolveHandler)
+      this._client
+        .execute({
+          method: 'calling.disconnect',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+          },
+        })
+        .catch((e) => {
+          // @ts-expect-error
+          this.off('connect.disconnected', resolveHandler)
 
-        reject(e)
-      })
+          reject(e)
+        })
     })
   }
 
@@ -1020,8 +1098,8 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
   /**
    * Generic method. Please see {@link amd}, {@link detectFax}, {@link detectDigit}.
    */
-  detect(params: VoiceCallDetectMethodParams) {
-    return new Promise<CallDetect>((resolve, reject) => {
+  detect(params: CallDetectMethodParams) {
+    const promise = new Promise<CallDetect>((resolve, reject) => {
       if (!this.callId || !this.nodeId) {
         reject(new Error(`Can't call detect() on a call not established yet.`))
       }
@@ -1029,42 +1107,53 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       const controlId = uuid()
 
       // TODO: build params in a method
-      const { timeout, type, waitForBeep = false, ...rest } = params
+      const { listen, timeout, type, waitForBeep = false, ...rest } = params
 
-      this.execute({
-        method: 'calling.detect',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: controlId,
-          timeout,
-          detect: {
-            type,
-            params: toSnakeCaseKeys(rest),
-          },
+      this._client.runWorker('voiceCallDetectWorker', {
+        worker: voiceCallDetectWorker,
+        initialState: {
+          controlId,
+          listeners: listen,
         },
       })
+
+      this._client
+        .execute({
+          method: 'calling.detect',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            timeout,
+            detect: {
+              type,
+              params: toSnakeCaseKeys(rest),
+            },
+          },
+        })
         .then(() => {
-          const detectInstance = createCallDetectObject({
-            store: this.store,
+          const detectInstance = new CallDetect({
+            call: this,
             payload: {
               control_id: controlId,
-              call_id: this.id,
-              node_id: this.nodeId,
-              waitForBeep,
+              call_id: this.id!,
+              node_id: this.nodeId!,
+              waitForBeep: params.waitForBeep ?? false,
             },
+            listeners: listen,
           })
-          this.instanceMap.set<CallDetect>(controlId, detectInstance)
-          // @ts-expect-error
+          this._client.instanceMap.set<CallDetect>(controlId, detectInstance)
           this.emit('detect.started', detectInstance)
+          detectInstance.emit('detect.started', detectInstance)
           resolve(detectInstance)
         })
         .catch((e) => {
-          // @ts-expect-error
           this.emit('detect.ended', e)
           reject(e)
         })
     })
+
+    return decorateDetectPromise.call(this, promise)
   }
 
   /**
@@ -1079,7 +1168,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * console.log('Detect result:', result.type)
    * ```
    */
-  amd(params: Omit<VoiceCallDetectMachineParams, 'type'> = {}) {
+  amd(params: CallDetectMachineParams = {}) {
     return this.detect({
       ...params,
       type: 'machine',
@@ -1103,7 +1192,7 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * console.log('Detect result:', result.type)
    * ```
    */
-  detectFax(params: Omit<VoiceCallDetectFaxParams, 'type'> = {}) {
+  detectFax(params: CallDetectFaxParams = {}) {
     return this.detect({
       ...params,
       type: 'fax',
@@ -1122,11 +1211,98 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
    * console.log('Detect result:', result.type)
    * ```
    */
-  detectDigit(params: Omit<VoiceCallDetectDigitParams, 'type'> = {}) {
+  detectDigit(params: CallDetectDigitParams = {}) {
     return this.detect({
       ...params,
       type: 'digit',
     })
+  }
+
+  /**
+   * Collect user input from the call, such as `digits` or `speech`.
+   *
+   * @example
+   *
+   * Collect digits and waiting for a result:
+   *
+   * ```js
+   * const collectObj = await call.collect({
+   *   digits: {
+   *     max: 5,
+   *     digitTimeout: 2,
+   *     terminators: '#*'
+   *   }
+   * })
+   * const { digits, terminator } = await collectObj.ended()
+   * ```
+   */
+  collect(params: CallCollectMethodParams) {
+    const promise = new Promise<CallCollect>((resolve, reject) => {
+      const { listen, ...rest } = params
+
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call collect() on a call not established yet.`))
+      }
+
+      const controlId = uuid()
+
+      // TODO: move this to a method to build the params
+      const {
+        initial_timeout,
+        partial_results,
+        digits,
+        speech,
+        continuous,
+        send_start_of_input,
+        start_input_timers,
+      } = toSnakeCaseKeys(rest)
+
+      this._client.runWorker('voiceCallCollectWorker', {
+        worker: voiceCallCollectWorker,
+        initialState: {
+          controlId,
+        },
+      })
+
+      this._client
+        .execute({
+          method: 'calling.collect',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            initial_timeout,
+            digits,
+            speech,
+            partial_results,
+            continuous,
+            send_start_of_input,
+            start_input_timers,
+          },
+        })
+        .then(() => {
+          const collectInstance = new CallCollect({
+            call: this,
+            listeners: listen,
+            // @ts-expect-error
+            payload: {
+              control_id: controlId,
+              call_id: this.id!,
+              node_id: this.nodeId!,
+            },
+          })
+          this._client.instanceMap.set<CallCollect>(controlId, collectInstance)
+          this.emit('collect.started', collectInstance)
+          collectInstance.emit('collect.started', collectInstance)
+          resolve(collectInstance)
+        })
+        .catch((e) => {
+          this.emit('collect.failed', e)
+          reject(e)
+        })
+    })
+
+    return decorateCollectPromise.call(this, promise)
   }
 
   /**
@@ -1161,8 +1337,8 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
 
       this.on('call.state', (params) => {
         if (events.includes(params.state as CallingCallWaitForState)) {
-          emittedCallStates.add(params.state)
-        } else if (shouldResolveUnsuccessful(params.state)) {
+          emittedCallStates.add(params.state!)
+        } else if (shouldResolveUnsuccessful(params.state!)) {
           return resolve(false)
         }
 
@@ -1172,92 +1348,4 @@ export class CallConsumer extends BaseConsumer<RealTimeCallApiEvents> {
       })
     })
   }
-
-  /**
-   * Collect user input from the call, such as `digits` or `speech`.
-   *
-   * @example
-   *
-   * Collect digits and waiting for a result:
-   *
-   * ```js
-   * const collectObj = await call.collect({
-   *   digits: {
-   *     max: 5,
-   *     digitTimeout: 2,
-   *     terminators: '#*'
-   *   }
-   * })
-   * const { digits, terminator } = await collectObj.ended()
-   * ```
-   */
-  collect(params: VoiceCallCollectMethodParams) {
-    return new Promise<CallCollect>((resolve, reject) => {
-      if (!this.callId || !this.nodeId) {
-        reject(new Error(`Can't call collect() on a call not established yet.`))
-      }
-
-      const controlId = uuid()
-
-      // TODO: move this to a method to build the params
-      const {
-        initial_timeout,
-        partial_results,
-        digits,
-        speech,
-        continuous,
-        send_start_of_input,
-        start_input_timers,
-      } = toSnakeCaseKeys(params)
-
-      this.execute({
-        method: 'calling.collect',
-        params: {
-          node_id: this.nodeId,
-          call_id: this.callId,
-          control_id: controlId,
-          initial_timeout,
-          digits,
-          speech,
-          partial_results,
-          continuous,
-          send_start_of_input,
-          start_input_timers,
-        },
-      })
-        .then(() => {
-          const collectInstance = createCallCollectObject({
-            store: this.store,
-            // @ts-expect-error
-            payload: {
-              control_id: controlId,
-              call_id: this.id,
-              node_id: this.nodeId,
-            },
-          })
-          this.instanceMap.set<CallCollect>(controlId, collectInstance)
-          this.emit('collect.started', collectInstance)
-          resolve(collectInstance)
-        })
-        .catch((e) => {
-          this.emit('collect.failed', e)
-          reject(e)
-        })
-    })
-  }
-}
-
-// FIXME: instead of Omit methods, i used "Partial<VoiceCallMethods>"
-export const CallAPI = extendComponent<CallConsumer, Partial<VoiceCallMethods>>(
-  CallConsumer,
-  {}
-)
-
-export const createCallObject = (params: CallOptions): Call => {
-  const call = connect<RealTimeCallApiEvents, CallConsumer, Call>({
-    store: params.store,
-    Component: CallAPI,
-  })(params)
-
-  return call
 }

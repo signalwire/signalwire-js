@@ -1,10 +1,15 @@
 import { EventEmitter, getLogger, uuid } from '@signalwire/core'
-import { getUserMedia, getMediaConstraints } from './utils/helpers'
+import {
+  getUserMedia,
+  getMediaConstraints,
+  filterIceServers,
+} from './utils/helpers'
 import {
   sdpStereoHack,
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
+  hasMediaSection,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -148,7 +153,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     const { rtcPeerConfig = {} } = this.options
     const config: RTCConfiguration = {
       bundlePolicy: 'max-compat',
-      iceServers: this.call.iceServers,
+      iceServers: filterIceServers(this.call.iceServers, {
+        disableUdpIceServers: this.options.disableUdpIceServers,
+      }),
       // @ts-ignore
       sdpSemantics: 'unified-plan',
       ...rtcPeerConfig,
@@ -501,6 +508,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
+  private _remoteSdpHasVideo(): boolean {
+    return hasMediaSection(this.remoteSdp ?? '', 'video')
+  }
+
+  private _remoteSdpHasAudio(): boolean {
+    return hasMediaSection(this.remoteSdp ?? '', 'audio')
+  }
+
   async start() {
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
@@ -524,9 +539,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
       let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
-        const audioTracks = this._localStream.getAudioTracks()
+        const audioTracks =
+          this.isOffer || this._remoteSdpHasAudio()
+            ? this._localStream.getAudioTracks()
+            : []
         this.logger.debug('Local audio tracks: ', audioTracks)
-        const videoTracks = this._localStream.getVideoTracks()
+        const videoTracks =
+          this.isOffer || this._remoteSdpHasVideo()
+            ? this._localStream.getVideoTracks()
+            : []
         this.logger.debug('Local video tracks: ', videoTracks)
         hasLocalTracks = Boolean(audioTracks.length || videoTracks.length)
 
@@ -811,6 +832,41 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       '\n\n',
       remoteDescription.sdp
     )
+    const debugElement = document.getElementById('videoDebug');
+            if(debugElement) {
+              let statsElement = debugElement.querySelector('.rtc-stats')
+              if(!statsElement) {
+                statsElement = document.createElement('div');
+                statsElement.className = 'rtc-stats'
+                debugElement.appendChild(statsElement);
+              }
+              setInterval(()=> {
+                this.instance.getStats(null).then((reports) => {
+                  let statsString = '';
+                  reports.forEach((report) => {
+                    if(["outbound-rtp", "remote-inbound-rtp", "media-source"].includes(report.type)) {
+                      statsString += '<h3>Report type=';
+                      statsString += report.type;
+                      statsString += '</h3>\n';
+                      statsString += `id ${report.id}<br>`;
+                      statsString += `time ${report.timestamp}<br>`;
+                      Object.keys(report).forEach(k => {
+                        if (k !== 'timestamp' && k !== 'type' && k !== 'id') {
+                            if (typeof report[k] === 'object') {
+                              statsString += `${k}: ${JSON.stringify(report[k])}<br>`;
+                            } else {
+                              statsString += `${k}: ${report[k]}<br>`;
+                            }
+                        }
+                      });
+                    }
+                  });
+                  statsElement!.innerHTML = statsString;
+                });
+                
+
+              }, 1000)
+            }  
     return this.instance.setRemoteDescription(sessionDescr)
   }
 

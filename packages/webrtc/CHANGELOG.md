@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.0] - 2023-11-23
+
+### Added
+
+- [#909](https://github.com/signalwire/signalwire-js/pull/909) [`4ee7b6f8`](https://github.com/signalwire/signalwire-js/commit/4ee7b6f852e650c1828decda2429ebec79576085) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Expose the `sendDigits` function for Video RoomSession object
+
+### Fixed
+
+- Updated dependencies [[`d564c379`](https://github.com/signalwire/signalwire-js/commit/d564c379e10d23c21abb56b3e740aff70fc451b9), [`4ee7b6f8`](https://github.com/signalwire/signalwire-js/commit/4ee7b6f852e650c1828decda2429ebec79576085), [`6c9d2aa5`](https://github.com/signalwire/signalwire-js/commit/6c9d2aa5f5c8d7b07d955a2c6e2ab647a62bd702)]:
+  - @signalwire/core@3.21.0
+
 ## [3.10.4] - 2023-11-07
 
 ### Dependencies

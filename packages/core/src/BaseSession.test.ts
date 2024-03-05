@@ -6,6 +6,7 @@ import {
   RPCPing,
   RPCPingResponse,
   RPCDisconnectResponse,
+  RPCConnectUnified,
 } from './RPCMessages'
 import { SWCloseEvent } from './utils'
 import { wait } from './testUtils'
@@ -35,13 +36,15 @@ describe('BaseSession', () => {
     ws.on('connection', (socket: any) => {
       socket.on('message', (data: any) => {
         const parsedData = JSON.parse(data)
-        socket.send(
-          JSON.stringify({
-            jsonrpc: '2.0',
-            id: parsedData.id,
-            result: {},
-          })
-        )
+        if (parsedData.params) {
+          socket.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: parsedData.id,
+              result: {},
+            })
+          )
+        }
       })
     })
 
@@ -56,6 +59,41 @@ describe('BaseSession', () => {
   })
   afterEach(() => {
     WS.clean()
+  })
+
+  it('should include events_ack on RPCConnect message', () => {
+    expect(rpcConnect.params.event_acks).toBeTruthy()
+  })
+
+  it('should subscribe to unified event when session the initialize with unifiedEventing:true', async () => {
+    const unifiedEventingSession = new BaseSession({
+      host,
+      project,
+      token,
+      unifiedEventing: true,
+    })
+
+    const rpcConnectUnified = RPCConnectUnified({
+      authentication: {
+        project,
+        token,
+      }
+    })
+
+    unifiedEventingSession.WebSocketConstructor = WebSocket
+    unifiedEventingSession.CloseEventConstructor = SWCloseEvent
+    unifiedEventingSession.dispatch = jest.fn()
+    unifiedEventingSession.connect()
+    await ws.connected
+
+    expect(unifiedEventingSession.connected).toBe(true)
+
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnectUnified))
+
+    unifiedEventingSession.disconnect()
+
+    expect(unifiedEventingSession.connected).toBe(false)
+    expect(unifiedEventingSession.closed).toBe(true)
   })
 
   it('should connect and disconnect to/from the provided host', async () => {
@@ -98,23 +136,51 @@ describe('BaseSession', () => {
     expect(session.status).toEqual('idle')
   })
 
-  it('should invoke dispatch with socketMessage action for any other message', async () => {
-    session.connect()
-    await ws.connected
+  describe('signalwire.event messages', () => {
+    it('should invoke dispatch with socketMessage action for any other message', async () => {
+      session.connect()
+      await ws.connected
 
-    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
-    const request = {
-      jsonrpc: '2.0' as const,
-      id: 'uuid',
-      method: 'signalwire.event' as const,
-      params: {
-        key: 'value',
-      },
-    }
-    ws.send(JSON.stringify(request))
+      await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
+      const request = {
+        jsonrpc: '2.0' as const,
+        id: 'uuid',
+        method: 'signalwire.event' as const,
+        params: {
+          key: 'value',
+        },
+      }
+      ws.send(JSON.stringify(request))
 
-    expect(session.dispatch).toHaveBeenCalledTimes(1)
-    expect(session.dispatch).toHaveBeenCalledWith(socketMessageAction(request))
+      expect(session.dispatch).toHaveBeenCalledTimes(1)
+      expect(session.dispatch).toHaveBeenCalledWith(
+        socketMessageAction(request)
+      )
+    })
+
+    it('should send acknowledge message on signalwire.event', async () => {
+      session.connect()
+      await ws.connected
+
+      await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
+      const request = {
+        jsonrpc: '2.0' as const,
+        id: 'uuid',
+        method: 'signalwire.event' as const,
+        params: {
+          key: 'value',
+        },
+      }
+      ws.send(JSON.stringify(request))
+
+      await expect(ws).toReceiveMessage(
+        JSON.stringify({
+          jsonrpc: '2.0' as const,
+          id: 'uuid',
+          result: {},
+        })
+      )
+    })
   })
 
   describe('signalwire.ping messages', () => {

@@ -781,6 +781,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       } else {
         subscribe = this.getSubscriptions()
       }
+      this.logger.debug('Subscribing to', subscribe)
+
       const response: any = await this.vertoExecute({
         message,
         callID: rtcPeerId,
@@ -909,14 +911,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  /** @internal */
-  dtmf(dtmf: string) {
+  async sendDigits(dtmf: string) {
     const rtcPeerId = this.callId
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to send DTMF')
     }
     const message = VertoInfo({ ...this.dialogParams(rtcPeerId), dtmf })
-    this.vertoExecute({ message, callID: rtcPeerId, node_id: this.nodeId })
+    await this.vertoExecute({
+      message,
+      callID: rtcPeerId,
+      node_id: this.nodeId,
+    })
   }
 
   /** @internal */

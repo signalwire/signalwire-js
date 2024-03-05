@@ -11,10 +11,18 @@ export type RPCConnectParams = {
   authorization_state?: string
   contexts?: string[]
   topics?: string[]
+  eventing?: string[]
+  event_acks?: boolean
 }
 
 export const DEFAULT_CONNECT_VERSION = {
   major: 3,
+  minor: 0,
+  revision: 0,
+}
+
+export const UNIFIED_CONNECT_VERSION = {
+  major: 4,
   minor: 0,
   revision: 0,
 }
@@ -24,6 +32,18 @@ export const RPCConnect = (params: RPCConnectParams) => {
     method: 'signalwire.connect',
     params: {
       version: DEFAULT_CONNECT_VERSION,
+      event_acks: true,
+      ...params,
+    },
+  })
+}
+
+export const RPCConnectUnified = (params: RPCConnectParams) => {
+  return makeRPCRequest({
+    method: 'signalwire.connect',
+    params: {
+      version: UNIFIED_CONNECT_VERSION,
+      event_acks: true,
       ...params,
     },
   })

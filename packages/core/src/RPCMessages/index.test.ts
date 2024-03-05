@@ -31,6 +31,7 @@ describe('RPC Messages', () => {
         params: {
           authentication: { project: 'project', token: 'token' },
           version: DEFAULT_CONNECT_VERSION,
+          event_acks: true,
         },
       })
     })
@@ -51,6 +52,7 @@ describe('RPC Messages', () => {
           version: DEFAULT_CONNECT_VERSION,
           protocol: 'old-proto',
           contexts: ['test'],
+          event_acks: true,
         },
       })
     })
@@ -65,6 +67,7 @@ describe('RPC Messages', () => {
         params: {
           authentication: { project: 'project', jwt_token: 'jwt' },
           version: DEFAULT_CONNECT_VERSION,
+          event_acks: true,
         },
       })
     })
@@ -86,6 +89,7 @@ describe('RPC Messages', () => {
           authentication: { project: 'project', jwt_token: 'jwt' },
           version: DEFAULT_CONNECT_VERSION,
           agent: 'Jest Random Test',
+          event_acks: true,
         },
       })
     })
@@ -104,6 +108,7 @@ describe('RPC Messages', () => {
           authentication: { jwt_token: 'jwt' },
           version: DEFAULT_CONNECT_VERSION,
           agent: 'Jest Random Test',
+          event_acks: true,
         },
       })
     })

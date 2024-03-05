@@ -16,6 +16,8 @@ import {
   DEFAULT_CONNECT_VERSION,
   RPCDisconnectResponse,
   RPCPingResponse,
+  RPCEventAckResponse,
+  UNIFIED_CONNECT_VERSION,
 } from './RPCMessages'
 import {
   SessionOptions,
@@ -28,6 +30,7 @@ import {
   WebSocketClient,
   SessionStatus,
   SessionAuthError,
+  InstanceMap
 } from './utils/interfaces'
 import {
   authErrorAction,
@@ -59,6 +62,8 @@ export class BaseSession {
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
+  public unifiedEventing = false
+
 
   protected _rpcConnectResult: RPCConnectResult
 
@@ -71,6 +76,8 @@ export class BaseSession {
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
   private _swConnectError = Symbol.for('sw-connect-error')
   private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
+  // FIXME should never be undefined
+  private _instanceMap:InstanceMap | undefined;
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
@@ -82,7 +89,20 @@ export class BaseSession {
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const { host, logLevel = 'info', sessionChannel } = options
+    const {
+      host,
+      logLevel = 'info',
+      sessionChannel,
+      unifiedEventing = false,
+      instanceMap
+    } = options
+    this._instanceMap = instanceMap
+    this.unifiedEventing = unifiedEventing
+
+    this.connectVersion = unifiedEventing
+      ? UNIFIED_CONNECT_VERSION
+      : DEFAULT_CONNECT_VERSION
+
     if (host) {
       this._host = checkWebSocketHost(host)
     }
@@ -122,6 +142,10 @@ export class BaseSession {
       this._socket?.removeEventListener('error', this.wsErrorHandler)
       this._onSocketError(event)
     }
+  }
+
+  get instanceMap() {
+    return this._instanceMap
   }
 
   get host() {
@@ -285,6 +309,12 @@ export class BaseSession {
         message: 'The SDK session is disconnecting',
       })
     }
+    if (this._status === 'disconnected') {
+      return Promise.reject({
+        code: '400',
+        message: 'The SDK is disconnected',
+      })
+    }
     // In case of a response don't wait for a result
     let promise: Promise<unknown> = Promise.resolve()
     if ('params' in msg) {
@@ -332,19 +362,26 @@ export class BaseSession {
     })
   }
 
-  /**
-   * Authenticate with the SignalWire Network
-   * @return Promise<void>
-   */
-  async authenticate() {
-    const params: RPCConnectParams = {
+  protected get _connectParams(): RPCConnectParams {
+    return {
       agent: this.agent,
       version: this.connectVersion,
       authentication: {
         project: this.options.project,
         token: this.options.token,
       },
+      // FIXME: Remove this once server is ready
+      // eventing: this.unifiedEventing ? ['unified'] : undefined,
     }
+  }
+
+  /**
+   * Authenticate with the SignalWire Network
+   * @return Promise<void>
+   */
+  async authenticate() {
+    const params: RPCConnectParams = this._connectParams
+
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }
@@ -464,6 +501,9 @@ export class BaseSession {
         break
       }
       default:
+        this._eventAcknowledgingHandler(payload).catch((error) =>
+          this.logger.error('Event Acknowledging Error', error)
+        )
         // If it's not a response, trigger the dispatch.
         this.dispatch(socketMessageAction(payload))
     }
@@ -548,6 +588,16 @@ export class BaseSession {
     }, this._checkPingDelay)
 
     await this.execute(RPCPingResponse(payload.id, payload?.params?.timestamp))
+  }
+
+  private async _eventAcknowledgingHandler(
+    payload: JSONRPCRequest
+  ): Promise<void> {
+    const { method, id } = payload
+    if (method === 'signalwire.event') {
+      return this.execute(RPCEventAckResponse(id))
+    }
+    return Promise.resolve()
   }
 
   /**

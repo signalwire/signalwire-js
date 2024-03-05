@@ -11,6 +11,7 @@ import type {
 } from './utils'
 import type { InternalVideoMemberEntity } from './videoMember'
 import * as Rooms from '../rooms'
+import { MapToPubSubShape } from '../redux/interfaces'
 
 /**
  * Public event types
@@ -25,6 +26,17 @@ export type InternalRoomAudienceCount = 'room.audience_count'
 export type RoomJoined = 'room.joined'
 export type RoomLeft = 'room.left'
 export type RoomAudienceCount = 'room.audienceCount'
+
+/**
+ * Public listener types
+ */
+export type OnRoomStarted = 'onRoomStarted'
+export type OnRoomSubscribed = 'onRoomSubscribed'
+export type OnRoomUpdated = 'onRoomUpdated'
+export type OnRoomEnded = 'onRoomEnded'
+export type OnRoomAudienceCount = 'onRoomAudienceCount'
+export type OnRoomJoined = 'onRoomJoined'
+export type OnRoomLeft = 'onRoomLeft'
 
 export type RoomLeftEventParams = {
   reason?: BaseConnectionContract<any>['leaveReason']
@@ -44,6 +56,17 @@ export type VideoRoomSessionEventNames =
   | RoomEnded
   | RoomJoined // only used in `js` (emitted by `webrtc`)
   | RoomLeft // only used in `js`
+
+/**
+ * List of public listener names
+ */
+export type VideoRoomSessionListenerNames =
+  | OnRoomStarted
+  | OnRoomSubscribed
+  | OnRoomUpdated
+  | OnRoomEnded
+  | OnRoomJoined // only used in `js` (emitted by `webrtc`)
+  | OnRoomLeft // only used in `js`
 
 /**
  * List of internal events
@@ -882,6 +905,7 @@ export interface VideoRoomSubscribedEventParams {
   // FIXME: only for webrtc
   call_id: string
   member_id: string
+  node_id?: string 
 }
 
 export interface VideoRoomSubscribedEvent extends SwEvent {
@@ -946,3 +970,12 @@ export type VideoRoomEventParams =
   | VideoRoomSubscribedEventParams
   | VideoRoomUpdatedEventParams
   | VideoRoomEndedEventParams
+
+export type VideoRoomStartedAction = MapToPubSubShape<VideoRoomStartedEvent>
+
+export type VideoRoomEndedAction = MapToPubSubShape<VideoRoomEndedEvent>
+
+export type VideoRoomUpdatedAction = MapToPubSubShape<VideoRoomUpdatedEvent>
+
+export type VideoRoomSubscribedAction =
+  MapToPubSubShape<VideoRoomSubscribedEvent>

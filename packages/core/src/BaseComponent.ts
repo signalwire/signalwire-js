@@ -57,7 +57,7 @@ export class BaseComponent<
    */
   private _runningWorkers: Task[] = []
 
-  protected get logger() {
+  public get logger() {
     return getLogger()
   }
 
@@ -86,7 +86,12 @@ export class BaseComponent<
 
   /** @internal */
   get instanceMap() {
-    return this.options.store.instanceMap
+    return this.store.instanceMap
+  }
+
+  /** @internal */
+  get unifiedEventing() {
+    return this.store.unifiedEventing
   }
 
   /** @internal */
@@ -96,7 +101,7 @@ export class BaseComponent<
 
   /** @internal */
   get sessionEmitter() {
-    return this.options.store.sessionEmitter
+    return this.store.sessionEmitter
   }
 
   /** @internal */
@@ -301,7 +306,7 @@ export class BaseComponent<
   }
 
   /** @internal */
-  protected runWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
+  public runWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
     name: string,
     def: SDKWorkerDefinition<Hooks>
   ) {

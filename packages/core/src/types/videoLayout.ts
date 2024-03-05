@@ -3,11 +3,17 @@ import { VideoPosition } from '..'
 import type { CamelToSnakeCase, ToInternalVideoEvent } from './utils'
 
 export type LayoutChanged = 'layout.changed'
+export type OnLayoutChanged = 'onLayoutChanged'
 
 /**
  * List of public event names
  */
 export type VideoLayoutEventNames = LayoutChanged
+
+/**
+ * List of public listener names
+ */
+export type VideoLayoutListenerNames = OnLayoutChanged
 
 /**
  * List of internal events

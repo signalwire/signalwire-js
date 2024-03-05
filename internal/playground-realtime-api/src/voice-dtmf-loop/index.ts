@@ -1,14 +1,13 @@
-import { Voice } from '@signalwire/realtime-api'
+import { SignalWire, Voice } from '@signalwire/realtime-api'
 
 async function run() {
   let maxDTMFErrors = 1
   let errorCount = 0
   const invalidDTMFs = ['0', '1', '2', '3']
 
-  const client = new Voice.Client({
+  const client = await SignalWire({
     project: process.env.PROJECT as string,
     token: process.env.TOKEN as string,
-    contexts: [process.env.RELAY_CONTEXT as string],
     // logLevel: 'debug',
     // debug: {
     //   logWsTraffic: true,
@@ -23,7 +22,7 @@ async function run() {
         digitTimeout: 5,
       },
     })
-    const { type, digits } = await prompt.ended()
+    const { type, digits } = prompt
     return [type, digits]
   }
 
@@ -44,25 +43,25 @@ async function run() {
         const playback = await call.playTTS({
           text: 'You have run out of attempts. Goodbye',
         })
-        await playback.ended()
         await call.hangup()
       }
     } else {
       const playback = await call.playTTS({
         text: 'Good choice! Goodbye and thanks',
       })
-      await playback.ended()
       await call.hangup()
     }
   }
 
   try {
-    const call = await client.dialPhone({
+    const call = await client.voice.dialPhone({
       to: '+1..',
       from: process.env.FROM_NUMBER as string,
-    })
-    call.on('call.state', (call) => {
-      console.log(`call.state ${call.state}`)
+      listen: {
+        onStateChanged: (call) => {
+          console.log(`call.state ${call.state}`)
+        },
+      },
     })
 
     const result = await prompt(call)
