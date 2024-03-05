@@ -41,21 +41,12 @@ export class Conversation {
 
   public async getConversations(options?: GetConversationsOptions) {
     try {
-      const { limit, since, until, cursor } = options || {}
+      const { pageSize } = options || {}
 
       const path = '/api/fabric/conversations'
       const queryParams = new URLSearchParams()
-      if (limit) {
-        queryParams.append('limit', limit.toString())
-      }
-      if (since) {
-        queryParams.append('since', since.toString())
-      }
-      if (until) {
-        queryParams.append('until', until.toString())
-      }
-      if (cursor) {
-        queryParams.append('cursor', cursor)
+      if (pageSize) {
+        queryParams.append('page_size', pageSize.toString())
       }
 
       const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
@@ -70,21 +61,12 @@ export class Conversation {
 
   public async getMessages(options?: GetMessagesOptions) {
     try {
-      const { limit, since, until, cursor } = options || {}
+      const { pageSize } = options || {}
 
       const path = '/api/fabric/messages'
       const queryParams = new URLSearchParams()
-      if (limit) {
-        queryParams.append('limit', limit.toString())
-      }
-      if (since) {
-        queryParams.append('since', since.toString())
-      }
-      if (until) {
-        queryParams.append('until', until.toString())
-      }
-      if (cursor) {
-        queryParams.append('cursor', cursor)
+      if (pageSize) {
+        queryParams.append('page_size', pageSize.toString())
       }
 
       const { body } =
@@ -105,21 +87,12 @@ export class Conversation {
     options: GetConversationMessagesOptions
   ) {
     try {
-      const { addressId, limit, since, until, cursor } = options || {}
+      const { addressId, pageSize } = options || {}
 
       const path = `/api/fabric/conversations/${addressId}/messages`
       const queryParams = new URLSearchParams()
-      if (limit) {
-        queryParams.append('limit', limit.toString())
-      }
-      if (since) {
-        queryParams.append('since', since.toString())
-      }
-      if (until) {
-        queryParams.append('until', until.toString())
-      }
-      if (cursor) {
-        queryParams.append('cursor', cursor)
+      if (pageSize) {
+        queryParams.append('page_size', pageSize.toString())
       }
 
       const { body } =
