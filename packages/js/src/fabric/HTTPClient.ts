@@ -8,6 +8,7 @@ import {
 } from '@signalwire/core'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
+import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 
 type JWTHeader = { ch?: string; typ?: string }
 
@@ -56,25 +57,20 @@ export class HTTPClient {
 
     let path = '/api/fabric/addresses'
 
-    if (type || displayName || pageSize) {
-      const queryParams = new URLSearchParams()
-
-      if (type) {
-        queryParams.append('type', type)
-      }
-
-      if (displayName) {
-        queryParams.append('display_name', displayName)
-      }
-
-      if (pageSize) {
-        queryParams.append('page_size', pageSize.toString())
-      }
-
-      path += `?${queryParams.toString()}`
+    const queryParams = new URLSearchParams()
+    if (type) {
+      queryParams.append('type', type)
+    }
+    if (displayName) {
+      queryParams.append('display_name', displayName)
+    }
+    if (pageSize) {
+      queryParams.append('page_size', pageSize.toString())
     }
 
-    const { body } = await this.httpClient<FetchAddressResponse>(path)
+    const { body } = await this.httpClient<FetchAddressResponse>(
+      makeQueryParamsUrls(path, queryParams)
+    )
 
     return buildPaginatedResult<Address>(body, this.httpClient)
   }
