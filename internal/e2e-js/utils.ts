@@ -716,7 +716,8 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 
 export const createCallWithCompatibilityApi = async (
   resource: string,
-  inlineLaml: string
+  inlineLaml: string,
+  codecs: string
 ) => {
   const data = new URLSearchParams()
 
@@ -728,7 +729,11 @@ export const createCallWithCompatibilityApi = async (
   const vertoDomain = process.env.VERTO_DOMAIN
   expect(vertoDomain).toBeDefined()
 
-  data.append('To', `verto:${resource}@${vertoDomain}`)
+  let to = `verto:${resource}@${vertoDomain}`
+  if (codecs) {
+    to += `;codecs=${codecs}`
+  }
+  data.append('To', to)
 
   console.log(
     'REST API URL: ',

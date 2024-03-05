@@ -116,10 +116,10 @@ test.describe('v2WebrtcCalling', () => {
     console.info('END: should handle one to one calling')
   })
 
-  test('should receive a call from LaML and expect an audio', async ({
+  test('should receive a call from LaML and expect to receive audio', async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should receive a call from LaML and expect an audio')
+    console.info('START: should receive a call from LaML and expect to receive audio')
 
     const RESOURCE = 'vanilla-laml-callee'
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
@@ -144,9 +144,11 @@ test.describe('v2WebrtcCalling', () => {
       <Response>
         <Play loop="0">https://cdn.signalwire.com/default-music/welcome.mp3</Play>
       </Response>`
+
     const createResult = await createCallWithCompatibilityApi(
       RESOURCE,
-      inlineLaml
+      inlineLaml,
+      ''
     )
     expect(createResult).toBe(201)
 
@@ -166,6 +168,6 @@ test.describe('v2WebrtcCalling', () => {
     // Wait for callee to hangup
     await expectCallHangup(pageCallee)
 
-    console.info('END: should receive a call from LaML and expect an audio')
+    console.info('END: should receive a call from LaML and expect to receive audio')
   })
 })
