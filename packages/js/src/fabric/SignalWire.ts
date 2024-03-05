@@ -2,7 +2,7 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient, WSClientOptions } from './WSClient'
 import { Conversation } from './Conversation'
 
-interface SignalWireOptions extends WSClientOptions {}
+export interface SignalWireOptions extends WSClientOptions {}
 
 export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
