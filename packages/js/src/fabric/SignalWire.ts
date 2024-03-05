@@ -10,6 +10,8 @@ export interface SignalWireContract {
   unregisterDevice: HTTPClient['unregisterDevice']
   connect: WSClient['connect']
   disconnect: WSClient['disconnect']
+  online: WSClient['online']
+  offline: WSClient['offline']
   dial: WSClient['dial']
   handlePushNotification: WSClient['handlePushNotification']
   updateToken: WSClient['updateToken']
@@ -40,6 +42,8 @@ export const SignalWire = (
         unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
         connect: wsClient.connect.bind(wsClient),
         disconnect: wsClient.disconnect.bind(wsClient),
+        online: wsClient.online.bind(wsClient),
+        offline: wsClient.offline.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),

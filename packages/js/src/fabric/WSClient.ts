@@ -56,11 +56,12 @@ export class WSClient {
     })
   }
 
+  /** @internal */
   get clientApi() {
     return this.wsClient
   }
 
-  connect() {
+  async connect() {
     // @ts-ignore
     this.wsClient.runWorker('wsClientWorker', {
       worker: wsClientWorker,
@@ -68,7 +69,7 @@ export class WSClient {
         buildInboundCall: this.buildInboundCall,
       },
     })
-    return this.wsClient.connect()
+    await this.wsClient.connect()
   }
 
   disconnect() {
@@ -268,20 +269,6 @@ export class WSClient {
     }
   }
 
-  updateToken(token: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.wsClient.once('session.auth_error', (error) => {
-        reject(error)
-      })
-      this.wsClient.once('session.connected', () => {
-        resolve()
-      })
-
-      // @ts-expect-error
-      this.wsClient.reauthenticate(token)
-    })
-  }
-
   private buildInboundCall(payload: BuildInboundCallParams) {
     getLogger().debug('Build new call to answer')
 
@@ -320,5 +307,44 @@ export class WSClient {
     if (this.options.onCallReceived) {
       this.options.onCallReceived(call)
     }
+  }
+
+  /**
+   * Allow user to update the auth token
+   */
+  updateToken(token: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.wsClient.once('session.auth_error', (error) => {
+        reject(error)
+      })
+      this.wsClient.once('session.connected', () => {
+        resolve()
+      })
+
+      // @ts-expect-error
+      this.wsClient.reauthenticate(token)
+    })
+  }
+
+  /**
+   * Mark the client as 'online' to receive calls over WebSocket
+   */
+  online() {
+    // @ts-expect-error
+    return this.wsClient.execute({
+      method: 'subscriber.online',
+      params: {},
+    })
+  }
+
+  /**
+   * Mark the client as 'offline' to receive calls over WebSocket
+   */
+  offline() {
+    // @ts-expect-error
+    return this.wsClient.execute({
+      method: 'subscriber.offline',
+      params: {},
+    })
   }
 }

@@ -49,6 +49,7 @@ export type VertoMethod =
   | 'verto.announce'
 
 export type WebRTCMethod = 'video.message' | 'webrtc.verto'
+export type SubscriberMethod = 'subscriber.online' | 'subscriber.offline'
 export type JSONRPCMethod =
   | 'signalwire.connect'
   | 'signalwire.ping'
@@ -57,6 +58,7 @@ export type JSONRPCMethod =
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
   | 'signalwire.unsubscribe'
+  | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
   | VertoMethod
