@@ -6,7 +6,7 @@ import {
   createTestJWTToken,
   expectInjectRelayHost,
   expectRelayConnected,
-  expectv2TotalAudioEnergyToBeGreaterThan,
+  expectv2HasReceivedAudio,
   randomizeResourceName,
   randomizeRoomName,
 } from '../../utils'
@@ -92,7 +92,11 @@ test.describe('v2WebrtcFromRest', () => {
 
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, minAudioEnergy)
+
+    // Considers 50 pps with max 10% packet loss
+    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+
+    await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
 
     await expectCallActive(pageCallee)
     console.log('Hanging up the call at ', new Date())
@@ -201,12 +205,16 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     console.log('Time to check the audio energy at ', new Date())
 
     // Empirical value; it depends on the call scenario
-    const minAudioEnergy = callDurationMs / 50000
+    const minAudioEnergy = callDurationMs / 8000
 
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, minAudioEnergy)
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee2, minAudioEnergy)
+
+    // Considers 50 pps with max 10% packet loss
+    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+
+    await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
+    await expectv2HasReceivedAudio(pageCallee2, minAudioEnergy, minPackets)
 
     await expectCallActive(pageCallee)
     await expectCallActive(pageCallee2)
@@ -323,12 +331,16 @@ test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
     console.log('Time to check the audio energy at ', new Date())
 
     // Empirical value; it depends on the call scenario
-    const minAudioEnergy = callDurationMs / 50000
+    const minAudioEnergy = callDurationMs / 8000
 
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, minAudioEnergy)
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee2, minAudioEnergy)
+
+    // Considers 50 pps with max 10% packet loss
+    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+
+    await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
+    await expectv2HasReceivedAudio(pageCallee2, minAudioEnergy, minPackets)
 
     await expectCallActive(pageCallee)
     await expectCallActive(pageCallee2)
