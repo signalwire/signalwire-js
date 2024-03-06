@@ -170,8 +170,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     console.log('inline Laml: ', inlineLaml)
     const createResult = await createCallWithCompatibilityApi(
       resource,
-      inlineLaml,
-      'PCMU,PCMA'
+      inlineLaml
     )
     expect(createResult).toBe(201)
     console.log('REST API returned 201 at ', new Date())
@@ -184,8 +183,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
 
     const createResult2 = await createCallWithCompatibilityApi(
       resource2,
-      inlineLaml,
-      ''
+      inlineLaml
     )
     expect(createResult2).toBe(201)
     console.log('REST API returned 201 at ', new Date())
@@ -224,7 +222,6 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     console.info('END: should handle a call from LaML bin and make 2 users join a room, audio/video')
   })
 })
-
 
 test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
   test('should handle a call from LaML bin and make 2 users join a room, audio G711', async ({

@@ -147,8 +147,7 @@ test.describe('v2WebrtcCalling', () => {
 
     const createResult = await createCallWithCompatibilityApi(
       RESOURCE,
-      inlineLaml,
-      ''
+      inlineLaml
     )
     expect(createResult).toBe(201)
 

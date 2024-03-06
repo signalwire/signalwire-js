@@ -717,7 +717,7 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
-  codecs: string
+  codecs?: string|undefined
 ) => {
   const data = new URLSearchParams()
 
