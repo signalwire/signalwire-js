@@ -273,6 +273,8 @@ export class WSClient {
       remoteSdp: sdp,
       prevCallId: callID,
       nodeId,
+      eventsWatcher: unifiedEventsWatcher,
+      disableUdpIceServers: this.options.disableUdpIceServers || false,
     })
 
     // WebRTC connection left the room.
