@@ -216,6 +216,9 @@ async function getClient() {
         // Fetch the new token and update the client using 👇
         // await client.updateToken(newToken)
       },
+      onCallReceived: async (call) => {
+        console.log('call', call)
+      },
     })
   }
 

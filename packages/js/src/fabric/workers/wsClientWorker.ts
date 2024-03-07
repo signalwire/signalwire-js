@@ -6,6 +6,7 @@ import {
   SDKActions,
   MapToPubSubShape,
   SDKWorkerHooks,
+  WebRTCMessageParams,
 } from '@signalwire/core'
 import type { BaseConnection } from '@signalwire/webrtc'
 import { createClient } from '../../createClient'
@@ -23,24 +24,23 @@ export const wsClientWorker: SDKWorker<
   WSClientWorkerHooks
 > = function* (options): SagaIterator {
   getLogger().debug('wsClientWorker started')
-  const { channels, instance } = options
+  const { channels, initialState } = options
   const { swEventChannel } = channels
-  getLogger().debug('wsClientWorker instance', instance)
+  const { buildInboundCall } = initialState
+
   while (true) {
-    const action: MapToPubSubShape<any> = yield sagaEffects.take(
-      swEventChannel,
-      (action: SDKActions) => {
-        getLogger().debug('wsClientWorker action', action)
+    const action: MapToPubSubShape<WebRTCMessageParams> =
+      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
+        getLogger().debug('WSClientWorker action', action)
         if (action.type === 'webrtc.message') {
           return action.payload.method === 'verto.invite'
         }
         return false
-      }
-    )
-    getLogger().debug('Build new call to answer', action)
+      })
+    getLogger().debug('Receiving a new call over WebSocket', action)
 
-    // TODO: invoke WSClient function to build and answer the invite
-    // instance.buildInboundCall(action)
+    // Invoke WSClient function to build and answer the invite
+    buildInboundCall(action.payload.params)
   }
 
   getLogger().trace('wsClientWorker ended')

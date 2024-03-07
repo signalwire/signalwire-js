@@ -1,9 +1,8 @@
-import { type UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient, WSClientOptions } from './WSClient'
 import { Conversation } from './Conversation'
 
-export interface SignalWireOptions extends UserOptions, WSClientOptions {}
+export interface SignalWireOptions extends WSClientOptions {}
 
 export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
@@ -11,6 +10,8 @@ export interface SignalWireContract {
   unregisterDevice: HTTPClient['unregisterDevice']
   connect: WSClient['connect']
   disconnect: WSClient['disconnect']
+  online: WSClient['online']
+  offline: WSClient['offline']
   dial: WSClient['dial']
   handlePushNotification: WSClient['handlePushNotification']
   updateToken: WSClient['updateToken']
@@ -41,6 +42,8 @@ export const SignalWire = (
         unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
         connect: wsClient.connect.bind(wsClient),
         disconnect: wsClient.disconnect.bind(wsClient),
+        online: wsClient.online.bind(wsClient),
+        offline: wsClient.offline.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
