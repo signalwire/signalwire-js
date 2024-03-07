@@ -1,10 +1,14 @@
-import { type UserOptions, getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
+import {
+  type UserOptions,
+  getLogger,
+  VertoSubscribe,
+  VertoBye,
+} from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
-import { BaseRoomSession } from '../BaseRoomSession'
 import { wsClientWorker, unifiedEventsWatcher } from './workers'
-import { BaseRoomSession } from '../BaseRoomSession'
+import { InboundCallSource, IncomingCallHandlers, IncomingCallManager, IncomingInvite } from './IncomingCallManager'
 
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
@@ -21,52 +25,19 @@ interface PushNotification {
   decrypted: Record<string, any>
 }
 
-interface IncomingCallHandlerParams {
-  source: 'websocket' | 'pushNotification'
-  invite: {
-    details: {
-      callID: string,
-      sdp: string,
-      caller_id_name: string,
-      caller_id_number: string,
-      callee_id_name: string,
-      callee_id_number: string,
-      display_direction: string,
-    }
-    accept: ({rootElement}: {rootElement: HTMLElement| undefined}) => Promise<BaseRoomSession<RoomSession>>,
-    reject: () => Promise<void>
-  }
-}
-
-interface IncomingCallSubscrition {
-  handler: (invite:IncomingCallHandlerParams) => Promise<void> 
-  filter: 'all' | 'pushNotification' | 'websocket '
-}
-
 export interface WSClientOptions extends UserOptions {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Disable ICE UDP transport policy */
   disableUdpIceServers?: boolean
   /** Call back function to receive the incoming call */
-  onCallReceived?: (room: BaseRoomSession<unknown>) => unknown
-}
-
-interface BuildInboundCallParams {
-  callID: string
-  sdp: string
-  caller_id_name: string
-  caller_id_number: string
-  callee_id_name: string
-  callee_id_number: string
-  display_direction: string
-  nodeId: string
+  incomingCallHandlers?: IncomingCallHandlers
 }
 
 export class WSClient {
   private wsClient: Client<RoomSession>
   private logger = getLogger()
-  private _inviteSubscription: IncomingCallSubscrition | undefined
+  private _incomingCallManager: IncomingCallManager
 
   constructor(public options: WSClientOptions) {
     this.wsClient = createClient<RoomSession>({
@@ -78,12 +49,7 @@ export class WSClient {
       logLevel: 'debug',
       unifiedEventing: true,
     })
-  }
-
-  private _incomingCallHandler(invite: IncomingCallHandlerParams) {
-    if(this._inviteSubscription && (this._inviteSubscription.filter === 'all' || this._inviteSubscription.filter === invite.source)) {
-      this._inviteSubscription.handler(invite);
-    }
+    this._incomingCallManager = new IncomingCallManager(this.buildInboundCall, this.executeVertoBye)
   }
 
   /** @internal */
@@ -96,7 +62,7 @@ export class WSClient {
     this.wsClient.runWorker('wsClientWorker', {
       worker: wsClientWorker,
       initialState: {
-        buildInboundCall: this.buildInboundCall,
+        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) => this.notifyIncomingInvite('websocket', incomingInvite), 
       },
     })
     await this.wsClient.connect()
@@ -106,28 +72,16 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async dial(params: { to: string; nodeId?: string; rootElement: HTMLElement | undefined }) {
+  async dial(params: {
+    to: string
+    nodeId?: string
+    rootElement: HTMLElement | undefined
+  }) {
     return new Promise(async (resolve, reject) => {
       try {
         console.log('WSClient dial with:', params)
 
         await this.connect()
-
-        // const {
-        //   audio: audioFromConstructor = true,
-        //   video: videoFromConstructor = true,
-        //   iceServers,
-        //   rootElement,
-        //   applyLocalVideoOverlay = true,
-        //   stopCameraWhileMuted = true,
-        //   stopMicrophoneWhileMuted = true,
-        //   speakerId,
-        //   destinationNumber,
-        //   watchMediaPackets,
-        //   watchMediaPacketsTimeout,
-        //   ...userOptions
-        // } = params
-
         const call = this.wsClient.rooms.makeRoomObject({
           // audio,
           // video: video === true ? VIDEO_CONSTRAINTS : video,
@@ -170,7 +124,6 @@ export class WSClient {
               await call.join()
             } catch (error) {
               getLogger().error('WSClient call start', error)
-
               reject(error)
             }
           })
@@ -225,67 +178,32 @@ export class WSClient {
         } catch (error) {
           this.logger.warn('Verto Subscribe', error)
         }
-        const roomBuilder = async (rootElement: HTMLElement | undefined) => {
-          const call = this.wsClient.rooms.makeRoomObject({
-            //   ^?
-            negotiateAudio: true,
-            negotiateVideo: true,
-            rootElement: rootElement ?? this.options.rootElement,
-            applyLocalVideoOverlay: true,
-            stopCameraWhileMuted: true,
-            stopMicrophoneWhileMuted: true,
-            // speakerId,
-            watchMediaPackets: false,
-            // watchMediaPacketsTimeout:,
 
-            remoteSdp: sdp,
-            prevCallId: callID,
-            nodeId,
-          })
-
-          // WebRTC connection left the room.
-          call.once('destroy', () => {
-            getLogger().debug('RTC Connection Destroyed')
-          })
-
-          // @ts-expect-error
-          call.attachPreConnectWorkers()
-
-          // // @ts-expect-error
-          // call.attachOnSubscribedWorkers(payload)
-
-          // @ts-expect-error
-          await call.answer();
-
-          return call
-        }
-
-        const reject = () => {
-          return this._executeVertoBye(callID, nodeId)
-        }
-
-        this._incomingCallHandler({source: 'pushNotification', invite: {
-          details: {
-            callID,
-            sdp,
-            caller_id_name,
-            caller_id_number,
-            callee_id_name,
-            callee_id_number,
-            display_direction
-          },
-          accept: ({rootElement}: {rootElement: HTMLElement| undefined}) => roomBuilder(rootElement),
-          reject: () => reject()
-          }
+        this.notifyIncomingInvite('pushNotification', {
+          callID,
+          sdp,
+          caller_id_name,
+          caller_id_number,
+          callee_id_name,
+          callee_id_number,
+          display_direction,
+          nodeId,
         })
-        resolve({ resultType: 'inboundCall'})
+        resolve({ resultType: 'inboundCall' })
       } catch (error) {
         reject(error)
       }
     })
   }
 
-  private async _executeVertoBye(callId: string, nodeId: string) {
+  private notifyIncomingInvite(source: InboundCallSource, buildCallParams: Omit<IncomingInvite, 'source'>) {
+    this._incomingCallManager.handleIncomingInvite({
+      source,
+      ...buildCallParams
+    })
+  }
+
+  private async executeVertoBye(callId: string, nodeId: string) {
     try {
       // @ts-expect-error
       return await this.wsClient.execute({
@@ -296,11 +214,11 @@ export class WSClient {
           message: VertoBye({
             cause: 'USER_BUSY',
             causeCode: '17',
-            dialogParams: { callID: callId }
-          })
-        }
+            dialogParams: { callID: callId },
+          }),
+        },
       })
-    } catch(error) {
+    } catch (error) {
       this.logger.warn('The call is not available anymore', callId)
       throw error
     }
@@ -327,7 +245,10 @@ export class WSClient {
     }
   }
 
-  private buildInboundCall(payload: BuildInboundCallParams) {
+  private buildInboundCall(
+    payload: IncomingInvite,
+    rootElement: HTMLElement | undefined
+  ) {
     getLogger().debug('Build new call to answer')
 
     const { callID, nodeId, sdp } = payload
@@ -342,7 +263,7 @@ export class WSClient {
     const call = this.wsClient.rooms.makeRoomObject({
       negotiateAudio: true,
       negotiateVideo: true,
-      rootElement: this.options.rootElement,
+      rootElement: rootElement ?? this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
@@ -362,9 +283,7 @@ export class WSClient {
 
     getLogger().debug('Resolving Call', call)
 
-    if (this.options.onCallReceived) {
-      this.options.onCallReceived(call)
-    }
+    return call
   }
 
   /**
@@ -387,8 +306,8 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  online(options: IncomingCallSubscrition) {
-    this._inviteSubscription = options
+  online(incomingCallHandlers: IncomingCallHandlers) {
+    this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     // @ts-expect-error
     return this.wsClient.execute({
       method: 'subscriber.online',
@@ -400,7 +319,7 @@ export class WSClient {
    * Mark the client as 'offline' to receive calls over WebSocket
    */
   offline() {
-    this._inviteSubscription = undefined
+    this._incomingCallManager.setNotificationHandlers({})
     // @ts-expect-error
     return this.wsClient.execute({
       method: 'subscriber.offline',
