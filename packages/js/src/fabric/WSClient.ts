@@ -49,7 +49,9 @@ export class WSClient {
       logLevel: 'debug',
       unifiedEventing: true,
     })
-    this._incomingCallManager = new IncomingCallManager(this.buildInboundCall, this.executeVertoBye)
+    this._incomingCallManager = new IncomingCallManager(
+      (payload: IncomingInvite,rootElement: HTMLElement | undefined) => this.buildInboundCall(payload, rootElement), 
+      (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId))
   }
 
   /** @internal */
