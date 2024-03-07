@@ -7,15 +7,15 @@ import {
   expectInjectRelayHost,
   expectRelayConnected,
   expectv2HasReceivedAudio,
-  randomizeResourceName,
-  randomizeRoomName,
+  getDialConferenceLaml,
+  randomizeResourceName
 } from '../../utils'
 
 test.describe('v2WebrtcFromRest', () => {
-  test('should handle a call from LaML bin', async ({
+  test('should handle a call from REST API to v2 client, dialing into a Conference at answer', async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from LaML bin')
+    console.info('START: should handle a call from REST API to v2 client, dialing into a Conference at answer')
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -50,21 +50,7 @@ test.describe('v2WebrtcFromRest', () => {
 
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
-    const conferenceName = randomizeRoomName('v2rest')
-    const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
-    const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
-      <Response>
-        <Dial>
-          <Conference
-            endConferenceOnExit="false"
-            startConferenceOnEnter="true"
-            waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
-            waitMethod="GET"
-            ${conferenceRegion}>
-            ${conferenceName}
-          </Conference>
-        </Dial>
-      </Response>`
+    const inlineLaml = getDialConferenceLaml('v2rest0')
 
     console.log('inline Laml: ', inlineLaml)
     const createResult = await createCallWithCompatibilityApi(
@@ -103,15 +89,15 @@ test.describe('v2WebrtcFromRest', () => {
     await pageCallee.click('#hangupCall')
     await expectCallHangup(pageCallee)
 
-    console.info('END: should handle a call from LaML bin')
+    console.info('END: should handle a call from REST API to v2 client, dialing into a Conference at answer')
   })
 })
 
 test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
-  test('should handle a call from LaML bin and make 2 users join a room, audio/video', async ({
+  test('should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video', async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from LaML bin and make 2 users join a room, audio/video')
+    console.info('START: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video')
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -155,21 +141,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
     await expectRelayConnected(pageCallee2, envRelayProject, jwtCallee2)
 
-    const conferenceName = randomizeRoomName('v2rest')
-    const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
-    const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
-      <Response>
-        <Dial>
-          <Conference
-            endConferenceOnExit="false"
-            startConferenceOnEnter="true"
-            waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
-            waitMethod="GET"
-            ${conferenceRegion}>
-            ${conferenceName}
-          </Conference>
-        </Dial>
-      </Response>`
+    const inlineLaml = getDialConferenceLaml('v2rest1')
 
     console.log('inline Laml: ', inlineLaml)
     const createResult = await createCallWithCompatibilityApi(
@@ -227,15 +199,15 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     await pageCallee2.click('#hangupCall')
     await expectCallHangup(pageCallee2)
 
-    console.info('END: should handle a call from LaML bin and make 2 users join a room, audio/video')
+    console.info('END: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video')
   })
 })
 
 test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
-  test('should handle a call from LaML bin and make 2 users join a room, audio G711', async ({
+  test('should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711', async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from LaML bin and make 2 users join a room, audio G711')
+    console.info('START: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711')
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -279,21 +251,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
     await expectRelayConnected(pageCallee2, envRelayProject, jwtCallee2)
 
-    const conferenceName = randomizeRoomName('v2rest')
-    const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
-    const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
-      <Response>
-        <Dial>
-          <Conference
-            endConferenceOnExit="false"
-            startConferenceOnEnter="true"
-            waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
-            waitMethod="GET"
-            ${conferenceRegion}>
-            ${conferenceName}
-          </Conference>
-        </Dial>
-      </Response>`
+    const inlineLaml = getDialConferenceLaml('v2rest2')
 
     console.log('inline Laml: ', inlineLaml)
     const createResult = await createCallWithCompatibilityApi(
@@ -353,6 +311,6 @@ test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
     await pageCallee2.click('#hangupCall')
     await expectCallHangup(pageCallee2)
 
-    console.info('END: should handle a call from LaML bin and make 2 users join a room, audio G711')
+    console.info('END: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711')
   })
 })

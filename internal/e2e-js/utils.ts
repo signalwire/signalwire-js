@@ -822,6 +822,28 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
   expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
 }
 
+export const getDialConferenceLaml = (
+  conferenceNameBase: string
+) => {
+  const conferenceName = randomizeRoomName(conferenceNameBase)
+  const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
+  const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
+    <Response>
+      <Dial>
+        <Conference
+          endConferenceOnExit="false"
+          startConferenceOnEnter="true"
+          waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
+          waitMethod="GET"
+          ${conferenceRegion}>
+          ${conferenceName}
+        </Conference>
+      </Dial>
+    </Response>`
+
+    return inlineLaml
+}
+
 export const expectv2HasReceivedAudio = async (
   page: Page,
   minTotalAudioEnergy: number,
@@ -894,8 +916,6 @@ export const expectv2HasReceivedAudio = async (
   }
 
 }
-
-
 
 export const randomizeResourceName = (prefix: string = 'e2e') => {
   return `res-${prefix}${uuid()}`
