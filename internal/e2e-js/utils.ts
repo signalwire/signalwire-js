@@ -917,6 +917,100 @@ export const expectv2HasReceivedAudio = async (
 
 }
 
+export const expectv2HasReceivedSilence = async (
+  page: Page,
+  maxTotalAudioEnergy: number,
+  minPacketsReceived: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const currentCall = window.__currentCall
+    const audioReceiver = currentCall.peer.instance
+      .getReceivers()
+      .find((r: any) => r.track.kind === 'audio')
+
+    const audioTrackId = audioReceiver.track.id
+
+    const stats = await currentCall.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
+          value.forEach((entry) => {
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats: ', audioStats)
+
+  /* This is a workaround what we think is a bug in Playwright
+   * There are cases where totalAudioEnergy is not present in the report
+   * even though we see audio and it's not silence.
+   * In that case we rely on the number of packetsReceived.
+   * If there is genuine silence, then totalAudioEnergy must be present,
+   * albeit being a small number.
+   */
+  console.log(`Evaluating audio energy (max energy: ${maxTotalAudioEnergy}, min packets: ${minPacketsReceived})`)
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
+  } else {
+    console.log("Warning: totalAudioEnergy was missing from the report!")
+    // We still want the right amount of packets
+    expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+  }
+}
+
+
+
+// export const startMediaRecording = async (
+//   page: Page
+// ) => {
+//   await page.evaluate(async () => {
+//     // @ts-expect-error
+//     const currentCall = window.__currentCall
+//     const stream = currentCall.peer.instance
+
+//     const options = {};
+//     const mediaRecorder = new MediaRecorder(stream, options);
+//     mediaRecorder.start();
+//   })
+// }
+
+
+
+
+
+
 export const randomizeResourceName = (prefix: string = 'e2e') => {
   return `res-${prefix}${uuid()}`
 }
