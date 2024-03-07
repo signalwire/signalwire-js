@@ -8,7 +8,10 @@ export function aspectRatioListener({videoElement, paddingWrapper, fixInLandscap
         containerElement.appendChild(pEl);
     }
 
-    const debugElement = document.getElementById(debugDivElementId);
+    let debugElement: HTMLElement|null;
+    try {
+        debugElement = document.getElementById(debugDivElementId);
+    } catch {}
     
     VIDEO_SIZING_EVENTS.forEach(event => videoElement.addEventListener(event, () => {
             const paddingBottom = fixInLandscapeOrientation ? '56.25' : 
