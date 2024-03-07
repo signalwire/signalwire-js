@@ -832,41 +832,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       '\n\n',
       remoteDescription.sdp
     )
-    const debugElement = document.getElementById('videoDebug');
-            if(debugElement) {
-              let statsElement = debugElement.querySelector('.rtc-stats')
-              if(!statsElement) {
-                statsElement = document.createElement('div');
-                statsElement.className = 'rtc-stats'
-                debugElement.appendChild(statsElement);
-              }
-              setInterval(()=> {
-                this.instance.getStats(null).then((reports) => {
-                  let statsString = '';
-                  reports.forEach((report) => {
-                    if(["outbound-rtp", "remote-inbound-rtp", "media-source"].includes(report.type)) {
-                      statsString += '<h3>Report type=';
-                      statsString += report.type;
-                      statsString += '</h3>\n';
-                      statsString += `id ${report.id}<br>`;
-                      statsString += `time ${report.timestamp}<br>`;
-                      Object.keys(report).forEach(k => {
-                        if (k !== 'timestamp' && k !== 'type' && k !== 'id') {
-                            if (typeof report[k] === 'object') {
-                              statsString += `${k}: ${JSON.stringify(report[k])}<br>`;
-                            } else {
-                              statsString += `${k}: ${report[k]}<br>`;
-                            }
-                        }
-                      });
-                    }
-                  });
-                  statsElement!.innerHTML = statsString;
-                });
-                
 
-              }, 1000)
-            }  
     return this.instance.setRemoteDescription(sessionDescr)
   }
 
