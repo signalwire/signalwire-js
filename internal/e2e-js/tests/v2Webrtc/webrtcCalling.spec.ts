@@ -6,7 +6,7 @@ import {
   createTestJWTToken,
   expectInjectRelayHost,
   expectRelayConnected,
-  expectv2TotalAudioEnergyToBeGreaterThan,
+  expectv2HasReceivedAudio,
 } from '../../utils'
 
 test.describe('v2WebrtcCalling', () => {
@@ -116,10 +116,10 @@ test.describe('v2WebrtcCalling', () => {
     console.info('END: should handle one to one calling')
   })
 
-  test('should receive a call from LaML and expect an audio', async ({
+  test('should receive a call from LaML and expect to receive audio', async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should receive a call from LaML and expect an audio')
+    console.info('START: should receive a call from LaML and expect to receive audio')
 
     const RESOURCE = 'vanilla-laml-callee'
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
@@ -144,6 +144,7 @@ test.describe('v2WebrtcCalling', () => {
       <Response>
         <Play loop="0">https://cdn.signalwire.com/default-music/welcome.mp3</Play>
       </Response>`
+
     const createResult = await createCallWithCompatibilityApi(
       RESOURCE,
       inlineLaml
@@ -154,11 +155,19 @@ test.describe('v2WebrtcCalling', () => {
     expect(callStatusCallee).not.toBe(null)
     await expect(callStatusCallee).toContainText('-> active')
 
+    const callDurationMs = 20000
+
     // Give some time to collect audio from the callee
-    await pageCallee.waitForTimeout(20000)
+    await pageCallee.waitForTimeout(callDurationMs)
 
     console.log('Checking for audio energy')
-    await expectv2TotalAudioEnergyToBeGreaterThan(pageCallee, 0.1)
+    // Empirical value
+    const minAudioEnergy = callDurationMs / 50000
+
+    // Considers 50 pps with max 10% packet loss
+    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+
+    await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
 
     // Click the caller hangup button, which calls the hangup function in the browser
     await pageCallee.click('#hangupCall')
@@ -166,6 +175,6 @@ test.describe('v2WebrtcCalling', () => {
     // Wait for callee to hangup
     await expectCallHangup(pageCallee)
 
-    console.info('END: should receive a call from LaML and expect an audio')
+    console.info('END: should receive a call from LaML and expect to receive audio')
   })
 })
