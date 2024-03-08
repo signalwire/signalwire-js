@@ -10,6 +10,9 @@ import { createClient } from '../createClient'
 import { wsClientWorker, unifiedEventsWatcher } from './workers'
 import { InboundCallSource, IncomingCallHandlers, IncomingCallManager, IncomingInvite } from './IncomingCallManager'
 
+export interface OnlineParams {
+  incomingCallHandlers: IncomingCallHandlers
+}
 interface PushNotification {
   encryption_type: 'aes_256_gcm'
   notification_uuid: string
@@ -310,7 +313,7 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  online(incomingCallHandlers: IncomingCallHandlers) {
+  online({incomingCallHandlers}: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     // @ts-expect-error
     return this.wsClient.execute({
