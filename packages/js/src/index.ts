@@ -124,5 +124,6 @@ export {
   IncomingCallHandler,
   IncomingCallHandlers,
   InboundCallSource,
-  IncomingCallNotification
+  IncomingCallNotification,
+  AcceptInviteParams
 } from './fabric/IncomingCallManager'

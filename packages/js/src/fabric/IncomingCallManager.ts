@@ -15,14 +15,16 @@ export interface IncomingInvite {
   nodeId: string
  }
 
+export interface AcceptInviteParams {
+  rootElement: HTMLElement | undefined
+}
+
 export interface IncomingCallNotification {
     invite: {
       details: IncomingInvite
       accept: ({
         rootElement,
-      }: {
-        rootElement: HTMLElement | undefined
-      }) => Promise<BaseRoomSession<RoomSession>>
+      }: AcceptInviteParams) => Promise<BaseRoomSession<RoomSession>>
       reject: () => Promise<void>
     }
   }
