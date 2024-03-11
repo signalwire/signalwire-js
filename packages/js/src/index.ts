@@ -119,3 +119,10 @@ export type {
   RoomSessionObjectEvents as RoomObjectEvents,
   RoomEventNames,
 } from './utils/interfaces'
+
+export {
+  IncomingCallHandler,
+  IncomingCallHandlers,
+  InboundCallSource,
+  IncomingCallNotification
+} from './fabric/IncomingCallManager'
