@@ -6,7 +6,7 @@ import {
 } from './RPCMessages'
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
-import { authExpiringAction } from './redux/actions'
+import { authExpiringAction, reauthAction } from './redux/actions'
 import { type SWCloseEvent, isSATAuth } from './utils'
 
 export class BaseJWTSession extends BaseSession {
@@ -150,14 +150,14 @@ export class BaseJWTSession extends BaseSession {
     if (!this.expiresAt) {
       return
     }
-    const refreshTokenFn =
-      this.options._onRefreshToken || this.options.onRefreshToken
+    const refreshTokenFn = this.options.onRefreshToken
     if (this.expiresIn <= this._refreshTokenNotificationDiff) {
       this.dispatch(authExpiringAction())
 
       if (typeof refreshTokenFn === 'function') {
         try {
-          await refreshTokenFn()
+          const token = await refreshTokenFn()
+          this.dispatch(reauthAction({ token }))
         } catch (error) {
           this.logger.error(error)
         }

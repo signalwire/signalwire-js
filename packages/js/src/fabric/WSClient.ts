@@ -46,12 +46,7 @@ export class WSClient {
 
   constructor(public options: WSClientOptions) {
     this.wsClient = createClient<RoomSession>({
-      host: this.options.host,
-      token: this.options.token,
-      debug: {
-        logWsTraffic: true,
-      },
-      logLevel: 'debug',
+      ...this.options,
       unifiedEventing: true,
     })
   }

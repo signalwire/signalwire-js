@@ -110,15 +110,8 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  /** To refresh the auth token */
-  onRefreshToken?(): Promise<void>
-  /**
-   * The SDK invokes this method and uses the new token to re-auth.
-   * TODO: rename it: getNewToken, getRefreshedToken, fetchToken (?)
-   *
-   * @internal
-   * */
-  _onRefreshToken?(): Promise<void>
+  /** The SDK invokes this method and uses the new token to re-auth. */
+  onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
   /** Unified eventing is required only with Call Fabric SDK */
   unifiedEventing?: boolean
