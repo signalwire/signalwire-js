@@ -12,7 +12,7 @@ import {
   randomizeResourceName
 } from '../../utils'
 
-test.describe('v2WebrtcFromRest', () => {
+test.describe('v2WebrtcFromRestSilence', () => {
   test('should handle a call from REST API to v2 client, playing silence at answer', async ({
     createCustomVanillaPage,
   }) => {
