@@ -56,7 +56,7 @@ export type ReduxComponent = WebRTCCall | Message
 export interface ComponentState {
   byId: {
     [key: string]: ReduxComponent
-  },
+  }
 }
 
 export interface SessionState {
@@ -120,6 +120,7 @@ export type SessionChannelAction =
   | PayloadAction<void, 'auth/success'>
   | PayloadAction<void, 'auth/expiring'>
   | PayloadAction<{ error: SessionAuthError }>
+  | PayloadAction<{ token: string }>
   | PayloadAction<SessionAuthStatus>
 
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>
