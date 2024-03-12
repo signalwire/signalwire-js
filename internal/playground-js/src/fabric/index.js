@@ -220,6 +220,8 @@ async function getClient() {
       host: document.getElementById('host').value,
       token: document.getElementById('token').value,
       rootElement: document.getElementById('rootElement'),
+      logLevel: 'debug',
+      debug: { logWsTraffic: true },
     })
   }
 
@@ -240,38 +242,15 @@ window.connect = async () => {
 
   const call = await client.dial({
     to: document.getElementById('destination').value,
-    logLevel: 'debug',
-    debug: { logWsTraffic: true },
     nodeId: steeringId,
   })
 
   window.__call = call
   roomObj = call
 
-  await call.start()
-
-  console.debug('Call Obj', call)
-
-  enumerateDevices()
-    .then(initDeviceOptions)
-    .catch((error) => {
-      console.error('EnumerateDevices error', error)
-    })
-
-  const joinHandler = (params) => {
-    console.debug('>> room.joined', params)
-
-    btnConnect.classList.add('d-none')
-    btnDisconnect.classList.remove('d-none')
-    connectStatus.innerHTML = 'Connected'
-
-    inCallElements.forEach((button) => {
-      button.classList.remove('d-none')
-      button.disabled = false
-    })
-    // loadLayouts()
-  }
-  joinHandler()
+  roomObj.on('room.joined', (room) => {
+    console.debug('>> room.joined', room)
+  })
 
   roomObj.on('media.connected', () => {
     console.debug('>> media.connected')
@@ -351,6 +330,30 @@ window.connect = async () => {
       document.getElementById('playbackVolume').value = params.volume
     }
   })
+
+  await call.start()
+  console.debug('Call Obj', call)
+
+  enumerateDevices()
+    .then(initDeviceOptions)
+    .catch((error) => {
+      console.error('EnumerateDevices error', error)
+    })
+
+  const joinHandler = (params) => {
+    console.debug('>> room.joined', params)
+
+    btnConnect.classList.add('d-none')
+    btnDisconnect.classList.remove('d-none')
+    connectStatus.innerHTML = 'Connected'
+
+    inCallElements.forEach((button) => {
+      button.classList.remove('d-none')
+      button.disabled = false
+    })
+    // loadLayouts()
+  }
+  joinHandler()
 }
 
 /**

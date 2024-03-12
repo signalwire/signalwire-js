@@ -78,21 +78,6 @@ export class WSClient {
 
         await this.connect()
 
-        // const {
-        //   audio: audioFromConstructor = true,
-        //   video: videoFromConstructor = true,
-        //   iceServers,
-        //   rootElement,
-        //   applyLocalVideoOverlay = true,
-        //   stopCameraWhileMuted = true,
-        //   stopMicrophoneWhileMuted = true,
-        //   speakerId,
-        //   destinationNumber,
-        //   watchMediaPackets,
-        //   watchMediaPacketsTimeout,
-        //   ...userOptions
-        // } = params
-
         const call = this.wsClient.rooms.makeRoomObject({
           // audio,
           // video: video === true ? VIDEO_CONSTRAINTS : video,
@@ -108,8 +93,13 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
-          eventsWatcher: unifiedEventsWatcher,
           disableUdpIceServers: this.options.disableUdpIceServers || false,
+          unifiedEventing: true,
+        })
+
+        // @ts-expect-error
+        this.wsClient.runWorker('unifiedEventsWatcher', {
+          worker: unifiedEventsWatcher,
         })
 
         // WebRTC connection left the room.

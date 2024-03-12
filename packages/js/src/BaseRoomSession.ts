@@ -100,9 +100,9 @@ export class RoomSessionConnection
       })
     }
 
-    if (options.eventsWatcher) {
-      this.runWorker('eventsWatcher', { worker: options.eventsWatcher })
-    }
+    // if (options.eventsWatcher) {
+    //   this.runWorker('eventsWatcher', { worker: options.eventsWatcher })
+    // }
   }
 
   get screenShareList() {
@@ -510,7 +510,7 @@ export const RoomSessionAPI = extendComponent<
   setPrioritizeHandraise: Rooms.setPrioritizeHandraise,
 })
 
-type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
+export type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
   BaseConnectionStateEventTypes
 
 /** @internal */

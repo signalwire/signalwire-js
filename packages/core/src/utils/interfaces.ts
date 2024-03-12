@@ -61,6 +61,7 @@ export type JSONRPCMethod =
   | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
+  | UnifiedRoomMethod
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
@@ -113,7 +114,10 @@ export interface SessionOptions {
   /** The SDK invokes this method and uses the new token to re-auth. */
   onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
-  /** Unified eventing is required only with Call Fabric SDK */
+  /**
+   * @internal
+   * Unified eventing is required only with Call Fabric SDK
+   * */
   unifiedEventing?: boolean
   instanceMap?: InstanceMap
 }
@@ -345,6 +349,11 @@ export type RoomMethod =
   | 'video.member.raisehand'
   | 'video.member.lowerhand'
   | 'video.prioritize_handraise'
+
+/**
+ * List of all Unified Room methods
+ */
+export type UnifiedRoomMethod = 'call.mute'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

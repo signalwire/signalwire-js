@@ -6,7 +6,7 @@ import {
   Chat as ChatNamespace,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import type { CustomSaga, SDKWorker } from '@signalwire/core'
+import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import {
   makeVideoElementSaga,
@@ -20,6 +20,7 @@ import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
 import type { RoomSession } from './RoomSession'
+import { createUnifiedBaseRoomSessionObject } from './UnifiedBaseRoomSession'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -41,7 +42,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
   /** Local media stream to override the local video and audio stream tracks */
   localStream?: MediaStream
-  eventsWatcher?: SDKWorker<RoomSessionConnection>
+  unifiedEventing?: boolean
 }
 
 export class ClientAPI<
@@ -88,7 +89,12 @@ export class ClientAPI<
           )
         }
 
-        const room = createBaseRoomSessionObject<RoomSessionType>({
+        let roomSessionObject = createBaseRoomSessionObject
+        if (this.unifiedEventing) {
+          roomSessionObject = createUnifiedBaseRoomSessionObject
+        }
+
+        const room = roomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
           customSagas,
