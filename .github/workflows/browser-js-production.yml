@@ -48,11 +48,6 @@ jobs:
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
-      - name: Set job result output
-        if: always()
-        run: echo "::set-output name=e2e_test_result::$STATUS"
-        env:
-          STATUS: ${{ job.status }}
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
@@ -64,24 +59,16 @@ jobs:
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
           influxdb-url: ${{ secrets.INFLUXDB_URL }}
-  report-results:
+  analyze-results:
     runs-on: ubuntu-latest
     needs: e2e-tests
     if: always()
     steps:
-      - name: Check results of matrix jobs
+      - name: Fail if any E2E Tests Failed
         run: |
-          failed_jobs=0
-          for job in ${{ toJson(needs.e2e-tests.results) }}; do
-            if [ ${{ job.conclusion }} != 'success' ]; then
-              echo "A job failed"
-              failed_jobs=$((failed_jobs + 1))
-            fi
-          done
-
-          if [ $failed_jobs -ne 0 ]; then
-            echo "Failing the workflow because $failed_jobs jobs failed."
+          if [[ ${{ needs.e2e-tests.result }} != 'success' ]]; then
+            echo "One or more E2E tests failed."
             exit 1
           else
-            echo "All jobs succeeded."
+            echo "All E2E tests passed successfully."
           fi
