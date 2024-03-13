@@ -13,6 +13,7 @@ import {
   RoomSessionStream,
   RoomSessionPlayback,
   RoomSessionRecording,
+  RoomSessionMember,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -108,7 +109,7 @@ function transformPayload(
       )
     }
 
-    if(payload[key] && payload[key].playbacks) {
+    if (payload[key] && payload[key].playbacks) {
       payload[key].playbacks = (payload[key].playbacks || []).map(
         (playback) => {
           let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
@@ -161,6 +162,45 @@ function transformPayload(
         this.instanceMap.set<RoomSessionStream>(stream.id, streamInstance)
         return streamInstance
       })
+    }
+
+    // Member instance is only created for CF SDK
+    if (this.unifiedEventing) {
+      if (payload[key] && payload[key].members) {
+        // @ts-expect-error
+        payload[key].members = (payload[key].members || []).map(
+          (member: any) => {
+            let memberInstance = this.instanceMap.get<RoomSessionMember>(
+              member.id
+            )
+            if (!memberInstance) {
+              memberInstance = Rooms.createRoomSessionMemberObject({
+                store: this.store,
+                payload: {
+                  room_id: payload.room_session.room_id,
+                  room_session_id:
+                    payload.room_session.id ??
+                    payload.room_session.room_session_id,
+                  member: member,
+                },
+              })
+            } else {
+              memberInstance.setPayload({
+                room_id: payload.room_session.room_id,
+                room_session_id:
+                  payload.room_session.id ??
+                  payload.room_session.room_session_id,
+                member: member,
+              })
+            }
+            this.instanceMap.set<RoomSessionMember>(
+              member.member_id,
+              memberInstance
+            )
+            return memberInstance
+          }
+        )
+      }
     }
   })
 

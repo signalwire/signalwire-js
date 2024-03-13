@@ -4,12 +4,19 @@ import {
   RoomSessionConnection,
   RoomSessionObjectEventsHandlerMapping,
 } from './BaseRoomSession'
+import * as workers from './video/workers'
 
 interface RoomMemberMethodParams {
   memberId?: string
 }
 
 export class UnifiedRoomSessionConnection extends RoomSessionConnection {
+  protected initWatcher() {
+    this.runWorker('videoWorkerUnifiedEventing', {
+      worker: workers.videoWorkerUnifiedEventing,
+    })
+  }
+
   audioMute(params: RoomMemberMethodParams) {
     const { memberId } = params || {}
 

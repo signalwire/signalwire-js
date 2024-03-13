@@ -85,6 +85,8 @@ export interface VideoRoomSessionContract {
   displayName: string
   /** Id of the room associated to this room session */
   roomId: string
+  /** Id of the room associated to this room session */
+  roomSessionId?: string
   /** @internal */
   eventChannel: string
   /** Name of this room */
@@ -905,7 +907,7 @@ export interface VideoRoomSubscribedEventParams {
   // FIXME: only for webrtc
   call_id: string
   member_id: string
-  node_id?: string 
+  node_id?: string
 }
 
 export interface VideoRoomSubscribedEvent extends SwEvent {

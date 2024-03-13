@@ -262,17 +262,22 @@ window.connect = async () => {
     console.debug('>> media.disconnected')
   })
 
+  roomObj.on('room.subscribed', (params) =>
+    console.debug('>> room.subscribed', params)
+  )
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
-
-  roomObj.on('destroy', () => {
-    console.debug('>> destroy')
-    restoreUI()
-  })
+  roomObj.on('room.joined', (params) =>
+    console.debug('>> room.joined ', params)
+  )
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
   )
+  roomObj.on('room.ended', (params) => {
+    console.debug('>> room.ended', params)
+    hangup()
+  })
 
   roomObj.on('recording.started', (params) => {
     console.debug('>> recording.started', params)
@@ -286,10 +291,7 @@ window.connect = async () => {
     console.debug('>> recording.updated', params)
     document.getElementById('recordingState').innerText = params.state
   })
-  roomObj.on('room.ended', (params) => {
-    console.debug('>> room.ended', params)
-    hangup()
-  })
+
   roomObj.on('member.joined', (params) =>
     console.debug('>> member.joined', params)
   )
@@ -329,6 +331,11 @@ window.connect = async () => {
     if (params.volume) {
       document.getElementById('playbackVolume').value = params.volume
     }
+  })
+
+  roomObj.on('destroy', () => {
+    console.debug('>> destroy')
+    restoreUI()
   })
 
   await call.start()

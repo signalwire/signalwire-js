@@ -28,21 +28,23 @@ export const videoRoomWorker = function* (
 
   // Upsert member in the instance map
   if ((payload.room_session?.members?.length || 0) > 0) {
-    (payload.room_session.members || []).forEach((member) => {
+    ;(payload.room_session.members || []).forEach((member) => {
       let memberInstance = get<RoomSessionMember>(member.id)
       if (!memberInstance) {
         memberInstance = Rooms.createRoomSessionMemberObject({
           store: roomSession.store,
           payload: {
             room_id: payload.room_session.room_id,
-            room_session_id: payload.room_session.id,
+            room_session_id:
+              payload.room_session.id ?? payload.room_session.room_session_id,
             member: member as InternalVideoMemberEntity & { talking: boolean },
           },
         })
       } else {
         memberInstance.setPayload({
           room_id: payload.room_session.room_id,
-          room_session_id: payload.room_session.id,
+          room_session_id:
+            payload.room_session.id ?? payload.room_session.room_session_id,
           member: member as InternalVideoMemberEntity & { talking: boolean },
         })
       }
@@ -82,11 +84,14 @@ export const videoRoomWorker = function* (
           })
         },
       })
-      for(const memberPayload of payload.room_session.members) {
+      for (const memberPayload of payload.room_session.members) {
         //@ts-expect-error
         yield sagaEffects.fork(videoMemberWorker, {
           ...options,
-          action: {type: 'video.member.joined', payload: {member: memberPayload}},
+          action: {
+            type: 'video.member.joined',
+            payload: { member: memberPayload },
+          },
         })
       }
       roomSession.emit('room.subscribed', payload)

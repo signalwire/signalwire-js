@@ -1,11 +1,11 @@
 import { PubSubAction, MappableObject, mapObject } from '@signalwire/core'
 
 const EVENT_MAPPINGS: Record<string, string[]> = {
-  'call.state': [
-    // 'call.state.[call_state]',
-    // 'video.room.[call_state]',
-    'video.room.[call_state(created:started)]',
-  ],
+  // 'call.state': [
+  // 'call.state.[call_state]',
+  // 'video.room.[call_state]',
+  // 'video.room.[call_state(created:started)]',
+  // ],
   // 'call.play': ['call.play.[state]'],
   // 'call.collect': ['call.collect.[collect_state]'],
   // 'call.connect': ['call.connect.[connect_state]'],

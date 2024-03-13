@@ -13,7 +13,7 @@ import {
 } from '@signalwire/core'
 import { RoomSessionConnection } from '../../BaseRoomSession'
 import { fromUnifiedEvent } from './mappers/unifiedEventsMapper'
-import { unifiedTargetWorker } from './unifiedTargetWorker'
+// import { unifiedTargetWorker } from './unifiedTargetWorker'
 
 export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
   action: T

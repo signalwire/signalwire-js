@@ -87,22 +87,17 @@ export class RoomSessionConnection
     this._mirrored = options.mirrorLocalVideoOverlay
 
     /**
+     * Init watcher through a function so that it can be overriden by the @UnifiedBaseRoomSession
      * The unified eventing worker creates/stores member instances in the instance map
      * For now, the member instances are only required in the CallFabric SDK
      */
-    if (this.unifiedEventing) {
-      this.runWorker('videoWorkerUnifiedEventing', {
-        worker: workers.videoWorkerUnifiedEventing,
-      })
-    } else {
-      this.runWorker('videoWorker', {
-        worker: workers.videoWorker,
-      })
-    }
+    this.initWatcher()
+  }
 
-    // if (options.eventsWatcher) {
-    //   this.runWorker('eventsWatcher', { worker: options.eventsWatcher })
-    // }
+  protected initWatcher() {
+    this.runWorker('videoWorker', {
+      worker: workers.videoWorker,
+    })
   }
 
   get screenShareList() {
