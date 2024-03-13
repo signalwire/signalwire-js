@@ -59,11 +59,11 @@ jobs:
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
           influxdb-url: ${{ secrets.INFLUXDB_URL }}
 
-      # if: success() || failure()
-      # runs-on: ubuntu-latest
-      # needs: e2e-tests
-      # steps:
-      #   - name: Report Results
-      #     uses: actions/report-test-result@v1
-      #     with:
-      #       result: needs.e2e-tests.result
+    # if: success() || failure()
+    # runs-on: ubuntu-latest
+    # needs: e2e-tests
+    # steps:
+    #   - name: Report Results
+    #     uses: actions/report-test-result@v1
+    #     with:
+    #       result: needs.e2e-tests.result
