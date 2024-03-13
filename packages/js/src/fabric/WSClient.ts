@@ -7,7 +7,7 @@ import {
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
-import { wsClientWorker, unifiedEventsWatcher } from './workers'
+import { wsClientWorker } from './workers'
 import {
   InboundCallSource,
   IncomingCallHandlers,
@@ -107,11 +107,6 @@ export class WSClient {
           nodeId: params.nodeId,
           disableUdpIceServers: this.options.disableUdpIceServers || false,
           unifiedEventing: true,
-        })
-
-        // @ts-expect-error
-        this.wsClient.runWorker('unifiedEventsWatcher', {
-          worker: unifiedEventsWatcher,
         })
 
         // WebRTC connection left the room.
@@ -288,11 +283,7 @@ export class WSClient {
       prevCallId: callID,
       nodeId,
       disableUdpIceServers: this.options.disableUdpIceServers || false,
-    })
-
-    // @ts-expect-error
-    this.wsClient.runWorker('unifiedEventsWatcher', {
-      worker: unifiedEventsWatcher,
+      unifiedEventing: true,
     })
 
     // WebRTC connection left the room.

@@ -1,16 +1,26 @@
 import { BaseComponentOptions, connect, Rooms } from '@signalwire/core'
 import {
   BaseRoomSession,
+  BaseRoomSessionOptions,
   RoomSessionConnection,
   RoomSessionObjectEventsHandlerMapping,
 } from './BaseRoomSession'
 import * as workers from './video/workers'
+import { unifiedEventsWatcher } from './fabric/workers'
 
 interface RoomMemberMethodParams {
   memberId?: string
 }
 
 export class UnifiedRoomSessionConnection extends RoomSessionConnection {
+  constructor(options: BaseRoomSessionOptions) {
+    super(options)
+
+    this.runWorker('unifiedEventsWatcher', {
+      worker: unifiedEventsWatcher,
+    })
+  }
+
   protected initWatcher() {
     this.runWorker('videoWorkerUnifiedEventing', {
       worker: workers.videoWorkerUnifiedEventing,
@@ -24,7 +34,7 @@ export class UnifiedRoomSessionConnection extends RoomSessionConnection {
       this.memberId
     )
 
-    let targetMember: Rooms.RoomSessionMemberAPI | null = null
+    let targetMember = selfMember
     if (memberId) {
       targetMember = this.instanceMap.get<Rooms.RoomSessionMemberAPI>(memberId)
     }
@@ -38,13 +48,11 @@ export class UnifiedRoomSessionConnection extends RoomSessionConnection {
           call_id: selfMember.callId,
           node_id: selfMember.nodeId,
         },
-        target: targetMember
-          ? {
-              member_id: targetMember.id,
-              call_id: targetMember.callId,
-              node_id: targetMember.nodeId,
-            }
-          : null,
+        target: {
+          member_id: targetMember.id,
+          call_id: targetMember.callId,
+          node_id: targetMember.nodeId,
+        },
       },
     })
   }

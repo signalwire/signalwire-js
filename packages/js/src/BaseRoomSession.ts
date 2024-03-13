@@ -67,7 +67,7 @@ export interface BaseRoomSession<T>
   leave(): Promise<void>
 }
 
-interface BaseRoomSessionOptions
+export interface BaseRoomSessionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   mirrorLocalVideoOverlay: boolean
   eventsWatcher?: SDKWorker<RoomSessionConnection>
