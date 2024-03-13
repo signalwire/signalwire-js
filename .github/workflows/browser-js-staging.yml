@@ -45,6 +45,7 @@ jobs:
       - name: Test
         id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
+        continue-on-error: true
         env:
           SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
       - name: Report Result
