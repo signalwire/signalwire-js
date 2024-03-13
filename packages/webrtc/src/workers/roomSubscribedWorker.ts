@@ -170,33 +170,29 @@ function transformPayload(
         // @ts-expect-error
         payload[key].members = (payload[key].members || []).map(
           (member: any) => {
-            let memberInstance = this.instanceMap.get<RoomSessionMember>(
-              member.id
-            )
+            const memberId = member.id || member.member_id!
+            const roomSessionId =
+              payload.room_session.id || payload.room_session.room_session_id!
+
+            let memberInstance =
+              this.instanceMap.get<RoomSessionMember>(memberId)
             if (!memberInstance) {
               memberInstance = Rooms.createRoomSessionMemberObject({
                 store: this.store,
                 payload: {
                   room_id: payload.room_session.room_id,
-                  room_session_id:
-                    payload.room_session.id ??
-                    payload.room_session.room_session_id,
+                  room_session_id: roomSessionId,
                   member: member,
                 },
               })
             } else {
               memberInstance.setPayload({
                 room_id: payload.room_session.room_id,
-                room_session_id:
-                  payload.room_session.id ??
-                  payload.room_session.room_session_id,
+                room_session_id: roomSessionId,
                 member: member,
               })
             }
-            this.instanceMap.set<RoomSessionMember>(
-              member.member_id,
-              memberInstance
-            )
+            this.instanceMap.set<RoomSessionMember>(memberId, memberInstance)
             return memberInstance
           }
         )

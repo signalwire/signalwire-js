@@ -24,7 +24,7 @@ export class UnifiedRoomSessionConnection extends RoomSessionConnection {
       this.memberId
     )
 
-    let targetMember = selfMember
+    let targetMember: Rooms.RoomSessionMemberAPI | null = null
     if (memberId) {
       targetMember = this.instanceMap.get<Rooms.RoomSessionMemberAPI>(memberId)
     }
@@ -38,11 +38,13 @@ export class UnifiedRoomSessionConnection extends RoomSessionConnection {
           call_id: selfMember.callId,
           node_id: selfMember.nodeId,
         },
-        target: {
-          member_id: targetMember.id,
-          call_id: targetMember.callId,
-          node_id: targetMember.nodeId,
-        },
+        target: targetMember
+          ? {
+              member_id: targetMember.id,
+              call_id: targetMember.callId,
+              node_id: targetMember.nodeId,
+            }
+          : null,
       },
     })
   }
