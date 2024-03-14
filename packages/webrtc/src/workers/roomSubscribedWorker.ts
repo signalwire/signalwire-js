@@ -13,7 +13,6 @@ import {
   RoomSessionStream,
   RoomSessionPlayback,
   RoomSessionRecording,
-  RoomSessionMember,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -162,41 +161,6 @@ function transformPayload(
         this.instanceMap.set<RoomSessionStream>(stream.id, streamInstance)
         return streamInstance
       })
-    }
-
-    // Member instance is only created for CF SDK
-    if (this.unifiedEventing) {
-      if (payload[key] && payload[key].members) {
-        // @ts-expect-error
-        payload[key].members = (payload[key].members || []).map(
-          (member: any) => {
-            const memberId = member.id || member.member_id!
-            const roomSessionId =
-              payload.room_session.id || payload.room_session.room_session_id!
-
-            let memberInstance =
-              this.instanceMap.get<RoomSessionMember>(memberId)
-            if (!memberInstance) {
-              memberInstance = Rooms.createRoomSessionMemberObject({
-                store: this.store,
-                payload: {
-                  room_id: payload.room_session.room_id,
-                  room_session_id: roomSessionId,
-                  member: member,
-                },
-              })
-            } else {
-              memberInstance.setPayload({
-                room_id: payload.room_session.room_id,
-                room_session_id: roomSessionId,
-                member: member,
-              })
-            }
-            this.instanceMap.set<RoomSessionMember>(memberId, memberInstance)
-            return memberInstance
-          }
-        )
-      }
     }
   })
 
