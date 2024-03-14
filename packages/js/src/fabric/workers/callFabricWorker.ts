@@ -1,37 +1,46 @@
 import {
-  MapToPubSubShape,
   SDKActions,
   SDKWorker,
   SagaIterator,
-  VideoAPIEventParams,
   getLogger,
   sagaEffects,
   VideoAPIEventNames,
   stripNamespacePrefix,
+  VideoAction,
+  CallFabricAction,
+  SDKWorkerParams,
 } from '@signalwire/core'
-import { RoomSessionConnection } from '../BaseRoomSession'
-import { videoStreamWorker } from './videoStreamWorker'
-import { videoRecordWorker } from './videoRecordWorker'
-import { videoPlaybackWorker } from './videoPlaybackWorker'
-import { videoRoomWorker } from './videoRoomWorker'
-import { videoMemberWorker } from './videoMemberWorker'
+import { CallFabricRoomSessionConnection } from '../CallFabricBaseRoomSession'
+import * as videoWorkers from '../../video/workers'
+import { callJoinWorker } from './callJoinWorker'
 
-export const videoWorkerUnifiedEventing: SDKWorker<RoomSessionConnection> =
+export type CallFabricWorkerParams<T> =
+  SDKWorkerParams<CallFabricRoomSessionConnection> & {
+    action: T
+  }
+
+export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
   function* (options): SagaIterator {
-    getLogger().trace('videoWorkerUnifiedEventing started')
+    getLogger().trace('callFabricWorker started')
 
     const { channels, instance: roomSession } = options
     const { swEventChannel } = channels
 
-    function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
+    function* worker(action: VideoAction | CallFabricAction) {
       const { type, payload } = action
 
       switch (type) {
+        case 'call.joined':
+          yield sagaEffects.fork(callJoinWorker, {
+            action,
+            ...options,
+          })
+          return
         case 'video.room.started':
         case 'video.room.updated':
         case 'video.room.ended':
         case 'video.room.subscribed':
-          yield sagaEffects.fork(videoRoomWorker, {
+          yield sagaEffects.fork(videoWorkers.videoRoomWorker, {
             action,
             ...options,
           })
@@ -40,7 +49,7 @@ export const videoWorkerUnifiedEventing: SDKWorker<RoomSessionConnection> =
         case 'video.member.left':
         case 'video.member.updated':
         case 'video.member.talking':
-          yield sagaEffects.fork(videoMemberWorker, {
+          yield sagaEffects.fork(videoWorkers.videoMemberWorker, {
             action,
             ...options,
           })
@@ -48,7 +57,7 @@ export const videoWorkerUnifiedEventing: SDKWorker<RoomSessionConnection> =
         case 'video.playback.started':
         case 'video.playback.updated':
         case 'video.playback.ended':
-          yield sagaEffects.fork(videoPlaybackWorker, {
+          yield sagaEffects.fork(videoWorkers.videoPlaybackWorker, {
             action,
             ...options,
           })
@@ -56,14 +65,14 @@ export const videoWorkerUnifiedEventing: SDKWorker<RoomSessionConnection> =
         case 'video.recording.started':
         case 'video.recording.updated':
         case 'video.recording.ended':
-          yield sagaEffects.fork(videoRecordWorker, {
+          yield sagaEffects.fork(videoWorkers.videoRecordWorker, {
             action,
             ...options,
           })
           return
         case 'video.stream.ended':
         case 'video.stream.started':
-          yield sagaEffects.fork(videoStreamWorker, {
+          yield sagaEffects.fork(videoWorkers.videoStreamWorker, {
             action,
             ...options,
           })
@@ -85,11 +94,10 @@ export const videoWorkerUnifiedEventing: SDKWorker<RoomSessionConnection> =
     }
 
     while (true) {
-      const action: MapToPubSubShape<VideoAPIEventParams> =
-        yield sagaEffects.take(swEventChannel, isVideoOrCallEvent)
+      const action = yield sagaEffects.take(swEventChannel, isVideoOrCallEvent)
 
       yield sagaEffects.fork(worker, action)
     }
 
-    getLogger().trace('videoWorkerUnifiedEventing ended')
+    getLogger().trace('callFabricWorker ended')
   }

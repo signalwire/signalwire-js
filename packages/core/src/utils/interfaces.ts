@@ -19,6 +19,7 @@ import {
   MessagingJSONRPCMethod,
   VoiceJSONRPCMethod,
   ClientContextMethod,
+  CallSegmentContract,
 } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -459,6 +460,7 @@ type SDKWorkerBaseParams<T> = {
   initialState?: any
   getSession: () => BaseSession | undefined
   instanceMap: InstanceMap
+  callSegments: CallSegmentContract[]
   dispatcher?: (
     type: any,
     payload: any,

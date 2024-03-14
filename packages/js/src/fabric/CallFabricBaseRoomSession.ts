@@ -1,42 +1,41 @@
-import { BaseComponentOptions, connect, Rooms } from '@signalwire/core'
+import {
+  BaseComponentOptions,
+  connect,
+  RoomSessionMember,
+} from '@signalwire/core'
 import {
   BaseRoomSession,
   BaseRoomSessionOptions,
   RoomSessionConnection,
   RoomSessionObjectEventsHandlerMapping,
-} from './BaseRoomSession'
-import * as workers from './video/workers'
-import { unifiedEventsWatcher } from './fabric/workers'
+} from '../BaseRoomSession'
+import { callFabricWorker } from './workers'
 
 interface RoomMemberMethodParams {
   memberId?: string
 }
 
-export class UnifiedRoomSessionConnection extends RoomSessionConnection {
+export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   constructor(options: BaseRoomSessionOptions) {
     super(options)
 
-    this.runWorker('unifiedEventsWatcher', {
-      worker: unifiedEventsWatcher,
-    })
-  }
-
-  protected initWatcher() {
-    this.runWorker('videoWorkerUnifiedEventing', {
-      worker: workers.videoWorkerUnifiedEventing,
+    /**
+     * The unified eventing or cf worker creates/stores member instances in the instance map
+     * For now, the member instances are only required in the CallFabric SDK
+     * It also handles call events
+     */
+    this.runWorker('callFabricWorker', {
+      worker: callFabricWorker,
     })
   }
 
   audioMute(params: RoomMemberMethodParams) {
     const { memberId } = params || {}
 
-    const selfMember = this.instanceMap.get<Rooms.RoomSessionMemberAPI>(
-      this.memberId
-    )
-
-    let targetMember = selfMember
+    const selfMember = this.callSegments[0].member
+    let targetMember = this.callSegments[this.callSegments.length - 1].member
     if (memberId) {
-      targetMember = this.instanceMap.get<Rooms.RoomSessionMemberAPI>(memberId)
+      targetMember = this.instanceMap.get<RoomSessionMember>(memberId)
     }
 
     return this.execute({
@@ -58,17 +57,17 @@ export class UnifiedRoomSessionConnection extends RoomSessionConnection {
   }
 }
 
-export const createUnifiedBaseRoomSessionObject = <RoomSessionType>(
+export const createCallFabricBaseRoomSessionObject = <RoomSessionType>(
   params: BaseComponentOptions
 ): BaseRoomSession<RoomSessionType> => {
   const room = connect<
     RoomSessionObjectEventsHandlerMapping,
-    UnifiedRoomSessionConnection,
+    CallFabricRoomSessionConnection,
     BaseRoomSession<RoomSessionType>
   >({
     store: params.store,
     customSagas: params.customSagas,
-    Component: UnifiedRoomSessionConnection,
+    Component: CallFabricRoomSessionConnection,
   })(params)
 
   return room

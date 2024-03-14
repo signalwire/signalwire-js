@@ -20,7 +20,7 @@ import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
 import type { RoomSession } from './RoomSession'
-import { createUnifiedBaseRoomSessionObject } from './UnifiedBaseRoomSession'
+import { createCallFabricBaseRoomSessionObject } from './fabric/CallFabricBaseRoomSession'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -91,7 +91,7 @@ export class ClientAPI<
 
         let roomSessionObject = createBaseRoomSessionObject
         if (this.unifiedEventing) {
-          roomSessionObject = createUnifiedBaseRoomSessionObject
+          roomSessionObject = createCallFabricBaseRoomSessionObject
         }
 
         const room = roomSessionObject<RoomSessionType>({

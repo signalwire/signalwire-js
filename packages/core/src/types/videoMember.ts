@@ -160,7 +160,7 @@ export type InternalVideoMemberEventNames =
     >
   | InternalMemberUpdatedEventNames
 
-export type VideoMemberType = 'member' | 'screen' | 'device'
+export type VideoMemberType = 'member' | 'screen' | 'device' | 'sip' | 'webrtc'
 
 /**
  * Public Contract for a VideoMember
@@ -188,7 +188,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   /** Metadata associated to this member. */
   meta?: Record<string, unknown>
   /** Indicate if the member hand is raised or not */
-  handraised: Boolean
+  handraised: boolean
   callId?: string
   nodeId?: string
   memberId?: string
