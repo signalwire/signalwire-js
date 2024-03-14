@@ -76,10 +76,6 @@ export const videoRoomWorker = function* (
           subType: InternalMemberUpdatedEventNames,
           subPayload
         ) {
-          console.log('dispatched by member memberPositionWorker', {
-            type: subType,
-            payload: subPayload,
-          })
           yield sagaEffects.fork(videoMemberWorker, {
             ...options,
             action: { type: subType, payload: subPayload },

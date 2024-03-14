@@ -151,6 +151,7 @@ export const memberPositionWorker: SDKWorker<any> =
     initialState,
     getSession,
     instanceMap,
+    callSegments,
     dispatcher = defaultDispatcher,
   }): SagaIterator {
     if (!initialState) {
@@ -191,6 +192,7 @@ export const memberPositionWorker: SDKWorker<any> =
             instance,
             getSession,
             instanceMap,
+            callSegments,
             dispatcher,
           })
           break
