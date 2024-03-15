@@ -8,12 +8,18 @@ import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker, unifiedEventsWatcher } from './workers'
-import { InboundCallSource, IncomingCallHandlers, IncomingCallManager, IncomingInvite } from './IncomingCallManager'
+import {
+  InboundCallSource,
+  IncomingCallHandlers,
+  IncomingCallManager,
+  IncomingInvite,
+} from './IncomingCallManager'
 
 export interface OnlineParams {
   incomingCallHandlers: IncomingCallHandlers
 }
-interface PushNotification {
+
+export interface PushNotificationPayload {
   encryption_type: 'aes_256_gcm'
   notification_uuid: string
   with_video: 'true' | 'false'
@@ -26,6 +32,14 @@ interface PushNotification {
   iv: string
   version: string
   decrypted: Record<string, any>
+}
+
+export interface DialParams {
+  to: string
+  nodeId?: string
+  rootElement?: HTMLElement
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
 }
 
 export interface WSClientOptions extends UserOptions {
@@ -48,8 +62,19 @@ export class WSClient {
       unifiedEventing: true,
     })
     this._incomingCallManager = new IncomingCallManager(
-      (payload: IncomingInvite,rootElement: HTMLElement | undefined) => this.buildInboundCall(payload, rootElement), 
-      (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId))
+      (payload: IncomingInvite, rootElement: HTMLElement | undefined) =>
+        this.buildInboundCall(payload, rootElement),
+      (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
+    )
+
+    // @ts-expect-error
+    this.wsClient.runWorker('wsClientWorker', {
+      worker: wsClientWorker,
+      initialState: {
+        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) =>
+          this.notifyIncomingInvite('websocket', incomingInvite),
+      },
+    })
   }
 
   /** @internal */
@@ -58,13 +83,6 @@ export class WSClient {
   }
 
   async connect() {
-    // @ts-ignore
-    this.wsClient.runWorker('wsClientWorker', {
-      worker: wsClientWorker,
-      initialState: {
-        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) => this.notifyIncomingInvite('websocket', incomingInvite), 
-      },
-    })
     await this.wsClient.connect()
   }
 
@@ -72,19 +90,14 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async dial(params: {
-    to: string
-    nodeId?: string
-    rootElement: HTMLElement | undefined
-  }) {
+  async dial(params: DialParams) {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('WSClient dial with:', params)
-
+        console.log('< params >', params)
         await this.connect()
         const call = this.wsClient.rooms.makeRoomObject({
-          // audio,
-          // video: video === true ? VIDEO_CONSTRAINTS : video,
+          audio: params.audio ?? true,
+          video: params.video ?? true,
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
@@ -138,7 +151,7 @@ export class WSClient {
     })
   }
 
-  handlePushNotification(payload: PushNotification) {
+  handlePushNotification(payload: PushNotificationPayload) {
     return new Promise(async (resolve, reject) => {
       const { decrypted, type } = payload
       if (type !== 'call_invite') {
@@ -158,15 +171,6 @@ export class WSClient {
           display_direction,
         },
       } = jsonrpc
-      this.logger.debug('handlePushNotification data', {
-        callID,
-        sdp,
-        caller_id_name,
-        caller_id_number,
-        callee_id_name,
-        callee_id_number,
-        display_direction,
-      })
       try {
         // Connect the client first
         await this.connect()
@@ -196,10 +200,13 @@ export class WSClient {
     })
   }
 
-  private notifyIncomingInvite(source: InboundCallSource, buildCallParams: Omit<IncomingInvite, 'source'>) {
+  private notifyIncomingInvite(
+    source: InboundCallSource,
+    buildCallParams: Omit<IncomingInvite, 'source'>
+  ) {
     this._incomingCallManager.handleIncomingInvite({
       source,
-      ...buildCallParams
+      ...buildCallParams,
     })
   }
 
@@ -253,13 +260,6 @@ export class WSClient {
 
     const { callID, nodeId, sdp } = payload
 
-    console.log('this.wsClient', this.wsClient)
-    console.log('this.wsClient.rooms', this.wsClient.rooms)
-    console.log(
-      'this.wsClient.rooms.makeRoomObject',
-      this.wsClient.rooms.makeRoomObject
-    )
-
     const call = this.wsClient.rooms.makeRoomObject({
       negotiateAudio: true,
       negotiateVideo: true,
@@ -308,7 +308,7 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  online({incomingCallHandlers}: OnlineParams) {
+  online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     // @ts-expect-error
     return this.wsClient.execute({
