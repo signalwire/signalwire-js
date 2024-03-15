@@ -243,6 +243,8 @@ window.connect = async () => {
   const call = await client.dial({
     to: document.getElementById('destination').value,
     nodeId: steeringId,
+    video: document.getElementById('video').checked,
+    audio: document.getElementById('audio').checked,
   })
 
   window.__call = call
@@ -288,21 +290,6 @@ window.connect = async () => {
     document.getElementById('recordingState').innerText = params.state
   })
 
-  roomObj.on('playback.started', (params) => {
-    console.debug('>> playback.started', params)
-    playbackStarted()
-  })
-  roomObj.on('playback.ended', (params) => {
-    console.debug('>> playback.ended', params)
-    playbackEnded()
-  })
-  roomObj.on('playback.updated', (params) => {
-    console.debug('>> playback.updated', params)
-    if (params.volume) {
-      document.getElementById('playbackVolume').value = params.volume
-    }
-  })
-
   roomObj.on('member.joined', (params) =>
     console.debug('>> member.joined', params)
   )
@@ -319,6 +306,22 @@ window.connect = async () => {
   roomObj.on('member.talking', (params) =>
     console.debug('>> member.talking', params)
   )
+
+  roomObj.on('playback.started', (params) => {
+    console.debug('>> playback.started', params)
+    playbackStarted()
+  })
+  roomObj.on('playback.ended', (params) => {
+    console.debug('>> playback.ended', params)
+    playbackEnded()
+  })
+  roomObj.on('playback.updated', (params) => {
+    console.debug('>> playback.updated', params)
+    if (params.volume) {
+      document.getElementById('playbackVolume').value = params.volume
+    }
+  })
+
   roomObj.on('layout.changed', (params) =>
     console.debug('>> layout.changed', params)
   )
@@ -343,7 +346,6 @@ window.connect = async () => {
     btnConnect.classList.add('d-none')
     btnDisconnect.classList.remove('d-none')
     connectStatus.innerHTML = 'Connected'
-
     inCallElements.forEach((button) => {
       button.classList.remove('d-none')
       button.disabled = false
@@ -370,7 +372,11 @@ window.hangup = () => {
 
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('fabric.ws.' + key, e.target.value)
+  let value = e.target.value
+  if (e.target.type === 'checkbox') {
+    value = e.target.checked
+  }
+  localStorage.setItem('fabric.ws.' + key, value)
 }
 
 // jQuery document.ready equivalent
@@ -703,8 +709,7 @@ window.ready(async function () {
     localStorage.getItem('fabric.ws.token') || ''
   document.getElementById('destination').value =
     localStorage.getItem('fabric.ws.destination') || ''
-  document.getElementById('audio').checked =
-    (localStorage.getItem('fabric.ws.audio') || '1') === '1'
+  document.getElementById('audio').checked = true
   document.getElementById('video').checked =
-    (localStorage.getItem('fabric.ws.video') || '1') === '1'
+    localStorage.getItem('fabric.ws.video') === 'true'
 })
