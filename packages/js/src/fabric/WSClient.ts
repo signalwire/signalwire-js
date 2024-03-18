@@ -117,8 +117,6 @@ export class WSClient {
         call.start = () => {
           return new Promise(async (resolve, reject) => {
             try {
-              // @ts-expect-error
-              call.once('verto.display', () => resolve(call))
               call.once('room.subscribed', (params: any) => {
                 call.emit('room.joined', params)
                 resolve(call)
