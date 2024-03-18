@@ -216,9 +216,6 @@ async function getClient() {
         // Fetch the new token and update the client using 👇
         // await client.updateToken(newToken)
       },
-      onCallReceived: async (call) => {
-        console.log('call', call)
-      },
     })
   }
 
@@ -256,6 +253,14 @@ window.connect = async () => {
   btnConnect.classList.add('d-none')
   tapPushNotificationBtn.classList.remove('d-none')
   btnDisconnect.classList.remove('d-none')
+
+  await client.online({
+    incomingCallHandlers: {
+      websocket: (call) => {
+        console.log('call', call)
+      },
+    },
+  })
 }
 
 /**
