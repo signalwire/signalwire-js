@@ -70,7 +70,6 @@ export const videoMemberWorker = function* (
    */
   const toConsistentMemberEvent = (
     payload: VideoMemberEventsParams,
-    memberInstance: RoomSessionMember
   ): Rooms.RoomSessionMemberEventParams => {
     const session = getSession()
     if (isUnifedJWTSession(session)) {
@@ -102,33 +101,33 @@ export const videoMemberWorker = function* (
   if (type.startsWith('video.member.updated.')) {
     roomSession.emit(
       event,
-      toConsistentMemberEvent(payload, memberInstance)
+      toConsistentMemberEvent(payload)
     )
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSession.emit(event, toConsistentMemberEvent(payload, memberInstance))
+      roomSession.emit(event, toConsistentMemberEvent(payload))
       break
     case 'video.member.left':
-      roomSession.emit(event, toConsistentMemberEvent(payload, memberInstance))
+      roomSession.emit(event, toConsistentMemberEvent(payload))
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
-      roomSession.emit(event, toConsistentMemberEvent(payload, memberInstance))
+      roomSession.emit(event, toConsistentMemberEvent(payload))
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
         roomSession.emit(
           `${event}.${suffix}` as MemberTalkingEventNames,
-          toConsistentMemberEvent(payload, memberInstance)
+          toConsistentMemberEvent(payload)
         )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
         roomSession.emit(
           `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
-          toConsistentMemberEvent(payload, memberInstance)
+          toConsistentMemberEvent(payload)
         )
       }
       break
