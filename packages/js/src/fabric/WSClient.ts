@@ -129,7 +129,39 @@ export class WSClient {
           })
         }
 
-        resolve(call)
+        const notImplementedLocalFallback = async ({args, memberId, muted, updated, method}: {args: any,  memberId: string, muted: boolean, updated: 'audio_muted'|'video_muted', method: (params: any) => Promise<void>}) => {
+          try { 
+            await method(args)
+          } catch(e) {
+            if(e.code === '501' && e.message === 'Not implemented') {
+              this.logger.warn('Received "Not implemented" from the server, handling localy only', {args, updated, muted})
+              call.emit(`member.updated.${updated}`, {member: {id: memberId, [`${updated}`]: muted}});                    
+            }
+          }
+        }
+
+        const callProxy = new Proxy(call, {
+          get(target: typeof call, prop: keyof typeof call, receiver: any) {
+            if (prop == 'audioMute') 
+              return async (params: any) =>
+            notImplementedLocalFallback(
+                {
+                  args: params, 
+                  muted: true, 
+                  updated: 'audio_muted', 
+                  memberId: call.memberId, 
+                  method:(p: any) => call.audioMute(p)})
+            if (prop == 'audioUnmute') return async (params: any) => notImplementedLocalFallback({args: params, muted: false, updated: 'audio_muted', memberId: call.memberId, method:(p: any) => call.audioUnmute(p)})
+            if (prop == 'videoMute') return async (params: any) => notImplementedLocalFallback({args: params, muted: true, updated: 'video_muted', memberId: call.memberId, method:(p: any) => call.videoMute(p)})
+            if (prop == 'videoUnmute') return async (params: any) => notImplementedLocalFallback({args: params, muted: false, updated: 'video_muted', memberId: call.memberId, method:(p: any) => call.videoUnmute(p)})
+            
+            return Reflect.get(target, prop, receiver)
+          },
+        })
+
+
+
+        resolve(callProxy)
       } catch (error) {
         getLogger().error('WSClient dial', error)
 
