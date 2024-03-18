@@ -8,7 +8,12 @@ import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker, unifiedEventsWatcher } from './workers'
-import { InboundCallSource, IncomingCallHandlers, IncomingCallManager, IncomingInvite } from './IncomingCallManager'
+import {
+  InboundCallSource,
+  IncomingCallHandlers,
+  IncomingCallManager,
+  IncomingInvite,
+} from './IncomingCallManager'
 
 export interface OnlineParams {
   incomingCallHandlers: IncomingCallHandlers
@@ -26,6 +31,14 @@ interface PushNotification {
   iv: string
   version: string
   decrypted: Record<string, any>
+}
+
+interface MakeRoomParams { 
+  to?: string | undefined; 
+  nodeId?: string | undefined;
+  sdp?: string | undefined;
+  callID?: string | undefined; 
+  rootElement: HTMLElement | undefined; 
 }
 
 export interface WSClientOptions extends UserOptions {
@@ -48,8 +61,10 @@ export class WSClient {
       unifiedEventing: true,
     })
     this._incomingCallManager = new IncomingCallManager(
-      (payload: IncomingInvite,rootElement: HTMLElement | undefined) => this.buildInboundCall(payload, rootElement), 
-      (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId))
+      (payload: IncomingInvite, rootElement: HTMLElement | undefined) =>
+        this.buildInboundCall(payload, rootElement),
+      (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
+    )
   }
 
   /** @internal */
@@ -62,7 +77,8 @@ export class WSClient {
     this.wsClient.runWorker('wsClientWorker', {
       worker: wsClientWorker,
       initialState: {
-        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) => this.notifyIncomingInvite('websocket', incomingInvite), 
+        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) =>
+          this.notifyIncomingInvite('websocket', incomingInvite),
       },
     })
     await this.wsClient.connect()
@@ -82,84 +98,7 @@ export class WSClient {
         console.log('WSClient dial with:', params)
 
         await this.connect()
-        const call = this.wsClient.rooms.makeRoomObject({
-          // audio,
-          // video: video === true ? VIDEO_CONSTRAINTS : video,
-          negotiateAudio: true,
-          negotiateVideo: true,
-          // iceServers,
-          rootElement: params.rootElement ?? this.options.rootElement,
-          applyLocalVideoOverlay: true,
-          stopCameraWhileMuted: true,
-          stopMicrophoneWhileMuted: true,
-          // speakerId,
-          destinationNumber: params.to,
-          watchMediaPackets: false,
-          // watchMediaPacketsTimeout:,
-          nodeId: params.nodeId,
-          eventsWatcher: unifiedEventsWatcher,
-          disableUdpIceServers: this.options.disableUdpIceServers || false,
-        })
-
-        // WebRTC connection left the room.
-        call.once('destroy', () => {
-          this.logger.debug('RTC Connection Destroyed')
-        })
-
-        this.wsClient.once('session.disconnected', () => {
-          this.logger.debug('Session Disconnected')
-        })
-
-        // @ts-expect-error
-        call.attachPreConnectWorkers()
-
-        // @ts-expect-error
-        call.start = () => {
-          return new Promise(async (resolve, reject) => {
-            try {
-              // @ts-expect-error
-              call.once('verto.display', () => resolve(call))
-              call.once('room.subscribed', () => resolve(call))
-
-              await call.join()
-            } catch (error) {
-              getLogger().error('WSClient call start', error)
-              reject(error)
-            }
-          })
-        }
-
-        const notImplementedLocalFallback = async ({args, memberId, muted, updated, method}: {args: any,  memberId: string, muted: boolean, updated: 'audio_muted'|'video_muted', method: (params: any) => Promise<void>}) => {
-          try { 
-            await method(args)
-          } catch(e) {
-            if(e.code === '501' && e.message === 'Not implemented') {
-              this.logger.warn('Received "Not implemented" from the server, handling localy only', {args, updated, muted})
-              call.emit(`member.updated.${updated}`, {member: {id: memberId, [`${updated}`]: muted}});                    
-            }
-          }
-        }
-
-        const callProxy = new Proxy(call, {
-          get(target: typeof call, prop: keyof typeof call, receiver: any) {
-            if (prop == 'audioMute') 
-              return async (params: any) =>
-            notImplementedLocalFallback(
-                {
-                  args: params, 
-                  muted: true, 
-                  updated: 'audio_muted', 
-                  memberId: call.memberId, 
-                  method:(p: any) => call.audioMute(p)})
-            if (prop == 'audioUnmute') return async (params: any) => notImplementedLocalFallback({args: params, muted: false, updated: 'audio_muted', memberId: call.memberId, method:(p: any) => call.audioUnmute(p)})
-            if (prop == 'videoMute') return async (params: any) => notImplementedLocalFallback({args: params, muted: true, updated: 'video_muted', memberId: call.memberId, method:(p: any) => call.videoMute(p)})
-            if (prop == 'videoUnmute') return async (params: any) => notImplementedLocalFallback({args: params, muted: false, updated: 'video_muted', memberId: call.memberId, method:(p: any) => call.videoUnmute(p)})
-            
-            return Reflect.get(target, prop, receiver)
-          },
-        })
-
-
+        const callProxy = this._makeRoom(params)
 
         resolve(callProxy)
       } catch (error) {
@@ -168,6 +107,116 @@ export class WSClient {
         reject(error)
       }
     })
+  }
+
+  private _makeRoom(params: MakeRoomParams) {
+    const call = this.wsClient.rooms.makeRoomObject({
+      negotiateAudio: true,
+      negotiateVideo: true,
+      rootElement: params.rootElement ?? this.options.rootElement,
+      applyLocalVideoOverlay: true,
+      stopCameraWhileMuted: true,
+      stopMicrophoneWhileMuted: true,
+      destinationNumber: params.to,
+      watchMediaPackets: false,
+      nodeId: params.nodeId,
+      remoteSdp: params.sdp,
+      prevCallId: params.callID,
+      eventsWatcher: unifiedEventsWatcher,
+      disableUdpIceServers: this.options.disableUdpIceServers || false,
+    })
+
+    // WebRTC connection left the room.
+    call.once('destroy', () => {
+      this.logger.debug('RTC Connection Destroyed')
+    })
+
+    this.wsClient.once('session.disconnected', () => {
+      this.logger.debug('Session Disconnected')
+    })
+
+    // @ts-expect-error
+    call.attachPreConnectWorkers()
+
+    const notImplementedLocalFallback = async ({
+      args, memberId, muted, updated, method,
+    }: {
+      args: any
+      memberId: string
+      muted: boolean
+      updated: 'audio_muted' | 'video_muted'
+      method: (params: any) => Promise<void>
+    }) => {
+      try {
+        await method(args)
+      } catch (e) {
+        if (e.code === '501' && e.message === 'Not implemented') {
+          this.logger.warn(
+            'Received "Not implemented" from the server, handling localy only',
+            { args, updated, muted }
+          )
+          call.emit(`member.updated.${updated}`, {
+            member: { id: memberId, [`${updated}`]: muted },
+          })
+        }
+      }
+    }
+
+    // @ts-expect-error
+    call.start = () => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // @ts-expect-error
+          call.once('verto.display', () => resolve(callProxy))
+          call.once('room.subscribed', () => resolve(callProxy))
+
+          await call.join()
+        } catch (error) {
+          getLogger().error('WSClient call start', error)
+          reject(error)
+        }
+      })
+    }
+
+    const callProxy = new Proxy(call, {
+      get(target: typeof call, prop: keyof typeof call, receiver: any) {
+        if (prop == 'audioMute')
+          return async (params: any) => notImplementedLocalFallback({
+            args: params,
+            muted: true,
+            updated: 'audio_muted',
+            memberId: call.memberId,
+            method: (p: any) => call.audioMute(p),
+          })
+        if (prop == 'audioUnmute')
+          return async (params: any) => notImplementedLocalFallback({
+            args: params,
+            muted: false,
+            updated: 'audio_muted',
+            memberId: call.memberId,
+            method: (p: any) => call.audioUnmute(p),
+          })
+        if (prop == 'videoMute')
+          return async (params: any) => notImplementedLocalFallback({
+            args: params,
+            muted: true,
+            updated: 'video_muted',
+            memberId: call.memberId,
+            method: (p: any) => call.videoMute(p),
+          })
+        if (prop == 'videoUnmute')
+          return async (params: any) => notImplementedLocalFallback({
+            args: params,
+            muted: false,
+            updated: 'video_muted',
+            memberId: call.memberId,
+            method: (p: any) => call.videoUnmute(p),
+          })
+
+        return Reflect.get(target, prop, receiver)
+      },
+    })
+    return callProxy
   }
 
   handlePushNotification(payload: PushNotification) {
@@ -228,10 +277,13 @@ export class WSClient {
     })
   }
 
-  private notifyIncomingInvite(source: InboundCallSource, buildCallParams: Omit<IncomingInvite, 'source'>) {
+  private notifyIncomingInvite(
+    source: InboundCallSource,
+    buildCallParams: Omit<IncomingInvite, 'source'>
+  ) {
     this._incomingCallManager.handleIncomingInvite({
       source,
-      ...buildCallParams
+      ...buildCallParams,
     })
   }
 
@@ -292,30 +344,7 @@ export class WSClient {
       this.wsClient.rooms.makeRoomObject
     )
 
-    const call = this.wsClient.rooms.makeRoomObject({
-      negotiateAudio: true,
-      negotiateVideo: true,
-      rootElement: rootElement ?? this.options.rootElement,
-      applyLocalVideoOverlay: true,
-      stopCameraWhileMuted: true,
-      stopMicrophoneWhileMuted: true,
-      watchMediaPackets: false,
-      remoteSdp: sdp,
-      prevCallId: callID,
-      nodeId,
-      eventsWatcher: unifiedEventsWatcher,
-      disableUdpIceServers: this.options.disableUdpIceServers || false,
-    })
-
-    // WebRTC connection left the room.
-    call.once('destroy', () => {
-      getLogger().debug('RTC Connection Destroyed')
-    })
-
-    // @ts-expect-error
-    call.attachPreConnectWorkers()
-
-    getLogger().debug('Resolving Call', call)
+    const call = this._makeRoom({nodeId, rootElement, sdp, callID})
 
     return call
   }
@@ -340,7 +369,7 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  online({incomingCallHandlers}: OnlineParams) {
+  online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     // @ts-expect-error
     return this.wsClient.execute({
