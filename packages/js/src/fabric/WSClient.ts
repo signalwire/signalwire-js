@@ -9,6 +9,7 @@ import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker } from './workers'
 import {
+  AcceptInviteParams,
   InboundCallSource,
   IncomingCallHandlers,
   IncomingCallManager,
@@ -62,8 +63,8 @@ export class WSClient {
       unifiedEventing: true,
     })
     this._incomingCallManager = new IncomingCallManager(
-      (payload: IncomingInvite, rootElement: HTMLElement | undefined) =>
-        this.buildInboundCall(payload, rootElement),
+      (payload: IncomingInvite, params: AcceptInviteParams) =>
+        this.buildInboundCall(payload, params),
       (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
     )
   }
@@ -95,11 +96,10 @@ export class WSClient {
   async dial(params: DialParams) {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('< params >', params)
         await this.connect()
         const call = this.wsClient.rooms.makeRoomObject({
-          audio: params.audio ?? true,
-          video: params.video ?? true,
+          audio: params.audio,
+          video: params.video,
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
@@ -254,16 +254,18 @@ export class WSClient {
 
   private buildInboundCall(
     payload: IncomingInvite,
-    rootElement: HTMLElement | undefined
+    params: AcceptInviteParams
   ) {
     getLogger().debug('Build new call to answer')
 
     const { callID, nodeId, sdp } = payload
 
     const call = this.wsClient.rooms.makeRoomObject({
+      audio: params.audio,
+      video: params.video,
       negotiateAudio: true,
       negotiateVideo: true,
-      rootElement: rootElement ?? this.options.rootElement,
+      rootElement: params.rootElement ?? this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
