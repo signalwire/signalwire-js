@@ -7,15 +7,24 @@ import {
   SagaIterator,
   VideoMemberEventNames,
   VideoMemberJoinedEvent,
+  VideoMemberJoinedEventParams,
   VideoMemberLeftEvent,
+  VideoMemberLeftEventParams,
   VideoMemberTalkingEvent,
+  VideoMemberTalkingEventParams,
   VideoMemberUpdatedEvent,
-  fromSnakeToCamelCase,
+  VideoMemberUpdatedEventParams,
   getLogger,
   stripNamespacePrefix,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
 import { isUnifedJWTSession } from '../UnifiedJWTSession'
+
+type VideoMemberEventsParams =
+  | VideoMemberJoinedEventParams
+  | VideoMemberLeftEventParams
+  | VideoMemberUpdatedEventParams
+  | VideoMemberTalkingEventParams
 
 type VideoMemberEvents = MapToPubSubShape<
   | VideoMemberJoinedEvent
@@ -50,58 +59,75 @@ export const videoMemberWorker = function* (
   }
   //@ts-ignore in unified context id => member_id
   set<RoomSessionMember>(payload.member.member_id, memberInstance)
-  const event = stripNamespacePrefix(type) as VideoMemberEventNames
+  
 
-  if (type.startsWith('video.member.updated.')) {
-    const clientType = fromSnakeToCamelCase(event)
-    //@ts-expect-error
-    roomSession.emit(clientType, memberInstance)
-  }
-
-
-  const toConsistentSelf = (memberInstance: RoomSessionMember) => {
+  /**
+   * overide the member id on the event to always match the id
+   * in the first call segment
+   * @param payload
+   * @param memberInstance
+   * @returns
+   */
+  const toConsistentMemberEvent = (
+    payload: VideoMemberEventsParams,
+  ): Rooms.RoomSessionMemberEventParams => {
     const session = getSession()
     if (isUnifedJWTSession(session)) {
       if (session.isASelfInstance(memberInstance.id)) {
         const executeSelf = session.getExcuteSelf()
         return {
-          //@ts-ignore
-          ...memberInstance._payload.member,
-          id: executeSelf.memberId,
-          member_id: executeSelf.memberId,
+          ...payload,
+          member: {
+            //@ts-ignore
+            ...memberInstance._payload.member,
+            id: executeSelf.memberId,
+            member_id: executeSelf.memberId,
+          },
         }
       }
     }
     return {
-      //@ts-ignore
-      ...memberInstance._payload.member,
-      id: memberInstance.id,
+      ...payload,
+      member: {
+        //@ts-ignore
+        ...memberInstance._payload.member,
+      id: memberInstance.id
+      },
     }
+  }
+
+  const event = stripNamespacePrefix(type) as VideoMemberEventNames
+
+  if (type.startsWith('video.member.updated.')) {
+    roomSession.emit(
+      event,
+      toConsistentMemberEvent(payload)
+    )
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSession.emit(event, toConsistentSelf(memberInstance))
+      roomSession.emit(event, toConsistentMemberEvent(payload))
       break
     case 'video.member.left':
-      roomSession.emit(event, toConsistentSelf(memberInstance))
+      roomSession.emit(event, toConsistentMemberEvent(payload))
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
-      roomSession.emit(event, toConsistentSelf(memberInstance))
+      roomSession.emit(event, toConsistentMemberEvent(payload))
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
         roomSession.emit(
           `${event}.${suffix}` as MemberTalkingEventNames,
-          toConsistentSelf(memberInstance)
+          toConsistentMemberEvent(payload)
         )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
         roomSession.emit(
           `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
-          toConsistentSelf(memberInstance)
+          toConsistentMemberEvent(payload)
         )
       }
       break
