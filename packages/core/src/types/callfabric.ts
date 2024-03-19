@@ -23,7 +23,6 @@ export interface Address {
   name: string
   preview_url?: string
   cover_url?: string
-  resource_id: string
   type: string
   channels: {
     audio?: string
