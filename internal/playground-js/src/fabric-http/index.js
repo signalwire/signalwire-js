@@ -213,8 +213,9 @@ window.dialAddress = async (address) => {
 }
 
 window.fetchNextAddresses = async () => {
-  const { nextPage } = window.__addressData
+  const { nextPage, hasNext } = window.__addressData
   try {
+    if (!hasNext) return
     const nextAddresses = await nextPage()
     window.__addressData = nextAddresses
     updateAddressUI()
@@ -224,8 +225,9 @@ window.fetchNextAddresses = async () => {
 }
 
 window.fetchPrevAddresses = async () => {
-  const { prevPage } = window.__addressData
+  const { prevPage, hasPrev } = window.__addressData
   try {
+    if (!hasPrev) return
     const prevAddresses = await prevPage()
     window.__addressData = prevAddresses
     updateAddressUI()

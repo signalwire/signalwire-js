@@ -18,6 +18,7 @@ export interface GetAddressesOptions {
 }
 
 export interface Address {
+  id: string
   display_name: string
   name: string
   preview_url?: string
@@ -43,6 +44,7 @@ export interface GetConversationsOptions {
 export interface Conversation {
   created_at: number
   id: string
+  address_id: string
   last_message_at: number
   metadata: Record<string, any>
   name: string
@@ -68,6 +70,7 @@ export interface ConversationMessage {
   type: string
   subtype: string
   kind: string
+  text: string
 }
 
 export interface FetchConversationMessagesResponse
