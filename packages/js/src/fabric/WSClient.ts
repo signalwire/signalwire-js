@@ -162,13 +162,14 @@ export class WSClient {
       }
     }
 
-    // @ts-expect-error
-    call.start = () => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          // @ts-expect-error
-          call.once('verto.display', () => resolve(callProxy))
-          call.once('room.subscribed', () => resolve(callProxy))
+        // @ts-expect-error
+        call.start = () => {
+          return new Promise(async (resolve, reject) => {
+            try {
+              call.once('room.subscribed', (params: any) => {
+                call.emit('room.joined', params)
+                resolve(call)
+              })
 
           await call.join()
         } catch (error) {
