@@ -23,7 +23,7 @@ export interface Address {
   name: string
   preview_url?: string
   cover_url?: string
-  type: string
+  type: 'room' | 'call' | 'app' | 'subscriber'
   channels: {
     audio?: string
     messaging?: string
