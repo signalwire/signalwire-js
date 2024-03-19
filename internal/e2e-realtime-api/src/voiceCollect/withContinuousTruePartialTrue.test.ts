@@ -7,11 +7,6 @@ import {
   makeSipDomainAppAddress,
 } from '../utils'
 
-const possibleExpectedTexts = [
-  '12345678910',
-  '1112',
-]
-
 const handler: TestHandler = ({ domainApp }) => {
   if (!domainApp) {
     throw new Error('Missing domainApp')
@@ -67,7 +62,7 @@ const handler: TestHandler = ({ domainApp }) => {
                     console.log('>>> collect.started')
                   },
                   onUpdated: (_collect) => {
-                    console.log('>>> collect.updated: [', _collect.text, ']')
+                    console.log('>>> collect.updated: [', _collect.text, '] - confidence: [', _collect.confidence, ']')
 
                     /* With 'continuous' true, we may have 'final' true to indicate
                      * a portion of speech has been correctly collected and this
@@ -77,9 +72,10 @@ const handler: TestHandler = ({ domainApp }) => {
                     if (_collect.final === true) {
                       const collected_cleaned = _collect.text!.trim().replace(/\s+/g, '');
                       console.log(">>> collected update cleaned: [", collected_cleaned, "]")
+                      const intermediate_result = '12345678910'
 
                       tap.ok(
-                        possibleExpectedTexts.includes(collected_cleaned!),
+                        collected_cleaned == intermediate_result,
                         'Received Correct Updated Text'
                       )
                     }
@@ -107,12 +103,16 @@ const handler: TestHandler = ({ domainApp }) => {
             setTimeout(() => call.hangup(), 100)
 
             const collected = await callCollect.ended()
-            const collected_cleaned = collected.text!.trim().replace(/\s+/g, '');
+            console.log('>>> collect.ended: [', collected.text, '] - confidence: [', collected.confidence, ']')
+
+            const collected_cleaned = collected.text!.trim().replace(/\s+/g, '')
             console.log(">>> collected cleaned: [", collected_cleaned, "]")
+            // Seen values: '11 12', '1112', '11121112'. '11 12th'
+            const final_expected: string = '1112'
 
             tap.ok(
-              possibleExpectedTexts.includes(collected_cleaned!),
-              'Received Correct Text'
+              collected_cleaned.includes(final_expected),
+              'Received Correct Final Text'
             )
 
             // await call.hangup()

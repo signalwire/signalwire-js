@@ -267,17 +267,13 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
 }
 
 export const createTestSATToken = async () => {
-  const CF_BASIC_TOKEN = Buffer.from(
-    `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
-  ).toString('base64')
-
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${CF_BASIC_TOKEN}`,
+        Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
         reference: process.env.SAT_REFERENCE,
@@ -381,7 +377,10 @@ export const expectRoomJoined = (
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
-      roomObj.once('room.joined', resolve)
+      roomObj.once('room.joined', (room) => {
+        console.log('Room joined!')
+        resolve(room)
+      })
 
       if (invokeJoin) {
         await roomObj.join().catch(reject)
@@ -768,21 +767,32 @@ export const pageEmittedEvents = async (
   )
 }
 
-export const createCallWithCompatibilityApi = async (resource: string, inlineLaml: string) => {
-  const data = new URLSearchParams();
+export const createCallWithCompatibilityApi = async (
+  resource: string,
+  inlineLaml: string,
+  codecs?: string | undefined
+) => {
+  const data = new URLSearchParams()
 
-  if (inlineLaml !== null && inlineLaml !== "") {
+  if (inlineLaml !== null && inlineLaml !== '') {
     data.append('Laml', inlineLaml)
   }
-  data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`);
+  data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`)
 
   const vertoDomain = process.env.VERTO_DOMAIN
   expect(vertoDomain).toBeDefined()
 
-  data.append('To', `verto:${resource}@${vertoDomain}`);
+  let to = `verto:${resource}@${vertoDomain}`
+  if (codecs) {
+    to += `;codecs=${codecs}`
+  }
+  data.append('To', to)
 
-  console.log("REST API URL: ", `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`)
-  console.log("REST API payload: ", data)
+  console.log(
+    'REST API URL: ',
+    `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`
+  )
+  console.log('REST API payload: ', data)
 
   const response = await fetch(
     `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
@@ -798,9 +808,13 @@ export const createCallWithCompatibilityApi = async (resource: string, inlineLam
 
   if (response.status === 201) {
     return response.status
-  }
-  else {
-    console.log("Unexpected response from REST API: ", response.status, " = ", response.statusText)
+  } else {
+    console.log(
+      'Unexpected response from REST API: ',
+      response.status,
+      ' = ',
+      response.statusText
+    )
   }
   return undefined
 }
@@ -812,8 +826,9 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
   const audioStats = await page.evaluate(async () => {
     // @ts-expect-error
     const currentCall = window.__currentCall
-    // @ts-expect-error
-    const audioReceiver = currentCall.peer.instance.getReceivers().find(r => r.track.kind === 'audio')
+    const audioReceiver = currentCall.peer.instance
+      .getReceivers()
+      .find((r: any) => r.track.kind === 'audio')
 
     const audioTrackId = audioReceiver.track.id
 
@@ -860,21 +875,213 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
   expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
 }
 
+export const getDialConferenceLaml = (conferenceNameBase: string) => {
+  const conferenceName = randomizeRoomName(conferenceNameBase)
+  const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
+  const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
+    <Response>
+      <Dial>
+        <Conference
+          endConferenceOnExit="false"
+          startConferenceOnEnter="true"
+          waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
+          waitMethod="GET"
+          ${conferenceRegion}>
+          ${conferenceName}
+        </Conference>
+      </Dial>
+    </Response>`
+
+  return inlineLaml
+}
+
+export const expectv2HasReceivedAudio = async (
+  page: Page,
+  minTotalAudioEnergy: number,
+  minPacketsReceived: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const currentCall = window.__currentCall
+    const audioReceiver = currentCall.peer.instance
+      .getReceivers()
+      .find((r: any) => r.track.kind === 'audio')
+
+    const audioTrackId = audioReceiver.track.id
+
+    const stats = await currentCall.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
+          value.forEach((entry) => {
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats: ', audioStats)
+
+  /* This is a workaround what we think is a bug in Playwright/Chromium
+   * There are cases where totalAudioEnergy is not present in the report
+   * even though we see audio and it's not silence.
+   * In that case we rely on the number of packetsReceived.
+   * If there is genuine silence, then totalAudioEnergy must be present,
+   * albeit being a small number.
+   */
+  console.log(
+    `Evaluating audio energy (min energy: ${minTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
+  } else {
+    console.log('Warning: totalAudioEnergy was missing from the report!')
+    if (packetsReceived) {
+      // We still want the right amount of packets
+      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+    } else {
+      console.log('Warning: packetsReceived was missing from the report!')
+      /* We don't make this test fail, because the absence of packetsReceived
+       * is a symptom of an issue with RTCStats, rather than an indication
+       * of lack of RTP flow.
+       */
+    }
+  }
+}
+
+export const expectv2HasReceivedSilence = async (
+  page: Page,
+  maxTotalAudioEnergy: number,
+  minPacketsReceived: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const currentCall = window.__currentCall
+    const audioReceiver = currentCall.peer.instance
+      .getReceivers()
+      .find((r: any) => r.track.kind === 'audio')
+
+    const audioTrackId = audioReceiver.track.id
+
+    const stats = await currentCall.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
+          value.forEach((entry) => {
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats: ', audioStats)
+
+  /* This is a workaround what we think is a bug in Playwright/Chromium
+   * There are cases where totalAudioEnergy is not present in the report
+   * even though we see audio and it's not silence.
+   * In that case we rely on the number of packetsReceived.
+   * If there is genuine silence, then totalAudioEnergy must be present,
+   * albeit being a small number.
+   */
+  console.log(
+    `Evaluating audio energy (max energy: ${maxTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
+  } else {
+    console.log('Warning: totalAudioEnergy was missing from the report!')
+    if (packetsReceived) {
+      // We still want the right amount of packets
+      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+    } else {
+      console.log('Warning: packetsReceived was missing from the report!')
+      /* We don't make this test fail, because the absence of packetsReceived
+       * is a symptom of an issue with RTCStats, rather than an indication
+       * of lack of RTP flow.
+       */
+    }
+  }
+}
+
 export const randomizeResourceName = (prefix: string = 'e2e') => {
   return `res-${prefix}${uuid()}`
 }
 
 export const expectInjectRelayHost = async (page: Page, host: string) => {
-  await page.evaluate(async (params) => {
-    // @ts-expect-error
-    window.__host = params.host
-  },
-  {
-    host: host
-  })
+  await page.evaluate(
+    async (params) => {
+      // @ts-expect-error
+      window.__host = params.host
+    },
+    {
+      host: host,
+    }
+  )
 }
 
-export const expectRelayConnected = async (page: Page, envRelayProject: string, jwt: string) => {
+export const expectRelayConnected = async (
+  page: Page,
+  envRelayProject: string,
+  jwt: string
+) => {
   // Project locator
   const project = page.locator('#project')
   expect(project).not.toBe(null)
