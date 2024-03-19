@@ -64,12 +64,15 @@ const configureStore = (options: ConfigureStoreOptions) => {
   }) as Store
 
   const instanceMap = useInstanceMap()
+
   const callSegments: CallSegmentContract[] = []
 
   const { initSession, getSession, sessionEmitter } = useSession({
     userOptions,
     sessionChannel,
     SessionConstructor,
+    //@ts-ignore FIXME
+    instanceMap,
   })
 
   const runSaga = <T>(
