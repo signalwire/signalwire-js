@@ -121,6 +121,7 @@ export type {
   SubscriberInfoResponse,
   ConversationMessageEventName,
   ConversationMessageEvent,
+  ConversationEventParams,
   ConversationEvent,
   RegisterDeviceParams,
   UnregisterDeviceParams,
