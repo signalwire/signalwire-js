@@ -1104,3 +1104,72 @@ export const expectRelayConnected = async (
   // Wait for call button to be enabled when signalwire.ready occurs
   await expect(startCall).toBeEnabled()
 }
+
+export const expectCFInitialEvents = (
+  page: Page,
+  extraEvents: Promise<boolean>[] = []
+) => {
+  const initialEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callCreated = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'created') {
+          resolve(true)
+        }
+      })
+    })
+    const callAnswered = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'answered') {
+          resolve(true)
+        }
+      })
+    })
+    const callJoined = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.joined', () => resolve(true))
+    })
+
+    return Promise.all([callJoined, callCreated, callAnswered])
+  })
+  return Promise.all([initialEvents, ...extraEvents])
+}
+
+export const expectCFFinalEvents = (
+  page: Page,
+  extraEvents: Promise<unknown>[] = []
+) => {
+  const finalEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callEnding = new Promise((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'ending') {
+          resolve(true)
+        }
+      })
+    })
+    const callEnded = new Promise((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'ended') {
+          resolve(true)
+        }
+      })
+    })
+    const callLeft = new Promise((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.left', () => resolve(true))
+    })
+
+    return Promise.all([callEnding, callEnded, callLeft])
+  })
+
+  return Promise.all([finalEvents, ...extraEvents])
+}

@@ -5,17 +5,15 @@ import {
   type FetchAddressResponse,
   type GetAddressesOptions,
   type UserOptions,
+  type RegisterDeviceParams,
+  type UnregisterDeviceParams,
+  type RegisterDeviceResponse,
 } from '@signalwire/core'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 
 type JWTHeader = { ch?: string; typ?: string }
-
-interface RegisterDeviceParams {
-  deviceType: 'iOS' | 'Android' | 'Desktop'
-  deviceToken: string
-}
 
 // TODO: extends from a Base class to share from core
 export class HTTPClient {
@@ -80,7 +78,7 @@ export class HTTPClient {
     deviceToken,
   }: RegisterDeviceParams) {
     const path = '/subscriber/devices' as const
-    const { body } = await this.httpClient<any>(path, {
+    const { body } = await this.httpClient<RegisterDeviceResponse>(path, {
       method: 'POST',
       body: {
         device_type: deviceType,
@@ -91,9 +89,9 @@ export class HTTPClient {
     return body
   }
 
-  public async unregisterDevice({ id }: { id: string }) {
+  public async unregisterDevice({ id }: UnregisterDeviceParams) {
     const path = `/subscriber/devices/${id}` as const
-    return await this.httpClient<any>(path, {
+    return await this.httpClient<void>(path, {
       method: 'DELETE',
     })
   }

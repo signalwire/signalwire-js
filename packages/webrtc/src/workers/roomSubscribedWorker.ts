@@ -53,6 +53,10 @@ export const roomSubscribedWorker: SDKWorker<
    */
   instance.setActiveRTCPeer(rtcPeerId)
 
+  const roomSessionId =
+    action.payload.room_session.id ||
+    action.payload.room_session.room_session_id
+
   /**
    * TODO: Replace the redux action/component with properties on RTCPeer instance?
    */
@@ -60,7 +64,7 @@ export const roomSubscribedWorker: SDKWorker<
     componentActions.upsert({
       id: action.payload.call_id,
       roomId: action.payload.room_session.room_id,
-      roomSessionId: action.payload.room_session.id,
+      roomSessionId: roomSessionId,
       memberId: action.payload.member_id,
       previewUrl: action.payload.room_session.preview_url,
     })
@@ -108,7 +112,7 @@ function transformPayload(
       )
     }
 
-    if(payload[key] && payload[key].playbacks) {
+    if (payload[key] && payload[key].playbacks) {
       payload[key].playbacks = (payload[key].playbacks || []).map(
         (playback) => {
           let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(

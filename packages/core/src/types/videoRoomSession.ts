@@ -81,6 +81,8 @@ export type InternalVideoRoomSessionEventNames =
 export interface VideoRoomSessionContract {
   /** Unique id for this room session */
   id: string
+  /** Unique id for this room session */
+  roomSessionId?: string
   /** Display name for this room. Defaults to the value of `name` */
   displayName: string
   /** Id of the room associated to this room session */
@@ -905,7 +907,7 @@ export interface VideoRoomSubscribedEventParams {
   // FIXME: only for webrtc
   call_id: string
   member_id: string
-  node_id?: string 
+  node_id?: string
 }
 
 export interface VideoRoomSubscribedEvent extends SwEvent {

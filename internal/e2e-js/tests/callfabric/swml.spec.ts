@@ -1,11 +1,11 @@
-import { test, expect } from '../../fixtures'
+import { test } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
+  expectCFFinalEvents,
+  expectCFInitialEvents,
   expectPageReceiveAudio,
-  pageEmittedEvents,
 } from '../../utils'
-import { callAnsweredEvents, callEndingEvents, roomEndedEvents, roomStartedEvents, ttsFinishedEvents, ttsPlayingEvents } from './expectedEvents'
 
 test.describe('CallFabric SWML', () => {
   test('should dial an address and expect a TTS audio', async ({
@@ -28,9 +28,6 @@ test.describe('CallFabric SWML', () => {
 
           const call = await client.dial({
             to: resourceName,
-            logLevel: 'debug',
-            debug: { logWsTraffic: true },
-            nodeId: undefined,
           })
 
           // @ts-expect-error
@@ -42,17 +39,17 @@ test.describe('CallFabric SWML', () => {
       { resourceName }
     )
 
-    const stateCreatedEventsPromise = pageEmittedEvents(page, roomStartedEvents)
+    const callPlayStarted = page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.play', (params: any) => {
+          if (params.state === 'playing') resolve(true)
+        })
+      })
+    })
 
-    const stateAnsweredEventsPromise = pageEmittedEvents(page, callAnsweredEvents)
-
-    const statePlayPlayingEventsPromise = pageEmittedEvents(page, ttsPlayingEvents)
-
-    const statePlayFinishedEventsPromise = pageEmittedEvents(page, ttsFinishedEvents)
-
-    const stateEndingEventsPromise = pageEmittedEvents(page, callEndingEvents)
-
-    const stateEndedEventsPromise = pageEmittedEvents(page, roomEndedEvents)
+    const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -60,15 +57,22 @@ test.describe('CallFabric SWML', () => {
 
       await call.start()
     })
-    expect(await stateCreatedEventsPromise).toBeTruthy()
 
-    expect(await stateAnsweredEventsPromise).toBeTruthy()
-
-    expect(await statePlayPlayingEventsPromise).toBeTruthy()
+    await expectInitialEvents
 
     await expectPageReceiveAudio(page)
 
-    expect(await statePlayFinishedEventsPromise).toBeTruthy()
+    const callPlayEnded = page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.play', (params: any) => {
+          if (params.state === 'finished') resolve(true)
+        })
+      })
+    })
+
+    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
 
     // Hangup the call
     await page.evaluate(async () => {
@@ -78,12 +82,10 @@ test.describe('CallFabric SWML', () => {
       await call.hangup()
     })
 
-    expect(await stateEndingEventsPromise).toBeTruthy()
-
-    expect(await stateEndedEventsPromise).toBeTruthy()
+    await expectFinalEvents
   })
 
-  test.skip('should dial an address and expect a hangup', async ({
+  test('should dial an address and expect a hangup', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -103,7 +105,6 @@ test.describe('CallFabric SWML', () => {
 
           const call = await client.dial({
             to: resourceName,
-            nodeId: undefined,
           })
 
           // @ts-expect-error
@@ -115,22 +116,8 @@ test.describe('CallFabric SWML', () => {
       { resourceName }
     )
 
-        const stateCreatedEventsPromise = pageEmittedEvents(
-          page,
-          roomStartedEvents
-        )
-
-        const stateAnsweredEventsPromise = pageEmittedEvents(
-          page,
-          callAnsweredEvents
-        )
-
-        const stateEndingEventsPromise = pageEmittedEvents(
-          page,
-          callEndingEvents
-        )
-
-        const stateEndedEventsPromise = pageEmittedEvents(page, roomEndedEvents)
+    const expectInitialEvents = expectCFInitialEvents(page)
+    const expectFinalEvents = expectCFFinalEvents(page)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -139,20 +126,7 @@ test.describe('CallFabric SWML', () => {
       await call.start()
     })
 
-    expect(await stateCreatedEventsPromise).toBeTruthy()
-
-    expect(await stateAnsweredEventsPromise).toBeTruthy()
-
-    expect(await stateEndingEventsPromise).toBeTruthy()
-
-    expect(await stateEndedEventsPromise).toBeTruthy()
-
-    const roomSession = await page.evaluate(() => {
-      // @ts-expect-error
-      const roomObj = window._roomObj
-      return roomObj
-    })
-
-    expect(roomSession.state).toBe('destroy')
+    await expectInitialEvents
+    await expectFinalEvents
   })
 })
