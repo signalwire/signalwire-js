@@ -52,7 +52,7 @@ export interface FetchConversationsResponse
   extends PaginatedResponse<Conversation> {}
 
 /**
- * Messages
+ * Conversation Messages
  */
 
 export interface GetMessagesOptions {
@@ -78,6 +78,10 @@ export interface GetConversationMessagesOptions {
   pageSize?: number
 }
 
+/**
+ * Subsriber info
+ */
+
 export interface SubscriberInfoResponse {
   id: string
   email: string
@@ -94,4 +98,27 @@ export interface SubscriberInfoResponse {
     display_name: string
     scopes: string[]
   }
+}
+
+/**
+ * Device registration
+ */
+export type RegisterDeviceType = 'iOS' | 'Android' | 'Desktop'
+
+export interface RegisterDeviceParams {
+  deviceType: RegisterDeviceType
+  deviceToken: string
+}
+
+export interface UnregisterDeviceParams {
+  id: string
+}
+
+export interface RegisterDeviceResponse {
+  date_registered: Date
+  device_name?: string
+  device_token: string
+  device_type: RegisterDeviceType
+  id: string
+  push_notification_key: string
 }
