@@ -68,8 +68,6 @@ export type {
   InboundCallSource,
   IncomingCallNotification,
   AcceptInviteParams,
-  RegisterDeviceParams,
-  UnregisterDeviceParams,
 } from './fabric'
 
 /**
@@ -124,6 +122,9 @@ export type {
   ConversationMessageEventName,
   ConversationMessageEvent,
   ConversationEvent,
+  RegisterDeviceParams,
+  UnregisterDeviceParams,
+  RegisterDeviceResponse,
 } from '@signalwire/core'
 
 export type {
