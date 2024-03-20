@@ -83,18 +83,21 @@ export interface GetConversationMessagesOptions {
  */
 
 export interface SubscriberInfoResponse {
-  app_settings?: string
-  company_name?: string
-  country?: string
-  display_name?: string
+  id: string
   email: string
   first_name?: string
-  id: string
-  job_title?: string
   last_name?: string
-  push_notification_key: string
-  region?: string
+  display_name?: string
+  job_title?: string
   time_zone?: number
+  country?: string
+  region?: string
+  company_name?: string
+  push_notification_key: string
+  app_settings?: {
+    display_name: string
+    scopes: string[]
+  }
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   type FetchAddressResponse,
   type GetAddressesOptions,
   type UserOptions,
+  type SubscriberInfoResponse,
   type RegisterDeviceParams,
   type UnregisterDeviceParams,
   type RegisterDeviceResponse,
@@ -94,5 +95,13 @@ export class HTTPClient {
     return await this.httpClient<void>(path, {
       method: 'DELETE',
     })
+  }
+
+  public async getSubscriberInfo() {
+    let path = '/api/fabric/subscriber/info'
+
+    const { body } = await this.httpClient<SubscriberInfoResponse>(path)
+
+    return body
   }
 }
