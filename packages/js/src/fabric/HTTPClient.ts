@@ -5,9 +5,9 @@ import {
   type FetchAddressResponse,
   type GetAddressesOptions,
   type UserOptions,
-  RegisterDeviceParams,
-  UnregisterDeviceParams,
-  RegisterDeviceResponse,
+  type RegisterDeviceParams,
+  type UnregisterDeviceParams,
+  type RegisterDeviceResponse,
 } from '@signalwire/core'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
