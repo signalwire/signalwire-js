@@ -12,9 +12,13 @@ import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 
 type JWTHeader = { ch?: string; typ?: string }
 
-interface RegisterDeviceParams {
+export interface RegisterDeviceParams {
   deviceType: 'iOS' | 'Android' | 'Desktop'
   deviceToken: string
+}
+
+export interface UnregisterDeviceParams {
+  id: string
 }
 
 // TODO: extends from a Base class to share from core
@@ -91,7 +95,7 @@ export class HTTPClient {
     return body
   }
 
-  public async unregisterDevice({ id }: { id: string }) {
+  public async unregisterDevice({ id }: UnregisterDeviceParams) {
     const path = `/subscriber/devices/${id}` as const
     return await this.httpClient<any>(path, {
       method: 'DELETE',
