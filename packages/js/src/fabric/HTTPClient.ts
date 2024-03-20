@@ -5,6 +5,7 @@ import {
   type FetchAddressResponse,
   type GetAddressesOptions,
   type UserOptions,
+  type SubscriberInfoResponse,
 } from '@signalwire/core'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -96,5 +97,13 @@ export class HTTPClient {
     return await this.httpClient<any>(path, {
       method: 'DELETE',
     })
+  }
+
+  public async getSubscriberInfo() {
+    let path = '/api/fabric/subscriber/info'
+
+    const { body } = await this.httpClient<SubscriberInfoResponse>(path)
+
+    return body
   }
 }

@@ -8,6 +8,7 @@ export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
   registerDevice: HTTPClient['registerDevice']
   unregisterDevice: HTTPClient['unregisterDevice']
+  getSubscriberInfo: HTTPClient['getSubscriberInfo']
   connect: WSClient['connect']
   disconnect: WSClient['disconnect']
   online: WSClient['online']
@@ -40,6 +41,7 @@ export const SignalWire = (
         httpHost: httpClient.httpHost,
         registerDevice: httpClient.registerDevice.bind(httpClient),
         unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
+        getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
         connect: wsClient.connect.bind(wsClient),
         disconnect: wsClient.disconnect.bind(wsClient),
         online: wsClient.online.bind(wsClient),
