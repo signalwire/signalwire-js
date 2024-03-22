@@ -494,7 +494,7 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   if (totalAudioEnergy) {
-    expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+    expect(totalAudioEnergy).toBeGreaterThan(value)
   } else {
     console.log('Warning - totalAudioEnergy was not present in the audioStats.')
   }
@@ -826,7 +826,7 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
 
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   if (totalAudioEnergy) {
-    expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+    expect(totalAudioEnergy).toBeGreaterThan(value)
   } else {
     console.log('Warning - totalAudioEnergy was not present in the audioStats.')
   }
