@@ -59,7 +59,6 @@ export const videoMemberWorker = function* (
   }
   //@ts-ignore in unified context id => member_id
   set<RoomSessionMember>(payload.member.member_id, memberInstance)
-  
 
   /**
    * overide the member id on the event to always match the id
@@ -69,7 +68,7 @@ export const videoMemberWorker = function* (
    * @returns
    */
   const toConsistentMemberEvent = (
-    payload: VideoMemberEventsParams,
+    payload: VideoMemberEventsParams
   ): Rooms.RoomSessionMemberEventParams => {
     const session = getSession()
     if (isUnifedJWTSession(session)) {
@@ -91,7 +90,7 @@ export const videoMemberWorker = function* (
       member: {
         //@ts-ignore
         ...memberInstance._payload.member,
-      id: memberInstance.id
+        id: memberInstance.id,
       },
     }
   }
@@ -99,10 +98,7 @@ export const videoMemberWorker = function* (
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
-    roomSession.emit(
-      event,
-      toConsistentMemberEvent(payload)
-    )
+    roomSession.emit(event, toConsistentMemberEvent(payload))
   }
 
   switch (type) {

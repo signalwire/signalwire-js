@@ -256,6 +256,14 @@ window.connect = async () => {
   btnConnect.classList.add('d-none')
   tapPushNotificationBtn.classList.remove('d-none')
   btnDisconnect.classList.remove('d-none')
+
+  await client.online({
+    incomingCallHandlers: {
+      websocket: (call) => {
+        console.log('call', call)
+      },
+    },
+  })
 }
 
 /**
