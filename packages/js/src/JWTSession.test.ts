@@ -23,14 +23,14 @@ describe('JWTSession', () => {
     expect(sessionTwo.host).toBe('wss://relay.signalwire.com')
   })
 
-  it('should give priority to the host coming from the userParams (if present)', () => {
+  it('should override the host option with the connection host header from the token)', () => {
     const session = new JWTSession({
       host: 'ws://localhost:8080',
       token:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImNoIjoiZXhhbXBsZS5ob3N0LmRvbWFpbi5jb20ifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.G7CvxKKQV44kk3wdiKaq2VYOb2UayJBpKKPXn_84j9E',
     })
 
-    expect(session.host).toBe('ws://localhost:8080')
+    expect(session.host).toBe('wss://example.host.domain.com')
   })
 
   it('should fallback to `host` if the `cf` header coming on the JWT is not there or invalid', () => {

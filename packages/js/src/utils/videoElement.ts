@@ -183,6 +183,10 @@ const setVideoMediaTrack = ({
   })
 }
 
+/**
+ * @deprecated
+ * FIXME remove this in the future
+ */
 const createRootElementResizeObserver = ({
   video,
   rootElement,

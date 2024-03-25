@@ -3,6 +3,7 @@ import { getLogger } from '../../utils'
 import { getEventEmitter } from '../../utils/EventEmitter'
 import {
   ClientEvents,
+  InstanceMap,
   InternalUserOptions,
   SessionConstructor,
 } from '../../utils/interfaces'
@@ -12,10 +13,11 @@ interface UseSessionOptions {
   userOptions: InternalUserOptions
   SessionConstructor: SessionConstructor
   sessionChannel: SessionChannel
+  instanceMap: InstanceMap
 }
 
 export const useSession = (options: UseSessionOptions) => {
-  const { SessionConstructor, userOptions, sessionChannel } = options
+  const { SessionConstructor, userOptions, sessionChannel, instanceMap } = options
 
   const sessionEmitter = getEventEmitter<ClientEvents>()
 
@@ -25,6 +27,7 @@ export const useSession = (options: UseSessionOptions) => {
     session = new SessionConstructor({
       ...userOptions,
       sessionChannel,
+      instanceMap,
     })
     return session
   }

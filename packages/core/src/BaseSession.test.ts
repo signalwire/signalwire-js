@@ -6,6 +6,7 @@ import {
   RPCPing,
   RPCPingResponse,
   RPCDisconnectResponse,
+  RPCConnectUnified,
 } from './RPCMessages'
 import { SWCloseEvent } from './utils'
 import { wait } from './testUtils'
@@ -62,6 +63,37 @@ describe('BaseSession', () => {
 
   it('should include events_ack on RPCConnect message', () => {
     expect(rpcConnect.params.event_acks).toBeTruthy()
+  })
+
+  it('should subscribe to unified event when session the initialize with unifiedEventing:true', async () => {
+    const unifiedEventingSession = new BaseSession({
+      host,
+      project,
+      token,
+      unifiedEventing: true,
+    })
+
+    const rpcConnectUnified = RPCConnectUnified({
+      authentication: {
+        project,
+        token,
+      }
+    })
+
+    unifiedEventingSession.WebSocketConstructor = WebSocket
+    unifiedEventingSession.CloseEventConstructor = SWCloseEvent
+    unifiedEventingSession.dispatch = jest.fn()
+    unifiedEventingSession.connect()
+    await ws.connected
+
+    expect(unifiedEventingSession.connected).toBe(true)
+
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnectUnified))
+
+    unifiedEventingSession.disconnect()
+
+    expect(unifiedEventingSession.connected).toBe(false)
+    expect(unifiedEventingSession.closed).toBe(true)
   })
 
   it('should connect and disconnect to/from the provided host', async () => {

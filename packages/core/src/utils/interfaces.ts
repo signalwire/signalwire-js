@@ -49,6 +49,7 @@ export type VertoMethod =
   | 'verto.announce'
 
 export type WebRTCMethod = 'video.message' | 'webrtc.verto'
+export type SubscriberMethod = 'subscriber.online' | 'subscriber.offline'
 export type JSONRPCMethod =
   | 'signalwire.connect'
   | 'signalwire.ping'
@@ -57,6 +58,7 @@ export type JSONRPCMethod =
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
   | 'signalwire.unsubscribe'
+  | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
   | VertoMethod
@@ -108,16 +110,12 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  /** To refresh the auth token */
-  onRefreshToken?(): Promise<void>
-  /**
-   * The SDK invokes this method and uses the new token to re-auth.
-   * TODO: rename it: getNewToken, getRefreshedToken, fetchToken (?)
-   *
-   * @internal
-   * */
-  _onRefreshToken?(): Promise<void>
+  /** The SDK invokes this method and uses the new token to re-auth. */
+  onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
+  /** Unified eventing is required only with Call Fabric SDK */
+  unifiedEventing?: boolean
+  instanceMap?: InstanceMap
 }
 export interface UserOptions extends SessionOptions {
   /** @internal */
