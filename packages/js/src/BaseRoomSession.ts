@@ -66,9 +66,12 @@ export interface BaseRoomSession<T>
   leave(): Promise<void>
 }
 
-interface BaseRoomSessionOptions
+interface RoomSessionConnectionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   mirrorLocalVideoOverlay: boolean
+  speakerId?: string
+  rootElement?: HTMLElement
+  applyLocalVideoOverlay?: boolean
 }
 
 export class RoomSessionConnection
@@ -80,13 +83,36 @@ export class RoomSessionConnection
   private _mirrored: LocalOverlay['mirrored']
   private _audioEl: AudioElement
 
-  constructor(options: BaseRoomSessionOptions) {
+  constructor(options: RoomSessionConnectionOptions) {
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
     this.runWorker('videoWorker', {
       worker: workers.videoWorker,
     })
+
+    /**
+     * By default the SDK will attach the audio to
+     * an Audio element (regardless of "rootElement")
+     */
+    this.runWorker('audioElementSaga', {
+      worker: workers.audioElementSaga,
+      initialState: { speakerId: options.speakerId },
+    })
+
+    /**
+     * If the user provides a `rootElement` we'll
+     * automatically handle the Video element for them
+     */
+    if (options.rootElement) {
+      this.runWorker('videoElementSaga', {
+        worker: workers.videoElementSaga,
+        initialState: {
+          rootElement: options.rootElement,
+          applyLocalVideoOverlay: options.applyLocalVideoOverlay,
+        },
+      })
+    }
   }
 
   get screenShareList() {
@@ -507,7 +533,6 @@ export const createBaseRoomSessionObject = <RoomSessionType>(
     BaseRoomSession<RoomSessionType>
   >({
     store: params.store,
-    customSagas: params.customSagas,
     Component: RoomSessionAPI,
   })(params)
 

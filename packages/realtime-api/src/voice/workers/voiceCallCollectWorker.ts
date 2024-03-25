@@ -98,7 +98,6 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
           collectInstance.emit('collect.failed', collectInstance)
         }
         remove<CallPrompt | CallCollect>(payload.control_id)
-
         return true
       }
       case 'speech':
@@ -113,7 +112,6 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
           collectInstance.emit('collect.ended', collectInstance)
         }
         remove<CallPrompt | CallCollect>(payload.control_id)
-
         return false
       }
       default:

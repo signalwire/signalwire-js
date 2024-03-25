@@ -52,13 +52,6 @@ export function* sessionChannelWatcher({
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
       return
     }
-
-    /**
-     * Put actions with `event_type` to trigger all the children sagas
-     * This should replace all the isWebrtcEvent/isVideoEvent guards below
-     * since we'll move that logic on a separate package.
-     */
-    yield put({ type: broadcastParams.event_type, payload: broadcastParams })
   }
 
   function* sessionChannelWorker(
