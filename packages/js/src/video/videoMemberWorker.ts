@@ -54,6 +54,8 @@ export const videoMemberWorker = function* (
    * Send the payload with a member id from the first call segment for a consistent member id
    */
   if (payload.member.member_id === currentCallSegment.memberId) {
+    // FIXME: This removes the JS class instance capabilities.
+    // Possible solution: Introduce a selfId in the MemberInstance that should always read the member id from the first call segment.
     memberInstance = {
       ...memberInstance,
       id: roomSession.callSegments[0].memberId,
