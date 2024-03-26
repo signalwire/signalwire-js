@@ -86,23 +86,13 @@ export class RoomSessionConnection
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
-    /**
-     * The unified eventing worker creates/stores member instances in the instance map
-     * For now, the member instances are only required in the CallFabric SDK
-     */
-    if (this.unifiedEventing) {
-      this.runWorker('videoWorkerUnifiedEventing', {
-        worker: workers.videoWorkerUnifiedEventing,
-      })
-    } else {
-      this.runWorker('videoWorker', {
-        worker: workers.videoWorker,
-      })
-    }
+    // this.initWorker()
+  }
 
-    if (options.eventsWatcher) {
-      this.runWorker('eventsWatcher', { worker: options.eventsWatcher })
-    }
+  protected initWorker() {
+    this.runWorker('videoWorker', {
+      worker: workers.videoWorker,
+    })
   }
 
   get screenShareList() {

@@ -18,11 +18,13 @@ interface RoomMemberMethodParams {
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   constructor(options: BaseRoomSessionOptions) {
     super(options)
+  }
 
+  protected initWorker() {
     /**
      * The unified eventing or cf worker creates/stores member instances in the instance map
      * For now, the member instances are only required in the CallFabric SDK
-     * It also handles call events
+     * It also handles call. events
      */
     this.runWorker('callFabricWorker', {
       worker: callFabricWorker,
