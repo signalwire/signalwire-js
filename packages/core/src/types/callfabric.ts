@@ -61,7 +61,7 @@ export interface FetchConversationsResponse
   extends PaginatedResponse<Conversation> {}
 
 /**
- * Messages
+ * Conversation Messages
  */
 
 export interface GetMessagesOptions {
@@ -87,19 +87,49 @@ export interface GetConversationMessagesOptions {
   pageSize?: number
 }
 
+/**
+ * Subsriber info
+ */
+
 export interface SubscriberInfoResponse {
-  app_settings?: string
-  company_name?: string
-  country?: string
-  display_name?: string
+  id: string
   email: string
   first_name?: string
-  id: string
-  job_title?: string
   last_name?: string
-  push_notification_key: string
-  region?: string
+  display_name?: string
+  job_title?: string
   time_zone?: number
+  country?: string
+  region?: string
+  company_name?: string
+  push_notification_key: string
+  app_settings?: {
+    display_name: string
+    scopes: string[]
+  }
+}
+
+/**
+ * Device registration
+ */
+export type RegisterDeviceType = 'iOS' | 'Android' | 'Desktop'
+
+export interface RegisterDeviceParams {
+  deviceType: RegisterDeviceType
+  deviceToken: string
+}
+
+export interface UnregisterDeviceParams {
+  id: string
+}
+
+export interface RegisterDeviceResponse {
+  date_registered: Date
+  device_name?: string
+  device_token: string
+  device_type: RegisterDeviceType
+  id: string
+  push_notification_key: string
 }
 
 export type CallJoined = 'call.joined'

@@ -24,6 +24,9 @@ window.connect = async () => {
   window.__client = client
 
   await Promise.all([fetchHistories(), fetchAddresses()])
+
+  const subscriber = await client.getSubscriberInfo()
+  console.log('>> subscriber', subscriber)
 }
 
 window.saveInLocalStorage = (e) => {

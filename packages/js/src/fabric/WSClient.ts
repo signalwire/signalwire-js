@@ -125,10 +125,7 @@ export class WSClient {
         call.start = () => {
           return new Promise(async (resolve, reject) => {
             try {
-              call.once('room.subscribed', (params: any) => {
-                call.emit('room.joined', params)
-                resolve(call)
-              })
+              call.once('room.subscribed', () => resolve(call))
 
               await call.join()
             } catch (error) {

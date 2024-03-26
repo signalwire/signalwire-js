@@ -60,7 +60,15 @@ export * as PubSub from './pubSub'
  */
 export * as Fabric from './fabric'
 export { SWClient, SignalWire } from './fabric'
-export type { SignalWireContract, SignalWireOptions } from './fabric'
+export type {
+  SignalWireContract,
+  SignalWireOptions,
+  IncomingCallHandler,
+  IncomingCallHandlers,
+  InboundCallSource,
+  IncomingCallNotification,
+  AcceptInviteParams,
+} from './fabric'
 
 /**
  * The Video namespace contains the classes and functions that you need to
@@ -97,13 +105,27 @@ export type {
   InternalVideoMemberEntity,
   VideoPosition,
   VideoPositions,
+  /**
+   * Call Fabric types
+   */
   GetAddressesOptions,
   Address,
+  FetchAddressResponse,
   GetConversationsOptions,
   Conversation,
+  FetchConversationsResponse,
   GetMessagesOptions,
   ConversationMessage,
+  FetchConversationMessagesResponse,
   GetConversationMessagesOptions,
+  SubscriberInfoResponse,
+  ConversationMessageEventName,
+  ConversationMessageEvent,
+  ConversationEventParams,
+  ConversationEvent,
+  RegisterDeviceParams,
+  UnregisterDeviceParams,
+  RegisterDeviceResponse,
 } from '@signalwire/core'
 
 export type {
@@ -119,11 +141,3 @@ export type {
   RoomSessionObjectEvents as RoomObjectEvents,
   RoomEventNames,
 } from './utils/interfaces'
-
-export {
-  IncomingCallHandler,
-  IncomingCallHandlers,
-  InboundCallSource,
-  IncomingCallNotification,
-  AcceptInviteParams
-} from './fabric/IncomingCallManager'
