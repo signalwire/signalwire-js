@@ -86,7 +86,7 @@ export class RoomSessionConnection
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
-    // this.initWorker()
+    this.initWorker()
   }
 
   protected initWorker() {

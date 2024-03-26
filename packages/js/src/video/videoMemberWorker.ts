@@ -7,24 +7,13 @@ import {
   SagaIterator,
   VideoMemberEventNames,
   VideoMemberJoinedEvent,
-  VideoMemberJoinedEventParams,
   VideoMemberLeftEvent,
-  VideoMemberLeftEventParams,
   VideoMemberTalkingEvent,
-  VideoMemberTalkingEventParams,
   VideoMemberUpdatedEvent,
-  VideoMemberUpdatedEventParams,
   getLogger,
   stripNamespacePrefix,
 } from '@signalwire/core'
 import { VideoWorkerParams } from './videoWorker'
-import { isUnifedJWTSession } from '../UnifiedJWTSession'
-
-type VideoMemberEventsParams =
-  | VideoMemberJoinedEventParams
-  | VideoMemberLeftEventParams
-  | VideoMemberUpdatedEventParams
-  | VideoMemberTalkingEventParams
 
 type VideoMemberEvents = MapToPubSubShape<
   | VideoMemberJoinedEvent
@@ -42,13 +31,11 @@ export const videoMemberWorker = function* (
     instance: roomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
-    getSession,
   } = options
 
   // For now, we are not storing the RoomSession object in the instance map
 
-  //@ts-ignore in unified context id => member_id
-  let memberInstance = get<RoomSessionMember>(payload.member.member_id)
+  let memberInstance = get<RoomSessionMember>(payload.member?.member_id!)
   if (!memberInstance) {
     memberInstance = Rooms.createRoomSessionMemberObject({
       store: roomSession.store,
@@ -57,73 +44,52 @@ export const videoMemberWorker = function* (
   } else {
     memberInstance.setPayload(payload as Rooms.RoomSessionMemberEventParams)
   }
-  //@ts-ignore in unified context id => member_id
-  set<RoomSessionMember>(payload.member.member_id, memberInstance)
+  set<RoomSessionMember>(payload.member?.member_id!, memberInstance)
+
+  const currentCallSegment =
+    roomSession.callSegments[roomSession.callSegments.length - 1]
 
   /**
-   * overide the member id on the event to always match the id
-   * in the first call segment
-   * @param payload
-   * @param memberInstance
-   * @returns
+   * If the incoming event is for the self member
+   * Send the payload with a member id from the first call segment for a consistent member id
    */
-  const toConsistentMemberEvent = (
-    payload: VideoMemberEventsParams
-  ): Rooms.RoomSessionMemberEventParams => {
-    const session = getSession()
-    if (isUnifedJWTSession(session)) {
-      if (session.isASelfInstance(memberInstance.id)) {
-        const executeSelf = session.getExcuteSelf()
-        return {
-          ...payload,
-          member: {
-            //@ts-ignore
-            ...memberInstance._payload.member,
-            id: executeSelf.memberId,
-            member_id: executeSelf.memberId,
-          },
-        }
-      }
-    }
-    return {
-      ...payload,
-      member: {
-        //@ts-ignore
-        ...memberInstance._payload.member,
-        id: memberInstance.id,
-      },
+  if (payload.member.member_id === currentCallSegment.memberId) {
+    memberInstance = {
+      ...memberInstance,
+      id: roomSession.callSegments[0].memberId,
+      memberId: roomSession.callSegments[0].memberId,
     }
   }
 
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
-    roomSession.emit(event, toConsistentMemberEvent(payload))
+    roomSession.emit(event, memberInstance)
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSession.emit(event, toConsistentMemberEvent(payload))
+      roomSession.emit(event, memberInstance)
       break
     case 'video.member.left':
-      roomSession.emit(event, toConsistentMemberEvent(payload))
+      roomSession.emit(event, memberInstance)
       remove<RoomSessionMember>(payload.member.id)
       break
     case 'video.member.talking':
-      roomSession.emit(event, toConsistentMemberEvent(payload))
+      roomSession.emit(event, memberInstance)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
         roomSession.emit(
           `${event}.${suffix}` as MemberTalkingEventNames,
-          toConsistentMemberEvent(payload)
+          memberInstance
         )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
         roomSession.emit(
           `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
-          toConsistentMemberEvent(payload)
+          memberInstance
         )
       }
       break

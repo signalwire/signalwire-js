@@ -449,6 +449,7 @@ export interface VideoMemberTalkingEventParams {
   room_id: string
   member: {
     id: string
+    member_id?: string
     talking: boolean
   }
 }

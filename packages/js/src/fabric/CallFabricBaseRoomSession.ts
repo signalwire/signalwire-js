@@ -5,7 +5,6 @@ import {
 } from '@signalwire/core'
 import {
   BaseRoomSession,
-  BaseRoomSessionOptions,
   RoomSessionConnection,
   RoomSessionObjectEventsHandlerMapping,
 } from '../BaseRoomSession'
@@ -16,10 +15,6 @@ interface RoomMemberMethodParams {
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
-  constructor(options: BaseRoomSessionOptions) {
-    super(options)
-  }
-
   protected initWorker() {
     /**
      * The unified eventing or cf worker creates/stores member instances in the instance map
