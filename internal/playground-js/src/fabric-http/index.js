@@ -256,10 +256,10 @@ searchType.addEventListener('change', fetchAddresses)
 
 sendMessageBtn.addEventListener('click', async () => {
   if (!client) return
-  const convo = window.__currentConversation
+  const address = window.__currentAddress
   const text = conversationMessageInput.value
   await client.conversation.sendMessage({
-    conversation_id: convo.id,
+    addressId: address.id,
     text,
   })
   conversationMessageInput.value = ''
@@ -446,11 +446,11 @@ function clearMessageModal() {
   if (avatarImage) {
     avatarImage.src = newImageUrl
   }
-  window.__currentConversation = undefined
+  window.__currentAddress = undefined
 }
 
 async function openMessageModal(data) {
-  window.__currentConversation = data
+  window.__currentAddress = data
   const modal = new bootstrap.Modal(msgModalDiv)
   modal.show()
 

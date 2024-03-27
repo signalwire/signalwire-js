@@ -44,13 +44,13 @@ export class Conversation {
   public async sendMessage(options: SendConversationMessageOptions) {
     try {
       const {
-        conversation_id, text
+        addressId, text
       } = options
       const path = '/api/fabric/messages'
       const { body } = await this.httpClient.fetch<SendConversationMessageResponse>(path, {
         method: 'POST',
         body: {
-          conversation_id,
+          conversation_id: addressId,
           text,
         }
       })

@@ -154,12 +154,12 @@ describe('Conversation', () => {
 
   describe('sendMessage', () => {
     it('should create a conversation message', async () => {
-      const conversation_id = uuid()
+      const addressId = uuid()
       const text = 'test message'
       const expectedResponse = {
         table: {
           text,
-          conversation_id,
+          conversation_id: addressId,
         }
       }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
@@ -168,7 +168,7 @@ describe('Conversation', () => {
 
       // TODO: Test with payload
       const result = await conversation.sendMessage({
-        conversation_id,
+        addressId,
         text
       })
 
@@ -178,7 +178,7 @@ describe('Conversation', () => {
         {
           method: 'POST',
           body: {
-            conversation_id,
+            conversation_id: addressId,
             text,
           },
         }
@@ -193,7 +193,7 @@ describe('Conversation', () => {
       try {
         await conversation.sendMessage({
           text: 'text message',
-          conversation_id: uuid(),
+          addressId: uuid(),
         })
         fail('Expected sendMessage to throw error.')
       } catch (error) {

@@ -39,7 +39,7 @@ export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 
 export interface SendConversationMessageOptions {
   text: string
-  conversation_id: string
+  addressId: string
   metadata?: Record<string, any>
   details?: Record<string, any>
 }
