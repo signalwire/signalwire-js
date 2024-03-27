@@ -160,7 +160,7 @@ export type InternalVideoMemberEventNames =
     >
   | InternalMemberUpdatedEventNames
 
-export type VideoMemberType = 'member' | 'screen' | 'device' | 'sip' | 'webrtc'
+export type VideoMemberType = 'member' | 'screen' | 'device'
 
 /**
  * Public Contract for a VideoMember

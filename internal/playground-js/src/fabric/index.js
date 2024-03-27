@@ -248,10 +248,6 @@ window.connect = async () => {
   window.__call = call
   roomObj = call
 
-  roomObj.on('room.joined', (room) => {
-    console.debug('>> room.joined', room)
-  })
-
   roomObj.on('media.connected', () => {
     console.debug('>> media.connected')
   })
@@ -292,20 +288,33 @@ window.connect = async () => {
     document.getElementById('recordingState').innerText = params.state
   })
 
+  roomObj.on('playback.started', (params) => {
+    console.debug('>> playback.started', params)
+    playbackStarted()
+  })
+  roomObj.on('playback.ended', (params) => {
+    console.debug('>> playback.ended', params)
+    playbackEnded()
+  })
+  roomObj.on('playback.updated', (params) => {
+    console.debug('>> playback.updated', params)
+    if (params.volume) {
+      document.getElementById('playbackVolume').value = params.volume
+    }
+  })
+
   roomObj.on('member.joined', (params) =>
     console.debug('>> member.joined', params)
   )
   roomObj.on('member.updated', (params) =>
     console.debug('>> member.updated', params)
   )
-
   roomObj.on('member.updated.audio_muted', (params) =>
     console.debug('>> member.updated.audio_muted', params)
   )
   roomObj.on('member.updated.video_muted', (params) =>
     console.debug('>> member.updated.video_muted', params)
   )
-
   roomObj.on('member.left', (params) => console.debug('>> member.left', params))
   roomObj.on('member.talking', (params) =>
     console.debug('>> member.talking', params)
@@ -313,25 +322,8 @@ window.connect = async () => {
   roomObj.on('layout.changed', (params) =>
     console.debug('>> layout.changed', params)
   )
+
   roomObj.on('track', (event) => console.debug('>> DEMO track', event))
-
-  roomObj.on('playback.started', (params) => {
-    console.debug('>> playback.started', params)
-
-    playbackStarted()
-  })
-  roomObj.on('playback.ended', (params) => {
-    console.debug('>> playback.ended', params)
-
-    playbackEnded()
-  })
-  roomObj.on('playback.updated', (params) => {
-    console.debug('>> playback.updated', params)
-
-    if (params.volume) {
-      document.getElementById('playbackVolume').value = params.volume
-    }
-  })
 
   roomObj.on('destroy', () => {
     console.debug('>> destroy')
