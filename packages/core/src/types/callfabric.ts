@@ -36,6 +36,13 @@ export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 /**
  * Conversations
  */
+
+export interface SendConversationMessageOptions {
+  text: string
+  conversation_id: string
+  metadata?: Record<string, any>
+  details?: Record<string, any>
+}
 export interface GetConversationsOptions {
   pageSize?: number
 }
@@ -46,6 +53,13 @@ export interface Conversation {
   last_message_at: number
   metadata: Record<string, any>
   name: string
+}
+
+export interface SendConversationMessageResponse {
+  table: {
+    conversation_id: string
+    text: string
+  }
 }
 
 export interface FetchConversationsResponse

@@ -9,6 +9,8 @@ import {
   GetConversationMessagesOptions,
   FetchConversationMessagesResponse,
   ConversationMessage,
+  SendConversationMessageOptions,
+  SendConversationMessageResponse,
 } from '@signalwire/core'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -37,6 +39,25 @@ export class Conversation {
         conversation: this,
       },
     })
+  }
+
+  public async sendMessage(options: SendConversationMessageOptions) {
+    try {
+      const {
+        conversation_id, text
+      } = options
+      const path = '/api/fabric/messages'
+      const { body } = await this.httpClient.fetch<SendConversationMessageResponse>(path, {
+        method: 'POST',
+        body: {
+          conversation_id,
+          text,
+        }
+      })
+      return body
+    } catch (error) {
+      throw new Error("Error sending message to conversation!", error)
+    }
   }
 
   public async getConversations(options?: GetConversationsOptions) {
@@ -106,24 +127,6 @@ export class Conversation {
       )
     } catch (error) {
       throw new Error('Error fetching the conversation messages!', error)
-    }
-  }
-
-  public async createConversationMessage() {
-    try {
-      const path = '/api/fabric/conversations/messages'
-
-      // TODO: Complete the payload
-      const payload = {}
-
-      const { body } = await this.httpClient.fetch<ConversationMessage>(path, {
-        method: 'POST',
-        body: payload,
-      })
-
-      return body
-    } catch (error) {
-      throw new Error('Error creating a conversation messages!', error)
     }
   }
 

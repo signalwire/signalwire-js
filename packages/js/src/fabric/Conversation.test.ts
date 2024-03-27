@@ -1,6 +1,7 @@
 import { Conversation } from './Conversation'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
+import { uuid } from '@signalwire/core'
 
 // Mock HTTPClient
 jest.mock('./HTTPClient', () => {
@@ -151,22 +152,35 @@ describe('Conversation', () => {
     })
   })
 
-  describe('createConversationMessage', () => {
+  describe('sendMessage', () => {
     it('should create a conversation message', async () => {
-      const expectedResponse = { success: true, messageId: '12345' }
+      const conversation_id = uuid()
+      const text = 'test message'
+      const expectedResponse = {
+        table: {
+          text,
+          conversation_id,
+        }
+      }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: expectedResponse,
       })
 
       // TODO: Test with payload
-      const result = await conversation.createConversationMessage()
+      const result = await conversation.sendMessage({
+        conversation_id,
+        text
+      })
 
       expect(result).toEqual(expectedResponse)
       expect(httpClient.fetch).toHaveBeenCalledWith(
-        '/api/fabric/conversations/messages',
+        '/api/fabric/messages',
         {
           method: 'POST',
-          body: {},
+          body: {
+            conversation_id,
+            text,
+          },
         }
       )
     })
@@ -177,11 +191,14 @@ describe('Conversation', () => {
       )
 
       try {
-        await conversation.createConversationMessage()
-        fail('Expected getConversationMessages to throw an error.')
+        await conversation.sendMessage({
+          text: 'text message',
+          conversation_id: uuid(),
+        })
+        fail('Expected sendMessage to throw error.')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect(error.message).toBe('Error creating a conversation messages!')
+        expect(error.message).toBe('Error sending message to conversation!')
       }
     })
   })
