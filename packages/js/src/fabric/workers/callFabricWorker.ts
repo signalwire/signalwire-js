@@ -4,8 +4,6 @@ import {
   SagaIterator,
   getLogger,
   sagaEffects,
-  VideoAPIEventNames,
-  stripNamespacePrefix,
   VideoAction,
   CallFabricAction,
   SDKWorkerParams,
@@ -29,68 +27,70 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     function* worker(action: VideoAction | CallFabricAction) {
       const { type, payload } = action
 
+      console.log('>> callFabricWorker receive', type)
+
       switch (type) {
-        case 'call.joined':
+        case 'call.joined': {
           yield sagaEffects.fork(callJoinWorker, {
             action,
             ...options,
           })
           return
-        case 'video.room.started':
-        case 'video.room.updated':
-        case 'video.room.ended':
-        case 'video.room.subscribed':
-          yield sagaEffects.fork(videoWorkers.videoRoomWorker, {
-            action,
-            ...options,
-          })
-          return // Return when we don't need to handle the raw event for this
-        case 'video.member.joined':
-        case 'video.member.left':
-        case 'video.member.updated':
-        case 'video.member.talking':
+        }
+        // @ts-expect-error
+        case 'call.left': {
+          options.callSegments.pop()
+          break
+        }
+        case 'call.started':
+        case 'call.updated':
+        case 'call.ended': {
+          const action = type.split('.')[1]
+          const newEventName = `room.${action}`
+          // @ts-expect-error
+          roomSession.emit(newEventName, payload)
+          return
+        }
+        case 'member.joined':
+        case 'member.left':
+        case 'member.updated':
+        case 'member.talking': {
+          const updatedAction = {
+            ...action,
+            type: `video.${type}`,
+          }
+          // @ts-expect-error
           yield sagaEffects.fork(videoWorkers.videoMemberWorker, {
-            action,
+            action: updatedAction,
             ...options,
           })
           return
-        case 'video.playback.started':
-        case 'video.playback.updated':
-        case 'video.playback.ended':
-          yield sagaEffects.fork(videoWorkers.videoPlaybackWorker, {
-            action,
-            ...options,
-          })
-          return
-        case 'video.recording.started':
-        case 'video.recording.updated':
-        case 'video.recording.ended':
-          yield sagaEffects.fork(videoWorkers.videoRecordWorker, {
-            action,
-            ...options,
-          })
-          return
-        case 'video.stream.ended':
-        case 'video.stream.started':
-          yield sagaEffects.fork(videoWorkers.videoStreamWorker, {
-            action,
-            ...options,
-          })
-          return
-        case 'video.room.audience_count': {
-          roomSession.emit('room.audienceCount', payload)
+        }
+        case 'member.demoted':
+        case 'member.promoted':
+        case 'layout.changed': {
+          const updatedAction = {
+            ...action,
+            type: `video.${type}`,
+          }
+          // @ts-expect-error
+          yield sagaEffects.put(swEventChannel, updatedAction)
           return
         }
         default:
           break
       }
 
-      const event = stripNamespacePrefix(type, 'video') as VideoAPIEventNames
-      roomSession.emit(event, payload)
+      // @ts-expect-error
+      roomSession.emit(type, payload)
     }
 
     const isVideoOrCallEvent = (action: SDKActions) => {
-      return action.type.startsWith('video.') || action.type.startsWith('call.')
+      return (
+        action.type.startsWith('call.') ||
+        action.type.startsWith('member.') ||
+        action.type.startsWith('layout.')
+      )
     }
 
     while (true) {

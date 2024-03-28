@@ -5,6 +5,11 @@ import {
   InternalVideoRoomSessionEntity,
   MapToPubSubShape,
   SwEvent,
+  CallEnded,
+  CallRecord,
+  ToInternalVideoEvent,
+  VideoMemberEvent,
+  VideoLayoutEvent,
 } from '..'
 
 export interface PaginatedResponse<T> {
@@ -63,7 +68,6 @@ export interface FetchConversationsResponse
 /**
  * Conversation Messages
  */
-
 export interface GetMessagesOptions {
   pageSize?: number
 }
@@ -90,7 +94,6 @@ export interface GetConversationMessagesOptions {
 /**
  * Subsriber info
  */
-
 export interface SubscriberInfoResponse {
   id: string
   email: string
@@ -133,12 +136,17 @@ export interface RegisterDeviceResponse {
 }
 
 export type CallJoined = 'call.joined'
+export type CallStarted = 'call.started'
+export type CallUpdated = 'call.updated'
+export type CallStream = 'call.stream'
 
 export type CallStates = 'created' | 'ringing' | 'answered' | 'finished'
 export type CallConnectStates = 'connecting' | 'connected'
 export type CallDirections = 'inbound' | 'outbound'
 export type CallDeviceTypes = 'webrtc' | 'sip' | 'phone'
-export type CallPlayState = 'playing' | 'finished'
+export type CallPlayState = 'playing' | 'paused' | 'finished'
+export type CallRecordState = 'recording' | 'paused' | 'finished'
+export type CallStreamState = 'streaming' | 'completed'
 
 interface CallDeviceCommonParams {
   headers?: any[]
@@ -166,6 +174,9 @@ export interface CallDevicePhone {
 
 export type CallDevice = CallDeviceWebRTCOrSIP | CallDevicePhone
 
+/**
+ * Call Joined - call.joined
+ */
 export interface CallJoinedEventParams {
   room_id: string
   room_session_id: string
@@ -179,6 +190,9 @@ export interface CallJoinedEvent extends SwEvent {
   params: CallJoinedEventParams
 }
 
+/**
+ * Call State - call.state
+ */
 export interface CallStateEventParams {
   call_id: string
   node_id: string
@@ -196,6 +210,69 @@ export interface CallStateEvent extends SwEvent {
   params: CallStateEventParams
 }
 
+/**
+ * Call Started - call.started
+ */
+export interface CallStartedEventParams {
+  call_id: string
+  node_id: string
+  segment_id: string
+  call_state: CallStates
+  direction: CallDirections
+  device: CallDevice
+  start_time: number
+  answer_time: number
+  end_time: number
+}
+
+export interface CallStartedEvent extends SwEvent {
+  event_type: CallStarted
+  params: CallStartedEventParams
+}
+
+/**
+ * Call Updated - call.updated
+ */
+export interface CallUpdatedEventParams {
+  call_id: string
+  node_id: string
+  segment_id: string
+  call_state: CallStates
+  direction: CallDirections
+  device: CallDevice
+  start_time: number
+  answer_time: number
+  end_time: number
+}
+
+export interface CallUpdatedEvent extends SwEvent {
+  event_type: CallUpdated
+  params: CallUpdatedEventParams
+}
+
+/**
+ * Call Ended - call.ended
+ */
+export interface CallEndedEventParams {
+  call_id: string
+  node_id: string
+  segment_id: string
+  call_state: CallStates
+  direction: CallDirections
+  device: CallDevice
+  start_time: number
+  answer_time: number
+  end_time: number
+}
+
+export interface CallEndedEvent extends SwEvent {
+  event_type: CallEnded
+  params: CallEndedEventParams
+}
+
+/**
+ * Call Play - call.play
+ */
 export interface CallPlayEventParams {
   control_id: string
   call_id: string
@@ -208,6 +285,39 @@ export interface CallPlayEvent extends SwEvent {
   params: CallPlayEventParams
 }
 
+/**
+ * Call Record - call.record
+ */
+export interface CallRecordEventParams {
+  control_id: string
+  call_id: string
+  node_id: string
+  state: CallRecordState
+}
+
+export interface CallRecordEvent extends SwEvent {
+  event_type: CallRecord
+  params: CallRecordEventParams
+}
+
+/**
+ * Call Stream - call.stream
+ */
+export interface CallStreamEventParams {
+  control_id: string
+  call_id: string
+  node_id: string
+  state: CallStreamState
+}
+
+export interface CallStreamEvent extends SwEvent {
+  event_type: CallStream
+  params: CallStreamEventParams
+}
+
+/**
+ * Call Connect - call.connect
+ */
 export interface CallConnectEventParams {
   connect_state: CallConnectStates
   peer?: {
@@ -225,10 +335,30 @@ export interface CallConnectEvent extends SwEvent {
   params: CallConnectEventParams
 }
 
-export type CallFabricAPIEventParams =
+// Undo the ToInternalVideoEvent<T> transformation
+type UndoToInternalVideoEvent<T> = T extends ToInternalVideoEvent<infer U>
+  ? U
+  : T
+
+type AdjustEventType<T> = T extends { event_type: infer ET; params: infer P }
+  ? { event_type: UndoToInternalVideoEvent<ET>; params: P }
+  : T
+
+export type CFMemberEvent = AdjustEventType<VideoMemberEvent>
+
+export type CFLayoutEvent = AdjustEventType<VideoLayoutEvent>
+
+export type CallFabricEvent =
   | CallJoinedEvent
+  | CallStartedEvent
+  | CallUpdatedEvent
+  | CallEndedEvent
   | CallStateEvent
   | CallPlayEvent
+  | CallRecordEvent
+  | CallStreamEvent
   | CallConnectEvent
+  | CFMemberEvent
+  | CFLayoutEvent
 
-export type CallFabricAction = MapToPubSubShape<CallFabricAPIEventParams>
+export type CallFabricAction = MapToPubSubShape<CallFabricEvent>

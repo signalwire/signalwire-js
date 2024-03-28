@@ -340,8 +340,6 @@ window.connect = async () => {
     })
 
   const joinHandler = (params) => {
-    console.debug('>> room.joined', params)
-
     btnConnect.classList.add('d-none')
     btnDisconnect.classList.remove('d-none')
     connectStatus.innerHTML = 'Connected'

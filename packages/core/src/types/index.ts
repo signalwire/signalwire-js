@@ -6,7 +6,7 @@ import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
-import { ConversationEvent } from '..'
+import { CallFabricEvent, ConversationEvent } from '..'
 
 export interface SwEvent {
   event_channel: string
@@ -234,6 +234,7 @@ export type SwEventParams =
   | VoiceCallEvent
   | SwAuthorizationStateParams
   | ConversationEvent
+| CallFabricEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =
