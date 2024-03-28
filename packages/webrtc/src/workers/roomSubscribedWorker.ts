@@ -39,7 +39,10 @@ export const roomSubscribedWorker: SDKWorker<
 
   const action: MapToPubSubShape<VideoRoomSubscribedEvent> =
     yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-      if (action.type === 'video.room.subscribed') {
+      if (
+        action.type === 'video.room.subscribed' ||
+        action.type === 'call.joined'
+      ) {
         return action.payload.call_id === rtcPeerId
       }
       return false

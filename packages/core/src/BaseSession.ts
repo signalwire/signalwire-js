@@ -30,7 +30,7 @@ import {
   WebSocketClient,
   SessionStatus,
   SessionAuthError,
-  InstanceMap
+  InstanceMap,
 } from './utils/interfaces'
 import {
   authErrorAction,
@@ -64,7 +64,6 @@ export class BaseSession {
   public reauthenticate?(): Promise<void>
   public unifiedEventing = false
 
-
   protected _rpcConnectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
@@ -77,7 +76,7 @@ export class BaseSession {
   private _swConnectError = Symbol.for('sw-connect-error')
   private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
   // FIXME should never be undefined
-  private _instanceMap:InstanceMap | undefined;
+  private _instanceMap: InstanceMap | undefined
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
@@ -94,9 +93,7 @@ export class BaseSession {
       logLevel = 'info',
       sessionChannel,
       unifiedEventing = false,
-      instanceMap
     } = options
-    this._instanceMap = instanceMap
     this.unifiedEventing = unifiedEventing
 
     this.connectVersion = unifiedEventing

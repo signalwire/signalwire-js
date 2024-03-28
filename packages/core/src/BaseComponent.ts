@@ -90,6 +90,11 @@ export class BaseComponent<
   }
 
   /** @internal */
+  get callSegments() {
+    return this.store.callSegments
+  }
+
+  /** @internal */
   get unifiedEventing() {
     return this.store.unifiedEventing
   }

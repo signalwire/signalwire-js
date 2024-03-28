@@ -31,7 +31,6 @@ export const wsClientWorker: SDKWorker<
   while (true) {
     const action: MapToPubSubShape<WebRTCMessageParams> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        getLogger().debug('WSClientWorker action', action)
         if (action.type === 'webrtc.message') {
           return action.payload.method === 'verto.invite'
         }

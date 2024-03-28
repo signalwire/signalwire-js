@@ -8,7 +8,6 @@ import {
 import { JWTSession } from './JWTSession'
 import { UnifiedRequestMapper } from './utils/UnifiedRequestMapper'
 
-
 export function isUnifedJWTSession(obj: any): obj is UnifiedJWTSession {
   return !!obj && obj instanceof UnifiedJWTSession
 }
@@ -36,33 +35,32 @@ export class UnifiedJWTSession extends JWTSession {
   }
 
   getCurrentSelf() {
-    return this.callInstancesStack[this.callInstancesStack.length-1]
+    return this.callInstancesStack[this.callInstancesStack.length - 1]
   }
 
   isASelfInstance(id: string) {
-    return this.callInstancesStack.some((item)=>item.memberId === id)
+    return this.callInstancesStack.some((item) => item.memberId === id)
   }
 
   //@ts-ignore
   getExecuteTargets(msg: JSONRPCRequest): InternalUnifiedMethodTarget[] {
-    const {member_id:targetMemberId} = msg.params ?? {}
+    const { member_id: targetMemberId } = msg.params ?? {}
 
-    if(targetMemberId && this.isASelfInstance(targetMemberId)) {
+    if (targetMemberId && this.isASelfInstance(targetMemberId)) {
       // SDK emits all selves events as the original self...
       // when we make the target the current self
-      
+
       //@ts-ignore
       const defaultTarget = this.getCurrentSelf()
       return !!defaultTarget ? [defaultTarget] : []
     }
 
-    const memberInstance = targetMemberId ? this.instanceMap?.get<{id: string, callId: string, nodeId:string}>(targetMemberId) : undefined;
-    const {id:memberId, callId, nodeId} = memberInstance ?? {};
-    const targetMember = memberId && callId && nodeId ? {memberId, callId, nodeId} : undefined
+    // const memberInstance = targetMemberId ? this.instanceMap?.get(targetMemberId) : undefined;
+    // const {id:memberId, callId, nodeId} = memberInstance ?? {};
+    // const targetMember = memberId && callId && nodeId ? {memberId, callId, nodeId} : undefined
 
-    //@ts-ignore
-    const defaultTarget = targetMember ?? this.getCurrentSelf()
-    return !!defaultTarget ? [defaultTarget] : []
+    // const defaultTarget = targetMember ?? this.getCurrentSelf()
+    // return !!defaultTarget ? [defaultTarget] : []
   }
 
   execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {

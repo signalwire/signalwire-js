@@ -7,8 +7,13 @@ import {
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
-import { wsClientWorker, unifiedEventsWatcher } from './workers'
-import { InboundCallSource, IncomingCallHandlers, IncomingCallManager, IncomingInvite } from './IncomingCallManager'
+import { wsClientWorker } from './workers'
+import {
+  InboundCallSource,
+  IncomingCallHandlers,
+  IncomingCallManager,
+  IncomingInvite,
+} from './IncomingCallManager'
 
 export interface OnlineParams {
   incomingCallHandlers: IncomingCallHandlers
@@ -48,8 +53,10 @@ export class WSClient {
       unifiedEventing: true,
     })
     this._incomingCallManager = new IncomingCallManager(
-      (payload: IncomingInvite,rootElement: HTMLElement | undefined) => this.buildInboundCall(payload, rootElement), 
-      (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId))
+      (payload: IncomingInvite, rootElement: HTMLElement | undefined) =>
+        this.buildInboundCall(payload, rootElement),
+      (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
+    )
   }
 
   /** @internal */
@@ -62,7 +69,8 @@ export class WSClient {
     this.wsClient.runWorker('wsClientWorker', {
       worker: wsClientWorker,
       initialState: {
-        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) => this.notifyIncomingInvite('websocket', incomingInvite), 
+        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) =>
+          this.notifyIncomingInvite('websocket', incomingInvite),
       },
     })
     await this.wsClient.connect()
@@ -97,8 +105,8 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
-          eventsWatcher: unifiedEventsWatcher,
           disableUdpIceServers: this.options.disableUdpIceServers || false,
+          unifiedEventing: true,
         })
 
         // WebRTC connection left the room.
@@ -194,10 +202,13 @@ export class WSClient {
     })
   }
 
-  private notifyIncomingInvite(source: InboundCallSource, buildCallParams: Omit<IncomingInvite, 'source'>) {
+  private notifyIncomingInvite(
+    source: InboundCallSource,
+    buildCallParams: Omit<IncomingInvite, 'source'>
+  ) {
     this._incomingCallManager.handleIncomingInvite({
       source,
-      ...buildCallParams
+      ...buildCallParams,
     })
   }
 
@@ -269,8 +280,8 @@ export class WSClient {
       remoteSdp: sdp,
       prevCallId: callID,
       nodeId,
-      eventsWatcher: unifiedEventsWatcher,
       disableUdpIceServers: this.options.disableUdpIceServers || false,
+      unifiedEventing: true,
     })
 
     // WebRTC connection left the room.
@@ -306,7 +317,7 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  online({incomingCallHandlers}: OnlineParams) {
+  online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     // @ts-expect-error
     return this.wsClient.execute({
