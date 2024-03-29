@@ -27,8 +27,6 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     function* worker(action: VideoAction | CallFabricAction) {
       const { type, payload } = action
 
-      console.log('>> callFabricWorker receive', type)
-
       switch (type) {
         case 'call.joined': {
           yield sagaEffects.fork(callJoinWorker, {
@@ -66,9 +64,18 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           })
           return
         }
-        case 'member.demoted':
-        case 'member.promoted':
         case 'layout.changed': {
+          const updatedAction = {
+            ...action,
+            type: `video.${type}`,
+          }
+          // @ts-expect-error
+          yield sagaEffects.put(swEventChannel, updatedAction)
+          roomSession.emit(type, payload)
+          return
+        }
+        case 'member.demoted':
+        case 'member.promoted': {
           const updatedAction = {
             ...action,
             type: `video.${type}`,
