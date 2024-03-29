@@ -71,8 +71,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     userOptions,
     sessionChannel,
     SessionConstructor,
-    //@ts-ignore FIXME
-    instanceMap,
   })
 
   const runSaga = <T>(

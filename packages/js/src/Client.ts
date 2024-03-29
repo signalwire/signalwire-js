@@ -60,6 +60,7 @@ export class ClientAPI<
           applyLocalVideoOverlay = true,
           stopCameraWhileMuted = true,
           stopMicrophoneWhileMuted = true,
+          unifiedEventing = false,
           ...options
         } = makeRoomOptions
 
@@ -90,7 +91,7 @@ export class ClientAPI<
         }
 
         let roomSessionObject = createBaseRoomSessionObject
-        if (this.unifiedEventing) {
+        if (unifiedEventing) {
           roomSessionObject = createCallFabricBaseRoomSessionObject
         }
 
