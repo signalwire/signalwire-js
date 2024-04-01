@@ -30,22 +30,27 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this.callSegments[0]?.member
   }
 
-  get defaultTarget() {
+  get targetMember() {
     return this.callSegments[this.callSegments.length - 1]?.member
   }
 
-  audioMute(params: RoomMemberMethodParams) {
-    const { memberId } = params || {}
-
-    let targetMember = this.defaultTarget
-    if (memberId) {
-      targetMember = this.instanceMap.get<RoomSessionMember>(memberId)
-    }
+  private executeMemberAction({
+    actionType,
+    channel,
+    memberId,
+  }: {
+    actionType: 'call.mute' | 'call.unmute'
+    channel: 'audio' | 'video'
+    memberId?: string
+  }) {
+    let targetMember = memberId
+      ? this.instanceMap.get<RoomSessionMember>(memberId)
+      : this.targetMember
 
     return this.execute({
-      method: 'call.mute',
+      method: actionType,
       params: {
-        channels: ['audio'],
+        channels: [channel],
         self: {
           member_id: this.selfMember.id,
           call_id: this.selfMember.callId,
@@ -57,84 +62,38 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
           node_id: targetMember.nodeId,
         },
       },
+    })
+  }
+
+  audioMute(params: RoomMemberMethodParams) {
+    return this.executeMemberAction({
+      actionType: 'call.mute',
+      channel: 'audio',
+      memberId: params?.memberId,
     })
   }
 
   audioUnmute(params: RoomMemberMethodParams) {
-    const { memberId } = params || {}
-
-    let targetMember = this.defaultTarget
-    if (memberId) {
-      targetMember = this.instanceMap.get<RoomSessionMember>(memberId)
-    }
-
-    return this.execute({
-      method: 'call.unmute',
-      params: {
-        channels: ['audio'],
-        self: {
-          member_id: this.selfMember.id,
-          call_id: this.selfMember.callId,
-          node_id: this.selfMember.nodeId,
-        },
-        target: {
-          member_id: targetMember.id,
-          call_id: targetMember.callId,
-          node_id: targetMember.nodeId,
-        },
-      },
+    return this.executeMemberAction({
+      actionType: 'call.unmute',
+      channel: 'audio',
+      memberId: params?.memberId,
     })
   }
 
   videoMute(params: RoomMemberMethodParams) {
-    const { memberId } = params || {}
-
-    let targetMember = this.defaultTarget
-    if (memberId) {
-      targetMember = this.instanceMap.get<RoomSessionMember>(memberId)
-    }
-
-    return this.execute({
-      method: 'call.mute',
-      params: {
-        channels: ['video'],
-        self: {
-          member_id: this.selfMember.id,
-          call_id: this.selfMember.callId,
-          node_id: this.selfMember.nodeId,
-        },
-        target: {
-          member_id: targetMember.id,
-          call_id: targetMember.callId,
-          node_id: targetMember.nodeId,
-        },
-      },
+    return this.executeMemberAction({
+      actionType: 'call.mute',
+      channel: 'video',
+      memberId: params?.memberId,
     })
   }
 
   videoUnmute(params: RoomMemberMethodParams) {
-    const { memberId } = params || {}
-
-    let targetMember = this.defaultTarget
-    if (memberId) {
-      targetMember = this.instanceMap.get<RoomSessionMember>(memberId)
-    }
-
-    return this.execute({
-      method: 'call.unmute',
-      params: {
-        channels: ['video'],
-        self: {
-          member_id: this.selfMember.id,
-          call_id: this.selfMember.callId,
-          node_id: this.selfMember.nodeId,
-        },
-        target: {
-          member_id: targetMember.id,
-          call_id: targetMember.callId,
-          node_id: targetMember.nodeId,
-        },
-      },
+    return this.executeMemberAction({
+      actionType: 'call.unmute',
+      channel: 'video',
+      memberId: params?.memberId,
     })
   }
 }
