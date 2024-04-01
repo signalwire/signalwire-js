@@ -4,6 +4,7 @@ import {
   MemberTalkingEventNames,
   RoomSessionMember,
   Rooms,
+  SDKWorkerParams,
   SagaIterator,
   VideoMemberEventNames,
   VideoMemberJoinedEvent,
@@ -13,7 +14,12 @@ import {
   getLogger,
   stripNamespacePrefix,
 } from '@signalwire/core'
-import { VideoWorkerParams } from './videoWorker'
+import { CallFabricRoomSessionConnection } from '../fabric/CallFabricBaseRoomSession'
+
+export type VideoWorkerParams<T> =
+  SDKWorkerParams<CallFabricRoomSessionConnection> & {
+    action: T
+  }
 
 type VideoMemberEvents = MapToPubSubShape<
   | VideoMemberJoinedEvent
@@ -28,7 +34,7 @@ export const videoMemberWorker = function* (
 ): SagaIterator {
   getLogger().trace('videoMemberWorker started')
   const {
-    instance: roomSession,
+    instance: cfRoomSession,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
@@ -40,7 +46,7 @@ export const videoMemberWorker = function* (
   let memberInstance = get<RoomSessionMember>(memberId!)
   if (!memberInstance) {
     memberInstance = Rooms.createRoomSessionMemberObject({
-      store: roomSession.store,
+      store: cfRoomSession.store,
       payload: payload as Rooms.RoomSessionMemberEventParams,
     })
   } else {
@@ -54,7 +60,7 @@ export const videoMemberWorker = function* (
    */
   let newPayload = { ...payload }
   const currentCallSegment =
-    roomSession.callSegments[roomSession.callSegments.length - 1]
+    cfRoomSession.callSegments[cfRoomSession.callSegments.length - 1]
   if (payload.member.member_id === currentCallSegment.memberId) {
     // FIXME: We should emit the RoomSessionMember instance
     // @ts-expect-error
@@ -62,8 +68,8 @@ export const videoMemberWorker = function* (
       ...payload,
       member: {
         ...payload.member,
-        id: roomSession.callSegments[0].memberId,
-        member_id: roomSession.callSegments[0].memberId,
+        id: cfRoomSession.callSegments[0].memberId,
+        member_id: cfRoomSession.callSegments[0].memberId,
       },
     }
   }
@@ -71,30 +77,30 @@ export const videoMemberWorker = function* (
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
-    roomSession.emit(event, newPayload)
+    cfRoomSession.emit(event, newPayload)
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSession.emit(event, newPayload)
+      cfRoomSession.emit(event, newPayload)
       break
     case 'video.member.left':
-      roomSession.emit(event, newPayload)
+      cfRoomSession.emit(event, newPayload)
       remove<RoomSessionMember>(memberId!)
       break
     case 'video.member.talking':
-      roomSession.emit(event, newPayload)
+      cfRoomSession.emit(event, newPayload)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
-        roomSession.emit(
+        cfRoomSession.emit(
           `${event}.${suffix}` as MemberTalkingEventNames,
           newPayload
         )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
-        roomSession.emit(
+        cfRoomSession.emit(
           `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
           newPayload
         )

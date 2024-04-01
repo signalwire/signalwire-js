@@ -138,6 +138,7 @@ export interface RegisterDeviceResponse {
 export type CallJoined = 'call.joined'
 export type CallStarted = 'call.started'
 export type CallUpdated = 'call.updated'
+export type CallLeft = 'call.left'
 export type CallStream = 'call.stream'
 
 export type CallStates = 'created' | 'ringing' | 'answered' | 'finished'
@@ -182,6 +183,7 @@ export interface CallJoinedEventParams {
   room_session_id: string
   call_id: string
   member_id: string
+  node_id: string
   room_session: InternalVideoRoomSessionEntity
 }
 
@@ -271,6 +273,23 @@ export interface CallEndedEvent extends SwEvent {
 }
 
 /**
+ * Call Left - call.left
+ */
+export interface CallLeftEventParams {
+  room_id: string
+  room_session_id: string
+  call_id: string
+  member_id: string
+  node_id: string
+  room_session: InternalVideoRoomSessionEntity
+}
+
+export interface CallLeftEvent extends SwEvent {
+  event_type: CallLeft
+  params: CallLeftEventParams
+}
+
+/**
  * Call Play - call.play
  */
 export interface CallPlayEventParams {
@@ -353,6 +372,7 @@ export type CallFabricEvent =
   | CallStartedEvent
   | CallUpdatedEvent
   | CallEndedEvent
+  | CallLeftEvent
   | CallStateEvent
   | CallPlayEvent
   | CallRecordEvent

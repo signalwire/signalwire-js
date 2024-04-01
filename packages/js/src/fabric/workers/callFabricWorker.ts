@@ -7,6 +7,8 @@ import {
   VideoAction,
   CallFabricAction,
   SDKWorkerParams,
+  VideoMemberEventNames,
+  VideoRoomSessionEventNames,
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricBaseRoomSession'
 import * as videoWorkers from '../../video/workers'
@@ -35,8 +37,8 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           })
           break
         }
-        // @ts-expect-error
         case 'call.left': {
+          // Should we alse remove the member from the instance map?
           options.callSegments.pop()
           break
         }
@@ -44,8 +46,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         case 'call.updated':
         case 'call.ended': {
           const action = type.split('.')[1]
-          const newEventName = `room.${action}`
-          // @ts-expect-error
+          const newEventName = `room.${action}` as VideoRoomSessionEventNames
           roomSession.emit(newEventName, payload)
           break
         }
@@ -55,7 +56,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         case 'member.talking': {
           const updatedAction = {
             ...action,
-            type: `video.${type}`,
+            type: `video.${type}` as VideoMemberEventNames,
           }
           // @ts-expect-error
           yield sagaEffects.fork(videoWorkers.videoMemberWorker, {
@@ -67,9 +68,8 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         case 'layout.changed': {
           const updatedAction = {
             ...action,
-            type: `video.${type}`,
+            type: `video.${type}` as 'video.layout.changed',
           }
-          // @ts-expect-error
           yield sagaEffects.put(swEventChannel, updatedAction)
           break
         }
@@ -77,9 +77,10 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         case 'member.promoted': {
           const updatedAction = {
             ...action,
-            type: `video.${type}`,
+            type: `video.${type}` as
+              | 'video.member.demoted'
+              | 'video.member.promoted',
           }
-          // @ts-expect-error
           yield sagaEffects.put(swEventChannel, updatedAction)
           return
         }
