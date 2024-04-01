@@ -33,7 +33,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
             action,
             ...options,
           })
-          return
+          break
         }
         // @ts-expect-error
         case 'call.left': {
@@ -47,7 +47,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           const newEventName = `room.${action}`
           // @ts-expect-error
           roomSession.emit(newEventName, payload)
-          return
+          break
         }
         case 'member.joined':
         case 'member.left':
@@ -71,8 +71,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           }
           // @ts-expect-error
           yield sagaEffects.put(swEventChannel, updatedAction)
-          roomSession.emit(type, payload)
-          return
+          break
         }
         case 'member.demoted':
         case 'member.promoted': {
