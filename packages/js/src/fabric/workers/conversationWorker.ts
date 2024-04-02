@@ -34,7 +34,6 @@ export const conversationWorker: SDKWorker<Client> = function* (
       swEventChannel,
       isConversationEvent
     )
-    console.log('In worker', action)
     conversation.handleEvent(action.payload)
   }
 
