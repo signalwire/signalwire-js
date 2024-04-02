@@ -73,7 +73,16 @@ export class Conversation {
       const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
         makeQueryParamsUrls(path, queryParams)
       )
-
+      const self = this
+      body.data = body.data.map((conversation) => {
+        conversation.sendMessage = function({ text }: { text: string }) {
+          return self.sendMessage({
+            text,
+            addressId: conversation.id,
+          })
+        }
+        return conversation
+      })
       return buildPaginatedResult<ConversationType>(body, this.httpClient.fetch)
     } catch (error) {
       throw new Error('Error fetching the conversation history!', error)
@@ -140,6 +149,7 @@ export class Conversation {
   /** @internal */
   public handleEvent(event: ConversationEventParams) {
     if (this.callbacks.length) {
+      console.log('Handling Conversation Event', event)
       this.callbacks.forEach((callback) => {
         callback(event)
       })

@@ -53,6 +53,7 @@ export interface Conversation {
   last_message_at: number
   metadata: Record<string, any>
   name: string
+  sendMessage(options: { text: string }): Promise<SendConversationMessageResponse>
 }
 
 export interface SendConversationMessageResponse {

@@ -198,6 +198,7 @@ function updateAddressUI() {
   addresses
     .map(createAddressListItem)
     .forEach((item) => addressUl.appendChild(item))
+  subscribeToNewMessages();
 }
 
 async function fetchAddresses() {

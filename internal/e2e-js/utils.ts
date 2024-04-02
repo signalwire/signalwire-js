@@ -180,8 +180,8 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
-export const createCFClient = async (page: Page) => {
-  const sat = await createTestSATToken()
+export const createCFClient = async (page: Page, sat?: string) => {
+  if (!sat) sat = await createTestSATToken()
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
     process.exit(4)
@@ -200,7 +200,6 @@ export const createCFClient = async (page: Page) => {
 
       // @ts-expect-error
       window._client = client
-
       return client
     },
     {
@@ -282,6 +281,48 @@ export const createTestSATToken = async () => {
   )
   const data = await response.json()
   return data.token
+}
+
+
+export const createVideoRoom= async (name?: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ? name : `e2e-js-test-room_${uuid()}`,
+      }),
+    }
+  )
+  const data = await response.json()
+  return data
+}
+
+
+export const fetchAddresses = async ({ sat, display_name, type }: {
+  sat: string
+  display_name: string
+  type?: string
+}) => {
+  const queryParams = new URLSearchParams({
+    display_name,
+  })
+  if (type) queryParams.append("type", type)
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/addresses?${queryParams}`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${sat}`,
+      }
+    }
+  )
+  const data = await response.json()
+  return data
 }
 
 interface CreateTestCRTOptions {
