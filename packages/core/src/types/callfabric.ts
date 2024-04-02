@@ -8,6 +8,17 @@ export interface PaginatedResponse<T> {
   }
 }
 
+export interface PaginatedResult<T> {
+  data: Array<T> | []
+  self() : Promise<PaginatedResult<T> | undefined>
+  nextPage() : Promise<PaginatedResult<T> | undefined>
+  prevPage() : Promise<PaginatedResult<T> | undefined>
+  firstPage() : Promise<PaginatedResult<T> | undefined>
+  hasNext : boolean
+  hasPrev : boolean
+}
+
+
 /**
  * Addresses
  */
@@ -54,6 +65,7 @@ export interface Conversation {
   metadata: Record<string, any>
   name: string
   sendMessage(options: { text: string }): Promise<SendConversationMessageResponse>
+  getMessages(options: { pageSize?: number }): Promise<PaginatedResult<ConversationMessage>>
 }
 
 export interface SendConversationMessageResponse {

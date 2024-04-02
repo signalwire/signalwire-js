@@ -37,6 +37,7 @@ test.describe('Conversation Room', () => {
       return new Promise(async (resolve) => {
         // @ts-expect-error
         const client = window._client
+        await client.connect()
         client.conversation.subscribe(resolve)
         client.conversation.sendMessage({
           text: '1st message from 1st subscriber',
@@ -80,5 +81,40 @@ test.describe('Conversation Room', () => {
     
     // @ts-expect-error
     expect(firstMsgEventFromPage2.type).toBe('message')
+
+    const messages = await page.evaluate(async ({ addressId }) => {
+      // @ts-expect-error
+      const client = window._client
+      const result = await client.conversation.getConversations()
+      const convo = result.data.filter(c => c.id == addressId)[0]
+      return await convo.getMessages({})
+    }, { addressId })
+
+    expect(messages).not.toBeUndefined()
+
+    expect(messages.data.length).toEqual(2)
+    expect(messages.data[0]).toMatchObject({
+      "conversation_id": addressId, 
+      "details": {}, 
+      "id": expect.anything(), 
+      "kind": null, 
+      "subtype": "chat", 
+      "text": "1st message from 2nd subscriber",
+      "ts": expect.anything(), 
+      "type": "message",
+      "user_id": expect.anything()
+    })
+
+    expect(messages.data[1]).toMatchObject({
+      "conversation_id": addressId, 
+      "details": {}, 
+      "id": expect.anything(), 
+      "kind": null, 
+      "subtype": "chat", 
+      "text": "1st message from 1st subscriber",
+      "ts": expect.anything(), 
+      "type": "message",
+      "user_id": expect.anything()
+    })
   })
 })

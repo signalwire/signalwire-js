@@ -75,10 +75,17 @@ export class Conversation {
       )
       const self = this
       body.data = body.data.map((conversation) => {
-        conversation.sendMessage = function({ text }: { text: string }) {
+        conversation.sendMessage = function ({ text }: { text: string }) {
           return self.sendMessage({
             text,
             addressId: conversation.id,
+          })
+        }
+
+        conversation.getMessages = function ({ pageSize }: { pageSize?: number }) {
+          return self.getConversationMessages({
+            addressId: conversation.id,
+            pageSize,
           })
         }
         return conversation
