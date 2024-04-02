@@ -354,7 +354,17 @@ export type RoomMethod =
 /**
  * List of all Unified Room methods
  */
-export type UnifiedRoomMethod = 'call.mute' | 'call.unmute'
+export type UnifiedRoomMethod =
+  | 'call.mute'
+  | 'call.unmute'
+  | 'call.deaf'
+  | 'call.undeaf'
+  | 'call.layout.list'
+  | 'call.member.list'
+  | 'call.member.remove'
+  | 'call.layout.set'
+  | 'call.microphone.volume.set'
+  | 'call.microphone.sensitivity.set'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
