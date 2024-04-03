@@ -9,6 +9,8 @@ import {
   type RegisterDeviceParams,
   type UnregisterDeviceParams,
   type RegisterDeviceResponse,
+  GetAddressOptions,
+  GetAddressResponse,
 } from '@signalwire/core'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -49,6 +51,14 @@ export class HTTPClient {
       return 'fabric.signalwire.com'
     }
     return `fabric.${host.split('.').splice(1).join('.')}`
+  }
+
+  public async getAddress(options: GetAddressOptions) {
+    const { addressId } = options
+    let path = `/api/fabric/addresses/${addressId}`
+    
+    const { body } = await this.httpClient<GetAddressResponse>(path)
+    return body
   }
 
   public async getAddresses(options?: GetAddressesOptions) {
