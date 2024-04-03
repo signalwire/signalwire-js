@@ -1,11 +1,10 @@
-import { test, expect } from '../fixtures'
+import { test, expect } from '../../fixtures'
 import { 
   SERVER_URL,
   createTestSATToken,
   createVideoRoom,
-  fetchAddresses,
   createCFClient
-} from '../utils'
+} from '../../utils'
 import { uuid } from '@signalwire/core'
 
 test.describe('Conversation Room', () => {
@@ -25,29 +24,26 @@ test.describe('Conversation Room', () => {
     const roomName = `e2e-js-convo-room_${uuid()}`
     await createVideoRoom(roomName)
     
-    const addresses = await fetchAddresses({
-      sat: sat1,
-      display_name: roomName
-    })
-    const roomAddress = addresses.data[0]
-    expect(roomAddress).not.toBeFalsy()
-
-    const addressId = roomAddress.id
-    const firstMsgEvent = await page.evaluate(({ addressId }) => {
+    const firstMsgEvent = await page.evaluate(({ roomName }) => {
       return new Promise(async (resolve) => {
         // @ts-expect-error
         const client = window._client
-        await client.connect()
+        const addresses = await client.addresses.getAddresses({ displayName: roomName })
+        const roomAddress = addresses.data[0]
+        const addressId = roomAddress.id
         client.conversation.subscribe(resolve)
         client.conversation.sendMessage({
           text: '1st message from 1st subscriber',
           addressId,
         })
       })
-    }, { addressId })
+    }, { roomName })
 
     // @ts-expect-error
     expect(firstMsgEvent.type).toBe('message')
+
+    // @ts-expect-error
+    const addressId = firstMsgEvent.address_id
 
     const secondMsgEventPromiseFromPage1 = page.evaluate(() => {
       return new Promise(resolve => {

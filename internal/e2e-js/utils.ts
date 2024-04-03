@@ -279,6 +279,7 @@ export const createTestSATToken = async () => {
       }),
     }
   )
+  console.log(response.body.read().toString())
   const data = await response.json()
   return data.token
 }
@@ -296,29 +297,6 @@ export const createVideoRoom= async (name?: string) => {
       body: JSON.stringify({
         name: name ? name : `e2e-js-test-room_${uuid()}`,
       }),
-    }
-  )
-  const data = await response.json()
-  return data
-}
-
-
-export const fetchAddresses = async ({ sat, display_name, type }: {
-  sat: string
-  display_name: string
-  type?: string
-}) => {
-  const queryParams = new URLSearchParams({
-    display_name,
-  })
-  if (type) queryParams.append("type", type)
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/addresses?${queryParams}`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${sat}`,
-      }
     }
   )
   const data = await response.json()
