@@ -33,7 +33,7 @@ export interface GetAddressesOptions {
 }
 
 export interface GetAddressOptions {
-  addressId: string
+  id: string
 }
 
 export interface GetAddressResponse extends Address {}

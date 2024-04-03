@@ -54,8 +54,8 @@ export class HTTPClient {
   }
 
   public async getAddress(options: GetAddressOptions) {
-    const { addressId } = options
-    let path = `/api/fabric/addresses/${addressId}`
+    const { id } = options
+    let path = `/api/fabric/addresses/${id}`
     
     const { body } = await this.httpClient<GetAddressResponse>(path)
     return body

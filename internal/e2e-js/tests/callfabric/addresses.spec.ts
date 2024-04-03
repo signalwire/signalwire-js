@@ -17,7 +17,7 @@ test.describe('Addresses', () => {
       const response = await client.address.getAddresses()
       const addressToCompare = response.data[0]
 
-      const address = await client.address.getAddress({ addressId: addressToCompare.id })
+      const address = await client.address.getAddress({ id: addressToCompare.id })
       return { address, addressToCompare }
     })
 
