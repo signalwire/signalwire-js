@@ -22,11 +22,6 @@ export interface PaginatedResult<T> {
 /**
  * Addresses
  */
-export interface GetAddressesOptions {
-  type?: string
-  displayName?: string
-  pageSize?: number
-}
 
 export interface Address {
   display_name: string
@@ -41,6 +36,18 @@ export interface Address {
     video?: string
   }
 }
+
+export interface GetAddressesOptions {
+  type?: string
+  displayName?: string
+  pageSize?: number
+}
+
+export interface GetAddressOptions {
+  id: string
+}
+
+export interface GetAddressResponse extends Address {}
 
 export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 
