@@ -1,6 +1,7 @@
 import { Conversation } from './Conversation'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
+import { uuid } from '@signalwire/core'
 
 // Mock HTTPClient
 jest.mock('./HTTPClient', () => {
@@ -47,17 +48,20 @@ describe('Conversation', () => {
 
   describe('getConversations', () => {
     it('should fetch conversations', async () => {
+      const conversations = [{ id: uuid() }, { id: uuid() }]
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
-        body: { data: ['conversation1', 'conversation2'], links: {} },
+        body: { data: conversations, links: {} },
       })
 
       const result = await conversation.getConversations()
-      expect(result.data).toEqual(['conversation1', 'conversation2'])
+      expect(result.data).toEqual(conversations)
       expect(result.hasNext).toBe(false)
       expect(result.hasPrev).toBe(false)
       expect(httpClient.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/conversations')
       )
+      expect(result.data[0].sendMessage).not.toBeUndefined()
+      expect(typeof result.data[0].sendMessage).toBe('function')
     })
 
     it('should handle errors with getConversations', async () => {
@@ -151,22 +155,35 @@ describe('Conversation', () => {
     })
   })
 
-  describe('createConversationMessage', () => {
+  describe('sendMessage', () => {
     it('should create a conversation message', async () => {
-      const expectedResponse = { success: true, messageId: '12345' }
+      const addressId = uuid()
+      const text = 'test message'
+      const expectedResponse = {
+        table: {
+          text,
+          conversation_id: addressId,
+        }
+      }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: expectedResponse,
       })
 
       // TODO: Test with payload
-      const result = await conversation.createConversationMessage()
+      const result = await conversation.sendMessage({
+        addressId,
+        text
+      })
 
       expect(result).toEqual(expectedResponse)
       expect(httpClient.fetch).toHaveBeenCalledWith(
-        '/api/fabric/conversations/messages',
+        '/api/fabric/messages',
         {
           method: 'POST',
-          body: {},
+          body: {
+            conversation_id: addressId,
+            text,
+          },
         }
       )
     })
@@ -177,11 +194,14 @@ describe('Conversation', () => {
       )
 
       try {
-        await conversation.createConversationMessage()
-        fail('Expected getConversationMessages to throw an error.')
+        await conversation.sendMessage({
+          text: 'text message',
+          addressId: uuid(),
+        })
+        fail('Expected sendMessage to throw error.')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect(error.message).toBe('Error creating a conversation messages!')
+        expect(error.message).toBe('Error sending message to conversation!')
       }
     })
   })

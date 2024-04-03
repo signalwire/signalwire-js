@@ -24,6 +24,7 @@ export interface SignalWireContract {
     getMessages: Conversation['getMessages']
     getConversationMessages: Conversation['getConversationMessages']
     subscribe: Conversation['subscribe']
+    sendMessage: Conversation['sendMessage']
   }
 }
 
@@ -58,6 +59,7 @@ export const SignalWire = (
           getConversationMessages:
             conversation.getConversationMessages.bind(conversation),
           subscribe: conversation.subscribe.bind(conversation),
+          sendMessage: conversation.sendMessage.bind(conversation),
         },
         // @ts-expect-error
         __httpClient: httpClient,
