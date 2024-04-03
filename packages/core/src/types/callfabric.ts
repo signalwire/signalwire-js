@@ -47,7 +47,6 @@ export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 /**
  * Conversations
  */
-
 export interface SendConversationMessageOptions {
   text: string
   addressId: string

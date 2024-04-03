@@ -2,7 +2,6 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import {
   ConversationEventParams,
-  Conversation as ConversationType,
   FetchConversationsResponse,
   GetMessagesOptions,
   GetConversationsOptions,
@@ -15,6 +14,7 @@ import {
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
+import { ConversationAPI } from './ConversationAPI'
 
 type Callback = (event: ConversationEventParams) => unknown
 
@@ -74,23 +74,8 @@ export class Conversation {
         makeQueryParamsUrls(path, queryParams)
       )
       const self = this
-      body.data = body.data.map((conversation) => {
-        conversation.sendMessage = function ({ text }: { text: string }) {
-          return self.sendMessage({
-            text,
-            addressId: conversation.id,
-          })
-        }
-
-        conversation.getMessages = function ({ pageSize }: { pageSize?: number }) {
-          return self.getConversationMessages({
-            addressId: conversation.id,
-            pageSize,
-          })
-        }
-        return conversation
-      })
-      return buildPaginatedResult<ConversationType>(body, this.httpClient.fetch)
+      body.data = body.data.map((conversation) => new ConversationAPI(self, conversation))
+      return buildPaginatedResult(body, this.httpClient.fetch)
     } catch (error) {
       throw new Error('Error fetching the conversation history!', error)
     }
@@ -156,7 +141,6 @@ export class Conversation {
   /** @internal */
   public handleEvent(event: ConversationEventParams) {
     if (this.callbacks.length) {
-      console.log('Handling Conversation Event', event)
       this.callbacks.forEach((callback) => {
         callback(event)
       })
