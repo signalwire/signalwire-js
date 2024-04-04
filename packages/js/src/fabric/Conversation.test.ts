@@ -1,4 +1,5 @@
 import { Conversation } from './Conversation'
+import { ConversationAPI } from './ConversationAPI'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { uuid } from '@signalwire/core'
@@ -54,7 +55,9 @@ describe('Conversation', () => {
       })
 
       const result = await conversation.getConversations()
-      expect(result.data).toEqual(conversations)
+      result.data.forEach((item) => {
+        expect(item).toBeInstanceOf(ConversationAPI)
+      })
       expect(result.hasNext).toBe(false)
       expect(result.hasPrev).toBe(false)
       expect(httpClient.fetch).toHaveBeenCalledWith(
@@ -163,7 +166,7 @@ describe('Conversation', () => {
         table: {
           text,
           conversation_id: addressId,
-        }
+        },
       }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: expectedResponse,
@@ -172,20 +175,17 @@ describe('Conversation', () => {
       // TODO: Test with payload
       const result = await conversation.sendMessage({
         addressId,
-        text
+        text,
       })
 
       expect(result).toEqual(expectedResponse)
-      expect(httpClient.fetch).toHaveBeenCalledWith(
-        '/api/fabric/messages',
-        {
-          method: 'POST',
-          body: {
-            conversation_id: addressId,
-            text,
-          },
-        }
-      )
+      expect(httpClient.fetch).toHaveBeenCalledWith('/api/fabric/messages', {
+        method: 'POST',
+        body: {
+          conversation_id: addressId,
+          text,
+        },
+      })
     })
 
     it('should handles errors with createConversationMessage', async () => {
