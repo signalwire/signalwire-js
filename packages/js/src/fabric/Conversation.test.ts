@@ -49,14 +49,31 @@ describe('Conversation', () => {
 
   describe('getConversations', () => {
     it('should fetch conversations', async () => {
-      const conversations = [{ id: uuid() }, { id: uuid() }]
+      const conversations = [
+        {
+          id: uuid(),
+          last_message_at: Date.now(),
+          created_at: Date.now(),
+          metadata: {},
+          name: 'convo 1',
+        },
+        {
+          id: uuid(),
+          last_message_at: Date.now(),
+          created_at: Date.now(),
+          metadata: {},
+          name: 'convo 2',
+        },
+      ]
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: { data: conversations, links: {} },
       })
 
       const result = await conversation.getConversations()
-      result.data.forEach((item) => {
+      result.data.forEach((item, index) => {
         expect(item).toBeInstanceOf(ConversationAPI)
+        expect(item.id).toEqual(conversations[index].id)
+        expect(item.name).toEqual(conversations[index].name)
       })
       expect(result.hasNext).toBe(false)
       expect(result.hasPrev).toBe(false)
