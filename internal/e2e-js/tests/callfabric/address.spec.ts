@@ -3,9 +3,9 @@ import { SERVER_URL, createCFClient } from '../../utils'
 
 test.describe('Addresses', () => {
   test('query multiple addresses and single address', async ({
-    createCustomVanillaPage,
+    createCustomPage,
   }) => {
-    const page = await createCustomVanillaPage({ name: '[page]' })
+    const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
     await createCFClient(page)
@@ -17,7 +17,9 @@ test.describe('Addresses', () => {
       const response = await client.address.getAddresses()
       const addressToCompare = response.data[0]
 
-      const address = await client.address.getAddress({ id: addressToCompare.id })
+      const address = await client.address.getAddress({
+        id: addressToCompare.id,
+      })
       return { address, addressToCompare }
     })
 

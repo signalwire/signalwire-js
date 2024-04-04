@@ -55,7 +55,7 @@ export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsH
   }
 
   get memberId() {
-    return this._payload.member.id
+    return this.id
   }
 
   get roomSessionId() {
