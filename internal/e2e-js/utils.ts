@@ -279,13 +279,11 @@ export const createTestSATToken = async () => {
       }),
     }
   )
-  console.log(response.body.read().toString())
   const data = await response.json()
   return data.token
 }
 
-
-export const createVideoRoom= async (name?: string) => {
+export const createVideoRoom = async (name?: string) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
     {
