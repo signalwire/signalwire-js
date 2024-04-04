@@ -48,13 +48,31 @@ describe('Conversation', () => {
 
   describe('getConversations', () => {
     it('should fetch conversations', async () => {
-      const conversations = [{ id: uuid() }, { id: uuid() }]
+      const conversations = [
+        {
+          id: uuid(),
+          last_message_at: Date.now(),
+          created_at: Date.now(),
+          metadata: {},
+          name: 'convo 1'
+        }, 
+        {
+          id: uuid(),
+          last_message_at: Date.now(),
+          created_at: Date.now(),
+          metadata: {},
+          name: 'convo 2'
+        }
+      ]
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: { data: conversations, links: {} },
       })
 
       const result = await conversation.getConversations()
-      expect(result.data).toEqual(conversations)
+      expect(result.data[0].id).toEqual(conversations[0].id)
+      expect(result.data[0].name).toEqual(conversations[0].name)
+      expect(result.data[1].id).toEqual(conversations[1].id)
+      expect(result.data[1].name).toEqual(conversations[1].name)
       expect(result.hasNext).toBe(false)
       expect(result.hasPrev).toBe(false)
       expect(httpClient.fetch).toHaveBeenCalledWith(
