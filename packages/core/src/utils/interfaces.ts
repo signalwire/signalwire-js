@@ -19,6 +19,7 @@ import {
   MessagingJSONRPCMethod,
   VoiceJSONRPCMethod,
   ClientContextMethod,
+  CallSegmentContract,
 } from '..'
 
 type JSONRPCParams = Record<string, any>
@@ -61,6 +62,7 @@ export type JSONRPCMethod =
   | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
+  | UnifiedRoomMethod
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
@@ -113,7 +115,10 @@ export interface SessionOptions {
   /** The SDK invokes this method and uses the new token to re-auth. */
   onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
-  /** Unified eventing is required only with Call Fabric SDK */
+  /**
+   * @internal
+   * Unified eventing is required only with Call Fabric SDK
+   * */
   unifiedEventing?: boolean
   instanceMap?: InstanceMap
 }
@@ -346,6 +351,21 @@ export type RoomMethod =
   | 'video.member.lowerhand'
   | 'video.prioritize_handraise'
 
+/**
+ * List of all Unified Room methods
+ */
+export type UnifiedRoomMethod =
+  | 'call.mute'
+  | 'call.unmute'
+  | 'call.deaf'
+  | 'call.undeaf'
+  | 'call.layout.list'
+  | 'call.member.list'
+  | 'call.member.remove'
+  | 'call.layout.set'
+  | 'call.microphone.volume.set'
+  | 'call.microphone.sensitivity.set'
+
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
   removeEventListener: WebSocket['removeEventListener']
@@ -450,6 +470,7 @@ type SDKWorkerBaseParams<T> = {
   initialState?: any
   getSession: () => BaseSession | undefined
   instanceMap: InstanceMap
+  callSegments: CallSegmentContract[]
   dispatcher?: (
     type: any,
     payload: any,

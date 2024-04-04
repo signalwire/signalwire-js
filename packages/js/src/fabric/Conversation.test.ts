@@ -1,4 +1,5 @@
 import { Conversation } from './Conversation'
+import { ConversationAPI } from './ConversationAPI'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { uuid } from '@signalwire/core'
@@ -54,25 +55,26 @@ describe('Conversation', () => {
           last_message_at: Date.now(),
           created_at: Date.now(),
           metadata: {},
-          name: 'convo 1'
-        }, 
+          name: 'convo 1',
+        },
         {
           id: uuid(),
           last_message_at: Date.now(),
           created_at: Date.now(),
           metadata: {},
-          name: 'convo 2'
-        }
+          name: 'convo 2',
+        },
       ]
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: { data: conversations, links: {} },
       })
 
       const result = await conversation.getConversations()
-      expect(result.data[0].id).toEqual(conversations[0].id)
-      expect(result.data[0].name).toEqual(conversations[0].name)
-      expect(result.data[1].id).toEqual(conversations[1].id)
-      expect(result.data[1].name).toEqual(conversations[1].name)
+      result.data.forEach((item, index) => {
+        expect(item).toBeInstanceOf(ConversationAPI)
+        expect(item.id).toEqual(conversations[index].id)
+        expect(item.name).toEqual(conversations[index].name)
+      })
       expect(result.hasNext).toBe(false)
       expect(result.hasPrev).toBe(false)
       expect(httpClient.fetch).toHaveBeenCalledWith(
@@ -181,7 +183,7 @@ describe('Conversation', () => {
         table: {
           text,
           conversation_id: addressId,
-        }
+        },
       }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: expectedResponse,
@@ -190,20 +192,17 @@ describe('Conversation', () => {
       // TODO: Test with payload
       const result = await conversation.sendMessage({
         addressId,
-        text
+        text,
       })
 
       expect(result).toEqual(expectedResponse)
-      expect(httpClient.fetch).toHaveBeenCalledWith(
-        '/api/fabric/messages',
-        {
-          method: 'POST',
-          body: {
-            conversation_id: addressId,
-            text,
-          },
-        }
-      )
+      expect(httpClient.fetch).toHaveBeenCalledWith('/api/fabric/messages', {
+        method: 'POST',
+        body: {
+          conversation_id: addressId,
+          text,
+        },
+      })
     })
 
     it('should handles errors with createConversationMessage', async () => {

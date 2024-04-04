@@ -180,8 +180,8 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
-export const createCFClient = async (page: Page, sat?: string) => {
-  if (!sat) sat = await createTestSATToken()
+export const createCFClient = async (page: Page) => {
+  const sat = await createTestSATToken()
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
     process.exit(4)
@@ -279,13 +279,11 @@ export const createTestSATToken = async () => {
       }),
     }
   )
-  console.log(response.body.read().toString())
   const data = await response.json()
   return data.token
 }
 
-
-export const createVideoRoom= async (name?: string) => {
+export const createVideoRoom = async (name?: string) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
     {

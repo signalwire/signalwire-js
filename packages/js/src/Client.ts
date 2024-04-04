@@ -6,7 +6,7 @@ import {
   Chat as ChatNamespace,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import type { CustomSaga, SDKWorker } from '@signalwire/core'
+import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import {
   makeVideoElementSaga,
@@ -20,6 +20,7 @@ import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
 import type { RoomSession } from './RoomSession'
+import { createCallFabricBaseRoomSessionObject } from './fabric/CallFabricBaseRoomSession'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -41,7 +42,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
   /** Local media stream to override the local video and audio stream tracks */
   localStream?: MediaStream
-  eventsWatcher?: SDKWorker<RoomSessionConnection>
+  unifiedEventing?: boolean
 }
 
 export class ClientAPI<
@@ -59,6 +60,7 @@ export class ClientAPI<
           applyLocalVideoOverlay = true,
           stopCameraWhileMuted = true,
           stopMicrophoneWhileMuted = true,
+          unifiedEventing = false,
           ...options
         } = makeRoomOptions
 
@@ -76,7 +78,7 @@ export class ClientAPI<
         )
 
         /**
-         * If the user provides a `roomElement` we'll
+         * If the user provides a `rootElement` we'll
          * automatically handle the Video element for them
          */
         if (rootElement) {
@@ -88,7 +90,12 @@ export class ClientAPI<
           )
         }
 
-        const room = createBaseRoomSessionObject<RoomSessionType>({
+        let roomSessionObject = createBaseRoomSessionObject
+        if (unifiedEventing) {
+          roomSessionObject = createCallFabricBaseRoomSessionObject
+        }
+
+        const room = roomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
           customSagas,

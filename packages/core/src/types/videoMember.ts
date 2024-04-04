@@ -188,7 +188,10 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   /** Metadata associated to this member. */
   meta?: Record<string, unknown>
   /** Indicate if the member hand is raised or not */
-  handraised: Boolean
+  handraised: boolean
+  callId?: string
+  nodeId?: string
+  memberId?: string
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a
@@ -354,13 +357,18 @@ export type InternalVideoMemberEntity = {
   > as CamelToSnakeCase<K>]: VideoMemberEntity[K]
 }
 
-export interface InternalUnifiedVideoMemberEntity extends InternalVideoMemberEntity {
+export interface InternalUnifiedVideoMemberEntity
+  extends InternalVideoMemberEntity {
   memberId: string
-  callId: string,
+  callId: string
   nodeId: string
 }
 
-export type InternalUnifiedMethodTarget = Pick<InternalUnifiedVideoMemberEntity, 'memberId' | 'callId' |'nodeId'>
+export type InternalUnifiedMethodTarget = Pick<
+  InternalUnifiedVideoMemberEntity,
+  'memberId' | 'callId' | 'nodeId'
+>
+
 /**
  * VideoMember entity plus `updated` field
  * for internal usage (converted to snake_case)
@@ -441,6 +449,7 @@ export interface VideoMemberTalkingEventParams {
   room_id: string
   member: {
     id: string
+    member_id?: string
     talking: boolean
   }
 }
