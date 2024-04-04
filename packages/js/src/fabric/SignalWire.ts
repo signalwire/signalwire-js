@@ -18,12 +18,14 @@ export interface SignalWireContract {
   updateToken: WSClient['updateToken']
   address: {
     getAddresses: HTTPClient['getAddresses']
+    getAddress: HTTPClient['getAddress']
   }
   conversation: {
     getConversations: Conversation['getConversations']
     getMessages: Conversation['getMessages']
     getConversationMessages: Conversation['getConversationMessages']
     subscribe: Conversation['subscribe']
+    sendMessage: Conversation['sendMessage']
   }
 }
 
@@ -51,6 +53,7 @@ export const SignalWire = (
         updateToken: wsClient.updateToken.bind(wsClient),
         address: {
           getAddresses: httpClient.getAddresses.bind(httpClient),
+          getAddress: httpClient.getAddress.bind(httpClient),
         },
         conversation: {
           getConversations: conversation.getConversations.bind(conversation),
@@ -58,6 +61,7 @@ export const SignalWire = (
           getConversationMessages:
             conversation.getConversationMessages.bind(conversation),
           subscribe: conversation.subscribe.bind(conversation),
+          sendMessage: conversation.sendMessage.bind(conversation),
         },
         // @ts-expect-error
         __httpClient: httpClient,

@@ -66,14 +66,17 @@ export class WSClient {
 
   async connect() {
     // @ts-ignore
-    this.wsClient.runWorker('wsClientWorker', {
-      worker: wsClientWorker,
-      initialState: {
-        buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) =>
-          this.notifyIncomingInvite('websocket', incomingInvite),
-      },
-    })
-    await this.wsClient.connect()
+    if (!this.wsClient.connected) {
+      // @ts-ignore
+      this.wsClient.runWorker('wsClientWorker', {
+        worker: wsClientWorker,
+        initialState: {
+          buildInboundCall: (incomingInvite: Omit<IncomingInvite, 'source'>) =>
+            this.notifyIncomingInvite('websocket', incomingInvite),
+        },
+      })
+      await this.wsClient.connect()
+    }
   }
 
   disconnect() {
@@ -317,8 +320,11 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  online({ incomingCallHandlers }: OnlineParams) {
+  async online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
+
+    await this.connect()
+
     // @ts-expect-error
     return this.wsClient.execute({
       method: 'subscriber.online',

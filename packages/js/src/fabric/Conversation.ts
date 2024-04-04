@@ -2,17 +2,19 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import {
   ConversationEventParams,
-  Conversation as ConversationType,
   FetchConversationsResponse,
   GetMessagesOptions,
   GetConversationsOptions,
   GetConversationMessagesOptions,
   FetchConversationMessagesResponse,
   ConversationMessage,
+  SendConversationMessageOptions,
+  SendConversationMessageResponse,
 } from '@signalwire/core'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
+import { ConversationAPI } from './ConversationAPI'
 
 type Callback = (event: ConversationEventParams) => unknown
 
@@ -39,6 +41,25 @@ export class Conversation {
     })
   }
 
+  public async sendMessage(options: SendConversationMessageOptions) {
+    try {
+      const {
+        addressId, text
+      } = options
+      const path = '/api/fabric/messages'
+      const { body } = await this.httpClient.fetch<SendConversationMessageResponse>(path, {
+        method: 'POST',
+        body: {
+          conversation_id: addressId,
+          text,
+        }
+      })
+      return body
+    } catch (error) {
+      throw new Error("Error sending message to conversation!", error)
+    }
+  }
+
   public async getConversations(options?: GetConversationsOptions) {
     try {
       const { pageSize } = options || {}
@@ -52,8 +73,9 @@ export class Conversation {
       const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
         makeQueryParamsUrls(path, queryParams)
       )
-
-      return buildPaginatedResult<ConversationType>(body, this.httpClient.fetch)
+      const self = this
+      body.data = body.data.map((conversation) => new ConversationAPI(self, conversation))
+      return buildPaginatedResult(body, this.httpClient.fetch)
     } catch (error) {
       throw new Error('Error fetching the conversation history!', error)
     }
@@ -106,24 +128,6 @@ export class Conversation {
       )
     } catch (error) {
       throw new Error('Error fetching the conversation messages!', error)
-    }
-  }
-
-  public async createConversationMessage() {
-    try {
-      const path = '/api/fabric/conversations/messages'
-
-      // TODO: Complete the payload
-      const payload = {}
-
-      const { body } = await this.httpClient.fetch<ConversationMessage>(path, {
-        method: 'POST',
-        body: payload,
-      })
-
-      return body
-    } catch (error) {
-      throw new Error('Error creating a conversation messages!', error)
     }
   }
 
