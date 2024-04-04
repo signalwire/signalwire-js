@@ -68,6 +68,7 @@ export type {
   InboundCallSource,
   IncomingCallNotification,
   AcceptInviteParams,
+  ConversationAPI,
 } from './fabric'
 
 /**

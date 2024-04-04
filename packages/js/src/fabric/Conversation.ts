@@ -43,20 +43,19 @@ export class Conversation {
 
   public async sendMessage(options: SendConversationMessageOptions) {
     try {
-      const {
-        addressId, text
-      } = options
+      const { addressId, text } = options
       const path = '/api/fabric/messages'
-      const { body } = await this.httpClient.fetch<SendConversationMessageResponse>(path, {
-        method: 'POST',
-        body: {
-          conversation_id: addressId,
-          text,
-        }
-      })
+      const { body } =
+        await this.httpClient.fetch<SendConversationMessageResponse>(path, {
+          method: 'POST',
+          body: {
+            conversation_id: addressId,
+            text,
+          },
+        })
       return body
     } catch (error) {
-      throw new Error("Error sending message to conversation!", error)
+      throw new Error('Error sending message to conversation!', error)
     }
   }
 
@@ -74,8 +73,10 @@ export class Conversation {
         makeQueryParamsUrls(path, queryParams)
       )
       const self = this
-      body.data = body.data.map((conversation) => new ConversationAPI(self, conversation))
-      return buildPaginatedResult(body, this.httpClient.fetch)
+      const data = body.data.map(
+        (conversation) => new ConversationAPI(self, conversation)
+      )
+      return buildPaginatedResult({ ...body, data }, this.httpClient.fetch)
     } catch (error) {
       throw new Error('Error fetching the conversation history!', error)
     }
