@@ -18,14 +18,14 @@ jobs:
       matrix:
         node-version: [18.x]
         project: [
-            # default,
+            default,
             # streaming,
             # slow,
             # promote,
             # demote,
             # reattach,
             callfabric,
-            v2WebRTC,
+            # v2WebRTC,
           ]
     steps:
       - uses: actions/checkout@v4
