@@ -46,11 +46,11 @@ jobs:
   #   needs: tests
   #   uses: ./.github/workflows/browser-js-production.yml
   #   secrets: inherit
-  # run-realtime-api-staging:
-  #   name: RealtimeAPI SDK staging
-  #   needs: tests
-  #   uses: ./.github/workflows/realtime-api-staging.yml
-  #   secrets: inherit
+  run-realtime-api-staging:
+    name: RealtimeAPI SDK staging
+    needs: tests
+    uses: ./.github/workflows/realtime-api-staging.yml
+    secrets: inherit
   run-realtime-api-production:
     name: RealtimeAPI SDK production
     needs: tests
