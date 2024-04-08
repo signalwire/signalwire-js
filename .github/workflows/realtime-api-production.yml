@@ -15,8 +15,14 @@ jobs:
     name: Run E2E tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false # Continue other jobs if one fails
       matrix:
         node-version: [18.x]
+        include:
+          - test_command: dev:rt
+            description: Realtime
+          - test_command: dev:playwright
+            description: Playwright
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -33,7 +39,7 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-realtime-api dev
+        run: npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
       - name: Report Result
