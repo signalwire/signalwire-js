@@ -43,7 +43,7 @@ jobs:
         with:
           result: ${{ steps.run-tests.conclusion }}
           test-suite: v2-sdk-tests
-          environment: ${{ matrix.region }}
+          environment: production-${{ matrix.region }}
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
