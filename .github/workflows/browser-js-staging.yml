@@ -17,15 +17,16 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        project: [
+        project:
+          [
             default,
-            # streaming,
-            # slow,
-            # promote,
-            # demote,
-            # reattach,
+            streaming,
+            slow,
+            promote,
+            demote,
+            reattach,
             callfabric,
-            # v2WebRTC,
+            v2WebRTC,
           ]
     steps:
       - uses: actions/checkout@v4
