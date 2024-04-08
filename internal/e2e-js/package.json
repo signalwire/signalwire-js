@@ -10,7 +10,7 @@
   "dependencies": {
     "@sw-internal/playground-js": "0.0.15",
     "node-fetch": "^2.6.7",
-    "vite": "^4.5.2"
+    "vite": "^4.5.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.35.1"
