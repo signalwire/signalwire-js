@@ -30,9 +30,10 @@ jobs:
         with:
           NODE_VERSION: ${{ matrix.node-version }}
       - name: Install Playwright
+        if: matrix.test_command == 'dev:playwright'
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+          PLAYWRIGHT_VERSION: '1.35.1'
       - name: Test
         id: run-tests
         run: 'npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}'
