@@ -18,11 +18,7 @@ jobs:
       fail-fast: false # Continue other jobs if one fails
       matrix:
         node-version: [18.x]
-        include:
-          - test_command: dev:rt
-            description: Realtime
-          - test_command: dev:playwright
-            description: Playwright
+        test_command: [dev:rt, dev:playwright]
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
