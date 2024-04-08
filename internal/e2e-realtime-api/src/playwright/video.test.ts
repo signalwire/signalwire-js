@@ -36,7 +36,7 @@ test.describe('Video', () => {
         let count = 0
         await client.video.listen({
           onRoomStarted: (roomSession) => {
-            console.log('>> onRoomStarted', roomSession.name, prefix)
+            console.log('>>onRoomStarted', roomSession.name, prefix)
             if (roomSession.name.startsWith(prefix)) {
               count++
               roomSessionCreated.set(roomSession.id, roomSession)
