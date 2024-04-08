@@ -31,4 +31,4 @@ yarn-error.log*
 
 coverage/
 public/
-devcontainer.json
+.devcontainer/
