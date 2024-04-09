@@ -360,8 +360,6 @@ export class BaseSession {
         project: this.options.project,
         token: this.options.token,
       },
-      // FIXME: Remove this once server is ready
-      // eventing: this.unifiedEventing ? ['unified'] : undefined,
     }
   }
 

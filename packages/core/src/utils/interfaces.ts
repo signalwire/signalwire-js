@@ -62,7 +62,7 @@ export type JSONRPCMethod =
   | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
-  | UnifiedRoomMethod
+  | CallFabricMethod
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
@@ -117,10 +117,9 @@ export interface SessionOptions {
   sessionChannel?: SessionChannel
   /**
    * @internal
-   * Unified eventing is required only with Call Fabric SDK
+   * Connect the SDK with version 4 (required for CF SDK)
    * */
   unifiedEventing?: boolean
-  instanceMap?: InstanceMap
 }
 export interface UserOptions extends SessionOptions {
   /** @internal */
@@ -354,7 +353,7 @@ export type RoomMethod =
 /**
  * List of all Unified Room methods
  */
-export type UnifiedRoomMethod =
+export type CallFabricMethod =
   | 'call.mute'
   | 'call.unmute'
   | 'call.deaf'
