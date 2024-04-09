@@ -60,16 +60,7 @@ export * as PubSub from './pubSub'
  */
 export * as Fabric from './fabric'
 export { SWClient, SignalWire } from './fabric'
-export type {
-  SignalWireContract,
-  SignalWireOptions,
-  IncomingCallHandler,
-  IncomingCallHandlers,
-  InboundCallSource,
-  IncomingCallNotification,
-  AcceptInviteParams,
-  ConversationAPI,
-} from './fabric'
+export * from './fabric/types'
 
 /**
  * The Video namespace contains the classes and functions that you need to

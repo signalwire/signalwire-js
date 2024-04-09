@@ -1,33 +1,7 @@
 import { HTTPClient } from './HTTPClient'
-import { WSClient, WSClientOptions } from './WSClient'
+import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
-
-export interface SignalWireOptions extends WSClientOptions {}
-
-export interface SignalWireContract {
-  httpHost: HTTPClient['httpHost']
-  registerDevice: HTTPClient['registerDevice']
-  unregisterDevice: HTTPClient['unregisterDevice']
-  getSubscriberInfo: HTTPClient['getSubscriberInfo']
-  connect: WSClient['connect']
-  disconnect: WSClient['disconnect']
-  online: WSClient['online']
-  offline: WSClient['offline']
-  dial: WSClient['dial']
-  handlePushNotification: WSClient['handlePushNotification']
-  updateToken: WSClient['updateToken']
-  address: {
-    getAddresses: HTTPClient['getAddresses']
-    getAddress: HTTPClient['getAddress']
-  }
-  conversation: {
-    getConversations: Conversation['getConversations']
-    getMessages: Conversation['getMessages']
-    getConversationMessages: Conversation['getConversationMessages']
-    subscribe: Conversation['subscribe']
-    sendMessage: Conversation['sendMessage']
-  }
-}
+import { SignalWireContract, SignalWireOptions } from './types'
 
 export const SignalWire = (
   options: SignalWireOptions

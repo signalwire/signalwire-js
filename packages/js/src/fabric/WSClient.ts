@@ -1,59 +1,18 @@
-import {
-  type UserOptions,
-  getLogger,
-  VertoSubscribe,
-  VertoBye,
-} from '@signalwire/core'
+import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker } from './workers'
 import {
+  CallOptions,
+  DialParams,
   InboundCallSource,
-  IncomingCallHandlers,
-  IncomingCallManager,
   IncomingInvite,
-} from './IncomingCallManager'
-
-export interface OnlineParams {
-  incomingCallHandlers: IncomingCallHandlers
-}
-
-export interface PushNotificationPayload {
-  encryption_type: 'aes_256_gcm'
-  notification_uuid: string
-  with_video: 'true' | 'false'
-  incoming_caller_name: string
-  incoming_caller_id: string
-  tag: string
-  invite: string
-  title: string
-  type: 'call_invite'
-  iv: string
-  version: string
-  decrypted: Record<string, any>
-}
-
-export interface CallOptions {
-  /** HTML element in which to display the video stream */
-  rootElement?: HTMLElement
-  /** Disable ICE UDP transport policy */
-  disableUdpIceServers?: boolean
-  /** Audio constraints to use when joining the room. Default: `true`. */
-  audio?: MediaStreamConstraints['audio']
-  /** Video constraints to use when joining the room. Default: `true`. */
-  video?: MediaStreamConstraints['video']
-}
-
-export interface DialParams extends CallOptions {
-  to: string
-  nodeId?: string
-}
-
-export interface WSClientOptions extends UserOptions {
-  /** Call back function to receive the incoming call */
-  incomingCallHandlers?: IncomingCallHandlers
-}
+  OnlineParams,
+  PushNotificationPayload,
+  WSClientOptions,
+} from './types'
+import { IncomingCallManager } from './IncomingCallManager'
 
 export class WSClient {
   private wsClient: Client<RoomSession>

@@ -1,37 +1,11 @@
 import { BaseRoomSession } from '../BaseRoomSession'
 import { RoomSession } from '../RoomSession'
-import { CallOptions } from './WSClient'
-
-export type InboundCallSource = 'websocket' | 'pushNotification'
-
-export interface IncomingInvite {
-  source: InboundCallSource
-  callID: string
-  sdp: string
-  caller_id_name: string
-  caller_id_number: string
-  callee_id_name: string
-  callee_id_number: string
-  display_direction: string
-  nodeId: string
-}
-
-export interface IncomingCallNotification {
-  invite: {
-    details: IncomingInvite
-    accept: (param: CallOptions) => Promise<BaseRoomSession<RoomSession>>
-    reject: () => Promise<void>
-  }
-}
-export type IncomingCallHandler = (
-  notification: IncomingCallNotification
-) => Promise<void>
-
-export interface IncomingCallHandlers {
-  all?: IncomingCallHandler
-  pushNotification?: IncomingCallHandler
-  websocket?: IncomingCallHandler
-}
+import {
+  CallOptions,
+  IncomingCallHandlers,
+  IncomingCallNotification,
+  IncomingInvite,
+} from './types'
 
 export class IncomingCallManager {
   private _pendingInvites: Record<string, IncomingInvite> = {}
