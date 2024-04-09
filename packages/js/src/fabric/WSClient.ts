@@ -9,7 +9,6 @@ import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker } from './workers'
 import {
-  AcceptInviteParams,
   InboundCallSource,
   IncomingCallHandlers,
   IncomingCallManager,
@@ -35,19 +34,23 @@ export interface PushNotificationPayload {
   decrypted: Record<string, any>
 }
 
-export interface DialParams {
-  to: string
-  nodeId?: string
-  rootElement?: HTMLElement
-  audio?: MediaStreamConstraints['audio']
-  video?: MediaStreamConstraints['video']
-}
-
-export interface WSClientOptions extends UserOptions {
+export interface CallOptions {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Disable ICE UDP transport policy */
   disableUdpIceServers?: boolean
+  /** Audio constraints to use when joining the room. Default: `true`. */
+  audio?: MediaStreamConstraints['audio']
+  /** Video constraints to use when joining the room. Default: `true`. */
+  video?: MediaStreamConstraints['video']
+}
+
+export interface DialParams extends CallOptions {
+  to: string
+  nodeId?: string
+}
+
+export interface WSClientOptions extends UserOptions {
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
 }
@@ -63,7 +66,7 @@ export class WSClient {
       unifiedEventing: true,
     })
     this._incomingCallManager = new IncomingCallManager(
-      (payload: IncomingInvite, params: AcceptInviteParams) =>
+      (payload: IncomingInvite, params: CallOptions) =>
         this.buildInboundCall(payload, params),
       (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
     )
@@ -103,7 +106,7 @@ export class WSClient {
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
-          rootElement: params.rootElement ?? this.options.rootElement,
+          rootElement: params.rootElement,
           applyLocalVideoOverlay: true,
           stopCameraWhileMuted: true,
           stopMicrophoneWhileMuted: true,
@@ -112,7 +115,7 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
-          disableUdpIceServers: this.options.disableUdpIceServers || false,
+          disableUdpIceServers: params.disableUdpIceServers || false,
           unifiedEventing: true,
         })
 
@@ -252,10 +255,7 @@ export class WSClient {
     }
   }
 
-  private buildInboundCall(
-    payload: IncomingInvite,
-    params: AcceptInviteParams
-  ) {
+  private buildInboundCall(payload: IncomingInvite, params: CallOptions) {
     getLogger().debug('Build new call to answer')
 
     const { callID, nodeId, sdp } = payload
@@ -265,7 +265,7 @@ export class WSClient {
       video: params.video,
       negotiateAudio: true,
       negotiateVideo: true,
-      rootElement: params.rootElement ?? this.options.rootElement,
+      rootElement: params.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
@@ -273,7 +273,7 @@ export class WSClient {
       remoteSdp: sdp,
       prevCallId: callID,
       nodeId,
-      disableUdpIceServers: this.options.disableUdpIceServers || false,
+      disableUdpIceServers: params.disableUdpIceServers || false,
       unifiedEventing: true,
     })
 

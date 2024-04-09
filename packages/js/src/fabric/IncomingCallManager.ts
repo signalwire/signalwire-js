@@ -1,5 +1,6 @@
 import { BaseRoomSession } from '../BaseRoomSession'
 import { RoomSession } from '../RoomSession'
+import { CallOptions } from './WSClient'
 
 export type InboundCallSource = 'websocket' | 'pushNotification'
 
@@ -15,16 +16,10 @@ export interface IncomingInvite {
   nodeId: string
 }
 
-export interface AcceptInviteParams {
-  rootElement: HTMLElement | undefined
-  audio?: MediaStreamConstraints['audio']
-  video?: MediaStreamConstraints['video']
-}
-
 export interface IncomingCallNotification {
   invite: {
     details: IncomingInvite
-    accept: (param: AcceptInviteParams) => Promise<BaseRoomSession<RoomSession>>
+    accept: (param: CallOptions) => Promise<BaseRoomSession<RoomSession>>
     reject: () => Promise<void>
   }
 }
@@ -45,13 +40,13 @@ export class IncomingCallManager {
   constructor(
     private _buildCallObject: (
       invite: IncomingInvite,
-      params: AcceptInviteParams
+      params: CallOptions
     ) => BaseRoomSession<RoomSession>,
     private _executeReject: (callId: string, nodeId: string) => Promise<void>
   ) {}
 
   private _buildNotification(invite: IncomingInvite): IncomingCallNotification {
-    const accept = async (params: AcceptInviteParams) => {
+    const accept = async (params: CallOptions) => {
       return new Promise<BaseRoomSession<RoomSession>>((resolve, reject) => {
         delete this._pendingInvites[invite.callID]
         try {
