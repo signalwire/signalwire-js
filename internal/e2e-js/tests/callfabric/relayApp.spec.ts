@@ -214,6 +214,8 @@ test.describe('CallFabric Relay Application', () => {
     const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
     if (totalAudioEnergy) {
       expect(totalAudioEnergy).toBeCloseTo(0.1, 0)
+    } else {
+      console.log('Warning - totalAudioEnergy was not present in the audioStats.')
     }
 
     const callPlayEnded = page.evaluate(async () => {

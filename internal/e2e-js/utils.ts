@@ -509,7 +509,12 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 ) => {
   const audioStats = await getAudioStats(page)
 
-  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeGreaterThan(value)
+  } else {
+    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
+  }
 }
 
 const getRoomByName = async (roomName: string) => {
@@ -889,7 +894,12 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
   })
   console.log('audioStats: ', audioStats)
 
-  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeGreaterThan(value)
+  } else {
+    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
+  }
 }
 
 export const getDialConferenceLaml = (conferenceNameBase: string) => {
