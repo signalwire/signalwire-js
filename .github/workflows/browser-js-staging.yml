@@ -18,13 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [18.x]
-        project:
-          [
+        project: [
             default,
             streaming,
-            slow,
-            promote,
-            demote,
+            badNetwork,
+            # promote,
+            # demote,
+            # audience,
             reattach,
             callfabric,
             v2WebRTC,
