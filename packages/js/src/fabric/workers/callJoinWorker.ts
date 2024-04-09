@@ -67,16 +67,16 @@ export const callJoinWorker = function* (
     },
   })
   // FIXME: Why do we need to emit member.joined from here?
-  // for (const memberPayload of payload.room_session.members || []) {
-  //   // @ts-expect-error
-  //   yield sagaEffects.fork(videoMemberWorker, {
-  //     ...options,
-  //     action: {
-  //       type: 'video.member.joined',
-  //       payload: { member: memberPayload },
-  //     },
-  //   })
-  // }
+  for (const memberPayload of payload.room_session.members || []) {
+    // @ts-expect-error
+    yield sagaEffects.fork(videoMemberWorker, {
+      ...options,
+      action: {
+        type: 'video.member.joined',
+        payload: { member: memberPayload },
+      },
+    })
+  }
   cfRoomSession.emit('room.subscribed', payload)
 
   getLogger().trace('callJoinWorker ended')
