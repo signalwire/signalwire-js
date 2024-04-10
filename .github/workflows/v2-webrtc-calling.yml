@@ -17,9 +17,9 @@ jobs:
     strategy:
       matrix:
         region:
-          # - { name: 'global', environment: 'production', config: ${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}, cxml_conference_region: ${{ vars.PRODUCTION_E2E_JS_EUREGION_LAML_CONFERENCE_REGION }} }
-          - { name: 'eu', environment: 'eu', config: ${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}, cxml_conference_region: ${{ vars.PRODUCTION_E2E_JS_EUREGION_LAML_CONFERENCE_REGION }} }
-          # - { name: 'ch', environment: 'ch', config: ${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}, cxml_conference_region: ${{ vars.PRODUCTION_E2E_JS_EUREGION_LAML_CONFERENCE_REGION }} }
+          - { name: 'global', environment: 'production', config: '', cxml_conference_region: '' }
+          - { name: 'eu', environment: 'eu', config: ${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}, cxml_conference_region: 'region="eu"' }
+          - { name: 'ch', environment: 'ch', config: '', cxml_conference_region: '' }
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -39,7 +39,7 @@ jobs:
         run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
         env:
           SW_TEST_CONFIG: ${{ matrix.region.config }}
-          LAML_CONFERENCE_REGION: ${{ matrix.region.config }}
+          LAML_CONFERENCE_REGION: ${{ matrix.region.cxml_conference_region }}
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
