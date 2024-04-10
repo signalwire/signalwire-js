@@ -17,9 +17,9 @@ jobs:
     strategy:
       matrix:
         region:
-          - { name: 'global', environment: 'production', config: '', cxml_conference_region: '' }
-          - { name: 'eu', environment: 'eu', config: ${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}, cxml_conference_region: 'region="eu"' }
-          - { name: 'ch', environment: 'ch', config: '', cxml_conference_region: '' }
+          - { name: 'global', environment: 'production', config: '${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}', cxml_conference_region: '' }
+          - { name: 'eu', environment: 'eu', config: '${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}', cxml_conference_region: 'region="eu"' }
+          - { name: 'ch', environment: 'ch', config: '${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}', cxml_conference_region: '' }
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
