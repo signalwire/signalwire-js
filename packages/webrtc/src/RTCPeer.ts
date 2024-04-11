@@ -520,6 +520,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   async start() {
     return new Promise(async (resolve, reject) => {
+      this._setupRTCPeerConnection()
+
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
 
@@ -529,15 +531,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._rejectStartMethod(error)
         return this.call.setState('hangup')
       }
-
-      /**
-       * We need to defer the creation of RTCPeerConnection
-       * until we gain gUM access otherwise it will have
-       * private IP addresses in ICE host candidates
-       * replaced by an mDNS hostname
-       * @see https://groups.google.com/g/discuss-webrtc/c/6stQXi72BEU?pli=1
-       */
-      this._setupRTCPeerConnection()
 
       let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
