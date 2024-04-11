@@ -98,3 +98,84 @@ export const dispatchMockedRoomSubscribed = ({
 
   session.dispatch(actions.socketMessageAction(payload))
 }
+
+export const dispatchMockedCallJoined = ({
+  session,
+  roomId,
+  roomSessionId,
+  memberId,
+  callId,
+  nodeId,
+}: {
+  session: any
+  roomSessionId: string
+  roomId: string
+  memberId: string
+  callId: string
+  nodeId: string
+}) => {
+  const payload = {
+    jsonrpc: '2.0',
+    id: 'cb78f2eb-6468-48ed-979d-a94fca47befe',
+    method: 'signalwire.event',
+    params: {
+      event_type: 'call.joined',
+      event_channel:
+        'signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b',
+      params: {
+        room_session: {
+          room_id: roomId,
+          room_session_id: roomSessionId,
+          event_channel:
+            'signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b',
+          layout_name: '1x1',
+          meta: {},
+          members: [
+            {
+              type: 'member',
+              call_id: callId,
+              member_id: memberId,
+              node_id: nodeId,
+              name: 'sip:foo@94df1ecd-d073-473d-aa4d-a286e24f679b.call.signalwire.com;context=private',
+              room_id: roomId,
+              room_session_id: roomSessionId,
+              visible: true,
+              handraised: false,
+              audio_muted: false,
+              video_muted: false,
+              deaf: false,
+              meta: {},
+            },
+            {
+              type: 'member',
+              call_id: callId,
+              member_id: 'member-id-2',
+              node_id: nodeId,
+              name: 'sip:foo@94df1ecd-d073-473d-aa4d-a286e24f679b.call.signalwire.com;context=private',
+              room_id: roomId,
+              room_session_id: roomSessionId,
+              visible: true,
+              handraised: false,
+              audio_muted: false,
+              video_muted: false,
+              deaf: false,
+              meta: {},
+            },
+          ],
+          recordings: [],
+          streams: [],
+          playbacks: [],
+        },
+        room_id: roomId,
+        room_session_id: roomSessionId,
+        call_id: callId,
+        member_id: memberId,
+        node_id: nodeId,
+      },
+      timestamp: 1712142454.67701,
+    },
+  }
+
+  // @ts-expect-error
+  session.dispatch(actions.socketMessageAction(payload))
+}
