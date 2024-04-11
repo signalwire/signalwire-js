@@ -22,9 +22,10 @@ jobs:
           [
             default,
             streaming,
-            slow,
+            badNetwork,
             promote,
             demote,
+            audience,
             reattach,
             callfabric,
             v2WebRTC,

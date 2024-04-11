@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "sw-test --mode=playwright",
+    "dev": "sw-test --mode=playwright --pass-with-no-tests",
     "test": ""
   },
   "dependencies": {
