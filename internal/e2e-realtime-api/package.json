@@ -17,6 +17,7 @@
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.10",
     "tap": "^18.7.0",
+    "vite": "^5.2.8",
     "ws": "^8.13.0"
   }
 }
