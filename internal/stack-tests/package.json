@@ -9,6 +9,7 @@
     "test": ""
   },
   "dependencies": {
-    "execa": "^7.1.1"
+    "execa": "^7.1.1",
+    "tap": "^18.7.2"
   }
 }
