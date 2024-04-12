@@ -104,6 +104,7 @@ export const dispatchMockedCallJoined = ({
   roomId,
   roomSessionId,
   memberId,
+  memberId2 = 'member-id-random',
   callId,
   nodeId,
 }: {
@@ -111,6 +112,7 @@ export const dispatchMockedCallJoined = ({
   roomSessionId: string
   roomId: string
   memberId: string
+  memberId2?: string
   callId: string
   nodeId: string
 }) => {
@@ -149,7 +151,7 @@ export const dispatchMockedCallJoined = ({
             {
               type: 'member',
               call_id: callId,
-              member_id: 'member-id-2',
+              member_id: memberId2,
               node_id: nodeId,
               name: 'sip:foo@94df1ecd-d073-473d-aa4d-a286e24f679b.call.signalwire.com;context=private',
               room_id: roomId,

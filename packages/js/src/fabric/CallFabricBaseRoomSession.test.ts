@@ -1,8 +1,4 @@
-import {
-  VideoRoomSubscribedEventParams,
-  actions,
-  componentActions,
-} from '@signalwire/core'
+import { RoomSessionMember, actions, componentActions } from '@signalwire/core'
 import { BaseRoomSession } from '../BaseRoomSession'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
@@ -344,44 +340,34 @@ describe('CallFabricBaseRoomSession', () => {
     const roomSessionId = '638a54a7-61d8-4db0-bc24-426aee5cebcd'
     const memberId = '465ea212-c456-423b-9bcc-838c5e1b2851'
 
-    const assertEvent = (params: VideoRoomSubscribedEventParams) => {
-      expect(params.room_session.room_id).toEqual(roomId)
-      expect(params.room_session.room_session_id).toEqual(roomSessionId)
-      const { members, recordings, playbacks, streams } = params.room_session
-      expect(members).toHaveLength(1)
-      expect(members[0].member_id).toEqual(memberId)
-      expect(members[0].visible).toEqual(true)
-      expect(members[0].audio_muted).toEqual(false)
-      expect(members[0].video_muted).toEqual(false)
-      expect(members[0].deaf).toEqual(false)
-      expect(members[0].meta).toStrictEqual({})
-      expect(recordings).toHaveLength(0)
-      expect(playbacks).toHaveLength(0)
-      expect(streams).toHaveLength(0)
-    }
-
-    it('should emit the room.joined & room.subscribed event', async () => {
-      setupRoomForTests()
-      const roomJoined = new Promise<void>((res) => {
-        room.on('room.joined', async (params) => {
-          assertEvent(params)
-          res()
+    it('should emit the room.subscribed event', (done) => {
+      room.on('room.subscribed', async (params) => {
+        expect(params.room_session.room_id).toEqual(roomId)
+        expect(params.room_session.room_session_id).toEqual(roomSessionId)
+        const { members, recordings, playbacks, streams } = params.room_session
+        expect(members).toHaveLength(2)
+        expect(members[0].member_id).toEqual(memberId)
+        members.forEach((member) => {
+          expect(member.visible).toEqual(true)
+          expect(member.audio_muted).toEqual(false)
+          expect(member.video_muted).toEqual(false)
+          expect(member.deaf).toEqual(false)
+          expect(member.meta).toStrictEqual({})
         })
-      })
-      const roomSubscribed = new Promise<void>((res) => {
-        room.on('room.subscribed', async (params) => {
-          assertEvent(params)
-          res()
-        })
+        expect(recordings).toHaveLength(0)
+        expect(playbacks).toHaveLength(0)
+        expect(streams).toHaveLength(0)
+        done()
       })
 
-      const callJoined = JSON.parse(
-        `{"jsonrpc":"2.0","id":"cb78f2eb-6468-48ed-979d-a94fca47befe","method":"signalwire.event","params":{"params":{"room_session":{"room_id":"${roomId}","room_session_id":"${roomSessionId}","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","layout_name":"1x1","meta":{},"members":[{"type":"member","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc","name":"sip:foo@94df1ecd-d073-473d-aa4d-a286e24f679b.call.signalwire.com;context=private","room_id":"${roomId}","room_session_id":"${roomSessionId}","visible":true,"handraised":false,"audio_muted":false,"video_muted":false,"deaf":false,"meta":{}}],"recordings":[],"streams":[],"playbacks":[]},"room_id":"${roomId}","room_session_id":"${roomSessionId}","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc"},"event_type":"call.joined","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","timestamp":1712142454.67701}}`
-      )
-      // mock a room.subscribed event
-      stack.session.dispatch(actions.socketMessageAction(callJoined))
-
-      await Promise.all([roomJoined, roomSubscribed])
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId,
+        roomSessionId,
+        memberId,
+        nodeId: 'node-id-random',
+      })
     })
 
     it('should maintain callSegments array', () => {
@@ -415,5 +401,67 @@ describe('CallFabricBaseRoomSession', () => {
     })
   })
 
-  describe('should use correct self and target', () => {})
+  describe('should use correct self and target', () => {
+    it("should use current segment's memberId when provided with a self memberId from the previous segment", async () => {
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: 'call-id-3',
+        roomId: 'room-id-3',
+        roomSessionId: 'room-session-id-3',
+        memberId: 'member-id-3',
+        nodeId: 'node-id-3',
+      })
+
+      expect(room.callSegments).toHaveLength(3)
+      room.callSegments.forEach((segment, index) => {
+        expect(segment.memberId).toBe(`member-id-${index + 1}`)
+      })
+
+      await room.audioMute({ memberId: 'member-id-2' })
+
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.mute',
+          params: {
+            channels: ['audio'],
+            self: {
+              call_id: 'call-id-1',
+              member_id: 'member-id-1',
+              node_id: 'node-id-1',
+            },
+            target: {
+              call_id: 'call-id-3',
+              member_id: 'member-id-3',
+              node_id: 'node-id-3',
+            },
+          },
+        },
+        {}
+      )
+    })
+
+    it('should throw error for invalid memberId not present in the current segment and not a self memberId', async () => {
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: 'call-id-3',
+        roomId: 'room-id-3',
+        roomSessionId: 'room-session-id-3',
+        memberId: 'member-id-3',
+        memberId2: 'member-id-4',
+        nodeId: 'node-id-3',
+      })
+
+      expect(room.callSegments).toHaveLength(3)
+      expect(room.callSegments[2].members).toHaveLength(2)
+      room.callSegments[2].members.forEach((member: RoomSessionMember) => {
+        expect(member.id).not.toBe('member-id-random')
+      })
+
+      expect(async () => {
+        await room.audioMute({ memberId: 'member-id-random' })
+      }).rejects.toThrow(
+        'The memberId is not a part of the current call segment!'
+      )
+    })
+  })
 })
