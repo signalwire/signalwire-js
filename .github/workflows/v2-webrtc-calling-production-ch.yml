@@ -1,6 +1,8 @@
 name: v2 SDK WebRTC Calling Tests [production ch region]
 
 on:
+  push:
+    branches: [ryanwi/ch-region]
   workflow_call:
   workflow_dispatch:
   schedule:
