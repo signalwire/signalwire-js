@@ -4,7 +4,7 @@ on:
   workflow_call:
   workflow_dispatch:
   schedule:
-    - cron: '20 * * * *'
+    - cron: '25 * * * *'
 
 concurrency:
   group: ${{ github.workflow }}-e2e-js-production-eu-${{ github.ref }}
