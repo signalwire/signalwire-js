@@ -1,4 +1,4 @@
-name: v2 SDK Tests [production eu region]
+name: v2 SDK WebRTC Calling Tests [production ch region]
 
 on:
   workflow_call:
@@ -32,15 +32,15 @@ jobs:
         id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
         env:
-          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}
-          LAML_CONFERENCE_REGION: ${{ vars.PRODUCTION_E2E_JS_EUREGION_LAML_CONFERENCE_REGION }}
+          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG }}
+          LAML_CONFERENCE_REGION: ''
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
         with:
           result: ${{ steps.run-tests.conclusion }}
           test-suite: v2-sdk-tests
-          environment: production-eu
+          environment: production-ch
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
