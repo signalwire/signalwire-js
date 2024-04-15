@@ -42,5 +42,5 @@ export const wsClientWorker: SDKWorker<
     buildInboundCall(action.payload.params)
   }
 
-  getLogger().trace('wsClientWorker ended')
+  getLogger().debug('wsClientWorker ended')
 }

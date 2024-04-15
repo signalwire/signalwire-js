@@ -55,7 +55,7 @@ export class BaseComponent<
   /**
    * List of running Tasks to be cancelled on `destroy`.
    */
-  private _runningWorkers: Task[] = []
+  protected _runningWorkers: Task[] = []
 
   public get logger() {
     return getLogger()

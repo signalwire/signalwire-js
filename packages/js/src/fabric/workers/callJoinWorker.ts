@@ -16,7 +16,7 @@ import { videoMemberWorker } from '../../video/videoMemberWorker'
 export const callJoinWorker = function* (
   options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
 ): SagaIterator {
-  getLogger().trace('callJoinWorker started')
+  getLogger().debug('callJoinWorker started')
   const { action, callSegments, instanceMap, instance: cfRoomSession } = options
   const { payload } = action
   const { get, set } = instanceMap
@@ -52,12 +52,15 @@ export const callJoinWorker = function* (
   })
   callSegments.push(callSegmentInstance)
 
-  yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+  
+  cfRoomSession.runWorker('memberPositionWorker', {worker: MemberPosition.memberPositionWorker, 
     ...options,
+    //@ts-expect-error
     instance: cfRoomSession,
     initialState: payload,
     dispatcher: function* (
       subType: InternalMemberUpdatedEventNames,
+      //@ts-expect-error
       subPayload
     ) {
       yield sagaEffects.fork(videoMemberWorker, {
@@ -79,5 +82,5 @@ export const callJoinWorker = function* (
   }
   cfRoomSession.emit('room.subscribed', payload)
 
-  getLogger().trace('callJoinWorker ended')
+  getLogger().debug('callJoinWorker ended')
 }
