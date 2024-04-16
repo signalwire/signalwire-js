@@ -23,7 +23,7 @@ export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
 export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   options
 ): SagaIterator {
-  getLogger().debug('videoWorker started')
+  getLogger().trace('videoWorker started')
 
   const { channels, instance: roomSession } = options
   const { swEventChannel } = channels
@@ -97,5 +97,5 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
     yield sagaEffects.fork(worker, action)
   }
 
-  getLogger().debug('videoWorker ended')
+  getLogger().trace('videoWorker ended')
 }

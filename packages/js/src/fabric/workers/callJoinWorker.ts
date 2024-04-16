@@ -16,7 +16,7 @@ import { videoMemberWorker } from '../../video/videoMemberWorker'
 export const callJoinWorker = function* (
   options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
 ): SagaIterator {
-  getLogger().debug('callJoinWorker started')
+  getLogger().trace('callJoinWorker started')
   const { action, callSegments, instanceMap, instance: cfRoomSession } = options
   const { payload } = action
   const { get, set } = instanceMap
@@ -82,5 +82,5 @@ export const callJoinWorker = function* (
   }
   cfRoomSession.emit('room.subscribed', payload)
 
-  getLogger().debug('callJoinWorker ended')
+  getLogger().trace('callJoinWorker ended')
 }

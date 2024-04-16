@@ -21,7 +21,7 @@ export type CallFabricWorkerParams<T> =
 
 export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
   function* (options): SagaIterator {
-    getLogger().debug('callFabricWorker started')
+    getLogger().trace('callFabricWorker started')
 
     const { channels, instance: roomSession } = options
     const { swEventChannel } = channels
@@ -115,7 +115,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
       }
     } finally {
       if (yield sagaEffects.cancelled()) {
-        getLogger().debug('callFabricWorker canceled')
+        getLogger().trace('callFabricWorker canceled')
       }
     }
   }

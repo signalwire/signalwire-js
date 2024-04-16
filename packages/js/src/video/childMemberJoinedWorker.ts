@@ -26,7 +26,7 @@ export const childMemberJoinedWorker: SDKWorker<
   BaseConnection<any>,
   ChildMemberJoinedWorkerHooks
 > = function* (options): SagaIterator {
-  getLogger().debug('childMemberJoinedWorker started')
+  getLogger().trace('childMemberJoinedWorker started')
   const { channels, instance, initialState, onDone, onFail } = options
   const { swEventChannel } = channels
   const { parentId } = initialState
@@ -71,5 +71,5 @@ export const childMemberJoinedWorker: SDKWorker<
       onFail?.({ error: new Error('Unknown parent_id') })
     }
   }
-  getLogger().debug('childMemberJoinedWorker ended')
+  getLogger().trace('childMemberJoinedWorker ended')
 }
