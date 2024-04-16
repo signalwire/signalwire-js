@@ -7,6 +7,7 @@
   "main": "dist/index.node.js",
   "beta": true,
   "exports": {
+    "types": "./dist/realtime-api/src/index.d.ts",
     "require": "./dist/index.node.js",
     "default": "./dist/index.node.mjs"
   },
