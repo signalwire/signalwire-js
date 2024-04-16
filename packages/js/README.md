@@ -10,7 +10,7 @@ SignalWire's simple and powerful authentication system, using JWT, allows you to
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://developer.signalwire.com/client-sdk/docs/getting-started) site.
+Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://developer.signalwire.com/sdks/reference/browser-sdk) site.
 
 ---
 
