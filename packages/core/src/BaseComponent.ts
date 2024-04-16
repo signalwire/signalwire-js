@@ -180,6 +180,7 @@ export class BaseComponent<
     this._destroyer?.()
     this.removeAllListeners()
     this.detachWorkers()
+    this.instanceMap.deletaAll()
   }
 
   /** @internal */
@@ -315,7 +316,7 @@ export class BaseComponent<
     name: string,
     def: SDKWorkerDefinition<Hooks>
   ) {
-    if (this._workers.has(name)) {
+    if (this._workers.has(name) && this._runningWorkers) {
       getLogger().warn(
         `[runWorker] Worker with name ${name} has already been registerd.`
       )

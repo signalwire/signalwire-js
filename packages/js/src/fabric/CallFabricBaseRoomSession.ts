@@ -41,15 +41,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  async leave() {
-    for (const running of this._runningWorkers) {
-      running.cancel()
-    }
-    await super.leave()
-    while(this.callSegments.pop()){}
-    this.instanceMap.getAll().forEach(([key,]) => this.instanceMap.remove(key));
-  }
-
   get selfMember() {
     return this.callSegments[0]?.member
   }
