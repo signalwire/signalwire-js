@@ -26,7 +26,7 @@ type VideoMemberEvents = MapToPubSubShape<
 export const videoMemberWorker = function* (
   options: VideoWorkerParams<VideoMemberEvents>
 ): SagaIterator {
-  getLogger().trace('videoMemberWorker started', options.action.type ,options.action.payload)
+  getLogger().trace('videoMemberWorker started')
   const {
     instance: roomSession,
     action: { type, payload },
