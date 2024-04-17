@@ -1,5 +1,17 @@
 # @sw-internal/e2e-js
 
+## 0.0.17
+
+### Patch Changes
+
+- [#985](https://github.com/signalwire/signalwire-js/pull/985) [`82f8461a`](https://github.com/signalwire/signalwire-js/commit/82f8461a8785932dbd5ce89a52be6f6d4bd1ea4e) Thanks [@giavac](https://github.com/giavac)! - call fabric e2e test, relayApp, ignore totalAudioEnergy if undefined
+
+- [#980](https://github.com/signalwire/signalwire-js/pull/980) [`2f8549eb`](https://github.com/signalwire/signalwire-js/commit/2f8549eb1df2e612fb55e4af0e0c1aad3e783ee8) Thanks [@giavac](https://github.com/giavac)! - Review and add e2e tests for v2 webrtc
+
+- [#981](https://github.com/signalwire/signalwire-js/pull/981) [`533c0311`](https://github.com/signalwire/signalwire-js/commit/533c0311369ea5a22263b23657e0a9c013b38bc5) Thanks [@giavac](https://github.com/giavac)! - Refine v2 e2e tests, RTCStats usage
+
+- [#998](https://github.com/signalwire/signalwire-js/pull/998) [`5dd95132`](https://github.com/signalwire/signalwire-js/commit/5dd95132e02db8457946ddbeecdff4961277a6fe) Thanks [@giavac](https://github.com/giavac)! - Fix last remaining checks for totalAudioEnergy
+
 ## 0.0.16
 
 ### Patch Changes
