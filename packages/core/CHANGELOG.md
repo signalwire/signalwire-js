@@ -4,6 +4,313 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2024-04-17
+
+### Added
+
+- [#881](https://github.com/signalwire/signalwire-js/pull/881) [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99) Thanks [@iAmmar7](https://github.com/iAmmar7)! - New interface for Voice APIs
+
+  The new interface contains a single SW client with Chat and PubSub namespaces
+
+  ```javascript
+  import { SignalWire } from '@signalwire/realtime-api'
+
+  (async () => {
+    const client = await SignalWire({
+      host: process.env.HOST,
+      project: process.env.PROJECT,
+      token: process.env.TOKEN,
+    })
+
+    const unsubVoiceOffice = await client.voice.listen({
+      topics: ['office'],
+      onCallReceived: async (call) => {
+        try {
+          await call.answer()
+
+          const unsubCall = await call.listen({
+            onStateChanged: (call) => {},
+            onPlaybackUpdated: (playback) => {},
+            onRecordingStarted: (recording) => {},
+            onCollectInputStarted: (collect) => {},
+            onDetectStarted: (detect) => {},
+            onTapStarted: (tap) => {},
+            onPromptEnded: (prompt) => {}
+            // ... more call listeners can be attached here
+          })
+
+          // ...
+
+          await unsubCall()
+        } catch (error) {
+          console.error('Error answering inbound call', error)
+        }
+      }
+    })
+
+    const call = await client.voice.dialPhone({
+      to: process.env.VOICE_DIAL_TO_NUMBER as string,
+      from: process.env.VOICE_DIAL_FROM_NUMBER as string,
+      timeout: 30,
+      listen: {
+        onStateChanged: async (call) => {
+          // When call ends; unsubscribe all listeners and disconnect the client
+          if (call.state === 'ended') {
+            await unsubVoiceOffice()
+
+            await unsubVoiceHome()
+
+            await unsubPlay()
+
+            client.disconnect()
+          }
+        },
+        onPlaybackStarted: (playback) => {},
+      },
+    })
+
+    const unsubCall = await call.listen({
+      onPlaybackStarted: (playback) => {},
+      onPlaybackEnded: (playback) => {
+        // This will never run since we unsubscribe this listener before the playback stops
+      },
+    })
+
+    // Play an audio
+    const play = await call.playAudio({
+      url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
+      listen: {
+        onStarted: async (playback) => {
+          await unsubCall()
+
+          await play.stop()
+        },
+      },
+    })
+
+    const unsubPlay = await play.listen({
+      onStarted: (playback) => {
+        // This will never run since this listener is attached after the call.play has started
+      },
+      onEnded: async (playback) => {
+        await call.hangup()
+      },
+    })
+
+  })
+  ```
+
+- [#881](https://github.com/signalwire/signalwire-js/pull/881) [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99) Thanks [@iAmmar7](https://github.com/iAmmar7)! - - New interface for the realtime-api Video SDK.
+
+  - Listen function with _video_, _room_, _playback_, _recording_, and _stream_ objects.
+  - Listen param with `room.play`, `room.startRecording`, and `room.startStream` functions.
+  - Decorated promise for `room.play`, `room.startRecording`, and `room.startStream` functions.
+
+  ```js
+  import { SignalWire } from '@signalwire/realtime-api'
+
+  const client = await SignalWire({ project, token })
+
+  const unsub = await client.video.listen({
+    onRoomStarted: async (roomSession) => {
+      console.log('room session started', roomSession)
+
+      await roomSession.listen({
+        onPlaybackStarted: (playback) => {
+          console.log('plyaback started', playback)
+        },
+      })
+
+      // Promise resolves when playback ends.
+      await roomSession.play({
+        url: 'http://.....',
+        listen: { onEnded: () => {} },
+      })
+    },
+    onRoomEnded: (roomSession) => {
+      console.log('room session ended', roomSession)
+    },
+  })
+  ```
+
+- [#881](https://github.com/signalwire/signalwire-js/pull/881) [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99) Thanks [@iAmmar7](https://github.com/iAmmar7)! - New interface for PubSub and Chat APIs
+
+  The new interface contains a single SW client with Chat and PubSub namespaces
+
+  ```javascript
+  import { SignalWire } from '@signalwire/realtime-api'
+
+  ;(async () => {
+    const client = await SignalWire({
+      host: process.env.HOST,
+      project: process.env.PROJECT,
+      token: process.env.TOKEN,
+    })
+
+    // Attach pubSub listeners
+    const unsubHomePubSubListener = await client.pubSub.listen({
+      channels: ['home'],
+      onMessageReceived: (message) => {
+        console.log('Message received under the "home" channel', message)
+      },
+    })
+
+    // Publish on home channel
+    await client.pubSub.publish({
+      content: 'Hello There',
+      channel: 'home',
+      meta: {
+        fooId: 'randomValue',
+      },
+    })
+
+    // Attach chat listeners
+    const unsubOfficeChatListener = await client.chat.listen({
+      channels: ['office'],
+      onMessageReceived: (message) => {
+        console.log('Message received on "office" channel', message)
+      },
+      onMemberJoined: (member) => {
+        console.log('Member joined on "office" channel', member)
+      },
+      onMemberUpdated: (member) => {
+        console.log('Member updated on "office" channel', member)
+      },
+      onMemberLeft: (member) => {
+        console.log('Member left on "office" channel', member)
+      },
+    })
+
+    // Publish a chat message on the office channel
+    const pubRes = await client.chat.publish({
+      content: 'Hello There',
+      channel: 'office',
+    })
+
+    // Get channel messages
+    const messagesResult = await client.chat.getMessages({
+      channel: 'office',
+    })
+
+    // Get channel members
+    const getMembersResult = await client.chat.getMembers({ channel: 'office' })
+
+    // Unsubscribe pubSub listener
+    await unsubHomePubSubListener()
+
+    // Unsubscribe chat listener
+    await unsubOfficeChatListener()
+
+    // Disconnect the client
+    client.disconnect()
+  })()
+  ```
+
+- [#881](https://github.com/signalwire/signalwire-js/pull/881) [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99) Thanks [@iAmmar7](https://github.com/iAmmar7)! - New interface for the Messaging API
+
+  The new interface contains a single SW client with Messaging namespace
+
+  ```javascript
+    const client = await SignalWire({
+      host: process.env.HOST || 'relay.swire.io',
+      project: process.env.PROJECT as string,
+      token: process.env.TOKEN as string,
+    })
+
+    const unsubOfficeListener = await client.messaging.listen({
+      topics: ['office'],
+      onMessageReceived: (payload) => {
+        console.log('Message received under "office" context', payload)
+      },
+      onMessageUpdated: (payload) => {
+        console.log('Message updated under "office" context', payload)
+      },
+    })
+
+    try {
+      const response = await client.messaging.send({
+        from: process.env.FROM_NUMBER_MSG as string,
+        to: process.env.TO_NUMBER_MSG as string,
+        body: 'Hello World!',
+        context: 'office',
+      })
+
+      await client.messaging.send({
+        from: process.env.FROM_NUMBER_MSG as string,
+        to: process.env.TO_NUMBER_MSG as string,
+        body: 'Hello John Doe!',
+      })
+    } catch (error) {
+      console.log('>> send error', error)
+    }
+  ```
+
+- [#881](https://github.com/signalwire/signalwire-js/pull/881) [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Decorated promise for the following APIs:
+
+  - call.play()
+    - call.playAudio()
+    - call.playSilence()
+    - call.playRingtone()
+    - call.playTTS()
+  - call.record()
+    - call.recordAudio()
+  - call.prompt()
+    - call.promptAudio()
+    - call.promptRingtone()
+    - call.promptTTS()
+  - call.tap()
+    - call.tapAudio()
+  - call.detect()
+    - call.amd()
+    - call.detectFax()
+    - call.detectDigit
+  - call.collect()
+
+  Playback example 1 - **Not resolving promise**
+
+  ```js
+  const play = call.playAudio({ url: '...' })
+  await play.id
+  ```
+
+  Playback example 2 - **Resolving promise when playback starts**
+
+  ```js
+  const play = await call.playAudio({ url: '...' }).onStarted()
+  play.id
+  ```
+
+  Playback example 3 - **Resolving promise when playback ends**
+
+  ```js
+  const play = await call.playAudio({ url: '...' }).onEnded()
+  play.id
+  ```
+
+  Playback example 4 - **Resolving promise when playback ends - Default behavior**
+
+  ```js
+  const play = await call.playAudio({ url: '...' })
+  play.id
+  ```
+
+  All the other APIs work in a similar way.
+
+- [#881](https://github.com/signalwire/signalwire-js/pull/881) [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Task namespace with new interface
+
+### Changed
+
+- [#921](https://github.com/signalwire/signalwire-js/pull/921) [`03f01c36`](https://github.com/signalwire/signalwire-js/commit/03f01c36b3f1244e4eed4188610e67955c7ba9ce) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - support for eventing acknowledge
+
+- [#948](https://github.com/signalwire/signalwire-js/pull/948) [`6cb639bf`](https://github.com/signalwire/signalwire-js/commit/6cb639bf6dcbacefd71615ec99c4911cbbd120c4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Allow user to pass filters to `getAddress` function
+
+  ```js
+  const addressData = await client.getAddresses({
+    type: 'room',
+    displayName: 'domain app',
+  })
+  ```
+
 ## [3.21.0] - 2023-11-23
 
 ### Added

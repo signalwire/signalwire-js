@@ -4,6 +4,57 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.26.0] - 2024-04-17
+
+### Added
+
+- [#932](https://github.com/signalwire/signalwire-js/pull/932) [`6b0f8227`](https://github.com/signalwire/signalwire-js/commit/6b0f82271c0029c6f136a20e5b9326bdd9abab48) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Allow users to pass the optional `disableUdpIceServers` boolean flag with a value of `true` to remove the URLs of UDP transport ICE servers.
+
+  Default value for `disableUdpIceServers` is `false`
+
+  Call Fabric SDK:
+
+  ```js
+  import { SignalWire } from '@signalwire/js'
+
+  const client = await SignalWire({
+     host: ...,
+     token: ...,
+     rootElement: ...,
+     disableUdpIceServers: true|false, // default is false
+  })
+  ```
+
+  Video SDK:
+
+  ```js
+  import { Video } from '@signalwire/js'
+
+  const roomSession = new Video.RoomSession({
+     host: ...,
+     token: ...,
+     rootElement: ...,
+     disableUdpIceServers: true|false, // default is false
+  })
+  ```
+
+### Changed
+
+- [#948](https://github.com/signalwire/signalwire-js/pull/948) [`6cb639bf`](https://github.com/signalwire/signalwire-js/commit/6cb639bf6dcbacefd71615ec99c4911cbbd120c4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Allow user to pass filters to `getAddress` function
+
+  ```js
+  const addressData = await client.getAddresses({
+    type: 'room',
+    displayName: 'domain app',
+  })
+  ```
+
+- [#961](https://github.com/signalwire/signalwire-js/pull/961) [`b6e30de2`](https://github.com/signalwire/signalwire-js/commit/b6e30de2f1bdae486304b294768e0bfe1d091f17) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - FIXED HTTPClient should use the ch header from the JWT token for the host domain
+
+- Updated dependencies [[`03f01c36`](https://github.com/signalwire/signalwire-js/commit/03f01c36b3f1244e4eed4188610e67955c7ba9ce), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`6cb639bf`](https://github.com/signalwire/signalwire-js/commit/6cb639bf6dcbacefd71615ec99c4911cbbd120c4), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`d93c3af4`](https://github.com/signalwire/signalwire-js/commit/d93c3af430db1580de204d8da9906a2220951049), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`6b0f8227`](https://github.com/signalwire/signalwire-js/commit/6b0f82271c0029c6f136a20e5b9326bdd9abab48), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99)]:
+  - @signalwire/core@4.0.0
+  - @signalwire/webrtc@3.12.0
+
 ## [3.25.1] - 2023-12-05
 
 ### Added
