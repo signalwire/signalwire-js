@@ -8,9 +8,10 @@ const streamingTests = [
   'roomSessionMultipleStreams.spec.ts',
   'roomSessionAutomaticStream.spec.ts',
 ]
-const slowTests = [
+const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
+const audienceTests = [
   'roomSessionAudienceCount.spec.ts',
-  'roomSessionBadNetwork.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
 ]
 const promoteTests = [
   'roomSessionPromoteDemote.spec.ts',
@@ -22,6 +23,7 @@ const demoteTests = [
   'roomSessionDemote.spec.ts',
   'roomSessionDemoteAudience.spec.ts',
   'roomSessionDemoteReattachPromote.spec',
+  'roomSessionDemotePromote.spec.ts',
 ]
 const reattachTests = [
   'roomSessionReattach.spec.ts',
@@ -71,10 +73,11 @@ const config: PlaywrightTestConfig = {
       name: 'default',
       use: useDesktopChrome,
       testIgnore: [
-        ...slowTests,
+        ...badNetworkTests,
         ...streamingTests,
         ...promoteTests,
         ...demoteTests,
+        ...audienceTests,
         ...reattachTests,
         ...callfabricTests,
         ...v2WebRTC,
@@ -86,9 +89,9 @@ const config: PlaywrightTestConfig = {
       testMatch: streamingTests,
     },
     {
-      name: 'slow',
+      name: 'badNetwork',
       use: useDesktopChrome,
-      testMatch: slowTests,
+      testMatch: badNetworkTests,
     },
     {
       name: 'promote',
@@ -99,6 +102,11 @@ const config: PlaywrightTestConfig = {
       name: 'demote',
       use: useDesktopChrome,
       testMatch: demoteTests,
+    },
+    {
+      name: 'audience',
+      use: useDesktopChrome,
+      testMatch: audienceTests,
     },
     {
       name: 'reattach',
