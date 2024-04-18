@@ -219,7 +219,6 @@ async function getClient() {
     client = await SignalWire({
       host: document.getElementById('host').value,
       token: document.getElementById('token').value,
-      rootElement: document.getElementById('rootElement'),
       logLevel: 'debug',
       debug: { logWsTraffic: true },
     })
@@ -241,8 +240,9 @@ window.connect = async () => {
   const steeringId = undefined
 
   const call = await client.dial({
-    to: document.getElementById('destination').value,
     nodeId: steeringId,
+    to: document.getElementById('destination').value,
+    rootElement: document.getElementById('rootElement'),
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
   })

@@ -60,8 +60,8 @@ export class WSClient {
       try {
         await this.connect()
         const call = this.wsClient.rooms.makeRoomObject({
-          audio: params.audio,
-          video: params.video,
+          audio: params.audio ?? true,
+          video: params.video ?? true,
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
@@ -220,8 +220,8 @@ export class WSClient {
     const { callID, nodeId, sdp } = payload
 
     const call = this.wsClient.rooms.makeRoomObject({
-      audio: params.audio,
-      video: params.video,
+      audio: params.audio ?? true,
+      video: params.video ?? true,
       negotiateAudio: true,
       negotiateVideo: true,
       rootElement: params.rootElement,

@@ -28,6 +28,7 @@ test.describe('CallFabric SWML', () => {
 
           const call = await client.dial({
             to: resourceName,
+            rootElement: document.getElementById('rootElement'),
           })
 
           // @ts-expect-error
@@ -105,6 +106,7 @@ test.describe('CallFabric SWML', () => {
 
           const call = await client.dial({
             to: resourceName,
+            rootElement: document.getElementById('rootElement'),
           })
 
           // @ts-expect-error
