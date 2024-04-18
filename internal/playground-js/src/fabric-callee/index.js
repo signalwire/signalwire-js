@@ -273,8 +273,9 @@ window.disconnect = async () => {
 window.tapPushNotification = async () => {
   try {
     const pnKey = document.getElementById('pn-key').value
-    const pushNotificationPayload = JSON.parse(payload.value)
-    const result = await readPushNotification(pushNotificationPayload, pnKey)
+    const pnPayload = JSON.parse(payload.value)
+    const { body } = pnPayload.notification
+    const result = await readPushNotification(body, pnKey)
     console.log('PN', result)
     const { resultType, resultObject } = await client.handlePushNotification(
       result
@@ -715,9 +716,10 @@ window.enablePushNotifications = async () => {
 
   onMessage(messaging, (payload) => {
     console.log('Push payload', payload)
-    document.getElementById('payload').value = payload.notification.body
-    const body = JSON.parse(payload.notification.body || '{}')
-    alert(body.title)
+    const message = JSON.parse(payload.data.message || '{}')
+    document.getElementById('payload').value = payload.data.message
+    const messageBody = message.notification.body
+    alert(messageBody.title)
   })
 
   try {

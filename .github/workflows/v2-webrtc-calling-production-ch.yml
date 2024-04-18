@@ -1,35 +1,19 @@
-name: Browser SDK [staging]
+name: v2 SDK WebRTC Calling Tests [production ch region]
 
 on:
   workflow_call:
   workflow_dispatch:
   schedule:
-    - cron: '10 */4 * * *'
+    - cron: '25 * * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-e2e-js-staging-${{ github.ref }}
+  group: ${{ github.workflow }}-e2e-js-production-eu-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   e2e-tests:
     name: Run E2E tests
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [18.x]
-        project:
-          [
-            default,
-            streaming,
-            badNetwork,
-            promote,
-            demote,
-            audience,
-            reattach,
-            callfabric,
-            v2WebRTC,
-          ]
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -46,26 +30,17 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
+        run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
         env:
-          SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}
+          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG }}
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
         with:
           result: ${{ steps.run-tests.conclusion }}
-          test-suite: browser-js
-          environment: staging
+          test-suite: v2-sdk-tests
+          environment: production-ch
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
           influxdb-url: ${{ secrets.INFLUXDB_URL }}
-
-    # if: success() || failure()
-    # runs-on: ubuntu-latest
-    # needs: e2e-tests
-    # steps:
-    #   - name: Report Results
-    #     uses: actions/report-test-result@v1
-    #     with:
-    #       result: needs.e2e-tests.result

@@ -1,5 +1,11 @@
 # @sw-internal/e2e-realtime-api
 
+## 0.1.14
+
+### Patch Changes
+
+- [#954](https://github.com/signalwire/signalwire-js/pull/954) [`c401cba0`](https://github.com/signalwire/signalwire-js/commit/c401cba058f261696d8fb6f90deb523def9f4094) Thanks [@giavac](https://github.com/giavac)! - Fix collect e2e tests
+
 ## 0.1.13
 
 ### Patch Changes
