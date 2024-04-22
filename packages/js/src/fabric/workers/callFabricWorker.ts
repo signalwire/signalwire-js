@@ -38,7 +38,6 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           break
         }
         case 'call.left': {
-          // Should we alse remove the member from the instance map?
           options.callSegments.pop()
           if(options.callSegments.length === 0) {
             // We need to defer the destroy until the next eventLoop
