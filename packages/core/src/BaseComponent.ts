@@ -343,10 +343,10 @@ export class BaseComponent<
     name: string,
     { worker, ...params }: SDKWorkerDefinition<Hooks>
   ) {
-    // if(!this._allowMultipleWorkerInstances.includes(name) && name in this._runningWorkers) {
-    //   getLogger().warn(`Preventing running worker reattach: ${name}`);
-    //   return this._runningWorkers[name]
-    // }
+    if(!this._allowMultipleWorkerInstances.includes(name) && name in this._runningWorkers) {
+      getLogger().warn(`Preventing running worker reattach: ${name}`);
+      return this._runningWorkers[name]
+    }
     
     const task = this.store.runSaga(worker, {
       instance: this,
