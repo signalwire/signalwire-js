@@ -1,5 +1,4 @@
 import jwtDecode from 'jwt-decode'
-import { getLogger } from '@signalwire/core'
 
 /**
  * Note: ready to support RN with a "storage.native.ts" file.
