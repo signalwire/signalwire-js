@@ -43,14 +43,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  override _getRPCMethod(): WebRTCMethod {
-    const authState = this.select(selectors.getAuthState)
-    if (authState) {
-      return 'webrtc.verto'
-    }
-    return 'video.message'
-  }
-
+  override _getRPCMethod(): WebRTCMethod { return 'webrtc.verto' }
+    
   get selfMember() {
     return this.callSegments[0]?.member
   }
