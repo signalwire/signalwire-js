@@ -7,6 +7,8 @@ import {
   RoomSessionMember,
   VideoMemberEntity,
   Rooms,
+  WebRTCMethod,
+  selectors,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -39,6 +41,14 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this.runWorker('callFabricWorker', {
       worker: callFabricWorker,
     })
+  }
+
+  override _getRPCMethod(): WebRTCMethod {
+    const authState = this.select(selectors.getAuthState)
+    if (authState) {
+      return 'webrtc.verto'
+    }
+    return 'video.message'
   }
 
   get selfMember() {
