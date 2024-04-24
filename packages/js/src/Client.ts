@@ -6,16 +6,8 @@ import {
   Chat as ChatNamespace,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
-import {
-  makeVideoElementSaga,
-  makeAudioElementSaga,
-} from './features/mediaElements/mediaElementsSagas'
-import {
-  createBaseRoomSessionObject,
-  RoomSessionConnection,
-} from './BaseRoomSession'
+import { createBaseRoomSessionObject } from './BaseRoomSession'
 import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
@@ -54,43 +46,14 @@ export class ClientAPI<
     return {
       makeRoomObject: (makeRoomOptions: MakeRoomOptions) => {
         const {
-          rootElement,
-          applyLocalVideoOverlay = true,
           stopCameraWhileMuted = true,
           stopMicrophoneWhileMuted = true,
           ...options
         } = makeRoomOptions
 
-        // TODO: This might not be needed here. We can initiate these sagas in the BaseRoomSession constructor.
-        const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
-
-        /**
-         * By default the SDK will attach the audio to
-         * an Audio element (regardless of "rootElement")
-         */
-        customSagas.push(
-          makeAudioElementSaga({
-            speakerId: options.speakerId,
-          })
-        )
-
-        /**
-         * If the user provides a `roomElement` we'll
-         * automatically handle the Video element for them
-         */
-        if (rootElement) {
-          customSagas.push(
-            makeVideoElementSaga({
-              rootElement,
-              applyLocalVideoOverlay,
-            })
-          )
-        }
-
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
-          customSagas,
         })
 
         /**
