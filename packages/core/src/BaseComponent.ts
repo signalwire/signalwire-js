@@ -55,7 +55,12 @@ export class BaseComponent<
   /**
    * List of running Tasks to be cancelled on `destroy`.
    */
-  private _runningWorkers: Task[] = []
+  protected _runningWorkers: Record<string, Task<any>> = {}
+
+  /**
+   * white list workers instance if we need to start multiple workers
+   */
+  protected _allowMultipleWorkerInstances = ['executeActionWorker', 'memberPositionWorker', 'vertoEventWorker', 'promoteDemoteWorker', 'roomSubscribedWorker']
 
   public get logger() {
     return getLogger()
@@ -180,6 +185,7 @@ export class BaseComponent<
     this._destroyer?.()
     this.removeAllListeners()
     this.detachWorkers()
+    this.instanceMap.deletaAll()
   }
 
   /** @internal */
@@ -337,12 +343,18 @@ export class BaseComponent<
     name: string,
     { worker, ...params }: SDKWorkerDefinition<Hooks>
   ) {
+    if(!this._allowMultipleWorkerInstances.includes(name) && name in this._runningWorkers) {
+      getLogger().warn(`Preventing running worker reattach: ${name}`);
+      return this._runningWorkers[name]
+    }
+    
     const task = this.store.runSaga(worker, {
       instance: this,
       runSaga: this.store.runSaga,
       ...params,
     })
-    this._runningWorkers.push(task)
+
+    this._runningWorkers[name] = task
     /**
      * Attaching workers is a one-time op for instances so
      * the moment we attach one we'll remove it from the
@@ -353,9 +365,9 @@ export class BaseComponent<
   }
 
   private detachWorkers() {
-    this._runningWorkers.forEach((task) => {
+    Object.values(this._runningWorkers).forEach((task) => {
       task.cancel()
     })
-    this._runningWorkers = []
+    this._runningWorkers = {}
   }
 }

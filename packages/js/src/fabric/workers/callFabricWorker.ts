@@ -13,6 +13,7 @@ import {
 import { CallFabricRoomSessionConnection } from '../CallFabricBaseRoomSession'
 import * as videoWorkers from '../../video/workers'
 import { callJoinWorker } from './callJoinWorker'
+import { callLeftWorker } from './callLeftWorker'
 
 export type CallFabricWorkerParams<T> =
   SDKWorkerParams<CallFabricRoomSessionConnection> & {
@@ -38,8 +39,10 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           break
         }
         case 'call.left': {
-          // Should we alse remove the member from the instance map?
-          options.callSegments.pop()
+          yield sagaEffects.fork(callLeftWorker, {
+            action,
+            ...options,
+          })
           break
         }
         case 'call.started':
@@ -100,11 +103,18 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
       )
     }
 
-    while (true) {
-      const action = yield sagaEffects.take(swEventChannel, isVideoOrCallEvent)
+    try {
+      while (true) {
+        const action = yield sagaEffects.take(
+          swEventChannel,
+          isVideoOrCallEvent
+        )
 
-      yield sagaEffects.fork(worker, action)
+        yield sagaEffects.fork(worker, action)
+      }
+    } finally {
+      if (yield sagaEffects.cancelled()) {
+        getLogger().trace('callFabricWorker canceled')
+      }
     }
-
-    getLogger().trace('callFabricWorker ended')
   }

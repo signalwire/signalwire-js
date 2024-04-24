@@ -3,7 +3,7 @@ export const useInstanceMap = () => {
   // For eg;
   // callId => CallInstance
   // controlId => PlaybackInstance | RecordingInstance
-  const instanceMap = new Map<string, unknown>()
+  let instanceMap = new Map<string, unknown>()
 
   const getInstance = <T extends unknown>(key: string): T => {
     return instanceMap.get(key) as T
@@ -23,10 +23,15 @@ export const useInstanceMap = () => {
     return Array.from(instanceMap.entries())
   }
 
+  const deletaAll = () => {
+    instanceMap = new Map<string, unknown>()
+  }
+
   return {
     get: getInstance,
     set: setInstance,
     remove: deleteInstance,
     getAll: getAllInstances,
+    deletaAll: deletaAll
   }
 }
