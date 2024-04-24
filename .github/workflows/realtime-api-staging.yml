@@ -47,7 +47,7 @@ jobs:
     steps:
       - run: |
         echo "GitHub Contexts in JSON: ${{ toJson(github) }}"
-        echo "GitHub Contexts in JSON: ${{ needs.e2e-tests.result }}"
+        echo ${{ needs.e2e-tests.result }}
 
   #   uses: ./.github/actions/report-test-result
   #   with:
