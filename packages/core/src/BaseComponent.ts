@@ -60,7 +60,7 @@ export class BaseComponent<
   /**
    * white list workers instance if we need to start multiple workers
    */
-  protected _allowMultipleWorkerInstances = ['executeActionWorker', 'memberPositionWorker']
+  protected _allowMultipleWorkerInstances = ['executeActionWorker', 'memberPositionWorker', 'vertoEventWorker', 'promoteDemoteWorker', 'roomSubscribedWorker']
 
   public get logger() {
     return getLogger()
