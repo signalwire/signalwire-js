@@ -45,7 +45,12 @@ jobs:
     needs: e2e-tests
     runs-on: ubuntu-latest
     if: success() || failure()
-    steps:
-      - run: |
-          echo "GitHub Contexts in JSON: ${{ toJson(github) }}"
-          echo "${{ needs.e2e-tests.result }}"
+    uses: ./.github/actions/report-test-result
+    with:
+      result: ${{ needs.e2e-tests.result }}
+      test-suite: realtime-api
+      environment: staging
+      influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+      influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+      influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+      influxdb-url: ${{ secrets.INFLUXDB_URL }}
