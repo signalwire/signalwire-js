@@ -46,8 +46,8 @@ jobs:
     if: success() || failure()
     steps:
       - run: |
-        echo "GitHub Contexts in JSON: ${{ toJson(github) }}"
-        echo "${{ needs.e2e-tests.result }}"
+          echo "GitHub Contexts in JSON: ${{ toJson(github) }}"
+          echo "${{ needs.e2e-tests.result }}"
 
   #   uses: ./.github/actions/report-test-result
   #   with:
