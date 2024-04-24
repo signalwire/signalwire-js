@@ -35,15 +35,19 @@ jobs:
         with:
           PLAYWRIGHT_VERSION: '1.35.1'
       - name: Test
-        id: run-tests
         run: 'npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}'
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
-      - name: Report Result
-        if: success() || failure()
-        uses: ./.github/actions/report-test-result
+
+  report-result:
+    needs: e2e-tests
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/report-test-result
         with:
-          result: ${{ steps.run-tests.conclusion }}
+          result: ${{ needs.e2e-tests.result }}
           test-suite: realtime-api
           environment: production
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
