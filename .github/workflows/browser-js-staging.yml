@@ -54,6 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     if: success() || failure()
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/report-test-result
         with:
           result: ${{ needs.e2e-tests.result }}
