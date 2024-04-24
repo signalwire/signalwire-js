@@ -43,6 +43,7 @@ jobs:
 
   report-result:
     needs: e2e-tests
+    runs-on: ubuntu-latest
     if: success() || failure()
     steps:
       - run: |
