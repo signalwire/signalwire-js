@@ -1,46 +1,18 @@
-import {
-  type UserOptions,
-  getLogger,
-  VertoSubscribe,
-  VertoBye,
-} from '@signalwire/core'
+import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
 import { wsClientWorker } from './workers'
 import {
+  CallOptions,
+  DialParams,
   InboundCallSource,
-  IncomingCallHandlers,
-  IncomingCallManager,
   IncomingInvite,
-} from './IncomingCallManager'
-
-export interface OnlineParams {
-  incomingCallHandlers: IncomingCallHandlers
-}
-interface PushNotification {
-  encryption_type: 'aes_256_gcm'
-  notification_uuid: string
-  with_video: 'true' | 'false'
-  incoming_caller_name: string
-  incoming_caller_id: string
-  tag: string
-  invite: string
-  title: string
-  type: 'call_invite'
-  iv: string
-  version: string
-  decrypted: Record<string, any>
-}
-
-export interface WSClientOptions extends UserOptions {
-  /** HTML element in which to display the video stream */
-  rootElement?: HTMLElement
-  /** Disable ICE UDP transport policy */
-  disableUdpIceServers?: boolean
-  /** Call back function to receive the incoming call */
-  incomingCallHandlers?: IncomingCallHandlers
-}
+  OnlineParams,
+  PushNotificationPayload,
+  WSClientOptions,
+} from './types'
+import { IncomingCallManager } from './IncomingCallManager'
 
 export class WSClient {
   private wsClient: Client<RoomSession>
@@ -53,8 +25,8 @@ export class WSClient {
       unifiedEventing: true,
     })
     this._incomingCallManager = new IncomingCallManager(
-      (payload: IncomingInvite, rootElement: HTMLElement | undefined) =>
-        this.buildInboundCall(payload, rootElement),
+      (payload: IncomingInvite, params: CallOptions) =>
+        this.buildInboundCall(payload, params),
       (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
     )
   }
@@ -83,23 +55,17 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async dial(params: {
-    to: string
-    nodeId?: string
-    rootElement: HTMLElement | undefined
-  }) {
+  async dial(params: DialParams) {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('WSClient dial with:', params)
-
         await this.connect()
         const call = this.wsClient.rooms.makeRoomObject({
-          // audio,
-          // video: video === true ? VIDEO_CONSTRAINTS : video,
+          audio: params.audio ?? true,
+          video: params.video ?? true,
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
-          rootElement: params.rootElement ?? this.options.rootElement,
+          rootElement: params.rootElement,
           applyLocalVideoOverlay: true,
           stopCameraWhileMuted: true,
           stopMicrophoneWhileMuted: true,
@@ -108,7 +74,7 @@ export class WSClient {
           watchMediaPackets: false,
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
-          disableUdpIceServers: this.options.disableUdpIceServers || false,
+          disableUdpIceServers: params.disableUdpIceServers || false,
           unifiedEventing: true,
         })
 
@@ -147,7 +113,7 @@ export class WSClient {
     })
   }
 
-  handlePushNotification(payload: PushNotification) {
+  handlePushNotification(payload: PushNotificationPayload) {
     return new Promise(async (resolve, reject) => {
       const { decrypted, type } = payload
       if (type !== 'call_invite') {
@@ -167,15 +133,6 @@ export class WSClient {
           display_direction,
         },
       } = jsonrpc
-      this.logger.debug('handlePushNotification data', {
-        callID,
-        sdp,
-        caller_id_name,
-        caller_id_number,
-        callee_id_name,
-        callee_id_number,
-        display_direction,
-      })
       try {
         // Connect the client first
         await this.connect()
@@ -257,25 +214,17 @@ export class WSClient {
     }
   }
 
-  private buildInboundCall(
-    payload: IncomingInvite,
-    rootElement: HTMLElement | undefined
-  ) {
+  private buildInboundCall(payload: IncomingInvite, params: CallOptions) {
     getLogger().debug('Build new call to answer')
 
     const { callID, nodeId, sdp } = payload
 
-    console.log('this.wsClient', this.wsClient)
-    console.log('this.wsClient.rooms', this.wsClient.rooms)
-    console.log(
-      'this.wsClient.rooms.makeRoomObject',
-      this.wsClient.rooms.makeRoomObject
-    )
-
     const call = this.wsClient.rooms.makeRoomObject({
+      audio: params.audio ?? true,
+      video: params.video ?? true,
       negotiateAudio: true,
       negotiateVideo: true,
-      rootElement: rootElement ?? this.options.rootElement,
+      rootElement: params.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
@@ -283,7 +232,7 @@ export class WSClient {
       remoteSdp: sdp,
       prevCallId: callID,
       nodeId,
-      disableUdpIceServers: this.options.disableUdpIceServers || false,
+      disableUdpIceServers: params.disableUdpIceServers || false,
       unifiedEventing: true,
     })
 

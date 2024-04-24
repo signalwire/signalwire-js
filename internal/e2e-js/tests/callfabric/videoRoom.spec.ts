@@ -22,6 +22,7 @@ test.describe('CallFabric VideoRoom', () => {
 
           const call = await client.dial({
             to: `/public/${roomName}`,
+            rootElement: document.getElementById('rootElement'),
           })
 
           call.on('room.joined', resolve)
@@ -238,6 +239,7 @@ test.describe('CallFabric VideoRoom', () => {
 
         const call = await client.dial({
           to: `/public/invalid-address`,
+          rootElement: document.getElementById('rootElement'),
         })
 
         // @ts-expect-error
