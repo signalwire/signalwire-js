@@ -55,7 +55,3 @@ jobs:
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
           influxdb-url: ${{ secrets.INFLUXDB_URL }}
-
-
-
-invalid value workflow reference: references to workflows must be rooted in '.github/workflows'
