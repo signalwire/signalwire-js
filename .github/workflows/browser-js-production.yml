@@ -53,12 +53,13 @@ jobs:
     needs: e2e-tests
     runs-on: ubuntu-latest
     if: success() || failure()
-    uses: ./.github/actions/report-test-result@main
-    with:
-      result: ${{ needs.e2e-tests.result }}
-      test-suite: browser-js
-      environment: production
-      influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
-      influxdb-org: ${{ secrets.INFLUXDB_ORG }}
-      influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
-      influxdb-url: ${{ secrets.INFLUXDB_URL }}
+    steps:
+      - uses: ./.github/actions/report-test-result
+        with:
+          result: ${{ needs.e2e-tests.result }}
+          test-suite: browser-js
+          environment: production
+          influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+          influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+          influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+          influxdb-url: ${{ secrets.INFLUXDB_URL }}
