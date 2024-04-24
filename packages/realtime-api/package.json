@@ -6,6 +6,7 @@
   "version": "4.0.0",
   "main": "dist/index.node.js",
   "exports": {
+    "types": "./dist/realtime-api/src/index.d.ts",
     "require": "./dist/index.node.js",
     "default": "./dist/index.node.mjs"
   },
