@@ -1,6 +1,8 @@
 name: RealtimeAPI SDK [staging]
 
 on:
+  push:
+    branches: [ryanwi/job-result]
   workflow_call:
   workflow_dispatch:
   schedule:
@@ -42,12 +44,17 @@ jobs:
   report-result:
     needs: e2e-tests
     if: success() || failure()
-    uses: ./.github/actions/report-test-result
-    with:
-      result: ${{ needs.e2e-tests.result }}
-      test-suite: realtime-api
-      environment: staging
-      influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
-      influxdb-org: ${{ secrets.INFLUXDB_ORG }}
-      influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
-      influxdb-url: ${{ secrets.INFLUXDB_URL }}
+    steps:
+      - run: |
+        echo "GitHub Contexts in JSON: ${{ toJson(github) }}"
+        echo "GitHub Contexts in JSON: ${{ needs.e2e-tests.result }}"
+
+  #   uses: ./.github/actions/report-test-result
+  #   with:
+  #     result: ${{ needs.e2e-tests.result }}
+  #     test-suite: realtime-api
+  #     environment: staging
+  #     influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+  #     influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+  #     influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+  #     influxdb-url: ${{ secrets.INFLUXDB_URL }}
