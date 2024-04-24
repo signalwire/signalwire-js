@@ -4,7 +4,6 @@ import {
   connect,
   ExecuteExtendedOptions,
   JSONRPCMethod,
-  RoomSessionMember,
   VideoMemberEntity,
   Rooms,
 } from '@signalwire/core'
@@ -49,6 +48,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this.callSegments[this.callSegments.length - 1]?.member
   }
 
+  private isSelfMember(id: string) {
+    return (
+      this.callSegments.findIndex((segment) => segment.memberId === id) > -1
+    )
+  }
+
   private executeAction<
     InputType,
     OutputType = InputType,
@@ -85,9 +90,21 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    let targetMember = memberId
-      ? this.instanceMap.get<RoomSessionMember>(memberId)
-      : this.targetMember
+    let targetMember = this.targetMember
+    if (memberId && !this.isSelfMember(memberId)) {
+      const lastSegment = this.callSegments[this.callSegments.length - 1]
+      const memberInCurrentSegment = lastSegment.members.find(
+        (member) => member.id === memberId
+      )
+
+      if (!memberInCurrentSegment) {
+        throw new Error(
+          'The memberId is not a part of the current call segment!'
+        )
+      } else {
+        targetMember = memberInCurrentSegment
+      }
+    }
 
     return this.execute<InputType, OutputType, ParamsType>(
       {

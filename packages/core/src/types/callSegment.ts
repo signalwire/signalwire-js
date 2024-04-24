@@ -14,9 +14,10 @@ export interface CallSegmentContract {
   callId: string
   memberId: string
   room_session: Omit<VideoRoomSessionEntity, 'members'> & {
-    members: RoomSessionMember
+    members: RoomSessionMember[]
   }
   member: RoomSessionMember
+  members: RoomSessionMember[]
 }
 
 /**
