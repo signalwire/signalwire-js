@@ -3,7 +3,7 @@ name: Release dev tag to NPM
 on:
   workflow_run:
     workflows: [Unit and stack tests]
-    branches: [main]
+    branches: [dev]
     types:
       - completed
 
