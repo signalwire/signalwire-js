@@ -17,7 +17,7 @@ export const callLeftWorker = function* (
 
   const segmentToRemoveIndex = callSegments.findIndex((segment) => segment.callId == call_id)
   if(segmentToRemoveIndex >= 0) {
-    callSegments.splice(segmentToRemoveIndex)
+    callSegments.splice(segmentToRemoveIndex, 1)
   }
   
   const memberInstancesToRemove = instanceMap.getAll<RoomSessionMember>()
