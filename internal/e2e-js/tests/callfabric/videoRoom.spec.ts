@@ -43,7 +43,9 @@ test.describe('CallFabric VideoRoom', () => {
         (member: any) => member.member_id === roomSession.member_id
       )
     ).toBeTruthy()
-    expect(roomSession.room_session.name).toBeDefined()
+    expect(roomSession.room_session.name.startsWith(roomName)).toBeTruthy()
+    expect(roomSession.room.name.startsWith(roomName)).toBeTruthy()
+    expect(roomSession.room_session.display_name).toBe(roomName)
 
     await expectMCUVisible(page)
 
