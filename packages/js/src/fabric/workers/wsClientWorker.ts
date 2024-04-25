@@ -23,7 +23,7 @@ export const wsClientWorker: SDKWorker<
   ReturnType<typeof createClient<BaseConnection<any>>>,
   WSClientWorkerHooks
 > = function* (options): SagaIterator {
-  getLogger().debug('wsClientWorker started')
+  getLogger().trace('wsClientWorker started')
   const { channels, initialState } = options
   const { swEventChannel } = channels
   const { buildInboundCall } = initialState

@@ -52,12 +52,15 @@ export const callJoinWorker = function* (
   })
   callSegments.push(callSegmentInstance)
 
-  yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+  cfRoomSession.runWorker('memberPositionWorker', {
+    worker: MemberPosition.memberPositionWorker,
     ...options,
+    // @ts-expect-error
     instance: cfRoomSession,
     initialState: payload,
     dispatcher: function* (
       subType: InternalMemberUpdatedEventNames,
+      // @ts-expect-error
       subPayload
     ) {
       yield sagaEffects.fork(videoMemberWorker, {
@@ -66,6 +69,7 @@ export const callJoinWorker = function* (
       })
     },
   })
+
   // FIXME: Why do we need to emit member.joined from here?
   for (const memberPayload of payload.room_session.members || []) {
     // @ts-expect-error
