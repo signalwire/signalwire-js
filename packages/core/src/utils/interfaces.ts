@@ -99,6 +99,7 @@ export interface BaseRPCResult extends Record<string, unknown> {
 }
 
 export interface SessionOptions {
+  onWsTraffic?: (traffic: any) => void
   /** @internal */
   host?: string
   /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
@@ -267,7 +268,7 @@ export type SessionStatus =
   | 'auth_error'
   | 'expiring'
 
-export type SessionEvents = `session.${SessionStatus}`
+export type SessionEvents = `session.${SessionStatus | 'traffic'}`
 
 export type SessionActions = 'session.forceClose'
 

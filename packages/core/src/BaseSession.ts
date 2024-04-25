@@ -30,6 +30,7 @@ import {
   WebSocketClient,
   SessionStatus,
   SessionAuthError,
+  WsTrafficOptions,
 } from './utils/interfaces'
 import {
   authErrorAction,
@@ -453,7 +454,11 @@ export class BaseSession {
 
   protected _onSocketMessage(event: MessageEvent) {
     const payload = this.decode<JSONRPCRequest | JSONRPCResponse>(event.data)
-    this.logger.wsTraffic({ type: 'recv', payload })
+    const message: WsTrafficOptions = { type: 'recv', payload }
+    this.logger.wsTraffic(message)
+    if (this.options.onWsTraffic) {
+      this.options.onWsTraffic(message)
+    }
 
     if (isJSONRPCResponse(payload)) {
       const request = this._requests.get(payload.id)
@@ -539,7 +544,11 @@ export class BaseSession {
   }
 
   private _send(msg: JSONRPCRequest | JSONRPCResponse) {
-    this.logger.wsTraffic({ type: 'send', payload: msg })
+    const wsTrafficMessage: WsTrafficOptions = { type: 'send', payload: msg } 
+    this.logger.wsTraffic(wsTrafficMessage)
+    if (this.options.onWsTraffic) {
+      this.options.onWsTraffic(wsTrafficMessage)
+    }
     this._socket!.send(this.encode(msg))
   }
 
