@@ -5,6 +5,8 @@ import path from 'path'
 import { Page, expect } from '@playwright/test'
 import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
+import { get, isEmpty, isEqual } from 'lodash'
+import { isRegExp } from 'util/types'
 
 type CreateTestServerOptions = {
   target: 'heroku' | 'blank'
@@ -180,8 +182,77 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
+export type WsTraffic = {type: string, payload: any}
+export type WsTrafficAssertations = {type: string, name?: string, expect?: Record<string, any>, expectNot?: Record<string, any>}
+export type VerifyWsTrafficOptions = {ordered: boolean}
+
+export const verifyWsTraffic = (traffic: WsTraffic[], tests: WsTrafficAssertations[], options: VerifyWsTrafficOptions = {ordered: false}): string => {
+
+  const expectTest = (test: WsTrafficAssertations) => !!test.expect
+
+  if(options.ordered && (traffic.length < tests.filter(expectTest).length)) {
+    return 'traffic < tests'
+  }
+
+  const toTest = options.ordered ? tests.filter(expectTest) : tests
+
+  const testsResult = toTest.map((test, index) => {
+
+    function verifyAllExpectations (msg: WsTraffic) {
+      if(msg.type !== test.type) return false
+
+      function checkPayloadValue([key, value]:[key:string, value:any]) {
+        const msgValue = get(msg.payload, key, null)
+        if (isRegExp(value)) {
+          return value.test(msgValue)
+        }
+        return isEqual(msgValue, value)
+      }
+
+      const expected = !test.expect ? true : Object.entries(test.expect)
+        //map all tests to test results
+        .map(checkPayloadValue)
+        // reduce to a single result
+        .reduce((result, value) => result && value, true)
+
+        const expectedNot = !test.expectNot ? false : Object.entries(test.expectNot)
+        //map all tests to test results
+        .map(checkPayloadValue)
+        // reduce to a single result
+        .reduce((result, value) => result && value, true)
+
+        return expected && !expectedNot
+    }
+
+    const pass = options.ordered ? verifyAllExpectations(traffic[index]) 
+      : traffic.filter(msg => msg.type === test.type).some(verifyAllExpectations)
+
+    if(!pass) {
+      return `${test.name || 'test'} failed`
+    }
+    return ''
+
+    
+  }).reduce((result, value) => isEmpty(value) ? result : `${isEmpty(result) ? '' : result+', '}${value}`, '')
+  return testsResult
+}
+export const evaluateAndExpectWsTraffic = 
+async (page: Page, pageScript: (arg?: any) => Promise<unknown>, args?: any, expectedWsTraffic?: WsTrafficAssertations[], options?: VerifyWsTrafficOptions) => {
+    const result = await page.evaluate(async (options: any) => {
+      //@ts-ignore
+      window.__wsTraffic = []
+      const returned = await pageScript(options.args)
+      //@ts-ignore
+      const verifyResult = verifyWsTraffic(window.__wsTraffic, options.expectedWsTraffic, options)
+      expect(isEmpty(verifyResult)).toBeTruthy()
+      return returned
+    }, {args, expectedWsTraffic})
+  }
+
+
 export const createCFClient = async (page: Page) => {
   const sat = await createTestSATToken()
+
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
     process.exit(4)
@@ -190,11 +261,19 @@ export const createCFClient = async (page: Page) => {
   const swClient = await page.evaluate(
     async (options) => {
       // @ts-expect-error
+      window.__wsTraffic = []
+      // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         debug: { logWsTraffic: true },
+        // @ts-expect-error
+        onWsTraffic: (traffic) => {
+          console.log('#### page.onWsTraffic', traffic)
+          // @ts-expect-error
+          window.__wsTraffic.push(traffic)
+        }
       })
 
       // @ts-expect-error
@@ -203,7 +282,7 @@ export const createCFClient = async (page: Page) => {
     },
     {
       RELAY_HOST: process.env.RELAY_HOST,
-      API_TOKEN: sat,
+      API_TOKEN: sat
     }
   )
 
