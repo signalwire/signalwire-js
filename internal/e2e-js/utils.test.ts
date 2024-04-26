@@ -4,7 +4,7 @@ describe('utils.ts', () => {
     describe('assertWsTraffic', () => {
         it('Should PASS, all expected messages exists', () => {
             expect(verifyWsTraffic([
-                {type: 'send', payload: {jsonRPC: '2.0', method: 'testRequest', params: {p1: 'p1', p2: 'acb-xyz', n1: 1, obj1: {name: 'obje1'} } } },
+                {type: 'send', payload: {jsonRPC: '2.0', method: 'testRequest', params: {p1: 'p1', p2: 'acb-xyz', n1: 1, obj1: {name: 'obje1'}, obj2: null } } },
                 {type: 'recv', payload: {jsonRPC: '2.0', result: 'ok', status: 200  } },
             ],
             [
@@ -14,7 +14,10 @@ describe('utils.ts', () => {
                     'params.p1': 'p1',
                     'params.p2': /^[a-z]{3}\-[a-z]{3}$/,
                     'params.n1': 1,
-                    'params.obj1': {name: 'obje1'} } 
+                    'params.obj1': {name: 'obje1'},
+                    'params.obj2': null,
+                    'params.obj3': undefined
+                 } 
                 },
                 { type: 'recv', name: 'response', expect: {
                     'jsonRPC': '2.0',

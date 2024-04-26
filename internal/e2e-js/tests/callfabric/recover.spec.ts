@@ -163,6 +163,19 @@ test.describe('CallFabric Reconnections', () => {
           'params.authorization_state': /.+/
         },
       },
+      {
+        type: 'send',
+        name: 'invite',
+        expectNot: {
+          method: 'webrtc.verto',
+          'params.message.method': 'verto.invite',
+          'params.message.params.dialogParams.callID': /.+/,
+          'params.message.params.dialogParams.destination_number': /^\/.+/,
+          'params.message.params.sdp':
+            /^(?=.*a=setup:actpass.*)(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
+          'params.message.callID': /.+/,
+        },
+      },
     ])
     console.log('######## Hangup')
     // Hangup

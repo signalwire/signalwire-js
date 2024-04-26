@@ -202,7 +202,7 @@ export const verifyWsTraffic = (traffic: WsTraffic[], tests: WsTrafficAssertatio
       if(msg.type !== test.type) return false
 
       function checkPayloadValue([key, value]:[key:string, value:any]) {
-        const msgValue = get(msg.payload, key, null)
+        const msgValue = get(msg.payload, key)
         if (isRegExp(value)) {
           return value.test(msgValue)
         }
