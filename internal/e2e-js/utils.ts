@@ -236,18 +236,17 @@ export const verifyWsTraffic = (traffic: WsTraffic[], tests: WsTrafficAssertatio
   }).reduce((result, value) => isEmpty(value) ? result : `${isEmpty(result) ? '' : result+', '}${value}`, '')
   return testsResult
 }
-export const evaluateAndExpectWsTraffic = 
-async (page: Page, pageScript: (arg?: any) => Promise<unknown>, args?: any, expectedWsTraffic?: WsTrafficAssertations[], options?: VerifyWsTrafficOptions) => {
-    const result = await page.evaluate(async (options: any) => {
-      //@ts-ignore
-      window.__wsTraffic = []
-      const returned = await pageScript(options.args)
-      //@ts-ignore
-      const verifyResult = verifyWsTraffic(window.__wsTraffic, options.expectedWsTraffic, options)
-      expect(isEmpty(verifyResult)).toBeTruthy()
-      return returned
-    }, {args, expectedWsTraffic})
-  }
+export const executeWithExpectedWsTraffic = 
+async (page: Page, pageScript: () => Promise<unknown>, expectedWsTraffic: WsTrafficAssertations[], options?: VerifyWsTrafficOptions) => {
+  //@ts-ignore
+  await page.evaluate(() => window.__wsTraffic = [])
+  const result = await pageScript()
+  //@ts-ignore 
+  const wsTraffic = await page.evaluate(() => window.__wsTraffic)
+  const verifyResult = verifyWsTraffic(wsTraffic, expectedWsTraffic, options)
+  expect(verifyResult).toEqual('')
+  return result 
+}
 
 
 export const createCFClient = async (page: Page) => {
