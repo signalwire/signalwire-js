@@ -20,10 +20,6 @@ test.describe('CallFabric Reconnections', () => {
 
     // @ts-expect-error
     await page.evaluate(() => (window.__wsTraffic = []))
-
-    console.log(
-      '############################################## dial #######################################################'
-    )
     // Dial an address and join a video room
     await executeWithExpectedWsTraffic(
       page,
@@ -142,27 +138,23 @@ test.describe('CallFabric Reconnections', () => {
       ]
     )
 
-    console.log(
-      '############################################## expectMCUVisible #######################################################'
-    )
     await expectMCUVisible(page)
 
     //@ts-ignore
     await page.evaluate(() => (window.__wsTraffic = []))
-    console.log(
-      '############################################## Hangup #######################################################'
-    )
     // Hangup
     await executeWithExpectedWsTraffic(
-      page, async () => page.evaluate(async () => {
+      page, async () => page.evaluate(async () => { 
       //@ts-ignore
-      await window._roomObj.leave()
+      await window._roomObj.hangup()
+      //@ts-ignore
+      window._roomObj.destroy()
       //@ts-ignore
       window._roomObj = null
     }),
     [
       {
-        type: 'recv',
+        type: 'send',
         name: 'bye',
         expect: {
           'method': 'webrtc.verto',
@@ -178,15 +170,6 @@ test.describe('CallFabric Reconnections', () => {
         },
       },
     ]
-  )
-  console.log(
-    '############################################## Done #######################################################'
-  )
-  console.log(
-    '############################################## Done #######################################################'
-  )
-  console.log(
-    '############################################## Done #######################################################'
   )
   })
 

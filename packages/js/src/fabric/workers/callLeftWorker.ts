@@ -13,7 +13,7 @@ export const callLeftWorker = function* (
 ): SagaIterator {
   getLogger().trace('callLeftWorker started')
 
-  const { action: { payload: { call_id } }, callSegments, instanceMap, instance: cfRoomSession } = options
+  const { action: { payload: { call_id } }, callSegments, instanceMap } = options
 
   const segmentToRemoveIndex = callSegments.findIndex((segment) => segment.callId == call_id)
   if(segmentToRemoveIndex >= 0) {
@@ -26,10 +26,10 @@ export const callLeftWorker = function* (
   
   memberInstancesToRemove.forEach((key) => instanceMap.remove(key));
 
-  if(callSegments.length <= 0) {
-    // Once all call segments are gone we should destroy the room instance
-    cfRoomSession.destroy()
-  }
+  // if(callSegments.length <= 0) {
+  //   // Once all call segments are gone we should destroy the room instance
+  //   cfRoomSession.destroy()
+  // }
 
   getLogger().trace('callLeftWorker ended')
 }
