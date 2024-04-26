@@ -140,8 +140,31 @@ test.describe('CallFabric Reconnections', () => {
 
     await expectMCUVisible(page)
 
-    //@ts-ignore
-    await page.evaluate(() => (window.__wsTraffic = []))
+    // simulate ws
+    console.log('######## Force close')
+    await executeWithExpectedWsTraffic(page, 
+      async () => {
+        await page.evaluate(async () => {
+          //@ts-ignore
+          window._roomObj._closeWSConnection()
+          return new Promise((res) => {
+            setTimeout(() => res(null), 5000)
+          })
+        }
+      )
+      }
+    , [
+      {
+        type: 'send',
+        name: 'reconnect',
+        expect: {
+          method: 'signalwire.connect',
+          'params.version.major': 4,
+          'params.authorization_state': /.+/
+        },
+      },
+    ])
+    console.log('######## Hangup')
     // Hangup
     await executeWithExpectedWsTraffic(
       page, async () => page.evaluate(async () => { 

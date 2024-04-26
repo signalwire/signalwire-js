@@ -862,7 +862,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   async hangup(id?: string) {
-    console.log('%%%%%%%% hangup')
     const rtcPeerId = id ?? this.callId
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to hangup')
