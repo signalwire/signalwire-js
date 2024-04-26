@@ -297,7 +297,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   triggerResume() {
-    this.logger.info('Probably half-open so force close from client')
     if (this._resumeTimer) {
       this.logger.info('[skipped] Already in "resume" state')
       return
@@ -315,7 +314,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.call.leaveReason = 'RECONNECTION_ATTEMPT_TIMEOUT'
       this.call.setState('hangup')
     }, RESUME_TIMEOUT) // TODO: read from call verto.invite response
-    this.call._closeWSConnection()
+    this.restartIce()
   }
 
   private resetNeedResume() {
