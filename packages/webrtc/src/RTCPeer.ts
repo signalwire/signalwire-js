@@ -509,11 +509,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _remoteSdpHasVideo(): boolean {
-    return hasMediaSection(this.remoteSdp ?? '', 'video')
+    return hasMediaSection(this.remoteSdp ?? this.options.remoteSdp ?? '', 'video')
   }
 
   private _remoteSdpHasAudio(): boolean {
-    return hasMediaSection(this.remoteSdp ?? '', 'audio')
+    return hasMediaSection(this.remoteSdp ?? this.options.remoteSdp ?? '', 'audio')
   }
 
   async start() {
@@ -832,6 +832,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       '\n\n',
       remoteDescription.sdp
     )
+
     return this.instance.setRemoteDescription(sessionDescr)
   }
 

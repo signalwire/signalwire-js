@@ -86,7 +86,17 @@ export class BaseComponent<
 
   /** @internal */
   get instanceMap() {
-    return this.options.store.instanceMap
+    return this.store.instanceMap
+  }
+
+  /** @internal */
+  get callSegments() {
+    return this.store.callSegments
+  }
+
+  /** @internal */
+  get unifiedEventing() {
+    return this.store.unifiedEventing
   }
 
   /** @internal */
@@ -96,7 +106,7 @@ export class BaseComponent<
 
   /** @internal */
   get sessionEmitter() {
-    return this.options.store.sessionEmitter
+    return this.store.sessionEmitter
   }
 
   /** @internal */

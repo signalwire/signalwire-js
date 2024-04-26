@@ -131,6 +131,7 @@ const handler: TestHandler = ({ domainApp }) => {
         },
       })
 
+      
       const unsubPlay = await play.listen({
         onStarted: (playback) => {
           // NotOk since the listener is attached after the call.play has resolved

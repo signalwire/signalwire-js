@@ -17,6 +17,7 @@ import {
 } from '../utils/interfaces'
 import { useSession } from './utils/useSession'
 import { useInstanceMap } from './utils/useInstanceMap'
+import { CallSegmentContract } from '../types/callSegment'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -62,13 +63,15 @@ const configureStore = (options: ConfigureStoreOptions) => {
       getDefaultMiddleware().concat(sagaMiddleware),
   }) as Store
 
+  const instanceMap = useInstanceMap()
+
+  const callSegments: CallSegmentContract[] = []
+
   const { initSession, getSession, sessionEmitter } = useSession({
     userOptions,
     sessionChannel,
     SessionConstructor,
   })
-
-  const map = useInstanceMap()
 
   const runSaga = <T>(
     saga: Saga,
@@ -81,7 +84,8 @@ const configureStore = (options: ConfigureStoreOptions) => {
       ...args,
       channels,
       getSession,
-      instanceMap: map,
+      instanceMap,
+      callSegments,
     })
   }
 
@@ -97,8 +101,10 @@ const configureStore = (options: ConfigureStoreOptions) => {
     ...store,
     runSaga,
     channels,
-    instanceMap: map,
+    instanceMap,
+    callSegments,
     sessionEmitter,
+    unifiedEventing: userOptions.unifiedEventing,
   }
 }
 

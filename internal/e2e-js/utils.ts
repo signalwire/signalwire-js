@@ -194,13 +194,11 @@ export const createCFClient = async (page: Page) => {
       const client = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
         debug: { logWsTraffic: true },
       })
 
       // @ts-expect-error
       window._client = client
-
       return client
     },
     {
@@ -282,6 +280,24 @@ export const createTestSATToken = async () => {
   )
   const data = await response.json()
   return data.token
+}
+
+export const createVideoRoom = async (name?: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ? name : `e2e-js-test-room_${uuid()}`,
+      }),
+    }
+  )
+  const data = await response.json()
+  return data
 }
 
 interface CreateTestCRTOptions {
@@ -719,10 +735,63 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
+export const pageEmittedEvents = async (
+  page: Page,
+  events: Record<string, Record<string, string>>[]
+) => {
+  return page.evaluate(
+    async ({ events }) => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      const expectationEvent = (
+        expectation: Record<string, Record<string, string>>
+      ) => Object.keys(expectation)[0]
+
+      const verifyExpectation = (
+        rules: Record<string, string>,
+        payload: any
+      ) => {
+        for (const [key, value] of Object.entries(rules)) {
+          if (payload[key] !== value) return false
+        }
+
+        return true
+      }
+
+      const eventsPromises = events.map((exp) => {
+        const event = expectationEvent(exp)
+
+        console.log(`#### here is a promise for ${event}`)
+        return new Promise((res) => {
+          const callback = (payload: any) => {
+            console.log(`#### Event ${event} received`)
+            if (verifyExpectation(exp[event], payload)) {
+              call.off(event, callback)
+              console.log(`#### resolving ${event}`)
+              return res(payload)
+            }
+          }
+          console.log(`#### setting call.on ${event}`)
+          call.on(event, callback)
+        })
+      })
+
+      try {
+        await Promise.all(eventsPromises)
+        return true
+      } catch {}
+
+      return false
+    },
+    { events }
+  )
+}
+
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
-  codecs?: string|undefined
+  codecs?: string | undefined
 ) => {
   const data = new URLSearchParams()
 
@@ -832,9 +901,7 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
   }
 }
 
-export const getDialConferenceLaml = (
-  conferenceNameBase: string
-) => {
+export const getDialConferenceLaml = (conferenceNameBase: string) => {
   const conferenceName = randomizeRoomName(conferenceNameBase)
   const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
   const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -851,7 +918,7 @@ export const getDialConferenceLaml = (
       </Dial>
     </Response>`
 
-    return inlineLaml
+  return inlineLaml
 }
 
 export const expectv2HasReceivedAudio = async (
@@ -915,18 +982,20 @@ export const expectv2HasReceivedAudio = async (
    * If there is genuine silence, then totalAudioEnergy must be present,
    * albeit being a small number.
    */
-  console.log(`Evaluating audio energy (min energy: ${minTotalAudioEnergy}, min packets: ${minPacketsReceived})`)
+  console.log(
+    `Evaluating audio energy (min energy: ${minTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
   } else {
-    console.log("Warning: totalAudioEnergy was missing from the report!")
+    console.log('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log("Warning: packetsReceived was missing from the report!")
+      console.log('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
@@ -996,18 +1065,20 @@ export const expectv2HasReceivedSilence = async (
    * If there is genuine silence, then totalAudioEnergy must be present,
    * albeit being a small number.
    */
-  console.log(`Evaluating audio energy (max energy: ${maxTotalAudioEnergy}, min packets: ${minPacketsReceived})`)
+  console.log(
+    `Evaluating audio energy (max energy: ${maxTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
     expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
   } else {
-    console.log("Warning: totalAudioEnergy was missing from the report!")
+    console.log('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log("Warning: packetsReceived was missing from the report!")
+      console.log('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
@@ -1058,4 +1129,73 @@ export const expectRelayConnected = async (
 
   // Wait for call button to be enabled when signalwire.ready occurs
   await expect(startCall).toBeEnabled()
+}
+
+export const expectCFInitialEvents = (
+  page: Page,
+  extraEvents: Promise<boolean>[] = []
+) => {
+  const initialEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callCreated = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'created') {
+          resolve(true)
+        }
+      })
+    })
+    const callAnswered = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'answered') {
+          resolve(true)
+        }
+      })
+    })
+    const callJoined = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.joined', () => resolve(true))
+    })
+
+    return Promise.all([callJoined, callCreated, callAnswered])
+  })
+  return Promise.all([initialEvents, ...extraEvents])
+}
+
+export const expectCFFinalEvents = (
+  page: Page,
+  extraEvents: Promise<unknown>[] = []
+) => {
+  const finalEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callEnding = new Promise((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'ending') {
+          resolve(true)
+        }
+      })
+    })
+    const callEnded = new Promise((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'ended') {
+          resolve(true)
+        }
+      })
+    })
+    const callLeft = new Promise((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.left', () => resolve(true))
+    })
+
+    return Promise.all([callEnding, callEnded, callLeft])
+  })
+
+  return Promise.all([finalEvents, ...extraEvents])
 }

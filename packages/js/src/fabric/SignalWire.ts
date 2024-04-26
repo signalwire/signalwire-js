@@ -1,20 +1,7 @@
-import { type UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
-import { WSClient, WSClientOptions } from './WSClient'
-
-export interface SignalWireOptions extends UserOptions, WSClientOptions {}
-
-export interface SignalWireContract {
-  httpHost: HTTPClient['httpHost']
-  getAddresses: HTTPClient['getAddresses']
-  registerDevice: HTTPClient['registerDevice']
-  unregisterDevice: HTTPClient['unregisterDevice']
-  connect: WSClient['connect']
-  disconnect: WSClient['disconnect']
-  dial: WSClient['dial']
-  handlePushNotification: WSClient['handlePushNotification']
-  updateToken: WSClient['updateToken']
-}
+import { WSClient } from './WSClient'
+import { Conversation } from './Conversation'
+import { SignalWireContract, SignalWireOptions } from './types'
 
 export const SignalWire = (
   options: SignalWireOptions
@@ -24,16 +11,32 @@ export const SignalWire = (
       const httpClient = new HTTPClient(options)
       const wsClient = new WSClient(options)
 
+      const conversation = new Conversation({ httpClient, wsClient })
+
       resolve({
         httpHost: httpClient.httpHost,
-        getAddresses: httpClient.getAddresses.bind(httpClient),
         registerDevice: httpClient.registerDevice.bind(httpClient),
         unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
+        getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
         connect: wsClient.connect.bind(wsClient),
         disconnect: wsClient.disconnect.bind(wsClient),
+        online: wsClient.online.bind(wsClient),
+        offline: wsClient.offline.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
+        address: {
+          getAddresses: httpClient.getAddresses.bind(httpClient),
+          getAddress: httpClient.getAddress.bind(httpClient),
+        },
+        conversation: {
+          getConversations: conversation.getConversations.bind(conversation),
+          getMessages: conversation.getMessages.bind(conversation),
+          getConversationMessages:
+            conversation.getConversationMessages.bind(conversation),
+          subscribe: conversation.subscribe.bind(conversation),
+          sendMessage: conversation.sendMessage.bind(conversation),
+        },
         // @ts-expect-error
         __httpClient: httpClient,
         __wsClient: wsClient,

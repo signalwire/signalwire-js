@@ -6,6 +6,7 @@ import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
+import { CallFabricEvent, ConversationEvent } from '..'
 
 export interface SwEvent {
   event_channel: string
@@ -176,8 +177,18 @@ export interface ClientContract<
   ClientInstance,
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /**
+   * Connect the underlay WebSocket connection to the SignalWire network.
+   *
+   * @returns Promise that will resolve with the Client object.
+   *
+   * @example
+   *
+   * ```js
+   * client.connect()
+   * ```
+   */
   connect(): Promise<ClientInstance>
-
   /**
    * Disconnects this client. The client will stop receiving events and you will
    * need to create a new instance if you want to use it again.
@@ -222,6 +233,8 @@ export type SwEventParams =
   | MessagingEvent
   | VoiceCallEvent
   | SwAuthorizationStateParams
+  | ConversationEvent
+| CallFabricEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =
@@ -238,3 +251,5 @@ export * from './task'
 export * from './messaging'
 export * from './voice'
 export * from './callfabric'
+export * from './callSegment'
+export * from './conversation'

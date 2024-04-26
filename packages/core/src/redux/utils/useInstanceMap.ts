@@ -19,9 +19,14 @@ export const useInstanceMap = () => {
     return instanceMap
   }
 
+  const getAllInstances = () => {
+    return Array.from(instanceMap.entries())
+  }
+
   return {
     get: getInstance,
     set: setInstance,
     remove: deleteInstance,
+    getAll: getAllInstances,
   }
 }

@@ -34,6 +34,8 @@ const reattachTests = [
   'roomSessionReattachWrongProtocol.spec.ts',
 ]
 const callfabricTests = [
+  'address.spec.ts',
+  'conversation.spec.ts',
   'relayApp.spec.ts',
   'swml.spec.ts',
   'videoRoom.spec.ts',
