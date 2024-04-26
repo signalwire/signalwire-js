@@ -22,6 +22,7 @@ import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
 const RESUME_TIMEOUT = 12_000
 const DEFAULT_ICE_CANDIDATE_POOL_SIZE = 3
+const ICE_POOL_GATHERING_TIMEOUT = 15
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
@@ -774,8 +775,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._iceTimeout = setTimeout(() => {
         this.instance.removeEventListener('icecandidate', this._onIce)
         this._sdpReady()
-      }, this.options.iceGatheringTimeout)
+      }, this._iceGatheringTimeout())
     }
+  }
+
+  private _iceGatheringTimeout(): number | undefined {
+    return DEFAULT_ICE_CANDIDATE_POOL_SIZE > 0 ? ICE_POOL_GATHERING_TIMEOUT : this.options.iceGatheringTimeout
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
