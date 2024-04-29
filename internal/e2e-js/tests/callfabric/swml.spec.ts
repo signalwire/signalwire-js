@@ -1,5 +1,11 @@
-import { test, expect } from '../../fixtures'
-import { SERVER_URL, createCFClient, expectPageReceiveAudio } from '../../utils'
+import { test } from '../../fixtures'
+import {
+  SERVER_URL,
+  createCFClient,
+  expectCFFinalEvents,
+  expectCFInitialEvents,
+  expectPageReceiveAudio,
+} from '../../utils'
 
 test.describe('CallFabric SWML', () => {
   test('should dial an address and expect a TTS audio', async ({
@@ -8,7 +14,8 @@ test.describe('CallFabric SWML', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const resourceName = 'cf-e2e-test-tts'
+    const resourceName = process.env.RESOURCE_NAME ?? '/public/cf-e2e-test-tts'
+    console.log(`#### Dialing ${resourceName}`)
 
     await createCFClient(page)
 
@@ -20,16 +27,12 @@ test.describe('CallFabric SWML', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${resourceName}`,
-            logLevel: 'debug',
-            debug: { logWsTraffic: true },
-            nodeId: undefined,
+            to: resourceName,
+            rootElement: document.getElementById('rootElement'),
           })
 
           // @ts-expect-error
           window._roomObj = call
-
-          await call.start()
 
           resolve(call)
         })
@@ -37,7 +40,40 @@ test.describe('CallFabric SWML', () => {
       { resourceName }
     )
 
+    const callPlayStarted = page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.play', (params: any) => {
+          if (params.state === 'playing') resolve(true)
+        })
+      })
+    })
+
+    const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
+
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      await call.start()
+    })
+
+    await expectInitialEvents
+
     await expectPageReceiveAudio(page)
+
+    const callPlayEnded = page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.play', (params: any) => {
+          if (params.state === 'finished') resolve(true)
+        })
+      })
+    })
+
+    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
 
     // Hangup the call
     await page.evaluate(async () => {
@@ -46,6 +82,8 @@ test.describe('CallFabric SWML', () => {
 
       await call.hangup()
     })
+
+    await expectFinalEvents
   })
 
   test('should dial an address and expect a hangup', async ({
@@ -54,7 +92,8 @@ test.describe('CallFabric SWML', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const resourceName = 'cf-e2e-test-hangup'
+    const resourceName =
+      process.env.RESOURCE_NAME ?? '/public/cf-e2e-test-hangup'
 
     await createCFClient(page)
 
@@ -66,14 +105,12 @@ test.describe('CallFabric SWML', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${resourceName}`,
-            nodeId: undefined,
+            to: resourceName,
+            rootElement: document.getElementById('rootElement'),
           })
 
           // @ts-expect-error
           window._roomObj = call
-
-          await call.start()
 
           resolve(call)
         })
@@ -81,14 +118,17 @@ test.describe('CallFabric SWML', () => {
       { resourceName }
     )
 
-    await page.waitForTimeout(1000)
+    const expectInitialEvents = expectCFInitialEvents(page)
+    const expectFinalEvents = expectCFFinalEvents(page)
 
-    const roomSession = await page.evaluate(() => {
+    await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj = window._roomObj
-      return roomObj
+      const call = window._roomObj
+
+      await call.start()
     })
 
-    expect(roomSession.state).toBe('destroy')
+    await expectInitialEvents
+    await expectFinalEvents
   })
 })

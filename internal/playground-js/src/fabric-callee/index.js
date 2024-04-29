@@ -179,7 +179,7 @@ function restoreUI() {
   })
 }
 
-function uiReady() {
+function updateUIConnected() {
   connectStatus.innerHTML = 'In Call'
 
   inCallElements.forEach((button) => {
@@ -194,10 +194,11 @@ function uiReady() {
     })
 }
 
-function enableCallButtons() {
+function updateUIRinging() {
   acceptCallBtn.disabled = false
   rejectCallBtn.disabled = false
   rejectAllCallsBtn.disabled = false
+  connectStatus.innerHTML = 'Ringing'
 }
 
 function disableCallButtons() {
@@ -211,7 +212,6 @@ async function getClient() {
     client = await SignalWire({
       host: document.getElementById('host').value,
       token: document.getElementById('token').value,
-      rootElement: document.getElementById('rootElement'),
       onRefreshToken: async () => {
         // Fetch the new token and update the client using 👇
         // await client.updateToken(newToken)
@@ -229,30 +229,17 @@ window.connect = async () => {
   const client = await getClient()
   window.__client = client
 
-  // const steeringId = ''
-  // if (steeringId) {
-  //   const executeInviteRef = call.executeInvite
-  //   call.executeInvite = (sdp, rtcPeerId, nodeId) => {
-  //     console.log('Change invite - inject nodeId for steering')
-  //     executeInviteRef.call(call, sdp, rtcPeerId, steeringId)
-  //   }
-
-  //   const vertoExecuteRef = call.vertoExecute
-  //   call.vertoExecute = (params) => {
-  //     console.log('Change vertoExecute - inject nodeId for steering')
-  //     params.node_id = steeringId
-  //     vertoExecuteRef.call(call, params)
-  //   }
-  // }
-
   connectStatus.innerHTML = 'Connecting...'
   await client.connect()
-
   connectStatus.innerHTML = 'Connected!'
 
   btnConnect.classList.add('d-none')
   tapPushNotificationBtn.classList.remove('d-none')
   btnDisconnect.classList.remove('d-none')
+
+  await client.online({
+    incomingCallHandlers: { all: __incomingCallNotification },
+  })
 }
 
 /**
@@ -270,8 +257,9 @@ window.disconnect = async () => {
 window.tapPushNotification = async () => {
   try {
     const pnKey = document.getElementById('pn-key').value
-    const pushNotificationPayload = JSON.parse(payload.value)
-    const result = await readPushNotification(pushNotificationPayload, pnKey)
+    const pnPayload = JSON.parse(payload.value)
+    const { body } = pnPayload.notification
+    const result = await readPushNotification(body, pnKey)
     console.log('PN', result)
     const { resultType, resultObject } = await client.handlePushNotification(
       result
@@ -279,16 +267,10 @@ window.tapPushNotification = async () => {
 
     switch (resultType) {
       case 'inboundCall':
-        window.__call = resultObject
-        window.__call.on('destroy', () => {
-          console.warn('Inbound Call got cancelled!!')
-          restoreUI()
-        })
-        enableCallButtons()
-        connectStatus.innerHTML = 'Ringing...'
+        console.info('Inbound Call Push Notification received')
         break
       default:
-        this.logger.warn('Unknown resultType', resultType, resultObject)
+        console.warn('Unknown resultType', resultType, resultObject)
         return
     }
   } catch (error) {
@@ -296,15 +278,32 @@ window.tapPushNotification = async () => {
   }
 }
 
+window.__incomingCallNotification = (notification) => {
+  if (
+    !window.__invite ||
+    window.__invite.details.callID !== notification.invite.details.callID
+  ) {
+    window.__invite = notification.invite
+  }
+  updateUIRinging()
+}
+
 window.acceptCall = async () => {
-  disableCallButtons()
-  await window.__call.answer()
-  uiReady()
+  const call = await window.__invite.accept({
+    rootElement: document.getElementById('rootElement'),
+    video: document.getElementById('video').checked,
+    audio: document.getElementById('audio').checked,
+  })
+  window.__call = call
+  roomObj = call
+  window.__call.on('destroy', () => {
+    console.warn('Inbound Call got cancelled!!')
+  })
+  updateUIConnected()
 }
 
 window.rejectCall = async () => {
-  disableCallButtons()
-  await window.__call.hangup()
+  await window.__invite.reject()
   restoreUI()
 }
 
@@ -331,7 +330,11 @@ window.hangup = () => {
 
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('fabric.callee.' + key, e.target.value)
+  let value = e.target.value
+  if (e.target.type === 'checkbox') {
+    value = e.target.checked
+  }
+  localStorage.setItem('fabric.callee.' + key, value)
 }
 
 // jQuery document.ready equivalent
@@ -712,9 +715,10 @@ window.enablePushNotifications = async () => {
 
   onMessage(messaging, (payload) => {
     console.log('Push payload', payload)
-    document.getElementById('payload').value = payload.notification.body
-    const body = JSON.parse(payload.notification.body || '{}')
-    alert(body.title)
+    const message = JSON.parse(payload.data.message || '{}')
+    document.getElementById('payload').value = payload.data.message
+    const messageBody = message.notification.body
+    alert(messageBody.title)
   })
 
   try {
@@ -744,6 +748,9 @@ window.enablePushNotifications = async () => {
         deviceType: 'Android',
         deviceToken: token,
       })
+      client.online({
+        incomingCallHandlers: { pushNotification: __incomingCallNotification },
+      })
       document.getElementById('pn-key').value = push_notification_key
     }
   } catch (error) {
@@ -761,10 +768,9 @@ window.ready(async function () {
     localStorage.getItem('fabric.callee.token') || ''
   document.getElementById('payload').value =
     localStorage.getItem('fabric.callee.payload') || ''
-  document.getElementById('audio').checked =
-    (localStorage.getItem('fabric.callee.audio') || '1') === '1'
+  document.getElementById('audio').checked = true
   document.getElementById('video').checked =
-    (localStorage.getItem('fabric.callee.video') || '1') === '1'
+    localStorage.getItem('fabric.callee.video') === 'true'
 
   await window.enablePushNotifications()
 })

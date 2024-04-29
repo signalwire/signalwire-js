@@ -9,6 +9,7 @@ import {
   LOCAL_EVENT_PREFIX,
   validateEventsToSubscribe,
   EventEmitter,
+  SDKWorker,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -66,9 +67,10 @@ export interface BaseRoomSession<T>
   leave(): Promise<void>
 }
 
-interface BaseRoomSessionOptions
+export interface BaseRoomSessionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   mirrorLocalVideoOverlay: boolean
+  eventsWatcher?: SDKWorker<RoomSessionConnection>
 }
 
 export class RoomSessionConnection
@@ -84,6 +86,10 @@ export class RoomSessionConnection
     super(options)
     this._mirrored = options.mirrorLocalVideoOverlay
 
+    this.initWorker()
+  }
+
+  protected initWorker() {
     this.runWorker('videoWorker', {
       worker: workers.videoWorker,
     })
@@ -494,7 +500,7 @@ export const RoomSessionAPI = extendComponent<
   setPrioritizeHandraise: Rooms.setPrioritizeHandraise,
 })
 
-type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
+export type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
   BaseConnectionStateEventTypes
 
 /** @internal */

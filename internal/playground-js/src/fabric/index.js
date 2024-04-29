@@ -219,7 +219,8 @@ async function getClient() {
     client = await SignalWire({
       host: document.getElementById('host').value,
       token: document.getElementById('token').value,
-      rootElement: document.getElementById('rootElement'),
+      logLevel: 'debug',
+      debug: { logWsTraffic: true },
     })
   }
 
@@ -239,39 +240,15 @@ window.connect = async () => {
   const steeringId = undefined
 
   const call = await client.dial({
-    to: document.getElementById('destination').value,
-    logLevel: 'debug',
-    debug: { logWsTraffic: true },
     nodeId: steeringId,
+    to: document.getElementById('destination').value,
+    rootElement: document.getElementById('rootElement'),
+    video: document.getElementById('video').checked,
+    audio: document.getElementById('audio').checked,
   })
 
   window.__call = call
   roomObj = call
-
-  await call.start()
-
-  console.debug('Call Obj', call)
-
-  enumerateDevices()
-    .then(initDeviceOptions)
-    .catch((error) => {
-      console.error('EnumerateDevices error', error)
-    })
-
-  const joinHandler = (params) => {
-    console.debug('>> room.joined', params)
-
-    btnConnect.classList.add('d-none')
-    btnDisconnect.classList.remove('d-none')
-    connectStatus.innerHTML = 'Connected'
-
-    inCallElements.forEach((button) => {
-      button.classList.remove('d-none')
-      button.disabled = false
-    })
-    // loadLayouts()
-  }
-  joinHandler()
 
   roomObj.on('media.connected', () => {
     console.debug('>> media.connected')
@@ -283,17 +260,22 @@ window.connect = async () => {
     console.debug('>> media.disconnected')
   })
 
+  roomObj.on('room.subscribed', (params) =>
+    console.debug('>> room.subscribed', params)
+  )
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
-
-  roomObj.on('destroy', () => {
-    console.debug('>> destroy')
-    restoreUI()
-  })
+  roomObj.on('room.joined', (params) =>
+    console.debug('>> room.joined ', params)
+  )
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
   )
+  roomObj.on('room.ended', (params) => {
+    console.debug('>> room.ended', params)
+    hangup()
+  })
 
   roomObj.on('recording.started', (params) => {
     console.debug('>> recording.started', params)
@@ -307,50 +289,70 @@ window.connect = async () => {
     console.debug('>> recording.updated', params)
     document.getElementById('recordingState').innerText = params.state
   })
-  roomObj.on('room.ended', (params) => {
-    console.debug('>> room.ended', params)
-    hangup()
-  })
+
   roomObj.on('member.joined', (params) =>
     console.debug('>> member.joined', params)
   )
   roomObj.on('member.updated', (params) =>
     console.debug('>> member.updated', params)
   )
-
   roomObj.on('member.updated.audio_muted', (params) =>
     console.debug('>> member.updated.audio_muted', params)
   )
   roomObj.on('member.updated.video_muted', (params) =>
     console.debug('>> member.updated.video_muted', params)
   )
-
   roomObj.on('member.left', (params) => console.debug('>> member.left', params))
   roomObj.on('member.talking', (params) =>
     console.debug('>> member.talking', params)
   )
-  roomObj.on('layout.changed', (params) =>
-    console.debug('>> layout.changed', params)
-  )
-  roomObj.on('track', (event) => console.debug('>> DEMO track', event))
 
   roomObj.on('playback.started', (params) => {
     console.debug('>> playback.started', params)
-
     playbackStarted()
   })
   roomObj.on('playback.ended', (params) => {
     console.debug('>> playback.ended', params)
-
     playbackEnded()
   })
   roomObj.on('playback.updated', (params) => {
     console.debug('>> playback.updated', params)
-
     if (params.volume) {
       document.getElementById('playbackVolume').value = params.volume
     }
   })
+
+  roomObj.on('layout.changed', (params) =>
+    console.debug('>> layout.changed', params)
+  )
+
+  roomObj.on('track', (event) => console.debug('>> DEMO track', event))
+
+  roomObj.on('destroy', () => {
+    console.debug('>> destroy')
+    restoreUI()
+  })
+
+  await call.start()
+  console.debug('Call Obj', call)
+
+  enumerateDevices()
+    .then(initDeviceOptions)
+    .catch((error) => {
+      console.error('EnumerateDevices error', error)
+    })
+
+  const joinHandler = (params) => {
+    btnConnect.classList.add('d-none')
+    btnDisconnect.classList.remove('d-none')
+    connectStatus.innerHTML = 'Connected'
+    inCallElements.forEach((button) => {
+      button.classList.remove('d-none')
+      button.disabled = false
+    })
+    // loadLayouts()
+  }
+  joinHandler()
 }
 
 /**
@@ -370,7 +372,11 @@ window.hangup = () => {
 
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('fabric.ws.' + key, e.target.value)
+  let value = e.target.value
+  if (e.target.type === 'checkbox') {
+    value = e.target.checked
+  }
+  localStorage.setItem('fabric.ws.' + key, value)
 }
 
 // jQuery document.ready equivalent
@@ -703,8 +709,7 @@ window.ready(async function () {
     localStorage.getItem('fabric.ws.token') || ''
   document.getElementById('destination').value =
     localStorage.getItem('fabric.ws.destination') || ''
-  document.getElementById('audio').checked =
-    (localStorage.getItem('fabric.ws.audio') || '1') === '1'
+  document.getElementById('audio').checked = true
   document.getElementById('video').checked =
-    (localStorage.getItem('fabric.ws.video') || '1') === '1'
+    localStorage.getItem('fabric.ws.video') === 'true'
 })
