@@ -1,4 +1,5 @@
 import jwtDecode from 'jwt-decode'
+import { getLogger } from '@signalwire/core'
 
 /**
  * Note: ready to support RN with a "storage.native.ts" file.
@@ -16,8 +17,15 @@ export const sessionStorageManager = (token: string) => {
     const jwtPayload = jwtDecode<{ r: string; ja: string }>(token)
     roomName = jwtPayload?.r ?? ''
   } catch (e) {
-    const jwtPayload = jwtDecode<{ typ: string}>(token, {header: true})
-    roomName = jwtPayload.typ || ''
+    try {
+      const jwtPayload = jwtDecode<{ typ: string}>(token, {header: true})
+      roomName = jwtPayload.typ || ''
+    } catch {
+      if (process.env.NODE_ENV !== 'production') {
+        getLogger().error('[sessionStorageManager] error decoding JWT', token)
+      }
+      roomName = ''
+    }
   }
 
   const valid = Boolean(roomName)
