@@ -15,6 +15,7 @@ export const callLeftWorker = function* (
 
   const {
     action: { payload },
+    instance: cfRoomSession,
     callSegments,
     instanceMap,
   } = options
@@ -38,6 +39,9 @@ export const callLeftWorker = function* (
       instanceMap.remove(key)
     }
   })
+
+  // @ts-expect-error
+  cfRoomSession.emit('call.left', payload)
 
   getLogger().trace('callLeftWorker ended')
 }

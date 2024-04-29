@@ -81,8 +81,6 @@ export class WSClient {
         // WebRTC connection left the room.
         call.once('destroy', () => {
           this.logger.debug('RTC Connection Destroyed')
-          call.emit('room.left', { reason: call.leaveReason })
-          call.destroy()
         })
 
         this.wsClient.once('session.disconnected', () => {

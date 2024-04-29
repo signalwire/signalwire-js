@@ -83,5 +83,8 @@ export const callJoinWorker = function* (
   }
   cfRoomSession.emit('room.subscribed', payload)
 
+  // @ts-expect-error
+  cfRoomSession.emit('call.joined', payload)
+
   getLogger().trace('callJoinWorker ended')
 }

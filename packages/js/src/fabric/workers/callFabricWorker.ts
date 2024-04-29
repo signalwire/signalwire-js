@@ -14,6 +14,7 @@ import { CallFabricRoomSessionConnection } from '../CallFabricBaseRoomSession'
 import * as videoWorkers from '../../video/workers'
 import { callJoinWorker } from './callJoinWorker'
 import { callLeftWorker } from './callLeftWorker'
+import { callStateWorker } from './callStateWorker'
 
 export type CallFabricWorkerParams<T> =
   SDKWorkerParams<CallFabricRoomSessionConnection> & {
@@ -36,14 +37,21 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
             action,
             ...options,
           })
-          break
+          return
         }
         case 'call.left': {
           yield sagaEffects.fork(callLeftWorker, {
             action,
             ...options,
           })
-          break
+          return
+        }
+        case 'call.state': {
+          yield sagaEffects.fork(callStateWorker, {
+            action,
+            ...options,
+          })
+          return
         }
         case 'call.started':
         case 'call.updated':
