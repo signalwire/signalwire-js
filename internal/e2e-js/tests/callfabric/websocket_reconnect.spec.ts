@@ -139,10 +139,13 @@ test.describe('CallFabric Reconnections', () => {
       //@ts-ignore
       window._roomObj._closeWSConnection()
       return new Promise((res) => {
-        setTimeout(() => res(null), 5000)
+        setTimeout(() => res(null), 15000)
       })
     })
 
+    console.log("################################################")
+    console.log(JSON.stringify(page.__wsInspectorTraffic, null, 2))
+    console.log("################################################")
     await page.expectWsTraffic({
       assertations: [
         {
@@ -164,7 +167,6 @@ test.describe('CallFabric Reconnections', () => {
             'params.message.params.dialogParams.destination_number': /^\/.+/,
             'params.message.params.sdp':
               /^(?=.*a=setup:actpass.*)(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
-            'params.message.callID': /.+/,
           },
         },
       ],

@@ -169,6 +169,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.component.nodeId || this.options.nodeId
   }
 
+  get unifiedEventing() {
+    return this.store.unifiedEventing
+  }
+
   get callId() {
     return this.peer?.uuid || ''
   }
@@ -730,7 +734,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.logger.debug(
         `[resume] connectionState for ${this.id} is '${connectionState}'`
       )
-      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
+      if (!this.unifiedEventing ? connectionState === 'connected' : ['closed', 'failed', 'disconnected'].includes(connectionState)) {
         this.resuming = true
         this.peer.restartIce()
       }
