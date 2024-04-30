@@ -13,6 +13,8 @@ import {
 import { CallFabricRoomSessionConnection } from '../CallFabricBaseRoomSession'
 import * as videoWorkers from '../../video/workers'
 import { callJoinWorker } from './callJoinWorker'
+import { callLeftWorker } from './callLeftWorker'
+import { callStateWorker } from './callStateWorker'
 
 export type CallFabricWorkerParams<T> =
   SDKWorkerParams<CallFabricRoomSessionConnection> & {
@@ -35,12 +37,21 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
             action,
             ...options,
           })
-          break
+          return
         }
         case 'call.left': {
-          // Should we alse remove the member from the instance map?
-          options.callSegments.pop()
-          break
+          yield sagaEffects.fork(callLeftWorker, {
+            action,
+            ...options,
+          })
+          return
+        }
+        case 'call.state': {
+          yield sagaEffects.fork(callStateWorker, {
+            action,
+            ...options,
+          })
+          return
         }
         case 'call.started':
         case 'call.updated':

@@ -130,7 +130,7 @@ export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsH
   setPayload(payload: RoomSessionMemberEventParams) {
     // Reshape the payload since the `video.member.talking` event does not return all the parameters of a member
     const newPayload = {
-      ...payload,
+      ...this._payload,
       member: {
         ...this._payload.member,
         ...payload.member,

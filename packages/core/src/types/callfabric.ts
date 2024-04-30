@@ -178,7 +178,7 @@ export type CallUpdated = 'call.updated'
 export type CallLeft = 'call.left'
 export type CallStream = 'call.stream'
 
-export type CallStates = 'created' | 'ringing' | 'answered' | 'finished'
+export type CallStates = 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
 export type CallConnectStates = 'connecting' | 'connected'
 export type CallDirections = 'inbound' | 'outbound'
 export type CallDeviceTypes = 'webrtc' | 'sip' | 'phone'
