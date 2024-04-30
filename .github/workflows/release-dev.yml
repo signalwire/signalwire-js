@@ -30,3 +30,12 @@ jobs:
       - run: npm run release:dev
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  build_puc:
+    - name: Trigger Staging Deploy for the PUC Client
+      runs-on: ubuntu-latest
+      if: ${{ github.event.workflow_run.conclusion == 'success' }}
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ secrets.PUC_CLIENT_TOKEN }}
+        repository: signalwire/puc-client
+        event-type: deploy_staging
