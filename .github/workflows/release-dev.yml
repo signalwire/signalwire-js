@@ -14,13 +14,10 @@ concurrency:
 jobs:
   release_dev:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [18.x]
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
