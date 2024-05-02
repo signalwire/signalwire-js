@@ -29,6 +29,7 @@ export const videoMemberWorker = function* (
   getLogger().trace('videoMemberWorker started')
   const {
     instance: roomSession,
+    callSegments,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
@@ -53,8 +54,7 @@ export const videoMemberWorker = function* (
    * Send the payload with a member id from the first call segment for a consistent member id
    */
   let newPayload = { ...payload }
-  const currentCallSegment =
-    roomSession.callSegments[roomSession.callSegments.length - 1]
+  const currentCallSegment = callSegments[callSegments.length - 1]
   if (payload.member.member_id === currentCallSegment.memberId) {
     // FIXME: We should emit the RoomSessionMember instance
     // @ts-expect-error
