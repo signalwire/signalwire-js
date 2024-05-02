@@ -734,7 +734,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.logger.debug(
         `[resume] connectionState for ${this.id} is '${connectionState}'`
       )
-      if (!this.unifiedEventing ? connectionState === 'connected' : ['closed', 'failed', 'disconnected'].includes(connectionState)) {
+      if (!this.unifiedEventing ? connectionState !== 'closed' : ['closed', 'failed', 'disconnected'].includes(connectionState)) {
         this.resuming = true
         this.peer.restartIce()
       }
