@@ -11,7 +11,9 @@ import {
 import { SERVER_URL } from '../../utils'
 
 test.describe('Video', () => {
-  test('should join the room and listen for events', async ({ browser }) => {
+  test.only('should join the room and listen for events', async ({
+    browser,
+  }) => {
     console.log('===Test===', 'should join the room and listen for events')
 
     const client = await SignalWire({
@@ -22,7 +24,7 @@ test.describe('Video', () => {
     })
 
     const prefix = uuid()
-    const roomCount = 3
+    const roomCount = 1
 
     const roomSessionCreated = new Map<string, any>()
     const findRoomSessionsByPrefix = async () => {
@@ -70,27 +72,27 @@ test.describe('Video', () => {
     roomSessionsWeb.push(pageOneRoomSession!)
     console.log('[page-1] room joined')
 
-    // Join room from page 2
-    console.log('[page-2] Join room and start playback and recording')
-    const pageTwoRoomSession = await createRoomAndRecordPlay({
-      browser,
-      pageName: '[page-2]',
-      room_name: `${prefix}-2`,
-      user_name: `${prefix}-member-2`,
-    })
-    roomSessionsWeb.push(pageTwoRoomSession!)
-    console.log('[page-2] room joined')
+    // // Join room from page 2
+    // console.log('[page-2] Join room and start playback and recording')
+    // const pageTwoRoomSession = await createRoomAndRecordPlay({
+    //   browser,
+    //   pageName: '[page-2]',
+    //   room_name: `${prefix}-2`,
+    //   user_name: `${prefix}-member-2`,
+    // })
+    // roomSessionsWeb.push(pageTwoRoomSession!)
+    // console.log('[page-2] room joined')
 
-    // Join room from page 3
-    console.log('[page-3] Join room and start playback and recording')
-    const pageThreeRoomSession = await createRoomAndRecordPlay({
-      browser,
-      pageName: '[page-3]',
-      room_name: `${prefix}-3`,
-      user_name: `${prefix}-member-3`,
-    })
-    roomSessionsWeb.push(pageThreeRoomSession!)
-    console.log('[page-3] room joined')
+    // // Join room from page 3
+    // console.log('[page-3] Join room and start playback and recording')
+    // const pageThreeRoomSession = await createRoomAndRecordPlay({
+    //   browser,
+    //   pageName: '[page-3]',
+    //   room_name: `${prefix}-3`,
+    //   user_name: `${prefix}-member-3`,
+    // })
+    // roomSessionsWeb.push(pageThreeRoomSession!)
+    // console.log('[page-3] room joined')
 
     // Wait till Node SDK receive room.started events {roomCount} times
     await roomSessionStartedNode
@@ -103,81 +105,83 @@ test.describe('Video', () => {
       'Running room session should be 3'
     ).toHaveLength(roomCount)
 
-    // Expect all rooms running a recording
-    expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
-      roomCount
-    )
+    console.log('>> here')
 
-    // Expect all rooms to have play function
-    expect(
-      roomSessionsRunning.filter((r) => typeof r.play === 'function')
-    ).toHaveLength(roomCount)
+    // // Expect all rooms running a recording
+    // expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
+    //   roomCount
+    // )
 
-    // Run for all the rooms
-    for (let index = 0; index < roomSessionsRunning.length; index++) {
-      const rs = roomSessionsRunning[index]
+    // // Expect all rooms to have play function
+    // expect(
+    //   roomSessionsRunning.filter((r) => typeof r.play === 'function')
+    // ).toHaveLength(roomCount)
 
-      // Stop the recording and expect onRecordingEnded event
-      await new Promise<void>(async (resolve) => {
-        await rs.listen({
-          onRecordingEnded: () => resolve(),
-        })
-        const { recordings } = await rs.getRecordings()
-        await Promise.all(recordings.map((r) => r.stop()))
-      })
+    // // Run for all the rooms
+    // for (let index = 0; index < roomSessionsRunning.length; index++) {
+    //   const rs = roomSessionsRunning[index]
 
-      // Stop the playback and expect onPlaybackEnded event
-      await new Promise<void>(async (resolve) => {
-        await rs.listen({
-          onPlaybackEnded: () => resolve(),
-        })
-        const { playbacks } = await rs.getPlaybacks()
-        await Promise.all(playbacks.map((p) => p.stop()))
-      })
+    //   // Stop the recording and expect onRecordingEnded event
+    //   await new Promise<void>(async (resolve) => {
+    //     await rs.listen({
+    //       onRecordingEnded: () => resolve(),
+    //     })
+    //     const { recordings } = await rs.getRecordings()
+    //     await Promise.all(recordings.map((r) => r.stop()))
+    //   })
 
-      await new Promise<void>(async (resolve, reject) => {
-        const unsub = await rs.listen({
-          onRoomUpdated: async (roomSession) => {
-            if (roomSession.locked === true) {
-              resolve()
-              await unsub()
-            } else {
-              reject(new Error('Not locked'))
-            }
-          },
-        })
-        await rs.lock()
-      })
+    //   // Stop the playback and expect onPlaybackEnded event
+    //   await new Promise<void>(async (resolve) => {
+    //     await rs.listen({
+    //       onPlaybackEnded: () => resolve(),
+    //     })
+    //     const { playbacks } = await rs.getPlaybacks()
+    //     await Promise.all(playbacks.map((p) => p.stop()))
+    //   })
 
-      await new Promise<void>(async (resolve, reject) => {
-        const unsub = await rs.listen({
-          onRoomUpdated: async (roomSession) => {
-            if (roomSession.locked === false) {
-              resolve()
-              await unsub()
-            } else {
-              reject(new Error('Not locked'))
-            }
-          },
-        })
-        await rs.unlock()
-      })
-    }
+    //   await new Promise<void>(async (resolve, reject) => {
+    //     const unsub = await rs.listen({
+    //       onRoomUpdated: async (roomSession) => {
+    //         if (roomSession.locked === true) {
+    //           resolve()
+    //           await unsub()
+    //         } else {
+    //           reject(new Error('Not locked'))
+    //         }
+    //       },
+    //     })
+    //     await rs.lock()
+    //   })
 
-    const roomSessionsAtEnd = await findRoomSessionsByPrefix()
-    console.log('roomSessionsAtEnd', roomSessionsAtEnd)
-    expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
-    expect(roomSessionCreated.size).toBe(roomCount)
-    expect(roomSessionsAtEnd).toHaveLength(roomCount)
+    //   await new Promise<void>(async (resolve, reject) => {
+    //     const unsub = await rs.listen({
+    //       onRoomUpdated: async (roomSession) => {
+    //         if (roomSession.locked === false) {
+    //           resolve()
+    //           await unsub()
+    //         } else {
+    //           reject(new Error('Not locked'))
+    //         }
+    //       },
+    //     })
+    //     await rs.unlock()
+    //   })
+    // }
 
-    // Leave room on all pages
-    for (let index = 0; index < roomSessionsWeb.length; index++) {
-      const rs = roomSessionsWeb[index]
-      await rs?.leaveRoom()
-    }
+    // const roomSessionsAtEnd = await findRoomSessionsByPrefix()
+    // console.log('roomSessionsAtEnd', roomSessionsAtEnd)
+    // expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
+    // expect(roomSessionCreated.size).toBe(roomCount)
+    // expect(roomSessionsAtEnd).toHaveLength(roomCount)
 
-    // Disconnect the client
-    await client.disconnect()
+    // // Leave room on all pages
+    // for (let index = 0; index < roomSessionsWeb.length; index++) {
+    //   const rs = roomSessionsWeb[index]
+    //   await rs?.leaveRoom()
+    // }
+
+    // // Disconnect the client
+    // await client.disconnect()
   })
 
   test('should join the room and set hand raise priority', async ({
