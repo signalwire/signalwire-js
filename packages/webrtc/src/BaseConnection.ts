@@ -169,10 +169,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.component.nodeId || this.options.nodeId
   }
 
-  get unifiedEventing() {
-    return this.store.unifiedEventing
-  }
-
   get callId() {
     return this.peer?.uuid || ''
   }
