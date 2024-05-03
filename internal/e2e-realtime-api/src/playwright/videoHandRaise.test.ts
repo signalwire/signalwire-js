@@ -12,7 +12,7 @@ test.describe('Video room hand raise/lower', () => {
     browser,
   }) => {
     console.log(
-      '===Test===',
+      '===START===',
       'should raise memberOne hand using room session instance via Node SDK'
     )
 
@@ -77,13 +77,18 @@ test.describe('Video room hand raise/lower', () => {
 
     // Disconnect the client
     await client.disconnect()
+
+    console.log(
+      '===END===',
+      'should raise memberOne hand using room session instance via Node SDK'
+    )
   })
 
   test('should raise memberTwo hand using member instance via Node SDK', async ({
     browser,
   }) => {
     console.log(
-      '===Test===',
+      '===START===',
       'should raise memberTwo hand using member instance via Node SDK'
     )
 
@@ -145,13 +150,18 @@ test.describe('Video room hand raise/lower', () => {
 
     // Disconnect the client
     await client.disconnect()
+
+    console.log(
+      '===END===',
+      'should raise memberTwo hand using member instance via Node SDK'
+    )
   })
 
   test('should lower memberOne hand using room session instance via Web SDK', async ({
     browser,
   }) => {
     console.log(
-      '===Test===',
+      '===START===',
       'should lower memberOne hand using room session instance via Web SDK'
     )
 
@@ -257,5 +267,10 @@ test.describe('Video room hand raise/lower', () => {
 
     // Disconnect the client
     await client.disconnect()
+
+    console.log(
+      '===END===',
+      'should lower memberOne hand using room session instance via Web SDK'
+    )
   })
 })
