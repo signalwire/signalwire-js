@@ -169,7 +169,7 @@ test.describe('CallFabric Reconnections', () => {
     })
   })
 
-  test.skip('Should reconnect the WebSocket when network is up(before FS timout), without media renegotiation', async ({
+  test.skip('Should reconnect the WebSocket when network is up (before FS timeout), without media renegotiation', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
