@@ -22,7 +22,7 @@ const promoteTests = [
 const demoteTests = [
   'roomSessionDemote.spec.ts',
   'roomSessionDemoteAudience.spec.ts',
-  'roomSessionDemoteReattachPromote.spec',
+  'roomSessionDemoteReattachPromote.spec.ts',
   'roomSessionDemotePromote.spec.ts',
 ]
 const reattachTests = [
