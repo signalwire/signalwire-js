@@ -19,6 +19,7 @@ test.describe('CallFabric SWML', () => {
 
     await createCFClient(page)
 
+    page.resetWsTraffic()
     // Dial an address and listen a TTS
     await page.evaluate(
       async ({ resourceName }) => {
@@ -39,6 +40,18 @@ test.describe('CallFabric SWML', () => {
       },
       { resourceName }
     )
+    page.expectWsTraffic({
+      assertations: [
+        {
+          type: "send",
+          name: "connect",
+          expect: {
+            method: "signalwire.connect",
+            "params.version.major": 4,
+          },
+        }
+      ]
+    })
 
     const callPlayStarted = page.evaluate(async () => {
       // @ts-expect-error
