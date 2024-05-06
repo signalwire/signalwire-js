@@ -65,7 +65,7 @@ export class WSClient {
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
-          rootElement: params.rootElement,
+          rootElement: params.rootElement || this.options.rootElement,
           applyLocalVideoOverlay: true,
           stopCameraWhileMuted: true,
           stopMicrophoneWhileMuted: true,
