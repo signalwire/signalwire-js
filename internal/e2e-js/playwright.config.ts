@@ -11,7 +11,9 @@ const streamingTests = [
 const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
 const audienceTests = [
   'roomSessionAudienceCount.spec.ts',
+  'roomSessionFollowLeader.spec.ts',
   'roomSessionTalkingEventsToAudience.spec.ts',
+  'roomSessionUnauthorized.spec.ts',
 ]
 const promoteTests = [
   'roomSessionPromoteDemote.spec.ts',
