@@ -74,6 +74,13 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
             action: updatedAction,
             ...options,
           })
+
+          
+          yield sagaEffects.put(swEventChannel, {
+            ...action,
+            // @ts-expect-error
+            type: `video.${action.type}`
+          })
           return
         }
         case 'layout.changed': {
@@ -117,5 +124,4 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
       yield sagaEffects.fork(worker, action)
     }
 
-    getLogger().trace('callFabricWorker ended')
   }
