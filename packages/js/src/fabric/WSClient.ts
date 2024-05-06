@@ -55,6 +55,32 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
+  async reattach(params: DialParams) {
+    return new Promise((resolve, reject) => {
+    try {
+    const call = new RoomSession({...this.options, ...params});
+    // @ts-expect-error
+    call.start = () => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          call.once('room.subscribed', () => resolve(call))
+
+          await call.join()
+        } catch (error) {
+          getLogger().error('WSClient call start', error)
+          reject(error)
+        }
+      })
+    }
+
+    resolve(call)
+  } catch (error) {
+    getLogger().error('WSClient dial', error)
+
+    reject(error)
+  }}) 
+  }
+
   async dial(params: DialParams) {
     return new Promise(async (resolve, reject) => {
       try {

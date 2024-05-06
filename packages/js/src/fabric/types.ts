@@ -17,6 +17,7 @@ export interface SignalWireContract {
   online: WSClient['online']
   offline: WSClient['offline']
   dial: WSClient['dial']
+  reattach: WSClient['reattach']
   handlePushNotification: WSClient['handlePushNotification']
   updateToken: WSClient['updateToken']
   address: {
