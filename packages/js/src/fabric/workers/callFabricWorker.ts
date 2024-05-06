@@ -75,12 +75,8 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
             ...options,
           })
 
-          
-          yield sagaEffects.put(swEventChannel, {
-            ...action,
-            // @ts-expect-error
-            type: `video.${action.type}`
-          })
+          // @ts-expect-error
+          yield sagaEffects.put(swEventChannel, updatedAction)
           return
         }
         case 'layout.changed': {
