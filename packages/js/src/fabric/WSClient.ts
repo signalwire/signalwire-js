@@ -224,7 +224,7 @@ export class WSClient {
       video: params.video ?? true,
       negotiateAudio: true,
       negotiateVideo: true,
-      rootElement: params.rootElement,
+      rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
