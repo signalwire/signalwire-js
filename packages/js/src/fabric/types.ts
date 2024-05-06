@@ -95,7 +95,7 @@ export interface IncomingCallNotification {
 }
 export type IncomingCallHandler = (
   notification: IncomingCallNotification
-) => Promise<void>
+) => void
 
 export interface IncomingCallHandlers {
   all?: IncomingCallHandler
