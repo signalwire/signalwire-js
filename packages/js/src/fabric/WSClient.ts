@@ -14,6 +14,7 @@ import {
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
 import { BaseRPCResult } from 'packages/web-api/dist/core/src'
+import { BaseRoomSession } from '../BaseRoomSession'
 
 export class WSClient {
   private wsClient: Client<RoomSession>
@@ -56,7 +57,7 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async dial(params: DialParams) {
+  async dial(params: DialParams): Promise<BaseRoomSession<RoomSession>> {
     return new Promise(async (resolve, reject) => {
       try {
         await this.connect()
