@@ -13,6 +13,7 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
+import { BaseRPCResult } from 'packages/web-api/dist/core/src'
 
 export class WSClient {
   private wsClient: Client<RoomSession>
@@ -269,12 +270,12 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  async online({ incomingCallHandlers }: OnlineParams) {
+  async online({ incomingCallHandlers }: OnlineParams): Promise<BaseRPCResult> {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
 
     await this.connect()
 
-    // @ts-expect-error
+    //@ts-expect-error
     return this.wsClient.execute({
       method: 'subscriber.online',
       params: {},
@@ -284,7 +285,7 @@ export class WSClient {
   /**
    * Mark the client as 'offline' to receive calls over WebSocket
    */
-  offline() {
+  offline(): Promise<BaseRPCResult> {
     this._incomingCallManager.setNotificationHandlers({})
     // @ts-expect-error
     return this.wsClient.execute({
