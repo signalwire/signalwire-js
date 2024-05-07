@@ -13,7 +13,7 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
-import { BaseRPCResult } from 'packages/web-api/dist/core/src'
+import { BaseRPCResult } from '@signalwire/core'
 import { BaseRoomSession } from '../BaseRoomSession'
 
 export class WSClient {
