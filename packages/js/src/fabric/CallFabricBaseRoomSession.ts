@@ -250,6 +250,27 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       },
     })
   }
+
+  leaveCallById(id: string) {
+    let extraParams = {}
+
+    const segment = this.callSegments.find((seg) => seg.callId === id)
+    if (!segment) {
+      throw new Error('The call segment ID invalid!')
+    }
+    extraParams = {
+      target: {
+        member_id: segment.member.id,
+        call_id: segment.member.callId,
+        node_id: segment.member.nodeId,
+      },
+    }
+
+    return this.executeAction<void>({
+      method: 'call.end',
+      extraParams,
+    })
+  }
 }
 
 export const createCallFabricBaseRoomSessionObject = <RoomSessionType>(

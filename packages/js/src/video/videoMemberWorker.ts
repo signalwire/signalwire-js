@@ -55,7 +55,7 @@ export const videoMemberWorker = function* (
    */
   let newPayload = { ...payload }
   const currentCallSegment = callSegments[callSegments.length - 1]
-  if (payload.member.member_id === currentCallSegment.memberId) {
+  if (payload.member.member_id === currentCallSegment?.memberId) {
     // FIXME: We should emit the RoomSessionMember instance
     // @ts-expect-error
     newPayload = {
