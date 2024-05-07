@@ -69,6 +69,8 @@ export interface DialParams extends CallOptions {
 }
 
 export interface WSClientOptions extends UserOptions {
+  /** HTML element in which to display the video stream */
+  rootElement?: HTMLElement
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
 }
@@ -96,7 +98,7 @@ export interface IncomingCallNotification {
 }
 export type IncomingCallHandler = (
   notification: IncomingCallNotification
-) => Promise<void>
+) => void
 
 export interface IncomingCallHandlers {
   all?: IncomingCallHandler
