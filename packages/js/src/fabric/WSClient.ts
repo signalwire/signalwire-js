@@ -98,7 +98,6 @@ export class WSClient {
         resolve(call)
       } catch (error) {
         getLogger().error('WSClient dial', error)
-
         reject(error)
       }
     })
