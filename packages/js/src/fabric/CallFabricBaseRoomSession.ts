@@ -40,6 +40,19 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
+  start() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.once('room.subscribed', () => resolve(this))
+
+        await this.join()
+      } catch (error) {
+        this.logger.error('WSClient call start', error)
+        reject(error)
+      }
+    })
+  }
+
   get selfMember() {
     return this.callSegments[0]?.member
   }
