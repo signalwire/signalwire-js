@@ -2,4 +2,4 @@
 '@signalwire/realtime-api': patch
 ---
 
-Fix tap.started event on Tap instance
+Fix types export for module NodeNext

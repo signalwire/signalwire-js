@@ -194,7 +194,6 @@ export const createCFClient = async (page: Page) => {
       const client = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
         debug: { logWsTraffic: true },
       })
 

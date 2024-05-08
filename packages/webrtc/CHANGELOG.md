@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.0] - 2024-04-17
+
+### Added
+
+- [#932](https://github.com/signalwire/signalwire-js/pull/932) [`6b0f8227`](https://github.com/signalwire/signalwire-js/commit/6b0f82271c0029c6f136a20e5b9326bdd9abab48) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Allow users to pass the optional `disableUdpIceServers` boolean flag with a value of `true` to remove the URLs of UDP transport ICE servers.
+
+  Default value for `disableUdpIceServers` is `false`
+
+  Call Fabric SDK:
+
+  ```js
+  import { SignalWire } from '@signalwire/js'
+
+  const client = await SignalWire({
+     host: ...,
+     token: ...,
+     rootElement: ...,
+     disableUdpIceServers: true|false, // default is false
+  })
+  ```
+
+  Video SDK:
+
+  ```js
+  import { Video } from '@signalwire/js'
+
+  const roomSession = new Video.RoomSession({
+     host: ...,
+     token: ...,
+     rootElement: ...,
+     disableUdpIceServers: true|false, // default is false
+  })
+  ```
+
+### Fixed
+
+- [#959](https://github.com/signalwire/signalwire-js/pull/959) [`d93c3af4`](https://github.com/signalwire/signalwire-js/commit/d93c3af430db1580de204d8da9906a2220951049) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - FIXED include a media track in a sdp answer only when the peer offer have the same media
+
+- Updated dependencies [[`03f01c36`](https://github.com/signalwire/signalwire-js/commit/03f01c36b3f1244e4eed4188610e67955c7ba9ce), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`6cb639bf`](https://github.com/signalwire/signalwire-js/commit/6cb639bf6dcbacefd71615ec99c4911cbbd120c4), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99), [`b39b82fe`](https://github.com/signalwire/signalwire-js/commit/b39b82feed94950ef21883ba9dfe8c8f25220b99)]:
+  - @signalwire/core@4.0.0
+
 ## [3.11.0] - 2023-11-23
 
 ### Added

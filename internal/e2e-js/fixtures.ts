@@ -1,4 +1,5 @@
 import type { Video } from '@signalwire/js'
+import { PageWithWsInspector, intercepWsTraffic, } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import { enablePageLogs } from './utils'
 
@@ -7,15 +8,17 @@ type CustomPage = Page & {
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: { name: string }): Promise<CustomPage>
+  createCustomPage(options: { name: string }): Promise<PageWithWsInspector<CustomPage>>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
 }
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: { name: string }): Promise<CustomPage> => {
-      const page = await context.newPage()
+    const maker = async (options: { name: string }): Promise<PageWithWsInspector<CustomPage>> => {
+      let page = await context.newPage()
       enablePageLogs(page, options.name)
+      //@ts-ignore
+      page = await intercepWsTraffic(page)
 
       // @ts-expect-error
       page.swNetworkDown = () => {

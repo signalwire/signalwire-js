@@ -22,9 +22,10 @@ jobs:
           [
             default,
             streaming,
-            slow,
+            badNetwork,
             promote,
             demote,
+            audience,
             reattach,
             callfabric,
             v2WebRTC,
@@ -44,15 +45,19 @@ jobs:
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
-        id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
-      - name: Report Result
-        if: success() || failure()
-        uses: ./.github/actions/report-test-result
+
+  report-result:
+    needs: e2e-tests
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/report-test-result
         with:
-          result: ${{ steps.run-tests.conclusion }}
+          result: ${{ needs.e2e-tests.result }}
           test-suite: browser-js
           environment: production
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}

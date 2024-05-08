@@ -17,10 +17,15 @@ export const sessionStorageManager = (token: string) => {
     const jwtPayload = jwtDecode<{ r: string; ja: string }>(token)
     roomName = jwtPayload?.r ?? ''
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      getLogger().error('[sessionStorageManager] error decoding JWT', token)
+    try {
+      const jwtPayload = jwtDecode<{ typ: string}>(token, {header: true})
+      roomName = jwtPayload.typ || ''
+    } catch {
+      if (process.env.NODE_ENV !== 'production') {
+        getLogger().error('[sessionStorageManager] error decoding JWT', token)
+      }
+      roomName = ''
     }
-    roomName = ''
   }
 
   const valid = Boolean(roomName)

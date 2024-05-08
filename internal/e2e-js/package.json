@@ -1,10 +1,10 @@
 {
   "name": "@sw-internal/e2e-js",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "sw-test --mode=playwright",
+    "dev": "sw-test --mode=playwright --pass-with-no-tests",
     "test": ""
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "vite": "^4.5.3"
   },
   "devDependencies": {
-    "@playwright/test": "^1.35.1"
+    "@playwright/test": "^1.35.1",
+    "playwrigth-ws-inspector": "^0.0.3"
   }
 }
