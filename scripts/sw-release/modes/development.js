@@ -56,7 +56,7 @@ const getDevelopmentTasks = ({ flags, dryRun, executer }) => {
               if (dryRun) {
                 task.title = `→ ℹ️  [Dry Run] Executed commands: ${status.command}`
               } else {
-                task.title = '⚒️  "development" release ready to be published.'
+                task.title = `⚒️  "development" release ready to be published.\nExecuted commands: ${status.command}`
               }
             },
           },

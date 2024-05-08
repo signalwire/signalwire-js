@@ -13,6 +13,7 @@
     "vite": "^4.5.3"
   },
   "devDependencies": {
-    "@playwright/test": "^1.35.1"
+    "@playwright/test": "^1.35.1",
+    "playwrigth-ws-inspector": "^0.0.3"
   }
 }
