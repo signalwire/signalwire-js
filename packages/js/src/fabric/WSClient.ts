@@ -1,4 +1,9 @@
-import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
+import {
+  getLogger,
+  VertoSubscribe,
+  VertoBye,
+  BaseRPCResult,
+} from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
@@ -66,7 +71,7 @@ export class WSClient {
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
-          rootElement: params.rootElement,
+          rootElement: params.rootElement || this.options.rootElement,
           applyLocalVideoOverlay: true,
           stopCameraWhileMuted: true,
           stopMicrophoneWhileMuted: true,
@@ -210,7 +215,7 @@ export class WSClient {
       video: params.video ?? true,
       negotiateAudio: true,
       negotiateVideo: true,
-      rootElement: params.rootElement,
+      rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
@@ -254,12 +259,12 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  async online({ incomingCallHandlers }: OnlineParams) {
+  async online({ incomingCallHandlers }: OnlineParams): Promise<BaseRPCResult> {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
 
     await this.connect()
 
-    // @ts-expect-error
+    //@ts-expect-error
     return this.wsClient.execute({
       method: 'subscriber.online',
       params: {},
@@ -269,7 +274,7 @@ export class WSClient {
   /**
    * Mark the client as 'offline' to receive calls over WebSocket
    */
-  offline() {
+  offline(): Promise<BaseRPCResult> {
     this._incomingCallManager.setNotificationHandlers({})
     // @ts-expect-error
     return this.wsClient.execute({
