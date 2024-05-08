@@ -466,6 +466,6 @@ export type PagingCursor =
     }
 
 export interface AudioElement extends HTMLAudioElement {
-  sinkId?: string
-  setSinkId?: (id: string) => Promise<void>
+  sinkId: string
+  setSinkId: (id: string) => Promise<void>
 }

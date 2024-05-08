@@ -1,14 +1,14 @@
 import { RoomSessionMember, actions, componentActions } from '@signalwire/core'
-import { BaseRoomSession } from '../BaseRoomSession'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
+  CallFabricRoomSession,
   CallFabricRoomSessionConnection,
-  createCallFabricBaseRoomSessionObject,
-} from './CallFabricBaseRoomSession'
+  createCallFabricRoomSessionObject,
+} from './CallFabricRoomSession'
 
-describe('CallFabricBaseRoomSession', () => {
+describe('CallFabricRoomSession', () => {
   let store: any
-  let room: BaseRoomSession<CallFabricRoomSessionConnection> & {
+  let room: CallFabricRoomSession & {
     execute: (params: any) => any
     callSegments: any[]
   }
@@ -31,12 +31,11 @@ describe('CallFabricBaseRoomSession', () => {
     stack = configureFullStack()
     store = stack.store
     // @ts-expect-error
-    room =
-      createCallFabricBaseRoomSessionObject<CallFabricRoomSessionConnection>({
-        store,
-        // @ts-expect-error
-        emitter: stack.emitter,
-      })
+    room = createCallFabricRoomSessionObject({
+      store,
+      // @ts-expect-error
+      emitter: stack.emitter,
+    })
     store.dispatch(
       componentActions.upsert({
         id: callId,
@@ -454,6 +453,53 @@ describe('CallFabricBaseRoomSession', () => {
         await room.audioMute({ memberId: 'member-id-random' })
       }).rejects.toThrow(
         'The memberId is not a part of the current call segment!'
+      )
+    })
+  })
+
+  describe('leaveCallById', () => {
+    it('should throw error if id does not exist in call stack', () => {
+      const invalidId = 'non-existent-id'
+      expect(async () => {
+        await room.leaveCallById(invalidId)
+      }).rejects.toThrow('The call segment ID invalid!')
+    })
+
+    it('should call the call.end method correctly', async () => {
+      expect(room.callSegments).toHaveLength(2)
+
+      const callId = 'call-id-3'
+
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-3',
+        roomSessionId: 'room-session-id-3',
+        memberId: 'member-id-3',
+        nodeId: 'node-id-3',
+      })
+
+      expect(room.callSegments).toHaveLength(3)
+
+      await room.leaveCallById('call-id-2')
+
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.end',
+          params: {
+            self: {
+              call_id: 'call-id-1',
+              member_id: 'member-id-1',
+              node_id: 'node-id-1',
+            },
+            target: {
+              call_id: 'call-id-2',
+              member_id: 'member-id-2',
+              node_id: 'node-id-2',
+            },
+          },
+        },
+        {}
       )
     })
   })

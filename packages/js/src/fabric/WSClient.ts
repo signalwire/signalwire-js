@@ -13,6 +13,7 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
+import { CallFabricRoomSession } from './CallFabricRoomSession'
 
 export class WSClient {
   private wsClient: Client<RoomSession>
@@ -56,10 +57,10 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
-        const call = this.wsClient.rooms.makeRoomObject({
+        const call = this.wsClient.rooms.makeCallFabricObject({
           audio: params.audio ?? true,
           video: params.video ?? true,
           negotiateAudio: true,
@@ -72,10 +73,9 @@ export class WSClient {
           // speakerId,
           destinationNumber: params.to,
           watchMediaPackets: false,
-          // watchMediaPacketsTimeout:,
+          // watchMediaPacketsTimeout,
           nodeId: params.nodeId,
           disableUdpIceServers: params.disableUdpIceServers || false,
-          unifiedEventing: true,
         })
 
         // WebRTC connection left the room.
@@ -89,20 +89,6 @@ export class WSClient {
 
         // @ts-expect-error
         call.attachPreConnectWorkers()
-
-        // @ts-expect-error
-        call.start = () => {
-          return new Promise(async (resolve, reject) => {
-            try {
-              call.once('room.subscribed', () => resolve(call))
-
-              await call.join()
-            } catch (error) {
-              getLogger().error('WSClient call start', error)
-              reject(error)
-            }
-          })
-        }
 
         resolve(call)
       } catch (error) {
@@ -219,7 +205,7 @@ export class WSClient {
 
     const { callID, nodeId, sdp } = payload
 
-    const call = this.wsClient.rooms.makeRoomObject({
+    const call = this.wsClient.rooms.makeCallFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: true,
@@ -233,7 +219,6 @@ export class WSClient {
       prevCallId: callID,
       nodeId,
       disableUdpIceServers: params.disableUdpIceServers || false,
-      unifiedEventing: true,
     })
 
     // WebRTC connection left the room.
