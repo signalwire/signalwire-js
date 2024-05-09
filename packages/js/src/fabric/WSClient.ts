@@ -57,88 +57,49 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async reattach(params: DialParams) {
-    return new Promise((resolve, reject) => {
-    try {
-    const call = new RoomSession({...this.options, ...params});
-    // @ts-expect-error
-    call.start = () => {
-      return new Promise(async (resolve, reject) => {
+  async dial(params: DialParams) {
+    return new Promise<BaseRoomSession<RoomSession>>(
+      async (resolve, reject) => {
         try {
-          call.once('room.subscribed', () => resolve(call))
+          await this.connect()
+          const call = this.wsClient.rooms.makeRoomObject({
+            audio: params.audio ?? true,
+            video: params.video ?? true,
+            negotiateAudio: true,
+            negotiateVideo: true,
+            // iceServers,
+            rootElement: params.rootElement || this.options.rootElement,
+            applyLocalVideoOverlay: true,
+            stopCameraWhileMuted: true,
+            stopMicrophoneWhileMuted: true,
+            // speakerId,
+            destinationNumber: params.to,
+            watchMediaPackets: false,
+            // watchMediaPacketsTimeout:,
+            nodeId: params.nodeId,
+            disableUdpIceServers: params.disableUdpIceServers || false,
+            unifiedEventing: true,
+          })
 
-          await call.join()
+          // WebRTC connection left the room.
+          call.once('destroy', () => {
+            this.logger.debug('RTC Connection Destroyed')
+          })
+
+          this.wsClient.once('session.disconnected', () => {
+            this.logger.debug('Session Disconnected')
+          })
+
+          // @ts-expect-error
+          call.attachPreConnectWorkers()
+
+          resolve(call)
         } catch (error) {
-          getLogger().error('WSClient call start', error)
+          getLogger().error('WSClient dial', error)
           reject(error)
         }
-      })
-    }
-
-    resolve(call)
-  } catch (error) {
-    getLogger().error('WSClient dial', error)
-
-    reject(error)
-  }}) 
-  }
-
-  async dial(params: DialParams): Promise<BaseRoomSession<RoomSession>> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        await this.connect()
-        const call = this.wsClient.rooms.makeRoomObject({
-          audio: params.audio ?? true,
-          video: params.video ?? true,
-          negotiateAudio: true,
-          negotiateVideo: true,
-          // iceServers,
-          rootElement: params.rootElement || this.options.rootElement,
-          applyLocalVideoOverlay: true,
-          stopCameraWhileMuted: true,
-          stopMicrophoneWhileMuted: true,
-          // speakerId,
-          destinationNumber: params.to,
-          watchMediaPackets: false,
-          // watchMediaPacketsTimeout:,
-          nodeId: params.nodeId,
-          disableUdpIceServers: params.disableUdpIceServers || false,
-          unifiedEventing: true,
-        })
-
-        // WebRTC connection left the room.
-        call.once('destroy', () => {
-          this.logger.debug('RTC Connection Destroyed')
-        })
-
-        this.wsClient.once('session.disconnected', () => {
-          this.logger.debug('Session Disconnected')
-        })
-
-        // @ts-expect-error
-        call.attachPreConnectWorkers()
-
-        // @ts-expect-error
-        call.start = () => {
-          return new Promise(async (resolve, reject) => {
-            try {
-              call.once('room.subscribed', () => resolve(call))
-
-              await call.join()
-            } catch (error) {
-              getLogger().error('WSClient call start', error)
-              reject(error)
-            }
-          })
-        }
-
-        resolve(call)
-      } catch (error) {
-        getLogger().error('WSClient dial', error)
-
-        reject(error)
       }
-    })
+    )
   }
 
   handlePushNotification(payload: PushNotificationPayload) {
