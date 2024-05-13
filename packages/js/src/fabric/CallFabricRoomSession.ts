@@ -17,6 +17,7 @@ import {
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
 } from '../video'
+import { BaseConnection } from '@signalwire/webrtc'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -34,8 +35,9 @@ type CallFabricBaseRoomSession = Omit<
 >
 
 export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
-  start: () => Promise<CallFabricRoomSession>
-  answer: () => Promise<CallFabricRoomSession>
+  start: CallFabricRoomSessionConnection['start']
+  answer: BaseConnection<CallFabricRoomSession>['answer']
+  hangup: RoomSessionConnection['hangup']
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
@@ -51,9 +53,9 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   start() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once('room.subscribed', () => resolve(this))
+        this.once('room.subscribed', () => resolve())
 
         await this.join()
       } catch (error) {
