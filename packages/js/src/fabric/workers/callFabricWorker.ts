@@ -10,7 +10,7 @@ import {
   VideoMemberEventNames,
   VideoRoomSessionEventNames,
 } from '@signalwire/core'
-import { CallFabricRoomSessionConnection } from '../CallFabricBaseRoomSession'
+import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
 import * as videoWorkers from '../../video/workers'
 import { callJoinWorker } from './callJoinWorker'
 import { callLeftWorker } from './callLeftWorker'
@@ -119,5 +119,4 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
       yield sagaEffects.fork(worker, action)
     }
-
   }

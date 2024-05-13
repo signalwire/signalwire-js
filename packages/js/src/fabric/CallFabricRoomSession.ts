@@ -28,10 +28,20 @@ interface ExecuteMemberActionParams extends ExecuteActionParams {
   memberId?: string
 }
 
+type CallFabricBaseRoomSession = Omit<
+  BaseRoomSession<CallFabricRoomSessionConnection>,
+  'join'
+>
+
+export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
+  start: () => Promise<CallFabricRoomSession>
+  leaveCallById: (id: string) => Promise<void>
+}
+
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   protected initWorker() {
     /**
-     * The unified eventing or CF worker creates/stores member instances in the instance map
+     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
      * For now, the member instances are only required in the CallFabric SDK
      * It also handles `call.*` events
      */
@@ -265,13 +275,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 }
 
-export const createCallFabricBaseRoomSessionObject = <RoomSessionType>(
+export const createCallFabricRoomSessionObject = (
   params: BaseComponentOptions
-): BaseRoomSession<RoomSessionType> => {
+): CallFabricRoomSession => {
   const room = connect<
     RoomSessionObjectEventsHandlerMapping,
     CallFabricRoomSessionConnection,
-    BaseRoomSession<RoomSessionType>
+    CallFabricRoomSession
   >({
     store: params.store,
     customSagas: params.customSagas,

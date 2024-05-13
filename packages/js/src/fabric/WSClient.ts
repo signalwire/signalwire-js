@@ -1,4 +1,9 @@
-import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
+import {
+  getLogger,
+  VertoSubscribe,
+  VertoBye,
+  BaseRPCResult,
+} from '@signalwire/core'
 import { Client } from '../Client'
 import { RoomSession } from '../RoomSession'
 import { createClient } from '../createClient'
@@ -13,8 +18,7 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
-import { BaseRPCResult } from '@signalwire/core'
-import { BaseRoomSession } from '../BaseRoomSession'
+import { CallFabricRoomSession } from './CallFabricRoomSession'
 
 export class WSClient {
   private wsClient: Client<RoomSession>
@@ -58,48 +62,45 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return new Promise<BaseRoomSession<RoomSession>>(
-      async (resolve, reject) => {
-        try {
-          await this.connect()
-          const call = this.wsClient.rooms.makeRoomObject({
-            audio: params.audio ?? true,
-            video: params.video ?? true,
-            negotiateAudio: true,
-            negotiateVideo: true,
-            // iceServers,
-            rootElement: params.rootElement || this.options.rootElement,
-            applyLocalVideoOverlay: true,
-            stopCameraWhileMuted: true,
-            stopMicrophoneWhileMuted: true,
-            // speakerId,
-            destinationNumber: params.to,
-            watchMediaPackets: false,
-            // watchMediaPacketsTimeout:,
-            nodeId: params.nodeId,
-            disableUdpIceServers: params.disableUdpIceServers || false,
-            unifiedEventing: true,
-          })
+    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+      try {
+        await this.connect()
+        const call = this.wsClient.rooms.makeCallFabricObject({
+          audio: params.audio ?? true,
+          video: params.video ?? true,
+          negotiateAudio: true,
+          negotiateVideo: true,
+          // iceServers,
+          rootElement: params.rootElement || this.options.rootElement,
+          applyLocalVideoOverlay: true,
+          stopCameraWhileMuted: true,
+          stopMicrophoneWhileMuted: true,
+          // speakerId,
+          destinationNumber: params.to,
+          watchMediaPackets: false,
+          // watchMediaPacketsTimeout:,
+          nodeId: params.nodeId,
+          disableUdpIceServers: params.disableUdpIceServers || false,
+        })
 
-          // WebRTC connection left the room.
-          call.once('destroy', () => {
-            this.logger.debug('RTC Connection Destroyed')
-          })
+        // WebRTC connection left the room.
+        call.once('destroy', () => {
+          this.logger.debug('RTC Connection Destroyed')
+        })
 
-          this.wsClient.once('session.disconnected', () => {
-            this.logger.debug('Session Disconnected')
-          })
+        this.wsClient.once('session.disconnected', () => {
+          this.logger.debug('Session Disconnected')
+        })
 
-          // @ts-expect-error
-          call.attachPreConnectWorkers()
+        // @ts-expect-error
+        call.attachPreConnectWorkers()
 
-          resolve(call)
-        } catch (error) {
-          getLogger().error('WSClient dial', error)
-          reject(error)
-        }
+        resolve(call)
+      } catch (error) {
+        getLogger().error('WSClient dial', error)
+        reject(error)
       }
-    )
+    })
   }
 
   handlePushNotification(payload: PushNotificationPayload) {
@@ -208,7 +209,7 @@ export class WSClient {
 
     const { callID, nodeId, sdp } = payload
 
-    const call = this.wsClient.rooms.makeRoomObject({
+    const call = this.wsClient.rooms.makeCallFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: true,
@@ -222,7 +223,6 @@ export class WSClient {
       prevCallId: callID,
       nodeId,
       disableUdpIceServers: params.disableUdpIceServers || false,
-      unifiedEventing: true,
     })
 
     // WebRTC connection left the room.
