@@ -5,9 +5,10 @@ import {
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import { ClientAPI, Client } from './Client'
+import { ClientAPI, Client, CallFabricClient } from './Client'
 import { JWTSession } from './JWTSession'
 import { SATSession } from './SATSession'
+import { CallFabricRoomSession } from './fabric/CallFabricRoomSession'
 
 /**
  * With Video.createClient() you can establish a WebSocket connection
@@ -38,12 +39,59 @@ export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
   }
   const store = configureStore({
     userOptions: baseUserOptions,
-    SessionConstructor: baseUserOptions.unifiedEventing ? SATSession : JWTSession,
+    SessionConstructor: baseUserOptions.unifiedEventing
+      ? SATSession
+      : JWTSession,
   })
   const client = connect<
     ClientEvents,
     ClientAPI<RoomSessionType>,
     Client<RoomSessionType>
+  >({
+    store,
+    Component: ClientAPI,
+  })(baseUserOptions)
+
+  return client
+}
+
+/**
+ * With `await SignalWire()` you can establish a WebSocket connection
+ * with SignalWire and interact with the client.
+ *
+ * ## Examples
+ * Create a client
+ *
+ * @example
+ * ```js
+ * try {
+ *   const client = new SignalWire({
+ *     token: '<YourJWT>',
+ *   })
+ *
+ *   await client.connect()
+ *   // Your client is ready now..
+ * } catch (error) {
+ *   console.error('Error', error)
+ * }
+ * ```
+ * @internal
+ */
+export const createCallFabricClient = (userOptions: UserOptions) => {
+  const baseUserOptions = {
+    ...userOptions,
+    emitter: getEventEmitter<ClientEvents>(),
+  }
+  const store = configureStore({
+    userOptions: baseUserOptions,
+    SessionConstructor: baseUserOptions.unifiedEventing
+      ? SATSession
+      : JWTSession,
+  })
+  const client = connect<
+    ClientEvents,
+    ClientAPI<CallFabricRoomSession>,
+    CallFabricClient
   >({
     store,
     Component: ClientAPI,

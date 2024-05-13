@@ -35,7 +35,7 @@ type CallFabricBaseRoomSession = Omit<
 
 export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
   start: () => Promise<CallFabricRoomSession>
-  leaveCallById: (id: string) => Promise<void>
+  answer: () => Promise<CallFabricRoomSession>
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {

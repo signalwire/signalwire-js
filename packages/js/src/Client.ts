@@ -26,6 +26,14 @@ import {
   createCallFabricRoomSessionObject,
 } from './fabric/CallFabricRoomSession'
 
+export interface CallFabricClient
+  extends ClientContract<Client<CallFabricRoomSession>, ClientEvents> {
+  rooms: ClientAPI<CallFabricRoomSession>['rooms']
+  execute: ClientAPI<CallFabricRoomSession>['execute']
+  runWorker: ClientAPI<CallFabricRoomSession>['runWorker']
+  reauthenticate: ClientAPI<CallFabricRoomSession>['reauthenticate']
+}
+
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
   rooms: ClientAPI<RoomSessionType>['rooms']
