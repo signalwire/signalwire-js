@@ -239,7 +239,6 @@ const deleteDomainApp = async ({
       },
     }
   )
-  console.log('response', response)
   if (!response.ok) {
     const errorData = await response.json()
     throw new Error(
