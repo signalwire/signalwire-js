@@ -77,30 +77,32 @@ export const createTestRunner = ({
     run: async () => {
       start()
 
+      let exitCode = 0
+      const id = uuid
+      const domainAppName = `d-app-${id}`
       const params: TestHandlerParams = {}
+
       try {
         if (useDomainApp) {
           params.domainApp = await createDomainApp({
-            name: `d-app-${uuid}`,
-            identifier: uuid,
+            name: domainAppName,
+            identifier: id,
             call_handler: 'relay_context',
-            call_relay_context: `d-app-ctx-${uuid}`,
+            call_relay_context: `d-app-ctx-${id}`,
           })
         }
-        const exitCode = await testHandler(params)
-        if (params.domainApp) {
-          console.log('Delete domain app..')
-          await deleteDomainApp({ id: params.domainApp.id })
-        }
-        done(exitCode)
+        console.log('Created domain app:', domainAppName)
+        exitCode = await testHandler(params)
       } catch (error) {
         clearTimeout(timer)
         console.error(`Test Runner ${name} Failed!`, error)
+        exitCode = 1
+      } finally {
         if (params.domainApp) {
-          console.log('Delete domain app..')
           await deleteDomainApp({ id: params.domainApp.id })
+          console.log('Deleted domain app:', domainAppName)
         }
-        done(1)
+        done(exitCode)
       }
     },
   }
@@ -195,66 +197,58 @@ type CreateDomainAppParams = {
   call_handler: 'relay_context'
   call_relay_context: string
 }
-const createDomainApp = (params: CreateDomainAppParams): Promise<DomainApp> => {
-  return new Promise((resolve, reject) => {
-    const data = JSON.stringify(params)
-    const options = {
-      host: process.env.API_HOST,
-      port: 443,
+const createDomainApp = async (
+  params: CreateDomainAppParams
+): Promise<DomainApp> => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/relay/rest/domain_applications`,
+    {
       method: 'POST',
-      path: '/api/relay/rest/domain_applications',
       headers: {
-        Authorization: getAuthorization(),
         'Content-Type': 'application/json',
-        'Content-Length': data.length,
+        Authorization: getAuthorization(),
       },
+      body: JSON.stringify(params),
     }
-    const req = request(options, (response) => {
-      let body = ''
-      response.on('data', (chunk) => {
-        body += chunk
-      })
-
-      response.on('end', () => {
-        resolve(JSON.parse(body))
-      })
-    })
-
-    req.on('error', reject)
-
-    req.write(data)
-    req.end()
-  })
+  )
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(
+      `Failed to create domain app: ${
+        errorData.message || JSON.stringify(errorData)
+      }`
+    )
+  }
+  const data = await response.json()
+  return data
 }
 
 type DeleteDomainAppParams = {
   id: string
 }
-const deleteDomainApp = ({ id }: DeleteDomainAppParams): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
-    const options = {
-      host: process.env.API_HOST,
-      port: 443,
+const deleteDomainApp = async ({
+  id,
+}: DeleteDomainAppParams): Promise<Response> => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/relay/rest/domain_applications/${id}`,
+    {
       method: 'DELETE',
-      path: `/api/relay/rest/domain_applications/${id}`,
       headers: {
-        Authorization: getAuthorization(),
         'Content-Type': 'application/json',
+        Authorization: getAuthorization(),
       },
     }
-    const req = request(options, (response) => {
-      let body = ''
-      response.on('data', (chunk) => {
-        body += chunk
-      })
-
-      response.on('end', () => {
-        resolve()
-      })
-    })
-    req.on('error', reject)
-    req.end()
-  })
+  )
+  console.log('response', response)
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(
+      `Failed to delete domain app: ${
+        errorData.message || JSON.stringify(errorData)
+      }`
+    )
+  }
+  return response
 }
 
 export const CALL_PROPS = [
