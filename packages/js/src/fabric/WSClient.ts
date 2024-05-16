@@ -1,5 +1,4 @@
 import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
-import { createCallFabricClient } from '../createClient'
 import { wsClientWorker } from './workers'
 import {
   CallOptions,
@@ -12,18 +11,16 @@ import {
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
-import { CallFabricClient } from '../Client'
+import { createClient } from './createClient'
+import { Client } from './Client'
 
 export class WSClient {
-  private wsClient: CallFabricClient
+  private wsClient: Client
   private logger = getLogger()
   private _incomingCallManager: IncomingCallManager
 
   constructor(public options: WSClientOptions) {
-    this.wsClient = createCallFabricClient({
-      ...this.options,
-      unifiedEventing: true,
-    })
+    this.wsClient = createClient(this.options)
     this._incomingCallManager = new IncomingCallManager(
       (payload: IncomingInvite, params: CallOptions) =>
         this.buildInboundCall(payload, params),
@@ -59,7 +56,7 @@ export class WSClient {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
-        const call = this.wsClient.rooms.makeCallFabricObject({
+        const call = this.wsClient.makeCallFabricObject({
           audio: params.audio ?? true,
           video: params.video ?? true,
           negotiateAudio: true,
@@ -201,7 +198,7 @@ export class WSClient {
 
     const { callID, nodeId, sdp } = payload
 
-    const call = this.wsClient.rooms.makeCallFabricObject({
+    const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: true,

@@ -65,6 +65,21 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
+  /** @internal */
+  override async resume() {
+    this.logger.warn(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
+  }
+
   get selfMember() {
     return this.callSegments[0]?.member
   }

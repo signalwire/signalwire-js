@@ -104,7 +104,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     instanceMap,
     callSegments,
     sessionEmitter,
-    unifiedEventing: userOptions.unifiedEventing,
   }
 }
 
