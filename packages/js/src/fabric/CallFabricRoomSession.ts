@@ -41,6 +41,8 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+  private _lastLayoutEvent: any = null
+
   protected initWorker() {
     /**
      * The unified eventing or CallFabric worker creates/stores member instances in the instance map
@@ -86,6 +88,14 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   get targetMember() {
     return this.callSegments[this.callSegments.length - 1]?.member
+  }
+
+  set lastLayoutEvent(event: any) {
+    this._lastLayoutEvent = event
+  }
+
+  get lastLayoutEvent() {
+    return this._lastLayoutEvent
   }
 
   private isSelfMember(id: string) {
@@ -255,7 +265,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       name: params?.name,
       layout: Object.values(params?.positions || {})[0],
     }
-    return this.executeAction<void>({
+    return this.executeMemberAction<unknown, void>({
       method: 'call.layout.set',
       extraParams,
     })

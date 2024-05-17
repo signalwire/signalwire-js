@@ -80,6 +80,9 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           return
         }
         case 'layout.changed': {
+          // Upsert the layout event which is needed for rootElement
+          roomSession.lastLayoutEvent = action.payload
+
           const updatedAction = {
             ...action,
             type: `video.${type}` as 'video.layout.changed',

@@ -1,4 +1,4 @@
-import { SignalWire } from '@signalwire/js'
+import { SignalWire, buildVideoElement } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,
@@ -242,7 +242,7 @@ window.connect = async () => {
   const call = await client.dial({
     nodeId: steeringId,
     to: document.getElementById('destination').value,
-    rootElement: document.getElementById('rootElement'),
+    // rootElement: document.getElementById('rootElement'),
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
   })
@@ -335,6 +335,16 @@ window.connect = async () => {
 
   await call.start()
   console.debug('Call Obj', call)
+
+  setTimeout(async () => {
+    console.log('<< buildVideoElement >>')
+    const element = await buildVideoElement({
+      room: call,
+      rootElement: document.getElementById('rootElement'),
+    })
+
+    console.log('<< element >>', element)
+  }, 5000)
 
   enumerateDevices()
     .then(initDeviceOptions)

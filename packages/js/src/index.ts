@@ -59,7 +59,7 @@ export * as PubSub from './pubSub'
  * CallFabric namespace
  */
 export * as Fabric from './fabric'
-export { SignalWire } from './fabric'
+export { SignalWire, buildVideoElement } from './fabric'
 export * from './fabric/types'
 
 /**

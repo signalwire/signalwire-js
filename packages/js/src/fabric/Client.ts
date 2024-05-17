@@ -4,7 +4,7 @@ import { MakeRoomOptions } from '../video'
 import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
 import {
   makeAudioElementSaga,
-  makeVideoElementSaga,
+  // makeVideoElementSaga,
 } from '../features/mediaElements/mediaElementsSagas'
 import { RoomSessionConnection } from '../BaseRoomSession'
 
@@ -35,19 +35,41 @@ export class Client extends BaseClient<ClientEvents> {
      * If the user provides a `rootElement` we'll
      * automatically handle the Video element for them
      */
-    if (rootElement) {
-      customSagas.push(
-        makeVideoElementSaga({
-          rootElement,
-          applyLocalVideoOverlay,
-        })
-      )
-    }
+    // if (rootElement) {
+    //   customSagas.push(
+    //     makeVideoElementSaga({
+    //       rootElement,
+    //       applyLocalVideoOverlay,
+    //     })
+    //   )
+    // }
 
     const room = createCallFabricRoomSessionObject({
       ...options,
       store: this.store,
       customSagas,
+    })
+
+    room.on('room.subscribed', (params) => {
+      const member = params.room_session.members?.find(
+        (m) => m.id === room.memberId
+      )
+
+      if (member?.audio_muted) {
+        try {
+          room.stopOutboundAudio()
+        } catch (error) {
+          this.logger.error('Error handling audio_muted', error)
+        }
+      }
+
+      if (member?.video_muted) {
+        try {
+          room.stopOutboundVideo()
+        } catch (error) {
+          this.logger.error('Error handling video_muted', error)
+        }
+      }
     })
 
     /**
