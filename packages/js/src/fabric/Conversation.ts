@@ -32,7 +32,6 @@ export class Conversation {
     this.httpClient = options.httpClient
     this.wsClient = options.wsClient
 
-    // @ts-expect-error
     this.wsClient.clientApi.runWorker('conversationWorker', {
       worker: conversationWorker,
       initialState: {

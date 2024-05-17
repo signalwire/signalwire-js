@@ -1,9 +1,8 @@
 import { type UserOptions } from '@signalwire/core'
-import { BaseRoomSession } from '../BaseRoomSession'
-import { RoomSession } from '../video'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
+import { CallFabricRoomSession } from './CallFabricRoomSession'
 
 export interface SignalWireOptions extends WSClientOptions {}
 
@@ -92,7 +91,7 @@ export interface IncomingInvite {
 export interface IncomingCallNotification {
   invite: {
     details: IncomingInvite
-    accept: (param: CallOptions) => Promise<BaseRoomSession<RoomSession>>
+    accept: (param: CallOptions) => Promise<CallFabricRoomSession>
     reject: () => Promise<void>
   }
 }

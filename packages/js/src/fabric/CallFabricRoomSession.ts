@@ -17,6 +17,7 @@ import {
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
 } from '../video'
+import { BaseConnection } from '@signalwire/webrtc'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -28,16 +29,55 @@ interface ExecuteMemberActionParams extends ExecuteActionParams {
   memberId?: string
 }
 
+type CallFabricBaseRoomSession = Omit<
+  BaseRoomSession<CallFabricRoomSessionConnection>,
+  'join'
+>
+
+export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
+  start: CallFabricRoomSessionConnection['start']
+  answer: BaseConnection<CallFabricRoomSession>['answer']
+  hangup: RoomSessionConnection['hangup']
+}
+
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   protected initWorker() {
     /**
-     * The unified eventing or CF worker creates/stores member instances in the instance map
+     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
      * For now, the member instances are only required in the CallFabric SDK
      * It also handles `call.*` events
      */
     this.runWorker('callFabricWorker', {
       worker: callFabricWorker,
     })
+  }
+
+  start() {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        this.once('room.subscribed', () => resolve())
+
+        await this.join()
+      } catch (error) {
+        this.logger.error('WSClient call start', error)
+        reject(error)
+      }
+    })
+  }
+
+  /** @internal */
+  override async resume() {
+    this.logger.warn(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
   }
 
   get selfMember() {
@@ -252,13 +292,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 }
 
-export const createCallFabricBaseRoomSessionObject = <RoomSessionType>(
+export const createCallFabricRoomSessionObject = (
   params: BaseComponentOptions
-): BaseRoomSession<RoomSessionType> => {
+): CallFabricRoomSession => {
   const room = connect<
     RoomSessionObjectEventsHandlerMapping,
     CallFabricRoomSessionConnection,
-    BaseRoomSession<RoomSessionType>
+    CallFabricRoomSession
   >({
     store: params.store,
     customSagas: params.customSagas,
