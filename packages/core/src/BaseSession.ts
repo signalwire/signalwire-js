@@ -6,7 +6,6 @@ import {
   parseRPCResponse,
   safeParseJson,
   isJSONRPCResponse,
-  isSATAuth,
   SWCloseEvent,
 } from './utils'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
@@ -17,7 +16,6 @@ import {
   RPCDisconnectResponse,
   RPCPingResponse,
   RPCEventAckResponse,
-  UNIFIED_CONNECT_VERSION,
 } from './RPCMessages'
 import {
   SessionOptions,
@@ -30,6 +28,8 @@ import {
   WebSocketClient,
   SessionStatus,
   SessionAuthError,
+  VideoAuthorization,
+  ChatAuthorization,
 } from './utils/interfaces'
 import {
   authErrorAction,
@@ -61,7 +61,6 @@ export class BaseSession {
   public agent: string
   public connectVersion = DEFAULT_CONNECT_VERSION
   public reauthenticate?(): Promise<void>
-  public unifiedEventing = false
 
   protected _rpcConnectResult: RPCConnectResult
 
@@ -85,17 +84,7 @@ export class BaseSession {
   private wsErrorHandler: (event: Event) => void
 
   constructor(public options: SessionOptions) {
-    const {
-      host,
-      logLevel = 'info',
-      sessionChannel,
-      unifiedEventing = false,
-    } = options
-    this.unifiedEventing = unifiedEventing
-
-    this.connectVersion = unifiedEventing
-      ? UNIFIED_CONNECT_VERSION
-      : DEFAULT_CONNECT_VERSION
+    const { host, logLevel = 'info', sessionChannel } = options
 
     if (host) {
       this._host = checkWebSocketHost(host)
@@ -153,9 +142,7 @@ export class BaseSession {
   get signature() {
     if (this._rpcConnectResult) {
       const { authorization } = this._rpcConnectResult
-      return isSATAuth(authorization)
-        ? authorization.jti
-        : authorization.signature
+      return (authorization as VideoAuthorization | ChatAuthorization).signature
     }
     return undefined
   }

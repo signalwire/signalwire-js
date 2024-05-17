@@ -37,14 +37,3 @@ export const RPCConnect = (params: RPCConnectParams) => {
     },
   })
 }
-
-export const RPCConnectUnified = (params: RPCConnectParams) => {
-  return makeRPCRequest({
-    method: 'signalwire.connect',
-    params: {
-      version: UNIFIED_CONNECT_VERSION,
-      event_acks: true,
-      ...params,
-    },
-  })
-}
