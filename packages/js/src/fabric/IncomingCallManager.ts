@@ -24,7 +24,6 @@ export class IncomingCallManager {
         delete this._pendingInvites[invite.callID]
         try {
           const call = this._buildCallObject(invite, params)
-          //@ts-expect-error
           call.answer()
 
           resolve(call)

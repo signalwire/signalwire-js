@@ -119,5 +119,4 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
       yield sagaEffects.fork(worker, action)
     }
-
   }

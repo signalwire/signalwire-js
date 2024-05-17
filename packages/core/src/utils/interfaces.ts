@@ -115,11 +115,6 @@ export interface SessionOptions {
   /** The SDK invokes this method and uses the new token to re-auth. */
   onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
-  /**
-   * @internal
-   * Unified eventing is required only with Call Fabric SDK
-   * */
-  unifiedEventing?: boolean
   instanceMap?: InstanceMap
 }
 export interface UserOptions extends SessionOptions {

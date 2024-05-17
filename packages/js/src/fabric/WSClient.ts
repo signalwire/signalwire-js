@@ -1,12 +1,4 @@
-import {
-  getLogger,
-  VertoSubscribe,
-  VertoBye,
-  BaseRPCResult,
-} from '@signalwire/core'
-import { Client } from '../Client'
-import { RoomSession } from '../RoomSession'
-import { createClient } from '../createClient'
+import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
 import { wsClientWorker } from './workers'
 import {
   CallOptions,
@@ -19,17 +11,16 @@ import {
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
+import { createClient } from './createClient'
+import { Client } from './Client'
 
 export class WSClient {
-  private wsClient: Client<RoomSession>
+  private wsClient: Client
   private logger = getLogger()
   private _incomingCallManager: IncomingCallManager
 
   constructor(public options: WSClientOptions) {
-    this.wsClient = createClient<RoomSession>({
-      ...this.options,
-      unifiedEventing: true,
-    })
+    this.wsClient = createClient(this.options)
     this._incomingCallManager = new IncomingCallManager(
       (payload: IncomingInvite, params: CallOptions) =>
         this.buildInboundCall(payload, params),
@@ -65,7 +56,7 @@ export class WSClient {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
-        const call = this.wsClient.rooms.makeCallFabricObject({
+        const call = this.wsClient.makeCallFabricObject({
           audio: params.audio ?? true,
           video: params.video ?? true,
           negotiateAudio: true,
@@ -78,7 +69,7 @@ export class WSClient {
           // speakerId,
           destinationNumber: params.to,
           watchMediaPackets: false,
-          // watchMediaPacketsTimeout,
+          // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
           disableUdpIceServers: params.disableUdpIceServers || false,
         })
@@ -164,8 +155,7 @@ export class WSClient {
 
   private async executeVertoBye(callId: string, nodeId: string) {
     try {
-      // @ts-expect-error
-      return await this.wsClient.execute({
+      return await this.wsClient.execute<unknown, void>({
         method: 'webrtc.verto',
         params: {
           callID: callId,
@@ -185,8 +175,7 @@ export class WSClient {
 
   private async executeVertoSubscribe(callId: string, nodeId: string) {
     try {
-      // @ts-expect-error
-      return await this.wsClient.execute({
+      return await this.wsClient.execute<unknown, void>({
         method: 'webrtc.verto',
         params: {
           callID: callId,
@@ -209,7 +198,7 @@ export class WSClient {
 
     const { callID, nodeId, sdp } = payload
 
-    const call = this.wsClient.rooms.makeCallFabricObject({
+    const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: true,
@@ -249,8 +238,6 @@ export class WSClient {
       this.wsClient.once('session.connected', () => {
         resolve()
       })
-
-      // @ts-expect-error
       this.wsClient.reauthenticate(token)
     })
   }
@@ -258,13 +245,10 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  async online({ incomingCallHandlers }: OnlineParams): Promise<BaseRPCResult> {
+  async online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
-
     await this.connect()
-
-    //@ts-expect-error
-    return this.wsClient.execute({
+    return this.wsClient.execute<unknown, void>({
       method: 'subscriber.online',
       params: {},
     })
@@ -273,10 +257,9 @@ export class WSClient {
   /**
    * Mark the client as 'offline' to receive calls over WebSocket
    */
-  offline(): Promise<BaseRPCResult> {
+  offline() {
     this._incomingCallManager.setNotificationHandlers({})
-    // @ts-expect-error
-    return this.wsClient.execute({
+    return this.wsClient.execute<unknown, void>({
       method: 'subscriber.offline',
       params: {},
     })

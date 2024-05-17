@@ -17,6 +17,7 @@ import {
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
 } from '../video'
+import { BaseConnection } from '@signalwire/webrtc'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -34,8 +35,10 @@ type CallFabricBaseRoomSession = Omit<
 >
 
 export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
-  start: () => Promise<CallFabricRoomSession>
-  leaveCallById: (id: string) => Promise<void>
+  start: CallFabricRoomSessionConnection['start']
+  answer: BaseConnection<CallFabricRoomSession>['answer']
+  hangup: RoomSessionConnection['hangup']
+  leaveCallById: CallFabricRoomSessionConnection['leaveCallById']
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
@@ -51,9 +54,9 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   start() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once('room.subscribed', () => resolve(this))
+        this.once('room.subscribed', () => resolve())
 
         await this.join()
       } catch (error) {
@@ -61,6 +64,21 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
         reject(error)
       }
     })
+  }
+
+  /** @internal */
+  override async resume() {
+    this.logger.warn(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
   }
 
   get selfMember() {

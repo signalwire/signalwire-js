@@ -115,7 +115,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   private activeRTCPeerId: string
   private rtcPeerMap = new Map<string, RTCPeer<EventTypes>>()
   private sessionAuthTask: Task
-  private resuming = false
+  protected resuming = false
 
   constructor(options: BaseConnectionOptions) {
     super(options)
@@ -730,7 +730,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       this.logger.debug(
         `[resume] connectionState for ${this.id} is '${connectionState}'`
       )
-      if (!this.unifiedEventing ? connectionState !== 'closed' : ['closed', 'failed', 'disconnected'].includes(connectionState)) {
+      if (connectionState !== 'closed') {
         this.resuming = true
         this.peer.restartIce()
       }

@@ -8,13 +8,13 @@ import {
   ConversationEvent,
 } from '@signalwire/core'
 import { Conversation } from '../Conversation'
-import { Client } from '../Client'
+import { WSClient } from '../WSClient'
 
 interface ConversationWorkerInitialState {
   conversation: Conversation
 }
 
-export const conversationWorker: SDKWorker<Client> = function* (
+export const conversationWorker: SDKWorker<WSClient> = function* (
   options
 ): SagaIterator {
   getLogger().debug('conversationWorker started')
