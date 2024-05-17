@@ -65,9 +65,6 @@ export interface BaseRoomSession<T>
    * room.
    */
   leave(): Promise<void>
-
-  // FIXME: This should only be added for CF SDK
-  start(): Promise<BaseRoomSession<T>>
 }
 
 export interface BaseRoomSessionOptions

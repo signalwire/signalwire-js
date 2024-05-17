@@ -5,11 +5,11 @@ import {
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import { ClientAPI, Client } from './Client'
-import { JWTSession } from './JWTSession'
+import { SATSession } from './SATSession'
+import { Client } from './Client'
 
 /**
- * With Video.createClient() you can establish a WebSocket connection
+ * With `await SignalWire()` you can establish a WebSocket connection
  * with SignalWire and interact with the client.
  *
  * ## Examples
@@ -18,7 +18,7 @@ import { JWTSession } from './JWTSession'
  * @example
  * ```js
  * try {
- *   const client = Video.createClient({
+ *   const client = new SignalWire({
  *     token: '<YourJWT>',
  *   })
  *
@@ -30,22 +30,18 @@ import { JWTSession } from './JWTSession'
  * ```
  * @internal
  */
-export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
+export const createClient = (userOptions: UserOptions) => {
   const baseUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(),
   }
   const store = configureStore({
     userOptions: baseUserOptions,
-    SessionConstructor: JWTSession,
+    SessionConstructor: SATSession,
   })
-  const client = connect<
-    ClientEvents,
-    ClientAPI<RoomSessionType>,
-    Client<RoomSessionType>
-  >({
+  const client = connect<ClientEvents, Client, Client>({
     store,
-    Component: ClientAPI,
+    Component: Client,
   })(baseUserOptions)
 
   return client

@@ -1,7 +1,4 @@
 import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
-import { Client } from '../Client'
-import { RoomSession } from '../RoomSession'
-import { createClient } from '../createClient'
 import { wsClientWorker } from './workers'
 import {
   CallOptions,
@@ -13,19 +10,17 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
-import { BaseRPCResult } from '@signalwire/core'
-import { BaseRoomSession } from '../BaseRoomSession'
+import { CallFabricRoomSession } from './CallFabricRoomSession'
+import { createClient } from './createClient'
+import { Client } from './Client'
 
 export class WSClient {
-  private wsClient: Client<RoomSession>
+  private wsClient: Client
   private logger = getLogger()
   private _incomingCallManager: IncomingCallManager
 
   constructor(public options: WSClientOptions) {
-    this.wsClient = createClient<RoomSession>({
-      ...this.options,
-      unifiedEventing: true,
-    })
+    this.wsClient = createClient(this.options)
     this._incomingCallManager = new IncomingCallManager(
       (payload: IncomingInvite, params: CallOptions) =>
         this.buildInboundCall(payload, params),
@@ -58,48 +53,45 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return new Promise<BaseRoomSession<RoomSession>>(
-      async (resolve, reject) => {
-        try {
-          await this.connect()
-          const call = this.wsClient.rooms.makeRoomObject({
-            audio: params.audio ?? true,
-            video: params.video ?? true,
-            negotiateAudio: true,
-            negotiateVideo: true,
-            // iceServers,
-            rootElement: params.rootElement || this.options.rootElement,
-            applyLocalVideoOverlay: true,
-            stopCameraWhileMuted: true,
-            stopMicrophoneWhileMuted: true,
-            // speakerId,
-            destinationNumber: params.to,
-            watchMediaPackets: false,
-            // watchMediaPacketsTimeout:,
-            nodeId: params.nodeId,
-            disableUdpIceServers: params.disableUdpIceServers || false,
-            unifiedEventing: true,
-          })
+    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+      try {
+        await this.connect()
+        const call = this.wsClient.makeCallFabricObject({
+          audio: params.audio ?? true,
+          video: params.video ?? true,
+          negotiateAudio: true,
+          negotiateVideo: true,
+          // iceServers,
+          rootElement: params.rootElement || this.options.rootElement,
+          applyLocalVideoOverlay: true,
+          stopCameraWhileMuted: true,
+          stopMicrophoneWhileMuted: true,
+          // speakerId,
+          destinationNumber: params.to,
+          watchMediaPackets: false,
+          // watchMediaPacketsTimeout:,
+          nodeId: params.nodeId,
+          disableUdpIceServers: params.disableUdpIceServers || false,
+        })
 
-          // WebRTC connection left the room.
-          call.once('destroy', () => {
-            this.logger.debug('RTC Connection Destroyed')
-          })
+        // WebRTC connection left the room.
+        call.once('destroy', () => {
+          this.logger.debug('RTC Connection Destroyed')
+        })
 
-          this.wsClient.once('session.disconnected', () => {
-            this.logger.debug('Session Disconnected')
-          })
+        this.wsClient.once('session.disconnected', () => {
+          this.logger.debug('Session Disconnected')
+        })
 
-          // @ts-expect-error
-          call.attachPreConnectWorkers()
+        // @ts-expect-error
+        call.attachPreConnectWorkers()
 
-          resolve(call)
-        } catch (error) {
-          getLogger().error('WSClient dial', error)
-          reject(error)
-        }
+        resolve(call)
+      } catch (error) {
+        getLogger().error('WSClient dial', error)
+        reject(error)
       }
-    )
+    })
   }
 
   handlePushNotification(payload: PushNotificationPayload) {
@@ -163,8 +155,7 @@ export class WSClient {
 
   private async executeVertoBye(callId: string, nodeId: string) {
     try {
-      // @ts-expect-error
-      return await this.wsClient.execute({
+      return await this.wsClient.execute<unknown, void>({
         method: 'webrtc.verto',
         params: {
           callID: callId,
@@ -184,8 +175,7 @@ export class WSClient {
 
   private async executeVertoSubscribe(callId: string, nodeId: string) {
     try {
-      // @ts-expect-error
-      return await this.wsClient.execute({
+      return await this.wsClient.execute<unknown, void>({
         method: 'webrtc.verto',
         params: {
           callID: callId,
@@ -208,7 +198,7 @@ export class WSClient {
 
     const { callID, nodeId, sdp } = payload
 
-    const call = this.wsClient.rooms.makeRoomObject({
+    const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: true,
@@ -222,7 +212,6 @@ export class WSClient {
       prevCallId: callID,
       nodeId,
       disableUdpIceServers: params.disableUdpIceServers || false,
-      unifiedEventing: true,
     })
 
     // WebRTC connection left the room.
@@ -249,8 +238,6 @@ export class WSClient {
       this.wsClient.once('session.connected', () => {
         resolve()
       })
-
-      // @ts-expect-error
       this.wsClient.reauthenticate(token)
     })
   }
@@ -258,13 +245,10 @@ export class WSClient {
   /**
    * Mark the client as 'online' to receive calls over WebSocket
    */
-  async online({ incomingCallHandlers }: OnlineParams): Promise<BaseRPCResult> {
+  async online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
-
     await this.connect()
-
-    //@ts-expect-error
-    return this.wsClient.execute({
+    return this.wsClient.execute<unknown, void>({
       method: 'subscriber.online',
       params: {},
     })
@@ -273,10 +257,9 @@ export class WSClient {
   /**
    * Mark the client as 'offline' to receive calls over WebSocket
    */
-  offline(): Promise<BaseRPCResult> {
+  offline() {
     this._incomingCallManager.setNotificationHandlers({})
-    // @ts-expect-error
-    return this.wsClient.execute({
+    return this.wsClient.execute<unknown, void>({
       method: 'subscriber.offline',
       params: {},
     })

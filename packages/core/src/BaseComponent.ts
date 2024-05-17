@@ -95,11 +95,6 @@ export class BaseComponent<
   }
 
   /** @internal */
-  get unifiedEventing() {
-    return this.store.unifiedEventing
-  }
-
-  /** @internal */
   get emitter() {
     return this.eventEmitter
   }

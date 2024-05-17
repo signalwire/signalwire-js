@@ -1,14 +1,14 @@
 import { RoomSessionMember, actions, componentActions } from '@signalwire/core'
-import { BaseRoomSession } from '../BaseRoomSession'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
+  CallFabricRoomSession,
   CallFabricRoomSessionConnection,
-  createCallFabricBaseRoomSessionObject,
-} from './CallFabricBaseRoomSession'
+  createCallFabricRoomSessionObject,
+} from './CallFabricRoomSession'
 
-describe('CallFabricBaseRoomSession', () => {
+describe('CallFabricRoomSession', () => {
   let store: any
-  let room: BaseRoomSession<CallFabricRoomSessionConnection> & {
+  let room: CallFabricRoomSession & {
     execute: (params: any) => any
     callSegments: any[]
   }
@@ -31,12 +31,11 @@ describe('CallFabricBaseRoomSession', () => {
     stack = configureFullStack()
     store = stack.store
     // @ts-expect-error
-    room =
-      createCallFabricBaseRoomSessionObject<CallFabricRoomSessionConnection>({
-        store,
-        // @ts-expect-error
-        emitter: stack.emitter,
-      })
+    room = createCallFabricRoomSessionObject({
+      store,
+      // @ts-expect-error
+      emitter: stack.emitter,
+    })
     store.dispatch(
       componentActions.upsert({
         id: callId,
