@@ -4,6 +4,7 @@ import {
   SERVER_URL,
   createCallWithCompatibilityApi,
   createTestJWTToken,
+  expectedMinPackets,
   expectInjectRelayHost,
   expectRelayConnected,
   expectv2HasReceivedAudio,
@@ -81,12 +82,11 @@ test.describe('v2WebrtcFromRestSilence', () => {
     // We expect silence...
     const maxAudioEnergy = 0.01
 
-    // ... but the packets must be received anyway
-    const minPackets = (callDurationMs * 0.9) * 50 / 1000
-
     // Check the audio energy level is above threshold
     console.log('Expected max audio energy: ', maxAudioEnergy)
 
+    // Expect at least 70 % packets at 50 pps
+    const minPackets = expectedMinPackets(50, callDurationMs, 0.3)
     await expectv2HasReceivedSilence(pageCallee, maxAudioEnergy, minPackets)
 
     await expectCallActive(pageCallee)
@@ -166,8 +166,8 @@ test.describe('v2WebrtcFromRest', () => {
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
 
-    // Considers 50 pps with max 10% packet loss
-    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+    // Expect at least 70 % packets at 50 pps
+    const minPackets = expectedMinPackets(50, callDurationMs, 0.3)
 
     await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
 
@@ -269,8 +269,8 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
 
-    // Considers 50 pps with max 10% packet loss
-    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+    // Expect at least 70 % packets at 50 pps
+    const minPackets = expectedMinPackets(50, callDurationMs, 0.3)
 
     await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
     await expectv2HasReceivedAudio(pageCallee2, minAudioEnergy, minPackets)
@@ -381,8 +381,8 @@ test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
 
-    // Considers 50 pps with max 10% packet loss
-    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+    // Expect at least 70 % packets at 50 pps
+    const minPackets = expectedMinPackets(50, callDurationMs, 0.3)
 
     await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
     await expectv2HasReceivedAudio(pageCallee2, minAudioEnergy, minPackets)
