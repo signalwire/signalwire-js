@@ -223,7 +223,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  setLayout(params: Rooms.SetLayoutParams) {
+  setLayout(params: { name: string }) {
     const extraParams = {
       layout: params?.name,
     }
