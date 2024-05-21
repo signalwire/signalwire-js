@@ -354,7 +354,7 @@ function* videoElementSetupWorker({
 
     element.style.width = '100%'
     element.style.maxHeight = '100%'
-    
+
     if (!applyLocalVideoOverlay) {
       rootElement.appendChild(element)
       return
@@ -380,9 +380,11 @@ function* videoElementSetupWorker({
 
     //for less then 3 participants video call, the video aspect ratio can change
     aspectRatioListener({
-      videoElement: element, 
-      paddingWrapper, 
-      fixInLandscapeOrientation: rootElement.classList.contains('landscape-only') });
+      videoElement: element,
+      paddingWrapper,
+      fixInLandscapeOrientation:
+        rootElement.classList.contains('landscape-only'),
+    })
 
     const layersWrapper = document.createElement('div')
     layersWrapper.classList.add('mcuLayers')
@@ -412,7 +414,6 @@ function* videoElementSetupWorker({
     getLogger().debug('MCU is ready..')
 
     layersWrapper.style.display = 'block'
-
   } catch (error) {
     getLogger().error('Handle video track error', error)
   }
