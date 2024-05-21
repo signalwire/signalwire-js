@@ -37,6 +37,8 @@ const inCallElements = [
   controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
+  raiseHandBtn,
+  lowerHandBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
   controlRecording,
@@ -350,7 +352,7 @@ window.connect = async () => {
       button.classList.remove('d-none')
       button.disabled = false
     })
-    // loadLayouts()
+    loadLayouts()
   }
   joinHandler()
 }
@@ -480,12 +482,10 @@ window.showVideoMuted = () => {
 }
 
 window.changeLayout = (select) => {
-  console.log('changeLayout', select.value)
   roomObj.setLayout({ name: select.value })
 }
 
 window.changeMicrophone = (select) => {
-  console.log('changeMicrophone', select.value)
   if (!select.value) {
     return
   }
@@ -495,7 +495,6 @@ window.changeMicrophone = (select) => {
 }
 
 window.changeCamera = (select) => {
-  console.log('changeCamera', select.value)
   if (!select.value) {
     return
   }
@@ -503,7 +502,6 @@ window.changeCamera = (select) => {
 }
 
 window.changeSpeaker = (select) => {
-  console.log('changeSpeaker', select.value)
   if (!select.value) {
     return
   }
