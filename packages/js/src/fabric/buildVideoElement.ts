@@ -13,7 +13,7 @@ import { aspectRatioListener } from '../utils/aspectRatioListener'
 
 interface BuildVideoElementParams {
   room: CallFabricRoomSessionConnection
-  rootElement: HTMLDivElement
+  rootElement?: HTMLDivElement
   applyLocalVideoOverlay?: boolean
 }
 

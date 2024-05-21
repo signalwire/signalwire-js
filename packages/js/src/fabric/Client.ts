@@ -4,7 +4,7 @@ import { MakeRoomOptions } from '../video'
 import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
 import {
   makeAudioElementSaga,
-  // makeVideoElementSaga,
+  makeVideoElementSaga,
 } from '../features/mediaElements/mediaElementsSagas'
 import { RoomSessionConnection } from '../BaseRoomSession'
 
@@ -35,14 +35,14 @@ export class Client extends BaseClient<ClientEvents> {
      * If the user provides a `rootElement` we'll
      * automatically handle the Video element for them
      */
-    // if (rootElement) {
-    //   customSagas.push(
-    //     makeVideoElementSaga({
-    //       rootElement,
-    //       applyLocalVideoOverlay,
-    //     })
-    //   )
-    // }
+    if (rootElement) {
+      customSagas.push(
+        makeVideoElementSaga({
+          rootElement,
+          applyLocalVideoOverlay,
+        })
+      )
+    }
 
     const room = createCallFabricRoomSessionObject({
       ...options,

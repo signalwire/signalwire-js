@@ -37,6 +37,8 @@ const inCallElements = [
   controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
+  raiseHandBtn,
+  lowerHandBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
   controlRecording,
@@ -337,7 +339,6 @@ window.connect = async () => {
   console.debug('Call Obj', call)
 
   setTimeout(async () => {
-    console.log('<< buildVideoElement >>')
     const element = await buildVideoElement({
       room: call,
       rootElement: document.getElementById('rootElement'),
@@ -360,7 +361,7 @@ window.connect = async () => {
       button.classList.remove('d-none')
       button.disabled = false
     })
-    // loadLayouts()
+    loadLayouts()
   }
   joinHandler()
 }
@@ -490,7 +491,6 @@ window.showVideoMuted = () => {
 }
 
 window.changeLayout = (select) => {
-  console.log('changeLayout', select.value)
   roomObj.setLayout({ name: select.value })
 }
 
