@@ -43,7 +43,7 @@ export class Client extends BaseClient<ClientEvents> {
         })
       )
     }
-
+    
     const room = createCallFabricRoomSessionObject({
       ...options,
       store: this.store,

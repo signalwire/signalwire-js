@@ -1,0 +1,1 @@
+export const CALLID_STORAGE_KEY = 'ci-SAT';

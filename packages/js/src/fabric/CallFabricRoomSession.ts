@@ -6,6 +6,7 @@ import {
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -18,6 +19,9 @@ import {
   MemberCommandWithValueParams,
 } from '../video'
 import { BaseConnection } from '@signalwire/webrtc'
+import { getStorage } from '../utils/storage'
+import { CALLID_STORAGE_KEY } from './utils/constants'
+
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -55,7 +59,15 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once('room.subscribed', () => resolve())
+        
+        this.once('room.subscribed', ({ call_id }: VideoRoomSubscribedEventParams) => {
+          getStorage()?.setItem(CALLID_STORAGE_KEY, call_id)
+          resolve()
+        })
+
+        this.once('destroy', () => {
+          getStorage()?.removeItem(CALLID_STORAGE_KEY)
+        })
 
         await this.join()
       } catch (error) {
@@ -63,6 +75,53 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
         reject(error)
       }
     })
+  }
+
+  override async join() {
+    this.options.prevCallId = getStorage()?.getItem(CALLID_STORAGE_KEY) ?? undefined
+
+
+    // TODO: We need to hadle the media constrains in a reattach
+    // const authState: VideoAuthorization = client._sessionAuthState
+    // this.logger.debug('getJoinMediaParams authState?', authState)
+    // if (authState && authState.type === 'video') {
+    //       const mediaOptions = getJoinMediaParams({
+    //         authState,
+    //         // constructor values override the send
+    //         sendAudio: Boolean(this.options.audio),
+    //         sendVideo: Boolean(this.options.video),
+    //         ...this.options,
+    //       })
+
+    //       if (!checkMediaParams(mediaOptions)) {
+    //         client.disconnect()
+    //         return reject(
+    //           new Error(
+    //             `Invalid arguments to join the room. The token used has join_as: '${
+    //               authState.join_as
+    //             }'. \n${JSON.stringify(params, null, 2)}\n`
+    //           )
+    //         )
+    //       }
+
+    //       this.logger.debug('Set mediaOptions', mediaOptions)
+
+    //       /**
+    //        * audio and video might be objects with MediaStreamConstraints
+    //        * so if we must send media, we make sure to use the user's
+    //        * preferences.
+    //        * Note: params.sendAudio: `true` will override audio: `false` so
+    //        * we're using `||` instead of `??` for that reason.
+    //        */
+    //       this.updateMediaOptions({
+    //         audio: mediaOptions.mustSendAudio ? !!this.options.audio || true : false,
+    //         video: mediaOptions.mustSendVideo ? !!this.options.video || true : false,
+    //         negotiateAudio: mediaOptions.mustRecvAudio,
+    //         negotiateVideo: mediaOptions.mustRecvVideo,
+    //       })
+    // }
+
+    return super.join()
   }
 
   /** @internal */

@@ -13,6 +13,8 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import { createClient } from './createClient'
 import { Client } from './Client'
+import { getStorage } from '../utils/storage'
+import { CALLID_STORAGE_KEY } from './utils/constants'
 
 export class WSClient {
   private wsClient: Client
@@ -52,33 +54,14 @@ export class WSClient {
     return this.wsClient.disconnect()
   }
 
-  async reattach(params: DialParams) {
-    return new Promise((resolve, reject) => {
-    try {
-    const call = new RoomSession({...this.options, ...params});
-    // @ts-expect-error
-    call.start = () => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          call.once('room.subscribed', () => resolve(call))
+  async dial(params: DialParams) {
+    //prevent it to reattach to previuos call
+    getStorage()?.removeItem(CALLID_STORAGE_KEY)
 
-          await call.join()
-        } catch (error) {
-          getLogger().error('WSClient call start', error)
-          reject(error)
-        }
-      })
-    }
-
-    resolve(call)
-  } catch (error) {
-    getLogger().error('WSClient dial', error)
-
-    reject(error)
-  }}) 
+    return this.reattach(params)
   }
 
-  async dial(params: DialParams) {
+  async reattach(params: DialParams) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
