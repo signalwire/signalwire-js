@@ -73,14 +73,7 @@ describe('CallFabricRoomSession', () => {
   })
 
   describe('should use CallFabricRoomSessionConnection implementation', () => {
-    const roomActionParams = {
-      self: {
-        call_id: 'call-id-1',
-        member_id: 'member-id-1',
-        node_id: 'node-id-1',
-      },
-    }
-    const memberActionParams = {
+    const actionParams = {
       self: {
         call_id: 'call-id-1',
         member_id: 'member-id-1',
@@ -105,7 +98,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.mute',
           params: {
             channels: ['audio'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -124,7 +117,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.unmute',
           params: {
             channels: ['audio'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -143,7 +136,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.mute',
           params: {
             channels: ['video'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -162,7 +155,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.unmute',
           params: {
             channels: ['video'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -177,7 +170,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.deaf',
           params: {
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -195,7 +188,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.undeaf',
           params: {
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -213,7 +206,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.layout.list',
           params: {
-            ...roomActionParams,
+            ...actionParams,
           },
         },
         { transformResolve: expect.any(Function) }
@@ -231,7 +224,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.member.list',
           params: {
-            ...roomActionParams,
+            ...actionParams,
           },
         },
         { transformResolve: expect.any(Function) }
@@ -249,7 +242,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.member.remove',
           params: {
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -267,9 +260,8 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.layout.set',
           params: {
-            ...roomActionParams,
-            name: 'layout-1',
-            layout: undefined,
+            ...actionParams,
+            layout: 'layout-1',
           },
         },
         {}
@@ -287,7 +279,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.microphone.volume.set',
           params: {
-            ...memberActionParams,
+            ...actionParams,
             volume: 10,
           },
         },
@@ -306,7 +298,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'video.member.set_output_volume',
           params: {
-            ...memberActionParams,
+            ...actionParams,
             volume: 10,
           },
         },
@@ -325,7 +317,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.microphone.sensitivity.set',
           params: {
-            ...memberActionParams,
+            ...actionParams,
             value: 10,
           },
         },

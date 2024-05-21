@@ -495,7 +495,6 @@ window.changeLayout = (select) => {
 }
 
 window.changeMicrophone = (select) => {
-  console.log('changeMicrophone', select.value)
   if (!select.value) {
     return
   }
@@ -505,7 +504,6 @@ window.changeMicrophone = (select) => {
 }
 
 window.changeCamera = (select) => {
-  console.log('changeCamera', select.value)
   if (!select.value) {
     return
   }
@@ -513,7 +511,6 @@ window.changeCamera = (select) => {
 }
 
 window.changeSpeaker = (select) => {
-  console.log('changeSpeaker', select.value)
   if (!select.value) {
     return
   }
