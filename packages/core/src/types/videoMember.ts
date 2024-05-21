@@ -357,18 +357,6 @@ export type InternalVideoMemberEntity = {
   > as CamelToSnakeCase<K>]: VideoMemberEntity[K]
 }
 
-export interface InternalUnifiedVideoMemberEntity
-  extends InternalVideoMemberEntity {
-  memberId: string
-  callId: string
-  nodeId: string
-}
-
-export type InternalUnifiedMethodTarget = Pick<
-  InternalUnifiedVideoMemberEntity,
-  'memberId' | 'callId' | 'nodeId'
->
-
 /**
  * VideoMember entity plus `updated` field
  * for internal usage (converted to snake_case)
