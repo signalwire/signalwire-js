@@ -244,7 +244,7 @@ window.connect = async () => {
   const call = await client.dial({
     nodeId: steeringId,
     to: document.getElementById('destination').value,
-    // rootElement: document.getElementById('rootElement'),
+    rootElement: document.getElementById('rootElement'),
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
   })
@@ -338,14 +338,25 @@ window.connect = async () => {
   await call.start()
   console.debug('Call Obj', call)
 
-  setTimeout(async () => {
-    const element = await buildVideoElement({
-      room: call,
-      rootElement: document.getElementById('rootElement'),
-    })
+  // Render video element using custom function
+  // setTimeout(async () => {
+  //   const { unsubscribe } = await buildVideoElement({
+  //     room: call,
+  //     rootElement: document.getElementById('random1'),
+  //   })
 
-    console.log('<< element >>', element)
-  }, 5000)
+  //   setTimeout(async () => {
+  //     const { element } = await buildVideoElement({
+  //       room: call,
+  //     })
+  //     const root = document.getElementById('random2')
+  //     root.appendChild(element)
+
+  //     setTimeout(() => {
+  //       unsubscribe()
+  //     }, 10000)
+  //   }, 5000)
+  // }, 5000)
 
   enumerateDevices()
     .then(initDeviceOptions)

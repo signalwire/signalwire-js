@@ -1,4 +1,9 @@
-import { LOCAL_EVENT_PREFIX, getLogger } from '@signalwire/core'
+import {
+  InternalVideoLayout,
+  LOCAL_EVENT_PREFIX,
+  getLogger,
+  uuid,
+} from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from './CallFabricRoomSession'
 import {
   LocalOverlay,
@@ -9,7 +14,7 @@ import {
   setVideoMediaTrack,
   waitForVideoReady,
 } from '../utils/videoElement'
-import { aspectRatioListener } from '../utils/aspectRatioListener'
+import { DeprecatedVideoMemberHandlerParams } from '../video'
 
 interface BuildVideoElementParams {
   room: CallFabricRoomSessionConnection
@@ -17,14 +22,18 @@ interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
 }
 
+const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize']
+
 export const buildVideoElement = async (params: BuildVideoElementParams) => {
   try {
     const { room, rootElement: element, applyLocalVideoOverlay = true } = params
 
-    let rootElement = document.createElement('div')
-    rootElement.id = 'rootElement'
+    let rootElement: HTMLDivElement
     if (element) {
       rootElement = element
+    } else {
+      rootElement = document.createElement('div')
+      rootElement.id = `rootElement-${uuid()}`
     }
 
     if (!room.peer) {
@@ -37,7 +46,7 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
 
     /**
      * We used this `LocalOverlay` interface to interact with the localVideo
-     * overlay DOM element in here and in the `layoutChangedHandler`.
+     * overlay DOM element in here and in the ``.
      * The idea is to avoid APIs like `document.getElementById` because it
      * won't work if the SDK is used within a Shadow DOM tree.
      * Instead of querying the `document`, let's use our `layerMap`.
@@ -102,14 +111,19 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       },
     }
 
-    const layoutChangedHandler = makeLayoutChangedHandler({
+    // If the local stream already present, set it to the video
+    if (room.localStream) {
+      localOverlay.setLocalOverlayMediaStream(room.localStream)
+    }
+
+    const makeLayoutHandler = makeLayoutChangedHandler({
       rootElement,
       localOverlay,
     })
 
     const processLayoutChanged = (params: any) => {
       if (room.peer?.hasVideoSender && room.localStream) {
-        layoutChangedHandler({
+        makeLayoutHandler({
           layout: params.layout,
           localStream: room.localStream,
           myMemberId: room.memberId,
@@ -119,10 +133,21 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       }
     }
 
+    const layoutChangedHandler = (params: { layout: InternalVideoLayout }) => {
+      getLogger().debug('Received layout.changed - videoTrack', videoTrack)
+      if (videoTrack) {
+        processLayoutChanged(params)
+        return
+      }
+      room.lastLayoutEvent = params
+    }
+
+    room.on('layout.changed', layoutChangedHandler)
+
     // Handle the RTCPeer `track` event
     const trackHandler = async function (event: RTCTrackEvent) {
       if (event.track.kind === 'video') {
-        await videoElementSetupWorker({
+        await videoElementSetup({
           applyLocalVideoOverlay,
           rootElement,
           track: event.track,
@@ -136,15 +161,10 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       }
     }
 
-    // If the local stream already present, set it to the video
-    if (room.localStream) {
-      localOverlay.setLocalOverlayMediaStream(room.localStream)
-    }
-
     // If the remote video already exist, inject the remote stream to the video element
     const videoTrack = room.peer.remoteVideoTrack
     if (videoTrack) {
-      await videoElementSetupWorker({
+      await videoElementSetup({
         applyLocalVideoOverlay,
         rootElement,
         track: videoTrack,
@@ -164,33 +184,29 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
      */
     room.on('track', trackHandler)
 
-    room.on('layout.changed', (params: any) => {
-      getLogger().debug('Received layout.changed - videoTrack', videoTrack)
-      if (videoTrack) {
-        processLayoutChanged(params)
-        return
-      }
-
-      room.lastLayoutEvent = params
-    })
+    const mirrorVideoHandler = (value: boolean) => {
+      localOverlay.setLocalOverlayMirror(value)
+    }
 
     // @ts-expect-error
-    room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, (value: boolean) => {
-      localOverlay.setLocalOverlayMirror(value)
-    })
+    room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, mirrorVideoHandler)
+
+    const roomSubscribedHandler = () => {
+      if (room.localStream) {
+        localOverlay.setLocalOverlayMediaStream(room.localStream)
+      }
+    }
 
     /**
      * If the user joins with `join_video_muted: true` or
      * `join_audio_muted: true` we'll stop the streams
      * right away.
      */
-    room.on('room.subscribed', () => {
-      if (room.localStream) {
-        localOverlay.setLocalOverlayMediaStream(room.localStream)
-      }
-    })
+    room.on('room.subscribed', roomSubscribedHandler)
 
-    room.on('member.updated.video_muted', (params) => {
+    const memberVideoMutedHandler = (
+      params: DeprecatedVideoMemberHandlerParams
+    ) => {
       try {
         const { member } = params
         if (member.id === room.memberId && 'video_muted' in member) {
@@ -199,14 +215,29 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       } catch (error) {
         getLogger().error('Error handling video_muted', error)
       }
-    })
+    }
 
-    room.once('destroy', () => {
+    room.on('member.updated.video_muted', memberVideoMutedHandler)
+
+    const destroyHander = () => {
       cleanupElement(rootElement)
       layerMap.clear()
-    })
+    }
 
-    return rootElement
+    room.once('destroy', destroyHander)
+
+    const unsubscribe = () => {
+      room.off('track', trackHandler)
+      room.off('layout.changed', layoutChangedHandler)
+      room.off('room.subscribed', roomSubscribedHandler)
+      room.off('member.updated.video_muted', memberVideoMutedHandler)
+      // @ts-expect-error
+      room.off(`${LOCAL_EVENT_PREFIX}.mirror.video`, mirrorVideoHandler)
+      room.off('destroy', destroyHander)
+      destroyHander()
+    }
+
+    return { unsubscribe, element: rootElement }
   } catch (error) {
     return getLogger().error('Unable to build the video element')
   }
@@ -219,9 +250,7 @@ interface VideoElementSetupWorkerParams {
   applyLocalVideoOverlay?: boolean
 }
 
-const videoElementSetupWorker = async (
-  options: VideoElementSetupWorkerParams
-) => {
+const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
     const { applyLocalVideoOverlay, track, element, rootElement } = options
 
@@ -254,12 +283,16 @@ const videoElementSetupWorker = async (
     paddingWrapper.appendChild(mcuWrapper)
 
     // For less than 3 participants video call, the video aspect ratio can change
-    aspectRatioListener({
-      videoElement: element,
-      paddingWrapper,
-      fixInLandscapeOrientation:
-        rootElement.classList.contains('landscape-only'),
-    })
+    const fixInLandscapeOrientation =
+      rootElement.classList.contains('landscape-only')
+    VIDEO_SIZING_EVENTS.forEach((event) =>
+      element.addEventListener(event, () => {
+        const paddingBottom = fixInLandscapeOrientation
+          ? '56.25'
+          : (element.videoHeight / element.videoWidth) * 100
+        paddingWrapper.style.paddingBottom = `${paddingBottom}%`
+      })
+    )
 
     const layersWrapper = document.createElement('div')
     layersWrapper.classList.add('mcuLayers')
