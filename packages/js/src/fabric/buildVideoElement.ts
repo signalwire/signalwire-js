@@ -4,7 +4,7 @@ import {
   getLogger,
   uuid,
 } from '@signalwire/core'
-import { CallFabricRoomSessionConnection } from './CallFabricRoomSession'
+import { CallFabricRoomSession } from './CallFabricRoomSession'
 import {
   LocalOverlay,
   addSDKPrefix,
@@ -16,15 +16,22 @@ import {
 } from '../utils/videoElement'
 import { DeprecatedVideoMemberHandlerParams } from '../video'
 
-interface BuildVideoElementParams {
-  room: CallFabricRoomSessionConnection
+export interface BuildVideoElementParams {
+  room: CallFabricRoomSession
   rootElement?: HTMLDivElement
   applyLocalVideoOverlay?: boolean
 }
 
+export interface BuildVideoElementReturnType {
+  element: HTMLDivElement
+  unsubscribe(): void
+}
+
 const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize']
 
-export const buildVideoElement = async (params: BuildVideoElementParams) => {
+export const buildVideoElement = async (
+  params: BuildVideoElementParams
+): Promise<BuildVideoElementReturnType> => {
   try {
     const { room, rootElement: element, applyLocalVideoOverlay = true } = params
 
@@ -36,8 +43,16 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       rootElement.id = `rootElement-${uuid()}`
     }
 
-    if (!room.peer) {
-      return getLogger().error('No RTC Peer exist on the room!')
+    // These properties are not exposed from the room object to the public
+    // @ts-expect-error
+    const roomPeer = room.peer
+    // @ts-expect-error
+    const roomId = room.id
+    // @ts-expect-error
+    const roomLastLayoutEvent = room.lastLayoutEvent
+
+    if (!roomPeer) {
+      throw new Error('No RTC Peer exist on the room!')
     }
 
     // Create a video element
@@ -56,7 +71,7 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       status: 'hidden',
       get id() {
         // FIXME: Use `id` until the `memberId` is stable between promote/demote
-        return addSDKPrefix(room.id)
+        return addSDKPrefix(roomId)
       },
       get domElement() {
         return layerMap.get(this.id)
@@ -111,18 +126,13 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       },
     }
 
-    // If the local stream already present, set it to the video
-    if (room.localStream) {
-      localOverlay.setLocalOverlayMediaStream(room.localStream)
-    }
-
     const makeLayoutHandler = makeLayoutChangedHandler({
       rootElement,
       localOverlay,
     })
 
     const processLayoutChanged = (params: any) => {
-      if (room.peer?.hasVideoSender && room.localStream) {
+      if (roomPeer?.hasVideoSender && room.localStream) {
         makeLayoutHandler({
           layout: params.layout,
           localStream: room.localStream,
@@ -139,6 +149,7 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
         processLayoutChanged(params)
         return
       }
+      // @ts-expect-error
       room.lastLayoutEvent = params
     }
 
@@ -155,15 +166,17 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
         })
 
         // If the layout.changed has already been received, process the layout
-        if (room.lastLayoutEvent) {
-          processLayoutChanged(room.lastLayoutEvent)
+        if (roomLastLayoutEvent) {
+          processLayoutChanged(roomLastLayoutEvent)
         }
       }
     }
 
     // If the remote video already exist, inject the remote stream to the video element
-    const videoTrack = room.peer.remoteVideoTrack
+    const videoTrack = roomPeer.remoteVideoTrack
+    console.log('videoTrack', videoTrack)
     if (videoTrack) {
+      console.log('videoTrack2')
       await videoElementSetup({
         applyLocalVideoOverlay,
         rootElement,
@@ -172,8 +185,8 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
       })
 
       // If the `layout.changed` has already been received, process the layout
-      if (room.lastLayoutEvent) {
-        processLayoutChanged(room.lastLayoutEvent)
+      if (roomLastLayoutEvent) {
+        processLayoutChanged(roomLastLayoutEvent)
       }
     }
 
@@ -239,7 +252,8 @@ export const buildVideoElement = async (params: BuildVideoElementParams) => {
 
     return { unsubscribe, element: rootElement }
   } catch (error) {
-    return getLogger().error('Unable to build the video element')
+    getLogger().error('Unable to build the video element')
+    throw error
   }
 }
 
@@ -252,6 +266,7 @@ interface VideoElementSetupWorkerParams {
 
 const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
+    console.log('videoElementSetup')
     const { applyLocalVideoOverlay, track, element, rootElement } = options
 
     setVideoMediaTrack({ element, track })
