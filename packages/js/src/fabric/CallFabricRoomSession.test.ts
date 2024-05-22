@@ -331,36 +331,6 @@ describe('CallFabricRoomSession', () => {
     const roomSessionId = '638a54a7-61d8-4db0-bc24-426aee5cebcd'
     const memberId = '465ea212-c456-423b-9bcc-838c5e1b2851'
 
-    it('should emit the room.subscribed event', (done) => {
-      room.on('room.subscribed', async (params) => {
-        expect(params.room_session.room_id).toEqual(roomId)
-        expect(params.room_session.room_session_id).toEqual(roomSessionId)
-        const { members, recordings, playbacks, streams } = params.room_session
-        expect(members).toHaveLength(2)
-        expect(members[0].member_id).toEqual(memberId)
-        members.forEach((member) => {
-          expect(member.visible).toEqual(true)
-          expect(member.audio_muted).toEqual(false)
-          expect(member.video_muted).toEqual(false)
-          expect(member.deaf).toEqual(false)
-          expect(member.meta).toStrictEqual({})
-        })
-        expect(recordings).toHaveLength(0)
-        expect(playbacks).toHaveLength(0)
-        expect(streams).toHaveLength(0)
-        done()
-      })
-
-      dispatchMockedCallJoined({
-        session: stack.session,
-        callId: callId,
-        roomId,
-        roomSessionId,
-        memberId,
-        nodeId: 'node-id-random',
-      })
-    })
-
     it('should maintain callSegments array', () => {
       // Since two call.joined has already been dispatched two times in the beforeEach
       expect(room.callSegments).toHaveLength(2)

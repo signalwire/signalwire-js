@@ -1,9 +1,10 @@
-import { IncomingCallManager, IncomingCallNotification } from './IncomingCallManager'
+import { IncomingCallManager } from './IncomingCallManager'
+import { IncomingCallNotification } from './types'
 
 describe('IncomingCallManager', () => {
-    const answer = jest.fn()
-    const buildCall = () => ({ answer })
-    const rejectCall = jest.fn().mockResolvedValue(null)
+  const answer = jest.fn()
+  const buildCall = () => ({ answer })
+  const rejectCall = jest.fn().mockResolvedValue(null)
 
   beforeAll(() => {
     jest.resetAllMocks()
@@ -31,7 +32,7 @@ describe('IncomingCallManager', () => {
       caller_id_number: 'foo',
       sdp: 'foo',
       display_direction: 'foo',
-      nodeId: 'foo'
+      nodeId: 'foo',
     })
 
     expect(allNotificationListerner).toHaveBeenCalledTimes(1)
@@ -39,30 +40,33 @@ describe('IncomingCallManager', () => {
     expect(pnNotificationListerner).toHaveBeenCalledTimes(0)
 
     manager.handleIncomingInvite({
-        source: 'pushNotification',
-        callID: 'foo2',
-        callee_id_name: 'foo',
-        callee_id_number: 'foo',
-        caller_id_name: 'foo',
-        caller_id_number: 'foo',
-        sdp: 'foo',
-        display_direction: 'foo',
-        nodeId: 'foo'
-      })
-      
-      expect(allNotificationListerner).toHaveBeenCalledTimes(2)
-      expect(wsNotificationListerner).toHaveBeenCalledTimes(1)
-      expect(pnNotificationListerner).toHaveBeenCalledTimes(1)
-  
+      source: 'pushNotification',
+      callID: 'foo2',
+      callee_id_name: 'foo',
+      callee_id_number: 'foo',
+      caller_id_name: 'foo',
+      caller_id_number: 'foo',
+      sdp: 'foo',
+      display_direction: 'foo',
+      nodeId: 'foo',
+    })
+
+    expect(allNotificationListerner).toHaveBeenCalledTimes(2)
+    expect(wsNotificationListerner).toHaveBeenCalledTimes(1)
+    expect(pnNotificationListerner).toHaveBeenCalledTimes(1)
   })
 
   test('It should not answer the call when the invite is rejected', () => {
     //@ts-ignore
     const manager = new IncomingCallManager(buildCall, rejectCall)
-    const allNotificationListerner = jest.fn((notification: IncomingCallNotification) => {notification.invite.reject()})
+    const allNotificationListerner = jest.fn(
+      (notification: IncomingCallNotification) => {
+        notification.invite.reject()
+      }
+    )
 
     manager.setNotificationHandlers({
-        //@ts-ignore
+      //@ts-ignore
       all: allNotificationListerner,
     })
 
@@ -75,7 +79,7 @@ describe('IncomingCallManager', () => {
       caller_id_number: 'foo',
       sdp: 'foo',
       display_direction: 'foo',
-      nodeId: 'foo'
+      nodeId: 'foo',
     })
 
     expect(allNotificationListerner).toHaveBeenCalledTimes(1)
@@ -86,10 +90,14 @@ describe('IncomingCallManager', () => {
     //@ts-ignore
     const manager = new IncomingCallManager(buildCall, rejectCall)
     //@ts-ignore
-    const allNotificationListerner = jest.fn((notification: IncomingCallNotification) => {notification.invite.accept({})})
+    const allNotificationListerner = jest.fn(
+      (notification: IncomingCallNotification) => {
+        notification.invite.accept({})
+      }
+    )
 
     manager.setNotificationHandlers({
-        //@ts-ignore
+      //@ts-ignore
       all: allNotificationListerner,
     })
 
@@ -102,7 +110,7 @@ describe('IncomingCallManager', () => {
       caller_id_number: 'foo',
       sdp: 'foo',
       display_direction: 'foo',
-      nodeId: 'foo'
+      nodeId: 'foo',
     })
 
     expect(allNotificationListerner).toHaveBeenCalledTimes(1)
@@ -128,7 +136,7 @@ describe('IncomingCallManager', () => {
       caller_id_number: 'foo',
       sdp: 'foo',
       display_direction: 'foo',
-      nodeId: 'foo'
+      nodeId: 'foo',
     })
 
     expect(notificationListerner).toHaveBeenCalledTimes(1)
@@ -151,20 +159,20 @@ describe('IncomingCallManager', () => {
       caller_id_number: 'foo',
       sdp: 'foo',
       display_direction: 'foo',
-      nodeId: 'foo'
+      nodeId: 'foo',
     })
 
     manager.handleIncomingInvite({
-        source: 'websocket',
-        callID: 'same-id',
-        callee_id_name: 'foo',
-        callee_id_number: 'foo',
-        caller_id_name: 'foo',
-        caller_id_number: 'foo',
-        sdp: 'foo',
-        display_direction: 'foo',
-        nodeId: 'foo'
-      })
+      source: 'websocket',
+      callID: 'same-id',
+      callee_id_name: 'foo',
+      callee_id_number: 'foo',
+      caller_id_name: 'foo',
+      caller_id_number: 'foo',
+      sdp: 'foo',
+      display_direction: 'foo',
+      nodeId: 'foo',
+    })
 
     expect(notificationListerner).toHaveBeenCalledTimes(1)
   })
@@ -172,9 +180,13 @@ describe('IncomingCallManager', () => {
   test('It should clean up invites after reject', () => {
     //@ts-ignore
     const manager = new IncomingCallManager(buildCall, rejectCall)
-    const notificationListerner = jest.fn((notification: IncomingCallNotification) => {notification.invite.reject()})
+    const notificationListerner = jest.fn(
+      (notification: IncomingCallNotification) => {
+        notification.invite.reject()
+      }
+    )
     manager.setNotificationHandlers({
-    //@ts-ignore
+      //@ts-ignore
       all: notificationListerner,
     })
 
@@ -187,20 +199,20 @@ describe('IncomingCallManager', () => {
       caller_id_number: 'foo',
       sdp: 'foo',
       display_direction: 'foo',
-      nodeId: 'foo'
+      nodeId: 'foo',
     })
 
     manager.handleIncomingInvite({
-        source: 'websocket',
-        callID: 'same-id',
-        callee_id_name: 'foo',
-        callee_id_number: 'foo',
-        caller_id_name: 'foo',
-        caller_id_number: 'foo',
-        sdp: 'foo',
-        display_direction: 'foo',
-        nodeId: 'foo'
-      })
+      source: 'websocket',
+      callID: 'same-id',
+      callee_id_name: 'foo',
+      callee_id_number: 'foo',
+      caller_id_name: 'foo',
+      caller_id_number: 'foo',
+      sdp: 'foo',
+      display_direction: 'foo',
+      nodeId: 'foo',
+    })
 
     expect(notificationListerner).toHaveBeenCalledTimes(2)
   })
@@ -209,9 +221,13 @@ describe('IncomingCallManager', () => {
     //@ts-ignore
     const manager = new IncomingCallManager(buildCall, rejectCall)
     //@ts-ignore
-    const notificationListerner = jest.fn((notification: IncomingCallNotification) => {notification.invite.accept({})})
+    const notificationListerner = jest.fn(
+      (notification: IncomingCallNotification) => {
+        notification.invite.accept({})
+      }
+    )
     manager.setNotificationHandlers({
-    //@ts-ignore
+      //@ts-ignore
       all: notificationListerner,
     })
 
@@ -224,22 +240,21 @@ describe('IncomingCallManager', () => {
       caller_id_number: 'foo',
       sdp: 'foo',
       display_direction: 'foo',
-      nodeId: 'foo'
+      nodeId: 'foo',
     })
 
     manager.handleIncomingInvite({
-        source: 'websocket',
-        callID: 'same-id',
-        callee_id_name: 'foo',
-        callee_id_number: 'foo',
-        caller_id_name: 'foo',
-        caller_id_number: 'foo',
-        sdp: 'foo',
-        display_direction: 'foo',
-        nodeId: 'foo'
-      })
+      source: 'websocket',
+      callID: 'same-id',
+      callee_id_name: 'foo',
+      callee_id_number: 'foo',
+      caller_id_name: 'foo',
+      caller_id_number: 'foo',
+      sdp: 'foo',
+      display_direction: 'foo',
+      nodeId: 'foo',
+    })
 
     expect(notificationListerner).toHaveBeenCalledTimes(2)
   })
-
 })
