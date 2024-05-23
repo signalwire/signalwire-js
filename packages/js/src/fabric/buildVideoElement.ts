@@ -35,12 +35,14 @@ export const buildVideoElement = async (
   try {
     const { room, rootElement: element, applyLocalVideoOverlay = true } = params
 
+    const id = uuid()
+
     let rootElement: HTMLDivElement
     if (element) {
       rootElement = element
     } else {
       rootElement = document.createElement('div')
-      rootElement.id = `rootElement-${uuid()}`
+      rootElement.id = `rootElement-${id}`
     }
 
     // These properties are not exposed from the room object to the public
@@ -71,7 +73,7 @@ export const buildVideoElement = async (
       status: 'hidden',
       get id() {
         // FIXME: Use `id` until the `memberId` is stable between promote/demote
-        return addSDKPrefix(roomId)
+        return addSDKPrefix(id)
       },
       get domElement() {
         return layerMap.get(this.id)
