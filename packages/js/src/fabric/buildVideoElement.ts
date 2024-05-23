@@ -174,9 +174,7 @@ export const buildVideoElement = async (
 
     // If the remote video already exist, inject the remote stream to the video element
     const videoTrack = roomPeer.remoteVideoTrack
-    console.log('videoTrack', videoTrack)
     if (videoTrack) {
-      console.log('videoTrack2')
       await videoElementSetup({
         applyLocalVideoOverlay,
         rootElement,
@@ -266,7 +264,6 @@ interface VideoElementSetupWorkerParams {
 
 const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
-    console.log('videoElementSetup')
     const { applyLocalVideoOverlay, track, element, rootElement } = options
 
     setVideoMediaTrack({ element, track })

@@ -12,20 +12,6 @@ describe('buildVideoElement', () => {
   let stack: ReturnType<typeof configureFullStack>
   let store: any
   let jsdom: JSDOM
-  const callId = 'call-id-1'
-
-  const mockPeer = {
-    uuid: callId,
-    onRemoteSdp: jest.fn(),
-  }
-
-  const setupRoomForTests = () => {
-    // @ts-expect-error
-    room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
-
-    // @ts-expect-error
-    room.runRTCPeerWorkers(callId)
-  }
 
   beforeEach(() => {
     stack = configureFullStack()
@@ -58,6 +44,21 @@ describe('buildVideoElement', () => {
   })
 
   describe('with the peer', () => {
+    const callId = 'call-id-1'
+
+    const mockPeer = {
+      uuid: callId,
+      onRemoteSdp: jest.fn(),
+    }
+
+    const setupRoomForTests = () => {
+      // @ts-expect-error
+      room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
+
+      // @ts-expect-error
+      room.runRTCPeerWorkers(callId)
+    }
+
     beforeEach(() => {
       setupRoomForTests()
     })
