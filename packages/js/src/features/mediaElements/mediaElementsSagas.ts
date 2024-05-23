@@ -139,37 +139,6 @@ export const makeVideoElementSaga = ({
         lastLayoutChanged = params
       })
 
-      /**
-       * If the user joins with `join_video_muted: true` or
-       * `join_audio_muted: true` we'll stop the streams
-       * right away.
-       */
-      room.on('room.subscribed', (params) => {
-        const member = params.room_session.members?.find(
-          (m) => m.id === room.memberId
-        )
-
-        if (member?.audio_muted) {
-          try {
-            room.stopOutboundAudio()
-          } catch (error) {
-            getLogger().error('Error handling audio_muted', error)
-          }
-        }
-
-        if (member?.video_muted) {
-          try {
-            room.stopOutboundVideo()
-          } catch (error) {
-            getLogger().error('Error handling video_muted', error)
-          }
-        }
-
-        if (room.localStream) {
-          localOverlay.setLocalOverlayMediaStream(room.localStream)
-        }
-      })
-
       room.on('member.updated.video_muted', (params) => {
         try {
           const { member } = params
@@ -354,7 +323,7 @@ function* videoElementSetupWorker({
 
     element.style.width = '100%'
     element.style.maxHeight = '100%'
-    
+
     if (!applyLocalVideoOverlay) {
       rootElement.appendChild(element)
       return
@@ -380,9 +349,11 @@ function* videoElementSetupWorker({
 
     //for less then 3 participants video call, the video aspect ratio can change
     aspectRatioListener({
-      videoElement: element, 
-      paddingWrapper, 
-      fixInLandscapeOrientation: rootElement.classList.contains('landscape-only') });
+      videoElement: element,
+      paddingWrapper,
+      fixInLandscapeOrientation:
+        rootElement.classList.contains('landscape-only'),
+    })
 
     const layersWrapper = document.createElement('div')
     layersWrapper.classList.add('mcuLayers')
@@ -412,7 +383,6 @@ function* videoElementSetupWorker({
     getLogger().debug('MCU is ready..')
 
     layersWrapper.style.display = 'block'
-
   } catch (error) {
     getLogger().error('Handle video track error', error)
   }

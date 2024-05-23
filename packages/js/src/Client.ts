@@ -94,6 +94,33 @@ export class ClientAPI<
         })
 
         /**
+         * If the user joins with `join_video_muted: true` or
+         * `join_audio_muted: true` we'll stop the streams
+         * right away.
+         */
+        room.on('room.subscribed', (params) => {
+          const member = params.room_session.members?.find(
+            (m) => m.id === room.memberId
+          )
+
+          if (member?.audio_muted) {
+            try {
+              room.stopOutboundAudio()
+            } catch (error) {
+              this.logger.error('Error handling audio_muted', error)
+            }
+          }
+
+          if (member?.video_muted) {
+            try {
+              room.stopOutboundVideo()
+            } catch (error) {
+              this.logger.error('Error handling video_muted', error)
+            }
+          }
+        })
+
+        /**
          * Stop and Restore outbound audio on audio_muted event
          */
         if (stopMicrophoneWhileMuted) {
