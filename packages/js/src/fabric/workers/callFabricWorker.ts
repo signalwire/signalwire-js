@@ -1,20 +1,13 @@
 import {
-  SDKActions,
   SDKWorker,
   SagaIterator,
   getLogger,
   sagaEffects,
-  VideoAction,
-  CallFabricAction,
   SDKWorkerParams,
-  VideoMemberEventNames,
-  VideoRoomSessionEventNames,
+  Rooms,
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
-import * as videoWorkers from '../../video/workers'
-import { callJoinWorker } from './callJoinWorker'
-import { callLeftWorker } from './callLeftWorker'
-import { callStateWorker } from './callStateWorker'
+import { callSegmentWorker } from './callSegmentWorker'
 
 export type CallFabricWorkerParams<T> =
   SDKWorkerParams<CallFabricRoomSessionConnection> & {
@@ -25,98 +18,37 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
   function* (options): SagaIterator {
     getLogger().trace('callFabricWorker started')
 
-    const { channels, instance: roomSession } = options
-    const { swEventChannel } = channels
+    const { channels: { swEventChannel }, instance: cfRoomSessionConnection } = options
 
-    function* worker(action: VideoAction | CallFabricAction) {
-      const { type, payload } = action
-
-      switch (type) {
-        case 'call.joined': {
-          yield sagaEffects.fork(callJoinWorker, {
-            action,
-            ...options,
-          })
-          return
-        }
-        case 'call.left': {
-          yield sagaEffects.fork(callLeftWorker, {
-            action,
-            ...options,
-          })
-          return
-        }
-        case 'call.state': {
-          yield sagaEffects.fork(callStateWorker, {
-            action,
-            ...options,
-          })
-          return
-        }
-        case 'call.started':
-        case 'call.updated':
-        case 'call.ended': {
-          const action = type.split('.')[1]
-          const newEventName = `room.${action}` as VideoRoomSessionEventNames
-          roomSession.emit(newEventName, payload)
-          break
-        }
-        case 'member.joined':
-        case 'member.left':
-        case 'member.updated':
-        case 'member.talking': {
-          const updatedAction = {
-            ...action,
-            type: `video.${type}` as VideoMemberEventNames,
-          }
-          // @ts-expect-error
-          yield sagaEffects.fork(videoWorkers.videoMemberWorker, {
-            action: updatedAction,
-            ...options,
-          })
-
-          // @ts-expect-error
-          yield sagaEffects.put(swEventChannel, updatedAction)
-          return
-        }
-        case 'layout.changed': {
-          const updatedAction = {
-            ...action,
-            type: `video.${type}` as 'video.layout.changed',
-          }
-          yield sagaEffects.put(swEventChannel, updatedAction)
-          break
-        }
-        case 'member.demoted':
-        case 'member.promoted': {
-          const updatedAction = {
-            ...action,
-            type: `video.${type}` as
-              | 'video.member.demoted'
-              | 'video.member.promoted',
-          }
-          yield sagaEffects.put(swEventChannel, updatedAction)
-          return
-        }
-        default:
-          break
-      }
-
-      // @ts-expect-error
-      roomSession.emit(type, payload)
-    }
-
-    const isVideoOrCallEvent = (action: SDKActions) => {
-      return (
-        action.type.startsWith('call.') ||
-        action.type.startsWith('member.') ||
-        action.type.startsWith('layout.')
-      )
+    // FIXME remove the any
+    const isCallJoinedEvent = (action: any) => {
+      // We should only start to handling call.joined events after
+      // we receive the 1st call.joined event where action.call_id == action.orignCallId
+      return (!!cfRoomSessionConnection.selfMember || (action.eventRoutingId == action.originCallId))  && action.type === 'call.joined'
     }
 
     while (true) {
-      const action = yield sagaEffects.take(swEventChannel, isVideoOrCallEvent)
+      const action = yield sagaEffects.take(swEventChannel, isCallJoinedEvent)
+      
+      if(!cfRoomSessionConnection.selfMember) {
+        const memberInstance = Rooms.createRoomSessionMemberObject({
+          store: cfRoomSessionConnection.store,
+          payload: {
+            room_id: action.payload.room_id,
+            room_session_id: action.payload.room_session_id,
+            member: action.payload.room_session.members
+              .find((m: {member_id: string}) => m.member_id == action.payload.member_id)
+          },
+        })
+        cfRoomSessionConnection.selfMember = memberInstance
+      }
 
-      yield sagaEffects.fork(worker, action)
+      cfRoomSessionConnection.runWorker('callSegmentWorker',
+       { worker: callSegmentWorker,
+        ...options, 
+        initialState: action,
+        
+      })
     }
+
   }

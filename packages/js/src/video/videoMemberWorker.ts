@@ -29,7 +29,6 @@ export const videoMemberWorker = function* (
   getLogger().trace('videoMemberWorker started')
   const {
     instance: roomSession,
-    callSegments,
     action: { type, payload },
     instanceMap: { get, set, remove },
   } = options
@@ -49,54 +48,36 @@ export const videoMemberWorker = function* (
   }
   set<RoomSessionMember>(memberId!, memberInstance)
 
-  /**
-   * If the incoming event is for the self member
-   * Send the payload with a member id from the first call segment for a consistent member id
-   */
-  let newPayload = { ...payload }
-  const currentCallSegment = callSegments[callSegments.length - 1]
-  if (payload.member.member_id === currentCallSegment?.memberId) {
-    // FIXME: We should emit the RoomSessionMember instance
-    // @ts-expect-error
-    newPayload = {
-      ...payload,
-      member: {
-        ...payload.member,
-        id: roomSession.callSegments[0].memberId,
-        member_id: roomSession.callSegments[0].memberId,
-      },
-    }
-  }
 
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 
   if (type.startsWith('video.member.updated.')) {
-    roomSession.emit(event, newPayload)
+    roomSession.emit(event, payload)
   }
 
   switch (type) {
     case 'video.member.joined':
     case 'video.member.updated':
-      roomSession.emit(event, newPayload)
+      roomSession.emit(event, payload)
       break
     case 'video.member.left':
-      roomSession.emit(event, newPayload)
+      roomSession.emit(event, payload)
       remove<RoomSessionMember>(memberId!)
       break
     case 'video.member.talking':
-      roomSession.emit(event, newPayload)
+      roomSession.emit(event, payload)
       if ('talking' in payload.member) {
         const suffix = payload.member.talking ? 'started' : 'ended'
         roomSession.emit(
           `${event}.${suffix}` as MemberTalkingEventNames,
-          newPayload
+          payload
         )
 
         // Keep for backwards compatibility
         const deprecatedSuffix = payload.member.talking ? 'start' : 'stop'
         roomSession.emit(
           `${event}.${deprecatedSuffix}` as MemberTalkingEventNames,
-          newPayload
+          payload
         )
       }
       break
