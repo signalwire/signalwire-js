@@ -37,6 +37,45 @@ test.describe('buildVideoElement', () => {
     expect(videoElement).toBeNull()
   })
 
+  test('should return the rootElement', async ({ createCustomPage }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+    const roomName = 'cf-e2e-test-room'
+
+    await createCFClient(page)
+
+    // Dial an address and join a video room
+    const { element } = await page.evaluate(
+      async ({ roomName }) => {
+        return new Promise<any>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.dial({
+            to: `/public/${roomName}`,
+          })
+
+          // @ts-expect-error
+          window._roomObj = call
+
+          await call.start()
+
+          // @ts-expect-error
+          const { element } = await window._SWJS.buildVideoElement({
+            room: call,
+          })
+
+          resolve({ element })
+        })
+      },
+      { roomName }
+    )
+
+    const videoElement = await page.$('div[id^="sw-sdk-"] > video')
+    expect(videoElement).toBeNull()
+    expect(element).not.toBeNull()
+  })
+
   test('should render multiple video elements', async ({
     createCustomPage,
   }) => {
