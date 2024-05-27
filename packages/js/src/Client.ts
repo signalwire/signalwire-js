@@ -9,7 +9,7 @@ import {
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import {
-  makeVideoElementSaga,
+  // makeVideoElementSaga,
   makeAudioElementSaga,
 } from './features/mediaElements/mediaElementsSagas'
 import {
@@ -20,6 +20,7 @@ import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
 import type { RoomSession } from './RoomSession'
+import { buildVideoElement } from './fabric'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -78,20 +79,33 @@ export class ClientAPI<
          * If the user provides a `rootElement` we'll
          * automatically handle the Video element for them
          */
-        if (rootElement) {
-          customSagas.push(
-            makeVideoElementSaga({
-              rootElement,
-              applyLocalVideoOverlay,
-            })
-          )
-        }
+        // if (rootElement) {
+        //   customSagas.push(
+        //     makeVideoElementSaga({
+        //       rootElement,
+        //       applyLocalVideoOverlay,
+        //     })
+        //   )
+        // }
 
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
           customSagas,
         })
+
+        /**
+         * If the user provides a `rootElement` we'll
+         * automatically handle the Video element for them
+         */
+        if (rootElement) {
+          try {
+            // @ts-expect-error
+            buildVideoElement({ room, rootElement })
+          } catch (error) {
+            this.logger.error('Unable to build the video element automatically')
+          }
+        }
 
         /**
          * If the user joins with `join_video_muted: true` or
