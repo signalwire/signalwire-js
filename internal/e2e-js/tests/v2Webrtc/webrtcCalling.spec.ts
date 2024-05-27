@@ -4,6 +4,7 @@ import {
   SERVER_URL,
   createCallWithCompatibilityApi,
   createTestJWTToken,
+  expectedMinPackets,
   expectInjectRelayHost,
   expectRelayConnected,
   expectv2HasReceivedAudio,
@@ -164,8 +165,8 @@ test.describe('v2WebrtcCalling', () => {
     // Empirical value
     const minAudioEnergy = callDurationMs / 50000
 
-    // Considers 50 pps with max 10% packet loss
-    const minPackets = (callDurationMs * 0.9) * 50 / 1000
+    // Expect at least 70 % packets at 50 pps
+    const minPackets = expectedMinPackets(50, callDurationMs, 0.3)
 
     await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
 

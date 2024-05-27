@@ -1,6 +1,12 @@
 import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createCFClient, expectMCUVisible } from '../../utils'
+import {
+  SERVER_URL,
+  createCFClient,
+  expectLayoutChanged,
+  expectMCUVisible,
+  setLayoutOnPage,
+} from '../../utils'
 
 test.describe('CallFabric VideoRoom', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
@@ -132,6 +138,12 @@ test.describe('CallFabric VideoRoom', () => {
       { roomSession }
     )
 
+    // --------------- Set layout ---------------
+    const layoutName = '3x3'
+    const layoutChangedPromise = expectLayoutChanged(page, layoutName)
+    await setLayoutOnPage(page, layoutName)
+    expect(await layoutChangedPromise).toBe(true)
+
     /**
      * FIXME: The following APIs are not yet supported by the Call Fabric SDK
      */
@@ -221,13 +233,6 @@ test.describe('CallFabric VideoRoom', () => {
     //   deletedMeta,
     //   "Deleted meta should be: { something: 'xx-yy-zzz' }"
     // ).toStrictEqual(meta)
-
-    // const layoutName = '3x3'
-    // // --------------- Expect layout to change ---------------
-    // const layoutChangedPromise = expectLayoutChanged(page, layoutName)
-    // // --------------- Set layout ---------------
-    // await setLayoutOnPage(page, layoutName)
-    // expect(await layoutChangedPromise).toBe(true)
   })
 
   test('should fail on invalid address', async ({ createCustomPage }) => {

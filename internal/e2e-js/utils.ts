@@ -827,15 +827,16 @@ export const createCallWithCompatibilityApi = async (
     }
   )
 
-  if (response.status === 201) {
+  if (Number.isInteger(Number(response.status)) && response.status !== null) {
+    if (response.status !== 201) { 
+      console.log(
+        'Unexpected response from REST API: ',
+        response.status,
+        ' = ',
+        response.statusText
+      )
+    }
     return response.status
-  } else {
-    console.log(
-      'Unexpected response from REST API: ',
-      response.status,
-      ' = ',
-      response.statusText
-    )
   }
   return undefined
 }
@@ -1085,6 +1086,23 @@ export const expectv2HasReceivedSilence = async (
        */
     }
   }
+}
+
+export const expectedMinPackets = (
+  packetRate: number,
+  callDurationMs: number,
+  maxMissingPacketsTolerance: number // 0 to 1.0
+) => {
+  if (maxMissingPacketsTolerance < 0) {
+    maxMissingPacketsTolerance = 0
+  }
+  if (maxMissingPacketsTolerance > 1) {
+    maxMissingPacketsTolerance = 1
+  }
+
+  const minPackets = (callDurationMs * (1 - maxMissingPacketsTolerance)) * packetRate / 1000
+
+  return minPackets
 }
 
 export const randomizeResourceName = (prefix: string = 'e2e') => {
