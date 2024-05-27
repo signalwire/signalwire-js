@@ -7,6 +7,7 @@ import {
   VideoMemberEntity,
   Rooms,
   VideoRoomSubscribedEventParams,
+  RoomSessionMember,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -45,6 +46,9 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+  private _self?: RoomSessionMember
+  private _member?: RoomSessionMember
+
   protected initWorker() {
     /**
      * The unified eventing or CallFabric worker creates/stores member instances in the instance map
@@ -56,7 +60,15 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  start() {
+  override async hangup(id?: string | undefined): Promise<void> {
+    this._self = undefined
+    this._member = undefined
+    const result = await super.hangup(id)
+    this.destroy()
+    return result
+  }
+
+  async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
         
@@ -139,18 +151,20 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     }
   }
 
-  get selfMember() {
-    return this.callSegments[0]?.member
+  get selfMember(): RoomSessionMember|undefined {
+    return this._self
   }
 
-  get targetMember() {
-    return this.callSegments[this.callSegments.length - 1]?.member
+  set selfMember(member: RoomSessionMember|undefined) {
+    this._self = member
   }
 
-  private isSelfMember(id: string) {
-    return (
-      this.callSegments.findIndex((segment) => segment.memberId === id) > -1
-    )
+  set member(member: RoomSessionMember) {
+    this._member = member
+  }
+
+  override get memberId() {
+    return this._member?.memberId
   }
 
   private executeAction<
@@ -163,31 +177,17 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    let targetMember = this.targetMember
-    if (memberId && !this.isSelfMember(memberId)) {
-      const lastSegment = this.callSegments[this.callSegments.length - 1]
-      const memberInCurrentSegment = lastSegment.members.find(
-        (member) => member.id === memberId
-      )
-
-      if (!memberInCurrentSegment) {
-        throw new Error(
-          'The memberId is not a part of the current call segment!'
-        )
-      } else {
-        targetMember = memberInCurrentSegment
-      }
-    }
-
-    return this.execute<InputType, OutputType, ParamsType>(
+    // TODO: fix type
+    const targetMember = this.instanceMap.get<RoomSessionMember>(memberId!)
+      return this.execute<InputType, OutputType, ParamsType>(
       {
         method,
         params: {
           ...(channel && { channels: [channel] }),
-          self: {
-            member_id: this.selfMember.id,
-            call_id: this.selfMember.callId,
-            node_id: this.selfMember.nodeId,
+          self:  {
+            member_id: this.selfMember?.id,
+            call_id: this.selfMember?.callId,
+            node_id: this.selfMember?.nodeId,
           },
           target: {
             member_id: targetMember.id,

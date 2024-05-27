@@ -89,7 +89,6 @@ describe('memberPositionWorker', () => {
         getAll: jest.fn(),
         deleteAll: jest.fn(),
       },
-      callSegments: [],
       getSession,
     })
       .run()
@@ -134,7 +133,6 @@ describe('memberPositionWorker', () => {
         getAll: jest.fn(),
         deleteAll: jest.fn(),
       },
-      callSegments: [],
       getSession,
       dispatcher: mockDispatcher,
     })

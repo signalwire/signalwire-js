@@ -99,6 +99,10 @@ export type MapToPubSubShape<T> = {
     : K extends 'params'
     ? 'payload'
     : never]: T[K]
+} & {
+  nodeId?: string
+  eventRoutingId?: string
+  originCallId?:string
 }
 
 export type PubSubAction =
@@ -113,6 +117,7 @@ export type PubSubAction =
   | TaskAction
   | MessagingAction
   | VoiceCallAction
+
 
 export type SessionChannelAction =
   | PayloadAction<void, SessionEvents>
