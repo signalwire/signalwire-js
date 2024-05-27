@@ -18,12 +18,12 @@ import { DeprecatedVideoMemberHandlerParams } from '../video'
 
 export interface BuildVideoElementParams {
   room: CallFabricRoomSession
-  rootElement?: HTMLDivElement
+  rootElement?: HTMLElement
   applyLocalVideoOverlay?: boolean
 }
 
 export interface BuildVideoElementReturnType {
-  element: HTMLDivElement
+  element: HTMLElement
   unsubscribe(): void
 }
 
@@ -37,7 +37,7 @@ export const buildVideoElement = async (
 
     const id = uuid()
 
-    let rootElement: HTMLDivElement
+    let rootElement: HTMLElement
     if (element) {
       rootElement = element
     } else {
@@ -45,21 +45,10 @@ export const buildVideoElement = async (
       rootElement.id = `rootElement-${id}`
     }
 
-    // These properties are not exposed from the room object to the public
-    // @ts-expect-error
-    const roomPeer = room.peer
-    // @ts-expect-error
-    const roomId = room.id
-    // @ts-expect-error
-    const roomLastLayoutEvent = room.lastLayoutEvent
-
-    if (!roomPeer) {
-      throw new Error('No RTC Peer exist on the room!')
-    }
-
     // Create a video element
     const videoEl = buildVideo()
     const layerMap = new Map<string, HTMLDivElement>()
+    let hasVideoTrack = false
 
     /**
      * We used this `LocalOverlay` interface to interact with the localVideo
@@ -134,7 +123,8 @@ export const buildVideoElement = async (
     })
 
     const processLayoutChanged = (params: any) => {
-      if (roomPeer?.hasVideoSender && room.localStream) {
+      // @ts-expect-error
+      if (room.peer.hasVideoSender && room.localStream) {
         makeLayoutHandler({
           layout: params.layout,
           localStream: room.localStream,
@@ -146,47 +136,44 @@ export const buildVideoElement = async (
     }
 
     const layoutChangedHandler = (params: { layout: InternalVideoLayout }) => {
-      getLogger().debug('Received layout.changed - videoTrack', videoTrack)
-      if (videoTrack) {
+      getLogger().debug('Received layout.changed - videoTrack', hasVideoTrack)
+      if (hasVideoTrack) {
         processLayoutChanged(params)
         return
       }
-      // @ts-expect-error
-      room.lastLayoutEvent = params
     }
 
     room.on('layout.changed', layoutChangedHandler)
 
-    // Handle the RTCPeer `track` event
-    const trackHandler = async function (event: RTCTrackEvent) {
-      if (event.track.kind === 'video') {
-        await videoElementSetup({
-          applyLocalVideoOverlay,
-          rootElement,
-          track: event.track,
-          element: videoEl,
-        })
+    const processVideoTrack = async (track: MediaStreamTrack) => {
+      hasVideoTrack = true
 
-        // If the layout.changed has already been received, process the layout
-        if (roomLastLayoutEvent) {
-          processLayoutChanged(roomLastLayoutEvent)
-        }
+      await videoElementSetup({
+        applyLocalVideoOverlay,
+        rootElement,
+        track,
+        videoElement: videoEl,
+      })
+
+      // @ts-expect-error
+      const roomLastLayoutEvent = room.lastLayoutEvent
+      // If the `layout.changed` has already been received, process the layout
+      if (roomLastLayoutEvent) {
+        processLayoutChanged(roomLastLayoutEvent)
       }
     }
 
     // If the remote video already exist, inject the remote stream to the video element
-    const videoTrack = roomPeer.remoteVideoTrack
+    // @ts-expect-error
+    const videoTrack = room.peer?.remoteVideoTrack as MediaStreamTrack | null
     if (videoTrack) {
-      await videoElementSetup({
-        applyLocalVideoOverlay,
-        rootElement,
-        track: videoTrack,
-        element: videoEl,
-      })
+      await processVideoTrack(videoTrack)
+    }
 
-      // If the `layout.changed` has already been received, process the layout
-      if (roomLastLayoutEvent) {
-        processLayoutChanged(roomLastLayoutEvent)
+    // Handle the RTCPeer `track` event
+    const trackHandler = async function (event: RTCTrackEvent) {
+      if (event.track.kind === 'video') {
+        await processVideoTrack(event.track)
       }
     }
 
@@ -203,19 +190,6 @@ export const buildVideoElement = async (
 
     // @ts-expect-error
     room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, mirrorVideoHandler)
-
-    const roomSubscribedHandler = () => {
-      if (room.localStream) {
-        localOverlay.setLocalOverlayMediaStream(room.localStream)
-      }
-    }
-
-    /**
-     * If the user joins with `join_video_muted: true` or
-     * `join_audio_muted: true` we'll stop the streams
-     * right away.
-     */
-    room.on('room.subscribed', roomSubscribedHandler)
 
     const memberVideoMutedHandler = (
       params: DeprecatedVideoMemberHandlerParams
@@ -242,7 +216,6 @@ export const buildVideoElement = async (
     const unsubscribe = () => {
       room.off('track', trackHandler)
       room.off('layout.changed', layoutChangedHandler)
-      room.off('room.subscribed', roomSubscribedHandler)
       room.off('member.updated.video_muted', memberVideoMutedHandler)
       // @ts-expect-error
       room.off(`${LOCAL_EVENT_PREFIX}.mirror.video`, mirrorVideoHandler)
@@ -258,23 +231,23 @@ export const buildVideoElement = async (
 }
 
 interface VideoElementSetupWorkerParams {
-  rootElement: HTMLDivElement
+  rootElement: HTMLElement
   track: MediaStreamTrack
-  element: HTMLVideoElement
+  videoElement: HTMLVideoElement
   applyLocalVideoOverlay?: boolean
 }
 
 const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
-    const { applyLocalVideoOverlay, track, element, rootElement } = options
+    const { applyLocalVideoOverlay, track, videoElement, rootElement } = options
 
-    setVideoMediaTrack({ element, track })
+    setVideoMediaTrack({ element: videoElement, track })
 
-    element.style.width = '100%'
-    element.style.maxHeight = '100%'
+    videoElement.style.width = '100%'
+    videoElement.style.maxHeight = '100%'
 
     if (!applyLocalVideoOverlay) {
-      rootElement.appendChild(element)
+      rootElement.appendChild(videoElement)
       return
     }
     if (rootElement.querySelector('.mcuContent')) {
@@ -288,7 +261,7 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     mcuWrapper.style.left = '0'
     mcuWrapper.style.right = '0'
     mcuWrapper.style.bottom = '0'
-    mcuWrapper.appendChild(element)
+    mcuWrapper.appendChild(videoElement)
 
     const paddingWrapper = document.createElement('div')
     paddingWrapper.classList.add('paddingWrapper')
@@ -300,10 +273,10 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     const fixInLandscapeOrientation =
       rootElement.classList.contains('landscape-only')
     VIDEO_SIZING_EVENTS.forEach((event) =>
-      element.addEventListener(event, () => {
+      videoElement.addEventListener(event, () => {
         const paddingBottom = fixInLandscapeOrientation
           ? '56.25'
-          : (element.videoHeight / element.videoWidth) * 100
+          : (videoElement.videoHeight / videoElement.videoWidth) * 100
         paddingWrapper.style.paddingBottom = `${paddingBottom}%`
       })
     )
@@ -328,10 +301,10 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     rootElement.style.height = '100%'
     rootElement.appendChild(relativeWrapper)
 
-    getLogger().debug('MCU readyState 1 >>', element.readyState)
-    if (element.readyState === HTMLMediaElement.HAVE_NOTHING) {
+    getLogger().debug('MCU readyState 1 >>', videoElement.readyState)
+    if (videoElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
       getLogger().debug('Wait for the MCU to be ready')
-      await waitForVideoReady({ element })
+      await waitForVideoReady({ element: videoElement })
     }
     getLogger().debug('MCU is ready..')
 

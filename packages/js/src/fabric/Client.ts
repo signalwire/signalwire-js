@@ -2,11 +2,9 @@ import { BaseClient, ClientEvents, actions } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
 import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
-import {
-  makeAudioElementSaga,
-  makeVideoElementSaga,
-} from '../features/mediaElements/mediaElementsSagas'
+import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { RoomSessionConnection } from '../BaseRoomSession'
+import { buildVideoElement } from './buildVideoElement'
 
 export class Client extends BaseClient<ClientEvents> {
   makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {
@@ -31,73 +29,23 @@ export class Client extends BaseClient<ClientEvents> {
       })
     )
 
-    /**
-     * If the user provides a `rootElement` we'll
-     * automatically handle the Video element for them
-     */
-    if (rootElement) {
-      customSagas.push(
-        makeVideoElementSaga({
-          rootElement,
-          applyLocalVideoOverlay,
-        })
-      )
-    }
-
     const room = createCallFabricRoomSessionObject({
       ...options,
       store: this.store,
       customSagas,
     })
 
-    room.on('room.subscribed', (params) => {
-      const member = params.room_session.members?.find(
-        (m) => m.id === room.memberId
-      )
-
-      if (member?.audio_muted) {
-        try {
-          room.stopOutboundAudio()
-        } catch (error) {
-          this.logger.error('Error handling audio_muted', error)
-        }
-      }
-
-      if (member?.video_muted) {
-        try {
-          room.stopOutboundVideo()
-        } catch (error) {
-          this.logger.error('Error handling video_muted', error)
-        }
-      }
-    })
-
     /**
-     * If the user joins with `join_video_muted: true` or
-     * `join_audio_muted: true` we'll stop the streams
-     * right away.
+     * If the user provides a `rootElement` we'll
+     * automatically handle the Video element for them
      */
-    room.on('room.subscribed', (params) => {
-      const member = params.room_session.members?.find(
-        (m) => m.id === room.memberId
-      )
-
-      if (member?.audio_muted) {
-        try {
-          room.stopOutboundAudio()
-        } catch (error) {
-          this.logger.error('Error handling audio_muted', error)
-        }
+    if (rootElement) {
+      try {
+        buildVideoElement({ room, rootElement })
+      } catch (error) {
+        this.logger.error('Unable to build the video element automatically')
       }
-
-      if (member?.video_muted) {
-        try {
-          room.stopOutboundVideo()
-        } catch (error) {
-          this.logger.error('Error handling video_muted', error)
-        }
-      }
-    })
+    }
 
     /**
      * If the user joins with `join_video_muted: true` or
