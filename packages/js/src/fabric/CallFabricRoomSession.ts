@@ -1,11 +1,11 @@
 import {
   BaseComponentOptions,
-  BaseRPCResult,
   connect,
   ExecuteExtendedOptions,
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
+  BaseRPCResult,
   RoomSessionMember,
 } from '@signalwire/core'
 import {
@@ -111,32 +111,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private executeAction<
     InputType,
     OutputType = InputType,
-    ParamsType extends Rooms.RoomMethodParams = Rooms.RoomMethodParams
-  >(
-    params: ExecuteActionParams,
-    options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
-  ) {
-    const { method, extraParams = {} } = params
-
-    return this.execute<InputType, OutputType, ParamsType>(
-      {
-        method,
-        params: {
-          self: {
-            member_id: this.selfMember?.id,
-            call_id: this.selfMember?.callId,
-            node_id: this.selfMember?.nodeId,
-          },
-          ...extraParams,
-        },
-      },
-      options
-    )
-  }
-
-  private executeMemberAction<
-    InputType,
-    OutputType,
     ParamsType extends Rooms.RoomMemberMethodParams = Rooms.RoomMemberMethodParams
   >(
     params: ExecuteMemberActionParams,
@@ -169,7 +143,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   audioMute(params: Rooms.RoomMemberMethodParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'audio',
       memberId: params?.memberId,
@@ -177,7 +151,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   audioUnmute(params: Rooms.RoomMemberMethodParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'audio',
       memberId: params?.memberId,
@@ -185,7 +159,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   videoMute(params: Rooms.RoomMemberMethodParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'video',
       memberId: params?.memberId,
@@ -193,7 +167,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   videoUnmute(params: Rooms.RoomMemberMethodParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'video',
       memberId: params?.memberId,
@@ -201,14 +175,14 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   deaf(params: Rooms.RoomMemberMethodParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.deaf',
       memberId: params?.memberId,
     })
   }
 
   undeaf(params: Rooms.RoomMemberMethodParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.undeaf',
       memberId: params?.memberId,
     })
@@ -244,25 +218,24 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     if (!params?.memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.member.remove',
       memberId: params.memberId,
     })
   }
 
-  setLayout(params: Rooms.SetLayoutParams) {
+  setLayout(params: { name: string }) {
     const extraParams = {
-      name: params?.name,
-      layout: Object.values(params?.positions || {})[0],
+      layout: params?.name,
     }
-    return this.executeAction<void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.layout.set',
       extraParams,
     })
   }
 
   setInputVolume(params: MemberCommandWithVolumeParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.volume.set',
       memberId: params?.memberId,
       extraParams: {
@@ -272,7 +245,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   setOutputVolume(params: MemberCommandWithVolumeParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'video.member.set_output_volume',
       memberId: params?.memberId,
       extraParams: {
@@ -282,7 +255,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   setInputSensitivity(params: MemberCommandWithValueParams) {
-    return this.executeMemberAction<BaseRPCResult, void>({
+    return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.sensitivity.set',
       memberId: params?.memberId,
       extraParams: {

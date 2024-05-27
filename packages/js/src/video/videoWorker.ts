@@ -38,7 +38,7 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
           instance: roomSession,
           initialState: payload,
         })
-        break
+        return
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':

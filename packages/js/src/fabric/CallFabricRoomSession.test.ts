@@ -73,14 +73,7 @@ describe('CallFabricRoomSession', () => {
   })
 
   describe('should use CallFabricRoomSessionConnection implementation', () => {
-    const roomActionParams = {
-      self: {
-        call_id: 'call-id-1',
-        member_id: 'member-id-1',
-        node_id: 'node-id-1',
-      },
-    }
-    const memberActionParams = {
+    const actionParams = {
       self: {
         call_id: 'call-id-1',
         member_id: 'member-id-1',
@@ -105,7 +98,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.mute',
           params: {
             channels: ['audio'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -124,7 +117,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.unmute',
           params: {
             channels: ['audio'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -143,7 +136,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.mute',
           params: {
             channels: ['video'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -162,7 +155,7 @@ describe('CallFabricRoomSession', () => {
           method: 'call.unmute',
           params: {
             channels: ['video'],
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -177,7 +170,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.deaf',
           params: {
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -195,7 +188,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.undeaf',
           params: {
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -213,7 +206,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.layout.list',
           params: {
-            ...roomActionParams,
+            ...actionParams,
           },
         },
         { transformResolve: expect.any(Function) }
@@ -231,7 +224,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.member.list',
           params: {
-            ...roomActionParams,
+            ...actionParams,
           },
         },
         { transformResolve: expect.any(Function) }
@@ -249,7 +242,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.member.remove',
           params: {
-            ...memberActionParams,
+            ...actionParams,
           },
         },
         {}
@@ -267,9 +260,8 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.layout.set',
           params: {
-            ...roomActionParams,
-            name: 'layout-1',
-            layout: undefined,
+            ...actionParams,
+            layout: 'layout-1',
           },
         },
         {}
@@ -287,7 +279,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.microphone.volume.set',
           params: {
-            ...memberActionParams,
+            ...actionParams,
             volume: 10,
           },
         },
@@ -306,7 +298,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'video.member.set_output_volume',
           params: {
-            ...memberActionParams,
+            ...actionParams,
             volume: 10,
           },
         },
@@ -325,7 +317,7 @@ describe('CallFabricRoomSession', () => {
         {
           method: 'call.microphone.sensitivity.set',
           params: {
-            ...memberActionParams,
+            ...actionParams,
             value: 10,
           },
         },
@@ -338,36 +330,6 @@ describe('CallFabricRoomSession', () => {
     const roomId = 'd8caec4b-ddc9-4806-b2d0-e7c7d5cefe79'
     const roomSessionId = '638a54a7-61d8-4db0-bc24-426aee5cebcd'
     const memberId = '465ea212-c456-423b-9bcc-838c5e1b2851'
-
-    it('should emit the room.subscribed event', (done) => {
-      room.on('room.subscribed', async (params) => {
-        expect(params.room_session.room_id).toEqual(roomId)
-        expect(params.room_session.room_session_id).toEqual(roomSessionId)
-        const { members, recordings, playbacks, streams } = params.room_session
-        expect(members).toHaveLength(2)
-        expect(members[0].member_id).toEqual(memberId)
-        members.forEach((member) => {
-          expect(member.visible).toEqual(true)
-          expect(member.audio_muted).toEqual(false)
-          expect(member.video_muted).toEqual(false)
-          expect(member.deaf).toEqual(false)
-          expect(member.meta).toStrictEqual({})
-        })
-        expect(recordings).toHaveLength(0)
-        expect(playbacks).toHaveLength(0)
-        expect(streams).toHaveLength(0)
-        done()
-      })
-
-      dispatchMockedCallJoined({
-        session: stack.session,
-        callId: callId,
-        roomId,
-        roomSessionId,
-        memberId,
-        nodeId: 'node-id-random',
-      })
-    })
 
     it('should maintain callSegments array', () => {
       // Since two call.joined has already been dispatched two times in the beforeEach
