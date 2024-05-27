@@ -274,5 +274,25 @@ describe('buildVideoElement', () => {
 
       expect(mcuLayers1).toBe(mcuLayers2)
     })
+
+    it('should mirror the video', async () => {
+      // @ts-expect-error
+      stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
+
+      const result = await renderAndStartVideo()
+      const mcuLayers = result.element.querySelector('.mcuLayers')
+      const videoElement = mcuLayers!.querySelector('video')
+
+      expect(room.localOverlay.mirrored).toBe(undefined)
+      expect(videoElement!.style.transform).toBe('scale(1, 1)')
+
+      room.localOverlay.setMirrored(true)
+      expect(room.localOverlay.mirrored).toBe(true)
+      expect(videoElement!.style.transform).toBe('scale(-1, 1)')
+
+      room.localOverlay.setMirrored(false)
+      expect(room.localOverlay.mirrored).toBe(false)
+      expect(videoElement!.style.transform).toBe('scale(1, 1)')
+    })
   })
 })
