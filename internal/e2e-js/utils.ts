@@ -827,15 +827,16 @@ export const createCallWithCompatibilityApi = async (
     }
   )
 
-  if (response.status === 201) {
+  if (Number.isInteger(Number(response.status)) && response.status !== null) {
+    if (response.status !== 201) { 
+      console.log(
+        'Unexpected response from REST API: ',
+        response.status,
+        ' = ',
+        response.statusText
+      )
+    }
     return response.status
-  } else {
-    console.log(
-      'Unexpected response from REST API: ',
-      response.status,
-      ' = ',
-      response.statusText
-    )
   }
   return undefined
 }
