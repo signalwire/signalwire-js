@@ -124,7 +124,7 @@ export const buildVideoElement = async (
 
     const processLayoutChanged = (params: any) => {
       // @ts-expect-error
-      if (room.peer.hasVideoSender && room.localStream) {
+      if (room.peer?.hasVideoSender && room.localStream) {
         makeLayoutHandler({
           layout: params.layout,
           localStream: room.localStream,
