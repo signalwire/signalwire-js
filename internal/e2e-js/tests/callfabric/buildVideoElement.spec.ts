@@ -214,4 +214,50 @@ test.describe('buildVideoElement', () => {
     const videoElements1 = await page.$$('div[id^="sw-sdk-"] > video')
     expect(videoElements1).toHaveLength(2)
   })
+
+  test('should not create a new element if the elements are same', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+    const roomName = 'cf-e2e-test-room'
+
+    await createCFClient(page)
+
+    // Create and expect 1 video elements
+    await page.evaluate(
+      async ({ roomName }) => {
+        return new Promise<void>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.dial({
+            to: `/public/${roomName}`,
+            rootElement: document.getElementById('rootElement'),
+          })
+
+          call.on('room.joined', async () => {
+            // @ts-expect-error
+            await window._SWJS.buildVideoElement({
+              room: call,
+              rootElement: document.getElementById('rootElement'),
+            })
+
+            resolve()
+          })
+
+          // @ts-expect-error
+          window._roomObj = call
+
+          await call.start()
+        })
+      },
+      { roomName }
+    )
+
+    await expectMCUVisible(page)
+
+    const videoElements1 = await page.$$('div[id^="sw-sdk-"] > video')
+    expect(videoElements1).toHaveLength(1)
+  })
 })
