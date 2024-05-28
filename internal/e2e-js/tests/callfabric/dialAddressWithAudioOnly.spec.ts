@@ -25,6 +25,7 @@ test.describe('Dial address with audio channel only', () => {
 
           const call = await client.dial({
             to: `/public/${roomName}?channel=audio`,
+            rootElement: document.getElementById('rootElement'),
           })
 
           call.on('room.joined', resolve)

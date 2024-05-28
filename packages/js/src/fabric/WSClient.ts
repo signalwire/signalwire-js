@@ -61,20 +61,16 @@ export class WSClient {
 
         const channelRegex = /\?channel\=(?<channel>(audio|video))/
         const result = channelRegex.exec(to)
-        let audio = params.audio ?? true
-        let negotiateAudio = true
         let video = params.video ?? true
-        let negotiateVideo = true
         if (result && result.groups?.channel === 'audio') {
           video = false
-          negotiateVideo = false
         }
 
         const call = this.wsClient.makeCallFabricObject({
-          audio,
+          audio: params.audio ?? true,
           video,
-          negotiateAudio,
-          negotiateVideo,
+          negotiateAudio: true,
+          negotiateVideo: true,
           // iceServers,
           rootElement: params.rootElement || this.options.rootElement,
           applyLocalVideoOverlay: true,
