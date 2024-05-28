@@ -1,10 +1,13 @@
 import { SignalWireContract } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createVideoRoom, createCFClient } from '../../utils'
+import { SERVER_URL, createCFClient } from '../../utils'
 import { uuid } from '@signalwire/core'
 
 test.describe('Conversation Room', () => {
-  test('send message in a room conversation', async ({ createCustomPage }) => {
+  test('send message in a room conversation', async ({
+    createCustomPage,
+    resource,
+  }) => {
     const page = await createCustomPage({ name: '[page]' })
     const page2 = await createCustomPage({
       name: '[page2]',
@@ -16,7 +19,7 @@ test.describe('Conversation Room', () => {
     await createCFClient(page2)
 
     const roomName = `e2e-js-convo-room_${uuid()}`
-    await createVideoRoom(roomName)
+    await resource.createVideoRoomResource(roomName)
 
     const firstMsgEvent = await page.evaluate(
       ({ roomName }) => {

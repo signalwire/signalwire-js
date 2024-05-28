@@ -1,20 +1,33 @@
 import type { Video } from '@signalwire/js'
-import { PageWithWsInspector, intercepWsTraffic, } from 'playwrigth-ws-inspector'
+import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
-import { enablePageLogs } from './utils'
+import {
+  Resource,
+  createVideoRoomResource,
+  deleteResource,
+  enablePageLogs,
+} from './utils'
 
 type CustomPage = Page & {
   swNetworkDown: () => Promise<void>
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: { name: string }): Promise<PageWithWsInspector<CustomPage>>
+  createCustomPage(options: {
+    name: string
+  }): Promise<PageWithWsInspector<CustomPage>>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
+  resource: {
+    createVideoRoomResource: (name?: string) => Promise<void>
+    resources: Resource[]
+  }
 }
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: { name: string }): Promise<PageWithWsInspector<CustomPage>> => {
+    const maker = async (options: {
+      name: string
+    }): Promise<PageWithWsInspector<CustomPage>> => {
       let page = await context.newPage()
       enablePageLogs(page, options.name)
       //@ts-ignore
@@ -68,7 +81,6 @@ const test = baseTest.extend<CustomFixture>({
       expect(row.rootEl).toBe(0)
     })
   },
-
   createCustomVanillaPage: async ({ context }, use) => {
     const maker = async (options: { name: string }): Promise<Page> => {
       const page = await context.newPage()
@@ -78,6 +90,29 @@ const test = baseTest.extend<CustomFixture>({
     await use(maker)
 
     console.log('Cleaning up pages..')
+  },
+  resource: async ({}, use) => {
+    const resources: Resource[] = []
+
+    const resource = {
+      createVideoRoomResource: async (name?: string) => {
+        const data = await createVideoRoomResource(name)
+        resources.push(data)
+      },
+      resources,
+    }
+    await use(resource)
+
+    // Clean up resources after use
+    const deleteResources = resources.map(async (resource) => {
+      try {
+        await deleteResource(resource.id)
+        console.log('>> Resource deleted successfully:', resource.id)
+      } catch (error) {
+        console.error('>> Failed to delete resource:', resource.id, error)
+      }
+    })
+    await Promise.allSettled(deleteResources)
   },
 })
 
