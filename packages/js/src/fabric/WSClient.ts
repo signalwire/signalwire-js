@@ -56,11 +56,26 @@ export class WSClient {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
+
+        const { to } = params
+
+        const channelRegex = /\?channel\=(?<channel>(audio|video))/
+        const result = channelRegex.exec(to)
+        let audio = params.audio ?? true
+        let negotiateAudio = true
+        let video = params.video ?? true
+        let negotiateVideo = true
+
+        if (result && result.groups?.channel === 'audio') {
+          video = false
+          negotiateVideo = true
+        }
+        
         const call = this.wsClient.makeCallFabricObject({
-          audio: params.audio ?? true,
-          video: params.video ?? true,
-          negotiateAudio: true,
-          negotiateVideo: true,
+          audio,
+          video,
+          negotiateAudio,
+          negotiateVideo,
           // iceServers,
           rootElement: params.rootElement || this.options.rootElement,
           applyLocalVideoOverlay: true,
