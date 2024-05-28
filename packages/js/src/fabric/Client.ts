@@ -41,7 +41,7 @@ export class Client extends BaseClient<ClientEvents> {
      */
     if (rootElement) {
       try {
-        buildVideoElement({ room, rootElement })
+        buildVideoElement({ room, rootElement, applyLocalVideoOverlay })
       } catch (error) {
         this.logger.error('Unable to build the video element automatically')
       }
