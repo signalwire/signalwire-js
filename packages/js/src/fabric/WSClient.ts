@@ -65,11 +65,9 @@ export class WSClient {
         let negotiateAudio = true
         let video = params.video ?? true
         let negotiateVideo = true
-        let applyLocalVideoOverlay = true
         if (result && result.groups?.channel === 'audio') {
           video = false
           negotiateVideo = false
-          applyLocalVideoOverlay = false
         }
 
         const call = this.wsClient.makeCallFabricObject({
@@ -79,7 +77,7 @@ export class WSClient {
           negotiateVideo,
           // iceServers,
           rootElement: params.rootElement || this.options.rootElement,
-          applyLocalVideoOverlay,
+          applyLocalVideoOverlay: true,
           stopCameraWhileMuted: true,
           stopMicrophoneWhileMuted: true,
           // speakerId,

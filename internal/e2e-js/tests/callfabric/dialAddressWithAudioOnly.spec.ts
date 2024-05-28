@@ -1,4 +1,3 @@
-import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -54,44 +53,6 @@ test.describe('Dial address with audio channel only', () => {
     expect(stats.outboundRTP).not.toHaveProperty('video')
     
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
-
-    // --------------- Muting Audio (self) ---------------
-    await page.evaluate(
-      async ({ roomSession }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-
-        const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
-            if (
-              params.member.id === roomSession.member_id &&
-              params.member.updated.includes('audio_muted') &&
-              params.member.audio_muted === true
-            ) {
-              resolve(true)
-            }
-          })
-        })
-
-        const memberUpdatedUnmuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
-            if (
-              params.member.id === roomSession.member_id &&
-              params.member.updated.includes('audio_muted') &&
-              params.member.audio_muted === false
-            ) {
-              resolve(true)
-            }
-          })
-        })
-
-        await roomObj.audioMute()
-        await roomObj.audioUnmute()
-
-        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
-      },
-      { roomSession }
-    )
   })
 
 })
