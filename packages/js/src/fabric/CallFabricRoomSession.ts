@@ -5,6 +5,7 @@ import {
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
+  VideoLayoutChangedEventParams,
   BaseRPCResult,
 } from '@signalwire/core'
 import {
@@ -41,6 +42,8 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+  private _lastLayoutEvent: VideoLayoutChangedEventParams
+
   protected initWorker() {
     /**
      * The unified eventing or CallFabric worker creates/stores member instances in the instance map
@@ -86,6 +89,14 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   get targetMember() {
     return this.callSegments[this.callSegments.length - 1]?.member
+  }
+
+  set lastLayoutEvent(event: any) {
+    this._lastLayoutEvent = event
+  }
+
+  get lastLayoutEvent() {
+    return this._lastLayoutEvent
   }
 
   private isSelfMember(id: string) {
