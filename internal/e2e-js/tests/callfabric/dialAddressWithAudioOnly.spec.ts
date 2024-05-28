@@ -3,8 +3,6 @@ import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
-  expectMCUVisible,
-  getAudioStats,
   getStats,
 } from '../../utils'
 
