@@ -8,8 +8,8 @@ import {
   getStats,
 } from '../../utils'
 
-test.describe('CallFabric VideoRoom', () => {
-  test('should handle joining a room, perform actions and then leave the room', async ({
+test.describe('Dial address with audio channel only', () => {
+  test('should handle joining a room with audio channel only', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -56,7 +56,7 @@ test.describe('CallFabric VideoRoom', () => {
     expect(stats.outboundRTP).not.toHaveProperty('video')
     
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
-    
+
     // --------------- Muting Audio (self) ---------------
     await page.evaluate(
       async ({ roomSession }) => {
