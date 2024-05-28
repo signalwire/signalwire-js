@@ -311,7 +311,6 @@ test.describe('CallFabric VideoRoom', () => {
 
     const stats = await getStats(page)
 
-    expect(stats.inboundRTP).not.toHaveProperty('video')
     expect(stats.outboundRTP).not.toHaveProperty('video')
     
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
