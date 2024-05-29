@@ -1,3 +1,4 @@
+import { uuid } from '@signalwire/core'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
   createCFClient,
@@ -8,7 +9,6 @@ import {
   SERVER_URL,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
-import { uuid } from '@signalwire/core'
 
 test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({

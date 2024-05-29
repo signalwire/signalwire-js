@@ -1,7 +1,7 @@
+import { uuid } from '@signalwire/core'
 import { SignalWireContract } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
-import { uuid } from '@signalwire/core'
 
 test.describe('Conversation Room', () => {
   test('send message in a room conversation', async ({
