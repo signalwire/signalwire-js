@@ -8,6 +8,7 @@ import {
   Rooms,
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
+  getLogger,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -21,7 +22,7 @@ import {
 } from '../video'
 import { BaseConnection } from '@signalwire/webrtc'
 import { getStorage } from '../utils/storage'
-import { CALLID_STORAGE_KEY } from './utils/constants'
+import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
 
 interface ExecuteActionParams {
@@ -73,15 +74,16 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       try {
         
         this.once('room.subscribed', ({ call_id }: VideoRoomSubscribedEventParams) => {
-          getStorage()?.setItem(CALLID_STORAGE_KEY, call_id)
+          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
           resolve()
         })
 
         this.once('destroy', () => {
-          getStorage()?.removeItem(CALLID_STORAGE_KEY)
+          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
         })
 
         await this.join()
+
       } catch (error) {
         this.logger.error('WSClient call start', error)
         reject(error)
@@ -90,10 +92,15 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   override async join() {
-    this.options.prevCallId = getStorage()?.getItem(CALLID_STORAGE_KEY) ?? undefined
+ 
+    if(this.options.attach) {
+      this.options.prevCallId = getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    getLogger().debug(`Tying to reattach to previuos call? ${!!this.options.prevCallId} - prevCallId: ${this.options.prevCallId}`)
+    
 
 
-    // TODO: We need to hadle the media constrains in a reattach
+    // TODO: We need to handle the media constrains in a reattach
     // const authState: VideoAuthorization = client._sessionAuthState
     // this.logger.debug('getJoinMediaParams authState?', authState)
     // if (authState && authState.type === 'video') {

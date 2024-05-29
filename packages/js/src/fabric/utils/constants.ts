@@ -1,1 +1,1 @@
-export const CALLID_STORAGE_KEY = 'ci-SAT';
+export const PREVIOUS_CALLID_STORAGE_KEY = 'ci-SAT';

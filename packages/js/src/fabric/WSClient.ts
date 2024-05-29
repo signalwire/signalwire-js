@@ -13,8 +13,6 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import { createClient } from './createClient'
 import { Client } from './Client'
-import { getStorage } from '../utils/storage'
-import { CALLID_STORAGE_KEY } from './utils/constants'
 
 export class WSClient {
   private wsClient: Client
@@ -55,13 +53,10 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    //prevent it to reattach to previuos call
-    getStorage()?.removeItem(CALLID_STORAGE_KEY)
-
-    return this.reattach(params)
+    return this.reattach({...params, attach: false })
   }
 
-  async reattach(params: DialParams) {
+  async reattach(params: DialParams & {attach?: boolean}) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
@@ -81,6 +76,7 @@ export class WSClient {
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
           disableUdpIceServers: params.disableUdpIceServers || false,
+          attach: params.attach === false ? false : true
         })
 
         // WebRTC connection left the room.

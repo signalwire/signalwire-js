@@ -12,20 +12,11 @@ export class SATSession extends JWTSession {
     super(options)
   }
 
-  get isReconnecting() {
-    return !!this._rpcConnectResult
-  }
-
   override get signature() {
     if (this._rpcConnectResult) {
       const { authorization } = this._rpcConnectResult
       return (authorization as SATAuthorization).jti
     }
     return undefined
-  }
-
-  override async retrieveRelayProtocol() {
-    // FIXME: until we get the "reattach" working for CF, we should only hijack the protocol in a "reconnect"
-    return this.isReconnecting ? super.retrieveRelayProtocol() : ''
   }
 }

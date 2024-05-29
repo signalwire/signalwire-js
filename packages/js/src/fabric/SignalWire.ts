@@ -23,7 +23,7 @@ export const SignalWire = (
         online: wsClient.online.bind(wsClient),
         offline: wsClient.offline.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
-        reattach: wsClient.dial.bind(wsClient), 
+        reattach: wsClient.reattach.bind(wsClient), 
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
         address: {
