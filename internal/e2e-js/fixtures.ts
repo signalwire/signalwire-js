@@ -2,9 +2,11 @@ import type { Video } from '@signalwire/js'
 import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
-  CreateSWMLResourceParams,
+  CreateRelayAppResourceParams,
+  CreateSWMLAppResourceParams,
   Resource,
-  createSWMLResource,
+  createRelayAppResource,
+  createSWMLAppResource,
   createVideoRoomResource,
   deleteResource,
   enablePageLogs,
@@ -21,7 +23,8 @@ type CustomFixture = {
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
     createVideoRoomResource: typeof createVideoRoomResource
-    createSWMLResource: typeof createSWMLResource
+    createSWMLAppResource: typeof createSWMLAppResource
+    createRelayAppResource: typeof createRelayAppResource
     resources: Resource[]
   }
 }
@@ -98,16 +101,18 @@ const test = baseTest.extend<CustomFixture>({
     const resources: Resource[] = []
 
     const resource = {
-      createVideoRoomResource: async (name?: string) => {
-        const data = await createVideoRoomResource(name)
+      createVideoRoomResource: async (params?: string) => {
+        const data = await createVideoRoomResource(params)
         resources.push(data)
         return data
       },
-      createSWMLResource: async ({
-        name,
-        contents,
-      }: CreateSWMLResourceParams) => {
-        const data = await createSWMLResource({ name, contents })
+      createSWMLAppResource: async (params: CreateSWMLAppResourceParams) => {
+        const data = await createSWMLAppResource(params)
+        resources.push(data)
+        return data
+      },
+      createRelayAppResource: async (params: CreateRelayAppResourceParams) => {
+        const data = await createRelayAppResource(params)
         resources.push(data)
         return data
       },

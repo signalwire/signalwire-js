@@ -1105,7 +1105,7 @@ export const createVideoRoomResource = async (name?: string) => {
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name: name ? name : `e2e-js-test-room_${uuid()}`,
+        name: name ?? `e2e-test-room_${uuid()}`,
       }),
     }
   )
@@ -1114,14 +1114,14 @@ export const createVideoRoomResource = async (name?: string) => {
   return data
 }
 
-export interface CreateSWMLResourceParams {
-  name: string
+export interface CreateSWMLAppResourceParams {
+  name?: string
   contents: Record<any, any>
 }
-export const createSWMLResource = async ({
+export const createSWMLAppResource = async ({
   name,
   contents,
-}: CreateSWMLResourceParams) => {
+}: CreateSWMLAppResourceParams) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/swml_applications`,
     {
@@ -1131,7 +1131,7 @@ export const createSWMLResource = async ({
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name,
+        name: name ?? `e2e-swml-app_${uuid()}`,
         handle_calls_using: 'script',
         call_status_callback_method: 'POST',
         call_status_callback_url: 'https://example.com/call_handler',
@@ -1140,7 +1140,34 @@ export const createSWMLResource = async ({
     }
   )
   const data = (await response.json()) as Resource
-  console.log('>> Resource SWML created:', data.id)
+  console.log('>> Resource SWML App created:', data.id)
+  return data
+}
+
+export interface CreateRelayAppResourceParams {
+  name?: string
+  reference: string
+}
+export const createRelayAppResource = async ({
+  name,
+  reference,
+}: CreateRelayAppResourceParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-relay-app_${uuid()}`,
+        reference,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource Relay App created:', data.id)
   return data
 }
 

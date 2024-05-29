@@ -8,10 +8,12 @@ import {
   SERVER_URL,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
+import { uuid } from '@signalwire/core'
 
 test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({
     createCustomPage,
+    resource,
   }) => {
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
@@ -22,8 +24,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
+    const reference = `e2e-relay-app_${uuid()}`
+    await resource.createRelayAppResource({
+      name: reference,
+      reference,
+    })
+
     await client.voice.listen({
-      topics: ['cf-e2e-test-relay'],
+      topics: [reference],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -50,8 +58,6 @@ test.describe('CallFabric Relay Application', () => {
 
     await createCFClient(page)
 
-    const resourceName = 'cf-e2e-test-relay'
-
     await page.evaluate(
       async (options) => {
         return new Promise<any>(async (resolve, _reject) => {
@@ -59,7 +65,7 @@ test.describe('CallFabric Relay Application', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${options.resourceName}`,
+            to: `/private/${options.reference}`,
             rootElement: document.getElementById('rootElement'),
           })
 
@@ -69,7 +75,7 @@ test.describe('CallFabric Relay Application', () => {
           resolve(call)
         })
       },
-      { resourceName }
+      { reference }
     )
 
     const callPlayStarted = page.evaluate(async () => {
@@ -126,6 +132,7 @@ test.describe('CallFabric Relay Application', () => {
 
   test('should connect to the relay app and expect a silence', async ({
     createCustomPage,
+    resource,
   }) => {
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
@@ -136,8 +143,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
+    const reference = `e2e-relay-app_${uuid()}`
+    await resource.createRelayAppResource({
+      name: reference,
+      reference,
+    })
+
     await client.voice.listen({
-      topics: ['cf-e2e-test-relay'],
+      topics: [reference],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -160,8 +173,6 @@ test.describe('CallFabric Relay Application', () => {
 
     await createCFClient(page)
 
-    const resourceName = 'cf-e2e-test-relay'
-
     await page.evaluate(
       async (options) => {
         return new Promise<any>(async (resolve, _reject) => {
@@ -169,7 +180,7 @@ test.describe('CallFabric Relay Application', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${options.resourceName}`,
+            to: `/private/${options.reference}`,
             rootElement: document.getElementById('rootElement'),
           })
 
@@ -179,7 +190,7 @@ test.describe('CallFabric Relay Application', () => {
           resolve(call)
         })
       },
-      { resourceName }
+      { reference }
     )
 
     const callPlayStarted = page.evaluate(async () => {
@@ -249,6 +260,7 @@ test.describe('CallFabric Relay Application', () => {
 
   test('should connect to the relay app and expect a hangup', async ({
     createCustomPage,
+    resource,
   }) => {
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
@@ -259,8 +271,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
+    const reference = `e2e-relay-app_${uuid()}`
+    await resource.createRelayAppResource({
+      name: reference,
+      reference,
+    })
+
     await client.voice.listen({
-      topics: ['cf-e2e-test-relay'],
+      topics: [reference],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -279,8 +297,6 @@ test.describe('CallFabric Relay Application', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const resourceName = 'cf-e2e-test-relay'
-
     await createCFClient(page)
 
     await page.evaluate(
@@ -290,7 +306,7 @@ test.describe('CallFabric Relay Application', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${options.resourceName}`,
+            to: `/private/${options.reference}`,
             rootElement: document.getElementById('rootElement'),
           })
 
@@ -300,7 +316,7 @@ test.describe('CallFabric Relay Application', () => {
           resolve(call)
         })
       },
-      { resourceName }
+      { reference }
     )
 
     const expectInitialEvents = expectCFInitialEvents(page)
