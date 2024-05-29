@@ -1114,6 +1114,36 @@ export const createVideoRoomResource = async (name?: string) => {
   return data
 }
 
+export interface CreateSWMLResourceParams {
+  name: string
+  contents: Record<any, any>
+}
+export const createSWMLResource = async ({
+  name,
+  contents,
+}: CreateSWMLResourceParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/swml_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name,
+        handle_calls_using: 'script',
+        call_status_callback_method: 'POST',
+        call_status_callback_url: 'https://example.com/call_handler',
+        call_handler_script: contents,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource SWML created:', data.id)
+  return data
+}
+
 export const deleteResource = async (id: string) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/${id}`,

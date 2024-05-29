@@ -2,7 +2,9 @@ import type { Video } from '@signalwire/js'
 import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
+  CreateSWMLResourceParams,
   Resource,
+  createSWMLResource,
   createVideoRoomResource,
   deleteResource,
   enablePageLogs,
@@ -18,7 +20,8 @@ type CustomFixture = {
   }): Promise<PageWithWsInspector<CustomPage>>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
-    createVideoRoomResource: (name?: string) => Promise<void>
+    createVideoRoomResource: typeof createVideoRoomResource
+    createSWMLResource: typeof createSWMLResource
     resources: Resource[]
   }
 }
@@ -98,6 +101,15 @@ const test = baseTest.extend<CustomFixture>({
       createVideoRoomResource: async (name?: string) => {
         const data = await createVideoRoomResource(name)
         resources.push(data)
+        return data
+      },
+      createSWMLResource: async ({
+        name,
+        contents,
+      }: CreateSWMLResourceParams) => {
+        const data = await createSWMLResource({ name, contents })
+        resources.push(data)
+        return data
       },
       resources,
     }
