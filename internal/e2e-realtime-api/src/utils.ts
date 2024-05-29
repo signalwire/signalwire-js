@@ -179,12 +179,6 @@ export const sessionStorageMock = () => {
   }
 }
 
-export const sleep = (ms = 3000) => {
-  return new Promise((r) => {
-    setTimeout(r, ms)
-  })
-}
-
 export const makeSipDomainAppAddress = ({ name, domain }) => {
   return `sip:${name}-${randomBytes(16).toString('hex')}@${domain}.${
     process.env.DAPP_DOMAIN
