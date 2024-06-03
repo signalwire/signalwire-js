@@ -169,6 +169,18 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._self = member
   }
 
+  set member(member: RoomSessionMember) {
+    this._member = member
+  }
+
+  override get memberId() {
+    return this._member?.memberId
+  }
+
+  set lastLayoutEvent(layoutEvent: VideoLayoutChangedEventParams) {
+    this._lastLayoutEvent = layoutEvent
+  } 
+
 
   private executeAction<
     InputType,
