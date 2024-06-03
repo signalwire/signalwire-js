@@ -74,7 +74,7 @@ export interface WSClientOptions extends UserOptions {
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
   /** User & UserAgent metadata */
-  userVariables?: { [key: string]: any }
+  userVariables?: Record<string, any>
 }
 
 export type InboundCallSource = 'websocket' | 'pushNotification'
