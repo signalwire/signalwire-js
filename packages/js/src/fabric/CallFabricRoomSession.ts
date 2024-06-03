@@ -177,8 +177,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._member?.memberId
   }
 
-  set lastLayoutEvent(layoutEvent: VideoLayoutChangedEventParams) {
-    this._lastLayoutEvent = layoutEvent
+  set lastLayoutEvent(event: any) {
+    this._lastLayoutEvent = event
+  }
+
+  get lastLayoutEvent() {
+    return this._lastLayoutEvent
   } 
 
 
