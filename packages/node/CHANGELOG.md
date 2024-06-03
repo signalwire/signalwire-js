@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - 2024-06-03
+
+### Changed
+
+- [#1001](https://github.com/signalwire/signalwire-js/pull/1001) [`968d226b`](https://github.com/signalwire/signalwire-js/commit/968d226ba2791f44dea4bd1b0d173aefaf103bda) Thanks [@ayeminag](https://github.com/ayeminag)! - - API to fetch address by id and tests
+
+### Dependencies
+
+- Updated dependencies [[`968d226b`](https://github.com/signalwire/signalwire-js/commit/968d226ba2791f44dea4bd1b0d173aefaf103bda), [`a0f88129`](https://github.com/signalwire/signalwire-js/commit/a0f8812990fee72230bc50f93ee12bb0803f60f5)]:
+  - @signalwire/web-api@3.1.2
+  - @signalwire/realtime-api@4.0.1
+
 ## [3.0.2] - 2023-09-14
 
 ### Changed
