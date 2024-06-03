@@ -2,11 +2,9 @@ import { BaseClient, ClientEvents, actions } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
 import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
-import {
-  makeAudioElementSaga,
-  makeVideoElementSaga,
-} from '../features/mediaElements/mediaElementsSagas'
+import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { RoomSessionConnection } from '../BaseRoomSession'
+import { buildVideoElement } from './buildVideoElement'
 
 export class Client extends BaseClient<ClientEvents> {
   makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {
@@ -31,24 +29,23 @@ export class Client extends BaseClient<ClientEvents> {
       })
     )
 
-    /**
-     * If the user provides a `rootElement` we'll
-     * automatically handle the Video element for them
-     */
-    if (rootElement) {
-      customSagas.push(
-        makeVideoElementSaga({
-          rootElement,
-          applyLocalVideoOverlay,
-        })
-      )
-    }
-    
     const room = createCallFabricRoomSessionObject({
       ...options,
       store: this.store,
       customSagas,
     })
+
+    /**
+     * If the user provides a `rootElement` we'll
+     * automatically handle the Video element for them
+     */
+    if (rootElement) {
+      try {
+        buildVideoElement({ room, rootElement, applyLocalVideoOverlay })
+      } catch (error) {
+        this.logger.error('Unable to build the video element automatically')
+      }
+    }
 
     /**
      * If the user joins with `join_video_muted: true` or

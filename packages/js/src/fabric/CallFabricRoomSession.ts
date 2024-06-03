@@ -6,6 +6,7 @@ import {
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
+  VideoLayoutChangedEventParams,
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
   getLogger,
@@ -49,6 +50,8 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _self?: RoomSessionMember
   private _member?: RoomSessionMember
+
+  private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   protected initWorker() {
     /**
@@ -166,13 +169,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._self = member
   }
 
-  set member(member: RoomSessionMember) {
-    this._member = member
-  }
-
-  override get memberId() {
-    return this._member?.memberId
-  }
 
   private executeAction<
     InputType,

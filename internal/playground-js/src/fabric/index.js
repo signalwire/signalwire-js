@@ -1,4 +1,4 @@
-import { SignalWire } from '@signalwire/js'
+import { SignalWire, buildVideoElement } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,
@@ -337,6 +337,26 @@ window.connect = async () => {
 
   await call.start()
   console.debug('Call Obj', call)
+
+  // Render video element using custom function
+  // setTimeout(async () => {
+  //   const { unsubscribe } = await buildVideoElement({
+  //     room: call,
+  //     rootElement: document.getElementById('random1'),
+  //   })
+
+  //   setTimeout(async () => {
+  //     const { element } = await buildVideoElement({
+  //       room: call,
+  //     })
+  //     const root = document.getElementById('random2')
+  //     root.appendChild(element)
+
+  //     setTimeout(() => {
+  //       unsubscribe()
+  //     }, 10000)
+  //   }, 5000)
+  // }, 5000)
 
   enumerateDevices()
     .then(initDeviceOptions)
