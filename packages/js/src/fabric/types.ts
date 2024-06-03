@@ -60,7 +60,7 @@ export interface CallOptions {
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
   /** User & UserAgent metadata */
-  userVariables?: { [key: string]: any }
+  userVariables?: WSClientOptions['userVariables']
 }
 
 export interface DialParams extends CallOptions {
