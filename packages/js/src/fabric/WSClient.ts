@@ -82,6 +82,7 @@ export class WSClient {
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
           disableUdpIceServers: params.disableUdpIceServers || false,
+          userVariables: params.userVariables || this.options.userVariables
         })
 
         // WebRTC connection left the room.
@@ -222,6 +223,7 @@ export class WSClient {
       prevCallId: callID,
       nodeId,
       disableUdpIceServers: params.disableUdpIceServers || false,
+      userVariables: params.userVariables || this.options.userVariables
     })
 
     // WebRTC connection left the room.
