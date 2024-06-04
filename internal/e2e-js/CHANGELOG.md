@@ -1,5 +1,13 @@
 # @sw-internal/e2e-js
 
+## 0.0.18
+
+### Patch Changes
+
+- [#1027](https://github.com/signalwire/signalwire-js/pull/1027) [`c76f535c`](https://github.com/signalwire/signalwire-js/commit/c76f535c03e2bf18762ead2c2cd506426fa066c0) Thanks [@giavac](https://github.com/giavac)! - e2e tests for Call Fabric, relax expectation on Room Name
+
+- [#1053](https://github.com/signalwire/signalwire-js/pull/1053) [`d4014a2b`](https://github.com/signalwire/signalwire-js/commit/d4014a2bc8288a746e2763da0844b52731c8b2a8) Thanks [@giavac](https://github.com/giavac)! - Relax condition on expected packets, refactor that logic
+
 ## 0.0.17
 
 ### Patch Changes

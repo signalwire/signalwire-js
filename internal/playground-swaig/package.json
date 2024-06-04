@@ -2,7 +2,7 @@
   "name": "@sw-internal/playground-swaig",
   "description": "Playground for SWAIG",
   "author": "SignalWire Team <open.source@signalwire.com>",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "main": "index.js",
   "scripts": {

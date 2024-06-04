@@ -4,6 +4,88 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.27.0] - 2024-06-03
+
+### Added
+
+- [#956](https://github.com/signalwire/signalwire-js/pull/956) [`e16ec479`](https://github.com/signalwire/signalwire-js/commit/e16ec479be85b40f989aba2e3bae932fd9eb59d9) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce Conversation API with Conversation Subscriber
+
+- [#1001](https://github.com/signalwire/signalwire-js/pull/1001) [`968d226b`](https://github.com/signalwire/signalwire-js/commit/968d226ba2791f44dea4bd1b0d173aefaf103bda) Thanks [@ayeminag](https://github.com/ayeminag)! - - API to fetch address by id and tests
+
+- [#977](https://github.com/signalwire/signalwire-js/pull/977) [`19281d4a`](https://github.com/signalwire/signalwire-js/commit/19281d4a42dc7ae3a9239768a2de6e6da91f0287) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - NEW - by default the SDK will use the full width for the video call in both orientations.
+
+- [#979](https://github.com/signalwire/signalwire-js/pull/979) [`8667fdcc`](https://github.com/signalwire/signalwire-js/commit/8667fdccba8730edc66b01bcaf15a8ac82d73c15) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Changed API for handling incoming call over WebSocket and PushNotification
+
+- [#979](https://github.com/signalwire/signalwire-js/pull/979) [`8667fdcc`](https://github.com/signalwire/signalwire-js/commit/8667fdccba8730edc66b01bcaf15a8ac82d73c15) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Changed dial() and accept() functions now can receive a rootElement to render the call video
+
+- [#995](https://github.com/signalwire/signalwire-js/pull/995) [`c370fec8`](https://github.com/signalwire/signalwire-js/commit/c370fec84e86701d8baf8910aebf1e959dcedc85) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Fetch subscriber info function
+
+- [#973](https://github.com/signalwire/signalwire-js/pull/973) [`c8deacef`](https://github.com/signalwire/signalwire-js/commit/c8deacef19176b7f744b61b9fe454556f0eccd52) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Online/offline registeration for WebRTC endpoint
+
+- [#1052](https://github.com/signalwire/signalwire-js/pull/1052) [`36423414`](https://github.com/signalwire/signalwire-js/commit/364234142d66da73086478ffb62421be3dbfc405) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce the standalone `buildVideoElement` method to render the video element
+
+- [#968](https://github.com/signalwire/signalwire-js/pull/968) [`82bdfb9c`](https://github.com/signalwire/signalwire-js/commit/82bdfb9ce143aca15042bb4ce02460bc93fecb21) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - NEW emits `member.joined` events for all members in a `call.joined` event
+
+- [#999](https://github.com/signalwire/signalwire-js/pull/999) [`6d71362b`](https://github.com/signalwire/signalwire-js/commit/6d71362b589439fe3b4f234f4ff98871f8d98a20) Thanks [@ayeminag](https://github.com/ayeminag)! - - `client.conversations.sendMessage()`
+  - `conversation.sendMessage()` API for conversation object returned from `getConversations()` API
+  - `conversation.getMessages()` API for conversation object returned from `getConversations()`
+  - added e2e tests for conversation (room)
+
+### Changed
+
+- [#1012](https://github.com/signalwire/signalwire-js/pull/1012) [`45991e4c`](https://github.com/signalwire/signalwire-js/commit/45991e4c23065028b8e55af3c61faaf7661a8baf) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Cleanup unified eventing
+
+- [#975](https://github.com/signalwire/signalwire-js/pull/975) [`6c1b4293`](https://github.com/signalwire/signalwire-js/commit/6c1b429341209a3b2a62e82390bf34f5f35a0c36) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Export Call Fabric types
+
+- [#988](https://github.com/signalwire/signalwire-js/pull/988) [`78f46be4`](https://github.com/signalwire/signalwire-js/commit/78f46be4743ef32a358d7975556e08eb40de69a4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Allow user pass video audio constraints
+
+- [#1054](https://github.com/signalwire/signalwire-js/pull/1054) [`dd0c693f`](https://github.com/signalwire/signalwire-js/commit/dd0c693f72d7f2d60ecf7eda9b5ae86a58248986) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Fix layout and member list actions
+
+- [#982](https://github.com/signalwire/signalwire-js/pull/982) [`ded3dc7a`](https://github.com/signalwire/signalwire-js/commit/ded3dc7a71977460d19fc623c3f2745f5365fb7b) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: OAuth refresh token
+
+- [#996](https://github.com/signalwire/signalwire-js/pull/996) [`006a13e3`](https://github.com/signalwire/signalwire-js/commit/006a13e36b5531609e145b184970330db547e006) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose conversation event params
+
+- [#1047](https://github.com/signalwire/signalwire-js/pull/1047) [`6135cf54`](https://github.com/signalwire/signalwire-js/commit/6135cf54944a3daca3b3e1a5c95cd03cfd20fc3d) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Fix dial method return type
+
+- [#978](https://github.com/signalwire/signalwire-js/pull/978) [`0f4f2b3c`](https://github.com/signalwire/signalwire-js/commit/0f4f2b3cbf788a259baf5543fe82bbfc8b2540b7) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce pageSize param for Conversation APIs
+
+- [#966](https://github.com/signalwire/signalwire-js/pull/966) [`45dbb9dd`](https://github.com/signalwire/signalwire-js/commit/45dbb9dde5c71638bc36a3f65736dde1b35d3c20) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Only emits self member updates with the original self.member_id. That is to prevent the application to be exposed to internal self member versions on each call segment.
+
+- [#1058](https://github.com/signalwire/signalwire-js/pull/1058) [`1ff74249`](https://github.com/signalwire/signalwire-js/commit/1ff742493cf27e7d31d3e9cb5757443859e79509) Thanks [@ayeminag](https://github.com/ayeminag)! - - Parse `to` parameter in `dial` request to detect `channel=audio|video` and negotiate media accordingly.
+
+  - Added e2e test
+
+- [#1030](https://github.com/signalwire/signalwire-js/pull/1030) [`254016f3`](https://github.com/signalwire/signalwire-js/commit/254016f396ce89cda82585b6ef9bb3f0e5b9135c) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Destroy the workers after a successful verto.bye
+
+- [#1002](https://github.com/signalwire/signalwire-js/pull/1002) [`55b8c51a`](https://github.com/signalwire/signalwire-js/commit/55b8c51aeb8bcb3147aee22aeb5a8555c71d847f) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - FIXED connects to before sending the online request
+
+- [#1003](https://github.com/signalwire/signalwire-js/pull/1003) [`3a37e0a9`](https://github.com/signalwire/signalwire-js/commit/3a37e0a99300412210f3a934834044405c189da4) Thanks [@ayeminag](https://github.com/ayeminag)! - - fix Conversation.test.ts
+
+- [#1046](https://github.com/signalwire/signalwire-js/pull/1046) [`7a5b9d1d`](https://github.com/signalwire/signalwire-js/commit/7a5b9d1d6628d086b805f557169fe6a4e4890dac) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - FIX return types of the `online`, `offline`, and `dial` methods
+  FIX handling of the optional `rootElement` param
+
+- [#994](https://github.com/signalwire/signalwire-js/pull/994) [`553efcdd`](https://github.com/signalwire/signalwire-js/commit/553efcdde3d0bf7d970107d7b0320ea141fb063c) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Expsose Call Fabric types
+
+- [#992](https://github.com/signalwire/signalwire-js/pull/992) [`3d20672b`](https://github.com/signalwire/signalwire-js/commit/3d20672bbf2247b35e7d3ee8524a904fae1e6b2a) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix room session id usage in room worker
+
+- [#983](https://github.com/signalwire/signalwire-js/pull/983) [`3d6a4fbe`](https://github.com/signalwire/signalwire-js/commit/3d6a4fbe4364a5795233d2aac87ba309d9d34bdd) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce CallSegment and CallFabric worker
+
+- [#960](https://github.com/signalwire/signalwire-js/pull/960) [`184c8777`](https://github.com/signalwire/signalwire-js/commit/184c8777d1891985ab6bccbf417938e0dae5041f) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce member instance in CF SDK
+
+- [#1055](https://github.com/signalwire/signalwire-js/pull/1055) [`e76c89c7`](https://github.com/signalwire/signalwire-js/commit/e76c89c73dba33d481212f7785cdf7650dbe4351) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix the outbound audio/video streams
+
+- [#1050](https://github.com/signalwire/signalwire-js/pull/1050) [`229320b3`](https://github.com/signalwire/signalwire-js/commit/229320b3a105690bcb5c7271bc516d6269a1ca76) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introducing Call Fabric client
+
+- [#1017](https://github.com/signalwire/signalwire-js/pull/1017) [`d215ef5d`](https://github.com/signalwire/signalwire-js/commit/d215ef5d1501f5f3df4e5d3837ac740f42649c2e) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Improve the action invoke strategy
+
+- [#965](https://github.com/signalwire/signalwire-js/pull/965) [`a08512a3`](https://github.com/signalwire/signalwire-js/commit/a08512a3a4f3a6fd1d0faf643f3c481ca668abc4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Page size for Address API
+
+### Dependencies
+
+- Updated dependencies [[`45991e4c`](https://github.com/signalwire/signalwire-js/commit/45991e4c23065028b8e55af3c61faaf7661a8baf), [`e16ec479`](https://github.com/signalwire/signalwire-js/commit/e16ec479be85b40f989aba2e3bae932fd9eb59d9), [`968d226b`](https://github.com/signalwire/signalwire-js/commit/968d226ba2791f44dea4bd1b0d173aefaf103bda), [`ded3dc7a`](https://github.com/signalwire/signalwire-js/commit/ded3dc7a71977460d19fc623c3f2745f5365fb7b), [`0f4f2b3c`](https://github.com/signalwire/signalwire-js/commit/0f4f2b3cbf788a259baf5543fe82bbfc8b2540b7), [`254016f3`](https://github.com/signalwire/signalwire-js/commit/254016f396ce89cda82585b6ef9bb3f0e5b9135c), [`c370fec8`](https://github.com/signalwire/signalwire-js/commit/c370fec84e86701d8baf8910aebf1e959dcedc85), [`3d20672b`](https://github.com/signalwire/signalwire-js/commit/3d20672bbf2247b35e7d3ee8524a904fae1e6b2a), [`3d6a4fbe`](https://github.com/signalwire/signalwire-js/commit/3d6a4fbe4364a5795233d2aac87ba309d9d34bdd), [`184c8777`](https://github.com/signalwire/signalwire-js/commit/184c8777d1891985ab6bccbf417938e0dae5041f), [`c8deacef`](https://github.com/signalwire/signalwire-js/commit/c8deacef19176b7f744b61b9fe454556f0eccd52), [`e76c89c7`](https://github.com/signalwire/signalwire-js/commit/e76c89c73dba33d481212f7785cdf7650dbe4351), [`229320b3`](https://github.com/signalwire/signalwire-js/commit/229320b3a105690bcb5c7271bc516d6269a1ca76), [`d215ef5d`](https://github.com/signalwire/signalwire-js/commit/d215ef5d1501f5f3df4e5d3837ac740f42649c2e), [`a08512a3`](https://github.com/signalwire/signalwire-js/commit/a08512a3a4f3a6fd1d0faf643f3c481ca668abc4), [`6d71362b`](https://github.com/signalwire/signalwire-js/commit/6d71362b589439fe3b4f234f4ff98871f8d98a20)]:
+  - @signalwire/core@4.1.0
+  - @signalwire/webrtc@3.12.1
+
 ## [3.26.0] - 2024-04-17
 
 ### Added
