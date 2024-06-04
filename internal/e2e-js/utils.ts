@@ -1133,9 +1133,7 @@ export const createSWMLAppResource = async ({
       body: JSON.stringify({
         name: name ?? `e2e-swml-app_${uuid()}`,
         handle_calls_using: 'script',
-        call_status_callback_method: 'POST',
-        call_status_callback_url: 'https://example.com/call_handler',
-        call_handler_script: contents,
+        call_handler_script: JSON.stringify(contents),
       }),
     }
   )
