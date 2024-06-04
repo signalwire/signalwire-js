@@ -41,12 +41,23 @@ interface Resource {
 
 const apiFetch = async (url: string, options: RequestInit) => {
   const response = await fetch(url, options)
+  const responseBody = await response.text()
   if (!response.ok) {
-    const error = await response.json()
-    console.log(`>> Error with fetch to ${url}:`, error)
-    throw error
+    try {
+      const error = JSON.parse(responseBody)
+      console.log(`>> Error with fetch to ${url}:`, error)
+      throw error
+    } catch (parseError) {
+      console.log(`>> Error with fetch to ${url}:`, responseBody)
+      throw new Error(responseBody)
+    }
   }
-  return response.json()
+
+  try {
+    return JSON.parse(responseBody)
+  } catch (parseError) {
+    return responseBody
+  }
 }
 
 interface CreateRelayAppResourceParams {
