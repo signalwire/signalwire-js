@@ -39,6 +39,16 @@ interface Resource {
   created_at: string
 }
 
+const apiFetch = async (url: string, options: RequestInit) => {
+  const response = await fetch(url, options)
+  if (!response.ok) {
+    const error = await response.json()
+    console.log(`>> Error with fetch to ${url}:`, error)
+    throw error
+  }
+  return response.json()
+}
+
 interface CreateRelayAppResourceParams {
   name: string
   reference: string
@@ -46,23 +56,16 @@ interface CreateRelayAppResourceParams {
 export const createRelayAppResource = async (
   params: CreateRelayAppResourceParams
 ) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: getAuthorization(),
-      },
-      body: JSON.stringify(params),
-    }
-  )
-  if (!response.ok) {
-    const error = await response.json()
-    console.log('>> Unable to create Relay App', error)
-    throw error
+  const url = `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+    body: JSON.stringify(params),
   }
-  const data = (await response.json()) as Resource
+  const data = (await apiFetch(url, options)) as Resource
   console.log('>> Resource Relay App created:', data.id)
   return data
 }
@@ -74,65 +77,45 @@ interface CreateDomainAppParams {
   call_relay_context: string
 }
 const createDomainApp = async (params: CreateDomainAppParams) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/relay/rest/domain_applications`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: getAuthorization(),
-      },
-      body: JSON.stringify(params),
-    }
-  )
-  if (!response.ok) {
-    const error = await response.json()
-    console.log('>> Unable to create Domain App', error)
-    throw error
+  const url = `https://${process.env.API_HOST}/api/relay/rest/domain_applications`
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+    body: JSON.stringify(params),
   }
-  const data = (await response.json()) as DomainApp
-  console.log('>> Resource Domain App created:', data.id)
+  const data = (await apiFetch(url, options)) as DomainApp
+  console.log('>> Domain App created:', data.id)
   return data
 }
 
 const getDomainApp = async (id: string) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/relay/rest/domain_applications/${id}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: getAuthorization(),
-      },
-    }
-  )
-  if (!response.ok) {
-    const error = await response.json()
-    console.log('>> Unable to fetch Domain App', error)
-    throw error
+  const url = `https://${process.env.API_HOST}/api/relay/rest/domain_applications/${id}`
+  const options = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
   }
-  const data = (await response.json()) as DomainApp
-  console.log('>> Resource Domain App fetched:', data.id)
+  const data = (await apiFetch(url, options)) as DomainApp
+  console.log('>> Domain App fetched:', data.id)
   return data
 }
 
 const deleteDomainApp = async (id: string) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/relay/rest/domain_applications/${id}`,
-    {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: getAuthorization(),
-      },
-    }
-  )
-  if (!response.ok) {
-    const error = await response.json()
-    console.log('>> Unable to delete Domain App', error)
-    throw error
+  const url = `https://${process.env.API_HOST}/api/relay/rest/domain_applications/${id}`
+  const options = {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
   }
-  return response
+  await apiFetch(url, options)
+  console.log('>> Domain App deleted:', id)
 }
 
 interface AssignResourceToDomainAppParams {
@@ -143,45 +126,30 @@ const assignResourceToDomainApp = async (
   params: AssignResourceToDomainAppParams
 ) => {
   const { resourceId, domainAppId } = params
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/${resourceId}/domain_applications`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: getAuthorization(),
-      },
-      body: JSON.stringify({
-        domain_application_id: domainAppId,
-      }),
-    }
-  )
-  if (!response.ok) {
-    const error = await response.json()
-    console.log('>> Unable to assign resource to Domain App', error)
-    throw error
+  const url = `https://${process.env.API_HOST}/api/fabric/resources/${resourceId}/domain_applications`
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+    body: JSON.stringify({ domain_application_id: domainAppId }),
   }
+  await apiFetch(url, options)
   console.log('>> Resource assigned to Domain App')
-  return response
 }
 
 const deleteResource = async (id: string) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/${id}`,
-    {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: getAuthorization(),
-      },
-    }
-  )
-  if (!response.ok) {
-    const error = await response.json()
-    console.log('>> Unable to delete a resource', error)
-    throw error
+  const url = `https://${process.env.API_HOST}/api/fabric/resources/${id}`
+  const options = {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
   }
-  return response
+  await apiFetch(url, options)
+  console.log('>> Resource deleted:', id)
 }
 
 interface TestHandlerParams {
@@ -270,14 +238,8 @@ export const createTestRunner = ({
         console.error(`Test Runner ${name} Failed!`, error)
         exitCode = 1
       } finally {
-        if (domainApp) {
-          await deleteDomainApp(domainApp.id)
-          console.log('>> Resource Domain App deleted:', domainAppName)
-        }
-        if (relayApp) {
-          await deleteResource(relayApp.id)
-          console.log('>> Resource Relay App deleted:', relayAppName)
-        }
+        if (domainApp) await deleteDomainApp(domainApp.id)
+        if (relayApp) await deleteResource(relayApp.id)
         done(exitCode)
       }
     },
