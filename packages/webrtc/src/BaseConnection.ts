@@ -219,8 +219,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         id: rtcPeerId,
         destinationNumber,
         attach,
-        // TODO Do we really need the new flag???
-        // reattaching: attach,
+        reattaching: attach,
         callerName,
         callerNumber,
         remoteCallerName,
