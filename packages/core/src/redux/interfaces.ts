@@ -118,7 +118,6 @@ export type PubSubAction =
   | MessagingAction
   | VoiceCallAction
 
-
 export type SessionChannelAction =
   | PayloadAction<void, SessionEvents>
   | PayloadAction<JSONRPCRequest>
