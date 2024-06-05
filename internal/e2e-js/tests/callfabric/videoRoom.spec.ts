@@ -1,3 +1,4 @@
+import { uuid } from '@signalwire/core'
 import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
@@ -12,11 +13,13 @@ import {
 test.describe('CallFabric VideoRoom', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
+    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = 'cf-e2e-test-room'
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
 
@@ -269,11 +272,13 @@ test.describe('CallFabric VideoRoom', () => {
 
   test('should handle joining a room with audio channel only', async ({
     createCustomPage,
+    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = 'cf-e2e-test-room'
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
 
@@ -308,11 +313,10 @@ test.describe('CallFabric VideoRoom', () => {
       )
     ).toBeTruthy()
 
-
     const stats = await getStats(page)
 
     expect(stats.outboundRTP).not.toHaveProperty('video')
-    
+
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
   })
 })
