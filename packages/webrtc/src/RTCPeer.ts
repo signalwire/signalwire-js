@@ -372,7 +372,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _getSenderByKind(kind: string) {
-    if (!this.instance.getSenders) {
+    if (!this.instance?.getSenders) {
       this.logger.warn('RTCPeerConnection.getSenders() not available.')
       return null
     }
@@ -382,7 +382,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _getReceiverByKind(kind: string) {
-    if (!this.instance.getReceivers) {
+    if (!this.instance?.getReceivers) {
       this.logger.warn('RTCPeerConnection.getReceivers() not available.')
       return null
     }
@@ -509,11 +509,17 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _remoteSdpHasVideo(): boolean {
-    return hasMediaSection(this.remoteSdp ?? this.options.remoteSdp ?? '', 'video')
+    return hasMediaSection(
+      this.remoteSdp ?? this.options.remoteSdp ?? '',
+      'video'
+    )
   }
 
   private _remoteSdpHasAudio(): boolean {
-    return hasMediaSection(this.remoteSdp ?? this.options.remoteSdp ?? '', 'audio')
+    return hasMediaSection(
+      this.remoteSdp ?? this.options.remoteSdp ?? '',
+      'audio'
+    )
   }
 
   async start() {
