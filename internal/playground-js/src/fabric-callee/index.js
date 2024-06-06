@@ -212,6 +212,8 @@ async function getClient() {
     client = await SignalWire({
       host: document.getElementById('host').value,
       token: document.getElementById('token').value,
+      logLevel: 'debug',
+      debug: { logWsTraffic: true },
       onRefreshToken: async () => {
         // Fetch the new token and update the client using 👇
         // await client.updateToken(newToken)
@@ -257,6 +259,7 @@ window.disconnect = async () => {
 window.tapPushNotification = async () => {
   try {
     const pnKey = document.getElementById('pn-key').value
+    const payload = document.getElementById('payload')
     const pnPayload = JSON.parse(payload.value)
     const { body } = pnPayload.notification
     const result = await readPushNotification(body, pnKey)
