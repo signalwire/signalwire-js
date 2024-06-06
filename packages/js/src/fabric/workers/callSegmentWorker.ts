@@ -98,7 +98,6 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> = fun
           ...options,
         })
 
-        // muted local devices
         yield sagaEffects.put(swEventChannel, updatedAction)
         }
         break
