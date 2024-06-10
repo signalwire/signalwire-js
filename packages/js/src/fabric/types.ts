@@ -1,4 +1,4 @@
-import { type UserOptions } from '@signalwire/core'
+import { ConversationMessage, PaginatedResult, type UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
@@ -107,3 +107,6 @@ export interface IncomingCallHandlers {
   pushNotification?: IncomingCallHandler
   websocket?: IncomingCallHandler
 }
+
+
+export type ConversationMessagesResult = PaginatedResult<ConversationMessage>

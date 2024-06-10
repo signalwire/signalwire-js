@@ -15,6 +15,7 @@ import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
+import { ConversationMessagesResult } from './types'
 
 type Callback = (event: ConversationEventParams) => unknown
 
@@ -107,7 +108,7 @@ export class Conversation {
 
   public async getConversationMessages(
     options: GetConversationMessagesOptions
-  ) {
+  ): Promise<ConversationMessagesResult> {
     try {
       const { addressId, pageSize } = options || {}
 
