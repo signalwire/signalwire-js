@@ -1,4 +1,4 @@
-name: [ch] WebRTC Calling Tests
+name: "[ch] WebRTC Calling Tests"
 
 on:
   workflow_call:

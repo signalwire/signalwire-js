@@ -68,9 +68,11 @@ export class Task extends BaseNamespace<TaskListenOptions, TaskEvents> {
             'Content-Length': data.length,
           },
         }
+        getLogger().debug(options)
 
         getLogger().debug('Task send -', data)
         const req = request(options, ({ statusCode }) => {
+          getLogger().debug(statusCode)
           statusCode === 204 ? resolve() : reject()
         })
 
