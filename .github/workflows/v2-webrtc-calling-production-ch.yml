@@ -1,4 +1,4 @@
-name: v2 SDK WebRTC Calling Tests [production ch region]
+name: [ch] WebRTC Calling Tests
 
 on:
   workflow_call:
