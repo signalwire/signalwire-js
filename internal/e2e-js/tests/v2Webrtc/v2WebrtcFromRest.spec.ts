@@ -52,10 +52,8 @@ test.describe('v2WebrtcFromRestSilence', () => {
 
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
-    // TODO: review doing silence without tts
     const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
-      <Pause length="60"/>
       <Say>
         <prosody volume="silent">Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak</prosody>
       </Say>
