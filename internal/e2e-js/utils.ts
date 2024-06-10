@@ -740,7 +740,6 @@ export const createCallWithCompatibilityApi = async (
 
   data.append('Record', 'true')
   data.append('RecordingChannels', 'dual')
-  data.append('RecordingTrack', 'both')
   data.append('Trim', 'do-not-trim')
 
   console.log(
