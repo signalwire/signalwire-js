@@ -31,6 +31,10 @@ export class SATSession extends JWTSession {
     return this.isReconnecting ? super.retrieveRelayProtocol() : ''
   }
 
+  override async _checkTokenExpiration() {
+    // no-op
+  }
+
   /**
    * Reauthenticate with the SignalWire Network
    * using a newer SAT. If the session has expired
@@ -54,17 +58,10 @@ export class SATSession extends JWTSession {
     try {
       const reauthResponse = await this.execute(RPCReauthenticate(params))
 
-      // FIXME: The reauth API is not returning the `expires_at`
-      // For now, we assume the same `expires_at` seconds for the newly passed token
-      const now = Math.floor(Date.now() / 1000)
-      const newExpiresAt = now + this._tokenDuration
       this._rpcConnectResult = {
         ...this._rpcConnectResult,
         ...reauthResponse,
       }
-      ;(
-        this._rpcConnectResult.authorization as SATAuthorization
-      ).fabric_subscriber.expires_at = newExpiresAt
     } catch (error) {
       clearTimeout(this._checkTokenExpirationTimer)
       throw error

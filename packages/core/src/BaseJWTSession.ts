@@ -7,7 +7,7 @@ import {
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 import { authExpiringAction, reauthAction } from './redux/actions'
-import { type SWCloseEvent, isSATAuth } from './utils'
+import { isSATAuth, type SWCloseEvent } from './utils'
 
 export class BaseJWTSession extends BaseSession {
   /**
@@ -17,7 +17,6 @@ export class BaseJWTSession extends BaseSession {
    */
   private _expiredDiffSeconds = 0
   private _refreshTokenNotificationDiff = 120
-  protected _tokenDuration = 0
   /**
    * Check the JWT expiration every 20seconds
    */
@@ -93,12 +92,6 @@ export class BaseJWTSession extends BaseSession {
 
     try {
       this._rpcConnectResult = await this.execute(RPCConnect(params))
-
-      // FIXME: This can be removed once we start receiving the `expires_at` for reauth.
-      // Calculate and store the number of seconds the token will take to expire.
-      const now = Math.floor(Date.now() / 1000)
-      this._tokenDuration = this.expiresAt - now
-
       await this.persistRelayProtocol()
       await this._checkTokenExpiration()
     } catch (error) {
