@@ -738,6 +738,10 @@ export const createCallWithCompatibilityApi = async (
   }
   data.append('To', to)
 
+  data.append('Record', 'true')
+  data.append('RecordingChannels', 'dual')
+  data.append('Trim', 'do-not-trim')
+
   console.log(
     'REST API URL: ',
     `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`
