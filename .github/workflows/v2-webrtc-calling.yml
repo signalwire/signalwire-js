@@ -18,9 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         region:
-          - { name: 'ch', environment: 'ch', config: '${{ secrets.PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG }}', cxml_conference_region: '' }
-          - { name: 'eu', environment: 'eu', config: '${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}', cxml_conference_region: 'region="eu"' }
           - { name: 'us', environment: 'production', config: '${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}', cxml_conference_region: '' }
+          - { name: 'ch', environment: 'production-ch', config: '${{ secrets.PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG }}', cxml_conference_region: '' }
+          - { name: 'eu', environment: 'production-eu', config: '${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}', cxml_conference_region: 'region="eu"' }
           - { name: 'staging', environment: 'staging', config: '${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}', cxml_conference_region: '' }
     steps:
       - uses: actions/checkout@v4
