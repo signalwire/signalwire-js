@@ -1,0 +1,29 @@
+name: WebRTC Calling Tests
+
+inputs:
+  SW_TEST_CONFIG:
+    required: true
+    description: "Test Config"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Test
+      id: run-tests
+      run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
+      env:
+        SW_TEST_CONFIG: ${{ inputs.SW_TEST_CONFIG }}
+
+    - name: Report Result
+      if: success() || failure()
+      uses: ./.github/actions/report-test-result
+      with:
+        result: ${{ steps.run-tests.conclusion }}
+        test-suite: v2-sdk-tests
+        environment: production-ch
+        influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+        influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+        influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+        influxdb-url: ${{ secrets.INFLUXDB_URL }}

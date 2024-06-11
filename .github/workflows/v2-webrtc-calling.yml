@@ -1,4 +1,4 @@
-name: WebRTC Calling Tests [us]
+name: v2 WebRTC Calling Tests
 
 on:
   workflow_call:
@@ -7,13 +7,21 @@ on:
     - cron: '0/20 * * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-e2e-js-production-us-${{ github.ref }}
+  group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   e2e-tests:
     name: Run E2E tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        region:
+          - { name: 'ch', environment: 'ch', config: '${{ secrets.PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG }}', cxml_conference_region: '' }
+          - { name: 'eu', environment: 'eu', config: '${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}', cxml_conference_region: 'region="eu"' }
+          - { name: 'us', environment: 'production', config: '${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}', cxml_conference_region: '' }
+          - { name: 'staging', environment: 'staging', config: '${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}', cxml_conference_region: '' }
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -32,14 +40,15 @@ jobs:
         id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
         env:
-          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
+          SW_TEST_CONFIG: ${{ matrix.region.config }}
+          LAML_CONFERENCE_REGION: ${{ matrix.region.cxml_conference_region }}
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
         with:
           result: ${{ steps.run-tests.conclusion }}
           test-suite: v2-sdk-tests
-          environment: production-us
+          environment: ${{ matrix.region.environment }}
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
