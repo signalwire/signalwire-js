@@ -1,10 +1,8 @@
 name: v2 WebRTC Calling Tests
 
 on:
-  workflow_call:
-  workflow_dispatch:
-  schedule:
-    - cron: '0/20 * * * *'
+  push:
+    branches: [ryanwi/test-it]
 
 concurrency:
   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
