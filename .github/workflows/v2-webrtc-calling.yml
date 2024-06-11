@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         region:
           - { name: 'us', environment: 'production', config: '${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}', cxml_conference_region: '' }
