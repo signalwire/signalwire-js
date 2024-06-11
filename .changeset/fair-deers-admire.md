@@ -1,6 +1,6 @@
 ---
-'@signalwire/core': patch
-'@signalwire/js': patch
+'@signalwire/core': minor
+'@signalwire/js': minor
 ---
 
-CF SDK: Set token expiry based on the old token
+CF SDK: Remove implicit reauthentication
