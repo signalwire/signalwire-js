@@ -21,10 +21,12 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     const { channels: { swEventChannel }, instance: cfRoomSessionConnection } = options
 
     // FIXME remove the any
-    const isCallJoinedEvent = (action: any) => {
+    const isCallJoinedEvent = (action:any ) => {
       // We should only start to handling call.joined events after
-      // we receive the 1st call.joined event where action.call_id == action.orignCallId
-      return action.type === 'call.joined' && (!!cfRoomSessionConnection.selfMember || (action.eventRoutingId == action.originCallId))
+      // we receive the 1st call.joined event where eventRoutingId == action.orignCallI
+      
+      const eventRoutingId = action.roomSessionId || action.callId
+      return action.type === 'call.joined' && (!!cfRoomSessionConnection.selfMember || (eventRoutingId == action.originCallId))
     }
 
     while (true) {

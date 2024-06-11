@@ -99,10 +99,6 @@ export type MapToPubSubShape<T> = {
     : K extends 'params'
     ? 'payload'
     : never]: T[K]
-} & {
-  nodeId?: string
-  eventRoutingId?: string
-  originCallId?:string
 }
 
 export type PubSubAction =
