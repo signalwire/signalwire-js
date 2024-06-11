@@ -19,10 +19,10 @@ jobs:
       max-parallel: 1
       matrix:
         region:
-          - { name: 'us', environment: 'production', config: '${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}', cxml_conference_region: '' }
-          - { name: 'ch', environment: 'production-ch', config: '${{ secrets.PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG }}', cxml_conference_region: '' }
-          - { name: 'eu', environment: 'production-eu', config: '${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}', cxml_conference_region: 'region="eu"' }
-          - { name: 'staging', environment: 'staging', config: '${{ secrets.STAGING_E2E_JS_SW_TEST_CONFIG }}', cxml_conference_region: '' }
+          - { name: 'us', environment: 'production', config: 'PRODUCTION_E2E_JS_SW_TEST_CONFIG', cxml_conference_region: '' }
+          - { name: 'ch', environment: 'production-ch', config: 'PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG', cxml_conference_region: '' }
+          - { name: 'eu', environment: 'production-eu', config: 'PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG', cxml_conference_region: 'region="eu"' }
+          - { name: 'staging', environment: 'staging', config: 'STAGING_E2E_JS_SW_TEST_CONFIG', cxml_conference_region: '' }
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -41,7 +41,7 @@ jobs:
         id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
         env:
-          SW_TEST_CONFIG: ${{ matrix.region.config }}
+          SW_TEST_CONFIG: ${{ secrets[matrix.region.config] }}
           LAML_CONFERENCE_REGION: ${{ matrix.region.cxml_conference_region }}
       - name: Report Result
         if: success() || failure()
