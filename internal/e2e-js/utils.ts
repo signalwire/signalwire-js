@@ -762,11 +762,16 @@ export const createCallWithCompatibilityApi = async (
 
   if (Number.isInteger(Number(response.status)) && response.status !== null) {
     if (response.status !== 201) {
+      const responseBody = await response.json();
+      const formattedBody = JSON.stringify(responseBody, null, 2);
+
       console.log(
-        'Unexpected response from REST API: ',
+        'ERROR - response from REST API: ',
         response.status,
-        ' = ',
-        response.statusText
+        ' status text = ',
+        response.statusText,
+        ' body = ',
+        formattedBody
       )
     }
     return response.status
