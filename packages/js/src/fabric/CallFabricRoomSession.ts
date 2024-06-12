@@ -43,7 +43,9 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+  // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
   private _self?: RoomSessionMember
+  // this is "the member" on the last/active call segment 
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 

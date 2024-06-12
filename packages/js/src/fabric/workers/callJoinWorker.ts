@@ -65,8 +65,6 @@ export const callJoinWorker = function* (
 
   // @ts-expect-error
   cfRoomSession.emit('call.joined', payload)
-  //TODO replace to runWorker callSegmentWorker
-  
 
   getLogger().trace('callJoinWorker ended')
 }

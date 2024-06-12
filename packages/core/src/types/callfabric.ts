@@ -420,8 +420,4 @@ export type CallFabricEvent =
   | CFMemberEvent
   | CFLayoutEvent
 
-export type CallFabricAction = MapToPubSubShape<CallFabricEvent> & {
-    nodeId?: string
-    eventRoutingId?: string
-    originCallId?: string
-}
+export type CallFabricAction = MapToPubSubShape<CallFabricEvent>
