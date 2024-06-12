@@ -5,6 +5,7 @@ import {
   sagaEffects,
   SDKWorkerParams,
   Rooms,
+  CallFabricAction,
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
 import { callSegmentWorker } from './callSegmentWorker'
@@ -20,16 +21,18 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
     const { channels: { swEventChannel }, instance: cfRoomSessionConnection } = options
 
-    // FIXME remove the any
-    const isCallJoinedEvent = (action:any ) => {
+    const isCallJoinedEvent = (action: CallFabricAction) => {
       // We should only start to handling call.joined events after
       // we receive the 1st call.joined event where eventRoutingId == action.orignCallI
       
-      const eventRoutingId = action.roomSessionId || action.callId
-      return action.type === 'call.joined' && (!!cfRoomSessionConnection.selfMember || (eventRoutingId == action.originCallId))
+      //@ts-expect-error
+      const eventRoutingId = action.payload.roomSessionId || action.payload.callId
+      //@ts-expect-error
+      return action.type === 'call.joined' && (!!cfRoomSessionConnection.selfMember || (eventRoutingId == action.payload.originCallId))
     }
 
     while (true) {
+      //@ts-expect-error
       const action = yield sagaEffects.take(swEventChannel, isCallJoinedEvent)
       
       // since we depend on `cfRoomSessionConnection.selfMember` on the take logic
