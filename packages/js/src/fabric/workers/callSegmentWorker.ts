@@ -24,6 +24,10 @@ const TO_WATCH_EVENTS = [
   'member.demoted',
   'member.promoted',
   'call.left',
+  'call.state',
+  'call.started',
+  'call.updated',
+  'call.ended',
 ]
 
 

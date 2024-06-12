@@ -42,10 +42,6 @@ export const callJoinWorker = function* (
     set<RoomSessionMember>(member.member_id, memberInstance)
   })
 
-  // if(!cfRoomSession.selfMember) {
-  //   cfRoomSession.selfMember = get<RoomSessionMember>(payload.member_id)
-  // }
-
   cfRoomSession.member = get<RoomSessionMember>(payload.member_id)
 
   cfRoomSession.runWorker('memberPositionWorker', {
@@ -66,10 +62,6 @@ export const callJoinWorker = function* (
     },
   })
 
-  // TODO Eval
-  // Do we still need a room 'room.subscribed' in the CF context?
-  // If we need it should be emit onlu once for retro-compatibility
-  cfRoomSession.emit('room.subscribed', payload)
 
   // @ts-expect-error
   cfRoomSession.emit('call.joined', payload)
