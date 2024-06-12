@@ -56,9 +56,19 @@ export class WSClient {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
+
+        const { to } = params
+
+        const channelRegex = /\?channel\=(?<channel>(audio|video))/
+        const result = channelRegex.exec(to)
+        let video = params.video ?? true
+        if (result && result.groups?.channel === 'audio') {
+          video = false
+        }
+
         const call = this.wsClient.makeCallFabricObject({
           audio: params.audio ?? true,
-          video: params.video ?? true,
+          video,
           negotiateAudio: true,
           negotiateVideo: true,
           // iceServers,
@@ -72,6 +82,7 @@ export class WSClient {
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
           disableUdpIceServers: params.disableUdpIceServers || false,
+          userVariables: params.userVariables || this.options.userVariables
         })
 
         // WebRTC connection left the room.
@@ -212,6 +223,7 @@ export class WSClient {
       prevCallId: callID,
       nodeId,
       disableUdpIceServers: params.disableUdpIceServers || false,
+      userVariables: params.userVariables || this.options.userVariables
     })
 
     // WebRTC connection left the room.

@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.1] - 2024-06-03
+
+### Added
+
+- [#983](https://github.com/signalwire/signalwire-js/pull/983) [`3d6a4fbe`](https://github.com/signalwire/signalwire-js/commit/3d6a4fbe4364a5795233d2aac87ba309d9d34bdd) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce CallSegment and CallFabric worker
+
+### Fixed
+
+- [#1055](https://github.com/signalwire/signalwire-js/pull/1055) [`e76c89c7`](https://github.com/signalwire/signalwire-js/commit/e76c89c73dba33d481212f7785cdf7650dbe4351) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix the outbound audio/video streams
+
+### Dependencies
+
+- Updated dependencies [[`45991e4c`](https://github.com/signalwire/signalwire-js/commit/45991e4c23065028b8e55af3c61faaf7661a8baf), [`e16ec479`](https://github.com/signalwire/signalwire-js/commit/e16ec479be85b40f989aba2e3bae932fd9eb59d9), [`968d226b`](https://github.com/signalwire/signalwire-js/commit/968d226ba2791f44dea4bd1b0d173aefaf103bda), [`ded3dc7a`](https://github.com/signalwire/signalwire-js/commit/ded3dc7a71977460d19fc623c3f2745f5365fb7b), [`0f4f2b3c`](https://github.com/signalwire/signalwire-js/commit/0f4f2b3cbf788a259baf5543fe82bbfc8b2540b7), [`254016f3`](https://github.com/signalwire/signalwire-js/commit/254016f396ce89cda82585b6ef9bb3f0e5b9135c), [`c370fec8`](https://github.com/signalwire/signalwire-js/commit/c370fec84e86701d8baf8910aebf1e959dcedc85), [`3d20672b`](https://github.com/signalwire/signalwire-js/commit/3d20672bbf2247b35e7d3ee8524a904fae1e6b2a), [`3d6a4fbe`](https://github.com/signalwire/signalwire-js/commit/3d6a4fbe4364a5795233d2aac87ba309d9d34bdd), [`184c8777`](https://github.com/signalwire/signalwire-js/commit/184c8777d1891985ab6bccbf417938e0dae5041f), [`c8deacef`](https://github.com/signalwire/signalwire-js/commit/c8deacef19176b7f744b61b9fe454556f0eccd52), [`229320b3`](https://github.com/signalwire/signalwire-js/commit/229320b3a105690bcb5c7271bc516d6269a1ca76), [`d215ef5d`](https://github.com/signalwire/signalwire-js/commit/d215ef5d1501f5f3df4e5d3837ac740f42649c2e), [`a08512a3`](https://github.com/signalwire/signalwire-js/commit/a08512a3a4f3a6fd1d0faf643f3c481ca668abc4), [`6d71362b`](https://github.com/signalwire/signalwire-js/commit/6d71362b589439fe3b4f234f4ff98871f8d98a20)]:
+  - @signalwire/core@4.1.0
+
 ## [3.12.0] - 2024-04-17
 
 ### Added
