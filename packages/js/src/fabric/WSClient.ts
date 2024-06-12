@@ -86,7 +86,7 @@ export class WSClient {
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
           disableUdpIceServers: params.disableUdpIceServers || false,
-          attach: params.attach === false ? false : true
+          attach: params.attach === false ? false : true,
           userVariables: params.userVariables || this.options.userVariables
         })
 
