@@ -21,9 +21,9 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
       instance: cfRoomSession,
     } = options
 
-    const eventRoutingId = bootstrapAction.eventRoutingId
+    const segmentRoutingId = bootstrapAction.payload.roomSessionId || bootstrapAction.payload.callId
 
-    getLogger().debug(`callSegmentWorker started for: ${eventRoutingId}`)
+    getLogger().debug(`callSegmentWorker started for: ${segmentRoutingId}`)
 
     //handles the `call.joined` event before the worker loop
     yield sagaEffects.fork(callJoinWorker, {
@@ -36,10 +36,12 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         eventType.startsWith('call.') ||
         eventType.startsWith('member.') ||
         eventType.startsWith('layout.')
+      
+      //@ts-expect-error
+      const eventRoutingId = action.payload.roomSessionId || action.payload.callId
 
       return (
-        //@ts-expect-error
-        shouldWatch(action.type) && eventRoutingId === action.payload.eventRoutingId
+        shouldWatch(action.type) && segmentRoutingId === eventRoutingId
       )
     }
 
