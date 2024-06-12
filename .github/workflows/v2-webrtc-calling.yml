@@ -1,4 +1,4 @@
-name: v2 SDK WebRTC Calling Tests [production eu region]
+name: v2 WebRTC Calling Tests
 
 on:
   workflow_call:
@@ -7,23 +7,32 @@ on:
     - cron: '0/20 * * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-e2e-js-production-eu-${{ github.ref }}
+  group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   e2e-tests:
     name: Run E2E tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        region:
+          - { name: 'us', environment: 'production', config: 'PRODUCTION_E2E_JS_SW_TEST_CONFIG', cxml_conference_region: '' }
+          - { name: 'ch', environment: 'production-ch', config: 'PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG', cxml_conference_region: '' }
+          - { name: 'eu', environment: 'production-eu', config: 'PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG', cxml_conference_region: 'region="eu"' }
+          - { name: 'staging', environment: 'staging', config: 'STAGING_E2E_JS_SW_TEST_CONFIG', cxml_conference_region: '' }
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
         uses: ./.github/actions/install
         with:
-          NODE_VERSION: ${{ matrix.node-version }}
+          NODE_VERSION: 18.x
       - name: Build SDKs
         uses: ./.github/actions/build
         with:
-          NODE_VERSION: ${{ matrix.node-version }}
+          NODE_VERSION: 18.x
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
@@ -32,15 +41,15 @@ jobs:
         id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
         env:
-          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG }}
-          LAML_CONFERENCE_REGION: ${{ vars.PRODUCTION_E2E_JS_EUREGION_LAML_CONFERENCE_REGION }}
+          SW_TEST_CONFIG: ${{ secrets[matrix.region.config] }}
+          LAML_CONFERENCE_REGION: ${{ matrix.region.cxml_conference_region }}
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result
         with:
           result: ${{ steps.run-tests.conclusion }}
           test-suite: v2-sdk-tests
-          environment: production-eu
+          environment: ${{ matrix.region.environment }}
           influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
           influxdb-org: ${{ secrets.INFLUXDB_ORG }}
           influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}

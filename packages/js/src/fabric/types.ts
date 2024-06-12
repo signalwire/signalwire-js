@@ -60,6 +60,8 @@ export interface CallOptions {
   audio?: MediaStreamConstraints['audio']
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
+  /** User & UserAgent metadata */
+  userVariables?: WSClientOptions['userVariables']
 }
 
 export interface DialParams extends CallOptions {
@@ -72,6 +74,8 @@ export interface WSClientOptions extends UserOptions {
   rootElement?: HTMLElement
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
+  /** User & UserAgent metadata */
+  userVariables?: Record<string, any>
 }
 
 export type InboundCallSource = 'websocket' | 'pushNotification'

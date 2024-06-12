@@ -282,24 +282,6 @@ export const createTestSATToken = async () => {
   return data.token
 }
 
-export const createVideoRoom = async (name?: string) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${BASIC_TOKEN}`,
-      },
-      body: JSON.stringify({
-        name: name ? name : `e2e-js-test-room_${uuid()}`,
-      }),
-    }
-  )
-  const data = await response.json()
-  return data
-}
-
 interface CreateTestCRTOptions {
   ttl: number
   member_id: string
@@ -735,59 +717,6 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
-export const pageEmittedEvents = async (
-  page: Page,
-  events: Record<string, Record<string, string>>[]
-) => {
-  return page.evaluate(
-    async ({ events }) => {
-      // @ts-expect-error
-      const call = window._roomObj
-
-      const expectationEvent = (
-        expectation: Record<string, Record<string, string>>
-      ) => Object.keys(expectation)[0]
-
-      const verifyExpectation = (
-        rules: Record<string, string>,
-        payload: any
-      ) => {
-        for (const [key, value] of Object.entries(rules)) {
-          if (payload[key] !== value) return false
-        }
-
-        return true
-      }
-
-      const eventsPromises = events.map((exp) => {
-        const event = expectationEvent(exp)
-
-        console.log(`#### here is a promise for ${event}`)
-        return new Promise((res) => {
-          const callback = (payload: any) => {
-            console.log(`#### Event ${event} received`)
-            if (verifyExpectation(exp[event], payload)) {
-              call.off(event, callback)
-              console.log(`#### resolving ${event}`)
-              return res(payload)
-            }
-          }
-          console.log(`#### setting call.on ${event}`)
-          call.on(event, callback)
-        })
-      })
-
-      try {
-        await Promise.all(eventsPromises)
-        return true
-      } catch {}
-
-      return false
-    },
-    { events }
-  )
-}
-
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
@@ -809,6 +738,10 @@ export const createCallWithCompatibilityApi = async (
   }
   data.append('To', to)
 
+  data.append('Record', 'true')
+  data.append('RecordingChannels', 'dual')
+  data.append('Trim', 'do-not-trim')
+
   console.log(
     'REST API URL: ',
     `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`
@@ -828,7 +761,7 @@ export const createCallWithCompatibilityApi = async (
   )
 
   if (Number.isInteger(Number(response.status)) && response.status !== null) {
-    if (response.status !== 201) { 
+    if (response.status !== 201) {
       console.log(
         'Unexpected response from REST API: ',
         response.status,
@@ -839,67 +772,6 @@ export const createCallWithCompatibilityApi = async (
     return response.status
   }
   return undefined
-}
-
-export const expectv2TotalAudioEnergyToBeGreaterThan = async (
-  page: Page,
-  value: number
-) => {
-  const audioStats = await page.evaluate(async () => {
-    // @ts-expect-error
-    const currentCall = window.__currentCall
-    const audioReceiver = currentCall.peer.instance
-      .getReceivers()
-      .find((r: any) => r.track.kind === 'audio')
-
-    const audioTrackId = audioReceiver.track.id
-
-    const stats = await currentCall.peer.instance.getStats(null)
-    const filter = {
-      'inbound-rtp': [
-        'audioLevel',
-        'totalAudioEnergy',
-        'totalSamplesDuration',
-        'totalSamplesReceived',
-        'packetsDiscarded',
-        'lastPacketReceivedTimestamp',
-        'bytesReceived',
-        'packetsReceived',
-        'packetsLost',
-        'packetsRetransmitted',
-      ],
-    }
-    const result: any = {}
-    Object.keys(filter).forEach((entry) => {
-      result[entry] = {}
-    })
-
-    stats.forEach((report: any) => {
-      for (const [key, value] of Object.entries(filter)) {
-        if (
-          report.type == key &&
-          report['mediaType'] === 'audio' &&
-          report['trackIdentifier'] === audioTrackId
-        ) {
-          value.forEach((entry) => {
-            if (report[entry]) {
-              result[key][entry] = report[entry]
-            }
-          })
-        }
-      }
-    }, {})
-
-    return result
-  })
-  console.log('audioStats: ', audioStats)
-
-  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
-  if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeGreaterThan(value)
-  } else {
-    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
-  }
 }
 
 export const getDialConferenceLaml = (conferenceNameBase: string) => {
@@ -1100,7 +972,8 @@ export const expectedMinPackets = (
     maxMissingPacketsTolerance = 1
   }
 
-  const minPackets = (callDurationMs * (1 - maxMissingPacketsTolerance)) * packetRate / 1000
+  const minPackets =
+    (callDurationMs * (1 - maxMissingPacketsTolerance) * packetRate) / 1000
 
   return minPackets
 }
@@ -1216,4 +1089,100 @@ export const expectCFFinalEvents = (
   })
 
   return Promise.all([finalEvents, ...extraEvents])
+}
+
+export interface Resource {
+  id: string
+  project_id: string
+  type: string
+  display_name: string
+  created_at: string
+}
+
+export const createVideoRoomResource = async (name?: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-test-room_${uuid()}`,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource VideoRoom created:', data.id, name)
+  return data
+}
+
+export interface CreateSWMLAppResourceParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createSWMLAppResource = async ({
+  name,
+  contents,
+}: CreateSWMLAppResourceParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/swml_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-swml-app_${uuid()}`,
+        handle_calls_using: 'script',
+        call_handler_script: JSON.stringify(contents),
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource SWML App created:', data.id)
+  return data
+}
+
+export interface CreateRelayAppResourceParams {
+  name?: string
+  reference: string
+}
+export const createRelayAppResource = async ({
+  name,
+  reference,
+}: CreateRelayAppResourceParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-relay-app_${uuid()}`,
+        reference,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource Relay App created:', data.id)
+  return data
+}
+
+export const deleteResource = async (id: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+    }
+  )
+  return response
 }

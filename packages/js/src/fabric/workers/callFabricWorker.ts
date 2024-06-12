@@ -21,15 +21,20 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     const { channels: { swEventChannel }, instance: cfRoomSessionConnection } = options
 
     // FIXME remove the any
-    const isCallJoinedEvent = (action: any) => {
+    const isCallJoinedEvent = (action:any ) => {
       // We should only start to handling call.joined events after
-      // we receive the 1st call.joined event where action.call_id == action.orignCallId
-      return (!!cfRoomSessionConnection.selfMember || (action.eventRoutingId == action.originCallId))  && action.type === 'call.joined'
+      // we receive the 1st call.joined event where eventRoutingId == action.orignCallI
+      
+      const eventRoutingId = action.roomSessionId || action.callId
+      return action.type === 'call.joined' && (!!cfRoomSessionConnection.selfMember || (eventRoutingId == action.originCallId))
     }
 
     while (true) {
       const action = yield sagaEffects.take(swEventChannel, isCallJoinedEvent)
       
+      // since we depend on `cfRoomSessionConnection.selfMember` on the take logic
+      // we need to make sure we update the `cfRoomSessionConnection.selfMember`
+      // in this worker or have a race condition. 
       if(!cfRoomSessionConnection.selfMember) {
         const memberInstance = Rooms.createRoomSessionMemberObject({
           store: cfRoomSessionConnection.store,

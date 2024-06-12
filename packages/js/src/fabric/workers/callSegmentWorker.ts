@@ -24,6 +24,10 @@ const TO_WATCH_EVENTS = [
   'member.demoted',
   'member.promoted',
   'call.left',
+  'call.state',
+  'call.started',
+  'call.updated',
+  'call.ended',
 ]
 
 
@@ -98,14 +102,12 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> = fun
           ...options,
         })
 
-        // muted local devices
         yield sagaEffects.put(swEventChannel, updatedAction)
         }
         break
       case 'layout.changed': {
         // Upsert the layout event which is needed for rootElement
         cfRoomSession.lastLayoutEvent = action.payload
-
         const updatedAction = {
           ...action,
           type: `video.${type}` as 'video.layout.changed',

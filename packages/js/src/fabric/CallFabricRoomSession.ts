@@ -50,7 +50,6 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _self?: RoomSessionMember
   private _member?: RoomSessionMember
-
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   protected initWorker() {
@@ -68,7 +67,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._self = undefined
     this._member = undefined
     const result = await super.hangup(id)
-    this.destroy()
     return result
   }
 
@@ -183,8 +181,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   get lastLayoutEvent() {
     return this._lastLayoutEvent
-  } 
-
+  }
 
   private executeAction<
     InputType,

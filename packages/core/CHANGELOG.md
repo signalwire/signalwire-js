@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2024-06-03
+
+### Added
+
+- [#956](https://github.com/signalwire/signalwire-js/pull/956) [`e16ec479`](https://github.com/signalwire/signalwire-js/commit/e16ec479be85b40f989aba2e3bae932fd9eb59d9) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce Conversation API with Conversation Subscriber
+
+- [#1001](https://github.com/signalwire/signalwire-js/pull/1001) [`968d226b`](https://github.com/signalwire/signalwire-js/commit/968d226ba2791f44dea4bd1b0d173aefaf103bda) Thanks [@ayeminag](https://github.com/ayeminag)! - - API to fetch address by id and tests
+
+- [#995](https://github.com/signalwire/signalwire-js/pull/995) [`c370fec8`](https://github.com/signalwire/signalwire-js/commit/c370fec84e86701d8baf8910aebf1e959dcedc85) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Fetch subscriber info function
+
+- [#973](https://github.com/signalwire/signalwire-js/pull/973) [`c8deacef`](https://github.com/signalwire/signalwire-js/commit/c8deacef19176b7f744b61b9fe454556f0eccd52) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Online/offline registeration for WebRTC endpoint
+
+- [#999](https://github.com/signalwire/signalwire-js/pull/999) [`6d71362b`](https://github.com/signalwire/signalwire-js/commit/6d71362b589439fe3b4f234f4ff98871f8d98a20) Thanks [@ayeminag](https://github.com/ayeminag)! - - `client.conversations.sendMessage()`
+  - `conversation.sendMessage()` API for conversation object returned from `getConversations()` API
+  - `conversation.getMessages()` API for conversation object returned from `getConversations()`
+  - added e2e tests for conversation (room)
+
+### Changed
+
+- [#1012](https://github.com/signalwire/signalwire-js/pull/1012) [`45991e4c`](https://github.com/signalwire/signalwire-js/commit/45991e4c23065028b8e55af3c61faaf7661a8baf) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Cleanup unified eventing
+
+- [#982](https://github.com/signalwire/signalwire-js/pull/982) [`ded3dc7a`](https://github.com/signalwire/signalwire-js/commit/ded3dc7a71977460d19fc623c3f2745f5365fb7b) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: OAuth refresh token
+
+- [#978](https://github.com/signalwire/signalwire-js/pull/978) [`0f4f2b3c`](https://github.com/signalwire/signalwire-js/commit/0f4f2b3cbf788a259baf5543fe82bbfc8b2540b7) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce pageSize param for Conversation APIs
+
+- [#1030](https://github.com/signalwire/signalwire-js/pull/1030) [`254016f3`](https://github.com/signalwire/signalwire-js/commit/254016f396ce89cda82585b6ef9bb3f0e5b9135c) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Destroy the workers after a successful verto.bye
+
+- [#992](https://github.com/signalwire/signalwire-js/pull/992) [`3d20672b`](https://github.com/signalwire/signalwire-js/commit/3d20672bbf2247b35e7d3ee8524a904fae1e6b2a) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix room session id usage in room worker
+
+- [#983](https://github.com/signalwire/signalwire-js/pull/983) [`3d6a4fbe`](https://github.com/signalwire/signalwire-js/commit/3d6a4fbe4364a5795233d2aac87ba309d9d34bdd) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce CallSegment and CallFabric worker
+
+- [#960](https://github.com/signalwire/signalwire-js/pull/960) [`184c8777`](https://github.com/signalwire/signalwire-js/commit/184c8777d1891985ab6bccbf417938e0dae5041f) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce member instance in CF SDK
+
+- [#1050](https://github.com/signalwire/signalwire-js/pull/1050) [`229320b3`](https://github.com/signalwire/signalwire-js/commit/229320b3a105690bcb5c7271bc516d6269a1ca76) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introducing Call Fabric client
+
+- [#1017](https://github.com/signalwire/signalwire-js/pull/1017) [`d215ef5d`](https://github.com/signalwire/signalwire-js/commit/d215ef5d1501f5f3df4e5d3837ac740f42649c2e) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Improve the action invoke strategy
+
+- [#965](https://github.com/signalwire/signalwire-js/pull/965) [`a08512a3`](https://github.com/signalwire/signalwire-js/commit/a08512a3a4f3a6fd1d0faf643f3c481ca668abc4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Page size for Address API
+
 ## [4.0.0] - 2024-04-17
 
 ### Added
@@ -139,7 +178,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
   ```javascript
   import { SignalWire } from '@signalwire/realtime-api'
-
   ;(async () => {
     const client = await SignalWire({
       host: process.env.HOST,
