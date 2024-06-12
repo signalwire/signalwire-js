@@ -234,6 +234,8 @@ export interface CallJoinedEvent extends SwEvent {
  */
 export interface CallStateEventParams {
   call_id: string
+  room_session_id?: string
+  origin_call_id?: string
   node_id: string
   segment_id: string
   call_state: CallStates
