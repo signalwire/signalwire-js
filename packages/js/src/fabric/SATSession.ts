@@ -63,7 +63,6 @@ export class SATSession extends JWTSession {
         ...reauthResponse,
       }
     } catch (error) {
-      clearTimeout(this._checkTokenExpirationTimer)
       throw error
     }
   }
