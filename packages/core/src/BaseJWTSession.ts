@@ -7,7 +7,7 @@ import {
 import { SessionOptions } from './utils/interfaces'
 import { BaseSession } from './BaseSession'
 import { authExpiringAction, reauthAction } from './redux/actions'
-import { isSATAuth, type SWCloseEvent } from './utils'
+import { type SWCloseEvent, isSATAuth } from './utils'
 
 export class BaseJWTSession extends BaseSession {
   /**
