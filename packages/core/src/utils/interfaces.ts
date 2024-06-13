@@ -232,10 +232,9 @@ export interface SATAuthorization {
   }
 }
 
-export type Authorization =
-  | VideoAuthorization
-  | ChatAuthorization
-  | SATAuthorization
+export type JWTAuthorization = VideoAuthorization | ChatAuthorization
+
+export type Authorization = JWTAuthorization | SATAuthorization
 
 export interface RPCConnectResult {
   identity: string
