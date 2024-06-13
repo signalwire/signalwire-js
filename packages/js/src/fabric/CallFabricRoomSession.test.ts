@@ -370,8 +370,6 @@ describe('CallFabricRoomSession', () => {
         nodeId: 'node-id-3',
       })
 
-      // FIXME update the expect to check the segmentWorkers instead of callSegments
-      // expect(room.callSegments).toHaveLength(3)
 
       await room.audioMute({ memberId: 'member-id-2' })
 
@@ -407,8 +405,6 @@ describe('CallFabricRoomSession', () => {
         nodeId: 'node-id-3',
       })
 
-      // FIXME update the expect to check the segmentWorkers instead of callSegments
-      // expect(room.callSegments).toHaveLength(3)
 
       expect(async () => {
         await room.audioMute({ memberId: 'member-id-random' })
