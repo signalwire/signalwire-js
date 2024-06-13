@@ -1,4 +1,4 @@
-import { actions, componentActions } from '@signalwire/core'
+import { JSONRPCRequest, actions, componentActions } from '@signalwire/core'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
   CallFabricRoomSession,
@@ -11,6 +11,7 @@ describe('CallFabricRoomSession', () => {
   let room: CallFabricRoomSession & {
     execute: (params: any) => any
   }
+  const callJoinedHandler = jest.fn()
 
   let stack: ReturnType<typeof configureFullStack>
   const callId = 'call-id-1'
@@ -36,6 +37,10 @@ describe('CallFabricRoomSession', () => {
       // @ts-expect-error
       emitter: stack.emitter,
     })
+
+    //@ts-ignore
+    room.on('call.joined', callJoinedHandler)
+    
     store.dispatch(
       componentActions.upsert({
         id: callId,
@@ -47,6 +52,8 @@ describe('CallFabricRoomSession', () => {
     )
     room.execute = jest.fn()
 
+
+
     setupRoomForTests()
 
     // mock a call.joined event
@@ -54,22 +61,25 @@ describe('CallFabricRoomSession', () => {
       session: stack.session,
       callId: callId,
       roomId: 'room-id-1',
-      roomSessionId: 'room-session-id-1',
+      roomSessionId: callId,
       memberId: 'member-id-1',
       nodeId: 'node-id-1',
+      originCallId: callId,
     })
     dispatchMockedCallJoined({
       session: stack.session,
       callId: 'call-id-2',
       roomId: 'room-id-2',
-      roomSessionId: 'room-session-id-2',
+      roomSessionId: 'call-id-2',
       memberId: 'member-id-2',
       nodeId: 'node-id-2',
+      originCallId: callId,
     })
   })
 
   afterEach(() => {
     stack.destroy()
+    callJoinedHandler.mockReset()
   })
 
   describe('should use CallFabricRoomSessionConnection implementation', () => {
@@ -243,6 +253,11 @@ describe('CallFabricRoomSession', () => {
           method: 'call.member.remove',
           params: {
             ...actionParams,
+            target: {
+              call_id: 'call-id-1',
+              member_id: 'member-id-1',
+              node_id: 'node-id-1',
+            },
           },
         },
         {}
@@ -333,21 +348,20 @@ describe('CallFabricRoomSession', () => {
 
     it('should maintain callSegments array', () => {
       // Since two call.joined has already been dispatched two times in the beforeEach
-      
-      // FIXME update the expect to check the segmentWorkers instead of callSegments
-      // expect(room.callSegments).toHaveLength(2)
+
+      expect(callJoinedHandler).toHaveBeenCalledTimes(2)
 
       dispatchMockedCallJoined({
         session: stack.session,
         callId: callId,
         roomId: 'room-id-3',
-        roomSessionId: 'room-session-id-3',
+        roomSessionId: callId,
         memberId: 'member-id-3',
         nodeId: 'node-id-3',
+        originCallId: callId,
       })
 
-      // FIXME update the expect to check the segmentWorkers instead of callSegments
-      // expect(room.callSegments).toHaveLength(3)
+      expect(callJoinedHandler).toHaveBeenCalledTimes(3)
 
       const callLeft = JSON.parse(
         `{"jsonrpc":"2.0","id":"cb78f2eb-6468-48ed-979d-a94fca47befe","method":"signalwire.event","params":{"params":{"room_session":{"room_id":"${roomId}","room_session_id":"${roomSessionId}","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","layout_name":"1x1","meta":{},"members":[{"type":"member","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc","name":"sip:foo@94df1ecd-d073-473d-aa4d-a286e24f679b.call.signalwire.com;context=private","room_id":"${roomId}","room_session_id":"${roomSessionId}","visible":true,"handraised":false,"audio_muted":false,"video_muted":false,"deaf":false,"meta":{}}],"recordings":[],"streams":[],"playbacks":[]},"room_id":"${roomId}","room_session_id":"${roomSessionId}","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc"},"event_type":"call.left","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","timestamp":1712142454.67701}}`
@@ -359,58 +373,72 @@ describe('CallFabricRoomSession', () => {
     })
   })
 
-  describe('should use correct self and target', () => {
-    it("should use current segment's memberId when provided with a self memberId from the previous segment", async () => {
-      dispatchMockedCallJoined({
-        session: stack.session,
-        callId: 'call-id-3',
-        roomId: 'room-id-3',
-        roomSessionId: 'room-session-id-3',
-        memberId: 'member-id-3',
-        nodeId: 'node-id-3',
-      })
+  describe('Emit events', () => {
+    it('should emit events in order', () => {
+      let talking
+      let talkingStatus
 
+      room.on('member.talking.started', () => (talkingStatus = 'started'))
+      room.on('member.talking.ended', () => (talkingStatus = 'stoped'))
+      room.on(
+        'member.talking',
+        (payload: any) => (talking = payload.member.talking)
+      )
 
-      await room.audioMute({ memberId: 'member-id-2' })
-
-      expect(room.execute).toHaveBeenCalledWith(
-        {
-          method: 'call.mute',
+      const talkingTrue = {
+        jsonrpc: '2.0',
+        id: '2f260116-9447-4a16-a806-231137c2a111',
+        method: 'signalwire.event',
+        params: {
+          event_type: 'member.talking',
+          event_channel: [
+            'signalwire_cf91bf05-aaa1-4dcc-ad5c-04715fa70276_582e7ba1-a075-4893-8cef-b505cac633c6_9ba74bce-5b02-475c-b183-2b5a7f6cfa8b',
+          ],
+          timestamp: 1718299953114539,
           params: {
-            channels: ['audio'],
-            self: {
-              call_id: 'call-id-1',
+            room_id: 'b121ef92-2e47-400d-b742-2e2bd4356064',
+            room_session_id: callId,
+            member: {
               member_id: 'member-id-1',
-              node_id: 'node-id-1',
-            },
-            target: {
-              call_id: 'call-id-3',
-              member_id: 'member-id-3',
-              node_id: 'node-id-3',
+              talking: true,
+              node_id: '2c71e542-d639-4043-8fd9-6b8bb3c5e0ed@',
             },
           },
         },
-        {}
+      }
+      const talkingFalse = {
+        jsonrpc: '2.0',
+        id: '2f260116-9447-4a16-a806-231137c2a111',
+        method: 'signalwire.event',
+        params: {
+          event_type: 'member.talking',
+          event_channel: [
+            'signalwire_cf91bf05-aaa1-4dcc-ad5c-04715fa70276_582e7ba1-a075-4893-8cef-b505cac633c6_9ba74bce-5b02-475c-b183-2b5a7f6cfa8b',
+          ],
+          timestamp: 1718299953114539,
+          params: {
+            room_id: 'b121ef92-2e47-400d-b742-2e2bd4356064',
+            room_session_id: callId,
+            member: {
+              member_id: 'member-id-1',
+              talking: false,
+              node_id: '2c71e542-d639-4043-8fd9-6b8bb3c5e0ed@',
+            },
+          },
+        },
+      }
+
+      stack.session.dispatch(
+        actions.socketMessageAction(talkingFalse as JSONRPCRequest)
       )
-    })
-
-    it('should throw error for invalid memberId not present in the current segment and not a self memberId', async () => {
-      dispatchMockedCallJoined({
-        session: stack.session,
-        callId: 'call-id-3',
-        roomId: 'room-id-3',
-        roomSessionId: 'room-session-id-3',
-        memberId: 'member-id-3',
-        memberId2: 'member-id-4',
-        nodeId: 'node-id-3',
-      })
-
-
-      expect(async () => {
-        await room.audioMute({ memberId: 'member-id-random' })
-      }).rejects.toThrow(
-        'The memberId is not a part of the current call segment!'
+      stack.session.dispatch(
+        actions.socketMessageAction(talkingTrue as JSONRPCRequest)
       )
+
+      expect(talking).toBeDefined()
+      expect(talkingStatus).toBeDefined()
+      expect(talking).toBeTruthy()
+      expect(talkingStatus).toEqual('started')
     })
   })
 })

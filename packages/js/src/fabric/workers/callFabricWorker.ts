@@ -50,7 +50,6 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         })
         cfRoomSessionConnection.selfMember = memberInstance
       }
-
       cfRoomSessionConnection.runWorker('callSegmentWorker',
        { worker: callSegmentWorker,
         ...options, 

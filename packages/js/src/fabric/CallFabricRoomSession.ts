@@ -107,6 +107,10 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._member = member
   }
 
+   get member(): RoomSessionMember|undefined {
+    return this._member
+  }
+
   override get memberId() {
     return this._member?.memberId
   }
@@ -129,9 +133,10 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    // TODO: fix type
-    const targetMember = this.instanceMap.get<RoomSessionMember>(memberId!)
-      return this.execute<InputType, OutputType, ParamsType>(
+    const targetMember = memberId ? this.instanceMap.get<RoomSessionMember>(memberId) : this.member;
+    if(!targetMember) throw new Error('No target param found, to execute ')
+
+    return this.execute<InputType, OutputType, ParamsType>(
       {
         method,
         params: {
