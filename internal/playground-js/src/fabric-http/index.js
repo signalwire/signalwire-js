@@ -2,7 +2,9 @@ import { SignalWire } from '@signalwire/js'
 
 const searchInput = document.getElementById('searchInput')
 const searchType = document.getElementById('searchType')
-const conversationMessageInput = document.getElementById('new-conversation-message')
+const conversationMessageInput = document.getElementById(
+  'new-conversation-message'
+)
 const sendMessageBtn = document.getElementById('send-message')
 
 let client = null
@@ -162,7 +164,6 @@ const createAddressListItem = (address) => {
     if (channelName != 'messaging') {
       button.addEventListener('click', () => dialAddress(channelValue))
     } else {
-
       button.addEventListener('click', () => {
         subscribeToNewMessages()
         openMessageModal(address)
@@ -198,7 +199,7 @@ function updateAddressUI() {
   addresses
     .map(createAddressListItem)
     .forEach((item) => addressUl.appendChild(item))
-  subscribeToNewMessages();
+  subscribeToNewMessages()
 }
 
 async function fetchAddresses() {
@@ -327,6 +328,7 @@ async function fetchHistories() {
   try {
     const historyData = await client.conversation.getConversations({
       pageSize: 10,
+      sortOrder: 'ASC',
     })
     window.__historyData = historyData
     updateHistoryUI()

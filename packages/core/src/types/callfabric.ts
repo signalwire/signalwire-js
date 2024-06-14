@@ -68,6 +68,8 @@ export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 /**
  * Conversations
  */
+export type SortOrder = 'ASC' | 'DESC'
+
 export interface SendConversationMessageOptions {
   text: string
   addressId: string
@@ -76,6 +78,7 @@ export interface SendConversationMessageOptions {
 }
 export interface GetConversationsOptions {
   pageSize?: number
+  sortOrder?: SortOrder
 }
 
 export interface Conversation {
@@ -126,6 +129,7 @@ export interface FetchConversationMessagesResponse
 export interface GetConversationMessagesOptions {
   addressId: string
   pageSize?: number
+  sortOrder?: SortOrder
 }
 
 /**
