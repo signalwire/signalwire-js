@@ -107,8 +107,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._member = member
   }
 
-   get member(): RoomSessionMember|undefined {
-    return this._member
+   get member(): RoomSessionMember {
+    return this._member!
   }
 
   override get memberId() {
