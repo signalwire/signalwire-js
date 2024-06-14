@@ -21,7 +21,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
       instance: cfRoomSession,
     } = options
 
-    const segmentRoutingId = bootstrapAction.payload.roomSessionId || bootstrapAction.payload.callId
+    const segmentRoutingId = bootstrapAction.payload.room_session_id || bootstrapAction.payload.call_id
 
     getLogger().debug(`callSegmentWorker started for: ${segmentRoutingId}`)
 
@@ -38,7 +38,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         eventType.startsWith('layout.')
       
       //@ts-expect-error
-      const eventRoutingId = action.payload.roomSessionId || action.payload.callId
+      const eventRoutingId = action.payload.room_session_id || action.payload.call_id
 
       return (
         shouldWatch(action.type) && segmentRoutingId === eventRoutingId

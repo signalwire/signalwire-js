@@ -69,7 +69,9 @@ export interface DialParams extends CallOptions {
   nodeId?: string
 }
 
-export interface WSClientOptions extends UserOptions {
+export type CFUserOptions = Omit<UserOptions, 'onRefreshToken'>
+
+export interface WSClientOptions extends CFUserOptions {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Call back function to receive the incoming call */
