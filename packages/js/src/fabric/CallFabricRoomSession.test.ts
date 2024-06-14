@@ -52,8 +52,6 @@ describe('CallFabricRoomSession', () => {
     )
     room.execute = jest.fn()
 
-
-
     setupRoomForTests()
 
     // mock a call.joined event
