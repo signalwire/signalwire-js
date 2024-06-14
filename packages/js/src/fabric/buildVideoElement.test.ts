@@ -36,17 +36,6 @@ describe('buildVideoElement', () => {
     })
     setupRoomForTests()
 
-    // mock a call.joined event
-    dispatchMockedCallJoined({
-      session: stack.session,
-      callId: callId,
-      roomId: 'room-id-1',
-      roomSessionId: callId,
-      memberId: 'member-id-1',
-      nodeId: 'node-id-1',
-      originCallId: callId,
-    })
-
     jsdom = new JSDOM('<!doctype html><html><body></body></html>')
     global.document = jsdom.window.document
     global.HTMLDivElement = jsdom.window.HTMLDivElement
@@ -217,6 +206,17 @@ describe('buildVideoElement', () => {
     })
 
     it('should render the mcuLayers', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 
@@ -231,6 +231,17 @@ describe('buildVideoElement', () => {
     })
 
     it('should render two elements if the IDs are different', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 
@@ -261,6 +272,16 @@ describe('buildVideoElement', () => {
     })
 
     it('should render only one element if the IDs are same', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 
@@ -288,6 +309,16 @@ describe('buildVideoElement', () => {
     })
 
     it('should mirror the video', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 

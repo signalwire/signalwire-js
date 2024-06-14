@@ -8,7 +8,6 @@ import {
   sagaEffects,
 } from '@signalwire/core'
 import { callLeftWorker } from './callLeftWorker'
-import { callStateWorker } from './callStateWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
 import { videoMemberWorker } from '../../video/videoMemberWorker'
@@ -22,7 +21,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
     } = options
 
     const segmentRoutingId = bootstrapAction.payload.room_session_id || bootstrapAction.payload.call_id
-
+    
     getLogger().debug(`callSegmentWorker started for: ${segmentRoutingId}`)
 
     //handles the `call.joined` event before the worker loop
@@ -60,13 +59,6 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
             ...options,
             action,
           })
-          break
-        case 'call.state':
-          yield sagaEffects.fork(callStateWorker, {
-            ...options,
-            action,
-          })
-          cfRoomSession.emit(type, payload)
           break
         case 'call.started':
         case 'call.updated':
@@ -114,6 +106,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
           cfRoomSession.emit(type, payload)
           break
         default:
+          console.log(`%%%%%%%%%%%%%%%%%%% emitting: ${type}`)
           cfRoomSession.emit(type, payload)
       }
     }
