@@ -401,3 +401,42 @@ test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
     console.info('END: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711')
   })
 })
+
+test.describe('v2WebrtcFromRest422', () => {
+  test('should handle a call from REST API to v2 client, receiving a 422 from REST API', async ({
+    createCustomVanillaPage,
+  }) => {
+    console.info('START: should handle a call from REST API to v2 client, receiving a 422 from REST API')
+
+    const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
+    await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
+
+    const relayHost = process.env.RELAY_HOST ?? ''
+    await expectInjectRelayHost(pageCallee, relayHost)
+
+    const envRelayProject = process.env.RELAY_PROJECT ?? ''
+    expect(envRelayProject).not.toBe(null)
+
+    const resource = randomizeResourceName()
+    const jwtCallee = await createTestJWTToken({ resource: resource })
+    expect(jwtCallee).not.toBe(null)
+
+    await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
+
+    // This won't be used anyway
+    const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
+      <Response>
+      <Say>
+        <prosody volume="silent">Words to speak</prosody>
+      </Say>
+    </Response>`
+
+    const invalidResource = "e2etest422"
+    const createResult = await createCallWithCompatibilityApi(
+      invalidResource,
+      inlineLaml
+    )
+    expect(createResult).toBe(422)
+    console.info('END: should handle a call from REST API to v2 client, receiving a 422 from REST API')
+  })
+})

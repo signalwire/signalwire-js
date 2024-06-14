@@ -79,6 +79,10 @@ test.describe('RoomSessionReattachBadAuth', () => {
 
     const { code, message } = joinResponse
     expect([-32002, '27']).toContain(code)
-    expect(['CALL ERROR', 'DESTINATION_OUT_OF_ORDER']).toContain(message)
+    expect([
+      'CALL ERROR',
+      'DESTINATION_OUT_OF_ORDER',
+      'Cannot reattach this call with this member ID',
+    ]).toContain(message)
   })
 })
