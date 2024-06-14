@@ -28,5 +28,4 @@ export const toInternalAction = <
     type: event_type,
     payload: vertoRPC,
   } as MapToPubSubShape<T>
-  
 }
