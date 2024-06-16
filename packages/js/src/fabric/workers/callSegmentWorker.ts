@@ -106,7 +106,6 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
           cfRoomSession.emit(type, payload)
           break
         default:
-          console.log(`%%%%%%%%%%%%%%%%%%% emitting: ${type}`)
           cfRoomSession.emit(type, payload)
       }
     }

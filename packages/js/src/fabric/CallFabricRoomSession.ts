@@ -67,6 +67,11 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return result
   }
 
+  override async leave(): Promise<void> {
+    await super.leave()
+    this.destroy()  
+  }
+
   async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {

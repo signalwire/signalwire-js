@@ -84,11 +84,6 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
           break
         case 'call.state':
           cfRoomSessionConnection.emit(type, payload)
-          yield sagaEffects.fork(callStateWorker, {
-            ...options,
-            action,
-            shouldDestroy: originCallId == payload.call_id,
-          })
           break
       }
     }
