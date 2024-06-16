@@ -9,7 +9,6 @@ import {
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
 import { callSegmentWorker } from './callSegmentWorker'
-import { callStateWorker } from './callStateWorker'
 
 export type CallFabricWorkerParams<T> =
   SDKWorkerParams<CallFabricRoomSessionConnection> & {
