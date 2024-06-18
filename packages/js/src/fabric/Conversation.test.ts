@@ -254,4 +254,144 @@ describe('Conversation', () => {
       expect(mockCallback2).toHaveBeenCalledWith(event)
     })
   })
+
+  describe('Chat utilities', () => {
+    it('Should return adresss chat messages only', async () => {
+      ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+        body: {
+          data: [
+            { subtype: 'log', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'xyz' },
+          ],
+          links: {},
+        },
+      })
+
+      const addressId = 'abc'
+      const messages = await conversation.getChatMessages({ addressId })
+
+      expect(messages.data).toHaveLength(1)
+      expect(messages.data[0].conversation_id).toEqual(addressId)
+    })
+
+    it('Should return 10(default page) adresss chat messages only', async () => {
+      ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+        body: {
+          data: [
+            { subtype: 'log', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'xyz' },
+          ],
+          links: {
+            next: 'http://next.url',
+            prev: 'http://prev.url',
+          },
+        },
+      })
+
+      const addressId = 'abc'
+      const messages = await conversation.getChatMessages({ addressId })
+
+      expect(messages.data).toHaveLength(10)
+      expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
+      expect(
+        messages.data.every((item) => item.conversation_id === addressId)
+      ).toBe(true)
+    })
+
+    it('Should return 5(default page) adresss chat messages only', async () => {
+      let count = 0
+      ;(httpClient.fetch as jest.Mock).mockImplementation(() => {
+        ++count
+        return {
+          body: {
+            data: [
+              { subtype: 'log', conversation_id: 'abc' },
+              { subtype: 'chat', conversation_id: 'abc' },
+              { subtype: 'chat', conversation_id: 'xyz' },
+            ],
+            links: {
+              next: count < 3 ? 'http://next.url' : undefined,
+              prev: count < 3 ? 'http://prev.url' : undefined,
+            },
+          },
+        }
+      })
+
+      const addressId = 'abc'
+      const messages = await conversation.getChatMessages({ addressId })
+
+      expect(messages.data).toHaveLength(3)
+      expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
+      expect(
+        messages.data.every((item) => item.conversation_id === addressId)
+      ).toBe(true)
+    })
+
+    it('should get only address chat event', async () => {
+      const mockCallback = jest.fn()
+      const addressId = 'abc'
+      await conversation.subscribeChatMessages({addressId, onMessage: mockCallback})
+      
+      const valid = {
+        type: 'message',
+        subtype: 'chat',
+        conversation_id: 'abc',
+        text: 'text',
+      }
+      //@ts-expect-error
+      conversation.handleEvent(valid)
+      //@ts-expect-error
+      conversation.handleEvent({
+        type: 'message',
+        subtype: 'chat',
+        conversation_id: 'xyz',
+        text: 'text',
+      })
+      //@ts-expect-error
+      conversation.handleEvent({
+        type: 'message',
+        subtype: 'log',
+        conversation_id: 'abc',
+      })
+
+      expect(mockCallback).toHaveBeenCalledWith(valid)
+    })
+
+    it('should cancel chat address subscription', async () => {
+      const mockCallback = jest.fn()
+      const addressId = 'abc'
+      const subscription = await conversation.subscribeChatMessages({addressId, onMessage: mockCallback})
+      
+      const valid = {
+        type: 'message',
+        subtype: 'chat',
+        conversation_id: 'abc',
+        text: 'text',
+      }
+      //@ts-expect-error
+      conversation.handleEvent(valid)
+      //@ts-expect-error
+      conversation.handleEvent({
+        type: 'message',
+        subtype: 'chat',
+        conversation_id: 'xyz',
+        text: 'text',
+      })
+      //@ts-expect-error
+      conversation.handleEvent({
+        type: 'message',
+        subtype: 'log',
+        conversation_id: 'abc',
+      })
+
+      expect(mockCallback).toHaveBeenCalledWith(valid)
+
+      subscription.cancel()
+      //@ts-expect-error
+      conversation.handleEvent(valid)
+      expect(mockCallback).toBeCalledTimes(1)
+    })
+  })
 })

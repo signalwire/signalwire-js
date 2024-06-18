@@ -31,6 +31,7 @@ export class Conversation {
   private wsClient: WSClient
   private callbacks: Callback[] = [
     (event: ConversationEventParams) => {
+      console.log(event)
       if(event.subtype !== 'chat') return
       const conversationSubscription = this.chatSubscriptions[event.conversation_id];
       if(!!conversationSubscription) {
@@ -147,14 +148,16 @@ export class Conversation {
 
   public async getChatMessages({addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE}: GetConversationMessagesOptions) {
     const chatMessages = []
+    const isValid = (item: ConversationMessage) => (item.conversation_id == addressId && item.subtype == 'chat')
+
     let conversationMessages: Awaited<ReturnType<typeof this.getConversationMessages>> | undefined
     conversationMessages = await this.getConversationMessages({addressId, pageSize});
-     chatMessages.push(...conversationMessages.data.filter((item)=>item.conversation_id == addressId))
-     while(chatMessages.length <= pageSize && conversationMessages?.hasNext) {
+     chatMessages.push(...conversationMessages.data.filter(isValid))
+     while(chatMessages.length < pageSize && conversationMessages?.hasNext) {
       //@ts-expect-error
       conversationMessages = await conversationMessages?.nextPage() 
       if(!!conversationMessages) {
-        chatMessages.push(...conversationMessages.data.filter((item)=>(item as ConversationMessage).conversation_id == addressId))
+        chatMessages.push(...conversationMessages.data.filter(isValid))
       }
      }
     
@@ -176,7 +179,7 @@ export class Conversation {
 
   public async subscribeChatMessages({addressId, onMessage}: {addressId: string, onMessage: Callback}) {
     // Connect the websocket client first
-    this.wsClient.connect()
+    await this.wsClient.connect()
 
     if(!(addressId in this.chatSubscriptions)) {
       this.chatSubscriptions[addressId] = []
@@ -193,6 +196,7 @@ export class Conversation {
   public handleEvent(event: ConversationEventParams) {
     if (this.callbacks.length) {
       this.callbacks.forEach((callback) => {
+        console.log(event)
         callback(event)
       })
     }
