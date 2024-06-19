@@ -111,6 +111,7 @@ export interface GetMessagesOptions {
 
 export interface ConversationMessage {
   id: string
+  address_id: string,
   conversation_id: string
   user_id: string
   ts: number

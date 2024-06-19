@@ -16,6 +16,7 @@ import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
+import { ConversationMessagesResult } from './types'
 
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 
@@ -119,7 +120,7 @@ export class Conversation {
 
   public async getConversationMessages(
     options: GetConversationMessagesOptions
-  ) {
+  ): Promise<ConversationMessagesResult> {
     try {
       const { addressId, pageSize } = options || {}
 
