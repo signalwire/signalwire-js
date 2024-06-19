@@ -300,7 +300,33 @@ describe('Conversation', () => {
       ).toBe(true)
     })
 
-    it('Should return 5(default page) adresss chat messages only', async () => {
+    it('Should return 5 adresss chat messages only', async () => {
+      ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+        body: {
+          data: [
+            { subtype: 'log', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'xyz' },
+          ],
+          links: {
+            next: 'http://next.url',
+            prev: 'http://prev.url',
+          },
+        },
+      })
+
+      const addressId = 'abc'
+      const messages = await conversation.getChatMessages({ addressId, pageSize:3 })
+
+      expect(messages.data).toHaveLength(4)
+      expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
+      expect(
+        messages.data.every((item) => item.conversation_id === addressId)
+      ).toBe(true)
+    })
+
+    it('Should return 3 adresss chat messages only', async () => {
       let count = 0
       ;(httpClient.fetch as jest.Mock).mockImplementation(() => {
         ++count

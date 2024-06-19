@@ -31,7 +31,6 @@ export class Conversation {
   private wsClient: WSClient
   private callbacks: Callback[] = [
     (event: ConversationEventParams) => {
-      console.log(event)
       if(event.subtype !== 'chat') return
       const conversationSubscription = this.chatSubscriptions[event.conversation_id];
       if(!!conversationSubscription) {
@@ -196,7 +195,6 @@ export class Conversation {
   public handleEvent(event: ConversationEventParams) {
     if (this.callbacks.length) {
       this.callbacks.forEach((callback) => {
-        console.log(event)
         callback(event)
       })
     }
