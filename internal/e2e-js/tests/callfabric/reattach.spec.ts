@@ -3,6 +3,7 @@ import {
   CF_REFERENCE_CLIENT_URL,
   CF_E2E_TEST_ROOM_ADDRESS,
   CF_E2E_SWML_ADDRESS,
+  CF_E2E_LONG_RUNNING_SWML_ADDRESS,
   CF_E2E_CALLER_EMAIL,
   CF_E2E_CALLER_PASSWORD,
   CF_E2E_CALLEE_EMAIL,
@@ -40,10 +41,10 @@ test.describe('Reattach Tests', () => {
     await page.getByLabel('Address').fill(CF_E2E_TEST_ROOM_ADDRESS)
     await page.getByText('Dial').click()
 
-    await expect(page.locator('span#connectStatus', { hasText: 'Connected' })).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
 
     await page.reload({ waitUntil: 'domcontentloaded'})
-    await expect(page.locator('span#connectStatus', { hasText: 'Connected' })).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
   })
 
   test('WebRTC -> SWML -> Room', async ({
@@ -75,10 +76,10 @@ test.describe('Reattach Tests', () => {
     await page.getByLabel('Address').fill(CF_E2E_SWML_ADDRESS)
     await page.getByText('Dial').click()
 
-    await expect(page.locator('span#connectStatus', { hasText: 'Connected' })).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
 
     await page.reload({ waitUntil: 'domcontentloaded'})
-    await expect(page.locator('span#connectStatus', { hasText: 'Connected' })).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
   })
 
   test('WebRTC -> Subscriber', async ({
@@ -148,9 +149,44 @@ test.describe('Reattach Tests', () => {
       answerBtn.click()
     })
 
-    await expect(page.locator('span#connectStatus', { hasText: 'Connected' })).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
 
     await page.reload({ waitUntil: 'domcontentloaded'})
-    await expect(page.locator('span#connectStatus', { hasText: 'Connected' })).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
+  })
+
+  test('WebRTC -> Long running SWML', async ({
+    createCustomVanillaPage,
+  }) => {
+
+    const page = await createCustomVanillaPage({ name: '[page]' })
+
+    await page.goto(CF_REFERENCE_CLIENT_URL)
+
+    await page.waitForLoadState('domcontentloaded')
+    await page.getByRole('link', { name: 'Subscriber OAuth'}).click()
+
+    await page.waitForLoadState('domcontentloaded')
+    // @ts-ignore
+    await page.getByLabel('Email').fill(CF_E2E_CALLER_EMAIL)
+    await page.getByText('Continue').click()
+
+    await page.locator('button[type="submit"]').last().click()
+
+    await page.waitForLoadState('domcontentloaded')
+    await page.getByLabel('Password').fill(CF_E2E_CALLER_PASSWORD)
+    await page.getByText('Log In').click()
+
+    await page.waitForLoadState('domcontentloaded')
+
+    await page.waitForSelector('text="User Info"', { timeout: 10000 })
+
+    await page.getByLabel('Address').fill(CF_E2E_LONG_RUNNING_SWML_ADDRESS)
+    await page.getByText('Dial').click()
+
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
+
+    await page.reload({ waitUntil: 'domcontentloaded'})
+    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
   })
 })

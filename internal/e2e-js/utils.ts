@@ -33,9 +33,9 @@ export const BASIC_TOKEN = Buffer.from(
 
 export const CF_REFERENCE_CLIENT_URL = process.env.CF_REFERENCE_CLIENT_URL ?? 'http://localhost:3000'
 
-export const CF_E2E_TEST_ROOM_ADDRESS = process.env.CF_E2E_TEST_ROOM_ADDRESS ?? '/public/cf-e2e-test-room'
+export const CF_E2E_TEST_ROOM_ADDRESS = process.env.CF_E2E_TEST_ROOM_ADDRESS ?? '/private/cf-e2e-test-room'
 
-export const CF_E2E_SWML_ADDRESS = process.env.CF_E2E_TEST_SWML_ADDRESS ?? '/public/join-cf-e2e-test-room'
+export const CF_E2E_SWML_ADDRESS = process.env.CF_E2E_TEST_SWML_ADDRESS ?? '/private/join-cf-e2e-test-room'
 
 export const CF_E2E_CALLER_EMAIL = process.env.CF_E2E_CALLER_EMAIL ?? 'caller@email.com'
 
@@ -47,6 +47,7 @@ export const CF_E2E_CALLEE_PASSWORD = process.env.CF_E2E_CALLEE_PASSWORD ?? 'cal
 
 export const CF_E2E_CALLEE_ADDRESS = process.env.CF_E2E_CALLEE_ADDRESS ?? '/public/callee'
 
+export const CF_E2E_LONG_RUNNING_SWML_ADDRESS = process.env.CF_E2E_LONG_RUNNING_SWML_ADDRESS ?? '/private/cf-e2e-long-running-swml'
 
 export const createTestServer = async (
   options: CreateTestServerOptions = { target: 'blank' }
