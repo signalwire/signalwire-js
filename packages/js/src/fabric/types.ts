@@ -28,7 +28,7 @@ export interface SignalWireContract {
     getConversationMessages: Conversation['getConversationMessages']
     subscribe: Conversation['subscribe']
     sendMessage: Conversation['sendMessage']
-  },
+  }
   chat: {
     getMessages: Conversation['getChatMessages']
     subscribe: Conversation['subscribeChatMessages']
@@ -114,3 +114,5 @@ export interface IncomingCallHandlers {
   pushNotification?: IncomingCallHandler
   websocket?: IncomingCallHandler
 }
+
+export { CallFabricRoomSession }
