@@ -117,6 +117,10 @@ export class RoomSessionConnection
     })
   }
 
+  protected get screenShareParentId() {
+    return this.memberId
+  }
+
   /**
    * This method will be called by `join()` right before the
    * `connect()` happens and it's a way for us to control
@@ -197,7 +201,7 @@ export class RoomSessionConnection
           onDone: () => resolve(screenShare),
           onFail: reject,
           initialState: {
-            parentId: this.memberId,
+            parentId: this.screenShareParentId,
           },
         })
 

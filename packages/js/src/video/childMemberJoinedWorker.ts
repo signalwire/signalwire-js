@@ -54,15 +54,21 @@ export const childMemberJoinedWorker: SDKWorker<
       componentSelectors.getComponentsById
     )
     const parent = Object.values(byId).find((row) => {
-      return 'memberId' in row && row.memberId === member.parent_id
+      return (
+        'memberId' in row &&
+        // Video SDK: parent_id matches with the call's member id
+        // CF SDK: parent_id matches with the call id
+        (row.memberId === member.parent_id || row.id === member.parent_id)
+      )
     })
+    console.log('<< parent', parent)
     if (parent) {
       yield sagaEffects.put(
         componentActions.upsert({
           id: instance.callId,
           roomId: action.payload.room_id,
           roomSessionId: action.payload.room_session_id,
-          memberId: member.id,
+          memberId: member.id || member.member_id,
         })
       )
 
