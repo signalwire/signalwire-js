@@ -193,6 +193,9 @@ export class RoomSessionConnection
       screenShare.once('destroy', () => {
         screenShare.emit('room.left')
         this._screenShareList.delete(screenShare)
+        // TODO: Should destroy the object and remove it from the store?
+        // @ts-expect-error
+        screenShare.destroy()
       })
 
       try {
