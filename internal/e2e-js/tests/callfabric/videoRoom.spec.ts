@@ -142,7 +142,7 @@ test.describe('CallFabric VideoRoom', () => {
       { roomSession }
     )
 
-    // // --------------- Screenshare ---------------
+    // --------------- Screenshare ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
