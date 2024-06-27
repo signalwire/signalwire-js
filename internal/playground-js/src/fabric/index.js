@@ -47,6 +47,7 @@ const inCallElements = [
   pauseRecordingBtn,
   resumeRecordingBtn,
   controlPlayback,
+  controlCallStack,
 ]
 
 const playbackElements = [
@@ -229,6 +230,38 @@ async function getClient() {
   return client
 }
 
+function addToCallStack(event) {
+  const ul = controlCallStack.querySelector('ul')
+
+  const li = document.createElement('li')
+  li.className = 'list-group-item'
+  li.id = event.call_id
+
+  const callDiv = document.createElement('div')
+  callDiv.className = 'd-flex align-items-center justify-content-between'
+
+  const callText = document.createElement('p')
+  callText.className = 'fs-7 text-wrap p-0 m-0'
+  callText.textContent = `Call ID: ${event.call_id}`
+
+  const callJumpBtn = document.createElement('button')
+  callJumpBtn.className = 'fs-7 btn btn-dark p-0 px-1'
+  callJumpBtn.textContent = 'Leave'
+  callJumpBtn.onclick = () => roomObj.leaveCallById(event.call_id)
+
+  callDiv.appendChild(callText)
+  callDiv.appendChild(callJumpBtn)
+  li.appendChild(callDiv)
+  ul.appendChild(li)
+}
+
+function removeFromCallStack(event) {
+  const liToRemove = document.getElementById(event.call_id)
+  if (liToRemove) {
+    liToRemove.remove()
+  }
+}
+
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
@@ -333,6 +366,16 @@ window.connect = async () => {
   roomObj.on('destroy', () => {
     console.debug('>> destroy')
     restoreUI()
+  })
+
+  roomObj.on('call.joined', (call) => {
+    console.debug('>> call.joined')
+    addToCallStack(call)
+  })
+
+  roomObj.on('call.left', (call) => {
+    console.debug('>> call.left')
+    removeFromCallStack(call)
   })
 
   await call.start()
