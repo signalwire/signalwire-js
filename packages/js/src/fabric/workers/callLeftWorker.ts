@@ -16,19 +16,10 @@ export const callLeftWorker = function* (
   const {
     action: { payload },
     instance: cfRoomSession,
-    callSegments,
     instanceMap,
   } = options
 
-  const { call_id, room_session_id } = payload
-
-  // Remove the call segment
-  const segmentToRemoveIndex = callSegments.findIndex(
-    (segment) => segment.callId == call_id
-  )
-  if (segmentToRemoveIndex >= 0) {
-    callSegments.splice(segmentToRemoveIndex, 1)
-  }
+  const { room_session_id } = payload
 
   // Remove all the member instance where roomSessionId matches
   instanceMap.getAll<RoomSessionMember>().forEach(([key, obj]) => {

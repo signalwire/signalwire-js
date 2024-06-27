@@ -1,12 +1,15 @@
 import {
   BaseComponentOptions,
+  BaseRPCResult,
   connect,
   ExecuteExtendedOptions,
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
   VideoLayoutChangedEventParams,
-  BaseRPCResult,
+  VideoRoomSubscribedEventParams,
+  RoomSessionMember,
+  getLogger,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -19,6 +22,9 @@ import {
   MemberCommandWithValueParams,
 } from '../video'
 import { BaseConnection } from '@signalwire/webrtc'
+import { getStorage } from '../utils/storage'
+import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -42,6 +48,10 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+  // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
+  private _self?: RoomSessionMember
+  // this is "the member" on the last/active call segment 
+  private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   protected initWorker() {
@@ -55,17 +65,85 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  start() {
+  override async hangup(id?: string | undefined): Promise<void> {
+    this._self = undefined
+    this._member = undefined
+    const result = await super.hangup(id)
+    return result
+  }
+
+  async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once('room.subscribed', () => resolve())
+        
+        this.once('room.subscribed', ({ call_id }: VideoRoomSubscribedEventParams) => {
+          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
+          resolve()
+        })
+
+        this.once('destroy', () => {
+          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+        })
 
         await this.join()
+
       } catch (error) {
         this.logger.error('WSClient call start', error)
         reject(error)
       }
     })
+  }
+
+  override async join() {
+ 
+    if(this.options.attach) {
+      this.options.prevCallId = getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    getLogger().debug(`Tying to reattach to previuos call? ${!!this.options.prevCallId} - prevCallId: ${this.options.prevCallId}`)
+    
+
+
+    // TODO: We need to handle the media constrains in a reattach
+    // const authState: VideoAuthorization = client._sessionAuthState
+    // this.logger.debug('getJoinMediaParams authState?', authState)
+    // if (authState && authState.type === 'video') {
+    //       const mediaOptions = getJoinMediaParams({
+    //         authState,
+    //         // constructor values override the send
+    //         sendAudio: Boolean(this.options.audio),
+    //         sendVideo: Boolean(this.options.video),
+    //         ...this.options,
+    //       })
+
+    //       if (!checkMediaParams(mediaOptions)) {
+    //         client.disconnect()
+    //         return reject(
+    //           new Error(
+    //             `Invalid arguments to join the room. The token used has join_as: '${
+    //               authState.join_as
+    //             }'. \n${JSON.stringify(params, null, 2)}\n`
+    //           )
+    //         )
+    //       }
+
+    //       this.logger.debug('Set mediaOptions', mediaOptions)
+
+    //       /**
+    //        * audio and video might be objects with MediaStreamConstraints
+    //        * so if we must send media, we make sure to use the user's
+    //        * preferences.
+    //        * Note: params.sendAudio: `true` will override audio: `false` so
+    //        * we're using `||` instead of `??` for that reason.
+    //        */
+    //       this.updateMediaOptions({
+    //         audio: mediaOptions.mustSendAudio ? !!this.options.audio || true : false,
+    //         video: mediaOptions.mustSendVideo ? !!this.options.video || true : false,
+    //         negotiateAudio: mediaOptions.mustRecvAudio,
+    //         negotiateVideo: mediaOptions.mustRecvVideo,
+    //       })
+    // }
+
+    return super.join()
   }
 
   /** @internal */
@@ -83,12 +161,24 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     }
   }
 
-  get selfMember() {
-    return this.callSegments[0]?.member
+  get selfMember(): RoomSessionMember|undefined {
+    return this._self
   }
 
-  get targetMember() {
-    return this.callSegments[this.callSegments.length - 1]?.member
+  set selfMember(member: RoomSessionMember|undefined) {
+    this._self = member
+  }
+
+  set member(member: RoomSessionMember) {
+    this._member = member
+  }
+
+   get member(): RoomSessionMember {
+    return this._member!
+  }
+
+  override get memberId() {
+    return this._member?.memberId
   }
 
   set lastLayoutEvent(event: any) {
@@ -97,12 +187,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   get lastLayoutEvent() {
     return this._lastLayoutEvent
-  }
-
-  private isSelfMember(id: string) {
-    return (
-      this.callSegments.findIndex((segment) => segment.memberId === id) > -1
-    )
   }
 
   private executeAction<
@@ -115,31 +199,18 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    let targetMember = this.targetMember
-    if (memberId && !this.isSelfMember(memberId)) {
-      const lastSegment = this.callSegments[this.callSegments.length - 1]
-      const memberInCurrentSegment = lastSegment.members.find(
-        (member) => member.id === memberId
-      )
-
-      if (!memberInCurrentSegment) {
-        throw new Error(
-          'The memberId is not a part of the current call segment!'
-        )
-      } else {
-        targetMember = memberInCurrentSegment
-      }
-    }
+    const targetMember = memberId ? this.instanceMap.get<RoomSessionMember>(memberId) : this.member;
+    if(!targetMember) throw new Error('No target param found, to execute ')
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
         method,
         params: {
           ...(channel && { channels: [channel] }),
-          self: {
-            member_id: this.selfMember.id,
-            call_id: this.selfMember.callId,
-            node_id: this.selfMember.nodeId,
+          self:  {
+            member_id: this.selfMember?.id,
+            call_id: this.selfMember?.callId,
+            node_id: this.selfMember?.nodeId,
           },
           target: {
             member_id: targetMember.id,

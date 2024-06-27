@@ -53,6 +53,10 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
+    return this.reattach({...params, attach: false })
+  }
+
+  async reattach(params: DialParams & {attach?: boolean}) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
@@ -82,6 +86,7 @@ export class WSClient {
           // watchMediaPacketsTimeout:,
           nodeId: params.nodeId,
           disableUdpIceServers: params.disableUdpIceServers || false,
+          attach: params.attach === false ? false : true,
           userVariables: params.userVariables || this.options.userVariables
         })
 

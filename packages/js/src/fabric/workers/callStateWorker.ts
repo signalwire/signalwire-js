@@ -14,7 +14,6 @@ export const callStateWorker = function* (
   const {
     instance: cfRoomSession,
     action: { payload },
-    callSegments,
   } = options
 
   switch (payload.call_state) {
@@ -22,8 +21,8 @@ export const callStateWorker = function* (
       // @ts-expect-error
       cfRoomSession.emit('call.state', payload)
       // Perfrom the SDK cleanup if callSegments are empty and state is 'destroy'
-      // @ts-expect-error
-      if (callSegments.length < 1 && cfRoomSession.state === 'destroy') {
+      const eventRoutingId = payload.room_session_id || payload.call_id
+      if (eventRoutingId === payload.origin_call_id) {
         cfRoomSession.destroy()
       }
       break

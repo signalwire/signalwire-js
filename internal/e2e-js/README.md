@@ -68,6 +68,8 @@ The call fabric tests are using the following resources:
 - /public/cf-e2e-test-tts (SWML Script - see below)
 - /public/cf-e2e-test-hangup (SWML Script - see below)
 - /public/cf-e2e-test-room (Video Room)
+- /public/join-cf-e2e-test-room (SWL Script - see below)
+- /public/cf-e2e-long-running-swml (SWL SCript - see below)
 
 You need to have these resources in your SignalWire space to pass these Call Fabric tests successfully.
 
@@ -136,4 +138,31 @@ Add the test you want to ignore within the `playwright.config.ts` > `testIgnore`
   }
 }
 
+```
+
+/public/join-cf-e2e-test-room
+
+```yaml
+---
+version: 1.0.0
+sections:
+  main:
+  - join_room:
+      name: "cf-e2e-test-room"
+```
+
+/public/cf-e2e-long-running-swml
+
+```yaml
+---
+version: 1.0.0
+sections:
+  main:
+  - answer
+  - label: loop
+  - play: 'say: repeating 100 times.'
+  - goto:
+      label: loop
+      max: 100
+  - hangup
 ```

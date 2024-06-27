@@ -89,10 +89,6 @@ export class BaseComponent<
     return this.store.instanceMap
   }
 
-  /** @internal */
-  get callSegments() {
-    return this.store.callSegments
-  }
 
   /** @internal */
   get emitter() {
