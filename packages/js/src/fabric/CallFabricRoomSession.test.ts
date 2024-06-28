@@ -306,6 +306,42 @@ describe('CallFabricRoomSession', () => {
       )
     })
 
+    test('lock implementation', async () => {
+      const spy = jest.spyOn(
+        CallFabricRoomSessionConnection.prototype,
+        'lock'
+      )
+      await room.lock()
+      expect(spy).toHaveBeenCalledWith()
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.lock',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
+    test('unlock implementation', async () => {
+      const spy = jest.spyOn(
+        CallFabricRoomSessionConnection.prototype,
+        'unlock'
+      )
+      await room.unlock()
+      expect(spy).toHaveBeenCalledWith()
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.unlock',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
     test('setInputSensitivity implementation', async () => {
       const spy = jest.spyOn(
         CallFabricRoomSessionConnection.prototype,
