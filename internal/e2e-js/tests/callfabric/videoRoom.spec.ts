@@ -117,11 +117,12 @@ test.describe('CallFabric VideoRoom', () => {
 
         await Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
 
-        await roomObj.lock()
-        await roomUpdatedLocked
+        // FIXME uncomment when the feature got deployed to PROD
+        // await roomObj.lock()
+        // await roomUpdatedLocked
 
-        await roomObj.unlock()
-        await roomUpdatedUnlocked
+        // await roomObj.unlock()
+        // await roomUpdatedUnlocked
 
       },
       { roomSession }
