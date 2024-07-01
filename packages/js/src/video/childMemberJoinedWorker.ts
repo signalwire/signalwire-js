@@ -62,7 +62,7 @@ export const childMemberJoinedWorker: SDKWorker<
           id: instance.callId,
           roomId: action.payload.room_id,
           roomSessionId: action.payload.room_session_id,
-          memberId: member.id,
+          memberId: member.id || member.member_id,
         })
       )
 

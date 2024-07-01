@@ -442,11 +442,11 @@ window.startScreenShare = async () => {
     })
 
   screenShareObj.once('destroy', () => {
-    console.debug('screenShare destroy')
+    console.debug('>> screenShare destroy')
   })
 
   screenShareObj.once('room.left', () => {
-    console.debug('screenShare room.left')
+    console.debug('>> screenShare room.left')
   })
 }
 window.stopScreenShare = () => {
