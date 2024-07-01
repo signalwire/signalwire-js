@@ -60,10 +60,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._lastLayoutEvent
   }
 
-  protected override get screenShareParentId() {
-    return this.callId
-  }
-
   private isSelfMember(id: string) {
     return (
       this.callSegments.findIndex((segment) => segment.memberId === id) > -1
