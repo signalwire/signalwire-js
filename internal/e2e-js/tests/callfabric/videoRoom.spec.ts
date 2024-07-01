@@ -92,10 +92,38 @@ test.describe('CallFabric VideoRoom', () => {
           })
         })
 
+        const roomUpdatedLocked = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (
+              params.room_session.locked === false
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
+        const roomUpdatedUnlocked = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (
+              params.room_session.locked === false
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
         await roomObj.audioMute()
         await roomObj.audioUnmute()
 
-        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
+        await Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
+
+        // FIXME uncomment when the feature got deployed to PROD
+        // await roomObj.lock()
+        // await roomUpdatedLocked
+
+        // await roomObj.unlock()
+        // await roomUpdatedUnlocked
+
       },
       { roomSession }
     )
