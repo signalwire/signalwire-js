@@ -64,10 +64,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._self = undefined
     this._member = undefined
     const result = await super.hangup(id)
-    this.destroy()
     return result
   }
 
+  override async leave(): Promise<void> {
+    await super.leave()
+    this.destroy()  
+  }
 
   async start() {
     return new Promise<void>(async (resolve, reject) => {
