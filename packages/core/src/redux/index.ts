@@ -17,7 +17,6 @@ import {
 } from '../utils/interfaces'
 import { useSession } from './utils/useSession'
 import { useInstanceMap } from './utils/useInstanceMap'
-import { CallSegmentContract } from '../types/callSegment'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
@@ -65,7 +64,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
 
   const instanceMap = useInstanceMap()
 
-  const callSegments: CallSegmentContract[] = []
 
   const { initSession, getSession, sessionEmitter } = useSession({
     userOptions,
@@ -85,7 +83,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
       channels,
       getSession,
       instanceMap,
-      callSegments,
     })
   }
 
@@ -102,7 +99,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSaga,
     channels,
     instanceMap,
-    callSegments,
     sessionEmitter,
   }
 }

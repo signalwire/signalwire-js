@@ -53,7 +53,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
         instance,
         initialState,
         instanceMap: {} as any,
-        callSegments: [],
         runSaga: jest.fn(),
       })
         .provide([
@@ -131,7 +130,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([
@@ -211,7 +209,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([
@@ -292,7 +289,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([
@@ -370,7 +366,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([
@@ -450,7 +445,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([
@@ -530,7 +524,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([
@@ -614,7 +607,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([
@@ -698,7 +690,6 @@ WEBRTC_EVENT_TYPES.forEach((eventType) => {
           instance,
           initialState,
           instanceMap: {} as any,
-          callSegments: [],
           runSaga: jest.fn(),
         })
           .provide([

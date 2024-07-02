@@ -107,6 +107,7 @@ export const dispatchMockedCallJoined = ({
   memberId2 = 'member-id-random',
   callId,
   nodeId,
+  originCallId
 }: {
   session: any
   roomSessionId: string
@@ -115,6 +116,7 @@ export const dispatchMockedCallJoined = ({
   memberId2?: string
   callId: string
   nodeId: string
+  originCallId: string
 }) => {
   const payload = {
     jsonrpc: '2.0',
@@ -170,6 +172,7 @@ export const dispatchMockedCallJoined = ({
         },
         room_id: roomId,
         room_session_id: roomSessionId,
+        origin_call_id: originCallId,
         call_id: callId,
         member_id: memberId,
         node_id: nodeId,

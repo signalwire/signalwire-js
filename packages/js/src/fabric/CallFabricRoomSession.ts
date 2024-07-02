@@ -7,6 +7,7 @@ import {
   Rooms,
   VideoLayoutChangedEventParams,
   BaseRPCResult,
+  RoomSessionMember,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -42,6 +43,10 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+  // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
+  private _self?: RoomSessionMember
+  // this is "the member" on the last/active call segment 
+  private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   protected initWorker() {
@@ -55,7 +60,19 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  start() {
+  override async hangup(id?: string | undefined): Promise<void> {
+    this._self = undefined
+    this._member = undefined
+    const result = await super.hangup(id)
+    return result
+  }
+
+  override async leave(): Promise<void> {
+    await super.leave()
+    this.destroy()  
+  }
+
+  async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
         this.once('room.subscribed', () => resolve())
@@ -83,12 +100,24 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     }
   }
 
-  get selfMember() {
-    return this.callSegments[0]?.member
+  get selfMember(): RoomSessionMember|undefined {
+    return this._self
   }
 
-  get targetMember() {
-    return this.callSegments[this.callSegments.length - 1]?.member
+  set selfMember(member: RoomSessionMember|undefined) {
+    this._self = member
+  }
+
+  set member(member: RoomSessionMember) {
+    this._member = member
+  }
+
+   get member(): RoomSessionMember {
+    return this._member!
+  }
+
+  override get memberId() {
+    return this._member?.memberId
   }
 
   set lastLayoutEvent(event: any) {
@@ -97,12 +126,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   get lastLayoutEvent() {
     return this._lastLayoutEvent
-  }
-
-  private isSelfMember(id: string) {
-    return (
-      this.callSegments.findIndex((segment) => segment.memberId === id) > -1
-    )
   }
 
   private executeAction<
@@ -115,31 +138,18 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    let targetMember = this.targetMember
-    if (memberId && !this.isSelfMember(memberId)) {
-      const lastSegment = this.callSegments[this.callSegments.length - 1]
-      const memberInCurrentSegment = lastSegment.members.find(
-        (member) => member.id === memberId
-      )
-
-      if (!memberInCurrentSegment) {
-        throw new Error(
-          'The memberId is not a part of the current call segment!'
-        )
-      } else {
-        targetMember = memberInCurrentSegment
-      }
-    }
+    const targetMember = memberId ? this.instanceMap.get<RoomSessionMember>(memberId) : this.member;
+    if(!targetMember) throw new Error('No target param found, to execute ')
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
         method,
         params: {
           ...(channel && { channels: [channel] }),
-          self: {
-            member_id: this.selfMember.id,
-            call_id: this.selfMember.callId,
-            node_id: this.selfMember.nodeId,
+          self:  {
+            member_id: this.selfMember?.id,
+            call_id: this.selfMember?.callId,
+            node_id: this.selfMember?.nodeId,
           },
           target: {
             member_id: targetMember.id,
