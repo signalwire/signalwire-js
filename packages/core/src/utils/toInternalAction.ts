@@ -3,7 +3,7 @@ import { MapToPubSubShape } from '../redux/interfaces'
 import { isWebrtcEventType } from './common'
 
 export const toInternalAction = <
-  T extends { event_type: string; params?: unknown; node_id?: string}
+  T extends { event_type: string; params?: unknown; node_id?: string }
 >(
   event: T
 ) => {
