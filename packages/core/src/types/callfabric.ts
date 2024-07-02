@@ -117,8 +117,11 @@ export interface ConversationMessage {
   details: Record<string, any>
   type: string
   subtype: string
-  kind: string
+  kind?: string
+  text?: string
 }
+
+export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {text: string}
 
 export interface FetchConversationMessagesResponse
   extends PaginatedResponse<ConversationMessage> {}

@@ -10,11 +10,14 @@ import {
   ConversationMessage,
   SendConversationMessageOptions,
   SendConversationMessageResponse,
+  ConversationChatMessage,
 } from '@signalwire/core'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
+
+const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 
 type Callback = (event: ConversationEventParams) => unknown
 
@@ -26,7 +29,16 @@ interface ConversationOptions {
 export class Conversation {
   private httpClient: HTTPClient
   private wsClient: WSClient
-  private callbacks: Callback[] = []
+  private callbacks: Callback[] = [
+    (event: ConversationEventParams) => {
+      if(event.subtype !== 'chat') return
+      const conversationSubscription = this.chatSubscriptions[event.conversation_id];
+      if(!!conversationSubscription) {
+          conversationSubscription.forEach((cb) => cb(event))
+      }
+    }
+  ]
+  private chatSubscriptions: Record<string, Callback[]> = {}
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -131,11 +143,52 @@ export class Conversation {
     }
   }
 
+
+
+  public async getChatMessages({addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE}: GetConversationMessagesOptions) {
+    const chatMessages = []
+    const isValid = (item: ConversationMessage) => (item.conversation_id == addressId && item.subtype == 'chat')
+
+    let conversationMessages: Awaited<ReturnType<typeof this.getConversationMessages>> | undefined
+    conversationMessages = await this.getConversationMessages({addressId, pageSize});
+     chatMessages.push(...conversationMessages.data.filter(isValid))
+     while(chatMessages.length < pageSize && conversationMessages?.hasNext) {
+      //@ts-expect-error
+      conversationMessages = await conversationMessages?.nextPage() 
+      if(!!conversationMessages) {
+        chatMessages.push(...conversationMessages.data.filter(isValid))
+      }
+     }
+    
+    return { 
+      data: chatMessages as ConversationChatMessage[],
+      hasNext: conversationMessages?.hasNext,
+      hasPrev: conversationMessages?.hasPrev,
+      nextPage: () => conversationMessages?.nextPage(),
+      prevPage: () => conversationMessages?.prevPage()
+    }
+  }
+
   public async subscribe(callback: Callback) {
     // Connect the websocket client first
     this.wsClient.connect()
 
     this.callbacks.push(callback)
+  }
+
+  public async subscribeChatMessages({addressId, onMessage}: {addressId: string, onMessage: Callback}) {
+    // Connect the websocket client first
+    await this.wsClient.connect()
+
+    if(!(addressId in this.chatSubscriptions)) {
+      this.chatSubscriptions[addressId] = []
+    }
+
+    this.chatSubscriptions[addressId].push(onMessage);
+    const subscriptionIndex = this.chatSubscriptions[addressId].length - 1
+    return {
+      cancel: () => this.chatSubscriptions[addressId].splice(subscriptionIndex, 1)
+    }
   }
 
   /** @internal */
