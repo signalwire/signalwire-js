@@ -30,21 +30,22 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
       
   
-      const eventRoutingId =
-      //@ts-expect-error
-      action.payload.room_session_id || action.payload.call_id
-      
+      const eventRoutingId = action.payload.room_session_id || action.payload.call_id
+      const roomEventsRoutingId = action.payload.call_id
+      const originCallId = action.payload.origin_call_id
+      const isCallStateEvent = action.type === 'call.state'
+      const isCallJoinedEvent = action.type === 'call.joined'
+      const wasOriginCallJoinedHandled = !!cfRoomSessionConnection.selfMember
+
       return (
         // FIXME call.state events are not beeing fired after the call.joined as expected
-        action.type === 'call.state' ||
-        (action.type === 'call.joined' &&
-          (!!cfRoomSessionConnection.selfMember ||
-            //@ts-expect-error
-            (eventRoutingId === action.payload.origin_call_id || action.payload.origin_call_id === action.payload.origin_call_id)))
+        isCallStateEvent ||
+        (isCallJoinedEvent &&
+          (wasOriginCallJoinedHandled ||
+            (eventRoutingId === originCallId || action.payload.origin_call_id === roomEventsRoutingId)))
       )
     }
 
-    let originCallId
     while (true) {
       
       const action = yield sagaEffects.take(
@@ -55,9 +56,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
       const { type, payload } = action
       switch (type) {
         case 'call.joined':
-          if(!originCallId && (payload.origin_call_id === payload.call_id)) {
-            originCallId = payload.call_id
-          }
+
           // since we depend on `cfRoomSessionConnection.selfMember` on the take logic
           // we need to make sure we update the `cfRoomSessionConnection.selfMember`
           // in this worker or have a race condition.

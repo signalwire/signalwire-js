@@ -121,7 +121,9 @@ export interface ConversationMessage {
   text?: string
 }
 
-export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {text: string}
+export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
+  text: string
+}
 
 export interface FetchConversationMessagesResponse
   extends PaginatedResponse<ConversationMessage> {}
@@ -423,4 +425,14 @@ export type CallFabricEvent =
   | CFMemberEvent
   | CFLayoutEvent
 
-export type CallFabricAction = MapToPubSubShape<CallFabricEvent>
+type hasCallId = {
+  params: { call_id: String; room_session_id?: String; origin_call_id?: String }
+}
+type hasRoomSessionId = {
+  params: { call_id?: String; room_session_id: String; origin_call_id?: String }
+}
+type hasEitherCallIdOrRoomSessionId = hasCallId | hasRoomSessionId
+
+export type CallFabricAction = MapToPubSubShape<
+  CallFabricEvent & hasEitherCallIdOrRoomSessionId
+>
