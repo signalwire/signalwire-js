@@ -26,7 +26,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
     const isCallJoinedOrCallStateEvent = (action: CallFabricAction) => {
       // We should only start to handling call.joined events after
-      // we receive the 1st call.joined event where eventRoutingId == action.origin_call_id
+      // we receive the 1st call.joined event where eventRoutingId === action.origin_call_id
 
       
   
@@ -40,7 +40,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         (action.type === 'call.joined' &&
           (!!cfRoomSessionConnection.selfMember ||
             //@ts-expect-error
-            (eventRoutingId == action.payload.origin_call_id || action.payload.origin_call_id == action.payload.origin_call_id)))
+            (eventRoutingId === action.payload.origin_call_id || action.payload.origin_call_id === action.payload.origin_call_id)))
       )
     }
 
@@ -69,7 +69,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
                 room_session_id: action.payload.room_session_id,
                 member: action.payload.room_session.members.find(
                   (m: { member_id: string }) =>
-                    m.member_id == action.payload.member_id
+                    m.member_id === action.payload.member_id
                 ),
               },
             })

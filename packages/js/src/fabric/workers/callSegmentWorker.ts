@@ -39,7 +39,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         
         return (
         // @ts-expect-error  payload.room_session_id and payload.call_id are not consistent on all events
-        shouldWatch(action.type) && (segmentRoutingRoomSessionId === action.payload.room_session_id || segmentRoutingCallId == action.payload.call_id)
+        shouldWatch(action.type) && (segmentRoutingRoomSessionId === action.payload.room_session_id || segmentRoutingCallId === action.payload.call_id)
       )
     }
 
