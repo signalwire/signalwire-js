@@ -35,13 +35,13 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
       const originCallId = action.payload.origin_call_id
       const isCallStateEvent = action.type === 'call.state'
       const isCallJoinedEvent = action.type === 'call.joined'
-      const wasOriginCallJoinedHandled = !!cfRoomSessionConnection.selfMember
+      const shouldDiscardEvent = !!cfRoomSessionConnection.selfMember
 
       return (
         // FIXME call.state events are not beeing fired after the call.joined as expected
         isCallStateEvent ||
         (isCallJoinedEvent &&
-          (wasOriginCallJoinedHandled ||
+          (shouldDiscardEvent ||
             (eventRoutingId === originCallId || action.payload.origin_call_id === roomEventsRoutingId)))
       )
     }
