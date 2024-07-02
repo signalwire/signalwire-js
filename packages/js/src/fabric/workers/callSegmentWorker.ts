@@ -1,5 +1,6 @@
 import {
   CallFabricAction,
+  SDKActions,
   SDKWorker,
   SagaIterator,
   VideoMemberEventNames,
@@ -18,12 +19,13 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
       initialState: bootstrapAction,
       channels: { swEventChannel },
       instance: cfRoomSession,
-    } = options
+    } = options 
 
-    const segmentRoutingId = bootstrapAction.payload.room_session_id || bootstrapAction.payload.call_id
+    const segmentRoutingRoomSessionId = bootstrapAction.payload.room_session_id 
+    const segmentRoutingCallId = bootstrapAction.payload.call_id
     
-    getLogger().debug(`callSegmentWorker started for: ${segmentRoutingId}`)
-
+    getLogger().debug(`callSegmentWorker started for: callId ${segmentRoutingCallId} roomSessionId segmentRoutingRoomSessionId`)
+    
     //handles the `call.joined` event before the worker loop
     yield sagaEffects.fork(callJoinWorker, {
       ...options,
@@ -35,17 +37,16 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         eventType.startsWith('call.') ||
         eventType.startsWith('member.') ||
         eventType.startsWith('layout.')
-      
-      //@ts-expect-error
-      const eventRoutingId = action.payload.room_session_id || action.payload.call_id
-
-      return (
-        shouldWatch(action.type) && segmentRoutingId === eventRoutingId
+        
+        return (
+        // @ts-expect-error  payload.room_session_id and payload.call_id are not consistent on all events
+        shouldWatch(action.type) && (segmentRoutingRoomSessionId === action.payload.room_session_id || segmentRoutingCallId == action.payload.call_id)
       )
     }
 
     while (true) {
-      const action = yield sagaEffects.take(swEventChannel, (action: any) =>
+      // @ts-expect-error swEventChannel created in core is unware CallFabric types
+      const action = yield sagaEffects.take(swEventChannel, (action: CallFabricAction) =>
         isSegmentEvent(action)
       )
       const { type, payload } = action

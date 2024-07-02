@@ -32,7 +32,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
   
       const eventRoutingId =
       //@ts-expect-error
-        action.payload.room_session_id || action.payload.call_id
+      action.payload.room_session_id || action.payload.call_id
       
       return (
         // FIXME call.state events are not beeing fired after the call.joined as expected
@@ -40,7 +40,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         (action.type === 'call.joined' &&
           (!!cfRoomSessionConnection.selfMember ||
             //@ts-expect-error
-            eventRoutingId == action.payload.origin_call_id))
+            (eventRoutingId == action.payload.origin_call_id || action.payload.origin_call_id == action.payload.origin_call_id)))
       )
     }
 
