@@ -8,6 +8,7 @@ export const toInternalAction = <
   event: T
 ) => {
   const { event_type, params, node_id } = event
+  
   /**
    * queuing.relay.tasks has a slightly different shape:
    * no nested "params" so we return the whole event.
