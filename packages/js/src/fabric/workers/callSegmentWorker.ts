@@ -32,10 +32,10 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
     })
 
     const isSegmentEvent = (action: CallFabricAction) => {
-      const shouldWatch = (eventType: String) =>
-        eventType.startsWith('call.') ||
-        eventType.startsWith('member.') ||
-        eventType.startsWith('layout.')
+      const shouldWatch = () =>
+        action.type.startsWith('call.') ||
+        action.type.startsWith('member.') ||
+        action.type.startsWith('layout.')
         
         return (
         // @ts-expect-error  payload.room_session_id and payload.call_id are not consistent on all events
