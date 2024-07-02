@@ -44,8 +44,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
     while (true) {
       // @ts-expect-error swEventChannel created in core is unware CallFabric types
-      const action = yield sagaEffects.take(swEventChannel, (action: CallFabricAction) =>
-        isSegmentEvent(action)
+      const action = yield sagaEffects.take(swEventChannel, isSegmentEvent)
       )
       const { type, payload } = action
 
