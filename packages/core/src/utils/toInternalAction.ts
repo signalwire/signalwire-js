@@ -19,7 +19,6 @@ export const toInternalAction = <
     } as MapToPubSubShape<T>
   }
 
-  
   /**
    * `webrtc.*` events need to carry the node_id with them
    */
