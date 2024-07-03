@@ -6,6 +6,7 @@ import {
   SDKWorkerParams,
   Rooms,
   isCallCallFabricAction,
+  SDKActions,
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
 import { callSegmentWorker } from './callSegmentWorker'
@@ -24,7 +25,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
       instance: cfRoomSessionConnection,
     } = options
 
-    const isCallJoinedOrCallStateEvent = (action: any) => {
+    const isCallJoinedOrCallStateEvent = (action: SDKActions) => {
       if(!isCallCallFabricAction(action)) return false;
 
       // We should only start to handling call.joined events after
