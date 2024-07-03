@@ -5,7 +5,7 @@ import {
   sagaEffects,
   SDKWorkerParams,
   Rooms,
-  isCallCallFabricAction,
+  isCallFabricAction,
   SDKActions,
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
@@ -26,7 +26,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     } = options
 
     const isCallJoinedOrCallStateEvent = (action: SDKActions) => {
-      if(!isCallCallFabricAction(action)) return false;
+      if(!isCallFabricAction(action)) return false;
 
       // We should only start to handling call.joined events after
       // we receive the 1st call.joined event where eventRoutingId === action.origin_call_id
