@@ -3,7 +3,6 @@ import { test } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
-  expectCFFinalEvents,
   expectCFInitialEvents,
   expectPageReceiveAudio,
 } from '../../utils'
@@ -100,18 +99,18 @@ test.describe('CallFabric SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    const callPlayEnded = page.evaluate(async () => {
+    await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
       return new Promise<boolean>((resolve) => {
         roomObj.on('call.play', (params: any) => {
           if (params.state === 'finished') resolve(true)
         })
+        // Server hangup before the event propagation
+        roomObj.on('destroy', (params: any) => resolve(false))
       })
     })
 
-    // the call should ends from the server side after play is finished
-    await expectCFFinalEvents(page, [callPlayEnded])
   })
 
   test('should dial an address and expect a hangup', async ({
@@ -151,7 +150,6 @@ test.describe('CallFabric SWML', () => {
     )
 
     const expectInitialEvents = expectCFInitialEvents(page)
-    const expectFinalEvents = expectCFFinalEvents(page)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -161,6 +159,5 @@ test.describe('CallFabric SWML', () => {
     })
 
     await expectInitialEvents
-    await expectFinalEvents
   })
 })

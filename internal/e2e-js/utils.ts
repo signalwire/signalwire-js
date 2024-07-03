@@ -1061,18 +1061,6 @@ export const expectCFInitialEvents = (
   return Promise.all([initialEvents, ...extraEvents])
 }
 
-/**
- * @deprecated
- * @param _ 
- * @param extraEvents 
- * @returns 
- */
-export const expectCFFinalEvents = (
-  _: Page,
-  extraEvents: Promise<unknown>[] = []
-) => {
-  return extraEvents ? Promise.all([...extraEvents]) : Promise.resolve();
-}
 
 export interface Resource {
   id: string
