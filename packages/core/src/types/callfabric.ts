@@ -438,5 +438,5 @@ export type CallFabricAction = MapToPubSubShape<
 >
 
 export function isCallCallFabricAction(obj: any): obj is CallFabricAction {
-  return !!obj.payload.room_session_id || !!obj.payload.call_id
+  return !!obj.payload && (!!obj.payload.room_session_id || !!obj.payload.call_id)
 }
