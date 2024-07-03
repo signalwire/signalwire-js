@@ -5,8 +5,8 @@ import {
   sagaEffects,
   SDKWorkerParams,
   Rooms,
-  isCallFabricAction,
   SDKActions,
+  CallFabricAction,
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
 import { callSegmentWorker } from './callSegmentWorker'
@@ -26,16 +26,16 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     } = options
 
     const isCallJoinedOrCallStateEvent = (action: SDKActions) => {
-      if(!isCallFabricAction(action)) return false;
+      const cfAction = action as CallFabricAction
 
       // We should only start to handling call.joined events after
       // we receive the 1st call.joined event where eventRoutingId === action.origin_call_id
-      const segmentRoutingRoomSessionId = action.payload.room_session_id 
-      const segmentRoutingCallId = action.payload.call_id
-      const originCallId = action.payload.origin_call_id
-      const isCallStateEvent = action.type === 'call.state'
-      const isCallJoinedEvent = action.type === 'call.joined'
+      const segmentRoutingRoomSessionId = cfAction.payload.room_session_id 
+      const segmentRoutingCallId = cfAction.payload.call_id
+      const originCallId = cfAction.payload.origin_call_id
+      const isCallJoinedEvent = cfAction.type === 'call.joined'
       const discardEventsDone = !!cfRoomSessionConnection.selfMember
+      const isCallStateEvent = cfAction.type === 'call.state'
 
       return (
         // FIXME call.state events are not beeing fired after the call.joined as expected

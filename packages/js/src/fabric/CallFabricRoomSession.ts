@@ -64,7 +64,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._self = undefined
     this._member = undefined
     const result = await super.hangup(id)
-    this.destroy()
     return result
   }
 

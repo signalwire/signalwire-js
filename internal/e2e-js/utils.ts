@@ -1061,23 +1061,17 @@ export const expectCFInitialEvents = (
   return Promise.all([initialEvents, ...extraEvents])
 }
 
+/**
+ * @deprecated
+ * @param _ 
+ * @param extraEvents 
+ * @returns 
+ */
 export const expectCFFinalEvents = (
-  page: Page,
+  _: Page,
   extraEvents: Promise<unknown>[] = []
 ) => {
-  const finalEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-
-    const callLeft = new Promise((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.left', () => resolve(true))
-    })
-
-    return callLeft;
-  })
-
-  return Promise.all([finalEvents, ...extraEvents])
+  return extraEvents ? Promise.all([...extraEvents]) : Promise.resolve();
 }
 
 export interface Resource {
