@@ -30,8 +30,8 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
       
   
-      const eventRoutingId = action.payload.room_session_id || action.payload.call_id
-      const roomEventsRoutingId = action.payload.call_id
+      const segmentRoutingRoomSessionId = action.payload.room_session_id 
+      const segmentRoutingCallId = action.payload.call_id
       const originCallId = action.payload.origin_call_id
       const isCallStateEvent = action.type === 'call.state'
       const isCallJoinedEvent = action.type === 'call.joined'
@@ -42,7 +42,7 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
         isCallStateEvent ||
         (isCallJoinedEvent &&
           (discardEventsDone ||
-            (eventRoutingId === originCallId || action.payload.origin_call_id === roomEventsRoutingId)))
+            (segmentRoutingRoomSessionId === originCallId || segmentRoutingCallId === originCallId)))
       )
     }
 
