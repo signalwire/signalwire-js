@@ -93,7 +93,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
               ...action,
               type: `video.${type}` as 'video.layout.changed',
             }
-            //TODO stop send layout evets to legacy workers
+            // TODO stop send layout events to legacy workers
             yield sagaEffects.put(swEventChannel, updatedAction)
             cfRoomSession.emit(type, payload)
           }
