@@ -425,16 +425,16 @@ export type CallFabricEvent =
   | CFMemberEvent
   | CFLayoutEvent
 
-type hasCallId = {
+type HasCallId = {
   params: { call_id: string; room_session_id?: string; origin_call_id?: String }
 }
-type hasRoomSessionId = {
+type HasRoomSessionId = {
   params: { call_id?: string; room_session_id: string; origin_call_id?: String }
 }
-type hasEitherCallIdOrRoomSessionId = hasCallId | hasRoomSessionId
+type HasEitherCallIdOrRoomSessionId = HasCallId | HasRoomSessionId
 
 export type CallFabricAction = MapToPubSubShape<
-  CallFabricEvent & hasEitherCallIdOrRoomSessionId
+  CallFabricEvent & HasEitherCallIdOrRoomSessionId
 >
 
 export function isCallCallFabricAction(obj: any): obj is CallFabricAction {
