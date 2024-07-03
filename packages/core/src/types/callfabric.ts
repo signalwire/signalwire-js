@@ -426,10 +426,10 @@ export type CallFabricEvent =
   | CFLayoutEvent
 
 type hasCallId = {
-  params: { call_id: String; room_session_id?: String; origin_call_id?: String }
+  params: { call_id: string; room_session_id?: string; origin_call_id?: String }
 }
 type hasRoomSessionId = {
-  params: { call_id?: String; room_session_id: String; origin_call_id?: String }
+  params: { call_id?: string; room_session_id: string; origin_call_id?: String }
 }
 type hasEitherCallIdOrRoomSessionId = hasCallId | hasRoomSessionId
 
