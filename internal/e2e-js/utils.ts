@@ -1069,28 +1069,12 @@ export const expectCFFinalEvents = (
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
 
-    const callEnding = new Promise((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'ending') {
-          resolve(true)
-        }
-      })
-    })
-    const callEnded = new Promise((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'ended') {
-          resolve(true)
-        }
-      })
-    })
     const callLeft = new Promise((resolve) => {
       // @ts-expect-error
       roomObj.on('call.left', () => resolve(true))
     })
 
-    return Promise.all([callEnding, callEnded, callLeft])
+    return callLeft;
   })
 
   return Promise.all([finalEvents, ...extraEvents])

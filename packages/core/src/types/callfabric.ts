@@ -436,3 +436,7 @@ type hasEitherCallIdOrRoomSessionId = hasCallId | hasRoomSessionId
 export type CallFabricAction = MapToPubSubShape<
   CallFabricEvent & hasEitherCallIdOrRoomSessionId
 >
+
+export function isCallCallFabricAction(obj: any): obj is CallFabricAction {
+  return !!obj.payload.room_session_id || !!obj.payload.call_id
+}

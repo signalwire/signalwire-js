@@ -110,17 +110,8 @@ test.describe('CallFabric SWML', () => {
       })
     })
 
-    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
-
-    // Hangup the call
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
-
-      await call.hangup()
-    })
-
-    await expectFinalEvents
+    // the call should ends from the server side after play is finished
+    await expectCFFinalEvents(page, [callPlayEnded])
   })
 
   test('should dial an address and expect a hangup', async ({

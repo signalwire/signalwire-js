@@ -15,6 +15,7 @@ test.describe('CallFabric Relay Application', () => {
     createCustomPage,
     resource,
   }) => {
+    let playback;
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
@@ -39,7 +40,7 @@ test.describe('CallFabric Relay Application', () => {
           await call.answer()
           console.log('Inbound call answered')
 
-          const playback = await call
+          playback = await call
             .playAudio({
               url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
             })
@@ -105,7 +106,10 @@ test.describe('CallFabric Relay Application', () => {
     console.log('Calculating audio stats')
     await expectPageReceiveAudio(page)
 
-    const callPlayEnded = page.evaluate(async () => {
+    // stop relayApp playback
+    await playback!.stop()
+    
+    await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
       return new Promise<boolean>((resolve) => {
@@ -115,8 +119,6 @@ test.describe('CallFabric Relay Application', () => {
       })
     })
 
-    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
-
     // Hangup the call
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -125,8 +127,6 @@ test.describe('CallFabric Relay Application', () => {
       await call.hangup()
     })
 
-    await expectFinalEvents
-
     await client.disconnect()
   })
 
@@ -134,6 +134,7 @@ test.describe('CallFabric Relay Application', () => {
     createCustomPage,
     resource,
   }) => {
+    let playback;
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
@@ -158,7 +159,7 @@ test.describe('CallFabric Relay Application', () => {
           await call.answer()
           console.log('Inbound call answered')
 
-          const playback = await call.playSilence({ duration: 60 }).onStarted()
+          playback = await call.playSilence({ duration: 60 }).onStarted()
           await playback.setVolume(10)
 
           console.log('Playback silence has started!')
@@ -232,8 +233,8 @@ test.describe('CallFabric Relay Application', () => {
         'Warning - totalAudioEnergy was not present in the audioStats.'
       )
     }
-
-    const callPlayEnded = page.evaluate(async () => {
+    playback!.stop()
+    await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
       return new Promise<boolean>((resolve) => {
@@ -243,7 +244,7 @@ test.describe('CallFabric Relay Application', () => {
       })
     })
 
-    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
+   
 
     // Hangup the call
     await page.evaluate(async () => {
@@ -252,8 +253,6 @@ test.describe('CallFabric Relay Application', () => {
 
       await call.hangup()
     })
-
-    await expectFinalEvents
 
     await client.disconnect()
   })

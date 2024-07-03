@@ -5,7 +5,7 @@ import {
   sagaEffects,
   SDKWorkerParams,
   Rooms,
-  CallFabricAction,
+  isCallCallFabricAction,
 } from '@signalwire/core'
 import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
 import { callSegmentWorker } from './callSegmentWorker'
@@ -24,12 +24,11 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
       instance: cfRoomSessionConnection,
     } = options
 
-    const isCallJoinedOrCallStateEvent = (action: CallFabricAction) => {
+    const isCallJoinedOrCallStateEvent = (action: any) => {
+      if(!isCallCallFabricAction(action)) return false;
+
       // We should only start to handling call.joined events after
       // we receive the 1st call.joined event where eventRoutingId === action.origin_call_id
-
-      
-  
       const segmentRoutingRoomSessionId = action.payload.room_session_id 
       const segmentRoutingCallId = action.payload.call_id
       const originCallId = action.payload.origin_call_id
@@ -49,7 +48,6 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     while (true) {
       
       const action = yield sagaEffects.take(
-        //@ts-expect-error
         swEventChannel,
         isCallJoinedOrCallStateEvent
       )
