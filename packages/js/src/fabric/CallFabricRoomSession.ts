@@ -67,7 +67,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return result
   }
 
-
   async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
