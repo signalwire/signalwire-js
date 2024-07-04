@@ -3,6 +3,7 @@ import { test } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
+  expectCFFinalEvents,
   expectCFInitialEvents,
   expectPageReceiveAudio,
 } from '../../utils'
@@ -107,7 +108,7 @@ test.describe('CallFabric SWML', () => {
           if (params.state === 'finished') resolve(true)
         })
         // Server hangup before the event propagation
-        roomObj.on('destroy', (params: any) => resolve(false))
+        roomObj.on('destroy', (_: any) => resolve(false))
       })
     })
 
@@ -150,6 +151,7 @@ test.describe('CallFabric SWML', () => {
     )
 
     const expectInitialEvents = expectCFInitialEvents(page)
+    const expectFinalEvents = expectCFFinalEvents(page)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -159,5 +161,6 @@ test.describe('CallFabric SWML', () => {
     })
 
     await expectInitialEvents
+    await expectFinalEvents
   })
 })

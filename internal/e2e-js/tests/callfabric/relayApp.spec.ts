@@ -2,6 +2,7 @@ import { uuid } from '@signalwire/core'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
   createCFClient,
+  expectCFFinalEvents,
   expectCFInitialEvents,
   expectPageReceiveAudio,
   getAudioStats,
@@ -318,6 +319,8 @@ test.describe('CallFabric Relay Application', () => {
     )
 
     const expectInitialEvents = expectCFInitialEvents(page)
+    const expectFinalEvents = expectCFFinalEvents(page)
+
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -330,6 +333,7 @@ test.describe('CallFabric Relay Application', () => {
 
     // Wait until the callee join and hangup the call
     await expectInitialEvents
+    await expectFinalEvents
 
     await client.disconnect()
   })
