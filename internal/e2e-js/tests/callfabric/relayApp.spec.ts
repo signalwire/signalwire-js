@@ -119,6 +119,8 @@ test.describe('CallFabric Relay Application', () => {
       })
     })
 
+    const expectFinalEvents = expectCFFinalEvents(page)
+
     // Hangup the call
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -126,6 +128,8 @@ test.describe('CallFabric Relay Application', () => {
 
       await call.hangup()
     })
+
+    await expectFinalEvents
 
     await client.disconnect()
   })

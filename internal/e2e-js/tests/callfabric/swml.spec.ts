@@ -100,17 +100,7 @@ test.describe('CallFabric SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return new Promise<boolean>((resolve) => {
-        roomObj.on('call.play', (params: any) => {
-          if (params.state === 'finished') resolve(true)
-        })
-        // Server hangup before the event propagation
-        roomObj.on('destroy', (_: any) => resolve(false))
-      })
-    })
+    await expectCFInitialEvents(page);
 
   })
 
