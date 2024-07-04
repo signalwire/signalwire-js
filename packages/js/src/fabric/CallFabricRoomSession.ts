@@ -142,7 +142,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
         method,
         params: {
           ...(channel && { channels: [channel] }),
-          self:  {
+          self: {
             member_id: this.selfMember?.id,
             call_id: this.selfMember?.callId,
             node_id: this.selfMember?.nodeId,
