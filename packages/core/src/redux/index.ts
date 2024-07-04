@@ -64,7 +64,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
 
   const instanceMap = useInstanceMap()
 
-
   const { initSession, getSession, sessionEmitter } = useSession({
     userOptions,
     sessionChannel,
