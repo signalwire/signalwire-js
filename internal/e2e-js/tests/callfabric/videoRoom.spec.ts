@@ -71,7 +71,7 @@ test.describe('CallFabric VideoRoom', () => {
         const memberUpdatedMuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
-              params.member.id === roomSession.member_id &&
+              params.member.member_id === roomSession.member_id &&
               params.member.updated.includes('audio_muted') &&
               params.member.audio_muted === true
             ) {
@@ -83,7 +83,7 @@ test.describe('CallFabric VideoRoom', () => {
         const memberUpdatedUnmuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
-              params.member.id === roomSession.member_id &&
+              params.member.member_id === roomSession.member_id &&
               params.member.updated.includes('audio_muted') &&
               params.member.audio_muted === false
             ) {
@@ -109,7 +109,7 @@ test.describe('CallFabric VideoRoom', () => {
         const memberUpdatedMuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
-              params.member.id === roomSession.member_id &&
+              params.member.member_id === roomSession.member_id &&
               params.member.updated.includes('video_muted') &&
               params.member.updated.includes('visible') &&
               params.member.video_muted === true &&
@@ -123,7 +123,7 @@ test.describe('CallFabric VideoRoom', () => {
         const memberUpdatedUnmuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
-              params.member.id === roomSession.member_id &&
+              params.member.member_id === roomSession.member_id &&
               params.member.updated.includes('video_muted') &&
               params.member.updated.includes('visible') &&
               params.member.video_muted === false &&

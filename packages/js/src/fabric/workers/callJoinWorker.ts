@@ -12,7 +12,6 @@ import {
 import { CallFabricWorkerParams } from './callFabricWorker'
 import { videoMemberWorker } from '../../video/videoMemberWorker'
 
-
 export const callJoinWorker = function* (
   options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
 ): SagaIterator {

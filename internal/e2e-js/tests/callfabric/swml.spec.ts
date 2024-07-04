@@ -100,27 +100,8 @@ test.describe('CallFabric SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    const callPlayEnded = page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return new Promise<boolean>((resolve) => {
-        roomObj.on('call.play', (params: any) => {
-          if (params.state === 'finished') resolve(true)
-        })
-      })
-    })
+    await expectCFInitialEvents(page)
 
-    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
-
-    // Hangup the call
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
-
-      await call.hangup()
-    })
-
-    await expectFinalEvents
   })
 
   test('should dial an address and expect a hangup', async ({

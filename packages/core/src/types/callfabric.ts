@@ -117,7 +117,12 @@ export interface ConversationMessage {
   details: Record<string, any>
   type: string
   subtype: string
-  kind: string
+  kind?: string
+  text?: string
+}
+
+export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
+  text: string
 }
 
 export interface FetchConversationMessagesResponse
@@ -420,4 +425,16 @@ export type CallFabricEvent =
   | CFMemberEvent
   | CFLayoutEvent
 
-export type CallFabricAction = MapToPubSubShape<CallFabricEvent>
+type HasCallId = {
+  params: { call_id: string; room_session_id?: string; origin_call_id?: String }
+}
+type HasRoomSessionId = {
+  params: { call_id?: string; room_session_id: string; origin_call_id?: String }
+}
+type HasEitherCallIdOrRoomSessionId = HasCallId | HasRoomSessionId
+
+export type CallFabricAction = MapToPubSubShape<
+  CallFabricEvent & HasEitherCallIdOrRoomSessionId
+>
+
+

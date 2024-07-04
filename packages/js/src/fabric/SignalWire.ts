@@ -38,6 +38,12 @@ export const SignalWire = (
           subscribe: conversation.subscribe.bind(conversation),
           sendMessage: conversation.sendMessage.bind(conversation),
         },
+        chat: {
+          getMessages:
+            conversation.getChatMessages.bind(conversation),
+          subscribe: conversation.subscribeChatMessages.bind(conversation),
+          sendMessage: conversation.sendMessage.bind(conversation),
+        },
         // @ts-expect-error
         __httpClient: httpClient,
         __wsClient: wsClient,
