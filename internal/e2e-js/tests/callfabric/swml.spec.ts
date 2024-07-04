@@ -100,7 +100,7 @@ test.describe('CallFabric SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    await expectCFInitialEvents(page);
+    await expectCFInitialEvents(page)
 
   })
 
