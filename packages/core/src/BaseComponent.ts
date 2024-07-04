@@ -89,7 +89,6 @@ export class BaseComponent<
     return this.store.instanceMap
   }
 
-
   /** @internal */
   get emitter() {
     return this.eventEmitter
