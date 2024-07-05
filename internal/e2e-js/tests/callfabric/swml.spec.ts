@@ -20,6 +20,7 @@ test.describe('CallFabric SWML', () => {
               'say:Hi',
               'say:Welcome to SignalWire',
               "say:Thank you for calling us. All our lines are currently busy, but your call is important to us. Please hang up, and we'll return your call as soon as our representative is available.",
+              "say:Thank you for calling us. All our lines are currently busy, but your call is important to us. Please hang up, and we'll return your call as soon as our representative is available.",
             ],
           },
         },
@@ -86,7 +87,7 @@ test.describe('CallFabric SWML', () => {
         })
       })
     })
-
+    
     const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
 
     await page.evaluate(async () => {
@@ -100,7 +101,7 @@ test.describe('CallFabric SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    await expectCFInitialEvents(page)
+    await expectCFFinalEvents(page)
 
   })
 
