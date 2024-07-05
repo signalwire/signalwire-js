@@ -22,6 +22,7 @@ export {
   getUserMedia,
   getDisplayMedia,
   enumerateDevices,
+  enumerateDevicesByKind,
   getSupportedConstraints,
   supportsMediaOutput,
   setMediaElementSinkId,
