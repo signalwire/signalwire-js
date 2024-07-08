@@ -72,12 +72,15 @@ export class Conversation {
 
   public async getConversations(options?: GetConversationsOptions) {
     try {
-      const { pageSize } = options || {}
+      const { pageSize, sortOrder } = options || {}
 
       const path = '/api/fabric/conversations'
       const queryParams = new URLSearchParams()
       if (pageSize) {
         queryParams.append('page_size', pageSize.toString())
+      }
+      if (sortOrder) {
+        queryParams.append('sortOrder', sortOrder.toString())
       }
 
       const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
@@ -121,12 +124,15 @@ export class Conversation {
     options: GetConversationMessagesOptions
   ) {
     try {
-      const { addressId, pageSize } = options || {}
+      const { addressId, pageSize, sortOrder } = options || {}
 
       const path = `/api/fabric/conversations/${addressId}/messages`
       const queryParams = new URLSearchParams()
       if (pageSize) {
         queryParams.append('page_size', pageSize.toString())
+      }
+      if (sortOrder) {
+        queryParams.append('sort_order', sortOrder.toString())
       }
 
       const { body } =
