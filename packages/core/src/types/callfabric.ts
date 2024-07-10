@@ -13,23 +13,13 @@ import {
 } from '..'
 
 export interface PaginatedResponse<T> {
-  data: Array<T> | []
+  data: Array<T>
   links: {
     first?: string
     self?: string
     next?: string
     prev?: string
   }
-}
-
-export interface PaginatedResult<T> {
-  data: Array<T> | []
-  self(): Promise<PaginatedResult<T> | undefined>
-  nextPage(): Promise<PaginatedResult<T> | undefined>
-  prevPage(): Promise<PaginatedResult<T> | undefined>
-  firstPage(): Promise<PaginatedResult<T> | undefined>
-  hasNext: boolean
-  hasPrev: boolean
 }
 
 /**
@@ -89,7 +79,7 @@ export interface Conversation {
   }): Promise<SendConversationMessageResponse>
   getMessages(options: {
     pageSize?: number
-  }): Promise<PaginatedResult<ConversationMessage>>
+  }): Promise<PaginatedResponse<ConversationMessage>>
 }
 
 export interface SendConversationMessageResponse {
@@ -121,7 +111,9 @@ export interface ConversationMessage {
   text?: string
 }
 
-export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {text: string}
+export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
+  text: string
+}
 
 export interface FetchConversationMessagesResponse
   extends PaginatedResponse<ConversationMessage> {}
