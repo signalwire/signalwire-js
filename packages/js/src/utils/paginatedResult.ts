@@ -5,7 +5,8 @@ export function buildPaginatedResult<T>(
   body: PaginatedResponse<T>,
   client: CreateHttpClient
 ) {
-  const anotherPage = async (url: string) => {
+  const anotherPage = async (url?: string) => {
+    if (!url) return Promise.resolve(undefined)
     const { body } = await client<PaginatedResponse<T>>(url)
     return buildPaginatedResult<T>(body, client)
   }
@@ -14,19 +15,19 @@ export function buildPaginatedResult<T>(
     data: body.data,
     self: async () => {
       const { self } = body.links
-      return self ? anotherPage(self) : Promise.resolve(undefined)
+     return anotherPage(self)
     },
     nextPage: async () => {
       const { next } = body.links
-      return next ? anotherPage(next) : Promise.resolve(undefined)
+      return anotherPage(next)
     },
     prevPage: async () => {
       const { prev } = body.links
-      return prev ? anotherPage(prev) : Promise.resolve(undefined)
+      return anotherPage(prev)
     },
     firstPage: async () => {
       const { first } = body.links
-      return first ? anotherPage(first) : Promise.resolve(undefined)
+      return anotherPage(first)
     },
     hasNext: Boolean(body.links.next),
     hasPrev: Boolean(body.links.prev),

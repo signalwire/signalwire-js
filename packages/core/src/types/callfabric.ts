@@ -22,6 +22,16 @@ export interface PaginatedResponse<T> {
   }
 }
 
+export interface PaginatedResult<T> {
+  data: Array<T> | []
+  self(): Promise<PaginatedResult<T> | undefined>
+  nextPage(): Promise<PaginatedResult<T> | undefined>
+  prevPage(): Promise<PaginatedResult<T> | undefined>
+  firstPage(): Promise<PaginatedResult<T> | undefined>
+  hasNext: boolean
+  hasPrev: boolean
+}
+
 /**
  * Addresses
  */
@@ -41,13 +51,13 @@ export interface Address {
   }
 }
 
-export interface GetAddressesOptions {
+export interface GetAddressesParams {
   type?: string
   displayName?: string
   pageSize?: number
 }
 
-export interface GetAddressOptions {
+export interface GetAddressParams {
   id: string
 }
 
@@ -58,13 +68,14 @@ export interface FetchAddressResponse extends PaginatedResponse<Address> {}
 /**
  * Conversations
  */
-export interface SendConversationMessageOptions {
+export interface SendConversationMessageParams {
   text: string
   addressId: string
   metadata?: Record<string, any>
   details?: Record<string, any>
 }
-export interface GetConversationsOptions {
+
+export interface GetConversationsParams {
   pageSize?: number
 }
 
@@ -74,12 +85,12 @@ export interface Conversation {
   last_message_at: number
   metadata: Record<string, any>
   name: string
-  sendMessage(options: {
+  sendMessage(params: {
     text: string
   }): Promise<SendConversationMessageResponse>
-  getMessages(options: {
+  getMessages(params: {
     pageSize?: number
-  }): Promise<PaginatedResponse<ConversationMessage>>
+  }): Promise<PaginatedResult<ConversationMessage>>
 }
 
 export interface SendConversationMessageResponse {
@@ -89,13 +100,16 @@ export interface SendConversationMessageResponse {
   }
 }
 
+export type SendConversationMessageResult =
+  Promise<SendConversationMessageResponse>
+
 export interface FetchConversationsResponse
   extends PaginatedResponse<Conversation> {}
 
 /**
  * Conversation Messages
  */
-export interface GetMessagesOptions {
+export interface GetMessagesParams {
   pageSize?: number
 }
 
@@ -111,17 +125,32 @@ export interface ConversationMessage {
   text?: string
 }
 
+export type GetMessagesResult = Promise<PaginatedResult<ConversationMessage>>
+
 export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
   text: string
 }
 
-export interface FetchConversationMessagesResponse
-  extends PaginatedResponse<ConversationMessage> {}
-
-export interface GetConversationMessagesOptions {
+export interface GetConversationChatMessageParams {
   addressId: string
   pageSize?: number
 }
+
+export type GetConversationChatMessageResult = Promise<
+  PaginatedResult<ConversationChatMessage>
+>
+
+export interface FetchConversationMessagesResponse
+  extends PaginatedResponse<ConversationMessage> {}
+
+export interface GetConversationMessagesParams {
+  addressId: string
+  pageSize?: number
+}
+
+export type GetConversationMessagesResult = Promise<
+  PaginatedResult<ConversationMessage>
+>
 
 /**
  * Subsriber info

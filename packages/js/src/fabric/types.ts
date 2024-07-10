@@ -1,8 +1,9 @@
-import { type UserOptions } from '@signalwire/core'
+import type { PaginatedResult, UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
-import { CallFabricRoomSession } from './CallFabricRoomSession'
+import type { CallFabricRoomSession } from './CallFabricRoomSession'
+import { ConversationAPI } from './ConversationAPI'
 
 export interface SignalWireOptions extends WSClientOptions {}
 
@@ -55,7 +56,7 @@ export interface PushNotificationPayload {
   decrypted: Record<string, any>
 }
 
-export interface CallOptions {
+export interface CallParams {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Disable ICE UDP transport policy */
@@ -68,7 +69,7 @@ export interface CallOptions {
   userVariables?: WSClientOptions['userVariables']
 }
 
-export interface DialParams extends CallOptions {
+export interface DialParams extends CallParams {
   to: string
   nodeId?: string
 }
@@ -101,7 +102,7 @@ export interface IncomingInvite {
 export interface IncomingCallNotification {
   invite: {
     details: IncomingInvite
-    accept: (param: CallOptions) => Promise<CallFabricRoomSession>
+    accept: (param: CallParams) => Promise<CallFabricRoomSession>
     reject: () => Promise<void>
   }
 }
@@ -114,5 +115,7 @@ export interface IncomingCallHandlers {
   pushNotification?: IncomingCallHandler
   websocket?: IncomingCallHandler
 }
+
+export type GetConversationsResult = Promise<PaginatedResult<ConversationAPI>>
 
 export { CallFabricRoomSession }

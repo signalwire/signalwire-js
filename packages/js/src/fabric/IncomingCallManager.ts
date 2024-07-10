@@ -1,6 +1,6 @@
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import {
-  CallOptions,
+  CallParams,
   IncomingCallHandlers,
   IncomingCallNotification,
   IncomingInvite,
@@ -13,13 +13,13 @@ export class IncomingCallManager {
   constructor(
     private _buildCallObject: (
       invite: IncomingInvite,
-      params: CallOptions
+      params: CallParams
     ) => CallFabricRoomSession,
     private _executeReject: (callId: string, nodeId: string) => Promise<void>
   ) {}
 
   private _buildNotification(invite: IncomingInvite): IncomingCallNotification {
-    const accept = async (params: CallOptions) => {
+    const accept = async (params: CallParams) => {
       return new Promise<CallFabricRoomSession>((resolve, reject) => {
         delete this._pendingInvites[invite.callID]
         try {
