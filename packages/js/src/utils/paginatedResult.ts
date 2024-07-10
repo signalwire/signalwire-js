@@ -1,4 +1,4 @@
-import { PaginatedResponse } from '@signalwire/core'
+import { PaginatedResponse } from '../fabric/types'
 import { CreateHttpClient } from '../fabric/createHttpClient'
 
 export function buildPaginatedResult<T>(
@@ -15,7 +15,7 @@ export function buildPaginatedResult<T>(
     data: body.data,
     self: async () => {
       const { self } = body.links
-     return anotherPage(self)
+      return anotherPage(self)
     },
     nextPage: async () => {
       const { next } = body.links

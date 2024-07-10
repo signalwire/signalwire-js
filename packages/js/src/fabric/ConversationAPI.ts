@@ -1,5 +1,5 @@
 import { Conversation } from './Conversation'
-import { Conversation as ConversationType } from '@signalwire/core'
+import { Conversation as ConversationType } from './types'
 
 export interface ConversationAPISendMessageOptions {
   text: string

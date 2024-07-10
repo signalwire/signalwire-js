@@ -1,7 +1,7 @@
+import { type ConversationEventParams } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
-import {
-  ConversationEventParams,
+import type {
   FetchConversationsResponse,
   GetMessagesParams,
   GetConversationsParams,
@@ -15,12 +15,12 @@ import {
   GetConversationMessagesResult,
   SendConversationMessageResult,
   GetConversationChatMessageParams,
-} from '@signalwire/core'
+  GetConversationsResult,
+} from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
-import { GetConversationsResult } from './types'
 
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 
