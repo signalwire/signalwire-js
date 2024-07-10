@@ -1,5 +1,5 @@
 import { Conversation } from './Conversation'
-import { Conversation as ConversationType } from './types'
+import { ConversationResponse } from './types'
 
 export interface ConversationAPISendMessageOptions {
   text: string
@@ -9,7 +9,6 @@ export interface ConversationAPIGetMessagesOptions {
   pageSize?: number
 }
 export class ConversationAPI {
-
   get id() {
     return this.data.id
   }
@@ -30,7 +29,10 @@ export class ConversationAPI {
     return this.data.name
   }
 
-  constructor(private conversation: Conversation, private data: ConversationType) {}
+  constructor(
+    private conversation: Conversation,
+    private data: ConversationResponse
+  ) {}
 
   sendMessage(options: ConversationAPISendMessageOptions) {
     return this.conversation.sendMessage({
@@ -39,6 +41,9 @@ export class ConversationAPI {
     })
   }
   getMessages(options: ConversationAPIGetMessagesOptions | undefined) {
-    return this.conversation.getConversationMessages({ addressId: this.id, ...options })
+    return this.conversation.getConversationMessages({
+      addressId: this.id,
+      ...options,
+    })
   }
 }

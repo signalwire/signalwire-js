@@ -199,7 +199,7 @@ export interface GetConversationsParams {
   pageSize?: number
 }
 
-export interface Conversation {
+export interface ConversationResponse {
   created_at: number
   id: string
   last_message_at: number
@@ -224,7 +224,7 @@ export type SendConversationMessageResult =
   Promise<SendConversationMessageResponse>
 
 export interface FetchConversationsResponse
-  extends PaginatedResponse<Conversation> {}
+  extends PaginatedResponse<ConversationResponse> {}
 
 export type GetConversationsResult = Promise<PaginatedResult<ConversationAPI>>
 
