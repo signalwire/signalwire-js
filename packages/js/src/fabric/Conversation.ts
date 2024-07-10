@@ -153,7 +153,6 @@ export class Conversation {
     conversationMessages = await this.getConversationMessages({addressId, pageSize});
      chatMessages.push(...conversationMessages.data.filter(isValid))
      while(chatMessages.length < pageSize && conversationMessages?.hasNext) {
-      //@ts-expect-error
       conversationMessages = await conversationMessages?.nextPage() 
       if(!!conversationMessages) {
         chatMessages.push(...conversationMessages.data.filter(isValid))
