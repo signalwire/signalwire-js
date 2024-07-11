@@ -38,13 +38,12 @@ export class Conversation {
   private wsClient: WSClient
   private callbacks: CoversationSubscribeCallback[] = [
     (event: ConversationEventParams) => {
-      if (event.subtype !== 'chat') return
-      const conversationSubscription =
-        this.chatSubscriptions[event.conversation_id]
-      if (!!conversationSubscription) {
-        conversationSubscription.forEach((cb) => cb(event))
+      if(event.subtype !== 'chat') return
+      const conversationSubscription = this.chatSubscriptions[event.conversation_id];
+      if(!!conversationSubscription) {
+          conversationSubscription.forEach((cb) => cb(event))
       }
-    },
+    }
   ]
   private chatSubscriptions: Record<string, CoversationSubscribeCallback[]> = {}
 
