@@ -1,17 +1,22 @@
+import { type ConversationEventParams } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
-import {
-  ConversationEventParams,
+import type {
   FetchConversationsResponse,
-  GetMessagesOptions,
-  GetConversationsOptions,
-  GetConversationMessagesOptions,
+  GetMessagesParams,
+  GetConversationsParams,
+  GetConversationMessagesParams,
   FetchConversationMessagesResponse,
   ConversationMessage,
-  SendConversationMessageOptions,
+  SendConversationMessageParams,
   SendConversationMessageResponse,
   ConversationChatMessage,
-} from '@signalwire/core'
+  GetMessagesResult,
+  GetConversationMessagesResult,
+  SendConversationMessageResult,
+  GetConversationChatMessageParams,
+  GetConversationsResult,
+} from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
@@ -52,7 +57,9 @@ export class Conversation {
     })
   }
 
-  public async sendMessage(options: SendConversationMessageOptions) {
+  public async sendMessage(
+    options: SendConversationMessageParams
+  ): SendConversationMessageResult {
     try {
       const { addressId, text } = options
       const path = '/api/fabric/messages'
@@ -70,7 +77,9 @@ export class Conversation {
     }
   }
 
-  public async getConversations(options?: GetConversationsOptions) {
+  public async getConversations(
+    options?: GetConversationsParams
+  ): GetConversationsResult {
     try {
       const { pageSize } = options || {}
 
@@ -93,7 +102,7 @@ export class Conversation {
     }
   }
 
-  public async getMessages(options?: GetMessagesOptions) {
+  public async getMessages(options?: GetMessagesParams): GetMessagesResult {
     try {
       const { pageSize } = options || {}
 
@@ -118,8 +127,8 @@ export class Conversation {
   }
 
   public async getConversationMessages(
-    options: GetConversationMessagesOptions
-  ) {
+    options: GetConversationMessagesParams
+  ): GetConversationMessagesResult {
     try {
       const { addressId, pageSize } = options || {}
 
@@ -143,9 +152,7 @@ export class Conversation {
     }
   }
 
-
-
-  public async getChatMessages({addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE}: GetConversationMessagesOptions) {
+  public async getChatMessages({addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE}: GetConversationChatMessageParams) {
     const chatMessages = []
     const isValid = (item: ConversationMessage) => (item.conversation_id == addressId && item.subtype == 'chat')
 
@@ -153,7 +160,6 @@ export class Conversation {
     conversationMessages = await this.getConversationMessages({addressId, pageSize});
      chatMessages.push(...conversationMessages.data.filter(isValid))
      while(chatMessages.length < pageSize && conversationMessages?.hasNext) {
-      //@ts-expect-error
       conversationMessages = await conversationMessages?.nextPage() 
       if(!!conversationMessages) {
         chatMessages.push(...conversationMessages.data.filter(isValid))

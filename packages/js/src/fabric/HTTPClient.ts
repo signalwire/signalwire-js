@@ -1,17 +1,19 @@
 import jwtDecode from 'jwt-decode'
-import {
-  getLogger,
-  type Address,
-  type FetchAddressResponse,
-  type GetAddressesOptions,
-  type UserOptions,
-  type SubscriberInfoResponse,
-  type RegisterDeviceParams,
-  type UnregisterDeviceParams,
-  type RegisterDeviceResponse,
-  GetAddressOptions,
+import { getLogger, type UserOptions } from '@signalwire/core'
+import type {
+  Address,
   GetAddressResponse,
-} from '@signalwire/core'
+  GetAddressesParams,
+  SubscriberInfoResponse,
+  RegisterDeviceParams,
+  UnregisterDeviceParams,
+  RegisterDeviceResponse,
+  GetAddressParams,
+  GetAddressResult,
+  GetAddressesResponse,
+  GetAddressesResult,
+  RegisterDeviceResult,
+} from './types'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
@@ -53,16 +55,16 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getAddress(options: GetAddressOptions) {
-    const { id } = options
+  public async getAddress(params: GetAddressParams): GetAddressResult {
+    const { id } = params
     let path = `/api/fabric/addresses/${id}`
-    
+
     const { body } = await this.httpClient<GetAddressResponse>(path)
     return body
   }
 
-  public async getAddresses(options?: GetAddressesOptions) {
-    const { type, displayName, pageSize } = options || {}
+  public async getAddresses(params?: GetAddressesParams): GetAddressesResult {
+    const { type, displayName, pageSize } = params || {}
 
     let path = '/api/fabric/addresses'
 
@@ -77,17 +79,18 @@ export class HTTPClient {
       queryParams.append('page_size', pageSize.toString())
     }
 
-    const { body } = await this.httpClient<FetchAddressResponse>(
+    const { body } = await this.httpClient<GetAddressesResponse>(
       makeQueryParamsUrls(path, queryParams)
     )
 
     return buildPaginatedResult<Address>(body, this.httpClient)
   }
 
-  public async registerDevice({
-    deviceType,
-    deviceToken,
-  }: RegisterDeviceParams) {
+  public async registerDevice(
+    params: RegisterDeviceParams
+  ): RegisterDeviceResult {
+    const { deviceType, deviceToken } = params
+
     const path = '/subscriber/devices' as const
     const { body } = await this.httpClient<RegisterDeviceResponse>(path, {
       method: 'POST',
@@ -100,7 +103,9 @@ export class HTTPClient {
     return body
   }
 
-  public async unregisterDevice({ id }: UnregisterDeviceParams) {
+  public async unregisterDevice(params: UnregisterDeviceParams) {
+    const { id } = params
+
     const path = `/subscriber/devices/${id}` as const
     return await this.httpClient<void>(path, {
       method: 'DELETE',
