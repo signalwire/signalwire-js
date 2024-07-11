@@ -1,4 +1,4 @@
-import type { UserOptions } from '@signalwire/core'
+import type { ConversationEventParams, UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
@@ -139,7 +139,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface PaginatedResult<T> {
-  data: Array<T> | []
+  data: Array<T>
   self(): Promise<PaginatedResult<T> | undefined>
   nextPage(): Promise<PaginatedResult<T> | undefined>
   prevPage(): Promise<PaginatedResult<T> | undefined>
@@ -179,11 +179,11 @@ export interface GetAddressParams {
 
 export interface GetAddressResponse extends Address {}
 
-export type GetAddressResult = Promise<Address>
+export type GetAddressResult = Address
 
 export interface GetAddressesResponse extends PaginatedResponse<Address> {}
 
-export type GetAddressesResult = Promise<PaginatedResult<Address>>
+export type GetAddressesResult = PaginatedResult<Address>
 
 /**
  * Conversations
@@ -205,12 +205,8 @@ export interface ConversationResponse {
   last_message_at: number
   metadata: Record<string, any>
   name: string
-  sendMessage(params: {
-    text: string
-  }): Promise<SendConversationMessageResponse>
-  getMessages(params: {
-    pageSize?: number
-  }): Promise<PaginatedResult<ConversationMessage>>
+  sendMessage(params: ConversationAPISendMessageParams): Promise<SendConversationMessageResponse>
+  getMessages(params: ConversationAPIGetMessagesParams): Promise<GetConversationMessagesResult>
 }
 
 export interface SendConversationMessageResponse {
@@ -220,13 +216,25 @@ export interface SendConversationMessageResponse {
   }
 }
 
-export type SendConversationMessageResult =
-  Promise<SendConversationMessageResponse>
+export type SendConversationMessageResult = SendConversationMessageResponse
 
 export interface FetchConversationsResponse
   extends PaginatedResponse<ConversationResponse> {}
 
-export type GetConversationsResult = Promise<PaginatedResult<ConversationAPI>>
+export type GetConversationsResult = PaginatedResult<ConversationAPI>
+
+export type CoversationSubscribeCallback = (
+  event: ConversationEventParams
+) => unknown
+
+export interface ConversationChatMessagesSubsribeParams {
+  addressId: string
+  onMessage: CoversationSubscribeCallback
+}
+
+export interface ConversationChatMessagesSubsribeResult {
+  cancel: () => CoversationSubscribeCallback[]
+}
 
 /**
  * Conversation Messages
@@ -247,7 +255,7 @@ export interface ConversationMessage {
   text?: string
 }
 
-export type GetMessagesResult = Promise<PaginatedResult<ConversationMessage>>
+export type GetMessagesResult = PaginatedResult<ConversationMessage>
 
 export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
   text: string
@@ -258,11 +266,10 @@ export interface GetConversationChatMessageParams {
   pageSize?: number
 }
 
-export type GetConversationChatMessageResult = Promise<
+export type GetConversationChatMessageResult =
   PaginatedResult<ConversationChatMessage>
->
 
-export interface FetchConversationMessagesResponse
+export interface GetConversationMessagesResponse
   extends PaginatedResponse<ConversationMessage> {}
 
 export interface GetConversationMessagesParams {
@@ -270,14 +277,23 @@ export interface GetConversationMessagesParams {
   pageSize?: number
 }
 
-export type GetConversationMessagesResult = Promise<
-  PaginatedResult<ConversationMessage>
->
+export type GetConversationMessagesResult = PaginatedResult<ConversationMessage>
+
+/**
+ * Conversation API
+ */
+export interface ConversationAPISendMessageParams {
+  text: string
+}
+
+export interface ConversationAPIGetMessagesParams {
+  pageSize?: number
+}
 
 /**
  * Subsriber info
  */
-export interface SubscriberInfoResponse {
+export interface GetSubscriberInfoResponse {
   id: string
   email: string
   first_name?: string
@@ -294,6 +310,8 @@ export interface SubscriberInfoResponse {
     scopes: string[]
   }
 }
+
+export type GetSubscriberInfoResult = GetSubscriberInfoResponse
 
 /**
  * Device registration
@@ -318,6 +336,6 @@ export interface RegisterDeviceResponse {
   push_notification_key: string
 }
 
-export type RegisterDeviceResult = Promise<RegisterDeviceResponse>
+export type RegisterDeviceResult = RegisterDeviceResponse
 
 export { CallFabricRoomSession }

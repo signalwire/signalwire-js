@@ -6,7 +6,7 @@ import type {
   GetMessagesParams,
   GetConversationsParams,
   GetConversationMessagesParams,
-  FetchConversationMessagesResponse,
+  GetConversationMessagesResponse,
   ConversationMessage,
   SendConversationMessageParams,
   SendConversationMessageResponse,
@@ -16,6 +16,10 @@ import type {
   SendConversationMessageResult,
   GetConversationChatMessageParams,
   GetConversationsResult,
+  CoversationSubscribeCallback,
+  ConversationChatMessagesSubsribeParams,
+  ConversationChatMessagesSubsribeResult,
+  GetConversationChatMessageResult,
 } from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -23,8 +27,6 @@ import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
 
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
-
-type Callback = (event: ConversationEventParams) => unknown
 
 interface ConversationOptions {
   httpClient: HTTPClient
@@ -34,7 +36,7 @@ interface ConversationOptions {
 export class Conversation {
   private httpClient: HTTPClient
   private wsClient: WSClient
-  private callbacks: Callback[] = [
+  private callbacks: CoversationSubscribeCallback[] = [
     (event: ConversationEventParams) => {
       if(event.subtype !== 'chat') return
       const conversationSubscription = this.chatSubscriptions[event.conversation_id];
@@ -43,7 +45,7 @@ export class Conversation {
       }
     }
   ]
-  private chatSubscriptions: Record<string, Callback[]> = {}
+  private chatSubscriptions: Record<string, CoversationSubscribeCallback[]> = {}
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -59,7 +61,7 @@ export class Conversation {
 
   public async sendMessage(
     options: SendConversationMessageParams
-  ): SendConversationMessageResult {
+  ): Promise<SendConversationMessageResult> {
     try {
       const { addressId, text } = options
       const path = '/api/fabric/messages'
@@ -79,7 +81,7 @@ export class Conversation {
 
   public async getConversations(
     options?: GetConversationsParams
-  ): GetConversationsResult {
+  ): Promise<GetConversationsResult> {
     try {
       const { pageSize } = options || {}
 
@@ -102,7 +104,9 @@ export class Conversation {
     }
   }
 
-  public async getMessages(options?: GetMessagesParams): GetMessagesResult {
+  public async getMessages(
+    options?: GetMessagesParams
+  ): Promise<GetMessagesResult> {
     try {
       const { pageSize } = options || {}
 
@@ -113,7 +117,7 @@ export class Conversation {
       }
 
       const { body } =
-        await this.httpClient.fetch<FetchConversationMessagesResponse>(
+        await this.httpClient.fetch<GetConversationMessagesResponse>(
           makeQueryParamsUrls(path, queryParams)
         )
 
@@ -128,7 +132,7 @@ export class Conversation {
 
   public async getConversationMessages(
     options: GetConversationMessagesParams
-  ): GetConversationMessagesResult {
+  ): Promise<GetConversationMessagesResult> {
     try {
       const { addressId, pageSize } = options || {}
 
@@ -139,7 +143,7 @@ export class Conversation {
       }
 
       const { body } =
-        await this.httpClient.fetch<FetchConversationMessagesResponse>(
+        await this.httpClient.fetch<GetConversationMessagesResponse>(
           makeQueryParamsUrls(path, queryParams)
         )
 
@@ -152,7 +156,10 @@ export class Conversation {
     }
   }
 
-  public async getChatMessages({addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE}: GetConversationChatMessageParams) {
+  public async getChatMessages(
+    params: GetConversationChatMessageParams
+  ): Promise<GetConversationChatMessageResult> {
+    const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
     const chatMessages = []
     const isValid = (item: ConversationMessage) => (item.conversation_id == addressId && item.subtype == 'chat')
 
@@ -168,21 +175,27 @@ export class Conversation {
     
     return { 
       data: chatMessages as ConversationChatMessage[],
-      hasNext: conversationMessages?.hasNext,
-      hasPrev: conversationMessages?.hasPrev,
-      nextPage: () => conversationMessages?.nextPage(),
-      prevPage: () => conversationMessages?.prevPage()
+      hasNext: !!conversationMessages?.hasNext,
+      hasPrev: !!conversationMessages?.hasPrev,
+      // @ts-expect-error
+      nextPage: conversationMessages?.nextPage,
+      // @ts-expect-error
+      prevPage: conversationMessages?.prevPage,
     }
   }
 
-  public async subscribe(callback: Callback) {
+  public async subscribe(callback: CoversationSubscribeCallback) {
     // Connect the websocket client first
     this.wsClient.connect()
 
     this.callbacks.push(callback)
   }
 
-  public async subscribeChatMessages({addressId, onMessage}: {addressId: string, onMessage: Callback}) {
+  public async subscribeChatMessages(
+    params: ConversationChatMessagesSubsribeParams
+  ): Promise<ConversationChatMessagesSubsribeResult> {
+    const { addressId, onMessage } = params
+
     // Connect the websocket client first
     await this.wsClient.connect()
 

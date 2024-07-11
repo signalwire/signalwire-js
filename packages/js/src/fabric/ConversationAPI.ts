@@ -1,13 +1,10 @@
 import { Conversation } from './Conversation'
-import { ConversationResponse } from './types'
+import {
+  ConversationAPIGetMessagesParams,
+  ConversationAPISendMessageParams,
+  ConversationResponse,
+} from './types'
 
-export interface ConversationAPISendMessageOptions {
-  text: string
-}
-
-export interface ConversationAPIGetMessagesOptions {
-  pageSize?: number
-}
 export class ConversationAPI {
   get id() {
     return this.data.id
@@ -34,16 +31,17 @@ export class ConversationAPI {
     private data: ConversationResponse
   ) {}
 
-  sendMessage(options: ConversationAPISendMessageOptions) {
+  sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({
       addressId: this.id,
-      text: options.text,
+      text: params.text,
     })
   }
-  getMessages(options: ConversationAPIGetMessagesOptions | undefined) {
+  
+  getMessages(params?: ConversationAPIGetMessagesParams) {
     return this.conversation.getConversationMessages({
       addressId: this.id,
-      ...options,
+      ...params,
     })
   }
 }
