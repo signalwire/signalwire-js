@@ -1,7 +1,7 @@
 import type { UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
-import { Conversation as ConversationClass } from './Conversation'
+import { Conversation } from './Conversation'
 import type { CallFabricRoomSession } from './CallFabricRoomSession'
 import { ConversationAPI } from './ConversationAPI'
 
@@ -24,16 +24,16 @@ export interface SignalWireContract {
     getAddress: HTTPClient['getAddress']
   }
   conversation: {
-    getConversations: ConversationClass['getConversations']
-    getMessages: ConversationClass['getMessages']
-    getConversationMessages: ConversationClass['getConversationMessages']
-    subscribe: ConversationClass['subscribe']
-    sendMessage: ConversationClass['sendMessage']
+    getConversations: Conversation['getConversations']
+    getMessages: Conversation['getMessages']
+    getConversationMessages: Conversation['getConversationMessages']
+    subscribe: Conversation['subscribe']
+    sendMessage: Conversation['sendMessage']
   }
   chat: {
-    getMessages: ConversationClass['getChatMessages']
-    subscribe: ConversationClass['subscribeChatMessages']
-    sendMessage: ConversationClass['sendMessage']
+    getMessages: Conversation['getChatMessages']
+    subscribe: Conversation['subscribeChatMessages']
+    sendMessage: Conversation['sendMessage']
   }
 }
 
