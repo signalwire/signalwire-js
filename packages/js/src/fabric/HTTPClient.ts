@@ -4,7 +4,6 @@ import type {
   Address,
   GetAddressResponse,
   GetAddressesParams,
-  SubscriberInfoResponse,
   RegisterDeviceParams,
   UnregisterDeviceParams,
   RegisterDeviceResponse,
@@ -13,6 +12,7 @@ import type {
   GetAddressesResponse,
   GetAddressesResult,
   RegisterDeviceResult,
+  GetSubscriberInfoResponse,
 } from './types'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -55,7 +55,7 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getAddress(params: GetAddressParams): GetAddressResult {
+  public async getAddress(params: GetAddressParams): Promise<GetAddressResult> {
     const { id } = params
     let path = `/api/fabric/addresses/${id}`
 
@@ -63,7 +63,9 @@ export class HTTPClient {
     return body
   }
 
-  public async getAddresses(params?: GetAddressesParams): GetAddressesResult {
+  public async getAddresses(
+    params?: GetAddressesParams
+  ): Promise<GetAddressesResult> {
     const { type, displayName, pageSize } = params || {}
 
     let path = '/api/fabric/addresses'
@@ -88,7 +90,7 @@ export class HTTPClient {
 
   public async registerDevice(
     params: RegisterDeviceParams
-  ): RegisterDeviceResult {
+  ): Promise<RegisterDeviceResult> {
     const { deviceType, deviceToken } = params
 
     const path = '/subscriber/devices' as const
@@ -115,7 +117,7 @@ export class HTTPClient {
   public async getSubscriberInfo() {
     let path = '/api/fabric/subscriber/info'
 
-    const { body } = await this.httpClient<SubscriberInfoResponse>(path)
+    const { body } = await this.httpClient<GetSubscriberInfoResponse>(path)
 
     return body
   }
