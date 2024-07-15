@@ -102,6 +102,8 @@ test.describe('CallFabric VideoRoom', () => {
           })
         })
 
+        // --------------- Room lock/unlock ---------------
+        
         const roomUpdatedUnlocked = new Promise((resolve) => {
           roomObj.on('room.updated', (params) => {
             if (
@@ -117,12 +119,11 @@ test.describe('CallFabric VideoRoom', () => {
 
         await Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
 
-        // FIXME uncomment when the feature got deployed to PROD
-        // await roomObj.lock()
-        // await roomUpdatedLocked
+        await roomObj.lock()
+        await roomUpdatedLocked
 
-        // await roomObj.unlock()
-        // await roomUpdatedUnlocked
+        await roomObj.unlock()
+        await roomUpdatedUnlocked
 
       },
       { roomSession }
