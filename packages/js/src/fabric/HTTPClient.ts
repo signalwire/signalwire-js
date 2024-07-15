@@ -1,7 +1,6 @@
 import jwtDecode from 'jwt-decode'
 import { getLogger, type UserOptions } from '@signalwire/core'
 import type {
-  Address,
   GetAddressResponse,
   GetAddressesParams,
   RegisterDeviceParams,
@@ -85,7 +84,7 @@ export class HTTPClient {
       makeQueryParamsUrls(path, queryParams)
     )
 
-    return buildPaginatedResult<Address>(body, this.httpClient)
+    return buildPaginatedResult(body, this.httpClient)
   }
 
   public async registerDevice(

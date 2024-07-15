@@ -2,10 +2,11 @@ import { Conversation } from './Conversation'
 import {
   ConversationAPIGetMessagesParams,
   ConversationAPISendMessageParams,
+  ConversationContract,
   ConversationResponse,
 } from './types'
 
-export class ConversationAPI {
+export class ConversationAPI implements ConversationContract {
   get id() {
     return this.data.id
   }
@@ -37,7 +38,7 @@ export class ConversationAPI {
       text: params.text,
     })
   }
-  
+
   getMessages(params?: ConversationAPIGetMessagesParams) {
     return this.conversation.getConversationMessages({
       addressId: this.id,
