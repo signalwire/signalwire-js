@@ -171,6 +171,57 @@ test.describe('CallFabric VideoRoom', () => {
       { roomSession }
     )
 
+    // --------------- Screenshare ---------------
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+
+      let screenMemberId: string | undefined
+      const screenJoined = new Promise((resolve) => {
+        roomObj.on('member.joined', (params) => {
+          if (params.member.type === 'screen') {
+            screenMemberId = params.member.member_id
+            resolve(true)
+          }
+        })
+      })
+
+      const screenLeft = new Promise((resolve) => {
+        roomObj.on('member.left', (params) => {
+          if (
+            params.member.type === 'screen' &&
+            params.member.member_id === screenMemberId
+          ) {
+            resolve(true)
+          }
+        })
+      })
+
+      const screenShareObj = await roomObj.startScreenShare({
+        audio: true,
+        video: true,
+      })
+
+      const screenShareIdCheckPromise = new Promise((resolve) => {
+        resolve(screenMemberId === screenShareObj.memberId)
+      })
+
+      const screenRoomLeft = new Promise((resolve) => {
+        screenShareObj.on('room.left', () => resolve(true))
+      })
+
+      await new Promise((r) => setTimeout(r, 2000))
+
+      await screenShareObj.leave()
+
+      return Promise.all([
+        screenJoined,
+        screenLeft,
+        screenRoomLeft,
+        screenShareIdCheckPromise,
+      ])
+    })
+
     // --------------- Set layout ---------------
     const layoutName = '3x3'
     const layoutChangedPromise = expectLayoutChanged(page, layoutName)

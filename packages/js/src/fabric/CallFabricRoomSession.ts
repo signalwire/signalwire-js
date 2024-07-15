@@ -44,45 +44,6 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 
-  protected initWorker() {
-    /**
-     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
-     * For now, the member instances are only required in the CallFabric SDK
-     * It also handles `call.*` events
-     */
-    this.runWorker('callFabricWorker', {
-      worker: callFabricWorker,
-    })
-  }
-
-  public start() {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        this.once('room.subscribed', () => resolve())
-
-        await this.join()
-      } catch (error) {
-        this.logger.error('WSClient call start', error)
-        reject(error)
-      }
-    })
-  }
-
-  /** @internal */
-  override async resume() {
-    this.logger.warn(`[resume] Call ${this.id}`)
-    if (this.peer?.instance) {
-      const { connectionState } = this.peer.instance
-      this.logger.debug(
-        `[resume] connectionState for ${this.id} is '${connectionState}'`
-      )
-      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
-        this.resuming = true
-        this.peer.restartIce()
-      }
-    }
-  }
-
   get selfMember() {
     return this.callSegments[0]?.member
   }
@@ -151,6 +112,45 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       },
       options
     )
+  }
+
+  protected override initWorker() {
+    /**
+     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
+     * For now, the member instances are only required in the CallFabric SDK
+     * It also handles `call.*` events
+     */
+    this.runWorker('callFabricWorker', {
+      worker: callFabricWorker,
+    })
+  }
+
+  public start() {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        this.once('room.subscribed', () => resolve())
+
+        await this.join()
+      } catch (error) {
+        this.logger.error('WSClient call start', error)
+        reject(error)
+      }
+    })
+  }
+
+  /** @internal */
+  public override async resume() {
+    this.logger.warn(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
   }
 
   public audioMute(params: Rooms.RoomMemberMethodParams) {

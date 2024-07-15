@@ -22,6 +22,7 @@ export {
   getUserMedia,
   getDisplayMedia,
   enumerateDevices,
+  enumerateDevicesByKind,
   getSupportedConstraints,
   supportsMediaOutput,
   setMediaElementSinkId,
@@ -29,3 +30,4 @@ export {
   stopTrack,
   createMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
+export type { MicrophoneAnalyzer } from '@signalwire/webrtc'
