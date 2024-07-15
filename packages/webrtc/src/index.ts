@@ -18,6 +18,7 @@ export {
   createCameraDeviceWatcher,
   createMicrophoneAnalyzer,
 } from './utils/deviceHelpers'
+export type { MicrophoneAnalyzer } from './utils/deviceHelpers'
 export {
   supportsMediaDevices,
   supportsGetUserMedia,

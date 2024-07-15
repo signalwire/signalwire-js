@@ -100,24 +100,10 @@ export type {
   /**
    * Call Fabric types
    */
-  GetAddressesOptions,
-  Address,
-  FetchAddressResponse,
-  GetConversationsOptions,
-  Conversation,
-  FetchConversationsResponse,
-  GetMessagesOptions,
-  ConversationMessage,
-  FetchConversationMessagesResponse,
-  GetConversationMessagesOptions,
-  SubscriberInfoResponse,
   ConversationMessageEventName,
   ConversationMessageEvent,
   ConversationEventParams,
   ConversationEvent,
-  RegisterDeviceParams,
-  UnregisterDeviceParams,
-  RegisterDeviceResponse,
 } from '@signalwire/core'
 
 export type {
