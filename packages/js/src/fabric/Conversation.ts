@@ -2,7 +2,7 @@ import { type ConversationEventParams } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import type {
-  FetchConversationsResponse,
+  GetConversationsResponse,
   GetMessagesParams,
   GetConversationsParams,
   GetConversationMessagesParams,
@@ -91,7 +91,7 @@ export class Conversation {
         queryParams.append('page_size', pageSize.toString())
       }
 
-      const { body } = await this.httpClient.fetch<FetchConversationsResponse>(
+      const { body } = await this.httpClient.fetch<GetConversationsResponse>(
         makeQueryParamsUrls(path, queryParams)
       )
       const self = this

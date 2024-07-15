@@ -3,7 +3,6 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
 import type { CallFabricRoomSession } from './CallFabricRoomSession'
-import { ConversationAPI } from './ConversationAPI'
 
 export interface SignalWireOptions extends WSClientOptions {}
 
@@ -152,14 +151,16 @@ export interface PaginatedResult<T> {
  * Addresses
  */
 
-export interface Address {
+export type ResourceType = 'app' | 'call' | 'room' | 'subscriber'
+
+export interface GetAddressResponse {
   id: string
   display_name: string
   name: string
   preview_url?: string
   cover_url?: string
   resource_id: string
-  type: string
+  type: ResourceType
   channels: {
     audio?: string
     messaging?: string
@@ -177,17 +178,29 @@ export interface GetAddressParams {
   id: string
 }
 
-export interface GetAddressResponse extends Address {}
+export type GetAddressResult = GetAddressResponse
 
-export type GetAddressResult = Address
+export type GetAddressesResponse = PaginatedResponse<GetAddressResponse>
 
-export interface GetAddressesResponse extends PaginatedResponse<Address> {}
-
-export type GetAddressesResult = PaginatedResult<Address>
+export type GetAddressesResult = PaginatedResult<GetAddressResponse>
 
 /**
  * Conversations
  */
+export interface ConversationContract {
+  readonly id: string
+  readonly created_at: number
+  readonly last_message_at: number
+  readonly metadata: Record<string, any>
+  readonly name: string
+  sendMessage(
+    params: ConversationAPISendMessageParams
+  ): Promise<SendConversationMessageResult>
+  getMessages(
+    params?: ConversationAPIGetMessagesParams
+  ): Promise<GetConversationMessagesResult>
+}
+
 export interface SendConversationMessageParams {
   text: string
   addressId: string
@@ -205,8 +218,6 @@ export interface ConversationResponse {
   last_message_at: number
   metadata: Record<string, any>
   name: string
-  sendMessage(params: ConversationAPISendMessageParams): Promise<SendConversationMessageResponse>
-  getMessages(params: ConversationAPIGetMessagesParams): Promise<GetConversationMessagesResult>
 }
 
 export interface SendConversationMessageResponse {
@@ -218,10 +229,9 @@ export interface SendConversationMessageResponse {
 
 export type SendConversationMessageResult = SendConversationMessageResponse
 
-export interface FetchConversationsResponse
-  extends PaginatedResponse<ConversationResponse> {}
+export type GetConversationsResponse = PaginatedResponse<ConversationResponse>
 
-export type GetConversationsResult = PaginatedResult<ConversationAPI>
+export type GetConversationsResult = PaginatedResult<ConversationContract>
 
 export type CoversationSubscribeCallback = (
   event: ConversationEventParams
@@ -243,13 +253,15 @@ export interface GetMessagesParams {
   pageSize?: number
 }
 
+export type ConversationMessageType = 'message'
+
 export interface ConversationMessage {
   id: string
   conversation_id: string
   user_id: string
   ts: number
   details: Record<string, any>
-  type: string
+  type: ConversationMessageType
   subtype: string
   kind?: string
   text?: string
