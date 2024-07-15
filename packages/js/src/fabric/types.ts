@@ -253,13 +253,15 @@ export interface GetMessagesParams {
   pageSize?: number
 }
 
+export type ConversationMessageType = 'message'
+
 export interface ConversationMessage {
   id: string
   conversation_id: string
   user_id: string
   ts: number
   details: Record<string, any>
-  type: string
+  type: ConversationMessageType
   subtype: string
   kind?: string
   text?: string
