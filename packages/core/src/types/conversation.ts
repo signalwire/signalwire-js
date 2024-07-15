@@ -2,6 +2,8 @@ import { SwEvent } from '..'
 
 export type ConversationMessageEventName = 'conversation.message'
 
+export type ConversationMessageType = 'message'
+
 export interface ConversationMessageEventParams {
   conversation_id: string
   conversation_name: string
@@ -13,7 +15,7 @@ export interface ConversationMessageEventParams {
   subtype: string
   text?: string
   ts: number
-  type: string
+  type: ConversationMessageType
   user_id: string
   user_name: string
 }

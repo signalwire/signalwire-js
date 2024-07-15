@@ -1,4 +1,8 @@
-import type { ConversationEventParams, UserOptions } from '@signalwire/core'
+import type {
+  ConversationEventParams,
+  ConversationMessageType,
+  UserOptions,
+} from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
@@ -252,8 +256,6 @@ export interface ConversationChatMessagesSubsribeResult {
 export interface GetMessagesParams {
   pageSize?: number
 }
-
-export type ConversationMessageType = 'message'
 
 export interface ConversationMessage {
   id: string
