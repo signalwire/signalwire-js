@@ -1,6 +1,6 @@
 import type { Video } from '@signalwire/js'
 import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
-import { test as baseTest, Browser, BrowserContext, expect, type Page } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
   CreateRelayAppResourceParams,
   CreateSWMLAppResourceParams,
@@ -88,9 +88,8 @@ const test = baseTest.extend<CustomFixture>({
     })
   },
   createCustomVanillaPage: async ({ context }, use) => {
-    const maker = async (options: { name: string, context?: BrowserContext }): Promise<Page> => {
-      const ctx = options.context ?? context
-      const page = await ctx.newPage()
+    const maker = async (options: { name: string }): Promise<Page> => {
+      const page = await context.newPage()
       enablePageLogs(page, options.name)
       return page
     }
