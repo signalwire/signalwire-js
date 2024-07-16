@@ -92,15 +92,6 @@ test.describe('CallFabric VideoRoom', () => {
           })
         })
 
-        const roomUpdatedLocked = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
-            if (
-              params.room_session.locked === false
-            ) {
-              resolve(true)
-            }
-          })
-        })
       },
       { roomSession }
     )
