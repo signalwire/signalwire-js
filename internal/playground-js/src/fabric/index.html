@@ -25,6 +25,11 @@
       rel="shortcut icon"
       href="https://signalwire.com/assets/images/favicon.ico"
     />
+    <style>
+      .fs-7 {
+        font-size: 14px !important;
+      }
+    </style>
   </head>
   <body class="bg-light">
     <div class="container">
@@ -36,6 +41,7 @@
       <hr />
       <div class="row py-3">
         <div class="col-12 col-md-4">
+          <!-- Connect -->
           <div class="card">
             <div class="card-body">
               <h5>Connect</h5>
@@ -118,7 +124,9 @@
               </div>
             </div>
           </div>
+          <!-- Connect end -->
 
+          <!-- Room controls -->
           <div id="roomControls" class="card mt-4 d-none">
             <div class="card-body">
               <h5>Controls</h5>
@@ -267,15 +275,19 @@
               <canvas id="mic-meter" width="40" height="100"></canvas>
             </div>
           </div>
+          <!-- Room controls end -->
         </div>
 
         <div class="col-12 col-md-8 mt-4 mt-md-1">
+          <!-- Root element -->
           <div class="row py-3">
             <div class="col-12">
               <div id="rootElement"></div>
             </div>
           </div>
+          <!-- Root element end -->
 
+          <!-- Devices volume -->
           <div id="controlSliders" class="row py-2 d-none">
             <div class="col-4">
               <label for="microphoneVolume" class="form-label">
@@ -320,7 +332,9 @@
               />
             </div>
           </div>
+          <!-- Devices volume end -->
 
+          <!-- Device change -->
           <div id="controlLayout" class="row py-2 d-none">
             <div class="col-4">
               <label for="cameraSelect" class="form-label">Camera</label>
@@ -352,7 +366,9 @@
               ></select>
             </div>
           </div>
+          <!-- Device change end -->
 
+          <!-- Recording -->
           <div id="controlRecording" class="row py-2 d-none">
             <h6>Recording (<i id="recordingState">unknown</i>)</h6>
             <div class="col-12">
@@ -392,7 +408,9 @@
               </div>
             </div>
           </div>
+          <!-- Recording end -->
 
+          <!-- Playback -->
           <div id="controlPlayback" class="row py-2 d-none">
             <h6>Playback URL</h6>
             <div class="form-group">
@@ -485,6 +503,14 @@
               </div>
             </div>
           </div>
+          <!-- Playback end -->
+
+          <!-- Call Stack -->
+          <div id="controlCallStack" class="row py-2 d-none">
+            <h6>Call Stack</h6>
+            <ul></ul>
+          </div>
+          <!-- Call Stack -->
         </div>
       </div>
       <hr />

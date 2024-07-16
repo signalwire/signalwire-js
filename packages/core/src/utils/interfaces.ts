@@ -348,6 +348,7 @@ export type RoomMethod =
  * List of all Call Fabric methods
  */
 export type CallFabricMethod =
+  | 'call.end'
   | 'call.mute'
   | 'call.unmute'
   | 'call.deaf'
