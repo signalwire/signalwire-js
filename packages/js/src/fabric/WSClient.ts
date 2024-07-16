@@ -1,7 +1,7 @@
 import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
 import { wsClientWorker } from './workers'
 import {
-  CallOptions,
+  CallParams,
   DialParams,
   InboundCallSource,
   IncomingInvite,
@@ -22,7 +22,7 @@ export class WSClient {
   constructor(public options: WSClientOptions) {
     this.wsClient = createClient(this.options)
     this._incomingCallManager = new IncomingCallManager(
-      (payload: IncomingInvite, params: CallOptions) =>
+      (payload: IncomingInvite, params: CallParams) =>
         this.buildInboundCall(payload, params),
       (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
     )
@@ -210,7 +210,7 @@ export class WSClient {
     }
   }
 
-  private buildInboundCall(payload: IncomingInvite, params: CallOptions) {
+  private buildInboundCall(payload: IncomingInvite, params: CallParams) {
     getLogger().debug('Build new call to answer')
 
     const { callID, nodeId, sdp } = payload

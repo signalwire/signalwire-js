@@ -54,16 +54,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 
-  protected initWorker() {
-    /**
-     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
-     * For now, the member instances are only required in the CallFabric SDK
-     * It also handles `call.*` events
-     */
-    this.runWorker('callFabricWorker', {
-      worker: callFabricWorker,
-    })
-  }
 
   override async hangup(id?: string | undefined): Promise<void> {
     this._self = undefined
@@ -72,94 +62,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return result
   }
 
-  async start() {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        
-        this.once('room.subscribed', ({ call_id }: VideoRoomSubscribedEventParams) => {
-          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
-          resolve()
-        })
-
-        this.once('destroy', () => {
-          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-        })
-
-        await this.join()
-
-      } catch (error) {
-        this.logger.error('WSClient call start', error)
-        reject(error)
-      }
-    })
-  }
-
-  override async join() {
- 
-    if(this.options.attach) {
-      this.options.prevCallId = getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-    }
-    getLogger().debug(`Tying to reattach to previuos call? ${!!this.options.prevCallId} - prevCallId: ${this.options.prevCallId}`)
-    
-
-
-    // TODO: We need to handle the media constrains in a reattach
-    // const authState: VideoAuthorization = client._sessionAuthState
-    // this.logger.debug('getJoinMediaParams authState?', authState)
-    // if (authState && authState.type === 'video') {
-    //       const mediaOptions = getJoinMediaParams({
-    //         authState,
-    //         // constructor values override the send
-    //         sendAudio: Boolean(this.options.audio),
-    //         sendVideo: Boolean(this.options.video),
-    //         ...this.options,
-    //       })
-
-    //       if (!checkMediaParams(mediaOptions)) {
-    //         client.disconnect()
-    //         return reject(
-    //           new Error(
-    //             `Invalid arguments to join the room. The token used has join_as: '${
-    //               authState.join_as
-    //             }'. \n${JSON.stringify(params, null, 2)}\n`
-    //           )
-    //         )
-    //       }
-
-    //       this.logger.debug('Set mediaOptions', mediaOptions)
-
-    //       /**
-    //        * audio and video might be objects with MediaStreamConstraints
-    //        * so if we must send media, we make sure to use the user's
-    //        * preferences.
-    //        * Note: params.sendAudio: `true` will override audio: `false` so
-    //        * we're using `||` instead of `??` for that reason.
-    //        */
-    //       this.updateMediaOptions({
-    //         audio: mediaOptions.mustSendAudio ? !!this.options.audio || true : false,
-    //         video: mediaOptions.mustSendVideo ? !!this.options.video || true : false,
-    //         negotiateAudio: mediaOptions.mustRecvAudio,
-    //         negotiateVideo: mediaOptions.mustRecvVideo,
-    //       })
-    // }
-
-    return super.join()
-  }
-
-  /** @internal */
-  override async resume() {
-    this.logger.warn(`[resume] Call ${this.id}`)
-    if (this.peer?.instance) {
-      const { connectionState } = this.peer.instance
-      this.logger.debug(
-        `[resume] connectionState for ${this.id} is '${connectionState}'`
-      )
-      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
-        this.resuming = true
-        this.peer.restartIce()
-      }
-    }
-  }
 
   get selfMember(): RoomSessionMember|undefined {
     return this._self
@@ -224,7 +126,70 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )
   }
 
-  audioMute(params: Rooms.RoomMemberMethodParams) {
+  protected override initWorker() {
+    /**
+     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
+     * For now, the member instances are only required in the CallFabric SDK
+     * It also handles `call.*` events
+     */
+    this.runWorker('callFabricWorker', {
+      worker: callFabricWorker,
+    })
+  }
+
+  public async start() {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        
+        this.once('room.subscribed', ({ call_id }: VideoRoomSubscribedEventParams) => {
+          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
+          resolve()
+        })
+
+        this.once('destroy', () => {
+          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+        })
+
+        await this.join()
+
+      } catch (error) {
+        this.logger.error('WSClient call start', error)
+        reject(error)
+      }
+    })
+  }
+
+  override async join() {
+ 
+    if(this.options.attach) {
+      this.options.prevCallId = getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    getLogger().debug(`Tying to reattach to previuos call? ${!!this.options.prevCallId} - prevCallId: ${this.options.prevCallId}`)
+    
+
+
+    
+
+    return super.join()
+  }
+
+
+  /** @internal */
+  public override async resume() {
+    this.logger.warn(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
+  }
+
+  public audioMute(params: Rooms.RoomMemberMethodParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'audio',
@@ -232,7 +197,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  audioUnmute(params: Rooms.RoomMemberMethodParams) {
+  public audioUnmute(params: Rooms.RoomMemberMethodParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'audio',
@@ -240,7 +205,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  videoMute(params: Rooms.RoomMemberMethodParams) {
+  public videoMute(params: Rooms.RoomMemberMethodParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'video',
@@ -248,7 +213,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  videoUnmute(params: Rooms.RoomMemberMethodParams) {
+  public videoUnmute(params: Rooms.RoomMemberMethodParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'video',
@@ -256,21 +221,21 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  deaf(params: Rooms.RoomMemberMethodParams) {
+  public deaf(params: Rooms.RoomMemberMethodParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.deaf',
       memberId: params?.memberId,
     })
   }
 
-  undeaf(params: Rooms.RoomMemberMethodParams) {
+  public undeaf(params: Rooms.RoomMemberMethodParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.undeaf',
       memberId: params?.memberId,
     })
   }
 
-  getLayouts() {
+  public getLayouts() {
     return this.executeAction<{ layouts: string[] }>(
       {
         method: 'call.layout.list',
@@ -283,7 +248,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )
   }
 
-  getMembers() {
+  public getMembers() {
     return this.executeAction<{ members: VideoMemberEntity[] }>(
       {
         method: 'call.member.list',
@@ -296,7 +261,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )
   }
 
-  removeMember(params: Required<Rooms.RoomMemberMethodParams>) {
+  public removeMember(params: Required<Rooms.RoomMemberMethodParams>) {
     if (!params?.memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
@@ -306,7 +271,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  setLayout(params: { name: string }) {
+  public setLayout(params: { name: string }) {
     const extraParams = {
       layout: params?.name,
     }
@@ -316,7 +281,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  setInputVolume(params: MemberCommandWithVolumeParams) {
+  public setInputVolume(params: MemberCommandWithVolumeParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.volume.set',
       memberId: params?.memberId,
@@ -326,7 +291,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  setOutputVolume(params: MemberCommandWithVolumeParams) {
+  public setOutputVolume(params: MemberCommandWithVolumeParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'video.member.set_output_volume',
       memberId: params?.memberId,
@@ -336,7 +301,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  setInputSensitivity(params: MemberCommandWithValueParams) {
+  public setInputSensitivity(params: MemberCommandWithValueParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.sensitivity.set',
       memberId: params?.memberId,

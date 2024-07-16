@@ -61,6 +61,7 @@ export const callJoinWorker = function* (
     },
   })
 
+
   // @ts-expect-error
   cfRoomSession.emit('call.joined', payload)
 
