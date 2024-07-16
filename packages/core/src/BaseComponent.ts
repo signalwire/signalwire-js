@@ -90,11 +90,6 @@ export class BaseComponent<
   }
 
   /** @internal */
-  get callSegments() {
-    return this.store.callSegments
-  }
-
-  /** @internal */
   get emitter() {
     return this.eventEmitter
   }

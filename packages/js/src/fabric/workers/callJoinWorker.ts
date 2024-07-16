@@ -10,18 +10,17 @@ import {
   InternalMemberUpdatedEventNames,
 } from '@signalwire/core'
 import { CallFabricWorkerParams } from './callFabricWorker'
-import { createCallSegmentObject } from '../CallSegment'
 import { videoMemberWorker } from '../../video/videoMemberWorker'
 
 export const callJoinWorker = function* (
   options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
 ): SagaIterator {
   getLogger().trace('callJoinWorker started')
-  const { action, callSegments, instanceMap, instance: cfRoomSession } = options
+  const { action, instanceMap, instance: cfRoomSession } = options
   const { payload } = action
   const { get, set } = instanceMap
 
-  const memberInstances = payload.room_session.members?.map((member: any) => {
+  payload.room_session.members?.forEach((member: any) => {
     let memberInstance = get<RoomSessionMember>(member.member_id!)
     if (!memberInstance) {
       memberInstance = Rooms.createRoomSessionMemberObject({
@@ -40,17 +39,9 @@ export const callJoinWorker = function* (
       })
     }
     set<RoomSessionMember>(member.member_id, memberInstance)
-    return memberInstance
   })
 
-  const callSegmentInstance = createCallSegmentObject({
-    store: cfRoomSession.store,
-    payload: {
-      ...payload,
-      members: memberInstances!,
-    },
-  })
-  callSegments.push(callSegmentInstance)
+  cfRoomSession.member = get<RoomSessionMember>(payload.member_id)
 
   cfRoomSession.runWorker('memberPositionWorker', {
     worker: MemberPosition.memberPositionWorker,
@@ -70,17 +61,6 @@ export const callJoinWorker = function* (
     },
   })
 
-  // FIXME: Why do we need to emit member.joined from here?
-  for (const memberPayload of payload.room_session.members || []) {
-    // @ts-expect-error
-    yield sagaEffects.fork(videoMemberWorker, {
-      ...options,
-      action: {
-        type: 'video.member.joined',
-        payload: { member: memberPayload },
-      },
-    })
-  }
 
   // @ts-expect-error
   cfRoomSession.emit('call.joined', payload)

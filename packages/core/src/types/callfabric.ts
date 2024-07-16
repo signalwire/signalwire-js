@@ -74,6 +74,8 @@ export interface CallJoinedEvent extends SwEvent {
  */
 export interface CallStateEventParams {
   call_id: string
+  room_session_id?: string
+  origin_call_id?: string
   node_id: string
   segment_id: string
   call_state: CallStates
@@ -258,4 +260,16 @@ export type CallFabricEvent =
   | CFMemberEvent
   | CFLayoutEvent
 
-export type CallFabricAction = MapToPubSubShape<CallFabricEvent>
+type HasCallId = {
+  params: { call_id: string; room_session_id?: string; origin_call_id?: String }
+}
+type HasRoomSessionId = {
+  params: { call_id?: string; room_session_id: string; origin_call_id?: String }
+}
+type HasEitherCallIdOrRoomSessionId = HasCallId | HasRoomSessionId
+
+export type CallFabricAction = MapToPubSubShape<
+  CallFabricEvent & HasEitherCallIdOrRoomSessionId
+>
+
+

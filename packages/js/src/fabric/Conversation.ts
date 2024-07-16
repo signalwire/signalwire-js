@@ -175,7 +175,7 @@ export class Conversation {
     const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
     const chatMessages = []
     const isValid = (item: ConversationMessage) =>
-      item.conversation_id == addressId && item.subtype == 'chat'
+      item.conversation_id === addressId && item.subtype === 'chat'
 
     let conversationMessages:
       | Awaited<ReturnType<typeof this.getConversationMessages>>

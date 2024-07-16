@@ -1,5 +1,5 @@
 import { LOCAL_EVENT_PREFIX, actions } from '@signalwire/core'
-import { configureFullStack } from '../testUtils'
+import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import { buildVideoElement } from './buildVideoElement'
 import {
   CallFabricRoomSession,
@@ -35,6 +35,7 @@ describe('buildVideoElement', () => {
       emitter: stack.emitter,
     })
     setupRoomForTests()
+
     jsdom = new JSDOM('<!doctype html><html><body></body></html>')
     global.document = jsdom.window.document
     global.HTMLDivElement = jsdom.window.HTMLDivElement
@@ -105,13 +106,13 @@ describe('buildVideoElement', () => {
         timestamp: 1716832047176777,
         params: {
           room_id: '8facb303-63da-41c5-9f6b-4c97255cdec2',
-          room_session_id: 'b2a6677d-9e68-463d-8220-93305bf8de0b',
+          room_session_id: callId,
           layout: {
             layers: [
               {
                 layer_index: 0,
                 z_index: 0,
-                member_id: 'b969f74c-85d1-4d5d-8011-7a00d38c7624',
+                member_id: 'member-id-1',
                 playing_file: false,
                 position: 'standard-1',
                 visible: true,
@@ -205,6 +206,17 @@ describe('buildVideoElement', () => {
     })
 
     it('should render the mcuLayers', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 
@@ -219,6 +231,17 @@ describe('buildVideoElement', () => {
     })
 
     it('should render two elements if the IDs are different', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 
@@ -249,6 +272,16 @@ describe('buildVideoElement', () => {
     })
 
     it('should render only one element if the IDs are same', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 
@@ -276,6 +309,16 @@ describe('buildVideoElement', () => {
     })
 
     it('should mirror the video', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
       // @ts-expect-error
       stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
 
