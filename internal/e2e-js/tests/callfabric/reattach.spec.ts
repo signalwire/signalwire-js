@@ -1,251 +1,182 @@
+import { uuid } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
 import {
-  CF_REFERENCE_CLIENT_URL,
-  CF_E2E_TEST_ROOM_ADDRESS,
-  CF_E2E_SWML_ADDRESS,
-  CF_E2E_LONG_RUNNING_SWML_ADDRESS,
-  CF_E2E_CALLER_EMAIL,
-  CF_E2E_CALLER_PASSWORD,
-  CF_E2E_CALLEE_EMAIL,
-  CF_E2E_CALLEE_PASSWORD,
-  CF_E2E_CALLEE_ADDRESS
+  SERVER_URL,
+  createCFClient,
+  expectMCUVisible
 } from '../../utils'
 
 test.describe('Reattach Tests', () => {
   test('WebRTC to Room', async ({
-    createCustomVanillaPage,
+    createCustomPage,
+    resource,
   }) => {
 
-    const page = await createCustomVanillaPage({ name: '[page]' })
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
 
-    await page.goto(CF_REFERENCE_CLIENT_URL)
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
-    await page.waitForLoadState('domcontentloaded')
-    await page.getByRole('link', { name: 'Subscriber OAuth'}).click()
+    await createCFClient(page)
 
-    await page.waitForLoadState('domcontentloaded')
-    // @ts-ignore
-    await page.getByLabel('Email').fill(CF_E2E_CALLER_EMAIL)
-    await page.getByText('Continue').click()
+    // Dial an address and join a video room
+    let roomSession = await page.evaluate(
+      async ({ roomName }) => {
+        return new Promise<any>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
 
-    await page.locator('button[type="submit"]').last().click()
+          const call = await client.dial({
+            to: `/public/${roomName}`,
+            rootElement: document.getElementById('rootElement'),
+          })
 
-    await page.waitForLoadState('domcontentloaded')
-    await page.getByLabel('Password').fill(CF_E2E_CALLER_PASSWORD)
-    await page.getByText('Log In').click()
+          call.on('call.joined', resolve)
 
-    await page.waitForLoadState('domcontentloaded')
+          // @ts-expect-error
+          window._roomObj = call
 
-    await page.waitForSelector('text="User Info"', { timeout: 10000 })
+          await call.start()
+        })
+      },
+      { roomName }
+    )
 
-    await page.getByLabel('Address').fill(CF_E2E_TEST_ROOM_ADDRESS)
-    await page.getByText('Dial').click()
+    expect(roomSession.room_session).toBeDefined()
+    const currentCallId = roomSession.call_id
 
-    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
+    await expectMCUVisible(page)
 
     await page.reload({ waitUntil: 'domcontentloaded'})
-    
-    const exptectedMessages = [
-      'Invite response {message: CALL CREATED',
-      '{message: Cannot reattach, causeCode: 81, cause: INVALID_CALL_REFERENCE, code: -32002}'
-    ]
-    await expect.poll(() => {
-      return new Promise((resolve) => {
-        page.on('console', (msg) => {
-          for (let expected of exptectedMessages) {
-            if (msg.text().includes(expected)) {
-              resolve(true)
-            }
-          }
+    await createCFClient(page)
+
+    // Reattach to an address to join the same call session
+    roomSession = await page.evaluate(
+      async ({ roomName }) => {
+        return new Promise<any>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.reattach({
+            to: `/public/${roomName}`,
+            rootElement: document.getElementById('rootElement'),
+          })
+
+          call.on('call.joined', resolve)
+
+          // @ts-expect-error
+          window._roomObj = call
+          await call.start()
         })
-      })
-    }, { timeout: 30000 }).toBe(true)
+      },
+      { roomName }
+    )
+
+    expect(roomSession.call_id).toEqual(currentCallId)
+    // FIXME the server is not sending a layout state on reattach 
+    await expectMCUVisible(page)
   })
 
-  test('WebRTC -> SWML -> Room', async ({
-    createCustomVanillaPage,
+  test('WebRTC to SWML to Room', async ({
+    createCustomPage,
+    resource,
   }) => {
 
-    const page = await createCustomVanillaPage({ name: '[page]' })
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
 
-    await page.goto(CF_REFERENCE_CLIENT_URL)
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
+    const resourceName = `e2e-swml-app_${uuid()}`
+    await resource.createSWMLAppResource({
+      name: resourceName,
+      contents: {
+        sections: {
+          main: [
+            'answer',
+            {
+              play: {
+                volume: 10,
+                urls: [
+                  'silence:1.0',
+                  'say:Hello, connecting to a fabric resource that is a room',
+                ],
+              },
+              connect: {
+                to: `/public/${roomName}`,
+                answer_on_bridge: true
+              }
+            },
+          ],
+        },
+      },
+    })
 
-    await page.waitForLoadState('domcontentloaded')
-    await page.getByRole('link', { name: 'Subscriber OAuth'}).click()
+    await createCFClient(page)
 
-    await page.waitForLoadState('domcontentloaded')
-    // @ts-ignore
-    await page.getByLabel('Email').fill(CF_E2E_CALLER_EMAIL)
-    await page.getByText('Continue').click()
+    // Dial an address and join a video room
+    let roomSession = await page.evaluate(
+      async ({ resourceName }) => {
+        return new Promise<any>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
+          let callJoinedCount = 0
 
-    await page.locator('button[type="submit"]').last().click()
+          const call = await client.dial({
+            to: `/private/${resourceName}`,
+            rootElement: document.getElementById('rootElement'),
+          })
 
-    await page.waitForLoadState('domcontentloaded')
-    await page.getByLabel('Password').fill(CF_E2E_CALLER_PASSWORD)
-    await page.getByText('Log In').click()
+          call.on('call.joined', (event: any) => {
+            callJoinedCount++
+            if(callJoinedCount >= 2) {
+              resolve(event)
+            }
+          })
 
-    await page.waitForLoadState('domcontentloaded')
+          // @ts-expect-error
+          window._roomObj = call
 
-    await page.waitForSelector('text="User Info"', { timeout: 10000 })
+          await call.start()
+        })
+      },
+      { resourceName }
+    )
 
-    await page.getByLabel('Address').fill(CF_E2E_SWML_ADDRESS)
-    await page.getByText('Dial').click()
+    expect(roomSession.room_session).toBeDefined()
+    const currentCallId = roomSession.call_id
 
-    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
+    await expectMCUVisible(page)
 
     await page.reload({ waitUntil: 'domcontentloaded'})
+    await createCFClient(page)
 
-    const exptectedMessages = [
-      'Invite response {message: CALL CREATED',
-      '{message: Cannot reattach, causeCode: 81, cause: INVALID_CALL_REFERENCE, code: -32002}'
-    ]
-    await expect.poll(() => {
-      return new Promise((resolve) => {
-        page.on('console', (msg) => {
-          for (let expected of exptectedMessages) {
-            if (msg.text().includes(expected)) {
-              resolve(true)
-            }
-          }
+    // FIXME Server is not accepting the invite
+    // Reattach to an address to join the same call session
+    roomSession = await page.evaluate(
+      async ({ resourceName }) => {
+        return new Promise<any>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.reattach({
+            to: `/private/${resourceName}`,
+            rootElement: document.getElementById('rootElement'),
+          })
+
+          call.on('call.joined', resolve)
+
+          // @ts-expect-error
+          window._roomObj = call
+          await call.start()
         })
-      })
-    }, { timeout: 30000 }).toBe(true)  
-  })
+      },
+      { resourceName }
+    )
 
-  // test('WebRTC -> Subscriber', async ({
-  //   createCustomVanillaPage,
-  //   browser
-  // }) => {
-
-  //   const page = await createCustomVanillaPage({ name: '[page]' })
-  //   await page.goto(CF_REFERENCE_CLIENT_URL)
-
-  //   await page.waitForLoadState('domcontentloaded')
-  //   await page.getByRole('link', { name: 'Subscriber OAuth'}).click()
-
-  //   await page.waitForLoadState('domcontentloaded')
-  //   // @ts-ignore
-  //   await page.getByLabel('Email').fill(CF_E2E_CALLER_EMAIL)
-  //   await page.getByText('Continue').click()
-
-  //   await page.locator('button[type="submit"]').last().click()
-
-  //   await page.waitForLoadState('domcontentloaded')
-  //   await page.getByLabel('Password').fill(CF_E2E_CALLER_PASSWORD)
-  //   await page.getByText('Log In').click()
-
-  //   await page.waitForLoadState('domcontentloaded')
-
-  //   await page.waitForSelector('text="User Info"', { timeout: 10000 })
-
-  //   const newContext = await browser.newContext()
-  //   const page2 = await createCustomVanillaPage({ name: '[page2]', context: newContext })
-  //   await page2.goto(CF_REFERENCE_CLIENT_URL)
-
-  //   await page2.waitForLoadState('domcontentloaded')
-  //   await page2.getByRole('link', { name: 'Subscriber OAuth'}).click()
-
-  //   await page2.waitForLoadState('domcontentloaded')
-  //   // @ts-ignore
-  //   await page2.getByLabel('Email').fill(CF_E2E_CALLEE_EMAIL)
-  //   await page2.getByText('Continue').click()
-
-  //   await page2.locator('button[type="submit"]').last().click()
-
-  //   await page2.waitForLoadState('domcontentloaded')
-  //   await page2.getByLabel('Password').fill(CF_E2E_CALLEE_PASSWORD)
-  //   await page2.getByText('Log In').click()
-
-  //   await page2.waitForLoadState('domcontentloaded')
-
-  //   await page2.waitForSelector('text="User Info"', { timeout: 10000 })
-
-  //   await page2.locator('text="Avaliable"').click()
-
-  //   await page.getByLabel('Address').fill(CF_E2E_CALLEE_ADDRESS)
-  //   await page.getByText('Dial').click()
-
-  //   await expect.poll(async () => {
-  //     const status = await page2.locator('#connectStatus').textContent()
-  //     return status == 'Ringing'
-  //   }, { timeout: 50000 }).toBe(true)
-
-  //   // NOTE: need to click answer with evaluate
-  //   // page2.locator('#btnAnswer').click() doesn't work 
-  //   // due to ringing animation on ref client
-  //   await page2.evaluate(async () => {
-  //     const answerBtn = document.getElementById('btnAnswer')
-  //     // @ts-ignore
-  //     answerBtn.click()
-  //   })
-
-  //   await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
-  //   await new Promise(resolve => setTimeout(resolve, 5000))
-  //   await page.reload({ waitUntil: 'domcontentloaded'})
-  //   const exptectedMessages = [
-  //     'Invite response {message: CALL CREATED',
-  //     '{message: Cannot reattach, causeCode: 81, cause: INVALID_CALL_REFERENCE, code: -32002}'
-  //   ]
-  //   await expect.poll(() => {
-  //     return new Promise((resolve) => {
-  //       page.on('console', (msg) => {
-  //         for (let expected of exptectedMessages) {
-  //           if (msg.text().includes(expected)) {
-  //             resolve(true)
-  //           }
-  //         }
-  //       })
-  //     })
-  //   }, { timeout: 30000 }).toBe(true)
-  // })
-
-  test('WebRTC -> Long running SWML', async ({
-    createCustomVanillaPage,
-  }) => {
-
-    const page = await createCustomVanillaPage({ name: '[page]' })
-
-    await page.goto(CF_REFERENCE_CLIENT_URL)
-
-    await page.waitForLoadState('domcontentloaded')
-    await page.getByRole('link', { name: 'Subscriber OAuth'}).click()
-
-    await page.waitForLoadState('domcontentloaded')
-    // @ts-ignore
-    await page.getByLabel('Email').fill(CF_E2E_CALLER_EMAIL)
-    await page.getByText('Continue').click()
-
-    await page.locator('button[type="submit"]').last().click()
-
-    await page.waitForLoadState('domcontentloaded')
-    await page.getByLabel('Password').fill(CF_E2E_CALLER_PASSWORD)
-    await page.getByText('Log In').click()
-
-    await page.waitForLoadState('domcontentloaded')
-
-    await page.waitForSelector('text="User Info"', { timeout: 10000 })
-
-    await page.getByLabel('Address').fill(CF_E2E_LONG_RUNNING_SWML_ADDRESS)
-    await page.getByText('Dial').click()
-
-    await expect(page.locator('span#connectStatus', { hasText: /^Connected$/ })).toBeVisible({ timeout: 30000 })
-
-    await page.reload({ waitUntil: 'domcontentloaded'})
-
-    const exptectedMessages = [
-      'Invite response {message: CALL CREATED',
-      '{message: Cannot reattach, causeCode: 81, cause: INVALID_CALL_REFERENCE, code: -32002}'
-    ]
-    await expect.poll(() => {
-      return new Promise((resolve) => {
-        page.on('console', (msg) => {
-          for (let expected of exptectedMessages) {
-            if (msg.text().includes(expected)) {
-              resolve(true)
-            }
-          }
-        })
-      })
-    }, { timeout: 30000 }).toBe(true)
+    expect(roomSession.call_id).toEqual(currentCallId)
+    // FIXME the server is not sending a layout state on reattach 
+    await expectMCUVisible(page)
   })
 })

@@ -53,62 +53,88 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return this.reattach({...params, attach: false })
+    return this.connectAndbuildCFRoomSession({ ...params, attach: false })
   }
 
-  async reattach(params: DialParams & {attach?: boolean}) {
+  async reattach(params: DialParams) {
+    return this.connectAndbuildCFRoomSession({ ...params, attach: true })
+  }
+
+  private async connectAndbuildCFRoomSession(
+    params: Omit<DialParams, 'to'> & {
+      attach?: boolean
+      callID?: string
+      nodeId?: string
+      sdp?: string
+      to?: string
+    }
+  ) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
-
-        const { to } = params
-
-        const channelRegex = /\?channel\=(?<channel>(audio|video))/
-        const result = channelRegex.exec(to)
-        let video = params.video ?? true
-        if (result && result.groups?.channel === 'audio') {
-          video = false
-        }
-
-        const call = this.wsClient.makeCallFabricObject({
-          audio: params.audio ?? true,
-          video,
-          negotiateAudio: true,
-          negotiateVideo: true,
-          // iceServers,
-          rootElement: params.rootElement || this.options.rootElement,
-          applyLocalVideoOverlay: true,
-          stopCameraWhileMuted: true,
-          stopMicrophoneWhileMuted: true,
-          // speakerId,
-          destinationNumber: params.to,
-          watchMediaPackets: false,
-          // watchMediaPacketsTimeout:,
-          nodeId: params.nodeId,
-          disableUdpIceServers: params.disableUdpIceServers || false,
-          attach: params.attach === false ? false : true,
-          userVariables: params.userVariables || this.options.userVariables
-        })
-
-        // WebRTC connection left the room.
-        call.once('destroy', () => {
-          this.logger.debug('RTC Connection Destroyed')
-          call.destroy()
-        })
-
-        this.wsClient.once('session.disconnected', () => {
-          this.logger.debug('Session Disconnected')
-        })
-
-        // @ts-expect-error
-        call.attachPreConnectWorkers()
-
+        const call = this.buildCFRoomSession(params)
         resolve(call)
       } catch (error) {
-        getLogger().error('WSClient dial', error)
+        getLogger().error('WSClient', error)
         reject(error)
       }
     })
+  }
+
+  private buildCFRoomSession(
+    params: Omit<DialParams, 'to'> & {
+      attach?: boolean
+      callID?: string
+      nodeId?: string
+      sdp?: string
+      to?: string
+    }
+  ) {
+    const { to, callID, nodeId, sdp } = params
+
+    let video = params.video ?? !to
+
+    if (to) {
+      const channelRegex = /\?channel\=(?<channel>(audio|video))/
+      const result = channelRegex.exec(to)
+
+      if (result && result.groups?.channel === 'audio') {
+        video = false
+      }
+    }
+
+    const call = this.wsClient.makeCallFabricObject({
+      audio: params.audio ?? true,
+      video,
+      negotiateAudio: true,
+      negotiateVideo: true,
+      rootElement: params.rootElement || this.options.rootElement,
+      applyLocalVideoOverlay: true,
+      stopCameraWhileMuted: true,
+      stopMicrophoneWhileMuted: true,
+      destinationNumber: params.to,
+      watchMediaPackets: false,
+      remoteSdp: sdp,
+      prevCallId: callID,
+      nodeId,
+      disableUdpIceServers: params.disableUdpIceServers || false,
+      attach: params.attach === false ? false : true,
+      userVariables: params.userVariables || this.options.userVariables,
+    })
+
+    // WebRTC connection left the room.
+    call.once('destroy', () => {
+      this.logger.debug('RTC Connection Destroyed')
+      call.destroy()
+    })
+
+    this.wsClient.once('session.disconnected', () => {
+      this.logger.debug('Session Disconnected')
+    })
+
+    // @ts-expect-error
+    call.attachPreConnectWorkers()
+    return call
   }
 
   handlePushNotification(payload: PushNotificationPayload) {
@@ -214,36 +240,12 @@ export class WSClient {
     getLogger().debug('Build new call to answer')
 
     const { callID, nodeId, sdp } = payload
-
-    const call = this.wsClient.makeCallFabricObject({
-      audio: params.audio ?? true,
-      video: params.video ?? true,
-      negotiateAudio: true,
-      negotiateVideo: true,
-      rootElement: params.rootElement || this.options.rootElement,
-      applyLocalVideoOverlay: true,
-      stopCameraWhileMuted: true,
-      stopMicrophoneWhileMuted: true,
-      watchMediaPackets: false,
-      remoteSdp: sdp,
-      prevCallId: callID,
+    return this.buildCFRoomSession({
+      ...params,
+      callID,
       nodeId,
-      disableUdpIceServers: params.disableUdpIceServers || false,
-      userVariables: params.userVariables || this.options.userVariables
+      sdp,
     })
-
-    // WebRTC connection left the room.
-    call.once('destroy', () => {
-      getLogger().debug('RTC Connection Destroyed')
-      call.destroy()
-    })
-
-    // @ts-expect-error
-    call.attachPreConnectWorkers()
-
-    getLogger().debug('Resolving Call', call)
-
-    return call
   }
 
   /**
