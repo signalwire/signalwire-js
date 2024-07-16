@@ -20,6 +20,7 @@ test.describe('CallFabric SWML', () => {
               'say:Hi',
               'say:Welcome to SignalWire',
               "say:Thank you for calling us. All our lines are currently busy, but your call is important to us. Please hang up, and we'll return your call as soon as our representative is available.",
+              "say:Thank you for calling us. All our lines are currently busy, but your call is important to us. Please hang up, and we'll return your call as soon as our representative is available.",
             ],
           },
         },
@@ -86,7 +87,7 @@ test.describe('CallFabric SWML', () => {
         })
       })
     })
-
+    
     const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
 
     await page.evaluate(async () => {
@@ -100,27 +101,8 @@ test.describe('CallFabric SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    const callPlayEnded = page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return new Promise<boolean>((resolve) => {
-        roomObj.on('call.play', (params: any) => {
-          if (params.state === 'finished') resolve(true)
-        })
-      })
-    })
+    await expectCFFinalEvents(page)
 
-    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
-
-    // Hangup the call
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
-
-      await call.hangup()
-    })
-
-    await expectFinalEvents
   })
 
   test('should dial an address and expect a hangup', async ({

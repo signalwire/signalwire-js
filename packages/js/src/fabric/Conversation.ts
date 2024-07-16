@@ -161,7 +161,7 @@ export class Conversation {
   ): Promise<GetConversationChatMessageResult> {
     const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
     const chatMessages = []
-    const isValid = (item: ConversationMessage) => (item.conversation_id == addressId && item.subtype == 'chat')
+    const isValid = (item: ConversationMessage) => (item.conversation_id === addressId && item.subtype === 'chat')
 
     let conversationMessages: Awaited<ReturnType<typeof this.getConversationMessages>> | undefined
     conversationMessages = await this.getConversationMessages({addressId, pageSize});
