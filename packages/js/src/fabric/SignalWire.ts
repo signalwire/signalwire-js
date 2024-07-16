@@ -36,6 +36,7 @@ export const SignalWire = (
             conversation.getConversationMessages.bind(conversation),
           subscribe: conversation.subscribe.bind(conversation),
           sendMessage: conversation.sendMessage.bind(conversation),
+          join: conversation.joinConversation.bind(conversation)
         },
         chat: {
           getMessages:
