@@ -41,13 +41,12 @@ export class Conversation {
   private wsClient: WSClient
   private callbacks: CoversationSubscribeCallback[] = [
     (event: ConversationEventParams) => {
-      if (event.subtype !== 'chat') return
-      const conversationSubscription =
-        this.chatSubscriptions[event.conversation_id]
-      if (!!conversationSubscription) {
-        conversationSubscription.forEach((cb) => cb(event))
+      if(event.subtype !== 'chat') return
+      const conversationSubscription = this.chatSubscriptions[event.conversation_id];
+      if(!!conversationSubscription) {
+          conversationSubscription.forEach((cb) => cb(event))
       }
-    },
+    }
   ]
   private chatSubscriptions: Record<string, CoversationSubscribeCallback[]> = {}
 
@@ -174,25 +173,19 @@ export class Conversation {
   ): Promise<GetConversationChatMessageResult> {
     const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
     const chatMessages = []
-    const isValid = (item: ConversationMessage) =>
-      item.conversation_id === addressId && item.subtype === 'chat'
+    const isValid = (item: ConversationMessage) => (item.conversation_id === addressId && item.subtype === 'chat')
 
-    let conversationMessages:
-      | Awaited<ReturnType<typeof this.getConversationMessages>>
-      | undefined
-    conversationMessages = await this.getConversationMessages({
-      addressId,
-      pageSize,
-    })
-    chatMessages.push(...conversationMessages.data.filter(isValid))
-    while (chatMessages.length < pageSize && conversationMessages?.hasNext) {
-      conversationMessages = await conversationMessages?.nextPage()
-      if (!!conversationMessages) {
+    let conversationMessages: Awaited<ReturnType<typeof this.getConversationMessages>> | undefined
+    conversationMessages = await this.getConversationMessages({addressId, pageSize});
+     chatMessages.push(...conversationMessages.data.filter(isValid))
+     while(chatMessages.length < pageSize && conversationMessages?.hasNext) {
+      conversationMessages = await conversationMessages?.nextPage() 
+      if(!!conversationMessages) {
         chatMessages.push(...conversationMessages.data.filter(isValid))
       }
-    }
-
-    return {
+     }
+    
+    return { 
       data: chatMessages as ConversationChatMessage[],
       hasNext: !!conversationMessages?.hasNext,
       hasPrev: !!conversationMessages?.hasPrev,
@@ -218,15 +211,14 @@ export class Conversation {
     // Connect the websocket client first
     await this.wsClient.connect()
 
-    if (!(addressId in this.chatSubscriptions)) {
+    if(!(addressId in this.chatSubscriptions)) {
       this.chatSubscriptions[addressId] = []
     }
 
-    this.chatSubscriptions[addressId].push(onMessage)
+    this.chatSubscriptions[addressId].push(onMessage);
     const subscriptionIndex = this.chatSubscriptions[addressId].length - 1
     return {
-      cancel: () =>
-        this.chatSubscriptions[addressId].splice(subscriptionIndex, 1),
+      cancel: () => this.chatSubscriptions[addressId].splice(subscriptionIndex, 1)
     }
   }
 
