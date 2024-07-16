@@ -223,6 +223,48 @@ describe('Conversation', () => {
     })
   })
 
+  describe('joinConversation', () => {
+    it('should join a conversation', async () => {
+      const addressId = uuid()
+      const expectedResponse = {
+        table: {
+          conversation_id: addressId,
+        },
+      }
+      ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+        body: expectedResponse,
+      })
+
+      const result = await conversation.joinConversation({
+        addressId,
+      })
+
+      expect(result).toEqual(expectedResponse)
+      expect(httpClient.fetch).toHaveBeenCalledWith('/api/fabric/conversations/join', {
+        method: 'POST',
+        body: {
+          conversation_id: addressId,
+        },
+      })
+    })
+
+    it('should handles errors with joinConversation', async () => {
+      ;(httpClient.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network error')
+      )
+
+      try {
+        await conversation.joinConversation({
+          addressId: uuid(),
+        })
+        fail('Expected joinConversation to throw error.')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toBe('Error joining a conversation!')
+      }
+    })
+  })
+
   describe('subscribe', () => {
     let callback
 
