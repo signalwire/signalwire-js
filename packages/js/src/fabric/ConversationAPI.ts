@@ -1,15 +1,12 @@
 import { Conversation } from './Conversation'
-import { Conversation as ConversationType } from '@signalwire/core'
+import {
+  ConversationAPIGetMessagesParams,
+  ConversationAPISendMessageParams,
+  ConversationContract,
+  ConversationResponse,
+} from './types'
 
-export interface ConversationAPISendMessageOptions {
-  text: string
-}
-
-export interface ConversationAPIGetMessagesOptions {
-  pageSize?: number
-}
-export class ConversationAPI {
-
+export class ConversationAPI implements ConversationContract {
   get id() {
     return this.data.id
   }
@@ -30,15 +27,22 @@ export class ConversationAPI {
     return this.data.name
   }
 
-  constructor(private conversation: Conversation, private data: ConversationType) {}
+  constructor(
+    private conversation: Conversation,
+    private data: ConversationResponse
+  ) {}
 
-  sendMessage(options: ConversationAPISendMessageOptions) {
+  sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({
       addressId: this.id,
-      text: options.text,
+      text: params.text,
     })
   }
-  getMessages(options: ConversationAPIGetMessagesOptions | undefined) {
-    return this.conversation.getConversationMessages({ addressId: this.id, ...options })
+
+  getMessages(params?: ConversationAPIGetMessagesParams) {
+    return this.conversation.getConversationMessages({
+      addressId: this.id,
+      ...params,
+    })
   }
 }
