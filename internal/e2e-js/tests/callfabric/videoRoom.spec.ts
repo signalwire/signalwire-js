@@ -36,7 +36,7 @@ test.describe('CallFabric VideoRoom', () => {
           })
 
           call.on('room.joined', resolve)
-          call.on('room.updated', () => {})
+          call.on('room.updated', () => { })
 
           // @ts-expect-error
           window._roomObj = call
@@ -93,9 +93,9 @@ test.describe('CallFabric VideoRoom', () => {
         })
 
         await roomObj.audioMute()
-	      await roomObj.audioUnmute()
-	
-	      return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
+        await roomObj.audioUnmute()
+
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
       { roomSession }
     )
@@ -193,42 +193,42 @@ test.describe('CallFabric VideoRoom', () => {
       ])
     })
 
-        // --------------- Room lock/unlock ---------------
-        await page.evaluate(
-          // @ts-expect-error
-          async ({ roomSession }) => {
-            // @ts-expect-error
-            const roomObj: Video.RoomSession = window._roomObj
-    
-            const roomUpdatedLocked = new Promise((resolve) => {
-              roomObj.on('room.updated', (params) => {
-                if (
-                  params.room_session.locked === true
-                ) {
-                  resolve(true)
-                }
-              })
-            })
-    
-            const roomUpdatedUnlocked = new Promise((resolve) => {
-              roomObj.on('room.updated', (params) => {
-                if (
-                  params.room_session.locked === false
-                ) {
-                  resolve(true)
-                }
-              })
-            })
-    
-            await roomObj.lock()
-            await roomUpdatedLocked
-    
-            await roomObj.unlock()
-            await roomUpdatedUnlocked
-    
-          },
-          { roomSession }
-        )
+    // --------------- Room lock/unlock ---------------
+    await page.evaluate(
+      // @ts-expect-error
+      async ({ roomSession }) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        const roomUpdatedLocked = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (
+              params.room_session.locked === true
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
+        const roomUpdatedUnlocked = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (
+              params.room_session.locked === false
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
+        await roomObj.lock()
+        await roomUpdatedLocked
+
+        await roomObj.unlock()
+        await roomUpdatedUnlocked
+
+      },
+      { roomSession }
+    )
 
     // --------------- Set layout ---------------
     const layoutName = '3x3'
@@ -383,7 +383,7 @@ test.describe('CallFabric VideoRoom', () => {
           })
 
           call.on('room.joined', resolve)
-          call.on('room.updated', () => {})
+          call.on('room.updated', () => { })
 
           // @ts-expect-error
           window._roomObj = call
