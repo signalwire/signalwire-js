@@ -423,7 +423,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           offerOptions.offerToReceiveAudio = this.options.negotiateAudio
           offerOptions.offerToReceiveVideo = this.options.negotiateVideo
         }
+        console.log('##############################')
+        console.log('##############################')
+        console.log('##############################')
+        console.log(JSON.stringify(offerOptions, null, 2))
+        console.log('##############################')
+        console.log('##############################')
+        console.log('##############################')
         const offer = await this.instance.createOffer(offerOptions)
+        console.log(offer.sdp)
         await this._setLocalDescription(offer)
       }
       if (this.isAnswer) {

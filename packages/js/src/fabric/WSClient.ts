@@ -69,8 +69,8 @@ export class WSClient {
         const call = this.wsClient.makeCallFabricObject({
           audio: params.audio ?? true,
           video,
-          negotiateAudio: true,
-          negotiateVideo: true,
+          negotiateAudio: !!params.audio ?? true,
+          negotiateVideo: !!video,
           // iceServers,
           rootElement: params.rootElement || this.options.rootElement,
           applyLocalVideoOverlay: true,
