@@ -92,6 +92,10 @@ test.describe('CallFabric VideoRoom', () => {
           })
         })
 
+        await roomObj.audioMute()
+	      await roomObj.audioUnmute()
+	
+	      return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
       { roomSession }
     )
