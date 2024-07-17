@@ -272,6 +272,18 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       },
     })
   }
+
+  public lock() {
+    return this.executeAction<BaseRPCResult>({
+      method: 'call.lock',
+    })
+  }
+
+  public unlock() {
+    return this.executeAction<BaseRPCResult>({
+      method: 'call.unlock',
+    })
+  }
 }
 
 export const createCallFabricRoomSessionObject = (
