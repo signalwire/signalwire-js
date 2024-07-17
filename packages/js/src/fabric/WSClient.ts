@@ -95,6 +95,7 @@ export class WSClient {
     let video = params.video ?? !to
 
     if (to) {
+      video = true
       const channelRegex = /\?channel\=(?<channel>(audio|video))/
       const result = channelRegex.exec(to)
 
