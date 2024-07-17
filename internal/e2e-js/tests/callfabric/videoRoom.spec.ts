@@ -194,41 +194,42 @@ test.describe('CallFabric VideoRoom', () => {
     })
 
     // --------------- Room lock/unlock ---------------
-    await page.evaluate(
-      // @ts-expect-error
-      async ({ roomSession }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    // TODO uncomment once the feature is avaliable on PROD
+    // await page.evaluate(
+    //   // @ts-expect-error
+    //   async ({ roomSession }) => {
+    //     // @ts-expect-error
+    //     const roomObj: Video.RoomSession = window._roomObj
 
-        const roomUpdatedLocked = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
-            if (
-              params.room_session.locked === true
-            ) {
-              resolve(true)
-            }
-          })
-        })
+    //     const roomUpdatedLocked = new Promise((resolve) => {
+    //       roomObj.on('room.updated', (params) => {
+    //         if (
+    //           params.room_session.locked === true
+    //         ) {
+    //           resolve(true)
+    //         }
+    //       })
+    //     })
 
-        const roomUpdatedUnlocked = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
-            if (
-              params.room_session.locked === false
-            ) {
-              resolve(true)
-            }
-          })
-        })
+    //     const roomUpdatedUnlocked = new Promise((resolve) => {
+    //       roomObj.on('room.updated', (params) => {
+    //         if (
+    //           params.room_session.locked === false
+    //         ) {
+    //           resolve(true)
+    //         }
+    //       })
+    //     })
 
-        await roomObj.lock()
-        await roomUpdatedLocked
+    //     await roomObj.lock()
+    //     await roomUpdatedLocked
 
-        await roomObj.unlock()
-        await roomUpdatedUnlocked
+    //     await roomObj.unlock()
+    //     await roomUpdatedUnlocked
 
-      },
-      { roomSession }
-    )
+    //   },
+    //   { roomSession }
+    // )
 
     // --------------- Set layout ---------------
     const layoutName = '3x3'
