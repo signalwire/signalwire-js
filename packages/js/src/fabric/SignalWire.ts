@@ -36,13 +36,13 @@ export const SignalWire = (
             conversation.getConversationMessages.bind(conversation),
           subscribe: conversation.subscribe.bind(conversation),
           sendMessage: conversation.sendMessage.bind(conversation),
-          join: conversation.joinConversation.bind(conversation)
+          join: conversation.joinConversation.bind(conversation),
         },
         chat: {
-          getMessages:
-            conversation.getChatMessages.bind(conversation),
+          getMessages: conversation.getChatMessages.bind(conversation),
           subscribe: conversation.subscribeChatMessages.bind(conversation),
           sendMessage: conversation.sendMessage.bind(conversation),
+          join: conversation.joinConversation.bind(conversation),
         },
         // @ts-expect-error
         __httpClient: httpClient,

@@ -34,6 +34,7 @@ export interface SignalWireContract {
     getMessages: Conversation['getChatMessages']
     subscribe: Conversation['subscribeChatMessages']
     sendMessage: Conversation['sendMessage']
+    join: Conversation['joinConversation']
   }
 }
 
