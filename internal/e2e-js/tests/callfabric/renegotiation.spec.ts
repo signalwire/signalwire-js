@@ -11,7 +11,6 @@ import {
 import { CallFabricRoomSession } from '@signalwire/js'
 
 test.describe('CallFabric Renegotiation', () => {
-
   test('Joining a room with audio channel only and enable sendrecv video', async ({
     createCustomPage,
     resource,
@@ -45,11 +44,11 @@ test.describe('CallFabric Renegotiation', () => {
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
-        // @ts-expect-error
-        const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
-        
-        await cfRoomSession.enableVideo();
-    });
+      // @ts-expect-error
+      const cfRoomSession = window._roomObj as CallFabricRoomSession
+
+      await cfRoomSession.enableVideo()
+    })
 
     await page.waitForTimeout(2000)
 
@@ -76,8 +75,8 @@ test.describe('CallFabric Renegotiation', () => {
 
     // Dial an address with audio only channel
     const roomSession = await dialAddress(page, {
-	  address: `/public/${roomName}?channel=audio`,
-	})
+      address: `/public/${roomName}?channel=audio`,
+    })
 
     expect(roomSession.room_session).toBeDefined()
     expect(
@@ -96,11 +95,11 @@ test.describe('CallFabric Renegotiation', () => {
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
-        // @ts-expect-error
-        const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
-        
-        await cfRoomSession.enableVideo({sendOnly: true});
-    });
+      // @ts-expect-error
+      const cfRoomSession = window._roomObj as CallFabricRoomSession
+
+      await cfRoomSession.enableVideo({ sendOnly: true })
+    })
 
     await page.waitForTimeout(1000)
 
@@ -144,11 +143,11 @@ test.describe('CallFabric Renegotiation', () => {
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
-        // @ts-expect-error
-        const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
-        
-        await cfRoomSession.enableVideo({video: false, sendOnly: false});
-    });
+      // @ts-expect-error
+      const cfRoomSession = window._roomObj as CallFabricRoomSession
+
+      await cfRoomSession.enableVideo({ video: false, sendOnly: false })
+    })
 
     await page.waitForTimeout(1000)
 

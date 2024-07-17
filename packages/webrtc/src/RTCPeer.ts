@@ -424,13 +424,22 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         } else {
           this.instance.getTransceivers().forEach((transceiver) => {
             const kind = transceiver.receiver.track.kind
-            if(kind == 'audio' && this.options.audio && this.options.negotiateAudio) {
+            if (
+              kind == 'audio' &&
+              this.options.audio &&
+              this.options.negotiateAudio
+            ) {
               transceiver.direction = 'sendrecv'
             } else if (kind == 'audio' && this.options.audio) {
               transceiver.direction = 'sendonly'
             } else if (kind == 'audio' && this.options.negotiateAudio) {
               transceiver.direction = 'recvonly'
-            } if(kind == 'video' && this.options.video && this.options.negotiateVideo) {
+            }
+            if (
+              kind == 'video' &&
+              this.options.video &&
+              this.options.negotiateVideo
+            ) {
               transceiver.direction = 'sendrecv'
             } else if (kind == 'video' && this.options.video) {
               transceiver.direction = 'sendonly'
@@ -439,8 +448,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             }
           })
         }
-
         const offer = await this.instance.createOffer(offerOptions)
+        console.log(offer.sdp)
         await this._setLocalDescription(offer)
       }
       if (this.isAnswer) {
@@ -526,7 +535,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   async start() {
-    
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
