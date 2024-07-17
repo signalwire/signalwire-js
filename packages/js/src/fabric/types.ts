@@ -28,11 +28,13 @@ export interface SignalWireContract {
     getConversationMessages: Conversation['getConversationMessages']
     subscribe: Conversation['subscribe']
     sendMessage: Conversation['sendMessage']
+    join: Conversation['joinConversation']
   }
   chat: {
     getMessages: Conversation['getChatMessages']
     subscribe: Conversation['subscribeChatMessages']
     sendMessage: Conversation['sendMessage']
+    join: Conversation['joinConversation']
   }
 }
 
@@ -189,8 +191,8 @@ export type GetAddressesResult = PaginatedResult<GetAddressResponse>
  */
 export interface ConversationContract {
   readonly id: string
-  readonly created_at: number
-  readonly last_message_at: number
+  readonly createdAt: number
+  readonly lastMessageAt: number
   readonly metadata: Record<string, any>
   readonly name: string
   sendMessage(
@@ -208,6 +210,15 @@ export interface SendConversationMessageParams {
   details?: Record<string, any>
 }
 
+export interface SendConversationMessageResponse {
+  table: {
+    conversation_id: string
+    text: string
+  }
+}
+
+export type SendConversationMessageResult = SendConversationMessageResponse
+
 export interface GetConversationsParams {
   pageSize?: number
 }
@@ -219,15 +230,6 @@ export interface ConversationResponse {
   metadata: Record<string, any>
   name: string
 }
-
-export interface SendConversationMessageResponse {
-  table: {
-    conversation_id: string
-    text: string
-  }
-}
-
-export type SendConversationMessageResult = SendConversationMessageResponse
 
 export type GetConversationsResponse = PaginatedResponse<ConversationResponse>
 
@@ -245,6 +247,19 @@ export interface ConversationChatMessagesSubsribeParams {
 export interface ConversationChatMessagesSubsribeResult {
   cancel: () => CoversationSubscribeCallback[]
 }
+
+export interface JoinConversationParams {
+  addressId: string
+}
+
+export interface JoinConversationResponse {
+  table: {
+    conversation_id: string
+    text: string
+  }
+}
+
+export type JoinConversationResult = JoinConversationResponse
 
 /**
  * Conversation Messages

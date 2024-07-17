@@ -338,7 +338,7 @@ window.connect = async () => {
   await call.start()
   console.debug('Call Obj', call)
 
-  // Render video element using custom function
+  /* --------- Render video element using custom function ---------- */
   // setTimeout(async () => {
   //   const { unsubscribe } = await buildVideoElement({
   //     room: call,

@@ -228,7 +228,11 @@
                 </div>
               </div>
               <!-- Messages will be loaded here -->
-              <ul id="messageList" class="list-group list-group-flush mt-4">
+              <ul
+                id="messageList"
+                class="overflow-auto list-group list-group-flush mt-4"
+                style="max-height: calc(100vh - 50vh)"
+              >
                 <li class="list-group-item">
                   <span class="placeholder placeholder-lg col-6"></span>
                   <span class="placeholder placeholder-lg col-12"></span>
@@ -237,8 +241,17 @@
                 </li>
               </ul>
               <div class="input-group mt-4 container-fluid">
-                <input type="text" id="new-conversation-message" class="form-control" placeholder="Message..." aria-label="Chat Message" aria-describedby="button-addon2">
-                <button class="btn btn-primary" type="button" id="send-message"><i class="bi-send"></i></button>
+                <input
+                  type="text"
+                  id="new-conversation-message"
+                  class="form-control"
+                  placeholder="Message..."
+                  aria-label="Chat Message"
+                  aria-describedby="button-addon2"
+                />
+                <button class="btn btn-primary" type="button" id="send-message">
+                  <i class="bi-send"></i>
+                </button>
               </div>
             </div>
           </div>
