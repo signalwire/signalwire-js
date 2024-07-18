@@ -53,14 +53,14 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return this.connectAndbuildCFRoomSession({ ...params, attach: false })
+    return this.connectAndbuildRoomSession({ ...params, attach: false })
   }
 
   async reattach(params: DialParams) {
-    return this.connectAndbuildCFRoomSession({ ...params, attach: true })
+    return this.connectAndbuildRoomSession({ ...params, attach: true })
   }
 
-  private async connectAndbuildCFRoomSession(
+  private async connectAndbuildRoomSession(
     params: Omit<DialParams, 'to'> & {
       attach?: boolean
       callID?: string
@@ -72,7 +72,7 @@ export class WSClient {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
-        const call = this.buildCFRoomSession(params)
+        const call = this.buildRoomSession(params)
         resolve(call)
       } catch (error) {
         getLogger().error('WSClient', error)
@@ -81,7 +81,7 @@ export class WSClient {
     })
   }
 
-  private buildCFRoomSession(
+  private buildRoomSession(
     params: Omit<DialParams, 'to'> & {
       attach?: boolean
       callID?: string
@@ -241,7 +241,7 @@ export class WSClient {
     getLogger().debug('Build new call to answer')
 
     const { callID, nodeId, sdp } = payload
-    return this.buildCFRoomSession({
+    return this.buildRoomSession({
       ...params,
       callID,
       nodeId,
