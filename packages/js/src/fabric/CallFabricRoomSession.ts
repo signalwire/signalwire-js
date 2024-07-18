@@ -101,7 +101,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     const targetMember = memberId
       ? this.instanceMap.get<RoomSessionMember>(memberId)
       : this.member
-    if (!targetMember) throw new Error('No target param found, to execute ')
+    if (!targetMember) throw new Error('No target param found to execute')
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
