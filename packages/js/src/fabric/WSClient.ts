@@ -83,10 +83,9 @@ export class WSClient {
   private buildRoomSession(params: BuildRoomParams) {
     const { to, callID, nodeId, sdp } = params
 
-    let video = params.video ?? !to
+    let video = params.video ?? true
 
     if (to) {
-      video = true
       const channelRegex = /\?channel\=(?<channel>(audio|video))/
       const result = channelRegex.exec(to)
 
