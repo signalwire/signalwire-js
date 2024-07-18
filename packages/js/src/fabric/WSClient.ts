@@ -14,6 +14,13 @@ import { CallFabricRoomSession } from './CallFabricRoomSession'
 import { createClient } from './createClient'
 import { Client } from './Client'
 
+type BuildRoomParams = Omit<DialParams, 'to'> & {
+  attach: boolean
+  callID?: string
+  nodeId?: string
+  sdp?: string
+  to?: string
+};
 export class WSClient {
   private wsClient: Client
   private logger = getLogger()
@@ -60,15 +67,7 @@ export class WSClient {
     return this.connectAndbuildRoomSession({ ...params, attach: true })
   }
 
-  private async connectAndbuildRoomSession(
-    params: Omit<DialParams, 'to'> & {
-      attach?: boolean
-      callID?: string
-      nodeId?: string
-      sdp?: string
-      to?: string
-    }
-  ) {
+  private async connectAndbuildRoomSession(params: BuildRoomParams) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
@@ -81,15 +80,7 @@ export class WSClient {
     })
   }
 
-  private buildRoomSession(
-    params: Omit<DialParams, 'to'> & {
-      attach?: boolean
-      callID?: string
-      nodeId?: string
-      sdp?: string
-      to?: string
-    }
-  ) {
+  private buildRoomSession(params: BuildRoomParams) {
     const { to, callID, nodeId, sdp } = params
 
     let video = params.video ?? !to
@@ -119,7 +110,7 @@ export class WSClient {
       prevCallId: callID,
       nodeId,
       disableUdpIceServers: params.disableUdpIceServers || false,
-      attach: params.attach === false ? false : true,
+      attach: params.attach,
       userVariables: params.userVariables || this.options.userVariables,
     })
 
@@ -243,6 +234,7 @@ export class WSClient {
     const { callID, nodeId, sdp } = payload
     return this.buildRoomSession({
       ...params,
+      attach: false,
       callID,
       nodeId,
       sdp,
