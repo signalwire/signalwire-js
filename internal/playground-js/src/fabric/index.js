@@ -37,8 +37,8 @@ const inCallElements = [
   controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
-  raiseHandBtn,
-  lowerHandBtn,
+  lockRoomBtn,
+  unlockRoomBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
   controlRecording,
@@ -499,6 +499,14 @@ window.hideVideoMuted = () => {
 
 window.showVideoMuted = () => {
   roomObj.showVideoMuted()
+}
+
+window.lockRoom = () => {
+  roomObj.lock()
+}
+
+window.unlockRoom = () => {
+  roomObj.unlock()
 }
 
 window.changeLayout = (select) => {
