@@ -242,7 +242,7 @@ export const startRecording: RoomMethodDescriptor<any> = {
           reject(recording)
         }
 
-        // Subsribe to listeners
+        // Subscribe to listeners
         if (listen) {
           mapActionListenersToRoomListeners.call(this, {
             listeners: listen,
@@ -353,7 +353,7 @@ export const play: RoomMethodDescriptor<any, PlayParams> = {
           reject(playback)
         }
 
-        // Subsribe to listeners
+        // Subscribe to listeners
         if (listen) {
           mapActionListenersToRoomListeners.call(this, {
             listeners: listen,
@@ -496,7 +496,7 @@ export const startStream: RoomMethodDescriptor<any, StartStreamParams> = {
         reject(stream)
       }
 
-      // Subsribe to listeners
+      // Subscribe to listeners
       if (listen) {
         mapActionListenersToRoomListeners.call(this, {
           listeners: listen,

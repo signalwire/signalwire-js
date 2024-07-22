@@ -17,8 +17,8 @@ import type {
   GetConversationChatMessageParams,
   GetConversationsResult,
   CoversationSubscribeCallback,
-  ConversationChatMessagesSubsribeParams,
-  ConversationChatMessagesSubsribeResult,
+  ConversationChatMessagesSubscribeParams,
+  ConversationChatMessagesSubscribeResult,
   GetConversationChatMessageResult,
   JoinConversationParams,
   JoinConversationResponse,
@@ -204,8 +204,8 @@ export class Conversation {
   }
 
   public async subscribeChatMessages(
-    params: ConversationChatMessagesSubsribeParams
-  ): Promise<ConversationChatMessagesSubsribeResult> {
+    params: ConversationChatMessagesSubscribeParams
+  ): Promise<ConversationChatMessagesSubscribeResult> {
     const { addressId, onMessage } = params
 
     // Connect the websocket client first
