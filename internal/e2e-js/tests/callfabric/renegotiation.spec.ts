@@ -1,16 +1,10 @@
 import { uuid } from '@signalwire/core'
-import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
-  expectLayoutChanged,
-  expectMCUVisible,
   getStats,
-  setLayoutOnPage,
 } from '../../utils'
-import { Call } from 'packages/realtime-api/dist/realtime-api/src/voice/Voice'
-import { callFabricWorker } from 'packages/js/src/fabric/workers'
 
 test.describe('CallFabric Renegotiation', () => {
 
@@ -64,6 +58,7 @@ test.describe('CallFabric Renegotiation', () => {
     // expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
+      //@ts-ignore
         window._roomObj.
     });
   })
