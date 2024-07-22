@@ -1,13 +1,15 @@
 import {
   BaseComponentOptions,
+  BaseRPCResult,
   connect,
   ExecuteExtendedOptions,
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
   VideoLayoutChangedEventParams,
-  BaseRPCResult,
+  VideoRoomSubscribedEventParams,
   RoomSessionMember,
+  getLogger,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -20,6 +22,8 @@ import {
   MemberCommandWithValueParams,
 } from '../video'
 import { BaseConnection } from '@signalwire/webrtc'
+import { getStorage } from '../utils/storage'
+import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -45,15 +49,22 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
   private _self?: RoomSessionMember
-  // this is "the member" on the last/active call segment 
+  // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 
-  get selfMember(): RoomSessionMember|undefined {
+  override async hangup(id?: string | undefined): Promise<void> {
+    this._self = undefined
+    this._member = undefined
+    const result = await super.hangup(id)
+    return result
+  }
+
+  get selfMember(): RoomSessionMember | undefined {
     return this._self
   }
 
-  set selfMember(member: RoomSessionMember|undefined) {
+  set selfMember(member: RoomSessionMember | undefined) {
     this._self = member
   }
 
@@ -61,7 +72,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._member = member
   }
 
-   get member(): RoomSessionMember {
+  get member(): RoomSessionMember {
     return this._member!
   }
 
@@ -87,8 +98,10 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    const targetMember = memberId ? this.instanceMap.get<RoomSessionMember>(memberId) : this.member;
-    if(!targetMember) throw new Error('No target param found, to execute ')
+    const targetMember = memberId
+      ? this.instanceMap.get<RoomSessionMember>(memberId)
+      : this.member
+    if (!targetMember) throw new Error('No target param found to execute')
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
@@ -123,10 +136,20 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public start() {
+  public async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once('room.subscribed', () => resolve())
+        this.once(
+          'room.subscribed',
+          ({ call_id }: VideoRoomSubscribedEventParams) => {
+            getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
+            resolve()
+          }
+        )
+
+        this.once('destroy', () => {
+          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+        })
 
         await this.join()
       } catch (error) {
@@ -134,6 +157,19 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
         reject(error)
       }
     })
+  }
+
+  override async join() {
+    if (this.options.attach) {
+      this.options.prevCallId =
+        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    getLogger().debug(
+      `Tying to reattach to previuos call? ${!!this.options
+        .prevCallId} - prevCallId: ${this.options.prevCallId}`
+    )
+
+    return super.join()
   }
 
   /** @internal */
@@ -270,6 +306,18 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       extraParams: {
         value: params?.value,
       },
+    })
+  }
+
+  public lock() {
+    return this.executeAction<BaseRPCResult>({
+      method: 'call.lock',
+    })
+  }
+
+  public unlock() {
+    return this.executeAction<BaseRPCResult>({
+      method: 'call.unlock',
     })
   }
 }

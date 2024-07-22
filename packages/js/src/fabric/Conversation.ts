@@ -20,6 +20,9 @@ import type {
   ConversationChatMessagesSubsribeParams,
   ConversationChatMessagesSubsribeResult,
   GetConversationChatMessageResult,
+  JoinConversationParams,
+  JoinConversationResponse,
+  JoinConversationResult,
 } from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -59,11 +62,20 @@ export class Conversation {
     })
   }
 
+  /** @internal */
+  public handleEvent(event: ConversationEventParams) {
+    if (this.callbacks.length) {
+      this.callbacks.forEach((callback) => {
+        callback(event)
+      })
+    }
+  }
+
   public async sendMessage(
-    options: SendConversationMessageParams
+    params: SendConversationMessageParams
   ): Promise<SendConversationMessageResult> {
     try {
-      const { addressId, text } = options
+      const { addressId, text } = params
       const path = '/api/fabric/messages'
       const { body } =
         await this.httpClient.fetch<SendConversationMessageResponse>(path, {
@@ -80,10 +92,10 @@ export class Conversation {
   }
 
   public async getConversations(
-    options?: GetConversationsParams
+    params?: GetConversationsParams
   ): Promise<GetConversationsResult> {
     try {
-      const { pageSize } = options || {}
+      const { pageSize } = params || {}
 
       const path = '/api/fabric/conversations'
       const queryParams = new URLSearchParams()
@@ -105,10 +117,10 @@ export class Conversation {
   }
 
   public async getMessages(
-    options?: GetMessagesParams
+    params?: GetMessagesParams
   ): Promise<GetMessagesResult> {
     try {
-      const { pageSize } = options || {}
+      const { pageSize } = params || {}
 
       const path = '/api/fabric/messages'
       const queryParams = new URLSearchParams()
@@ -131,10 +143,10 @@ export class Conversation {
   }
 
   public async getConversationMessages(
-    options: GetConversationMessagesParams
+    params: GetConversationMessagesParams
   ): Promise<GetConversationMessagesResult> {
     try {
-      const { addressId, pageSize } = options || {}
+      const { addressId, pageSize } = params || {}
 
       const path = `/api/fabric/conversations/${addressId}/messages`
       const queryParams = new URLSearchParams()
@@ -210,12 +222,24 @@ export class Conversation {
     }
   }
 
-  /** @internal */
-  public handleEvent(event: ConversationEventParams) {
-    if (this.callbacks.length) {
-      this.callbacks.forEach((callback) => {
-        callback(event)
-      })
+  public async joinConversation(
+    params: JoinConversationParams
+  ): Promise<JoinConversationResult> {
+    try {
+      const { addressId } = params
+      const path = '/api/fabric/conversations/join'
+      const { body } = await this.httpClient.fetch<JoinConversationResponse>(
+        path,
+        {
+          method: 'POST',
+          body: {
+            conversation_id: addressId,
+          },
+        }
+      )
+      return body
+    } catch (error) {
+      throw new Error('Error joining a conversation!', error)
     }
   }
 }

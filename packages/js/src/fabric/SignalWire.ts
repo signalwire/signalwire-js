@@ -23,6 +23,7 @@ export const SignalWire = (
         online: wsClient.online.bind(wsClient),
         offline: wsClient.offline.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
+        reattach: wsClient.reattach.bind(wsClient), 
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
         address: {
@@ -36,12 +37,13 @@ export const SignalWire = (
             conversation.getConversationMessages.bind(conversation),
           subscribe: conversation.subscribe.bind(conversation),
           sendMessage: conversation.sendMessage.bind(conversation),
+          join: conversation.joinConversation.bind(conversation),
         },
         chat: {
-          getMessages:
-            conversation.getChatMessages.bind(conversation),
+          getMessages: conversation.getChatMessages.bind(conversation),
           subscribe: conversation.subscribeChatMessages.bind(conversation),
           sendMessage: conversation.sendMessage.bind(conversation),
+          join: conversation.joinConversation.bind(conversation),
         },
         // @ts-expect-error
         __httpClient: httpClient,

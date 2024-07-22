@@ -7,15 +7,20 @@ import {
 } from './types'
 
 export class ConversationAPI implements ConversationContract {
+  constructor(
+    private conversation: Conversation,
+    private data: ConversationResponse
+  ) {}
+
   get id() {
     return this.data.id
   }
 
-  get created_at() {
+  get createdAt() {
     return this.data.created_at
   }
 
-  get last_message_at() {
+  get lastMessageAt() {
     return this.data.last_message_at
   }
 
@@ -26,11 +31,6 @@ export class ConversationAPI implements ConversationContract {
   get name() {
     return this.data.name
   }
-
-  constructor(
-    private conversation: Conversation,
-    private data: ConversationResponse
-  ) {}
 
   sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({

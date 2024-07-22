@@ -358,6 +358,8 @@ export type CallFabricMethod =
   | 'call.layout.set'
   | 'call.microphone.volume.set'
   | 'call.microphone.sensitivity.set'
+  | 'call.lock'
+  | 'call.unlock'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

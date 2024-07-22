@@ -2,7 +2,9 @@ import { SignalWire } from '@signalwire/js'
 
 const searchInput = document.getElementById('searchInput')
 const searchType = document.getElementById('searchType')
-const conversationMessageInput = document.getElementById('new-conversation-message')
+const conversationMessageInput = document.getElementById(
+  'new-conversation-message'
+)
 const sendMessageBtn = document.getElementById('send-message')
 
 let client = null
@@ -159,10 +161,9 @@ const createAddressListItem = (address) => {
     button.className = 'btn btn-sm btn-success'
 
     const icon = document.createElement('i')
-    if (channelName != 'messaging') {
+    if (channelName !== 'messaging') {
       button.addEventListener('click', () => dialAddress(channelValue))
     } else {
-
       button.addEventListener('click', () => {
         subscribeToNewMessages()
         openMessageModal(address)
@@ -198,7 +199,7 @@ function updateAddressUI() {
   addresses
     .map(createAddressListItem)
     .forEach((item) => addressUl.appendChild(item))
-  subscribeToNewMessages();
+  subscribeToNewMessages()
 }
 
 async function fetchAddresses() {
@@ -525,6 +526,9 @@ async function fetchMessages(id) {
       addressId: id,
     })
     window.__messageData = messages
+    await client.conversation.join({
+      addressId: id,
+    })
     updateMessageUI()
   } catch (error) {
     console.error('Unable to fetch messages', error)

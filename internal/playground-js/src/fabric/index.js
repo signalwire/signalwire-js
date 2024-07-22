@@ -37,8 +37,8 @@ const inCallElements = [
   controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
-  raiseHandBtn,
-  lowerHandBtn,
+  lockRoomBtn,
+  unlockRoomBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
   controlRecording,
@@ -338,7 +338,7 @@ window.connect = async () => {
   await call.start()
   console.debug('Call Obj', call)
 
-  // Render video element using custom function
+  /* --------- Render video element using custom function ---------- */
   // setTimeout(async () => {
   //   const { unsubscribe } = await buildVideoElement({
   //     room: call,
@@ -499,6 +499,14 @@ window.hideVideoMuted = () => {
 
 window.showVideoMuted = () => {
   roomObj.showVideoMuted()
+}
+
+window.lockRoom = () => {
+  roomObj.lock()
+}
+
+window.unlockRoom = () => {
+  roomObj.unlock()
 }
 
 window.changeLayout = (select) => {
