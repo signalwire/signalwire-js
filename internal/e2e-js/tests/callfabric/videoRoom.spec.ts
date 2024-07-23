@@ -95,12 +95,12 @@ test.describe('CallFabric VideoRoom', () => {
         await roomObj.audioMute()
         await memberUpdatedMuted
 
-        expect(roomObj.localStream?.getVideoTracks().length).toBe(0)
+        expect(roomObj.localStream?.getAudioTracks().length).toBe(0)
 
         await roomObj.audioUnmute()
         await memberUpdatedUnmuted
 
-        expect(roomObj.localStream?.getVideoTracks().length).toBeGreaterThan(0)
+        expect(roomObj.localStream?.getAudioTracks().length).toBeGreaterThan(0)
       },
       { roomSession }
     )
