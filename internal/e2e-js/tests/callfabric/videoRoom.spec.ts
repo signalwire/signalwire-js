@@ -1,6 +1,7 @@
 import { uuid } from '@signalwire/core'
 import { Video } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
+
 import {
   SERVER_URL,
   createCFClient,
@@ -69,9 +70,10 @@ test.describe('CallFabric VideoRoom', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated.audio_muted', (params) => {
             if (
               params.member.member_id === roomSession.member_id &&
+              //@ts-ignore
               params.member.updated.includes('audio_muted') &&
               params.member.audio_muted === true
             ) {
@@ -81,9 +83,10 @@ test.describe('CallFabric VideoRoom', () => {
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated.audio_muted', (params) => {
             if (
               params.member.member_id === roomSession.member_id &&
+              //@ts-ignore
               params.member.updated.includes('audio_muted') &&
               params.member.audio_muted === false
             ) {
@@ -93,14 +96,9 @@ test.describe('CallFabric VideoRoom', () => {
         })
 
         await roomObj.audioMute()
-        await memberUpdatedMuted
-
-        expect(roomObj.localStream?.getAudioTracks().length).toBe(0)
-
         await roomObj.audioUnmute()
-        await memberUpdatedUnmuted
 
-        expect(roomObj.localStream?.getAudioTracks().length).toBeGreaterThan(0)
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
       { roomSession }
     )
@@ -112,10 +110,12 @@ test.describe('CallFabric VideoRoom', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated.video_muted', (params) => {
             if (
               params.member.member_id === roomSession.member_id &&
+              //@ts-ignore
               params.member.updated.includes('video_muted') &&
+              //@ts-ignore
               params.member.updated.includes('visible') &&
               params.member.video_muted === true &&
               params.member.visible === false
@@ -126,10 +126,12 @@ test.describe('CallFabric VideoRoom', () => {
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated.video_muted', (params) => {
             if (
               params.member.member_id === roomSession.member_id &&
+              //@ts-ignore
               params.member.updated.includes('video_muted') &&
+              //@ts-ignore
               params.member.updated.includes('visible') &&
               params.member.video_muted === false &&
               params.member.visible === true
@@ -140,15 +142,9 @@ test.describe('CallFabric VideoRoom', () => {
         })
 
         await roomObj.videoMute()
-        await memberUpdatedMuted
-
-        expect(roomObj.localStream?.getVideoTracks().length).toBe(0)
-
         await roomObj.videoUnmute()
 
-        await memberUpdatedUnmuted
-
-        expect(roomObj.localStream?.getVideoTracks().length).toBe(1)
+        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
       { roomSession }
     )

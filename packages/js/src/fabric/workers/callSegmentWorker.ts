@@ -74,11 +74,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
           {
             const updatedAction = {
               ...action,
-              payload: {
-                ...action.payload,
-                id: action.payload.member_id,
-              },
-              type: `video.${type}` as VideoMemberEventNames, 
+              type: `video.${type}` as VideoMemberEventNames,
             }
 
             yield sagaEffects.fork(videoMemberWorker, {
