@@ -70,29 +70,55 @@ test.describe('CallFabric VideoRoom', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated.audio_muted', (params) => {
-            if (
-              params.member.member_id === roomSession.member_id &&
-              //@ts-ignore
-              params.member.updated.includes('audio_muted') &&
-              params.member.audio_muted === true
-            ) {
-              resolve(true)
-            }
+          const memberUpdatedEvent = new Promise((res) => {
+            roomObj.on('member.updated', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.updated.includes('audio_muted') &&
+                params.member.audio_muted === true
+              ) {
+                res(true)
+              }
+            })
           })
+          const memberUpdatedMutedEvent = new Promise((res) => {
+            roomObj.on('member.updated.audio_muted', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.audio_muted === true
+              ) {
+                res(true)
+              }
+            })
+          })
+
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
-          roomObj.on('member.updated.audio_muted', (params) => {
-            if (
-              params.member.member_id === roomSession.member_id &&
-              //@ts-ignore
-              params.member.updated.includes('audio_muted') &&
-              params.member.audio_muted === false
-            ) {
-              resolve(true)
-            }
+          const memberUpdatedEvent = new Promise((res) => {
+            roomObj.on('member.updated', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.updated.includes('audio_muted') &&
+                params.member.audio_muted === false
+              ) {
+                res(true)
+              }
+            })
           })
+          const memberUpdatedMutedEvent = new Promise((res) => {
+            roomObj.on('member.updated.audio_muted', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.audio_muted === false
+              ) {
+                res(true)
+              }
+            })
+          })
+
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
         })
 
         await roomObj.audioMute()
@@ -110,35 +136,61 @@ test.describe('CallFabric VideoRoom', () => {
         const roomObj: Video.RoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated.video_muted', (params) => {
-            if (
-              params.member.member_id === roomSession.member_id &&
-              //@ts-ignore
-              params.member.updated.includes('video_muted') &&
-              //@ts-ignore
-              params.member.updated.includes('visible') &&
-              params.member.video_muted === true &&
-              params.member.visible === false
-            ) {
-              resolve(true)
-            }
-          })
+          const memberUpdatedEvent = new Promise((res) => {
+            roomObj.on('member.updated', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.updated.includes('video_muted') &&
+                params.member.updated.includes('visible') &&
+                params.member.video_muted === true &&
+                params.member.visible === false
+              ) {
+                res(true)
+              }
+            })
+          });
+          const memberUpdatedMutedEvent = new Promise((res) => {
+            roomObj.on('member.updated.video_muted', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.video_muted === true &&
+                params.member.visible === false
+              ) {
+                res(true)
+              }
+            })
+          });
+
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
-          roomObj.on('member.updated.video_muted', (params) => {
-            if (
-              params.member.member_id === roomSession.member_id &&
-              //@ts-ignore
-              params.member.updated.includes('video_muted') &&
-              //@ts-ignore
-              params.member.updated.includes('visible') &&
-              params.member.video_muted === false &&
-              params.member.visible === true
-            ) {
-              resolve(true)
-            }
+          const memberUpdatedEvent = new Promise((res) => {
+            roomObj.on('member.updated', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.updated.includes('video_muted') &&
+                params.member.updated.includes('visible') &&
+                params.member.video_muted === false &&
+                params.member.visible === true
+              ) {
+                res(true)
+              }
+            })
           })
+          const memberUpdatedMutedEvent = new Promise((res) => {
+            roomObj.on('member.updated.video_muted', (params) => {
+              if (
+                params.member.member_id === roomSession.member_id &&
+                params.member.video_muted === false &&
+                params.member.visible === true
+              ) {
+                res(true)
+              }
+            })
+          })
+
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
         })
 
         await roomObj.videoMute()
