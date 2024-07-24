@@ -80,7 +80,7 @@ export class Client extends BaseClient<ClientEvents> {
     if (stopMicrophoneWhileMuted) {
       room.on('member.updated.audio_muted', ({ member }) => {
         try {
-          if (member.id === room.memberId && 'audio_muted' in member) {
+          if (member.member_id === room.memberId && 'audio_muted' in member) {
             member.audio_muted
               ? room.stopOutboundAudio()
               : room.restoreOutboundAudio()
@@ -97,7 +97,7 @@ export class Client extends BaseClient<ClientEvents> {
     if (stopCameraWhileMuted) {
       room.on('member.updated.video_muted', ({ member }) => {
         try {
-          if (member.id === room.memberId && 'video_muted' in member) {
+          if (member.member_id === room.memberId && 'video_muted' in member) {
             member.video_muted
               ? room.stopOutboundVideo()
               : room.restoreOutboundVideo()

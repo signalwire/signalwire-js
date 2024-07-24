@@ -18,13 +18,13 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
       initialState: bootstrapAction,
       channels: { swEventChannel },
       instance: cfRoomSession,
-    } = options 
+    } = options
 
-    const segmentRoutingRoomSessionId = bootstrapAction.payload.room_session_id 
+    const segmentRoutingRoomSessionId = bootstrapAction.payload.room_session_id
     const segmentRoutingCallId = bootstrapAction.payload.call_id
-    
+
     getLogger().debug(`callSegmentWorker started for: callId ${segmentRoutingCallId} roomSessionId segmentRoutingRoomSessionId`)
-    
+
     //handles the `call.joined` event before the worker loop
     yield sagaEffects.fork(callJoinWorker, {
       ...options,
@@ -36,8 +36,8 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         action.type.startsWith('call.') ||
         action.type.startsWith('member.') ||
         action.type.startsWith('layout.')
-        
-        return (
+
+      return (
         shouldWatch() && (segmentRoutingRoomSessionId === action.payload.room_session_id || segmentRoutingCallId === action.payload.call_id)
       )
     }
@@ -45,7 +45,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
     while (true) {
       // @ts-expect-error swEventChannel created in core is unware CallFabric types
       const action = yield sagaEffects.take(swEventChannel, isSegmentEvent)
-      
+
       const { type, payload } = action
 
       switch (type) {
@@ -74,6 +74,10 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
           {
             const updatedAction = {
               ...action,
+              payload: {
+                ...action.payload,
+                id: action.payload.member_id,
+              },
               type: `video.${type}` as VideoMemberEventNames,
             }
 
