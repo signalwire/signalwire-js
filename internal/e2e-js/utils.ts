@@ -999,6 +999,19 @@ export const expectInjectRelayHost = async (page: Page, host: string) => {
   )
 }
 
+export const expectInjectIceTransportPolicy = async (page: Page, iceTransportPolicy: string) => {
+  await page.evaluate(
+    async (params) => {
+      // @ts-expect-error
+      window.__iceTransportPolicy = params
+    },
+    {
+      iceTransportPolicy: iceTransportPolicy
+    }
+  )
+}
+
+
 export const expectRelayConnected = async (
   page: Page,
   envRelayProject: string,

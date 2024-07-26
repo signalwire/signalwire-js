@@ -4,6 +4,7 @@ import {
   SERVER_URL,
   createCallWithCompatibilityApi,
   createTestJWTToken,
+  expectInjectIceTransportPolicy,
   expectedMinPackets,
   expectInjectRelayHost,
   expectRelayConnected,
@@ -290,11 +291,11 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
   })
 })
 
-test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
-  test('should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711', async ({
+test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
+  test('should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711, TURN only', async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711')
+    console.info('START: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711, TURN only')
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -323,6 +324,8 @@ test.describe('v2WebrtcFromRestTwoJoinAudio', () => {
     const relayHost = process.env.RELAY_HOST ?? ''
     await expectInjectRelayHost(pageCallee, relayHost)
     await expectInjectRelayHost(pageCallee2, relayHost)
+
+    await expectInjectIceTransportPolicy(pageCallee, 'relay')
 
     const envRelayProject = process.env.RELAY_PROJECT ?? ''
     expect(envRelayProject).not.toBe(null)

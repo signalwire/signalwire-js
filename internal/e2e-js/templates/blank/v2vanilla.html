@@ -216,6 +216,8 @@
         client.on('signalwire.notification', handleNotification);
 
         connectStatus.innerHTML = 'Connecting...';
+        console.log("Connecting now...");
+
         client.connect();
       }
 
@@ -271,6 +273,12 @@
         case 'ringing': // Someone is calling you
           //if (confirm('Pick up the call?')) {
             console.log("Answering: ", ccallState)
+
+            if (window.__iceTransportPolicy) {
+              console.log("____setting relay only____")
+              currentCall.options.iceTransportPolicy = iceTransportPolicy;
+            }
+
             currentCall.answer();
           //} else {
           //  currentCall.hangup();
@@ -299,14 +307,14 @@
     */
       function makeCall() {
         const params = {
-        destinationNumber: document.getElementById('number').value, // required!
-        callerNumber: document.getElementById('numberFrom').value, // required!
-        audio: document.getElementById('audio').checked,
-        video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
-      };
+          destinationNumber: document.getElementById('number').value, // required!
+          callerNumber: document.getElementById('numberFrom').value, // required!
+          audio: document.getElementById('audio').checked,
+          video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+        };
 
-      currentCall = client.newCall(params);
-    }
+        currentCall = client.newCall(params);
+      }
 
     /**
      * Send a DTMF to currentCall if present
