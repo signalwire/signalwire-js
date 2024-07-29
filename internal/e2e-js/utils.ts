@@ -1003,7 +1003,7 @@ export const expectInjectIceTransportPolicy = async (page: Page, iceTransportPol
   await page.evaluate(
     async (params) => {
       // @ts-expect-error
-      window.__iceTransportPolicy = params
+      window.__iceTransportPolicy = params.iceTransportPolicy
     },
     {
       iceTransportPolicy: iceTransportPolicy

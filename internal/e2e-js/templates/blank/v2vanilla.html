@@ -249,9 +249,12 @@
         window.__currentCall = currentCall;
         let ccallState = JSON.parse(JSON.stringify(call,getCircularReplacer()));
         console.log(currentCall.state,currentCall.cause,currentCall.causeCode);
-        console.log("Call State: " ,ccallState);
+
+        console.log("Call update - State: ", ccallState);
+
         let msg =  currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
         callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
+
         console.log('State:', call.state)
 
         switch (call.state) {
@@ -272,14 +275,20 @@
           break;
         case 'ringing': // Someone is calling you
           //if (confirm('Pick up the call?')) {
-            console.log("Answering: ", ccallState)
 
-            if (window.__iceTransportPolicy) {
-              console.log("____setting relay only____")
-              currentCall.options.iceTransportPolicy = iceTransportPolicy;
+            console.log("________ current call options: ", currentCall.options)
+
+            answerParams = {}
+            itp = window.__iceTransportPolicy
+
+            if (itp === 'relay' || itp === 'all') {
+              answerParams.iceTransportPolicy = itp;
             }
 
-            currentCall.answer();
+            console.log("Answer params:", answerParams)
+            console.log("Answering: ", ccallState)
+            currentCall.answer(answerParams);
+            console.log("Answered.")
           //} else {
           //  currentCall.hangup();
           //}

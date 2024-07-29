@@ -291,11 +291,13 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
   })
 })
 
+const v2WebrtcFromRestTwoJoinAudioTURNDescription = 'should handle a call from REST API to 2 v2 clients, dialing both into a Conference at answer, audio G711, TURN only'
+
 test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
-  test('should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711, TURN only', async ({
+  test(v2WebrtcFromRestTwoJoinAudioTURNDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711, TURN only')
+    console.info('START: ', v2WebrtcFromRestTwoJoinAudioTURNDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -315,48 +317,56 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
       await expect(hangupCall).toBeDisabled()
     }
 
-    const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
-    await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
+    const pageCallee1 = await createCustomVanillaPage({ name: '[callee1]' })
+    await pageCallee1.goto(SERVER_URL + '/v2vanilla.html')
 
     const pageCallee2 = await createCustomVanillaPage({ name: '[callee2]' })
     await pageCallee2.goto(SERVER_URL + '/v2vanilla.html')
 
     const relayHost = process.env.RELAY_HOST ?? ''
-    await expectInjectRelayHost(pageCallee, relayHost)
+    await expectInjectRelayHost(pageCallee1, relayHost)
     await expectInjectRelayHost(pageCallee2, relayHost)
-
-    await expectInjectIceTransportPolicy(pageCallee, 'relay')
 
     const envRelayProject = process.env.RELAY_PROJECT ?? ''
     expect(envRelayProject).not.toBe(null)
 
-    const resource = randomizeResourceName()
-    const jwtCallee = await createTestJWTToken({ resource: resource })
-    expect(jwtCallee).not.toBe(null)
+    const resource1 = randomizeResourceName()
+    const jwtCallee1 = await createTestJWTToken({ resource: resource1 })
+    expect(jwtCallee1).not.toBe(null)
 
     const resource2 = randomizeResourceName()
     const jwtCallee2 = await createTestJWTToken({ resource: resource2 })
     expect(jwtCallee2).not.toBe(null)
 
-    await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
+    await expectRelayConnected(pageCallee1, envRelayProject, jwtCallee1)
     await expectRelayConnected(pageCallee2, envRelayProject, jwtCallee2)
 
-    const inlineLaml = getDialConferenceLaml('v2rest2')
-
+    const inlineLaml = getDialConferenceLaml('v2rest2turn')
     console.log('inline Laml: ', inlineLaml)
+
+    // Call to first callee
+
+    // Force TURN only
+    await expectInjectIceTransportPolicy(pageCallee1, 'relay')
+
     const createResult = await createCallWithCompatibilityApi(
-      resource,
+      resource1,
       inlineLaml,
       'PCMU,PCMA'
     )
     expect(createResult).toBe(201)
-    console.log('REST API returned 201 at ', new Date())
+    console.log('callee1 REST API returned 201 at ', new Date())
 
-    const callStatusCallee = pageCallee.locator('#callStatus')
-    expect(callStatusCallee).not.toBe(null)
-    await expect(callStatusCallee).toContainText('-> active')
+    const callStatusCallee1 = pageCallee1.locator('#callStatus')
+    expect(callStatusCallee1).not.toBe(null)
+    await expect(callStatusCallee1).toContainText('-> active')
 
-    console.log('The call is active at ', new Date())
+    console.log('call1 is active at ', new Date())
+
+    // Call to second callee
+
+    // Force TURN only
+    await expectInjectIceTransportPolicy(pageCallee2, 'relay')
 
     const createResult2 = await createCallWithCompatibilityApi(
       resource2,
@@ -370,16 +380,24 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
     expect(callStatusCallee2).not.toBe(null)
     await expect(callStatusCallee2).toContainText('-> active')
 
-    console.log('The call is active at ', new Date())
+    console.log('call2 is active at ', new Date())
 
-    const callDurationMs = 20000
-    // Call duration
-    await pageCallee.waitForTimeout(callDurationMs)
+    // Keep greater than 30 seconds to detect MEDIA_TIMEOUT
+    const callDurationMs = 40000
+    await pageCallee1.waitForTimeout(callDurationMs)
+
+
+    // TODO: check the calls are still up...
+    await Promise.all([
+      expect(callStatusCallee1).toContainText('-> active'),
+      expect(callStatusCallee2).toContainText('-> active')
+    ])
 
     console.log('Time to check the audio energy at ', new Date())
 
     // Empirical value; it depends on the call scenario
-    const minAudioEnergy = callDurationMs / 8000
+    // Nothing to do with sample rates
+    const minAudioEnergy = callDurationMs / 16000
 
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
@@ -387,21 +405,29 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
     // Expect at least 70 % packets at 50 pps
     const minPackets = expectedMinPackets(50, callDurationMs, 0.3)
 
-    await expectv2HasReceivedAudio(pageCallee, minAudioEnergy, minPackets)
-    await expectv2HasReceivedAudio(pageCallee2, minAudioEnergy, minPackets)
+    await Promise.all([
+      expectv2HasReceivedAudio(pageCallee1, minAudioEnergy, minPackets),
+      expectv2HasReceivedAudio(pageCallee2, minAudioEnergy, minPackets)
+    ])
 
-    await expectCallActive(pageCallee)
-    await expectCallActive(pageCallee2)
+    await Promise.all([
+      expectCallActive(pageCallee1),
+      expectCallActive(pageCallee2)
+    ])
 
-    console.log('Hanging up the call2 at ', new Date())
+    console.log('Hanging up the calls at ', new Date())
 
-    await pageCallee.click('#hangupCall')
-    await expectCallHangup(pageCallee)
+    await Promise.all([
+      pageCallee1.click('#hangupCall'),
+      pageCallee2.click('#hangupCall')
+    ])
 
-    await pageCallee2.click('#hangupCall')
-    await expectCallHangup(pageCallee2)
+    await Promise.all([
+      expectCallHangup(pageCallee1),
+      expectCallHangup(pageCallee2)
+    ])
 
-    console.info('END: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio G711')
+    console.info('END: ', v2WebrtcFromRestTwoJoinAudioTURNDescription)
   })
 })
 
