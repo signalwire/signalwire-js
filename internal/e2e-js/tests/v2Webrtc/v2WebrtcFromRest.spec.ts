@@ -14,11 +14,12 @@ import {
   randomizeResourceName
 } from '../../utils'
 
+const v2WebrtcFromRestSilenceDescription = 'should handle a call from REST API to v2 client, playing silence at answer'
 test.describe('v2WebrtcFromRestSilence', () => {
-  test('should handle a call from REST API to v2 client, playing silence at answer', async ({
+  test(v2WebrtcFromRestSilenceDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from REST API to v2 client, playing silence at answer')
+    console.info('START: ', v2WebrtcFromRestSilenceDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -74,9 +75,12 @@ test.describe('v2WebrtcFromRestSilence', () => {
 
     console.log('The call is active at ', new Date())
 
-    const callDurationMs = 20000
-    // Call duration
+    // With 40 seconds we can catch a media timeout
+    const callDurationMs = 40000
     await pageCallee.waitForTimeout(callDurationMs)
+
+    // We want to ensure at this point the call hasn't timed out
+    await expectCallActive(pageCallee)
 
     console.log('Time to check the audio energy at ', new Date())
 
@@ -95,15 +99,16 @@ test.describe('v2WebrtcFromRestSilence', () => {
     await pageCallee.click('#hangupCall')
     await expectCallHangup(pageCallee)
 
-    console.info('END: should handle a call from REST API to v2 client, playing silence at answer')
+    console.info('END: ', v2WebrtcFromRestSilenceDescription)
   })
 })
 
+const v2WebrtcFromRestDescription = 'should handle a call from REST API to v2 client, dialing into a Conference at answer'
 test.describe('v2WebrtcFromRest', () => {
-  test('should handle a call from REST API to v2 client, dialing into a Conference at answer', async ({
+  test(v2WebrtcFromRestDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from REST API to v2 client, dialing into a Conference at answer')
+    console.info('START: ', v2WebrtcFromRestDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -155,9 +160,12 @@ test.describe('v2WebrtcFromRest', () => {
 
     console.log('The call is active at ', new Date())
 
-    const callDurationMs = 20000
-    // Call duration
+    // With 40 seconds we can catch a media timeout
+    const callDurationMs = 40000
     await pageCallee.waitForTimeout(callDurationMs)
+
+    // Ensure the call hasn't been hang up, e.g. by a media timeout
+    await expectCallActive(pageCallee)
 
     console.log('Time to check the audio energy at ', new Date())
 
@@ -177,15 +185,16 @@ test.describe('v2WebrtcFromRest', () => {
     await pageCallee.click('#hangupCall')
     await expectCallHangup(pageCallee)
 
-    console.info('END: should handle a call from REST API to v2 client, dialing into a Conference at answer')
+    console.info('END: ', v2WebrtcFromRestDescription)
   })
 })
 
+const v2WebrtcFromRestTwoJoinAudioVideoDescription = 'should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video'
 test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
-  test('should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video', async ({
+  test(v2WebrtcFromRestTwoJoinAudioVideoDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video')
+    console.info('START: ', v2WebrtcFromRestTwoJoinAudioVideoDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -258,9 +267,14 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
 
     console.log('The call is active at ', new Date())
 
-    const callDurationMs = 20000
-    // Call duration
+    // With 40 seconds we can catch a media timeout
+    const callDurationMs = 40000
     await pageCallee.waitForTimeout(callDurationMs)
+
+    await Promise.all([
+      expectCallActive(pageCallee),
+      expectCallActive(pageCallee2)
+    ])
 
     console.log('Time to check the audio energy at ', new Date())
 
@@ -279,7 +293,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     await expectCallActive(pageCallee)
     await expectCallActive(pageCallee2)
 
-    console.log('Hanging up the call2 at ', new Date())
+    console.log('Hanging up the calls at ', new Date())
 
     await pageCallee.click('#hangupCall')
     await expectCallHangup(pageCallee)
@@ -287,12 +301,11 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     await pageCallee2.click('#hangupCall')
     await expectCallHangup(pageCallee2)
 
-    console.info('END: should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video')
+    console.info('END: ', v2WebrtcFromRestTwoJoinAudioVideoDescription)
   })
 })
 
 const v2WebrtcFromRestTwoJoinAudioTURNDescription = 'should handle a call from REST API to 2 v2 clients, dialing both into a Conference at answer, audio G711, TURN only'
-
 test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
   test(v2WebrtcFromRestTwoJoinAudioTURNDescription, async ({
     createCustomVanillaPage,
@@ -382,12 +395,10 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
 
     console.log('call2 is active at ', new Date())
 
-    // Keep greater than 30 seconds to detect MEDIA_TIMEOUT
+    // With 40 seconds we can catch a media timeout
     const callDurationMs = 40000
     await pageCallee1.waitForTimeout(callDurationMs)
 
-
-    // TODO: check the calls are still up...
     await Promise.all([
       expect(callStatusCallee1).toContainText('-> active'),
       expect(callStatusCallee2).toContainText('-> active')
@@ -431,11 +442,12 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
   })
 })
 
+const v2WebrtcFromRest422Description = 'should handle a call from REST API to v2 client, receiving a 422 from REST API'
 test.describe('v2WebrtcFromRest422', () => {
-  test('should handle a call from REST API to v2 client, receiving a 422 from REST API', async ({
+  test(v2WebrtcFromRest422Description, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: should handle a call from REST API to v2 client, receiving a 422 from REST API')
+    console.info('START: ', v2WebrtcFromRest422Description)
 
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
     await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
@@ -466,6 +478,6 @@ test.describe('v2WebrtcFromRest422', () => {
       inlineLaml
     )
     expect(createResult).toBe(422)
-    console.info('END: should handle a call from REST API to v2 client, receiving a 422 from REST API')
+    console.info('END: ', v2WebrtcFromRest422Description)
   })
 })
