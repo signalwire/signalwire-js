@@ -10,19 +10,25 @@ test.describe('Addresses', () => {
 
     await createCFClient(page)
 
-    const { address, addressToCompare } = await page.evaluate(async () => {
-      // @ts-expect-error
-      const client = window._client
+    const { addressById, addressByName, addressToCompare } =
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const client = window._client
 
-      const response = await client.address.getAddresses()
-      const addressToCompare = response.data[0]
+        const response = await client.address.getAddresses()
+        const addressToCompare = response.data[0]
 
-      const address = await client.address.getAddress({
-        id: addressToCompare.id,
+        const addressById = await client.address.getAddress({
+          id: addressToCompare.id,
+        })
+
+        const addressByName = await client.address.getAddress({
+          name: addressToCompare.name,
+        })
+        return { addressById, addressByName, addressToCompare }
       })
-      return { address, addressToCompare }
-    })
 
-    expect(address.id).toEqual(addressToCompare.id)
+    expect(addressById.id).toEqual(addressToCompare.id)
+    expect(addressByName.id).toEqual(addressToCompare.id)
   })
 })
