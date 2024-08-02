@@ -27,5 +27,5 @@ export const isGetAddressResponse = (
 export const isGetAddressesResponse = (
   obj: GetAddressResponse | GetAddressesResponse
 ): obj is GetAddressesResponse => {
-  return obj && 'id' in obj && 'name' in obj
+  return obj && 'data' in obj
 }

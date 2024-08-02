@@ -58,7 +58,7 @@ export class HTTPClient {
   public async getAddress(params: GetAddressParams): Promise<GetAddressResult | undefined> {
     let path = '/api/fabric/addresses'
     if (isGetAddressByNameParams(params)) {
-      path = `${path}?name${params.name}`
+      path = `${path}?name=${params.name}`
     } else if (isGetAddressByIdParams(params)) {
       path = `${path}/${params.id}`
     }
