@@ -55,7 +55,7 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getAddress(params: GetAddressParams): Promise<GetAddressResult> {
+  public async getAddress(params: GetAddressParams): Promise<GetAddressResult | undefined> {
     let path = '/api/fabric/addresses'
     if (isGetAddressBySafeNameParams(params)) {
       path = `${path}?name${params.name}`
