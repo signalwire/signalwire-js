@@ -1,20 +1,20 @@
 import {
   GetAddressParams,
-  GetAddressBySafeNameParam,
-  GetAddressByIdParam,
+  GetAddressBySafeNameParams,
+  GetAddressByIdParams,
   GetAddressResponse,
   GetAddressesResponse,
 } from '../types'
 
-export const isGetAddressBySafeNameParam = (
+export const isGetAddressBySafeNameParams = (
   obj: GetAddressParams
-): obj is GetAddressBySafeNameParam => {
+): obj is GetAddressBySafeNameParams => {
   return obj && 'name' in obj
 }
 
-export const isGetAddressByIdParam = (
+export const isGetAddressByIdParams = (
   obj: GetAddressParams
-): obj is GetAddressByIdParam => {
+): obj is GetAddressByIdParams => {
   return obj && 'id' in obj
 }
 

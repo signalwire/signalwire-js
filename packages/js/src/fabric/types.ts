@@ -177,15 +177,15 @@ export interface GetAddressesParams {
   pageSize?: number
 }
 
-export interface GetAddressByIdParam {
+export interface GetAddressByIdParams {
   id: string
 }
 
-export interface GetAddressBySafeNameParam {
+export interface GetAddressBySafeNameParams {
   name: string
 }
 
-export type GetAddressParams = GetAddressByIdParam | GetAddressBySafeNameParam
+export type GetAddressParams = GetAddressByIdParams | GetAddressBySafeNameParams
 
 export type GetAddressResult = GetAddressResponse
 

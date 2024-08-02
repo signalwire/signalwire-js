@@ -16,7 +16,7 @@ import type {
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
-import { isGetAddressByIdParam, isGetAddressBySafeNameParam, isGetAddressesResponse } from './utils/typeGuard'
+import { isGetAddressByIdParams, isGetAddressBySafeNameParams, isGetAddressesResponse } from './utils/typeGuard'
 
 type JWTHeader = { ch?: string; typ?: string }
 
@@ -57,9 +57,9 @@ export class HTTPClient {
 
   public async getAddress(params: GetAddressParams): Promise<GetAddressResult> {
     let path = '/api/fabric/addresses'
-    if (isGetAddressBySafeNameParam(params)) {
+    if (isGetAddressBySafeNameParams(params)) {
       path = `${path}?name${params.name}`
-    } else if (isGetAddressByIdParam(params)) {
+    } else if (isGetAddressByIdParams(params)) {
       path = `${path}/${params.id}`
     }
 
