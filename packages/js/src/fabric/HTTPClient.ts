@@ -66,6 +66,7 @@ export class HTTPClient {
 
     const { body } = await this.httpClient<GetAddressResponse | GetAddressesResponse>(path)
     if (isGetAddressesResponse(body)) {
+      // FIXME until the server handles a index lookup by name we need to handle it as a search result
       return body.data[0]
     }
     return body
