@@ -181,11 +181,11 @@ export interface GetAddressByIdParams {
   id: string
 }
 
-export interface GetAddressBySafeNameParams {
+export interface GetAddressByNameParams {
   name: string
 }
 
-export type GetAddressParams = GetAddressByIdParams | GetAddressBySafeNameParams
+export type GetAddressParams = GetAddressByIdParams | GetAddressByNameParams
 
 export type GetAddressResult = GetAddressResponse
 
