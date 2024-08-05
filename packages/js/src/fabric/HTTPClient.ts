@@ -16,6 +16,7 @@ import type {
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
+import { isGetAddressByIdParams, isGetAddressByNameParams, isGetAddressesResponse } from './utils/typeGuard'
 
 type JWTHeader = { ch?: string; typ?: string }
 
@@ -54,11 +55,20 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getAddress(params: GetAddressParams): Promise<GetAddressResult> {
-    const { id } = params
-    let path = `/api/fabric/addresses/${id}`
+  public async getAddress(params: GetAddressParams): Promise<GetAddressResult | undefined> {
+    let path = '/api/fabric/addresses'
+    if (isGetAddressByNameParams(params)) {
+      path = `${path}?name=${params.name}`
+    } else if (isGetAddressByIdParams(params)) {
+      path = `${path}/${params.id}`
+    }
 
-    const { body } = await this.httpClient<GetAddressResponse>(path)
+
+    const { body } = await this.httpClient<GetAddressResponse | GetAddressesResponse>(path)
+    if (isGetAddressesResponse(body)) {
+      // FIXME until the server handles a index lookup by name we need to handle it as a search result
+      return body.data[0]
+    }
     return body
   }
 

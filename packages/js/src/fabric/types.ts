@@ -177,9 +177,15 @@ export interface GetAddressesParams {
   pageSize?: number
 }
 
-export interface GetAddressParams {
+export interface GetAddressByIdParams {
   id: string
 }
+
+export interface GetAddressByNameParams {
+  name: string
+}
+
+export type GetAddressParams = GetAddressByIdParams | GetAddressByNameParams
 
 export type GetAddressResult = GetAddressResponse
 
