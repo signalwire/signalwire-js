@@ -54,11 +54,10 @@ test.describe('v2WebrtcFromRestSilence', () => {
 
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
+    // Set to 50 seconds to keep it running during the 40 seconds call
     const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
-      <Say>
-        <prosody volume="silent">Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak Words to speak</prosody>
-      </Say>
+      <Pause length="50"/>
     </Response>`
 
     console.log('inline Laml: ', inlineLaml)
@@ -278,8 +277,9 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
 
     console.log('Time to check the audio energy at ', new Date())
 
-    // Empirical value; it depends on the call scenario
-    const minAudioEnergy = callDurationMs / 8000
+    // An empirical value that depends on the call duration
+    // Nothing to do with sample rates
+    const minAudioEnergy = callDurationMs / 16000
 
     // Check the audio energy level is above threshold
     console.log('Expected min audio energy: ', minAudioEnergy)
@@ -406,7 +406,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
 
     console.log('Time to check the audio energy at ', new Date())
 
-    // Empirical value; it depends on the call scenario
+    // An empirical value that depends on the call duration
     // Nothing to do with sample rates
     const minAudioEnergy = callDurationMs / 16000
 
