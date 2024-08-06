@@ -197,8 +197,9 @@ export type GetAddressesResult = PaginatedResult<GetAddressResponse>
  * Conversations
  */
 export interface ConversationContract {
-  readonly id: string
+  readonly addressId: string
   readonly createdAt: number
+  readonly id: string
   readonly lastMessageAt: number
   readonly metadata: Record<string, any>
   readonly name: string
@@ -231,6 +232,7 @@ export interface GetConversationsParams {
 }
 
 export interface ConversationResponse {
+  address_id: string
   created_at: number
   id: string
   last_message_at: number
