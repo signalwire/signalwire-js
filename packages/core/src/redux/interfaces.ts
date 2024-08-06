@@ -89,9 +89,12 @@ export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
 
 /**
  * Converts from:
- * { event_type: <value>, params: <value> }
+ * 
+ * `{ event_type: <value>, params: <value> }`
+ * 
  * into
- * { type: <value>, payload: <value> }
+ * 
+ * `{ type: <value>, payload: <value> }`
  */
 export type MapToPubSubShape<T> = {
   [K in keyof T as K extends 'event_type'
