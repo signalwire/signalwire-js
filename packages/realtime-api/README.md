@@ -2,7 +2,7 @@
 
 # RELAY RealTime SDK
 
-[![The build status for the package @signalwire/realtime-api.](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![The NPM shield for the package @signalwire/realtime-api.](https://img.shields.io/npm/v/@signalwire/realtime-api.svg?color=brightgreen)
+[![The build status of the package @signalwire/realtime-api.](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![The NPM shield for the package @signalwire/realtime-api.](https://img.shields.io/npm/v/@signalwire/realtime-api.svg?color=brightgreen)
 
 The RealTime SDK enables Node.js developers to connect and use SignalWire's RealTime APIs within their own Node.js code. Our RealTime SDK allows developers to build or add robust and innovative communication services to their applications.
 
