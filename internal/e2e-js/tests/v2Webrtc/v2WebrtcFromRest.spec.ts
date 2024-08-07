@@ -14,12 +14,12 @@ import {
   randomizeResourceName
 } from '../../utils'
 
-const v2WebrtcFromRestSilenceDescription = 'should handle a call from REST API to v2 client, playing silence at answer'
+const silenceDescription = 'should handle a call from REST API to v2 client, playing silence at answer'
 test.describe('v2WebrtcFromRestSilence', () => {
-  test(v2WebrtcFromRestSilenceDescription, async ({
+  test(silenceDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: ', v2WebrtcFromRestSilenceDescription)
+    console.info('START: ', silenceDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -98,16 +98,16 @@ test.describe('v2WebrtcFromRestSilence', () => {
     await pageCallee.click('#hangupCall')
     await expectCallHangup(pageCallee)
 
-    console.info('END: ', v2WebrtcFromRestSilenceDescription)
+    console.info('END: ', silenceDescription)
   })
 })
 
-const v2WebrtcFromRestDescription = 'should handle a call from REST API to v2 client, dialing into a Conference at answer'
+const conferenceDescription = 'should handle a call from REST API to v2 client, dialing into a Conference at answer'
 test.describe('v2WebrtcFromRest', () => {
-  test(v2WebrtcFromRestDescription, async ({
+  test(conferenceDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: ', v2WebrtcFromRestDescription)
+    console.info('START: ', conferenceDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -184,16 +184,16 @@ test.describe('v2WebrtcFromRest', () => {
     await pageCallee.click('#hangupCall')
     await expectCallHangup(pageCallee)
 
-    console.info('END: ', v2WebrtcFromRestDescription)
+    console.info('END: ', conferenceDescription)
   })
 })
 
-const v2WebrtcFromRestTwoJoinAudioVideoDescription = 'should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video'
+const twoJoinAudioVideoDescription = 'should handle a call from REST API to v2 clients, dialing both into a Conference at answer, audio/video'
 test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
-  test(v2WebrtcFromRestTwoJoinAudioVideoDescription, async ({
+  test(twoJoinAudioVideoDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: ', v2WebrtcFromRestTwoJoinAudioVideoDescription)
+    console.info('START: ', twoJoinAudioVideoDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -301,16 +301,16 @@ test.describe('v2WebrtcFromRestTwoJoinAudioVideo', () => {
     await pageCallee2.click('#hangupCall')
     await expectCallHangup(pageCallee2)
 
-    console.info('END: ', v2WebrtcFromRestTwoJoinAudioVideoDescription)
+    console.info('END: ', twoJoinAudioVideoDescription)
   })
 })
 
-const v2WebrtcFromRestTwoJoinAudioTURNDescription = 'should handle a call from REST API to 2 v2 clients, dialing both into a Conference at answer, audio G711, TURN only'
+const twoJoinAudioTURNDescription = 'should handle a call from REST API to 2 v2 clients, dialing both into a Conference at answer, audio G711, TURN only'
 test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
-  test(v2WebrtcFromRestTwoJoinAudioTURNDescription, async ({
+  test(twoJoinAudioTURNDescription, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: ', v2WebrtcFromRestTwoJoinAudioTURNDescription)
+    console.info('START: ', twoJoinAudioTURNDescription)
 
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
@@ -438,16 +438,16 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
       expectCallHangup(pageCallee2)
     ])
 
-    console.info('END: ', v2WebrtcFromRestTwoJoinAudioTURNDescription)
+    console.info('END: ', twoJoinAudioTURNDescription)
   })
 })
 
-const v2WebrtcFromRest422Description = 'should handle a call from REST API to v2 client, receiving a 422 from REST API'
+const get422Description = 'should handle a call from REST API to v2 client, receiving a 422 from REST API'
 test.describe('v2WebrtcFromRest422', () => {
-  test(v2WebrtcFromRest422Description, async ({
+  test(get422Description, async ({
     createCustomVanillaPage,
   }) => {
-    console.info('START: ', v2WebrtcFromRest422Description)
+    console.info('START: ', get422Description)
 
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
     await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
@@ -478,6 +478,6 @@ test.describe('v2WebrtcFromRest422', () => {
       inlineLaml
     )
     expect(createResult).toBe(422)
-    console.info('END: ', v2WebrtcFromRest422Description)
+    console.info('END: ', get422Description)
   })
 })
