@@ -1006,7 +1006,7 @@ export const expectInjectIceTransportPolicy = async (page: Page, iceTransportPol
       window.__iceTransportPolicy = params.iceTransportPolicy
     },
     {
-      iceTransportPolicy: iceTransportPolicy
+      iceTransportPolicy
     }
   )
 }
