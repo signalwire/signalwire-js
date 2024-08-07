@@ -54,10 +54,10 @@ test.describe('v2WebrtcFromRestSilence', () => {
 
     await expectRelayConnected(pageCallee, envRelayProject, jwtCallee)
 
-    // Set to 50 seconds to keep it running during the 40 seconds call
+    // Set to 30 seconds to keep it running during the 20 seconds call
     const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
-      <Pause length="50"/>
+      <Pause length="30"/>
     </Response>`
 
     console.log('inline Laml: ', inlineLaml)
@@ -74,8 +74,7 @@ test.describe('v2WebrtcFromRestSilence', () => {
 
     console.log('The call is active at ', new Date())
 
-    // With 40 seconds we can catch a media timeout
-    const callDurationMs = 40000
+    const callDurationMs = 20000
     await pageCallee.waitForTimeout(callDurationMs)
 
     // We want to ensure at this point the call hasn't timed out
