@@ -71,6 +71,10 @@ export interface CallParams {
   audio?: MediaStreamConstraints['audio']
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
+  /** @internal */
+  negotiateAudio?: boolean
+  /** @internal */
+  negotiateVideo?: boolean
   /** User & UserAgent metadata */
   userVariables?: WSClientOptions['userVariables']
 }

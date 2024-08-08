@@ -20,7 +20,8 @@ type BuildRoomParams = Omit<DialParams, 'to'> & {
   nodeId?: string
   sdp?: string
   to?: string
-};
+}
+
 export class WSClient {
   private wsClient: Client
   private logger = getLogger()
@@ -97,8 +98,8 @@ export class WSClient {
     const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
       video,
-      negotiateAudio: true,
-      negotiateVideo: true,
+      negotiateAudio: params.negotiateAudio ?? true,
+      negotiateVideo: params.negotiateVideo ?? true,
       rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
