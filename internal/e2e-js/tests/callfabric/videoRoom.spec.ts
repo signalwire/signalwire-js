@@ -426,7 +426,7 @@ test.describe('CallFabric VideoRoom', () => {
     expect(roomSession.success).toBe(false)
   })
 
-  test.only('should handle joining a room with audio channel only', async ({
+  test('should handle joining a room with audio channel only', async ({
     createCustomPage,
     resource,
   }) => {
