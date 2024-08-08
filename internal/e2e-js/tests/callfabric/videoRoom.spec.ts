@@ -426,7 +426,7 @@ test.describe('CallFabric VideoRoom', () => {
     expect(roomSession.success).toBe(false)
   })
 
-  test('should handle joining a room with audio channel only', async ({
+  test.only('should handle joining a room with audio channel only', async ({
     createCustomPage,
     resource,
   }) => {
@@ -469,10 +469,16 @@ test.describe('CallFabric VideoRoom', () => {
       )
     ).toBeTruthy()
 
+    // There should be no inbound/outbound video
     const stats = await getStats(page)
-
     expect(stats.outboundRTP).not.toHaveProperty('video')
+    expect(stats.inboundRTP).not.toHaveProperty('video')
 
+    // There should be audio packets
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+
+    // There should be no MCU either
+    const videoElement = await page.$('div[id^="sw-sdk-"] > video')
+    expect(videoElement).toBeNull()
   })
 })
