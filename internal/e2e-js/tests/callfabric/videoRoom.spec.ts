@@ -92,7 +92,9 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
@@ -118,7 +120,9 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         await roomObj.audioMute()
@@ -148,7 +152,7 @@ test.describe('CallFabric VideoRoom', () => {
                 res(true)
               }
             })
-          });
+          })
           const memberUpdatedMutedEvent = new Promise((res) => {
             roomObj.on('member.updated.video_muted', (params) => {
               if (
@@ -159,9 +163,11 @@ test.describe('CallFabric VideoRoom', () => {
                 res(true)
               }
             })
-          });
+          })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
@@ -190,7 +196,9 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         await roomObj.videoMute()
@@ -466,5 +474,51 @@ test.describe('CallFabric VideoRoom', () => {
     expect(stats.outboundRTP).not.toHaveProperty('video')
 
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+  })
+
+  test('should handle joining a room, perform actions and then leave the room', async ({
+    createCustomPage,
+    resource,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
+
+    await createCFClient(page)
+
+    // Dial an address and join a video room
+    const roomSession = await page.evaluate(
+      async ({ roomName }) => {
+        return new Promise<any>(async (resolve, _reject) => {
+          // @ts-expect-error
+          const client = window._client
+
+          const call = await client.dial({
+            to: `/public/${roomName}`,
+            rootElement: document.getElementById('rootElement'),
+          })
+
+          call.on('room.joined', resolve)
+          call.on('room.updated', () => {})
+
+          // @ts-expect-error
+          window._roomObj = call
+
+          await call.start()
+        })
+      },
+      { roomName }
+    )
+
+    expect(roomSession.room_session).toBeDefined()
+    expect(
+      roomSession.room_session.members.some(
+        (member: any) => member.member_id === roomSession.member_id
+      )
+    ).toBeTruthy()
+
+    await expectMCUVisible(page)
   })
 })

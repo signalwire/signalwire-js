@@ -85,6 +85,7 @@ export class WSClient {
     const { to, callID, nodeId, sdp } = params
 
     let video = params.video ?? true
+    let negotiateVideo = params.negotiateAudio ?? true
 
     if (to) {
       const channelRegex = /\?channel\=(?<channel>(audio|video))/
@@ -92,6 +93,7 @@ export class WSClient {
 
       if (result && result.groups?.channel === 'audio') {
         video = false
+        negotiateVideo = false
       }
     }
 
@@ -99,7 +101,7 @@ export class WSClient {
       audio: params.audio ?? true,
       video,
       negotiateAudio: params.negotiateAudio ?? true,
-      negotiateVideo: params.negotiateVideo ?? true,
+      negotiateVideo: negotiateVideo,
       rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
