@@ -84,7 +84,7 @@ export class WSClient {
   private buildRoomSession(params: BuildRoomParams) {
     const { to, callID, nodeId, sdp } = params
 
-    let video = true
+    let video = params.video ?? true
     let negotiateVideo = true
 
     if (to) {
@@ -99,7 +99,7 @@ export class WSClient {
 
     const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
-      video: params.video ?? video,
+      video,
       negotiateAudio: params.negotiateAudio ?? true,
       negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.options.rootElement,
