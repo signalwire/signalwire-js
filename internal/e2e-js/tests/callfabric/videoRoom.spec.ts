@@ -92,7 +92,9 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
@@ -118,7 +120,9 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         await roomObj.audioMute()
@@ -148,7 +152,7 @@ test.describe('CallFabric VideoRoom', () => {
                 res(true)
               }
             })
-          });
+          })
           const memberUpdatedMutedEvent = new Promise((res) => {
             roomObj.on('member.updated.video_muted', (params) => {
               if (
@@ -159,9 +163,11 @@ test.describe('CallFabric VideoRoom', () => {
                 res(true)
               }
             })
-          });
+          })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
@@ -190,7 +196,9 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
+          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
+            resolve
+          )
         })
 
         await roomObj.videoMute()
@@ -461,10 +469,16 @@ test.describe('CallFabric VideoRoom', () => {
       )
     ).toBeTruthy()
 
+    // There should be no inbound/outbound video
     const stats = await getStats(page)
-
     expect(stats.outboundRTP).not.toHaveProperty('video')
+    expect(stats.inboundRTP).not.toHaveProperty('video')
 
+    // There should be audio packets
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+
+    // There should be no MCU either
+    const videoElement = await page.$('div[id^="sw-sdk-"] > video')
+    expect(videoElement).toBeNull()
   })
 })
