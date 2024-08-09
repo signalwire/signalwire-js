@@ -84,8 +84,8 @@ export class WSClient {
   private buildRoomSession(params: BuildRoomParams) {
     const { to, callID, nodeId, sdp } = params
 
-    let video = params.video ?? true
-    let negotiateVideo = params.negotiateAudio ?? true
+    let video = true
+    let negotiateVideo = true
 
     if (to) {
       const channelRegex = /\?channel\=(?<channel>(audio|video))/
@@ -99,9 +99,9 @@ export class WSClient {
 
     const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
-      video,
+      video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
-      negotiateVideo: negotiateVideo,
+      negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
