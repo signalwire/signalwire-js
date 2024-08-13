@@ -252,14 +252,16 @@ export type CoversationSubscribeCallback = (
   event: ConversationEventParams
 ) => unknown
 
+export interface CoversationSubscribeResult {
+  unsubscribe: () => void
+}
+
 export interface ConversationChatMessagesSubscribeParams {
   addressId: string
   onMessage: CoversationSubscribeCallback
 }
 
-export interface ConversationChatMessagesSubscribeResult {
-  cancel: () => CoversationSubscribeCallback[]
-}
+export type ConversationChatMessagesSubscribeResult = CoversationSubscribeResult
 
 export interface JoinConversationParams {
   addressId: string
