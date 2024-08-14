@@ -458,7 +458,7 @@ describe('Conversation', () => {
       expect(mockCallback).toHaveBeenCalledWith(valid)
     })
 
-    it.only('should connect the WS client and register the chat callback', async () => {
+    it('should connect the WS client and register the chat callback', async () => {
       const addressId = 'abc'
       const mockCallback = jest.fn()
       await conversation.subscribeChatMessages({
@@ -472,7 +472,7 @@ describe('Conversation', () => {
       )
     })
 
-    it.only('should cancel the correct chat subscription', async () => {
+    it('should cancel the correct chat subscription', async () => {
       const mockCallback1 = jest.fn()
       const mockCallback2 = jest.fn()
       const mockCallback3 = jest.fn()

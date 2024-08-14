@@ -60,7 +60,7 @@ export class Conversation {
   public handleEvent(event: ConversationEventParams) {
     if (event.subtype === 'chat') {
       const chatCallbacks = this.chatSubscriptions[event.conversation_id]
-      if (chatCallbacks.size) {
+      if (chatCallbacks?.size) {
         chatCallbacks.forEach((cb) => cb(event))
       }
     }
