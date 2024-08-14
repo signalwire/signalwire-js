@@ -34,7 +34,7 @@
     "typescript": "^4.5.4"
   },
   "overrides": {
-    "axios": "1.6.8"
+    "axios": "1.7.4"
   },
   "devDependencies": {
     "@types/node": "^20.3.2",
