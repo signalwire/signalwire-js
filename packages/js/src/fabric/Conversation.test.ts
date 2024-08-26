@@ -240,12 +240,15 @@ describe('Conversation', () => {
       })
 
       expect(result).toEqual(expectedResponse)
-      expect(httpClient.fetch).toHaveBeenCalledWith('/api/fabric/conversations/join', {
-        method: 'POST',
-        body: {
-          conversation_id: addressId,
-        },
-      })
+      expect(httpClient.fetch).toHaveBeenCalledWith(
+        '/api/fabric/conversations/join',
+        {
+          method: 'POST',
+          body: {
+            conversation_id: addressId,
+          },
+        }
+      )
     })
 
     it('should handles errors with joinConversation', async () => {
@@ -266,14 +269,36 @@ describe('Conversation', () => {
   })
 
   describe('subscribe', () => {
-    let callback
-
-    it('connects the WS client and registers the callback', async () => {
-      callback = jest.fn()
-      conversation.subscribe(callback)
+    it('should connect the WS client and register the callback', async () => {
+      const callback = jest.fn()
+      await conversation.subscribe(callback)
 
       expect(wsClient.connect).toHaveBeenCalledTimes(1)
       expect(conversation['callbacks']).toContain(callback)
+    })
+
+    it('should unsubscribe the correct callback', async () => {
+      const callback1 = jest.fn()
+      await conversation.subscribe(callback1)
+
+      const callback2 = jest.fn()
+      const { unsubscribe: unsubscribe2 } = await conversation.subscribe(
+        callback2
+      )
+
+      const callback3 = jest.fn()
+      await conversation.subscribe(callback3)
+
+      expect(wsClient.connect).toHaveBeenCalledTimes(3)
+      expect(conversation['callbacks']).toContain(callback1)
+      expect(conversation['callbacks']).toContain(callback2)
+      expect(conversation['callbacks']).toContain(callback3)
+
+      unsubscribe2()
+
+      expect(conversation['callbacks']).toContain(callback1)
+      expect(conversation['callbacks']).not.toContain(callback2)
+      expect(conversation['callbacks']).toContain(callback3)
     })
   })
 
@@ -359,7 +384,10 @@ describe('Conversation', () => {
       })
 
       const addressId = 'abc'
-      const messages = await conversation.getChatMessages({ addressId, pageSize:3 })
+      const messages = await conversation.getChatMessages({
+        addressId,
+        pageSize: 3,
+      })
 
       expect(messages.data).toHaveLength(4)
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
@@ -400,8 +428,11 @@ describe('Conversation', () => {
     it('should get only address chat event', async () => {
       const mockCallback = jest.fn()
       const addressId = 'abc'
-      await conversation.subscribeChatMessages({addressId, onMessage: mockCallback})
-      
+      await conversation.subscribeChatMessages({
+        addressId,
+        onMessage: mockCallback,
+      })
+
       const valid = {
         type: 'message',
         subtype: 'chat',
@@ -427,39 +458,96 @@ describe('Conversation', () => {
       expect(mockCallback).toHaveBeenCalledWith(valid)
     })
 
-    it('should cancel chat address subscription', async () => {
-      const mockCallback = jest.fn()
+    it('should connect the WS client and register the chat callback', async () => {
       const addressId = 'abc'
-      const subscription = await conversation.subscribeChatMessages({addressId, onMessage: mockCallback})
-      
-      const valid = {
-        type: 'message',
+      const mockCallback = jest.fn()
+      await conversation.subscribeChatMessages({
+        addressId,
+        onMessage: mockCallback,
+      })
+
+      expect(wsClient.connect).toHaveBeenCalledTimes(1)
+      expect(conversation['chatSubscriptions'][addressId]).toContain(
+        mockCallback
+      )
+    })
+
+    it('should cancel the correct chat subscription', async () => {
+      const mockCallback1 = jest.fn()
+      const mockCallback2 = jest.fn()
+      const mockCallback3 = jest.fn()
+      const addressId1 = 'abc'
+      const addressId2 = 'xyz'
+      await conversation.subscribeChatMessages({
+        addressId: addressId1,
+        onMessage: mockCallback1,
+      })
+      const subscription2 = await conversation.subscribeChatMessages({
+        addressId: addressId1,
+        onMessage: mockCallback2,
+      })
+      await conversation.subscribeChatMessages({
+        addressId: addressId2,
+        onMessage: mockCallback3,
+      })
+
+      expect(conversation['chatSubscriptions'][addressId1]).toContain(
+        mockCallback1
+      )
+      expect(conversation['chatSubscriptions'][addressId1]).toContain(
+        mockCallback2
+      )
+      expect(conversation['chatSubscriptions'][addressId1]).not.toContain(
+        mockCallback3
+      )
+      expect(conversation['chatSubscriptions'][addressId2]).toContain(
+        mockCallback3
+      )
+
+      const eventForAddressId1 = {
+        conversation_id: addressId1,
+        conversation_name: 'test_conversation_name',
+        details: {},
+        hidden: false,
+        id: 'test_id',
+        kind: 'test_kind',
+        metadata: {},
         subtype: 'chat',
-        conversation_id: 'abc',
-        text: 'text',
+        type: 'message',
+        text: 'test_text',
+        ts: 1,
+        user_id: 'test_user_id',
+        user_name: 'test_user_name',
       }
-      //@ts-expect-error
-      conversation.handleEvent(valid)
-      //@ts-expect-error
+      conversation.handleEvent(eventForAddressId1)
+
       conversation.handleEvent({
-        type: 'message',
+        ...eventForAddressId1,
+        conversation_id: 'different_id',
         subtype: 'chat',
-        conversation_id: 'xyz',
-        text: 'text',
-      })
-      //@ts-expect-error
-      conversation.handleEvent({
         type: 'message',
-        subtype: 'log',
-        conversation_id: 'abc',
       })
 
-      expect(mockCallback).toHaveBeenCalledWith(valid)
+      conversation.handleEvent({
+        ...eventForAddressId1,
+        conversation_id: 'abc',
+        subtype: 'log',
+        type: 'message',
+      })
 
-      subscription.cancel()
-      //@ts-expect-error
-      conversation.handleEvent(valid)
-      expect(mockCallback).toBeCalledTimes(1)
+      expect(mockCallback1).toHaveBeenCalledWith(eventForAddressId1)
+      expect(mockCallback1).toHaveBeenCalledTimes(1)
+      expect(mockCallback2).toHaveBeenCalledWith(eventForAddressId1)
+      expect(mockCallback2).toHaveBeenCalledTimes(1)
+      expect(mockCallback3).not.toHaveBeenCalledWith(eventForAddressId1)
+      expect(mockCallback3).toHaveBeenCalledTimes(0)
+
+      subscription2.unsubscribe()
+      conversation.handleEvent(eventForAddressId1)
+
+      expect(mockCallback1).toHaveBeenCalledTimes(2)
+      expect(mockCallback2).toHaveBeenCalledTimes(1)
+      expect(mockCallback3).toHaveBeenCalledTimes(0)
     })
   })
 })

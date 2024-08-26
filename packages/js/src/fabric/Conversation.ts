@@ -23,6 +23,7 @@ import type {
   JoinConversationParams,
   JoinConversationResponse,
   JoinConversationResult,
+  CoversationSubscribeResult,
 } from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -39,16 +40,9 @@ interface ConversationOptions {
 export class Conversation {
   private httpClient: HTTPClient
   private wsClient: WSClient
-  private callbacks: CoversationSubscribeCallback[] = [
-    (event: ConversationEventParams) => {
-      if(event.subtype !== 'chat') return
-      const conversationSubscription = this.chatSubscriptions[event.conversation_id];
-      if(!!conversationSubscription) {
-          conversationSubscription.forEach((cb) => cb(event))
-      }
-    }
-  ]
-  private chatSubscriptions: Record<string, CoversationSubscribeCallback[]> = {}
+  private callbacks = new Set<CoversationSubscribeCallback>()
+  private chatSubscriptions: Record<string, Set<CoversationSubscribeCallback>> =
+    {}
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -64,7 +58,14 @@ export class Conversation {
 
   /** @internal */
   public handleEvent(event: ConversationEventParams) {
-    if (this.callbacks.length) {
+    if (event.subtype === 'chat') {
+      const chatCallbacks = this.chatSubscriptions[event.conversation_id]
+      if (chatCallbacks?.size) {
+        chatCallbacks.forEach((cb) => cb(event))
+      }
+    }
+
+    if (this.callbacks.size) {
       this.callbacks.forEach((callback) => {
         callback(event)
       })
@@ -196,11 +197,17 @@ export class Conversation {
     }
   }
 
-  public async subscribe(callback: CoversationSubscribeCallback) {
+  public async subscribe(
+    callback: CoversationSubscribeCallback
+  ): Promise<CoversationSubscribeResult> {
     // Connect the websocket client first
     this.wsClient.connect()
 
-    this.callbacks.push(callback)
+    this.callbacks.add(callback)
+
+    return {
+      unsubscribe: () => this.callbacks.delete(callback),
+    }
   }
 
   public async subscribeChatMessages(
@@ -211,14 +218,13 @@ export class Conversation {
     // Connect the websocket client first
     await this.wsClient.connect()
 
-    if(!(addressId in this.chatSubscriptions)) {
-      this.chatSubscriptions[addressId] = []
+    if (!(addressId in this.chatSubscriptions)) {
+      this.chatSubscriptions[addressId] = new Set()
     }
 
-    this.chatSubscriptions[addressId].push(onMessage);
-    const subscriptionIndex = this.chatSubscriptions[addressId].length - 1
+    this.chatSubscriptions[addressId].add(onMessage)
     return {
-      cancel: () => this.chatSubscriptions[addressId].splice(subscriptionIndex, 1)
+      unsubscribe: () => this.chatSubscriptions[addressId].delete(onMessage),
     }
   }
 
