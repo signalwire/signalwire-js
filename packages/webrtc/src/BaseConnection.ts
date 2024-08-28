@@ -214,8 +214,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       pingSupported = true,
     } = this.options
 
-    console.log('>> dialogParams', this.options)
-
     return {
       dialogParams: {
         id: rtcPeerId,

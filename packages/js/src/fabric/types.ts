@@ -82,6 +82,7 @@ export interface CallParams {
 export interface DialParams extends CallParams {
   to: string
   nodeId?: string
+  attach?: boolean
 }
 
 export type CFUserOptions = Omit<UserOptions, 'onRefreshToken'>

@@ -21,10 +21,6 @@ import { Client } from './Client'
 import { getStorage } from '../utils/storage'
 import { UNSAFE_PROP_ACCESS } from '../RoomSession'
 
-type BuildRoomParams = DialParams & {
-  attach: boolean
-}
-
 export class WSClient {
   private wsClient: Client
   private logger = getLogger()
@@ -64,14 +60,14 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return this.connectAndbuildCall({ ...params, attach: true })
+    return this.connectAndbuildCall(params)
   }
 
   async reattach(params: DialParams) {
     return this.connectAndbuildCall({ ...params, attach: true })
   }
 
-  private async connectAndbuildCall(params: BuildRoomParams) {
+  private async connectAndbuildCall(params: DialParams) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
@@ -84,7 +80,7 @@ export class WSClient {
     })
   }
 
-  private buildOutboundCall(params: BuildRoomParams) {
+  private buildOutboundCall(params: DialParams) {
     let video = params.video ?? true
     let negotiateVideo = true
 
@@ -105,7 +101,6 @@ export class WSClient {
         }
       },
       init: () => {
-        console.log('>> init', allowReattach)
         if (allowReattach) {
           call.on('room.subscribed', reattachManager.joined)
         }
@@ -142,6 +137,8 @@ export class WSClient {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.options.userVariables,
       prevCallId: reattachManager.getPrevCallId(),
+      attach:
+        params.attach ?? reattachManager.getPrevCallId()?.length ? true : false,
     })
 
     // WebRTC connection left the room.
@@ -177,9 +174,7 @@ export class WSClient {
       })
     }
 
-    const interceptors = {
-      start,
-    } as const
+    const interceptors = { start }
 
     return new Proxy(call, {
       get(
