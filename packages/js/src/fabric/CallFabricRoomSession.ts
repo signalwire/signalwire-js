@@ -7,9 +7,7 @@ import {
   VideoMemberEntity,
   Rooms,
   VideoLayoutChangedEventParams,
-  VideoRoomSubscribedEventParams,
   RoomSessionMember,
-  getLogger,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -22,8 +20,6 @@ import {
   MemberCommandWithValueParams,
 } from '../video'
 import { BaseConnection } from '@signalwire/webrtc'
-import { getStorage } from '../utils/storage'
-import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -41,7 +37,7 @@ type CallFabricBaseRoomSession = Omit<
 >
 
 export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
-  start: CallFabricRoomSessionConnection['start']
+  join: CallFabricRoomSessionConnection['join']
   answer: BaseConnection<CallFabricRoomSession>['answer']
   hangup: RoomSessionConnection['hangup']
 }
@@ -136,41 +132,29 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public async start() {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        this.once(
-          'room.subscribed',
-          ({ call_id }: VideoRoomSubscribedEventParams) => {
-            getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
-            resolve()
-          }
-        )
+  // public async start() {
+  //   return new Promise<void>(async (resolve, reject) => {
+  //     try {
+  //       await this.join()
+  //     } catch (error) {
+  //       this.logger.error('WSClient call start', error)
+  //       reject(error)
+  //     }
+  //   })
+  // }
 
-        this.once('destroy', () => {
-          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-        })
+  // override async join() {
+  //   if (this.options.attach) {
+  //     this.options.prevCallId =
+  //       getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+  //   }
+  //   getLogger().debug(
+  //     `Tying to reattach to previuos call? ${!!this.options
+  //       .prevCallId} - prevCallId: ${this.options.prevCallId}`
+  //   )
 
-        await this.join()
-      } catch (error) {
-        this.logger.error('WSClient call start', error)
-        reject(error)
-      }
-    })
-  }
-
-  override async join() {
-    if (this.options.attach) {
-      this.options.prevCallId =
-        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-    }
-    getLogger().debug(
-      `Tying to reattach to previuos call? ${!!this.options
-        .prevCallId} - prevCallId: ${this.options.prevCallId}`
-    )
-
-    return super.join()
-  }
+  //   return super.join()
+  // }
 
   /** @internal */
   public override async resume() {
