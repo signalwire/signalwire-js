@@ -166,7 +166,7 @@ export class WSClient {
           // Hijack previous callId if present
           reattachManager.init()
 
-          await call.join()
+          await call.start()
         } catch (error) {
           getLogger().error('WSClient call start', error)
           reject(error)

@@ -3,15 +3,13 @@ import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
-  expectMCUVisible
+  expectCallJoined,
+  expectMCUVisible,
+  getRemoteMediaIP,
 } from '../../utils'
 
-test.describe('Reattach Tests', () => {
-  test('WebRTC to Room', async ({
-    createCustomPage,
-    resource,
-  }) => {
-
+test.describe('CallFabric Reattach', () => {
+  test('WebRTC to Room', async ({ createCustomPage, resource }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
@@ -48,7 +46,7 @@ test.describe('Reattach Tests', () => {
 
     await expectMCUVisible(page)
 
-    await page.reload({ waitUntil: 'domcontentloaded'})
+    await page.reload({ waitUntil: 'domcontentloaded' })
     await createCFClient(page)
 
     // Reattach to an address to join the same call session
@@ -74,8 +72,54 @@ test.describe('Reattach Tests', () => {
     )
 
     expect(roomSession.call_id).toEqual(currentCallId)
-    // TODO the server is not sending a layout state on reattach 
+    // TODO the server is not sending a layout state on reattach
     // await expectMCUVisible(page)
+  })
+
+  test('should reattach on call dial implicitly', async ({
+    createCustomPage,
+    resource,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const roomName = `e2e-video-room-reattach_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
+
+    await createCFClient(page)
+
+    // Dial an address and join a video room
+    const roomSession = await expectCallJoined(page, {
+      to: `/public/${roomName}`,
+    })
+
+    expect(roomSession.room_session).toBeDefined()
+    const remoteIP = await getRemoteMediaIP(page)
+
+    await expectMCUVisible(page)
+
+    // --------------- Reattaching ---------------
+    await page.reload()
+
+    await createCFClient(page)
+
+    console.time('reattach-time')
+    // Dial the same address and join a video room
+    const roomSessionReattached = await expectCallJoined(page, {
+      to: `/public/${roomName}`,
+    })
+    console.timeEnd('reattach-time')
+
+    expect(roomSessionReattached.room_session).toBeDefined()
+    const remoteIPReattached = await getRemoteMediaIP(page)
+
+    await expectMCUVisible(page)
+
+    expect(roomSession.call_id).toBe(roomSessionReattached.call_id)
+    expect(roomSession.member_id).toBe(roomSessionReattached.member_id)
+
+    // Ask @Giacomo; do we need to compare the remote IP?
+    expect(remoteIP).toBe(remoteIPReattached)
   })
 
   // TODO uncomment after fixed in the backend
@@ -177,7 +221,7 @@ test.describe('Reattach Tests', () => {
   //   )
 
   //   expect(roomSession.call_id).toEqual(currentCallId)
-  //   // TODO the server is not sending a layout state on reattach 
+  //   // TODO the server is not sending a layout state on reattach
   //   // await expectMCUVisible(page)
   // })
 })

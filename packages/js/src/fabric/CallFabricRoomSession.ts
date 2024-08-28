@@ -37,7 +37,7 @@ type CallFabricBaseRoomSession = Omit<
 >
 
 export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
-  join: CallFabricRoomSessionConnection['join']
+  start: CallFabricRoomSessionConnection['start']
   answer: BaseConnection<CallFabricRoomSession>['answer']
   hangup: RoomSessionConnection['hangup']
 }
@@ -82,6 +82,10 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   get lastLayoutEvent() {
     return this._lastLayoutEvent
+  }
+
+  start() {
+    return this.join()
   }
 
   private executeAction<
