@@ -168,7 +168,7 @@ export class WSClient {
 
           await call.start()
         } catch (error) {
-          getLogger().error('WSClient call start', error)
+          getLogger().error('Failed to start the call', error)
           reject(error)
         }
       })
