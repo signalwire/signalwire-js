@@ -1,9 +1,17 @@
 import { uuid } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createCFClient, expectMCUVisible } from '../../utils'
+import {
+  SERVER_URL,
+  createCFClient,
+  expectMCUVisible
+} from '../../utils'
 
-test.describe('CallFabric Reattach', () => {
-  test('WebRTC to Room', async ({ createCustomPage, resource }) => {
+test.describe('Reattach Tests', () => {
+  test('WebRTC to Room', async ({
+    createCustomPage,
+    resource,
+  }) => {
+
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
@@ -40,7 +48,7 @@ test.describe('CallFabric Reattach', () => {
 
     await expectMCUVisible(page)
 
-    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.reload({ waitUntil: 'domcontentloaded'})
     await createCFClient(page)
 
     // Reattach to an address to join the same call session
@@ -66,7 +74,7 @@ test.describe('CallFabric Reattach', () => {
     )
 
     expect(roomSession.call_id).toEqual(currentCallId)
-    // TODO the server is not sending a layout state on reattach
+    // TODO the server is not sending a layout state on reattach 
     // await expectMCUVisible(page)
   })
 
@@ -169,7 +177,7 @@ test.describe('CallFabric Reattach', () => {
   //   )
 
   //   expect(roomSession.call_id).toEqual(currentCallId)
-  //   // TODO the server is not sending a layout state on reattach
+  //   // TODO the server is not sending a layout state on reattach 
   //   // await expectMCUVisible(page)
   // })
 })
