@@ -179,4 +179,62 @@ test.describe('CallFabric Reattach with Dial', () => {
     expect(roomSession1.member_id).toBe(roomSession2.member_id)
     expect(remoteIP).toBe(remoteIPReattached2)
   })
+
+  test('should fail reattach with wrong call ID', async ({
+    createCustomPage,
+    resource,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const roomName = `e2e-video-room-reattach-wrong-call-id_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
+
+    await createCFClient(page)
+
+    // Dial an address and join a video room
+    const roomSession = await expectCallJoined(page, {
+      to: `/public/${roomName}`,
+    })
+    expect(roomSession.room_session).toBeDefined()
+
+    await expectMCUVisible(page)
+
+    // --------------- Reattaching ---------------
+    await page.reload()
+
+    await createCFClient(page)
+
+    console.time('reattach-time')
+    // Dial the same address with a wrong call id
+    const roomSessionReattached = await page.evaluate(
+      async ({ roomName }) => {
+        const destination = `/public/${roomName}`
+
+        // Inject wrong values for authorization state
+        const key = `ci-${destination}`
+        const mockId = 'wrong-id'
+        window.sessionStorage.setItem(key, mockId)
+        console.log(`Injected callId for ${key} with value ${mockId}`)
+
+        // @ts-expect-error
+        const client = window._client
+        const call = await client.dial({
+          to: destination,
+          rootElement: document.getElementById('rootElement'),
+        })
+        // @ts-expect-error
+        window._roomObj = call
+
+        // Now try to reattach, which should not succeed
+        return call.start().catch((error: any) => error)
+      },
+      { roomName }
+    )
+    console.timeEnd('reattach-time')
+
+    const { code, message } = roomSessionReattached
+    expect([-32002, '81']).toContain(code)
+    expect('callID error').toBe(message)
+  })
 })
