@@ -84,10 +84,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._lastLayoutEvent
   }
 
-  start() {
-    return this.join()
-  }
-
   private executeAction<
     InputType,
     OutputType = InputType,
@@ -136,29 +132,9 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  // public async start() {
-  //   return new Promise<void>(async (resolve, reject) => {
-  //     try {
-  //       await this.join()
-  //     } catch (error) {
-  //       this.logger.error('WSClient call start', error)
-  //       reject(error)
-  //     }
-  //   })
-  // }
-
-  // override async join() {
-  //   if (this.options.attach) {
-  //     this.options.prevCallId =
-  //       getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-  //   }
-  //   getLogger().debug(
-  //     `Tying to reattach to previuos call? ${!!this.options
-  //       .prevCallId} - prevCallId: ${this.options.prevCallId}`
-  //   )
-
-  //   return super.join()
-  // }
+  public start() {
+    return this.join()
+  }
 
   /** @internal */
   public override async resume() {

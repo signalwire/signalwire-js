@@ -64,7 +64,7 @@ export class WSClient {
   }
 
   async reattach(params: DialParams) {
-    return this.connectAndbuildCall({ ...params, attach: true })
+    return this.connectAndbuildCall({ ...params, allowReattach: true })
   }
 
   private async connectAndbuildCall(params: DialParams) {
@@ -92,7 +92,7 @@ export class WSClient {
       negotiateVideo = false
     }
 
-    const allowReattach = params.attach !== false
+    const allowReattach = params.allowReattach !== false
     const callIdKey = `ci-${params.to}`
     const reattachManager = {
       joined: ({ call_id }: VideoRoomSubscribedEventParams) => {
@@ -138,7 +138,7 @@ export class WSClient {
       userVariables: params.userVariables || this.options.userVariables,
       prevCallId: reattachManager.getPrevCallId(),
       attach:
-        params.attach ?? reattachManager.getPrevCallId()?.length ? true : false,
+        params.allowReattach ?? reattachManager.getPrevCallId()?.length ? true : false,
     })
 
     // WebRTC connection left the room.
