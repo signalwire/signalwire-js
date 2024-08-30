@@ -115,7 +115,7 @@ test.describe('CallFabric Reattach with Dial', () => {
     ]).toContain(message)
   })
 
-  test.only('should reattach implicitly multiple times', async ({
+  test('should reattach implicitly multiple times', async ({
     createCustomPage,
     resource,
   }) => {
