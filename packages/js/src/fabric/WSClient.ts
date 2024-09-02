@@ -119,6 +119,15 @@ export class WSClient {
         if (!allowReattach || !callIdKey) {
           return
         }
+        // The SDK only reattach if the address matches with the last used address
+        for (let i = 0; i < sessionStorage.length; i++) {
+          let key = sessionStorage.key(i)
+
+          // If the key starts with "ci-" and is not the current key, remove it
+          if (key?.startsWith('ci-') && key !== callIdKey) {
+            sessionStorage.removeItem(key)
+          }
+        }
         return getStorage()?.getItem(callIdKey) ?? undefined
       },
     }
@@ -138,7 +147,9 @@ export class WSClient {
       userVariables: params.userVariables || this.options.userVariables,
       prevCallId: reattachManager.getPrevCallId(),
       attach:
-        params.allowReattach ?? reattachManager.getPrevCallId()?.length ? true : false,
+        params.allowReattach ?? reattachManager.getPrevCallId()?.length
+          ? true
+          : false,
     })
 
     // WebRTC connection left the room.
