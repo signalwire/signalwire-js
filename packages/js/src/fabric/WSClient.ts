@@ -63,7 +63,7 @@ export class WSClient {
     return this.connectAndbuildCall(params)
   }
 
-  async reattach(params: DialParams) {
+  async reattach(params: Omit<DialParams, 'allowReattach'>) {
     return this.connectAndbuildCall({ ...params, allowReattach: true })
   }
 
@@ -146,10 +146,7 @@ export class WSClient {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.options.userVariables,
       prevCallId: reattachManager.getPrevCallId(),
-      attach:
-        params.allowReattach ?? reattachManager.getPrevCallId()?.length
-          ? true
-          : false,
+      attach: allowReattach && !!reattachManager.getPrevCallId()?.length,
     })
 
     // WebRTC connection left the room.
