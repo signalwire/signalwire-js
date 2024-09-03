@@ -39,7 +39,6 @@ const callfabricTests = [
   'address.spec.ts',
   'buildVideoElement.spec.ts',
   'conversation.spec.ts',
-  'reattach.spec.ts',
   'reattachWithRoom.spec.ts',
   'reattachWithSWML.spec.ts',
   'relayApp.spec.ts',

@@ -60,14 +60,6 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return this.connectAndbuildCall(params)
-  }
-
-  async reattach(params: Omit<DialParams, 'allowReattach'>) {
-    return this.connectAndbuildCall({ ...params, allowReattach: true })
-  }
-
-  private async connectAndbuildCall(params: DialParams) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
