@@ -154,7 +154,7 @@ test.describe('buildVideoElement', () => {
     const videoElements3 = await page.$$('div[id^="sw-sdk-"] > video')
     expect(videoElements3).toHaveLength(3)
 
-    // Unsubsribe from the 2nd video element and expect 2 video elements
+    // Unsubscribe from the 2nd video element and expect 2 video elements
     await page.evaluate(async () => {
       // @ts-expect-error
       const unsubscribe = window._unsubscribe

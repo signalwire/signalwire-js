@@ -71,6 +71,10 @@ export interface CallParams {
   audio?: MediaStreamConstraints['audio']
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
+  /** Negotiate the incoming audio from the RTC. Default: `true`. */
+  negotiateAudio?: boolean
+  /** Negotiate the incoming video from the RTC. Default: `true`. */
+  negotiateVideo?: boolean
   /** User & UserAgent metadata */
   userVariables?: WSClientOptions['userVariables']
 }
@@ -177,9 +181,15 @@ export interface GetAddressesParams {
   pageSize?: number
 }
 
-export interface GetAddressParams {
+export interface GetAddressByIdParams {
   id: string
 }
+
+export interface GetAddressByNameParams {
+  name: string
+}
+
+export type GetAddressParams = GetAddressByIdParams | GetAddressByNameParams
 
 export type GetAddressResult = GetAddressResponse
 
@@ -191,8 +201,9 @@ export type GetAddressesResult = PaginatedResult<GetAddressResponse>
  * Conversations
  */
 export interface ConversationContract {
-  readonly id: string
+  readonly addressId: string
   readonly createdAt: number
+  readonly id: string
   readonly lastMessageAt: number
   readonly metadata: Record<string, any>
   readonly name: string
@@ -225,6 +236,7 @@ export interface GetConversationsParams {
 }
 
 export interface ConversationResponse {
+  address_id: string
   created_at: number
   id: string
   last_message_at: number
@@ -240,14 +252,16 @@ export type CoversationSubscribeCallback = (
   event: ConversationEventParams
 ) => unknown
 
-export interface ConversationChatMessagesSubsribeParams {
+export interface CoversationSubscribeResult {
+  unsubscribe: () => void
+}
+
+export interface ConversationChatMessagesSubscribeParams {
   addressId: string
   onMessage: CoversationSubscribeCallback
 }
 
-export interface ConversationChatMessagesSubsribeResult {
-  cancel: () => CoversationSubscribeCallback[]
-}
+export type ConversationChatMessagesSubscribeResult = CoversationSubscribeResult
 
 export interface JoinConversationParams {
   addressId: string
@@ -317,7 +331,7 @@ export interface ConversationAPIGetMessagesParams {
 }
 
 /**
- * Subsriber info
+ * Subscriber info
  */
 export interface GetSubscriberInfoResponse {
   id: string

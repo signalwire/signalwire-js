@@ -20,7 +20,8 @@ type BuildRoomParams = Omit<DialParams, 'to'> & {
   nodeId?: string
   sdp?: string
   to?: string
-};
+}
+
 export class WSClient {
   private wsClient: Client
   private logger = getLogger()
@@ -84,6 +85,7 @@ export class WSClient {
     const { to, callID, nodeId, sdp } = params
 
     let video = params.video ?? true
+    let negotiateVideo = true
 
     if (to) {
       const channelRegex = /\?channel\=(?<channel>(audio|video))/
@@ -91,14 +93,15 @@ export class WSClient {
 
       if (result && result.groups?.channel === 'audio') {
         video = false
+        negotiateVideo = false
       }
     }
 
     const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
       video,
-      negotiateAudio: !!params.audio ?? true,
-      negotiateVideo: !!video,
+      negotiateAudio: params.negotiateAudio ?? true,
+      negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,

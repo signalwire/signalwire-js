@@ -9,27 +9,31 @@ import {
 export class ConversationAPI implements ConversationContract {
   constructor(
     private conversation: Conversation,
-    private data: ConversationResponse
+    private payload: ConversationResponse
   ) {}
 
   get id() {
-    return this.data.id
+    return this.payload.id
+  }
+
+  get addressId() {
+    return this.payload.address_id
   }
 
   get createdAt() {
-    return this.data.created_at
+    return this.payload.created_at
   }
 
   get lastMessageAt() {
-    return this.data.last_message_at
+    return this.payload.last_message_at
   }
 
   get metadata() {
-    return this.data.metadata
+    return this.payload.metadata
   }
 
   get name() {
-    return this.data.name
+    return this.payload.name
   }
 
   sendMessage(params: ConversationAPISendMessageParams) {
