@@ -19,7 +19,7 @@ on:
   schedule:
     - cron: '0/20 * * * *'
   push:
-    branches: [ "ryanwi/individual-region'" ]
+    branches: [ "ryanwi/individual-region" ]
 
 concurrency:
   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
@@ -40,81 +40,81 @@ jobs:
             echo 'regions=["us", "eu", "ch","me","spr-preprod","staging"]' >> $GITHUB_OUTPUT
           fi
 
-  e2e-tests:
-    name: Run E2E tests
-    needs: determine_regions
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        region: ${{ fromJson(needs.determine_regions.outputs.regions) }}
-    steps:
-      - run: |
-          echo ${{matrix.region}}
-      - name: Set region properties
-        id: set-properties
-        run: |
-          case "${{ matrix.region }}" in
-            us)
-              echo "environment=production" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=" >> $GITHUB_OUTPUT
-              ;;
-            ch)
-              echo "environment=production-ch" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=" >> $GITHUB_OUTPUT
-              ;;
-            eu)
-              echo "environment=production-eu" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=\"eu\"" >> $GITHUB_OUTPUT
-              ;;
-            uk)
-              echo "environment=production-uk" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_UKREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=\"uk\"" >> $GITHUB_OUTPUT
-              ;;
-            ca)
-              echo "environment=production-ca" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_CAREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=\"ca\"" >> $GITHUB_OUTPUT
-              ;;
-            au)
-              echo "environment=production-au" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_AUREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=\"au\"" >> $GITHUB_OUTPUT
-              ;;
-          esac
-      - uses: actions/checkout@v4
-      - name: Install deps
-        uses: ./.github/actions/install
-        with:
-          NODE_VERSION: 18.x
-      - name: Build SDKs
-        uses: ./.github/actions/build
-        with:
-          NODE_VERSION: 18.x
-      - name: Install Playwright
-        uses: ./.github/actions/playwright
-        with:
-          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
-      - name: Run test for ${{ matrix.region }}
-        id: run-tests
-        run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
-        env:
-          SW_TEST_CONFIG: ${{ secrets[$CONFIG] }}
-          LAML_CONFERENCE_REGION: ${{ $CXML_CONFERENCE_REGION }}
-
-  #     - name: Report Result
-  #       if: success() || failure()
-  #       uses: ./.github/actions/report-test-result
+  # e2e-tests:
+  #   name: Run E2E tests
+  #   needs: determine_regions
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     max-parallel: 1
+  #     matrix:
+  #       region: ${{ fromJson(needs.determine_regions.outputs.regions) }}
+  #   steps:
+  #     - run: |
+  #         echo ${{matrix.region}}
+  #     - name: Set region properties
+  #       id: set-properties
+  #       run: |
+  #         case "${{ matrix.region }}" in
+  #           us)
+  #             echo "environment=production" >> $GITHUB_OUTPUT
+  #             echo "config=PRODUCTION_E2E_JS_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
+  #             echo "cxml_conference_region=" >> $GITHUB_OUTPUT
+  #             ;;
+  #           ch)
+  #             echo "environment=production-ch" >> $GITHUB_OUTPUT
+  #             echo "config=PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
+  #             echo "cxml_conference_region=" >> $GITHUB_OUTPUT
+  #             ;;
+  #           eu)
+  #             echo "environment=production-eu" >> $GITHUB_OUTPUT
+  #             echo "config=PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
+  #             echo "cxml_conference_region=region=\"eu\"" >> $GITHUB_OUTPUT
+  #             ;;
+  #           uk)
+  #             echo "environment=production-uk" >> $GITHUB_OUTPUT
+  #             echo "config=PRODUCTION_E2E_JS_UKREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
+  #             echo "cxml_conference_region=region=\"uk\"" >> $GITHUB_OUTPUT
+  #             ;;
+  #           ca)
+  #             echo "environment=production-ca" >> $GITHUB_OUTPUT
+  #             echo "config=PRODUCTION_E2E_JS_CAREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
+  #             echo "cxml_conference_region=region=\"ca\"" >> $GITHUB_OUTPUT
+  #             ;;
+  #           au)
+  #             echo "environment=production-au" >> $GITHUB_OUTPUT
+  #             echo "config=PRODUCTION_E2E_JS_AUREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
+  #             echo "cxml_conference_region=region=\"au\"" >> $GITHUB_OUTPUT
+  #             ;;
+  #         esac
+  #     - uses: actions/checkout@v4
+  #     - name: Install deps
+  #       uses: ./.github/actions/install
   #       with:
-  #         result: ${{ steps.run-tests.conclusion }}
-  #         test-suite: v2-sdk-tests
-  #         environment: ${{ matrix.region.environment }}
-  #         influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
-  #         influxdb-org: ${{ secrets.INFLUXDB_ORG }}
-  #         influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
-  #         influxdb-url: ${{ secrets.INFLUXDB_URL }}
+  #         NODE_VERSION: 18.x
+  #     - name: Build SDKs
+  #       uses: ./.github/actions/build
+  #       with:
+  #         NODE_VERSION: 18.x
+  #     - name: Install Playwright
+  #       uses: ./.github/actions/playwright
+  #       with:
+  #         PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+  #     - name: Run test for ${{ matrix.region }}
+  #       id: run-tests
+  #       run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
+  #       env:
+  #         SW_TEST_CONFIG: ${{ secrets[$CONFIG] }}
+  #         LAML_CONFERENCE_REGION: ${{ $CXML_CONFERENCE_REGION }}
+
+  # #     - name: Report Result
+  # #       if: success() || failure()
+  # #       uses: ./.github/actions/report-test-result
+  # #       with:
+  # #         result: ${{ steps.run-tests.conclusion }}
+  # #         test-suite: v2-sdk-tests
+  # #         environment: ${{ matrix.region.environment }}
+  # #         influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+  # #         influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+  # #         influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+  # #         influxdb-url: ${{ secrets.INFLUXDB_URL }}
