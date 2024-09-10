@@ -23,7 +23,7 @@ jobs:
           - { name: 'ch', environment: 'production-ch', config: 'PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG', cxml_conference_region: '' }
           - { name: 'eu', environment: 'production-eu', config: 'PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG', cxml_conference_region: 'region="eu"' }
           # - { name: 'me', environment: 'production-me', config: 'PRODUCTION_E2E_JS_MEREGION_SW_TEST_CONFIG', cxml_conference_region: '' }
-          - { name: 'spr-preprod', environment: 'production-spr-preprod', config: 'PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG', cxml_conference_region: 'region="eu"' }
+          - { name: 'spr-preprod', environment: 'production-spr-preprod', config: 'PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG', cxml_conference_region: '' }
           - { name: 'staging', environment: 'staging', config: 'STAGING_E2E_JS_SW_TEST_CONFIG', cxml_conference_region: '' }
     steps:
       - uses: actions/checkout@v4
