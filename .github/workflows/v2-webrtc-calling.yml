@@ -77,7 +77,7 @@ jobs:
             spr-preprod)
               echo "environment=production-spr-preprod" >> $GITHUB_OUTPUT
               echo "config=PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=" >> $GITHUB_OUTPUT
+              echo "cxml_conference_region=region=\"eu\"" >> $GITHUB_OUTPUT
               ;;
             au)
               echo "environment=staging" >> $GITHUB_OUTPUT
