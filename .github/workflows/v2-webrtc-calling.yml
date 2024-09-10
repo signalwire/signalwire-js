@@ -106,15 +106,14 @@ jobs:
         env:
           SW_TEST_CONFIG: ${{ secrets[steps.set-properties.outputs.config] }}
           LAML_CONFERENCE_REGION: ${{ steps.set-properties.outputs.cxml_conference_region }}
-
-  #     - name: Report Result
-  #       if: success() || failure()
-  #       uses: ./.github/actions/report-test-result
-  #       with:
-  #         result: ${{ steps.run-tests.conclusion }}
-  #         test-suite: v2-sdk-tests
-  #         environment: ${{ matrix.region.environment }}
-  #         influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
-  #         influxdb-org: ${{ secrets.INFLUXDB_ORG }}
-  #         influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
-  #         influxdb-url: ${{ secrets.INFLUXDB_URL }}
+      - name: Report Result
+        if: success() || failure()
+        uses: ./.github/actions/report-test-result
+        with:
+          result: ${{ steps.run-tests.conclusion }}
+          test-suite: v2-sdk-tests
+          environment: ${{ steps.set-properties.outputs.environment }}
+          influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+          influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+          influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+          influxdb-url: ${{ secrets.INFLUXDB_URL }}
