@@ -9,8 +9,8 @@
   <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 
   <!-- Include the SignalWire Relay JS SDK -->
-  <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script>
-  <!-- <script type="text/javascript" src="index.min.js"></script> -->
+  <!-- <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script> -->
+  <script type="text/javascript" src="index.min.js"></script>
 
   <!-- To style up the demo a little -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -165,6 +165,20 @@
         //document.getElementById('numberFrom').value = numberFrom;
         document.getElementById('audio').checked = true;
         document.getElementById('video').checked = true;
+
+
+        const appVersion = window.navigator.appVersion;
+        console.log('appVersion: ', appVersion, ' <------------');
+
+        if (navigator.userAgentData) {
+          console.log('userAgentData: ', navigator.userAgentData, ' <------------');
+        } else {
+          console.log('userAgentData not supported in this browser');
+        }
+
+
+
+
       });
 
     /**
@@ -177,6 +191,8 @@
           token: document.getElementById('token').value
         });
         window.__client = client;
+
+        client.__logger.setLevel(this.client.__logger.levels.INFO)
 
         // client.autoRecoverCalls = false;
         client.remoteElement = 'remoteVideo';
