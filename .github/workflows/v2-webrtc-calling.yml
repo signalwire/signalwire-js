@@ -35,7 +35,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.region }}" ]; then
             echo 'regions=["${{ github.event.inputs.region }}"]' >> $GITHUB_OUTPUT
           else
-            echo 'regions=["us", "eu", "ch","me","spr-preprod","staging"]' >> $GITHUB_OUTPUT
+            echo 'regions=["us", "eu", "ch", "me", "spr-preprod", "staging"]' >> $GITHUB_OUTPUT
           fi
 
   e2e-tests:
