@@ -88,18 +88,18 @@ jobs:
               ;;
           esac
       - uses: actions/checkout@v4
-      # - name: Install deps
-      #   uses: ./.github/actions/install
-      #   with:
-      #     NODE_VERSION: 18.x
-      # - name: Build SDKs
-      #   uses: ./.github/actions/build
-      #   with:
-      #     NODE_VERSION: 18.x
-      # - name: Install Playwright
-      #   uses: ./.github/actions/playwright
-      #   with:
-      #     PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+      - name: Install deps
+        uses: ./.github/actions/install
+        with:
+          NODE_VERSION: 18.x
+      - name: Build SDKs
+        uses: ./.github/actions/build
+        with:
+          NODE_VERSION: 18.x
+      - name: Install Playwright
+        uses: ./.github/actions/playwright
+        with:
+          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       # - name: Run test for ${{ matrix.region }}
       #   id: run-tests
       #   run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
