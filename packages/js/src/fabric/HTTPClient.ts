@@ -16,7 +16,11 @@ import type {
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
-import { isGetAddressByIdParams, isGetAddressByNameParams, isGetAddressesResponse } from './utils/typeGuard'
+import {
+  isGetAddressByIdParams,
+  isGetAddressByNameParams,
+  isGetAddressesResponse,
+} from './utils/typeGuard'
 
 type JWTHeader = { ch?: string; typ?: string }
 
@@ -55,7 +59,9 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getAddress(params: GetAddressParams): Promise<GetAddressResult | undefined> {
+  public async getAddress(
+    params: GetAddressParams
+  ): Promise<GetAddressResult | undefined> {
     let path = '/api/fabric/addresses'
     if (isGetAddressByNameParams(params)) {
       path = `${path}?name=${params.name}`
@@ -63,8 +69,9 @@ export class HTTPClient {
       path = `${path}/${params.id}`
     }
 
-
-    const { body } = await this.httpClient<GetAddressResponse | GetAddressesResponse>(path)
+    const { body } = await this.httpClient<
+      GetAddressResponse | GetAddressesResponse
+    >(path)
     if (isGetAddressesResponse(body)) {
       // FIXME until the server handles a index lookup by name we need to handle it as a search result
       return body.data[0]
@@ -75,7 +82,7 @@ export class HTTPClient {
   public async getAddresses(
     params?: GetAddressesParams
   ): Promise<GetAddressesResult> {
-    const { type, displayName, pageSize } = params || {}
+    const { type, displayName, pageSize, sortBy, sortOrder } = params || {}
 
     let path = '/api/fabric/addresses'
 
@@ -88,6 +95,14 @@ export class HTTPClient {
     }
     if (pageSize) {
       queryParams.append('page_size', pageSize.toString())
+    }
+
+    if (sortBy) {
+      queryParams.append('sort_by', sortBy)
+    }
+
+    if (sortOrder) {
+      queryParams.append('sort_order', sortOrder)
     }
 
     const { body } = await this.httpClient<GetAddressesResponse>(
