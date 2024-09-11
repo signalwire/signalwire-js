@@ -76,12 +76,12 @@ jobs:
         uses: ./.github/actions/playwright
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
-      # - name: Run test for ${{ matrix.region }}
-      #   id: run-tests
-      #   run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
-      #   env:
-      #     SW_TEST_CONFIG: ${{ secrets[matrix.region.config] }}
-      #     LAML_CONFERENCE_REGION: ${{ matrix.region.cxml_conference_region }}
+      - name: Run test for ${{ matrix.region.name }}
+        id: run-tests
+        run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
+        env:
+          SW_TEST_CONFIG: ${{ secrets[matrix.region.config] }}
+          LAML_CONFERENCE_REGION: ${{ matrix.region.cxml_conference_region }}
       # - name: Report Result
       #   if: success() || failure()
       #   uses: ./.github/actions/report-test-result
