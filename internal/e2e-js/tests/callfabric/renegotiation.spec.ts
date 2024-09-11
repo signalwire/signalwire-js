@@ -5,6 +5,8 @@ import {
   createCFClient,
   getStats,
 } from '../../utils'
+import { CallFabricRoomSession } from '@signalwire/js'
+import RTCPeer from 'packages/webrtc/src/RTCPeer'
 
 test.describe('CallFabric Renegotiation', () => {
 
@@ -35,6 +37,8 @@ test.describe('CallFabric Renegotiation', () => {
           call.on('room.joined', resolve)
           call.on('room.updated', () => {})
 
+          
+
           // @ts-expect-error
           window._roomObj = call
 
@@ -51,15 +55,29 @@ test.describe('CallFabric Renegotiation', () => {
       )
     ).toBeTruthy()
 
-    const stats = await getStats(page)
+    await page.waitForTimeout(1000)
 
-    // expect(stats.outboundRTP).not.toHaveProperty('video')
+    let stats = await getStats(page)
 
-    // expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats.outboundRTP).not.toHaveProperty('video')
+
+    expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
-      //@ts-ignore
-        window._roomObj.
+        // @ts-expect-error
+        const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
+        // @ts-expect-error
+        cfRoomSession.updateMediaOptions({video: true, negotiateVideo: true});
+        setTimeout(() => {
+          // @ts-expect-error
+          (cfRoomSession.peer as RTCPeer).start()
+        })
     });
+
+    await page.waitForTimeout(1000)
+
+    stats = await getStats(page)
+
+    expect(stats.outboundRTP).toHaveProperty('video')
   })
 })
