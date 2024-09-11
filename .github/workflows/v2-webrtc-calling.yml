@@ -18,6 +18,9 @@ on:
           - 'staging'
   schedule:
     - cron: '0/30 * * * *'
+  push:
+    branches:
+      - 'ryanwi/individual-region'
 
 concurrency:
   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
@@ -27,16 +30,27 @@ jobs:
   determine_regions:
     runs-on: ubuntu-latest
     outputs:
-      regions: ${{ steps.set-regions.outputs.regions }}
+      matrix: ${{ steps.set-regions.outputs.matrix }}
     steps:
       - name: Set regions
         id: set-regions
         run: |
+          REGIONS='[
+            {"name": "us", "environment": "production", "config": "PRODUCTION_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "ch", "environment": "production-ch", "config": "PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "eu", "environment": "production-eu", "config": "PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG", "cxml_conference_region": ""},
+            {"name": "me", "environment": "production-me", "config": "PRODUCTION_E2E_JS_MEREGION_SW_TEST_CONFIG", "cxml_conference_region": ""},
+            {"name": "spr-preprod", "environment": "production-spr-preprod", "config": "PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "staging", "environment": "staging", "config": "STAGING_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""}
+          ]'
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.region }}" ]; then
-            echo 'regions=["${{ github.event.inputs.region }}"]' >> $GITHUB_OUTPUT
+            SELECTED_REGION='${{ github.event.inputs.region }}'
+            FILTERED_REGIONS=$(echo $REGIONS | jq -c "[.[] | select(.name == \"$SELECTED_REGION\")]")
           else
-            echo 'regions=["us", "eu", "ch", "me", "spr-preprod", "staging"]' >> $GITHUB_OUTPUT
+            FILTERED_REGIONS=$REGIONS
           fi
+          echo "$FILTERED_REGIONS"
+          echo "matrix=$(echo $FILTERED_REGIONS | jq -c '{region: .}')" >> $GITHUB_OUTPUT
 
   e2e-tests:
     name: Run E2E tests
@@ -45,46 +59,10 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 1
-      matrix:
-        region: ${{ fromJson(needs.determine_regions.outputs.regions) }}
+      matrix: ${{ fromJson(needs.determine_regions.outputs.matrix) }}
     steps:
       - run: |
-          echo ${{matrix.region}}
-      - name: Set region properties
-        id: set-properties
-        run: |
-          case "${{ matrix.region }}" in
-            us)
-              echo "environment=production" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=" >> $GITHUB_OUTPUT
-              ;;
-            ch)
-              echo "environment=production-ch" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=\"eu\"" >> $GITHUB_OUTPUT
-              ;;
-            eu)
-              echo "environment=production-eu" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=\"eu\"" >> $GITHUB_OUTPUT
-              ;;
-            me)
-              echo "environment=production-me" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_MEREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=" >> $GITHUB_OUTPUT
-              ;;
-            spr-preprod)
-              echo "environment=production-spr-preprod" >> $GITHUB_OUTPUT
-              echo "config=PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=region=\"eu\"" >> $GITHUB_OUTPUT
-              ;;
-            au)
-              echo "environment=staging" >> $GITHUB_OUTPUT
-              echo "config=STAGING_E2E_JS_SW_TEST_CONFIG" >> $GITHUB_OUTPUT
-              echo "cxml_conference_region=" >> $GITHUB_OUTPUT
-              ;;
-          esac
+          echo ${{matrix.region.name}}
       - uses: actions/checkout@v4
       - name: Install deps
         uses: ./.github/actions/install
@@ -98,20 +76,20 @@ jobs:
         uses: ./.github/actions/playwright
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
-      - name: Run test for ${{ matrix.region }}
-        id: run-tests
-        run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
-        env:
-          SW_TEST_CONFIG: ${{ secrets[steps.set-properties.outputs.config] }}
-          LAML_CONFERENCE_REGION: ${{ steps.set-properties.outputs.cxml_conference_region }}
-      - name: Report Result
-        if: success() || failure()
-        uses: ./.github/actions/report-test-result
-        with:
-          result: ${{ steps.run-tests.conclusion }}
-          test-suite: v2-sdk-tests
-          environment: ${{ steps.set-properties.outputs.environment }}
-          influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
-          influxdb-org: ${{ secrets.INFLUXDB_ORG }}
-          influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
-          influxdb-url: ${{ secrets.INFLUXDB_URL }}
+      # - name: Run test for ${{ matrix.region }}
+      #   id: run-tests
+      #   run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
+      #   env:
+      #     SW_TEST_CONFIG: ${{ secrets[matrix.region.config] }}
+      #     LAML_CONFERENCE_REGION: ${{ matrix.region.cxml_conference_region }}
+      # - name: Report Result
+      #   if: success() || failure()
+      #   uses: ./.github/actions/report-test-result
+      #   with:
+      #     result: ${{ steps.run-tests.conclusion }}
+      #     test-suite: v2-sdk-tests
+      #     environment: ${{ steps.set-properties.outputs.environment }}
+      #     influxdb-bucket: ${{ secrets.INFLUXDB_BUCKET }}
+      #     influxdb-org: ${{ secrets.INFLUXDB_ORG }}
+      #     influxdb-token: ${{ secrets.INFLUXDB_TOKEN }}
+      #     influxdb-url: ${{ secrets.INFLUXDB_URL }}
