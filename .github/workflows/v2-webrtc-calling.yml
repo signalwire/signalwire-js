@@ -18,9 +18,6 @@ on:
           - 'staging'
   schedule:
     - cron: '0/30 * * * *'
-  push:
-    branches:
-      - 'ryanwi/individual-region'
 
 concurrency:
   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
