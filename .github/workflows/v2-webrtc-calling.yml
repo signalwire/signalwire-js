@@ -13,7 +13,6 @@ on:
           - 'us'
           - 'ch'
           - 'eu'
-          - 'me'
           - 'spr-preprod'
           - 'staging'
   schedule:
