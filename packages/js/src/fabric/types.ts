@@ -179,7 +179,7 @@ export interface GetAddressesParams {
   type?: string
   displayName?: string
   pageSize?: number
-  sortBy?: 'name' | 'create_at'
+  sortBy?: 'name' | 'created_at'
   sortOrder?: 'asc' | 'desc'
 }
 
