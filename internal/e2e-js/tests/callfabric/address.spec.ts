@@ -63,7 +63,9 @@ test.describe('Addresses', () => {
 
       return isSorted(
         // @ts-expect-error
-        response.data.map((addr) => addr.name)
+        response.data.map((addr) => {
+          console.log(addr.name) 
+          return addr.name})
       )
     })
 
@@ -101,7 +103,9 @@ test.describe('Addresses', () => {
 
       return isSorted(
         // @ts-expect-error
-        response.data.map((addr) => addr.name)
+        response.data.map((addr) => {
+          console.log(addr.name) 
+          return addr.name})
       )
     })
 

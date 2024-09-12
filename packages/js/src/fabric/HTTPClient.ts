@@ -105,8 +105,10 @@ export class HTTPClient {
       queryParams.append('sort_order', sortOrder)
     }
 
+    const queryUrl = makeQueryParamsUrls(path, queryParams)
+    getLogger().debug(`[getAddresses] query URL ${queryUrl}`)
     const { body } = await this.httpClient<GetAddressesResponse>(
-      makeQueryParamsUrls(path, queryParams)
+      queryUrl
     )
 
     return buildPaginatedResult(body, this.httpClient)
