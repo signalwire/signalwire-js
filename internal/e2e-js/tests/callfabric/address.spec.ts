@@ -32,23 +32,6 @@ test.describe('Addresses', () => {
     expect(addressByName.id).toEqual(addressToCompare.id)
   })
 
-  const isSorted = (arr: string[], order: 'asc' | 'desc') => {
-    for (let i = 0; i < arr.length - 1; i++) {
-      switch (order) {
-        case 'asc':
-          if (arr[i] >= arr[i + 1]) {
-            return false
-          }
-          break
-        case 'desc':
-          if (arr[i] <= arr[i + 1]) {
-            return false
-          }
-      }
-    }
-    return true
-  }
-
   test('Should return only type rooms in ASC order by name', async ({
     createCustomPage,
   }) => {
