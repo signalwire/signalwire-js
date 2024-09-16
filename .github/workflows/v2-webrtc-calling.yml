@@ -14,6 +14,7 @@ on:
           - 'ch'
           - 'eu'
           - 'spr-preprod'
+          - 'euswcom'
           - 'staging'
   schedule:
     - cron: '0/30 * * * *'
@@ -36,6 +37,7 @@ jobs:
             {"name": "ch", "environment": "production-ch", "config": "PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
             {"name": "eu", "environment": "production-eu", "config": "PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
             {"name": "spr-preprod", "environment": "production-spr-preprod", "config": "PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "euswcom", "environment": "production-euswcom", "config": "PRODUCTION_EUSWCOM_E2E_REALTIME_SW_TEST_CONFIG", "cxml_conference_region": ""},
             {"name": "staging", "environment": "staging", "config": "STAGING_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""}
           ]'
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.region }}" ]; then
