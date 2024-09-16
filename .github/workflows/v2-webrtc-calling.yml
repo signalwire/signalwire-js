@@ -22,8 +22,6 @@ on:
     push:
       branches: ['ryanwi/euswcom-outbound']
 
-ryanwi/euswcom-outbound
-
 # concurrency:
 #   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
 #   cancel-in-progress: true
