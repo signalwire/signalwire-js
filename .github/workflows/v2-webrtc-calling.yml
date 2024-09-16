@@ -18,9 +18,8 @@ on:
           - 'staging'
   schedule:
     - cron: '0/40 * * * *'
-  on:
-    push:
-      branches: ['ryanwi/euswcom-outbound']
+  push:
+    branches: ['ryanwi/euswcom-outbound']
 
 # concurrency:
 #   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
