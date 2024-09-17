@@ -17,7 +17,7 @@ on:
           - 'euswcom'
           - 'staging'
   schedule:
-    - cron: '0/40 * * * *'
+    - cron: '0/30 * * * *'
   push:
     branches: ['ryanwi/euswcom-outbound']
 
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 2
       matrix: ${{ fromJson(needs.determine_regions.outputs.matrix) }}
     steps:
       - run: |
