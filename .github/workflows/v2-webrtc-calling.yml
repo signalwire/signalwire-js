@@ -18,12 +18,10 @@ on:
           - 'staging'
   schedule:
     - cron: '0/30 * * * *'
-  push:
-    branches: ['ryanwi/euswcom-outbound']
 
-# concurrency:
-#   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   determine_regions:
