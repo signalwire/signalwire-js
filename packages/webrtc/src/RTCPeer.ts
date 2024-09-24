@@ -9,7 +9,6 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
-  hasMediaSection,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
