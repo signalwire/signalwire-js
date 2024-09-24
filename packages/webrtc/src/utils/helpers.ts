@@ -22,8 +22,8 @@ export const getMediaConstraints = async (
   const { audio: optionsAudio, micId } = options
   const { micLabel = '' } = options
   let audio: boolean | MediaTrackConstraints =
-    remoteSDP && hasMediaSection(remoteSDP, 'audio')
-      ? optionsAudio || true
+    (remoteSDP && hasMediaSection(remoteSDP, 'audio')) || !remoteSDP
+      ? optionsAudio ?? true
       : false //should not request audio when the remote SDP don't accept audio
 
   if (micId && audio) {
@@ -41,8 +41,8 @@ export const getMediaConstraints = async (
   let { video: optionsVideo, camId } = options
   const { camLabel = '' } = options
   let video: boolean | MediaTrackConstraints =
-    remoteSDP && hasMediaSection(remoteSDP, 'video')
-      ? optionsVideo || !!camId
+    (remoteSDP && hasMediaSection(remoteSDP, 'video')) || !remoteSDP
+      ? optionsVideo ?? !!camId
       : false //should not request video when the remote SDP don't accept video
 
   if (camId && video) {

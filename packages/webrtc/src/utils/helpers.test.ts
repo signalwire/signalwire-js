@@ -8,6 +8,39 @@ jest.mock('../utils/deviceHelpers', () => ({
 describe('Helpers functions', () => {
     describe('getMediaConstraints', () => {
 
+        describe('No remote SDP', () => {
+            it('should return audio === false & video === false', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: false, video: false})
+                expect(mediaConstraints.audio).toStrictEqual(false)
+                expect(mediaConstraints.video).toStrictEqual(false)
+            })
+
+            it('should return audio === true & video === false', async () => {
+                const mediaConstraints = await getMediaConstraints({})
+                expect(mediaConstraints.audio).toStrictEqual(true)
+                expect(mediaConstraints.video).toStrictEqual(false)
+            })
+
+            it('should return audio === true & video === false', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: true, video: true})
+                expect(mediaConstraints.audio).toStrictEqual(true)
+                expect(mediaConstraints.video).toStrictEqual(true)
+            })
+
+            it('should return audio === {}', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: {}})
+                expect(mediaConstraints.audio).toEqual({})
+                expect(mediaConstraints.video).toStrictEqual(false)
+            })
+
+            it('should return audio === {}', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: {}, video: {}})
+                expect(mediaConstraints.audio).toEqual({})
+                expect(mediaConstraints.video).toEqual({})
+            })
+
+        });
+
         describe('SDP support audio', () => {
             const SDP =
       'v=0\r\no=FreeSWITCH 1707233696 1707233697 IN IP4 190.102.98.211\r\ns=FreeSWITCH\r\nc=IN IP4 190.102.98.211\r\nt=0 0\r\na=msid-semantic: WMS xXtAEH0vyxeST9BACBkvRkF55amZ0EYo\r\nm=audio 19828 RTP/SAVPF 0 8 102\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:102 opus/48000/2\r\na=fmtp:102 useinbandfec=1; maxaveragebitrate=30000; maxplaybackrate=48000; ptime=20; minptime=10; maxptime=40\r\na=fingerprint:sha-256 0F:F7:47:2D:19:38:46:88:E7:42:2A:4B:53:53:F5:19:1B:DC:EF:8E:14:F7:44:79:ED:94:A7:1B:97:92:7F:C5\r\na=setup:actpass\r\na=rtcp-mux\r\na=rtcp:19828 IN IP4 190.102.98.211\r\na=ssrc:4043346828 cname:rhPWOFid3mVMmndP\r\na=ssrc:4043346828 msid:xXtAEH0vyxeST9BACBkvRkF55amZ0EYo a0\r\na=ssrc:4043346828 mslabel:xXtAEH0vyxeST9BACBkvRkF55amZ0EYo\r\na=ssrc:4043346828 label:xXtAEH0vyxeST9BACBkvRkF55amZ0EYoa0\r\na=ice-ufrag:OnbwxGrtGEix86Mq\r\na=ice-pwd:drdSXmVQzHtLVwrAKsW8Yerv\r\na=candidate:1409144412 1 udp 2130706431 190.102.98.211 19828 typ srflx raddr 172.17.0.2 rport 19828 generation 0\r\na=candidate:7363643456 1 udp 2130706431 172.17.0.2 19828 typ host generation 0\r\na=candidate:1409144412 2 udp 2130706430 190.102.98.211 19828 typ srflx raddr 172.17.0.2 rport 19828 generation 0\r\na=candidate:7363643456 2 udp 2130706430 172.17.0.2 19828 typ host generation 0\r\na=silenceSupp:off - - - -\r\na=ptime:20\r\na=sendrecv\r\n'
