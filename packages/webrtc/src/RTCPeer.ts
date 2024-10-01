@@ -9,7 +9,6 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
-  hasMediaSection,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -508,20 +507,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  private _remoteSdpHasVideo(): boolean {
-    return hasMediaSection(
-      this.remoteSdp ?? this.options.remoteSdp ?? '',
-      'video'
-    )
-  }
-
-  private _remoteSdpHasAudio(): boolean {
-    return hasMediaSection(
-      this.remoteSdp ?? this.options.remoteSdp ?? '',
-      'audio'
-    )
-  }
-
   async start() {
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
@@ -545,15 +530,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
       let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
-        const audioTracks =
-          this.isOffer || this._remoteSdpHasAudio()
-            ? this._localStream.getAudioTracks()
-            : []
+        const audioTracks = this._localStream.getAudioTracks()
+
         this.logger.debug('Local audio tracks: ', audioTracks)
-        const videoTracks =
-          this.isOffer || this._remoteSdpHasVideo()
-            ? this._localStream.getVideoTracks()
-            : []
+        const videoTracks = this._localStream.getVideoTracks()
+
         this.logger.debug('Local video tracks: ', videoTracks)
         hasLocalTracks = Boolean(audioTracks.length || videoTracks.length)
 
@@ -846,7 +827,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (streamIsValid(this.options.localStream)) {
       return this.options.localStream
     }
-    const constraints = await getMediaConstraints(this.options)
+    const remoteSDP = this.remoteSdp ?? this.options.remoteSdp
+    const constraints = await getMediaConstraints(this.options, remoteSDP)
     return getUserMedia(constraints)
   }
 
