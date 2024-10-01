@@ -232,7 +232,7 @@ async function getClient() {
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
-window.connect = async () => {
+window.connect = async ({ reattach = false }) => {
   const client = await getClient()
   window.__client = client
 
@@ -241,7 +241,9 @@ window.connect = async () => {
   // Set a node_id for steering
   const steeringId = undefined
 
-  const call = await client.dial({
+  const dialer = reattach ? client.reattach : client.dial
+
+  const call = await dialer({
     nodeId: steeringId,
     to: document.getElementById('destination').value,
     rootElement: document.getElementById('rootElement'),
@@ -268,9 +270,14 @@ window.connect = async () => {
   roomObj.on('room.started', (params) =>
     console.debug('>> room.started', params)
   )
-  roomObj.on('room.joined', (params) =>
+  roomObj.on('room.joined', (params) => {
     console.debug('>> room.joined ', params)
-  )
+
+    // Set or update the query parameter 'room' with value room.name
+    const url = new URL(window.location.href)
+    url.searchParams.set('room', params.room_session.name)
+    window.history.pushState({}, '', url)
+  })
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
   )
@@ -390,6 +397,11 @@ window.hangup = () => {
   }
 
   restoreUI()
+
+  // Remove the 'room' query parameter
+  const url = new URL(window.location.href)
+  url.searchParams.delete('room')
+  window.history.pushState({}, '', url)
 }
 
 window.saveInLocalStorage = (e) => {
@@ -738,4 +750,12 @@ window.ready(async function () {
   document.getElementById('audio').checked = true
   document.getElementById('video').checked =
     localStorage.getItem('fabric.ws.video') === 'true'
+
+  const urlParams = new URLSearchParams(window.location.search)
+  const room = urlParams.get('room')
+  if (room) {
+    connect({ reattach: true })
+  } else {
+    console.log('Room parameter not found')
+  }
 })
