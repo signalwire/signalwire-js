@@ -1,4 +1,4 @@
-import type { Video } from '@signalwire/js'
+import type { DialParams, Video } from '@signalwire/js'
 import type { MediaEvent } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
@@ -762,8 +762,8 @@ export const createCallWithCompatibilityApi = async (
 
   if (Number.isInteger(Number(response.status)) && response.status !== null) {
     if (response.status !== 201) {
-      const responseBody = await response.json();
-      const formattedBody = JSON.stringify(responseBody, null, 2);
+      const responseBody = await response.json()
+      const formattedBody = JSON.stringify(responseBody, null, 2)
 
       console.log(
         'ERROR - response from REST API: ',
@@ -999,18 +999,20 @@ export const expectInjectRelayHost = async (page: Page, host: string) => {
   )
 }
 
-export const expectInjectIceTransportPolicy = async (page: Page, iceTransportPolicy: string) => {
+export const expectInjectIceTransportPolicy = async (
+  page: Page,
+  iceTransportPolicy: string
+) => {
   await page.evaluate(
     async (params) => {
       // @ts-expect-error
       window.__iceTransportPolicy = params.iceTransportPolicy
     },
     {
-      iceTransportPolicy
+      iceTransportPolicy,
     }
   )
 }
-
 
 export const expectRelayConnected = async (
   page: Page,
@@ -1086,12 +1088,33 @@ export const expectCFFinalEvents = (
       roomObj.on('destroy', () => resolve(true))
     })
 
-    return callLeft;
+    return callLeft
   })
 
   return Promise.all([finalEvents, ...extraEvents])
 }
 
+export const expectCallJoined = (page: Page, options: DialParams) => {
+  // @ts-expect-error
+  return page.evaluate((options) => {
+    return new Promise<any>(async (resolve, reject) => {
+      // @ts-expect-error
+      const client = window._client
+
+      const call = await client.dial({
+        rootElement: document.getElementById('rootElement'),
+        ...options,
+      })
+
+      call.on('call.joined', resolve)
+
+      // @ts-expect-error
+      window._roomObj = call
+
+      await call.start().catch(reject)
+    })
+  }, options)
+}
 
 export interface Resource {
   id: string

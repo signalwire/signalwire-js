@@ -7,9 +7,7 @@ import {
   VideoMemberEntity,
   Rooms,
   VideoLayoutChangedEventParams,
-  VideoRoomSubscribedEventParams,
   RoomSessionMember,
-  getLogger,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -22,8 +20,6 @@ import {
   MemberCommandWithValueParams,
 } from '../video'
 import { BaseConnection } from '@signalwire/webrtc'
-import { getStorage } from '../utils/storage'
-import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -136,40 +132,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public async start() {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        this.once(
-          'room.subscribed',
-          ({ call_id }: VideoRoomSubscribedEventParams) => {
-            getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
-            resolve()
-          }
-        )
-
-        this.once('destroy', () => {
-          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-        })
-
-        await this.join()
-      } catch (error) {
-        this.logger.error('WSClient call start', error)
-        reject(error)
-      }
-    })
-  }
-
-  override async join() {
-    if (this.options.attach) {
-      this.options.prevCallId =
-        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-    }
-    getLogger().debug(
-      `Tying to reattach to previuos call? ${!!this.options
-        .prevCallId} - prevCallId: ${this.options.prevCallId}`
-    )
-
-    return super.join()
+  public start() {
+    return this.join()
   }
 
   /** @internal */
