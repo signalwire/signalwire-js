@@ -21,7 +21,7 @@ import {
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import { ConnectionOptions } from './utils/interfaces'
+import { ConnectionOptions, UpdateMediaOptions } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
 import * as workers from './workers'
@@ -987,12 +987,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  updateMediaOptions(options: {
-    audio?: boolean
-    video?: boolean
-    negotiateAudio?: boolean
-    negotiateVideo?: boolean
-  }) {
+  updateMediaOptions(options: UpdateMediaOptions) {
     this.logger.debug('updateMediaOptions', { ...options })
     this.options = {
       ...this.options,
@@ -1085,5 +1080,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       rtcPeer.stop()
     })
     this.rtcPeerMap.clear()
+  }
+
+  async renegotiateMedia(renegotiateMediaParams: UpdateMediaOptions): Promise<void> {
+    this.updateMediaOptions(renegotiateMediaParams)
+    await this.peer?.start()
+  }
+
+  async enableVideo(enableVideoParam?: Pick<UpdateMediaOptions, 'video'> & {sendOnly?: boolean}): Promise<void> {
+    await this.renegotiateMedia({video: enableVideoParam?.video ?? true, negotiateVideo: !enableVideoParam?.sendOnly})
+  }
+
+  async disableVideo(disableVideoParam?: {recvOnly?: boolean}): Promise<void> {
+    await this.renegotiateMedia({video: false, negotiateVideo: disableVideoParam?.recvOnly})
   }
 }
