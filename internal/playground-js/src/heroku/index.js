@@ -225,8 +225,8 @@ window.connect = () => {
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     rootElement: document.getElementById('rootElement'),
-    audio: true,
-    video: true,
+    video: document.getElementById('video').checked,
+    audio: document.getElementById('audio').checked,
     logLevel: 'debug',
     mirrorLocalVideoOverlay: false,
     debug: {
@@ -250,7 +250,11 @@ window.connect = () => {
   })
 
   const handler = (params) => {
-    console.warn('Debug', params)
+    console.warn('>> Debug', params)
+    // Set or update the query parameter 'room' with value room.name
+    const url = new URL(window.location.href)
+    url.searchParams.set('room', params.room.name)
+    window.history.pushState({}, '', url)
   }
   roomObj.on('room.joined', handler)
   roomObj.on('room.joined', handler)
@@ -420,11 +424,20 @@ window.hangup = () => {
   }
 
   restoreUI()
+
+  // Remove the 'room' query parameter
+  const url = new URL(window.location.href)
+  url.searchParams.delete('room')
+  window.history.pushState({}, '', url)
 }
 
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('relay.example.' + key, e.target.value)
+  let value = e.target.value
+  if (e.target.type === 'checkbox') {
+    value = e.target.checked
+  }
+  localStorage.setItem('relay.example.' + key, value)
 }
 
 // jQuery document.ready equivalent
@@ -767,12 +780,22 @@ window.seekForwardPlayback = () => {
  * On document ready auto-fill the input values from the localStorage.
  */
 window.ready(async function () {
+  // Set the storage
   document.getElementById('host').value =
     localStorage.getItem('relay.example.host') || ''
   document.getElementById('token').value =
     localStorage.getItem('relay.example.token') || ''
   document.getElementById('audio').checked =
-    (localStorage.getItem('relay.example.audio') || '1') === '1'
+    localStorage.getItem('relay.example.audio') === 'true'
   document.getElementById('video').checked =
-    (localStorage.getItem('relay.example.video') || '1') === '1'
+    localStorage.getItem('relay.example.video') === 'true'
+
+  const urlParams = new URLSearchParams(window.location.search)
+  const room = urlParams.get('room')
+
+  if (room) {
+    connect()
+  } else {
+    console.log('Room parameter not found')
+  }
 })
