@@ -232,7 +232,7 @@ async function getClient() {
 /**
  * Connect with Relay creating a client and attaching all the event handler.
  */
-window.connect = async ({ reattach = false }) => {
+window.connect = async ({ reattach = false } = {}) => {
   const client = await getClient()
   window.__client = client
 
