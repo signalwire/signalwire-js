@@ -146,52 +146,52 @@ export class RoomSessionConnection
         layout,
         positions,
       } = opts
-      const displayStream: MediaStream = await getDisplayMedia({
-        audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
-        video,
-      })
-      const options: BaseConnectionOptions = {
-        ...this.options,
-        screenShare: true,
-        recoverCall: false,
-        localStream: displayStream,
-        remoteStream: undefined,
-        userVariables: {
-          ...(this.options?.userVariables || {}),
-          memberCallId: this.callId,
-          memberId: this.memberId,
-        },
-        layout,
-        positions,
-      }
-
-      const screenShare = connect<
-        RoomSessionScreenShareEvents,
-        RoomSessionScreenShareConnection,
-        RoomSessionScreenShare
-      >({
-        store: this.store,
-        Component: RoomSessionScreenShareAPI,
-      })(options)
-
-      /**
-       * Hangup if the user stop the screenShare from the
-       * native browser button or if the videoTrack ends.
-       */
-      displayStream.getVideoTracks().forEach((t) => {
-        t.addEventListener('ended', () => {
-          if (screenShare && screenShare.active) {
-            screenShare.leave()
-          }
-        })
-      })
-
-      screenShare.once('destroy', () => {
-        screenShare.emit('room.left')
-        this._screenShareList.delete(screenShare)
-      })
-
       try {
+        const displayStream: MediaStream = await getDisplayMedia({
+          audio: audio === true ? SCREENSHARE_AUDIO_CONSTRAINTS : audio,
+          video,
+        })
+        const options: BaseConnectionOptions = {
+          ...this.options,
+          screenShare: true,
+          recoverCall: false,
+          localStream: displayStream,
+          remoteStream: undefined,
+          userVariables: {
+            ...(this.options?.userVariables || {}),
+            memberCallId: this.callId,
+            memberId: this.memberId,
+          },
+          layout,
+          positions,
+        }
+
+        const screenShare = connect<
+          RoomSessionScreenShareEvents,
+          RoomSessionScreenShareConnection,
+          RoomSessionScreenShare
+        >({
+          store: this.store,
+          Component: RoomSessionScreenShareAPI,
+        })(options)
+
+        /**
+         * Hangup if the user stop the screenShare from the
+         * native browser button or if the videoTrack ends.
+         */
+        displayStream.getVideoTracks().forEach((t) => {
+          t.addEventListener('ended', () => {
+            if (screenShare && screenShare.active) {
+              screenShare.leave()
+            }
+          })
+        })
+
+        screenShare.once('destroy', () => {
+          screenShare.emit('room.left')
+          this._screenShareList.delete(screenShare)
+        })
+
         screenShare.runWorker('childMemberJoinedWorker', {
           worker: workers.childMemberJoinedWorker,
           onDone: () => resolve(screenShare),

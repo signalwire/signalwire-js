@@ -118,4 +118,5 @@ export type {
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
   RoomEventNames,
+  StartScreenShareOptions,
 } from './utils/interfaces'
