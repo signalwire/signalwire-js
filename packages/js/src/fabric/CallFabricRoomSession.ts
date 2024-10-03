@@ -269,8 +269,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setRaisedHand(params: Rooms.SetRaisedHandRoomParams) {
-    const { raised = true, memberId } = params
+  public setRaisedHand(params?: Rooms.SetRaisedHandRoomParams) {
+    const { raised = true, memberId } = params || {}
     return this.executeAction<BaseRPCResult>({
       method: raised ? 'call.raisehand' : 'call.lowerhand',
       memberId,

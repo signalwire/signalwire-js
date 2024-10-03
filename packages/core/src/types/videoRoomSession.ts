@@ -796,7 +796,7 @@ export interface VideoRoomSessionContract {
    * await room.setHandRaised({ memberId: id, raised: false })
    * ```
    */
-  setRaisedHand(params: Rooms.SetRaisedHandRoomParams): Rooms.SetRaisedHand
+  setRaisedHand(params?: Rooms.SetRaisedHandRoomParams): Rooms.SetRaisedHand
 }
 
 /**
