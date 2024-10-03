@@ -1195,10 +1195,12 @@ interface DialAddressParams {
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
+  reattach?: boolean
 }
 export const dialAddress = (page: Page, params: DialAddressParams) => {
   const {
     address,
+    reattach = false,
     shouldPassRootElement = true,
     shouldStartCall = true,
     shouldWaitForJoin = true,
@@ -1206,6 +1208,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
   return page.evaluate(
     async ({
       address,
+      reattach,
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
@@ -1214,7 +1217,9 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
         // @ts-expect-error
         const client = window._client
 
-        const call = await client.dial({
+        const dialer = reattach ? client.reattach : client.dial
+
+        const call = await dialer({
           to: address,
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement'),
@@ -1237,6 +1242,12 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
         }
       })
     },
-    { address, shouldPassRootElement, shouldStartCall, shouldWaitForJoin }
+    {
+      address,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }
   )
 }
