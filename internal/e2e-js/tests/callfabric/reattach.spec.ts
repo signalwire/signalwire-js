@@ -3,7 +3,7 @@ import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient, expectMCUVisible } from '../../utils'
 
 test.describe('Reattach Tests', () => {
-  test.skip('WebRTC to Room', async ({ createCustomPage, resource }) => {
+  test('WebRTC to Room', async ({ createCustomPage, resource }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
