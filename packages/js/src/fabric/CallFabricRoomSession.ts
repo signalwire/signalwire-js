@@ -6,10 +6,11 @@ import {
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
-  VideoLayoutChangedEventParams,
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
   getLogger,
+  VideoLayoutChangedEvent,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -44,6 +45,8 @@ export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
   start: CallFabricRoomSessionConnection['start']
   answer: BaseConnection<CallFabricRoomSession>['answer']
   hangup: RoomSessionConnection['hangup']
+  currentLayoutEvent: VideoLayoutChangedEvent
+  currentLayout: VideoLayoutChangedEventParams['layout']
 }
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
@@ -51,7 +54,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
-  private _lastLayoutEvent: VideoLayoutChangedEventParams
+  private _currentLayoutEvent: VideoLayoutChangedEvent
 
   override async hangup(id?: string | undefined): Promise<void> {
     this._self = undefined
@@ -80,12 +83,16 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._member?.memberId
   }
 
-  set lastLayoutEvent(event: any) {
-    this._lastLayoutEvent = event
+  set currentLayoutEvent(event: VideoLayoutChangedEvent) {
+    this._currentLayoutEvent = event
   }
 
-  get lastLayoutEvent() {
-    return this._lastLayoutEvent
+  get currentLayoutEvent() {
+    return this._currentLayoutEvent
+  }
+
+  get currentLayout() {
+    return this._currentLayoutEvent.params.layout
   }
 
   private executeAction<
@@ -269,9 +276,10 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setLayout(params: { name: string }) {
+  public setLayout(params: Rooms.SetLayoutParams) {
     const extraParams = {
-      layout: params?.name,
+      layout: params.name,
+      positions: params.positions,
     }
     return this.executeAction<BaseRPCResult>({
       method: 'call.layout.set',

@@ -23,7 +23,9 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
     const segmentRoutingRoomSessionId = bootstrapAction.payload.room_session_id
     const segmentRoutingCallId = bootstrapAction.payload.call_id
 
-    getLogger().debug(`callSegmentWorker started for: callId ${segmentRoutingCallId} roomSessionId segmentRoutingRoomSessionId`)
+    getLogger().debug(
+      `callSegmentWorker started for: callId ${segmentRoutingCallId} roomSessionId segmentRoutingRoomSessionId`
+    )
 
     //handles the `call.joined` event before the worker loop
     yield sagaEffects.fork(callJoinWorker, {
@@ -38,7 +40,9 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         action.type.startsWith('layout.')
 
       return (
-        shouldWatch() && (segmentRoutingRoomSessionId === action.payload.room_session_id || segmentRoutingCallId === action.payload.call_id)
+        shouldWatch() &&
+        (segmentRoutingRoomSessionId === action.payload.room_session_id ||
+          segmentRoutingCallId === action.payload.call_id)
       )
     }
 
@@ -92,7 +96,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         case 'layout.changed':
           {
             // Upsert the layout event which is needed for rootElement
-            cfRoomSession.lastLayoutEvent = action.payload
+            cfRoomSession.currentLayoutEvent = action.payload
             const updatedAction = {
               ...action,
               type: `video.${type}` as 'video.layout.changed',
