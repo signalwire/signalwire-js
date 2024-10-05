@@ -6,7 +6,6 @@ import {
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
-  VideoLayoutChangedEventParams,
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
   getLogger,
