@@ -10,20 +10,19 @@ import {
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
   getLogger,
+  CallFabricRoomSessionContract,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
-import {
-  BaseRoomSession,
-  RoomSessionConnection,
-  RoomSessionObjectEventsHandlerMapping,
-} from '../BaseRoomSession'
+import { BaseRoomSession, RoomSessionConnection } from '../BaseRoomSession'
 import { callFabricWorker } from './workers'
 import {
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
 } from '../video'
-import { BaseConnection } from '@signalwire/webrtc'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { CallFabricRoomSessionObjectEvents } from '../utils/interfaces'
+import { BaseConnectionStateEventTypes } from '@signalwire/webrtc'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -36,24 +35,27 @@ interface ExecuteMemberActionParams extends ExecuteActionParams {
 }
 
 type CallFabricBaseRoomSession = Omit<
-  BaseRoomSession<CallFabricRoomSessionConnection>,
+  BaseRoomSession<
+    CallFabricRoomSessionConnection,
+    CallFabricRoomSessionObjectEvents
+  >,
   'join'
 >
+export interface CallFabricRoomSession
+  extends CallFabricBaseRoomSession,
+    CallFabricRoomSessionContract {}
 
-export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
-  start: CallFabricRoomSessionConnection['start']
-  answer: BaseConnection<CallFabricRoomSession>['answer']
-  hangup: RoomSessionConnection['hangup']
-}
-
-export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+export class CallFabricRoomSessionConnection
+  extends RoomSessionConnection<CallFabricRoomSessionObjectEvents>
+  implements CallFabricRoomSessionContract
+{
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
-  private _lastLayoutEvent: VideoLayoutChangedEventParams
+  private _currentLayoutEvent: VideoLayoutChangedEventParams
 
-  override async hangup(id?: string | undefined): Promise<void> {
+  override async hangup(id?: string): Promise<void> {
     this._self = undefined
     this._member = undefined
     const result = await super.hangup(id)
@@ -80,12 +82,21 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._member?.memberId
   }
 
-  set lastLayoutEvent(event: any) {
-    this._lastLayoutEvent = event
+  set currentLayoutEvent(event: VideoLayoutChangedEventParams) {
+    this._currentLayoutEvent = event
   }
 
-  get lastLayoutEvent() {
-    return this._lastLayoutEvent
+  get currentLayoutEvent() {
+    return this._currentLayoutEvent
+  }
+
+  get currentLayout() {
+    return this._currentLayoutEvent.layout
+  }
+
+  // @TODO: Finish this
+  get members() {
+    return []
   }
 
   private executeAction<
@@ -322,11 +333,14 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 }
 
+export type CallFabricRoomSessionObjectEventsHandlerMapping =
+  CallFabricRoomSessionObjectEvents & BaseConnectionStateEventTypes
+
 export const createCallFabricRoomSessionObject = (
   params: BaseComponentOptions
 ): CallFabricRoomSession => {
   const room = connect<
-    RoomSessionObjectEventsHandlerMapping,
+    CallFabricRoomSessionObjectEventsHandlerMapping,
     CallFabricRoomSessionConnection,
     CallFabricRoomSession
   >({

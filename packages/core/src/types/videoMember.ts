@@ -189,9 +189,8 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   meta?: Record<string, unknown>
   /** Indicate if the member hand is raised or not */
   handraised: boolean
-  callId?: string
-  nodeId?: string
-  memberId?: string
+  /** Indicate if the member is talking or not */
+  talking: boolean
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a
