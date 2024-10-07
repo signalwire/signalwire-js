@@ -4,7 +4,7 @@ export interface CallFabricRoomSessionConnectionContract {
   /**
    * The layout returned from the `layout.changed` event based on the current room layout
    */
-  currentLayout: VideoLayoutChangedEventParams['layout']
+  currentLayout: VideoLayoutChangedEventParams['layout'] | undefined
   /**
    * Starts the call via the WebRTC connection
    *
