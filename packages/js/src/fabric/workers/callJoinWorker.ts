@@ -26,16 +26,22 @@ export const callJoinWorker = function* (
       memberInstance = Rooms.createRoomSessionMemberObject({
         store: cfRoomSession.store,
         payload: {
+          call_id: payload.call_id,
+          member_id: payload.member_id,
+          member: member,
+          node_id: payload.node_id,
           room_id: payload.room_id,
           room_session_id: payload.room_session_id,
-          member,
         },
       })
     } else {
       memberInstance.setPayload({
+        call_id: payload.call_id,
+        member_id: payload.member_id,
+        member: member,
+        node_id: payload.node_id,
         room_id: payload.room_id,
         room_session_id: payload.room_session_id,
-        member: member,
       })
     }
     set<RoomSessionMember>(member.member_id, memberInstance)
@@ -54,6 +60,7 @@ export const callJoinWorker = function* (
       // @ts-expect-error
       subPayload
     ) {
+      // @ts-expect-error
       yield sagaEffects.fork(videoMemberWorker, {
         ...options,
         action: { type: subType, payload: subPayload },
@@ -61,8 +68,6 @@ export const callJoinWorker = function* (
     },
   })
 
-
-  // @ts-expect-error
   cfRoomSession.emit('call.joined', payload)
 
   getLogger().trace('callJoinWorker ended')

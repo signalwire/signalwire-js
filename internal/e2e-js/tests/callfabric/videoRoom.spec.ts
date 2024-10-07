@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { Video } from '@signalwire/js'
+import { CallFabricRoomSession, SignalWireContract } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 
 import {
@@ -29,7 +29,7 @@ test.describe('CallFabric VideoRoom', () => {
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
-          const client = window._client
+          const client = window._client as SignalWireContract
 
           const call = await client.dial({
             to: `/public/${roomName}`,
@@ -67,7 +67,7 @@ test.describe('CallFabric VideoRoom', () => {
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: CallFabricRoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
           const memberUpdatedEvent = new Promise((res) => {
@@ -82,7 +82,7 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
           const memberUpdatedMutedEvent = new Promise((res) => {
-            roomObj.on('member.updated.audio_muted', (params) => {
+            roomObj.on('member.updated.audioMuted', (params) => {
               if (
                 params.member.member_id === roomSession.member_id &&
                 params.member.audio_muted === true
@@ -137,7 +137,7 @@ test.describe('CallFabric VideoRoom', () => {
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: CallFabricRoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
           const memberUpdatedEvent = new Promise((res) => {
@@ -212,7 +212,7 @@ test.describe('CallFabric VideoRoom', () => {
     // --------------- Screenshare ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: CallFabricRoomSession = window._roomObj
 
       let screenMemberId: string | undefined
       const screenJoined = new Promise((resolve) => {

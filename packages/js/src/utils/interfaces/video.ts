@@ -40,9 +40,9 @@ import type {
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEvent } from '@signalwire/webrtc'
-import type { RoomSession } from '../RoomSession'
-import type { RoomSessionDevice } from '../RoomSessionDevice'
-import type { RoomSessionScreenShare } from '../RoomSessionScreenShare'
+import { RoomSession } from '../../RoomSession'
+import { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
+import { RoomSessionDevice } from '../../RoomSessionDevice'
 
 /**
  * @privateRemarks

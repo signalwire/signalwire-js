@@ -50,11 +50,13 @@ import {
 } from './RoomSessionDevice'
 import * as workers from './video/workers'
 
-export interface BaseRoomSession<T>
-  extends RoomMethods,
+export interface BaseRoomSession<
+  T,
+  TEvents extends EventEmitter.ValidEventTypes = RoomSessionObjectEvents
+> extends RoomMethods,
     RoomSessionConnectionContract,
     BaseComponentContract,
-    BaseConnectionContract<RoomSessionObjectEvents> {
+    BaseConnectionContract<TEvents> {
   /**
    * Joins the room session.
    */
@@ -73,8 +75,10 @@ export interface BaseRoomSessionOptions
   eventsWatcher?: SDKWorker<RoomSessionConnection>
 }
 
-export class RoomSessionConnection
-  extends BaseConnection<RoomSessionObjectEvents>
+export class RoomSessionConnection<
+    TEvents extends EventEmitter.ValidEventTypes = RoomSessionObjectEvents
+  >
+  extends BaseConnection<TEvents>
   implements BaseRoomInterface, RoomSessionConnectionContract
 {
   private _screenShareList = new Set<RoomSessionScreenShare>()
@@ -318,6 +322,7 @@ export class RoomSessionConnection
         const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
         if (!newSpeaker?.deviceId || isSame) return
 
+        // @ts-expect-error
         this.emit('speaker.updated', {
           previous: {
             deviceId: prevSpeaker?.deviceId,
@@ -351,6 +356,7 @@ export class RoomSessionConnection
           )
         })
         if (disconnectedSpeaker) {
+          // @ts-expect-error
           this.emit('speaker.disconnected', {
             deviceId: disconnectedSpeaker.payload.deviceId,
             label: disconnectedSpeaker.payload.label,
@@ -367,6 +373,7 @@ export class RoomSessionConnection
           if (!defaultSpeakers?.deviceId) return
 
           // Emit the speaker.updated event since the OS will fallback to the default speaker
+          // @ts-expect-error
           this.emit('speaker.updated', {
             previous: {
               deviceId: disconnectedSpeaker.payload.deviceId,
@@ -446,10 +453,12 @@ export class RoomSessionConnection
 
   /** @internal */
   protected override getSubscriptions() {
-    const eventNamesWithPrefix = this.eventNames().map(
-      (event) => `video.${event}`
-    ) as EventEmitter.EventNames<RoomSessionObjectEvents>[]
-    return validateEventsToSubscribe(eventNamesWithPrefix)
+    const eventNamesWithPrefix = this.eventNames().map((event) => {
+      return `video.${String(event)}`
+    })
+    return validateEventsToSubscribe(
+      eventNamesWithPrefix
+    ) as EventEmitter.EventNames<TEvents & BaseConnectionStateEventTypes>[]
   }
 }
 

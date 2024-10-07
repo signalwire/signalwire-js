@@ -203,7 +203,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
-      attach, 
+      attach,
       callerName,
       callerNumber,
       remoteCallerName,

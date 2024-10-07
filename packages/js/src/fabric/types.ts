@@ -64,7 +64,7 @@ export interface PushNotificationPayload {
 
 export interface CallParams {
   /** HTML element in which to display the video stream */
-  rootElement?: HTMLElement
+  rootElement?: HTMLElement | null
   /** Disable ICE UDP transport policy */
   disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */

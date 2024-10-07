@@ -22,66 +22,81 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
     const {
       channels: { swEventChannel },
-      instance: cfRoomSessionConnection,
+      instance: cfRoomSession,
     } = options
 
-    const isCallJoinedOrCallStateEvent = (action: SDKActions) => {
+    function* worker(action: CallFabricAction) {
+      const { type, payload } = action
+
+      switch (type) {
+        case 'call.joined': {
+          // since we depend on `cfRoomSession.selfMember` on the take logic
+          // we need to make sure we update the `cfRoomSession.selfMember`
+          // in this worker or have a race condition.
+          if (!cfRoomSession.selfMember) {
+            const memberInstance = Rooms.createRoomSessionMemberObject({
+              store: cfRoomSession.store,
+              payload: {
+                call_id: action.payload.call_id,
+                member_id: action.payload.member_id,
+                member: action.payload.room_session.members.find(
+                  (m) => m.member_id === action.payload.member_id
+                )!,
+                node_id: action.payload.node_id,
+                room_id: action.payload.room_id,
+                room_session_id: action.payload.room_session_id,
+              },
+            })
+            cfRoomSession.selfMember = memberInstance
+          }
+
+          // Segment worker for each call_id
+          yield sagaEffects.spawn(callSegmentWorker, {
+            ...options,
+            instance: cfRoomSession,
+            action,
+          })
+          break
+        }
+        case 'call.state':
+          cfRoomSession.emit(type, payload)
+          break
+      }
+    }
+
+    let firstCallJoinedReceived = false
+    const isCallJoinedorCallStateEvent = (action: SDKActions) => {
       const cfAction = action as CallFabricAction
 
-      // We should only start to handling call.joined events after
-      // we receive the 1st call.joined event where eventRoutingId === action.origin_call_id
-      const segmentRoutingRoomSessionId = cfAction.payload.room_session_id 
-      const segmentRoutingCallId = cfAction.payload.call_id
-      const originCallId = cfAction.payload.origin_call_id
-      const isCallJoinedEvent = cfAction.type === 'call.joined'
-      const discardEventsDone = !!cfRoomSessionConnection.selfMember
-      const isCallStateEvent = cfAction.type === 'call.state'
+      if (cfAction.type === 'call.state') {
+        return true
+      }
 
-      return (
-        // FIXME call.state events are not beeing fired after the call.joined as expected
-        isCallStateEvent ||
-        (isCallJoinedEvent &&
-          (discardEventsDone ||
-            (segmentRoutingRoomSessionId === originCallId || segmentRoutingCallId === originCallId)))
-      )
+      if (cfAction.type !== 'call.joined') {
+        return false
+      }
+
+      // If this is the first call.joined event, verify the call origin ID
+      if (!firstCallJoinedReceived) {
+        const callId = cfAction.payload.call_id
+        const originCallId = cfAction.payload.origin_call_id
+        if (callId === originCallId) {
+          firstCallJoinedReceived = true
+          return true
+        }
+        return false // Discard all the call.joined event until the first call.joined is received
+      }
+
+      // If first call.joined event already received, only check the action type
+      return true
     }
 
     while (true) {
-      
       const action = yield sagaEffects.take(
         swEventChannel,
-        isCallJoinedOrCallStateEvent
+        isCallJoinedorCallStateEvent
       )
-      const { type, payload } = action
-      switch (type) {
-        case 'call.joined':
-
-          // since we depend on `cfRoomSessionConnection.selfMember` on the take logic
-          // we need to make sure we update the `cfRoomSessionConnection.selfMember`
-          // in this worker or have a race condition.
-          if (!cfRoomSessionConnection.selfMember) {
-            const memberInstance = Rooms.createRoomSessionMemberObject({
-              store: cfRoomSessionConnection.store,
-              payload: {
-                room_id: action.payload.room_id,
-                room_session_id: action.payload.room_session_id,
-                member: action.payload.room_session.members.find(
-                  (m: { member_id: string }) =>
-                    m.member_id === action.payload.member_id
-                ),
-              },
-            })
-            cfRoomSessionConnection.selfMember = memberInstance
-          }
-          cfRoomSessionConnection.runWorker('callSegmentWorker', {
-            worker: callSegmentWorker,
-            ...options,
-            initialState: action,
-          })
-          break
-        case 'call.state':
-          cfRoomSessionConnection.emit(type, payload)
-          break
-      }
+      console.log('?? action', action.type)
+      yield sagaEffects.fork(worker, action)
     }
   }

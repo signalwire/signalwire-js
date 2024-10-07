@@ -7,10 +7,10 @@ import {
   SwEvent,
   CallEnded,
   CallRecord,
-  ToInternalVideoEvent,
-  VideoMemberEvent,
-  VideoLayoutEvent,
+  InternalCallFabricRoomSessionEntity,
+  CallFabricMemberEvent,
 } from '..'
+import { CallFabricLayoutEvent } from './callFabricLayout'
 
 export type CallJoined = 'call.joined'
 export type CallStarted = 'call.started'
@@ -56,12 +56,14 @@ export type CallDevice = CallDeviceWebRTCOrSIP | CallDevicePhone
  * Call Joined - call.joined
  */
 export interface CallJoinedEventParams {
-  room_id: string
-  room_session_id: string
   call_id: string
+  capabilities: string[]
   member_id: string
   node_id: string
-  room_session: InternalVideoRoomSessionEntity
+  origin_call_id: string
+  room_id: string
+  room_session: InternalCallFabricRoomSessionEntity
+  room_session_id: string
 }
 
 export interface CallJoinedEvent extends SwEvent {
@@ -233,19 +235,6 @@ export interface CallConnectEvent extends SwEvent {
   params: CallConnectEventParams
 }
 
-// Undo the ToInternalVideoEvent<T> transformation
-type UndoToInternalVideoEvent<T> = T extends ToInternalVideoEvent<infer U>
-  ? U
-  : T
-
-type AdjustEventType<T> = T extends { event_type: infer ET; params: infer P }
-  ? { event_type: UndoToInternalVideoEvent<ET>; params: P }
-  : T
-
-export type CFMemberEvent = AdjustEventType<VideoMemberEvent>
-
-export type CFLayoutEvent = AdjustEventType<VideoLayoutEvent>
-
 export type CallFabricEvent =
   | CallJoinedEvent
   | CallStartedEvent
@@ -257,19 +246,7 @@ export type CallFabricEvent =
   | CallRecordEvent
   | CallStreamEvent
   | CallConnectEvent
-  | CFMemberEvent
-  | CFLayoutEvent
+  | CallFabricMemberEvent
+  | CallFabricLayoutEvent
 
-type HasCallId = {
-  params: { call_id: string; room_session_id?: string; origin_call_id?: String }
-}
-type HasRoomSessionId = {
-  params: { call_id?: string; room_session_id: string; origin_call_id?: String }
-}
-type HasEitherCallIdOrRoomSessionId = HasCallId | HasRoomSessionId
-
-export type CallFabricAction = MapToPubSubShape<
-  CallFabricEvent & HasEitherCallIdOrRoomSessionId
->
-
-
+export type CallFabricAction = MapToPubSubShape<CallFabricEvent>

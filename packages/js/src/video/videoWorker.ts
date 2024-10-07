@@ -86,13 +86,11 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
     roomSession.emit(event, payload)
   }
 
-  const isVideoOrCallEvent = (action: SDKActions) => {
-    return action.type.startsWith('video.') || action.type.startsWith('call.')
-  }
+  const isVideoEvent = (action: SDKActions) => action.type.startsWith('video.')
 
   while (true) {
     const action: MapToPubSubShape<VideoAPIEventParams> =
-      yield sagaEffects.take(swEventChannel, isVideoOrCallEvent)
+      yield sagaEffects.take(swEventChannel, isVideoEvent)
 
     yield sagaEffects.fork(worker, action)
   }
