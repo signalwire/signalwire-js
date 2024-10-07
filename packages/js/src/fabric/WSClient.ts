@@ -125,6 +125,8 @@ export class WSClient {
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
     let video = true
+    let audio = true
+    let negotiateAudio = true
     let negotiateVideo = true
 
     const remoteSdp = payload.sdp
@@ -132,12 +134,16 @@ export class WSClient {
       video = false
       negotiateVideo = false
     }
+    if (!sdpHasMediaDescription(remoteSdp, 'audio')) {
+      audio = false
+      negotiateAudio = false
+    }
 
     const call = this.wsClient.makeCallFabricObject({
-      audio: params.audio ?? true,
+      audio: params.audio ?? audio,
       video: params.video ?? video,
-      negotiateAudio: params.negotiateAudio ?? true,
-      negotiateVideo: params.negotiateVideo ?? negotiateVideo,
+      negotiateAudio: negotiateAudio,
+      negotiateVideo: negotiateVideo,
       rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
