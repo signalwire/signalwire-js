@@ -87,14 +87,11 @@ export class WSClient {
     let video = params.video ?? true
     let negotiateVideo = true
 
-    if (to) {
-      const channelRegex = /\?channel\=(?<channel>(audio|video))/
-      const result = channelRegex.exec(to)
+    const toURL = new URL(`address:${to}`)
 
-      if (result && result.groups?.channel === 'audio') {
-        video = false
-        negotiateVideo = false
-      }
+    if (to && toURL.searchParams.get('channel') === 'audio') {
+      video = false
+      negotiateVideo = false
     }
 
     const call = this.wsClient.makeCallFabricObject({
@@ -106,7 +103,7 @@ export class WSClient {
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
-      destinationNumber: params.to,
+      destinationNumber: toURL.pathname,
       watchMediaPackets: false,
       remoteSdp: sdp,
       prevCallId: callID,
