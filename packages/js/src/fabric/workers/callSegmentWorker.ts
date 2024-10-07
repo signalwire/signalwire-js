@@ -96,7 +96,7 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         case 'layout.changed':
           {
             // Upsert the layout event which is needed for rootElement
-            cfRoomSession.currentLayoutEvent = action.payload
+            cfRoomSession.lastLayoutEvent = action.payload
             const updatedAction = {
               ...action,
               type: `video.${type}` as 'video.layout.changed',

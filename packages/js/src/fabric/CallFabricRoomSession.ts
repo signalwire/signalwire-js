@@ -49,7 +49,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
-  private _currentLayoutEvent: VideoLayoutChangedEvent
+  private _lastLayoutEvent: VideoLayoutChangedEvent
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
@@ -78,16 +78,16 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._member?.memberId
   }
 
-  set currentLayoutEvent(event: VideoLayoutChangedEvent) {
-    this._currentLayoutEvent = event
+  set lastLayoutEvent(event: VideoLayoutChangedEvent) {
+    this._lastLayoutEvent = event
   }
 
-  get currentLayoutEvent() {
-    return this._currentLayoutEvent
+  get lastLayoutEvent() {
+    return this._lastLayoutEvent
   }
 
   get currentLayout() {
-    return this._currentLayoutEvent.params.layout
+    return this._lastLayoutEvent.params.layout
   }
 
   private executeAction<
