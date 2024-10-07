@@ -2,10 +2,6 @@ import { VideoLayoutChangedEventParams } from '@signalwire/core'
 
 export interface CallFabricRoomSessionConnectionContract {
   /**
-   * The `layout.changed` event based on the current room layout
-   */
-  currentLayoutEvent: VideoLayoutChangedEventParams
-  /**
    * The layout returned from the `layout.changed` event based on the current room layout
    */
   currentLayout: VideoLayoutChangedEventParams['layout']
