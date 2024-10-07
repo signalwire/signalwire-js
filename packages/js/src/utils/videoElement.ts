@@ -69,6 +69,8 @@ const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
   return layer
 }
 
+const _memberOverlayId = (id?: string) => (id ? `sw-${id}-overlay` : '')
+
 export interface LocalOverlay {
   readonly id: string
   status: 'hidden' | 'visible'
@@ -94,72 +96,78 @@ const makeLayoutChangedHandler =
   ({ localOverlay, rootElement }: MakeLayoutChangedHandlerParams) =>
   async ({ layout, myMemberId, localStream }: LayoutChangedHandlerParams) => {
     getLogger().debug('Process layout.changed')
-    try {
-      const { layers = [] } = layout
-      const location = layers.find(({ member_id }) => member_id === myMemberId)
 
+    const { layers = [] } = layout
+
+    if (!layers.some(({ member_id }) => member_id === myMemberId)) {
+      getLogger().debug('Location not found')
       let myLayer = localOverlay.domElement
-      // Update localOverlay.status if a location has been found
-      localOverlay.status = location ? 'visible' : 'hidden'
-      if (!location) {
-        getLogger().debug('Location not found')
-        if (myLayer) {
-          getLogger().debug('Current layer not visible')
-          localOverlay.hide()
-        }
-
-        return
+      if (myLayer) {
+        getLogger().debug('Current layer not visible')
+        localOverlay.status = 'hidden'
+        localOverlay.hide()
       }
+    }
 
-      if (!myLayer) {
-        getLogger().debug('Build myLayer')
-        myLayer = _buildLayer({ location })
-        myLayer.id = localOverlay.id
-
-        const localVideo = buildVideo()
-        localVideo.srcObject = localStream
-        localVideo.disablePictureInPicture = true
-        localVideo.style.width = '100%'
-        localVideo.style.height = '100%'
-        localVideo.style.pointerEvents = 'none'
-        localVideo.style.objectFit = 'cover'
-
-        myLayer.appendChild(localVideo)
+    layers.forEach((location) => {
+      try {
+        const isMyLayer = location.member_id === myMemberId
 
         const mcuLayers = rootElement.querySelector('.mcuLayers')
-        if (mcuLayers) {
-          mcuLayers.innerHTML = ''
-          getLogger().debug('Build myLayer append it')
-          mcuLayers.appendChild(myLayer)
-          localOverlay.domElement = myLayer
-          localOverlay.setLocalOverlayMirror()
-          return
+        const memberOverlays = (
+          mcuLayers ? Array.from(mcuLayers.children) : []
+        ) as HTMLDivElement[]
+        let memberOverlay = memberOverlays.find(
+          (overlay) => overlay.id === _memberOverlayId(location.member_id)
+        )
+
+        if (!memberOverlay) {
+          memberOverlay = _buildLayer({ location })
+          memberOverlay.id = _memberOverlayId(location.member_id)
+
+          if (isMyLayer) {
+            getLogger().debug('Build myLayer')
+            const videoLayer = document.createElement('div')
+            const localVideo = buildVideo()
+            localVideo.srcObject = localStream
+            localVideo.disablePictureInPicture = false
+            localVideo.style.width = '100%'
+            localVideo.style.height = '100%'
+            localVideo.style.pointerEvents = 'none'
+            localVideo.style.objectFit = 'cover'
+            videoLayer.appendChild(localVideo)
+            memberOverlay.appendChild(videoLayer)
+            localOverlay.domElement = videoLayer
+            localOverlay.setLocalOverlayMirror()
+            localOverlay.status = 'visible'
+            getLogger().debug('Build myLayer append it')
+          }
+
+          mcuLayers?.appendChild(memberOverlay)
+        } else {
+          const { top, left, width, height } = _getLocationStyles(location)
+          memberOverlay.style.top = top
+          memberOverlay.style.left = left
+          memberOverlay.style.width = width
+          memberOverlay.style.height = height
+
+          if (isMyLayer) {
+            localOverlay.status = 'visible'
+            const hasVideo =
+              localStream
+                .getVideoTracks()
+                .filter((t) => t.enabled && t.readyState === 'live').length > 0
+            if (hasVideo) {
+              localOverlay.setLocalOverlayMediaStream(localStream)
+            } else {
+              localOverlay.hide()
+            }
+          }
         }
-
-        getLogger().debug('Build myLayer >> wait next')
-        return
+      } catch (error) {
+        getLogger().error('Layout Changed Error', error)
       }
-
-      const { top, left, width, height } = _getLocationStyles(location)
-      getLogger().debug('Update myLayer:', top, left, width, height)
-      /**
-       * Show myLayer only if the localStream has a valid video track
-       */
-      const hasVideo =
-        localStream
-          .getVideoTracks()
-          .filter((t) => t.enabled && t.readyState === 'live').length > 0
-      if (hasVideo) {
-        localOverlay.setLocalOverlayMediaStream(localStream)
-      }
-      myLayer.style.opacity = hasVideo ? '1' : '0'
-      myLayer.style.top = top
-      myLayer.style.left = left
-      myLayer.style.width = width
-      myLayer.style.height = height
-    } catch (error) {
-      getLogger().error('Layout Changed Error', error)
-    }
+    })
   }
 
 const cleanupElement = (rootElement: HTMLElement) => {
