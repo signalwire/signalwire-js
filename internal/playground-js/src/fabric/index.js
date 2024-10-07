@@ -274,6 +274,7 @@ window.connect = async ({ reattach = false } = {}) => {
     console.debug('>> room.joined ', params)
 
     // Set or update the query parameter 'room' with value room.name
+    if (!params.room_session.name || !params.room_session.name?.length) return
     const url = new URL(window.location.href)
     url.searchParams.set('room', params.room_session.name)
     window.history.pushState({}, '', url)

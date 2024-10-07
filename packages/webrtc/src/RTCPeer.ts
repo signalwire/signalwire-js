@@ -827,8 +827,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (streamIsValid(this.options.localStream)) {
       return this.options.localStream
     }
-    const remoteSDP = this.remoteSdp ?? this.options.remoteSdp
-    const constraints = await getMediaConstraints(this.options, remoteSDP)
+    const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
   }
 

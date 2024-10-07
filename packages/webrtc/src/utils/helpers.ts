@@ -2,7 +2,6 @@ import { getLogger } from '@signalwire/core'
 import { getUserMedia as _getUserMedia } from './getUserMedia'
 import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
-import { hasMediaSection } from './sdpHelpers'
 
 // FIXME: Remove and use getUserMedia directly
 export const getUserMedia = (constraints: MediaStreamConstraints) => {
@@ -16,17 +15,11 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
 }
 
 export const getMediaConstraints = async (
-  options: ConnectionOptions,
-  remoteSDP?: string
+  options: ConnectionOptions
 ): Promise<MediaStreamConstraints> => {
-  const { audio: optionsAudio, micId } = options
+  let { audio = true, micId } = options
   const { micLabel = '' } = options
-  let audio: boolean | MediaTrackConstraints =
-    (remoteSDP && hasMediaSection(remoteSDP, 'audio')) || !remoteSDP
-      ? optionsAudio ?? true
-      : false //should not request audio when the remote SDP don't accept audio
-
-  if (micId && audio) {
+  if (micId) {
     const newMicId = await assureDeviceId(micId, micLabel, 'microphone').catch(
       (_error) => null
     )
@@ -38,14 +31,9 @@ export const getMediaConstraints = async (
     }
   }
 
-  let { video: optionsVideo, camId } = options
+  let { video = false, camId } = options
   const { camLabel = '' } = options
-  let video: boolean | MediaTrackConstraints =
-    (remoteSDP && hasMediaSection(remoteSDP, 'video')) || !remoteSDP
-      ? optionsVideo ?? !!camId
-      : false //should not request video when the remote SDP don't accept video
-
-  if (camId && video) {
+  if (camId) {
     const newCamId = await assureDeviceId(camId, camLabel, 'camera').catch(
       (_error) => null
     )
