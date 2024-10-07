@@ -128,6 +128,7 @@ const makeLayoutChangedHandler =
           if (isMyLayer) {
             getLogger().debug('Build myLayer')
             const videoLayer = document.createElement('div')
+            videoLayer.id = localOverlay.id
             const localVideo = buildVideo()
             localVideo.srcObject = localStream
             localVideo.disablePictureInPicture = false
