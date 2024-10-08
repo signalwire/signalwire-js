@@ -388,6 +388,8 @@ export const expectRoomJoined = (
 }
 
 export const expectMCUVisible = async (page: Page) => {
+  console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  console.log("page.waitForSelector('div[id^='sw-sdk-'] > video'")
   await page.waitForSelector('div[id^="sw-sdk-"] > video')
 }
 

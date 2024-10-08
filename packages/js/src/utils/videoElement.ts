@@ -129,7 +129,7 @@ const makeLayoutChangedHandler =
           memberOverlay.id = _memberOverlayId(location.member_id)
 
           if (isMyLayer) {
-            getLogger().debug('Build myLayer')
+            console.log('Build myLayer')
             const videoLayer = document.createElement('div')
             videoLayer.id = localOverlay.id
             const localVideo = buildVideo()
@@ -144,9 +144,10 @@ const makeLayoutChangedHandler =
             localOverlay.domElement = videoLayer
             localOverlay.setLocalOverlayMirror()
             localOverlay.status = 'visible'
-            getLogger().debug('Build myLayer append it')
+            console.log('Build myLayer append it')
           }
 
+          console.log('append to', mcuLayers)
           mcuLayers?.appendChild(memberOverlay)
         } else {
           const { top, left, width, height } = _getLocationStyles(location)
