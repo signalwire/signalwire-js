@@ -163,6 +163,16 @@ const makeLayoutChangedHandler =
                 .getVideoTracks()
                 .filter((t) => t.enabled && t.readyState === 'live').length > 0
             if (hasVideo) {
+              if(!memberOverlay.querySelector('video')) {
+                const videoLayer = document.createElement('div')
+                videoLayer.id = localOverlay.id
+                const localVideo = buildVideo()
+                videoLayer.appendChild(localVideo)
+                memberOverlay.appendChild(videoLayer)
+                localOverlay.domElement = videoLayer
+                localOverlay.setLocalOverlayMirror()
+                localOverlay.status = 'visible'
+              }
               localOverlay.setLocalOverlayMediaStream(localStream)
             } else {
               localOverlay.hide()
