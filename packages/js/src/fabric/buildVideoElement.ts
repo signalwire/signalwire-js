@@ -156,10 +156,10 @@ export const buildVideoElement = async (
       })
 
       // @ts-expect-error
-      const roomLastLayoutEvent = room.lastLayoutEvent
+      const roomCurrentLayoutEvent = room.lastLayoutEvent
       // If the `layout.changed` has already been received, process the layout
-      if (roomLastLayoutEvent) {
-        processLayoutChanged(roomLastLayoutEvent)
+      if (roomCurrentLayoutEvent) {
+        processLayoutChanged(roomCurrentLayoutEvent)
       }
     }
 
