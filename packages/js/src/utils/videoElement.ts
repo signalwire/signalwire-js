@@ -112,6 +112,9 @@ const makeLayoutChangedHandler =
     layers.forEach((location) => {
       try {
         const isMyLayer = location.member_id === myMemberId
+        console.log('#########################################')
+        console.log(`isMyLayer: ${isMyLayer}, ${myMemberId}`, JSON.stringify(location, null, 2))
+        console.log('#########################################')
 
         const mcuLayers = rootElement.querySelector('.mcuLayers')
         const memberOverlays = (
