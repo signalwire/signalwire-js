@@ -3,15 +3,12 @@ import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
-  expectMCUVisible
+  dialAddress,
+  expectMCUVisible,
 } from '../../utils'
 
 test.describe('Reattach Tests', () => {
-  test('WebRTC to Room', async ({
-    createCustomPage,
-    resource,
-  }) => {
-
+  test('WebRTC to Room', async ({ createCustomPage, resource }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
@@ -21,60 +18,26 @@ test.describe('Reattach Tests', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    let roomSession = await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          call.on('call.joined', resolve)
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    let roomSession = await dialAddress(page, {
+      address: `/public/${roomName}`,
+    })
 
     expect(roomSession.room_session).toBeDefined()
     const currentCallId = roomSession.call_id
 
     await expectMCUVisible(page)
 
-    await page.reload({ waitUntil: 'domcontentloaded'})
+    await page.reload({ waitUntil: 'domcontentloaded' })
     await createCFClient(page)
 
     // Reattach to an address to join the same call session
-    roomSession = await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.reattach({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          call.on('call.joined', resolve)
-
-          // @ts-expect-error
-          window._roomObj = call
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    roomSession = await dialAddress(page, {
+      address: `/public/${roomName}`,
+      reattach: true,
+    })
 
     expect(roomSession.call_id).toEqual(currentCallId)
-    // TODO the server is not sending a layout state on reattach 
+    // TODO the server is not sending a layout state on reattach
     // await expectMCUVisible(page)
   })
 
@@ -177,7 +140,7 @@ test.describe('Reattach Tests', () => {
   //   )
 
   //   expect(roomSession.call_id).toEqual(currentCallId)
-  //   // TODO the server is not sending a layout state on reattach 
+  //   // TODO the server is not sending a layout state on reattach
   //   // await expectMCUVisible(page)
   // })
 })

@@ -37,7 +37,10 @@ const reattachTests = [
 ]
 const callfabricTests = [
   'address.spec.ts',
+  'buildVideoElement.spec.ts',
   'conversation.spec.ts',
+  'raiseHand.spec.ts',
+  'reattach.spec.ts',
   'relayApp.spec.ts',
   'swml.spec.ts',
   'videoRoom.spec.ts',
