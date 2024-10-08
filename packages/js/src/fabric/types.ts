@@ -179,6 +179,8 @@ export interface GetAddressesParams {
   type?: string
   displayName?: string
   pageSize?: number
+  sortBy?: 'name' | 'created_at'
+  sortOrder?: 'asc' | 'desc'
 }
 
 export interface GetAddressByIdParams {

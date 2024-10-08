@@ -3,29 +3,63 @@ name: v2 WebRTC Calling Tests
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      region:
+        description: 'Region to test (leave empty to run all)'
+        type: choice
+        required: false
+        options:
+          - ''
+          - 'us'
+          - 'ch'
+          - 'eu'
+          - 'spr-preprod'
+          - 'euswcom'
+          - 'staging'
   schedule:
-    - cron: '0/20 * * * *'
+    - cron: '0/30 * * * *'
 
 concurrency:
   group: ${{ github.workflow }}-e2e-webrtc-calling-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  determine_regions:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-regions.outputs.matrix }}
+    steps:
+      - name: Set regions
+        id: set-regions
+        run: |
+          REGIONS='[
+            {"name": "us", "environment": "production", "config": "PRODUCTION_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""},
+            {"name": "ch", "environment": "production-ch", "config": "PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "eu", "environment": "production-eu", "config": "PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "spr-preprod", "environment": "production-spr-preprod", "config": "PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "euswcom", "environment": "production-euswcom", "config": "PRODUCTION_EUSWCOM_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""},
+            {"name": "staging", "environment": "staging", "config": "STAGING_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""}
+          ]'
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.region }}" ]; then
+            SELECTED_REGION='${{ github.event.inputs.region }}'
+            FILTERED_REGIONS=$(echo $REGIONS | jq -c "[.[] | select(.name == \"$SELECTED_REGION\")]")
+          else
+            FILTERED_REGIONS=$REGIONS
+          fi
+          echo "$FILTERED_REGIONS"
+          echo "matrix=$(echo $FILTERED_REGIONS | jq -c '{region: .}')" >> $GITHUB_OUTPUT
+
   e2e-tests:
     name: Run E2E tests
+    needs: determine_regions
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 1
-      matrix:
-        region:
-          - { name: 'us', environment: 'production', config: 'PRODUCTION_E2E_JS_SW_TEST_CONFIG', cxml_conference_region: '' }
-          - { name: 'ch', environment: 'production-ch', config: 'PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG', cxml_conference_region: '' }
-          - { name: 'eu', environment: 'production-eu', config: 'PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG', cxml_conference_region: 'region="eu"' }
-          # - { name: 'me', environment: 'production-me', config: 'PRODUCTION_E2E_JS_MEREGION_SW_TEST_CONFIG', cxml_conference_region: '' }
-          - { name: 'spr-preprod', environment: 'production-spr-preprod', config: 'PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG', cxml_conference_region: 'region="eu"' }
-          - { name: 'staging', environment: 'staging', config: 'STAGING_E2E_JS_SW_TEST_CONFIG', cxml_conference_region: '' }
+      max-parallel: 2
+      matrix: ${{ fromJson(needs.determine_regions.outputs.matrix) }}
     steps:
+      - run: |
+          echo ${{matrix.region.name}}
       - uses: actions/checkout@v4
       - name: Install deps
         uses: ./.github/actions/install
@@ -39,7 +73,7 @@ jobs:
         uses: ./.github/actions/playwright
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
-      - name: Test
+      - name: Run test for ${{ matrix.region.name }}
         id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
         env:

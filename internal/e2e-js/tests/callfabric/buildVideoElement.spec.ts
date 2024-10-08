@@ -1,5 +1,10 @@
 import { test, expect } from '../../fixtures'
-import { SERVER_URL, createCFClient, expectMCUVisible } from '../../utils'
+import {
+  SERVER_URL,
+  createCFClient,
+  dialAddress,
+  expectMCUVisible,
+} from '../../utils'
 
 test.describe('buildVideoElement', () => {
   test('should not render any video if rootElement is not passed', async ({
@@ -11,27 +16,11 @@ test.describe('buildVideoElement', () => {
 
     await createCFClient(page)
 
-    // Dial an address and join a video room
-    await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-          })
-
-          call.on('room.joined', resolve)
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    // Dial an address and join a video room without passing the rootElement
+    await dialAddress(page, {
+      address: `/public/${roomName}`,
+      shouldPassRootElement: false,
+    })
 
     const videoElement = await page.$('div[id^="sw-sdk-"] > video')
     expect(videoElement).toBeNull()
@@ -44,32 +33,26 @@ test.describe('buildVideoElement', () => {
 
     await createCFClient(page)
 
+    // Dial an address and join a video room without passing the rootElement
+    await dialAddress(page, {
+      address: `/public/${roomName}`,
+      shouldPassRootElement: false,
+      shouldWaitForJoin: false,
+    })
+
     // Dial an address and join a video room
-    const { element } = await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-
-          // @ts-expect-error
-          const { element } = await window._SWJS.buildVideoElement({
-            room: call,
-          })
-
-          resolve({ element })
+    const { element } = await page.evaluate(async () => {
+      return new Promise<any>(async (resolve, _reject) => {
+        // @ts-expect-error
+        const call = window._roomObj
+        // @ts-expect-error
+        const { element } = await window._SWJS.buildVideoElement({
+          room: call,
         })
-      },
-      { roomName }
-    )
+
+        resolve({ element })
+      })
+    })
 
     const videoElement = await page.$('div[id^="sw-sdk-"] > video')
     expect(videoElement).toBeNull()
@@ -85,28 +68,10 @@ test.describe('buildVideoElement', () => {
 
     await createCFClient(page)
 
-    // Create and expect 1 video elements
-    await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          call.on('room.joined', resolve)
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    // Dial and expect 1 video elements
+    await dialAddress(page, {
+      address: `/public/${roomName}`,
+    })
 
     await expectMCUVisible(page)
 

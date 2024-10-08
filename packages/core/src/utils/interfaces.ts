@@ -360,6 +360,8 @@ export type CallFabricMethod =
   | 'call.microphone.sensitivity.set'
   | 'call.lock'
   | 'call.unlock'
+  | 'call.raisehand'
+  | 'call.lowerhand'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
