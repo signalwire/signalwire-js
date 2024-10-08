@@ -83,10 +83,9 @@ export class WSClient {
     let video = true
     let negotiateVideo = true
 
-    const channelRegex = /\?channel\=(?<channel>(audio|video))/
-    const result = channelRegex.exec(params.to)
+    const toURL = new URL(`address:${params.to}`)
 
-    if (result && result.groups?.channel === 'audio') {
+    if (params.to && toURL.searchParams.get('channel') === 'audio') {
       video = false
       negotiateVideo = false
     }
@@ -100,7 +99,7 @@ export class WSClient {
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
-      destinationNumber: params.to,
+      destinationNumber: toURL.pathname,
       watchMediaPackets: false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.options.userVariables,
