@@ -88,6 +88,7 @@ export type {
   VideoLayout,
   InternalVideoLayout,
   VideoLayoutEventNames,
+  VideoLayoutChangedEventParams,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
   VideoMemberEntity,
