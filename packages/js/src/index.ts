@@ -91,6 +91,7 @@ export type {
   VideoLayoutChangedEventParams,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
+  VideoRoomSubscribedEventParams,
   VideoMemberEntity,
   VideoMemberEventNames,
   MemberTalkingEventNames,
