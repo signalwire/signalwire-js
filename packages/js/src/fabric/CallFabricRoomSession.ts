@@ -9,7 +9,7 @@ import {
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
   getLogger,
-  VideoLayoutChangedEvent,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -49,7 +49,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
-  private _lastLayoutEvent: VideoLayoutChangedEvent
+  private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
@@ -78,7 +78,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._member?.memberId
   }
 
-  set lastLayoutEvent(event: VideoLayoutChangedEvent) {
+  set lastLayoutEvent(event: VideoLayoutChangedEventParams) {
     this._lastLayoutEvent = event
   }
 
@@ -87,7 +87,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   get currentLayout() {
-    return this._lastLayoutEvent?.params.layout
+    return this._lastLayoutEvent?.layout
   }
 
   private executeAction<

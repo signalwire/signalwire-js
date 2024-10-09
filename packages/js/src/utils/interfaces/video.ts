@@ -1,7 +1,6 @@
 import type {
   Rooms,
   BaseConnectionState,
-  InternalVideoLayout,
   VideoLayoutEventNames,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
@@ -37,6 +36,7 @@ import type {
   VideoRoomDeviceDisconnectedEventNames,
   DeviceDisconnectedEventParams,
   VideoRoomDeviceEventNames,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEvent } from '@signalwire/webrtc'
@@ -58,7 +58,6 @@ import type { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
  */
 type VideoMemberEntity = InternalVideoMemberEntity
 type VideoMemberEntityUpdated = InternalVideoMemberEntityUpdated
-type VideoLayout = InternalVideoLayout
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -98,7 +97,10 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   VideoRoomDeviceEventNames,
   (params: DeviceUpdatedEventParams) => void
 > &
-  Record<VideoLayoutEventNames, (params: { layout: VideoLayout }) => void> &
+  Record<
+    VideoLayoutEventNames,
+    (params: VideoLayoutChangedEventParams) => void
+  > &
   Record<
     Exclude<
       VideoMemberEventNames,
