@@ -96,6 +96,8 @@ const _addLocalVideoOverlay = (localOverlayController: LocalOverlay, memberOverl
   getLogger().debug('Build myLayer')
   const localVideoDiv = document.createElement('div')
   localVideoDiv.id = localOverlayController.id
+  localVideoDiv.style.width = '100%'
+  localVideoDiv.style.height = '100%'
   const localVideo = buildVideo()
   localVideo.disablePictureInPicture = true
   localVideo.style.width = '100%'
