@@ -65,6 +65,7 @@ const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
   layer.style.left = left
   layer.style.width = width
   layer.style.height = height
+  layer.style.zIndex = '20'
 
   return layer
 }
@@ -79,6 +80,17 @@ export interface LocalOverlay {
   show(): void
   setLocalOverlayMediaStream(stream: MediaStream): void
   setLocalOverlayMirror(mirror?: boolean): void
+  setLocalOverlayPosition({
+    top,
+    left,
+    width,
+    height,
+  }: {
+    top: string
+    left: string
+    width: string
+    height: string
+  }): void
 }
 
 interface MakeLayoutChangedHandlerParams {
@@ -92,12 +104,15 @@ interface LayoutChangedHandlerParams {
   localStream: MediaStream
 }
 
-const _addLocalVideoOverlay = (localOverlayController: LocalOverlay, memberOverlayDiv: HTMLDivElement) => {
+const _addLocalVideoOverlay = (
+  localOverlayController: LocalOverlay,
+  mcuLayer?: HTMLDivElement
+) => {
   getLogger().debug('Build myLayer')
   const localVideoDiv = document.createElement('div')
   localVideoDiv.id = localOverlayController.id
-  localVideoDiv.style.width = '100%'
-  localVideoDiv.style.height = '100%'
+  localVideoDiv.style.position = 'absolute'
+  localVideoDiv.style.zIndex = '10'
   const localVideo = buildVideo()
   localVideo.disablePictureInPicture = true
   localVideo.style.width = '100%'
@@ -105,7 +120,7 @@ const _addLocalVideoOverlay = (localOverlayController: LocalOverlay, memberOverl
   localVideo.style.pointerEvents = 'none'
   localVideo.style.objectFit = 'cover'
   localVideoDiv.appendChild(localVideo)
-  memberOverlayDiv.appendChild(localVideoDiv)
+  mcuLayer?.insertBefore(localVideoDiv, mcuLayer.firstChild)
   localOverlayController.domElement = localVideoDiv
   localOverlayController.setLocalOverlayMirror()
   localOverlayController.status = 'visible'
@@ -131,27 +146,30 @@ const makeLayoutChangedHandler =
     layers.forEach((location) => {
       try {
         const isMyLayer = location.member_id === myMemberId
-        const mcuLayers = rootElement.querySelector('.mcuLayers')
+        const mcuLayers = rootElement.querySelector(
+          '.mcuLayers'
+        ) as HTMLDivElement
         const memberOverlays = (
           mcuLayers ? Array.from(mcuLayers.children) : []
         ) as HTMLDivElement[]
         let memberOverlay = memberOverlays.find(
           (overlay) => overlay.id === _memberOverlayId(location.member_id)
         )
+        const { top, left, width, height } = _getLocationStyles(location)
 
         if (!memberOverlay) {
           memberOverlay = _buildLayer({ location })
           memberOverlay.id = _memberOverlayId(location.member_id)
 
           if (isMyLayer) {
-            _addLocalVideoOverlay(localOverlay, memberOverlay)
+            _addLocalVideoOverlay(localOverlay, mcuLayers)
             localOverlay.setLocalOverlayMediaStream(localStream)
+            localOverlay.setLocalOverlayPosition({ top, left, width, height })
             getLogger().debug('Build myLayer append it')
           }
 
           mcuLayers?.appendChild(memberOverlay)
         } else {
-          const { top, left, width, height } = _getLocationStyles(location)
           memberOverlay.style.top = top
           memberOverlay.style.left = left
           memberOverlay.style.width = width
@@ -164,10 +182,11 @@ const makeLayoutChangedHandler =
                 .getVideoTracks()
                 .filter((t) => t.enabled && t.readyState === 'live').length > 0
             if (hasVideo) {
-              if(!memberOverlay.querySelector('video')) {
-                _addLocalVideoOverlay(localOverlay, memberOverlay)
+              if (!mcuLayers.querySelector('video')) {
+                _addLocalVideoOverlay(localOverlay, mcuLayers)
               }
               localOverlay.setLocalOverlayMediaStream(localStream)
+              localOverlay.setLocalOverlayPosition({ top, left, width, height })
             } else {
               localOverlay.hide()
             }

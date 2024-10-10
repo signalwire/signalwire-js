@@ -115,6 +115,24 @@ export const buildVideoElement = async (
           videoEl.style.webkitTransform = 'scale(1, 1)'
         }
       },
+      setLocalOverlayPosition({
+        top,
+        left,
+        width,
+        height,
+      }: {
+        top: string,
+        left: string,
+        width: string,
+        height: string,
+      }) {
+        if(this.domElement) {
+        this.domElement.style.top = top
+        this.domElement.style.left = left
+        this.domElement.style.width = width
+        this.domElement.style.height = height
+        }
+      }
     }
 
     const makeLayoutHandler = makeLayoutChangedHandler({
