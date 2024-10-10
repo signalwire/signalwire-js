@@ -6,10 +6,10 @@ import {
   JSONRPCMethod,
   VideoMemberEntity,
   Rooms,
-  VideoLayoutChangedEventParams,
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
   getLogger,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -21,9 +21,9 @@ import {
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
 } from '../video'
-import { BaseConnection } from '@signalwire/webrtc'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -36,15 +36,13 @@ interface ExecuteMemberActionParams extends ExecuteActionParams {
 }
 
 type CallFabricBaseRoomSession = Omit<
-  BaseRoomSession<CallFabricRoomSessionConnection>,
+  BaseRoomSession<CallFabricRoomSession>,
   'join'
 >
 
-export interface CallFabricRoomSession extends CallFabricBaseRoomSession {
-  start: CallFabricRoomSessionConnection['start']
-  answer: BaseConnection<CallFabricRoomSession>['answer']
-  hangup: RoomSessionConnection['hangup']
-}
+export interface CallFabricRoomSession
+  extends CallFabricRoomSessionConnectionContract,
+    CallFabricBaseRoomSession {}
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
@@ -53,7 +51,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
 
-  override async hangup(id?: string | undefined): Promise<void> {
+  override async hangup(id?: string): Promise<void> {
     this._self = undefined
     this._member = undefined
     const result = await super.hangup(id)
@@ -80,12 +78,16 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._member?.memberId
   }
 
-  set lastLayoutEvent(event: any) {
+  set lastLayoutEvent(event: VideoLayoutChangedEventParams) {
     this._lastLayoutEvent = event
   }
 
   get lastLayoutEvent() {
     return this._lastLayoutEvent
+  }
+
+  get currentLayout() {
+    return this._lastLayoutEvent?.layout
   }
 
   private executeAction<
@@ -128,8 +130,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   protected override initWorker() {
     /**
      * The unified eventing or CallFabric worker creates/stores member instances in the instance map
-     * For now, the member instances are only required in the CallFabric SDK
-     * It also handles `call.*` events
+     * For now, the member instances are only required in the CallFabric SDK.
      */
     this.runWorker('callFabricWorker', {
       worker: callFabricWorker,
@@ -269,9 +270,18 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setLayout(params: { name: string }) {
+  public setRaisedHand(params?: Rooms.SetRaisedHandRoomParams) {
+    const { raised = true, memberId } = params || {}
+    return this.executeAction<BaseRPCResult>({
+      method: raised ? 'call.raisehand' : 'call.lowerhand',
+      memberId,
+    })
+  }
+
+  public setLayout(params: Rooms.SetLayoutParams) {
     const extraParams = {
-      layout: params?.name,
+      layout: params.name,
+      positions: params.positions,
     }
     return this.executeAction<BaseRPCResult>({
       method: 'call.layout.set',

@@ -26,6 +26,7 @@ export type InternalVideoLayoutEventNames =
  * Base Interface for a VideoLayout entity
  */
 export interface VideoLayout {
+  id: string
   name: string
   roomSessionId: string
   roomId: string
