@@ -762,8 +762,8 @@ export const createCallWithCompatibilityApi = async (
 
   if (Number.isInteger(Number(response.status)) && response.status !== null) {
     if (response.status !== 201) {
-      const responseBody = await response.json();
-      const formattedBody = JSON.stringify(responseBody, null, 2);
+      const responseBody = await response.json()
+      const formattedBody = JSON.stringify(responseBody, null, 2)
 
       console.log(
         'ERROR - response from REST API: ',
@@ -999,18 +999,20 @@ export const expectInjectRelayHost = async (page: Page, host: string) => {
   )
 }
 
-export const expectInjectIceTransportPolicy = async (page: Page, iceTransportPolicy: string) => {
+export const expectInjectIceTransportPolicy = async (
+  page: Page,
+  iceTransportPolicy: string
+) => {
   await page.evaluate(
     async (params) => {
       // @ts-expect-error
       window.__iceTransportPolicy = params.iceTransportPolicy
     },
     {
-      iceTransportPolicy
+      iceTransportPolicy,
     }
   )
 }
-
 
 export const expectRelayConnected = async (
   page: Page,
@@ -1086,12 +1088,11 @@ export const expectCFFinalEvents = (
       roomObj.on('destroy', () => resolve(true))
     })
 
-    return callLeft;
+    return callLeft
   })
 
   return Promise.all([finalEvents, ...extraEvents])
 }
-
 
 export interface Resource {
   id: string
@@ -1187,4 +1188,66 @@ export const deleteResource = async (id: string) => {
     }
   )
   return response
+}
+
+interface DialAddressParams {
+  address: string
+  shouldWaitForJoin?: boolean
+  shouldStartCall?: boolean
+  shouldPassRootElement?: boolean
+  reattach?: boolean
+}
+export const dialAddress = (page: Page, params: DialAddressParams) => {
+  const {
+    address,
+    reattach = false,
+    shouldPassRootElement = true,
+    shouldStartCall = true,
+    shouldWaitForJoin = true,
+  } = params
+  return page.evaluate(
+    async ({
+      address,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }) => {
+      return new Promise<any>(async (resolve, _reject) => {
+        // @ts-expect-error
+        const client = window._client
+
+        const dialer = reattach ? client.reattach : client.dial
+
+        const call = await dialer({
+          to: address,
+          ...(shouldPassRootElement && {
+            rootElement: document.getElementById('rootElement'),
+          }),
+        })
+
+        if (shouldWaitForJoin) {
+          call.on('room.joined', resolve)
+        }
+
+        // @ts-expect-error
+        window._roomObj = call
+
+        if (shouldStartCall) {
+          await call.start()
+        }
+
+        if (!shouldWaitForJoin) {
+          resolve(call)
+        }
+      })
+    },
+    {
+      address,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }
+  )
 }

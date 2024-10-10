@@ -3,6 +3,7 @@ import { test } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
+  dialAddress,
   expectCFFinalEvents,
   expectCFInitialEvents,
   expectPageReceiveAudio,
@@ -56,27 +57,12 @@ test.describe('CallFabric SWML', () => {
 
     await createCFClient(page)
 
-    page.resetWsTraffic()
     // Dial an address and listen a TTS
-    await page.evaluate(
-      async ({ resourceName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/private/${resourceName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          resolve(call)
-        })
-      },
-      { resourceName }
-    )
+    await dialAddress(page, {
+      address: `/private/${resourceName}`,
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+    })
 
     const callPlayStarted = page.evaluate(async () => {
       // @ts-expect-error
@@ -87,7 +73,7 @@ test.describe('CallFabric SWML', () => {
         })
       })
     })
-    
+
     const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
 
     await page.evaluate(async () => {
@@ -102,7 +88,6 @@ test.describe('CallFabric SWML', () => {
     await expectPageReceiveAudio(page)
 
     await expectCFFinalEvents(page)
-
   })
 
   test('should dial an address and expect a hangup', async ({
@@ -121,25 +106,11 @@ test.describe('CallFabric SWML', () => {
     await createCFClient(page)
 
     // Dial an address and listen a TTS
-    await page.evaluate(
-      async ({ resourceName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/private/${resourceName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          resolve(call)
-        })
-      },
-      { resourceName }
-    )
+    await dialAddress(page, {
+      address: `/private/${resourceName}`,
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+    })
 
     const expectInitialEvents = expectCFInitialEvents(page)
     const expectFinalEvents = expectCFFinalEvents(page)
