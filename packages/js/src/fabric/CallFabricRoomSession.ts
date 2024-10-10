@@ -32,7 +32,13 @@ interface ExecuteActionParams {
 
 interface ExecuteMemberActionParams extends ExecuteActionParams {
   channel?: 'audio' | 'video'
-  memberId?: string
+  memberId?: string | string[]
+}
+
+interface RequestMemberParams {
+  node_id: string
+  member_id: string
+  call_id: string
 }
 
 type CallFabricBaseRoomSession = Omit<
@@ -100,10 +106,44 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    const targetMember = memberId
-      ? this.instanceMap.get<RoomSessionMember>(memberId)
-      : this.member
-    if (!targetMember) throw new Error('No target param found to execute')
+    const targets: { target: RequestMemberParams & Record<string, string> }[] =
+      []
+    let target: {
+      target: RequestMemberParams & Record<string, string>
+    } | null = null
+
+    if (Array.isArray(memberId)) {
+      memberId.forEach((id) => {
+        const targetMember = this.instanceMap.get<RoomSessionMember>(id)
+        if (targetMember) {
+          targets.push({
+            target: {
+              node_id: targetMember.nodeId!,
+              member_id: targetMember.id,
+              call_id: targetMember.callId!,
+            },
+            ...extraParams,
+          })
+        }
+      })
+
+      if (!targets.length) throw new Error('No target param found to execute')
+    } else {
+      const targetMember = memberId
+        ? this.instanceMap.get<RoomSessionMember>(memberId)
+        : this.member
+
+      if (!targetMember) throw new Error('No target param found to execute')
+
+      target = {
+        target: {
+          node_id: targetMember.nodeId!,
+          member_id: targetMember.id,
+          call_id: targetMember.callId!,
+        },
+        ...extraParams,
+      }
+    }
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
@@ -115,12 +155,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
             call_id: this.selfMember?.callId,
             node_id: this.selfMember?.nodeId,
           },
-          target: {
-            member_id: targetMember.id,
-            call_id: targetMember.callId,
-            node_id: targetMember.nodeId,
-          },
-          ...extraParams,
+          ...(target && { ...target }),
+          ...(targets.length && { targets }),
         },
       },
       options
@@ -160,7 +196,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  override async join() {
+  /** @internal */
+  public override async join() {
     if (this.options.attach) {
       this.options.prevCallId =
         getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
@@ -316,6 +353,17 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       extraParams: {
         value: params?.value,
       },
+    })
+  }
+
+  public setPosition(params: Rooms.SetMemberPositionParams) {
+    const extraParams = {
+      position: params.position,
+    }
+    return this.executeAction<BaseRPCResult>({
+      method: 'call.member.position.set',
+      extraParams,
+      memberId: [params?.memberId ?? this.memberId!],
     })
   }
 
