@@ -355,6 +355,7 @@ export type CallFabricMethod =
   | 'call.layout.list'
   | 'call.member.list'
   | 'call.member.remove'
+  | 'call.member.position.set'
   | 'call.layout.set'
   | 'call.microphone.volume.set'
   | 'call.microphone.sensitivity.set'
