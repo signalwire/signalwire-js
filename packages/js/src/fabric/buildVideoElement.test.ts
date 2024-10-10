@@ -227,7 +227,7 @@ describe('buildVideoElement', () => {
 
       const mcuLayers = result.element.querySelector('.mcuLayers')
       expect(mcuLayers).not.toBeNull()
-      expect(mcuLayers!.childElementCount).toBe(1)
+      expect(mcuLayers!.childElementCount).toBe(2)
     })
 
     it('should render two elements if the IDs are different', async () => {
@@ -254,7 +254,7 @@ describe('buildVideoElement', () => {
 
       const mcuLayers1 = result1.element.querySelector('.mcuLayers')
       expect(mcuLayers1).not.toBeNull()
-      expect(mcuLayers1!.childElementCount).toBe(1)
+      expect(mcuLayers1!.childElementCount).toBe(2)
 
       const mockRootEl2 = document.createElement('div')
       mockRootEl2.id = 'rootElement2'
@@ -265,8 +265,8 @@ describe('buildVideoElement', () => {
 
       const mcuLayers2 = result2.element.querySelector('.mcuLayers')
       expect(mcuLayers2).not.toBeNull()
-      expect(mcuLayers2!.childElementCount).toBe(1)
-      expect(mcuLayers1!.childElementCount).toBe(1)
+      expect(mcuLayers2!.childElementCount).toBe(2)
+      expect(mcuLayers1!.childElementCount).toBe(2)
 
       expect(mcuLayers1).not.toBe(mcuLayers2)
     })
@@ -294,7 +294,7 @@ describe('buildVideoElement', () => {
 
       const mcuLayers1 = result1.element.querySelector('.mcuLayers')
       expect(mcuLayers1).not.toBeNull()
-      expect(mcuLayers1!.childElementCount).toBe(1)
+      expect(mcuLayers1!.childElementCount).toBe(2)
 
       const result2 = await renderAndStartVideo(mockRootEl)
       expect(result2).toHaveProperty('element')
@@ -302,8 +302,8 @@ describe('buildVideoElement', () => {
 
       const mcuLayers2 = result2.element.querySelector('.mcuLayers')
       expect(mcuLayers2).not.toBeNull()
-      expect(mcuLayers2!.childElementCount).toBe(1)
-      expect(mcuLayers1!.childElementCount).toBe(1)
+      expect(mcuLayers2!.childElementCount).toBe(2)
+      expect(mcuLayers1!.childElementCount).toBe(2)
 
       expect(mcuLayers1).toBe(mcuLayers2)
     })
