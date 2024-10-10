@@ -75,7 +75,6 @@ export class Client extends BaseClient<ClientEvents> {
     }
     
     room.on('room.subscribed', joinMutedHandler)
-    room.on('room.joined', joinMutedHandler)
 
     /**
      * Stop and Restore outbound audio on audio_muted event
