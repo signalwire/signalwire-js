@@ -10,9 +10,12 @@ const _getCodecPayloadType = (line: string) => {
 }
 
 /**
- * test if sdp has a video section
+ * Test if the SDP has a audio/video section
  */
-export const hasMediaSection = (sdp: string, media: 'audio' | 'video') => {
+export const sdpHasMediaDescription = (
+  sdp: string,
+  media: 'audio' | 'video'
+) => {
   return sdp.includes(`\r\nm=${media}`)
 }
 

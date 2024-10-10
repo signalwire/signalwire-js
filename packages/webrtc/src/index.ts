@@ -39,6 +39,7 @@ export {
   checkSpeakerPermissions,
   requestPermissions,
 } from './utils'
+export { sdpHasMediaDescription } from './utils/sdpHelpers'
 export * from './utils/interfaces'
 export {
   BaseConnection,

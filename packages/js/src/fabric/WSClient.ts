@@ -13,14 +13,7 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import { createClient } from './createClient'
 import { Client } from './Client'
-
-type BuildRoomParams = Omit<DialParams, 'to'> & {
-  attach: boolean
-  callID?: string
-  nodeId?: string
-  sdp?: string
-  to?: string
-}
+import { sdpHasMediaDescription } from '@signalwire/webrtc'
 
 export class WSClient {
   private wsClient: Client
@@ -61,42 +54,45 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return this.connectAndbuildRoomSession({ ...params, attach: false })
-  }
-
-  async reattach(params: DialParams) {
-    return this.connectAndbuildRoomSession({ ...params, attach: true })
-  }
-
-  private async connectAndbuildRoomSession(params: BuildRoomParams) {
     return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
-        const call = this.buildRoomSession(params)
+        const call = this.buildOutboundCall(params)
         resolve(call)
       } catch (error) {
-        getLogger().error('WSClient', error)
+        getLogger().error('Unable to connect and dial a call', error)
         reject(error)
       }
     })
   }
 
-  private buildRoomSession(params: BuildRoomParams) {
-    const { to, callID, nodeId, sdp } = params
+  async reattach(params: DialParams) {
+    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+      try {
+        await this.connect()
+        const call = this.buildOutboundCall({ ...params, reattach: true })
+        resolve(call)
+      } catch (error) {
+        getLogger().error('Unable to connect and reattach a call', error)
+        reject(error)
+      }
+    })
+  }
 
-    let video = params.video ?? true
+  private buildOutboundCall(params: DialParams & { reattach?: boolean }) {
+    let video = true
     let negotiateVideo = true
 
-    const toURL = new URL(`address:${to}`)
+    const toURL = new URL(`address:${params.to}`)
 
-    if (to && toURL.searchParams.get('channel') === 'audio') {
+    if (params.to && toURL.searchParams.get('channel') === 'audio') {
       video = false
       negotiateVideo = false
     }
 
     const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
-      video,
+      video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
       negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.options.rootElement,
@@ -105,12 +101,10 @@ export class WSClient {
       stopMicrophoneWhileMuted: true,
       destinationNumber: toURL.pathname,
       watchMediaPackets: false,
-      remoteSdp: sdp,
-      prevCallId: callID,
-      nodeId,
       disableUdpIceServers: params.disableUdpIceServers || false,
-      attach: params.attach,
       userVariables: params.userVariables || this.options.userVariables,
+      nodeId: params.nodeId,
+      attach: params.reattach || false,
     })
 
     // WebRTC connection left the room.
@@ -125,6 +119,52 @@ export class WSClient {
 
     // @ts-expect-error
     call.attachPreConnectWorkers()
+    return call
+  }
+
+  private buildInboundCall(payload: IncomingInvite, params: CallParams) {
+    let video = true
+    let audio = true
+    let negotiateAudio = true
+    let negotiateVideo = true
+
+    const remoteSdp = payload.sdp
+    if (!sdpHasMediaDescription(remoteSdp, 'video')) {
+      video = false
+      negotiateVideo = false
+    }
+    if (!sdpHasMediaDescription(remoteSdp, 'audio')) {
+      audio = false
+      negotiateAudio = false
+    }
+
+    const call = this.wsClient.makeCallFabricObject({
+      audio: params.audio ?? audio,
+      video: params.video ?? video,
+      negotiateAudio: negotiateAudio,
+      negotiateVideo: negotiateVideo,
+      rootElement: params.rootElement || this.options.rootElement,
+      applyLocalVideoOverlay: true,
+      stopCameraWhileMuted: true,
+      stopMicrophoneWhileMuted: true,
+      watchMediaPackets: false,
+      disableUdpIceServers: params.disableUdpIceServers || false,
+      userVariables: params.userVariables || this.options.userVariables,
+      prevCallId: payload.callID,
+      nodeId: payload.nodeId,
+      remoteSdp: payload.sdp,
+    })
+
+    // WebRTC connection left the room.
+    call.once('destroy', () => {
+      this.logger.debug('RTC Connection Destroyed')
+      call.destroy()
+    })
+
+    this.wsClient.once('session.disconnected', () => {
+      this.logger.debug('Session Disconnected')
+    })
+
     return call
   }
 
@@ -225,19 +265,6 @@ export class WSClient {
       this.logger.warn('The call is not available anymore', callId)
       throw error
     }
-  }
-
-  private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    getLogger().debug('Build new call to answer')
-
-    const { callID, nodeId, sdp } = payload
-    return this.buildRoomSession({
-      ...params,
-      attach: false,
-      callID,
-      nodeId,
-      sdp,
-    })
   }
 
   /**

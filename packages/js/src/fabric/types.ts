@@ -71,16 +71,18 @@ export interface CallParams {
   audio?: MediaStreamConstraints['audio']
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
-  /** Negotiate the incoming audio from the RTC. Default: `true`. */
-  negotiateAudio?: boolean
-  /** Negotiate the incoming video from the RTC. Default: `true`. */
-  negotiateVideo?: boolean
   /** User & UserAgent metadata */
   userVariables?: WSClientOptions['userVariables']
 }
 
 export interface DialParams extends CallParams {
+  /** Destination address. */
   to: string
+  /** Negotiate the incoming audio from the RTC. Default: `true`. */
+  negotiateAudio?: boolean
+  /** Negotiate the incoming video from the RTC. Default: `true`. */
+  negotiateVideo?: boolean
+  /** @internal */
   nodeId?: string
 }
 
