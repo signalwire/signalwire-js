@@ -2,6 +2,7 @@ import {
   uuid,
   VideoLayoutChangedEventParams,
   VideoPosition,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
 import {
@@ -131,7 +132,8 @@ test.describe('CallFabric Video Room Layout', () => {
     )
   })
 
-  // TODO: Complete this
+  // FIXME: Enable this when layout.changed event returns the member_id consistently
+  // See: https://github.com/signalwire/cloud-product/issues/12018
   test.skip('should join a room and be able to change other member position in the layout', async ({
     createCustomPage,
     resource,
@@ -146,22 +148,22 @@ test.describe('CallFabric Video Room Layout', () => {
 
     // Create client for pageOne and Dial an address to join a video room
     await createCFClient(pageOne)
-    const roomSessionOne = await dialAddress(pageOne, {
+    const roomSessionOne = (await dialAddress(pageOne, {
       address: `/public/${roomName}`,
-    })
+    })) as VideoRoomSubscribedEventParams
     expect(roomSessionOne.room_session).toBeDefined()
     await expectMCUVisible(pageOne)
 
     // Create client for pageTwo and Dial an address to join a video room
-    await createCFClient(pageOne)
-    const roomSessionTwo = await dialAddress(pageTwo, {
+    await createCFClient(pageTwo)
+    const roomSessionTwo = (await dialAddress(pageTwo, {
       address: `/public/${roomName}`,
-    })
+    })) as VideoRoomSubscribedEventParams
     expect(roomSessionTwo.room_session).toBeDefined()
     await expectMCUVisible(pageTwo)
 
     // --------------- Assert the current layout and position ---------------
-    const { currentLayout, currentPosition } = await pageOne.evaluate(
+    const { currentLayout, currentPosition } = await pageTwo.evaluate(
       async () => {
         // @ts-expect-error
         const roomObj: CallFabricRoomSession = window._roomObj
@@ -174,40 +176,77 @@ test.describe('CallFabric Video Room Layout', () => {
     expect(currentLayout).toBeDefined()
     expect(currentPosition).toBeDefined()
 
-    console.log('>> currentLayout', currentLayout)
+    // Assert the member_id should be present in the layout
+    const layers = currentLayout.layers.filter((layer) => !!layer.member_id)
+    await test.step('it should verify layout layers have length of 2', async () => {
+      expect(layers).toHaveLength(2)
+    })
 
-    // const secondPosition = currentLayout?.layers[1].position
-    // expect(secondPosition).toBeDefined()
+    // Assert the room's member_id should match with the layout's member_id
+    const [memberOneLayer, memberTwoLayer] = currentLayout.layers
+    await test.step('it should verify layout layers matches the member_id', async () => {
+      expect(memberOneLayer).toBeDefined()
+      expect(memberTwoLayer).toBeDefined()
+      expect(roomSessionOne.member_id).toBe(memberOneLayer.member_id)
+      expect(roomSessionTwo.member_id).toBe(memberTwoLayer.member_id)
+    })
 
-    // expect(currentPosition).not.toBe(secondPosition)
+    // --------------- Set the playback position for the second member via pageTwo ---------------
+    const pageOneRecievedEvent = pageTwo.evaluate(
+      async ({ memberTwoId, roomSessionOneId }) => {
+        // @ts-expect-error
+        const roomObj: CallFabricRoomSession = window._roomObj
 
-    // // --------------- Set position based on the current layout ---------------
-    // await page.evaluate(
-    //   async ({ roomSessionId, secondPosition }) => {
-    //     // @ts-expect-error
-    //     const roomObj: CallFabricRoomSession = window._roomObj
+        const memberUpdated = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (
+              params.room_session_id === roomSessionOneId &&
+              params.member.member_id === memberTwoId &&
+              params.member.current_position === ('playback' as VideoPosition)
+            ) {
+              resolve(true)
+            }
+          })
+        })
 
-    //     const memberUpdated = new Promise((resolve) => {
-    //       roomObj.on('member.updated', (params) => {
-    //         if (
-    //           params.room_session_id === roomSessionId &&
-    //           params.member.current_position === secondPosition
-    //         ) {
-    //           resolve(true)
-    //         }
-    //       })
-    //     })
+        return memberUpdated
+      },
+      {
+        memberTwoId: roomSessionTwo.member_id,
+        roomSessionOneId: roomSessionOne.room_session.id,
+      }
+    )
 
-    //     await roomObj.setPositions({
-    //       positions: { self: secondPosition as VideoPosition },
-    //     })
+    const pageTwoRecievedEvent = pageTwo.evaluate(
+      async ({ memberTwoId, roomSessionTwoId }) => {
+        // @ts-expect-error
+        const roomObj: CallFabricRoomSession = window._roomObj
 
-    //     return memberUpdated
-    //   },
-    //   {
-    //     roomSessionId: roomSession.room_session.room_session_id,
-    //     secondPosition,
-    //   }
-    // )
+        const memberUpdated = new Promise((resolve) => {
+          roomObj.on('member.updated', (params) => {
+            if (
+              params.room_session_id === roomSessionTwoId &&
+              params.member.member_id === memberTwoId &&
+              params.member.current_position === ('playback' as VideoPosition)
+            ) {
+              resolve(true)
+            }
+          })
+        })
+
+        await roomObj.setPositions({
+          positions: { [memberTwoId]: 'playback' as VideoPosition },
+        })
+
+        return memberUpdated
+      },
+      {
+        memberTwoId: roomSessionTwo.member_id,
+        roomSessionTwoId: roomSessionTwo.room_session.id,
+      }
+    )
+
+    await pageOneRecievedEvent
+    await pageTwoRecievedEvent
   })
 })
