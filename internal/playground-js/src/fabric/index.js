@@ -560,7 +560,7 @@ window.changeLayout = (select) => {
 }
 
 window.changePosition = (select) => {
-  roomObj.setPosition({ position: select.value })
+  roomObj.setPositions({ positions: { self: select.value } })
   currentPositionId = select.value
 }
 

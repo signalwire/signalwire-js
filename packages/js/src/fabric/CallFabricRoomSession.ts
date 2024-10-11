@@ -10,6 +10,7 @@ import {
   RoomSessionMember,
   getLogger,
   VideoLayoutChangedEventParams,
+  VideoPosition,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -32,7 +33,7 @@ interface ExecuteActionParams {
 
 interface ExecuteMemberActionParams extends ExecuteActionParams {
   channel?: 'audio' | 'video'
-  memberId?: string | string[]
+  memberId?: string
 }
 
 interface RequestMemberParams {
@@ -96,6 +97,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._lastLayoutEvent?.layout
   }
 
+  get currentPosition() {
+    return this._lastLayoutEvent?.layout.layers.find(
+      (layer) => layer.member_id === this.memberId
+    )?.position
+  }
+
   private executeAction<
     InputType,
     OutputType = InputType,
@@ -106,44 +113,10 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    const targets: { target: RequestMemberParams & Record<string, string> }[] =
-      []
-    let target: {
-      target: RequestMemberParams & Record<string, string>
-    } | null = null
-
-    if (Array.isArray(memberId)) {
-      memberId.forEach((id) => {
-        const targetMember = this.instanceMap.get<RoomSessionMember>(id)
-        if (targetMember) {
-          targets.push({
-            target: {
-              node_id: targetMember.nodeId!,
-              member_id: targetMember.id,
-              call_id: targetMember.callId!,
-            },
-            ...extraParams,
-          })
-        }
-      })
-
-      if (!targets.length) throw new Error('No target param found to execute')
-    } else {
-      const targetMember = memberId
-        ? this.instanceMap.get<RoomSessionMember>(memberId)
-        : this.member
-
-      if (!targetMember) throw new Error('No target param found to execute')
-
-      target = {
-        target: {
-          node_id: targetMember.nodeId!,
-          member_id: targetMember.id,
-          call_id: targetMember.callId!,
-        },
-        ...extraParams,
-      }
-    }
+    const targetMember = memberId
+      ? this.instanceMap.get<RoomSessionMember>(memberId)
+      : this.member
+    if (!targetMember) throw new Error('No target param found to execute')
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
@@ -155,8 +128,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
             call_id: this.selfMember?.callId,
             node_id: this.selfMember?.nodeId,
           },
-          ...(target && { ...target }),
-          ...(targets.length && { targets }),
+          target: {
+            member_id: targetMember.id,
+            call_id: targetMember.callId,
+            node_id: targetMember.nodeId,
+          },
+          ...extraParams,
         },
       },
       options
@@ -356,14 +333,50 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setPosition(params: Rooms.SetMemberPositionParams) {
-    const extraParams = {
-      position: params.position,
+  public setPositions(params: Rooms.SetPositionsParams) {
+    const positions = params.positions
+
+    if (positions && !Object.keys(positions).length) {
+      throw new Error('Invalid positions')
     }
-    return this.executeAction<BaseRPCResult>({
+
+    const targets: {
+      target: RequestMemberParams
+      position: VideoPosition
+    }[] = []
+
+    Object.entries(positions).forEach(([key, value]) => {
+      const targetMember =
+        key === 'self'
+          ? this.member
+          : this.instanceMap.get<RoomSessionMember>(key)
+
+      if (targetMember) {
+        targets.push({
+          target: {
+            member_id: targetMember.id,
+            call_id: targetMember.callId!,
+            node_id: targetMember.nodeId!,
+          },
+          position: value,
+        })
+      }
+    })
+
+    if (!targets.length) {
+      throw new Error('Invalid targets')
+    }
+
+    return this.execute({
       method: 'call.member.position.set',
-      extraParams,
-      memberId: [params?.memberId ?? this.memberId!],
+      params: {
+        self: {
+          member_id: this.selfMember?.id,
+          call_id: this.selfMember?.callId,
+          node_id: this.selfMember?.nodeId,
+        },
+        targets,
+      },
     })
   }
 
