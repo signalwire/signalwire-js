@@ -44,6 +44,7 @@ const callfabricTests = [
   'relayApp.spec.ts',
   'swml.spec.ts',
   'videoRoom.spec.ts',
+  'videoRoomLayout.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
