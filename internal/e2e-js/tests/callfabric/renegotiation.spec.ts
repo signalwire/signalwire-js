@@ -213,6 +213,8 @@ test.describe('CallFabric Renegotiation', () => {
 
     stats = await getStats(page)
 
+    expectMCUVisible(page)
+    
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).toHaveProperty('video')
   })
