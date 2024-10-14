@@ -15,17 +15,38 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
   return _getUserMedia(constraints)
 }
 
-export const getMediaConstraints = async (
-  options: ConnectionOptions,
-  remoteSDP?: string
-): Promise<MediaStreamConstraints> => {
-  const { audio: optionsAudio, micId } = options
-  const { micLabel = '' } = options
-  let audio: boolean | MediaTrackConstraints =
-    (remoteSDP && hasMediaSection(remoteSDP, 'audio')) || !remoteSDP
-      ? optionsAudio ?? true
-      : false //should not request audio when the remote SDP don't accept audio
+const _shouldNegotiateVideo = (options: ConnectionOptions) => {
+  return (
+    (options.negotiateVideo ?? true) &&
+    (!options.remoteSdp ||
+      hasMediaSection(options.remoteSdp, 'video'))
+  )
+}
 
+const _shouldNegotiateAudio = (options: ConnectionOptions) => {
+  return (
+    (options.negotiateAudio ?? true) &&
+    (!options.remoteSdp ||
+      hasMediaSection(options.remoteSdp, 'audio'))
+  )
+}
+
+const _getVideoConstraints = (options: ConnectionOptions) => {
+  return _shouldNegotiateVideo(options) ? options.video ?? !!options.camId
+    : false
+}
+
+const _getAudioConstraints = (options: ConnectionOptions) => {
+  return _shouldNegotiateAudio(options) ? options.audio ?? true
+    : false
+}
+
+export const getMediaConstraints = async (
+  options: ConnectionOptions
+): Promise<MediaStreamConstraints> => {
+  let  audio = _getAudioConstraints(options)
+  const { micLabel = '', micId } = options
+ 
   if (micId && audio) {
     const newMicId = await assureDeviceId(micId, micLabel, 'microphone').catch(
       (_error) => null
@@ -38,13 +59,9 @@ export const getMediaConstraints = async (
     }
   }
 
-  let { video: optionsVideo, camId } = options
-  const { camLabel = '' } = options
-  let video: boolean | MediaTrackConstraints =
-    (remoteSDP && hasMediaSection(remoteSDP, 'video')) || !remoteSDP
-      ? optionsVideo ?? !!camId
-      : false //should not request video when the remote SDP don't accept video
-
+  let video = _getVideoConstraints(options)
+  const { camLabel = '', camId } = options
+  
   if (camId && video) {
     const newCamId = await assureDeviceId(camId, camLabel, 'camera').catch(
       (_error) => null
