@@ -17,7 +17,7 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
 
 const _shouldNegotiateVideo = (options: ConnectionOptions) => {
   return (
-    (options.negotiateVideo ?? true) &&
+    (options.negotiateVideo || (options.video ?? !!options.camId)) &&
     (!options.remoteSdp ||
       hasMediaSection(options.remoteSdp, 'video'))
   )

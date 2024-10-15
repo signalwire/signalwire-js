@@ -4,6 +4,7 @@ import {
   SERVER_URL,
   createCFClient,
   expectMCUVisible,
+  expectMCUVisibleForAudience,
   getStats,
 } from '../../utils'
 import { CallFabricRoomSession } from '@signalwire/js'
@@ -58,7 +59,7 @@ test.describe('CallFabric Renegotiation', () => {
     await page.waitForTimeout(1000)
 
     let stats = await getStats(page)
-
+0
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).not.toHaveProperty('video')
 
@@ -71,12 +72,15 @@ test.describe('CallFabric Renegotiation', () => {
         await cfRoomSession.enableVideo();
     });
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(2000)
 
     stats = await getStats(page)
 
     expect(stats.outboundRTP).toHaveProperty('video')
     expect(stats.inboundRTP).toHaveProperty('video')
+
+    await page.waitForTimeout(2000)
+    expectMCUVisible(page)
   })
 
   test('Joining a room with audio channel only and enable sendOnly video', async ({
@@ -206,16 +210,17 @@ test.describe('CallFabric Renegotiation', () => {
         // @ts-expect-error
         const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
         // @ts-expect-error
-        await cfRoomSession.enableVideo({video: false, negotiateVideo: true});
+        await cfRoomSession.enableVideo({video: false, sendOnly: false});
     });
 
     await page.waitForTimeout(1000)
 
     stats = await getStats(page)
 
-    expectMCUVisible(page)
-    
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).toHaveProperty('video')
+
+    await page.waitForTimeout(1000)
+    expectMCUVisibleForAudience(page)
   })
 })
