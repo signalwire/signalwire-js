@@ -131,19 +131,6 @@ export function* memberUpdatedWorker({
   yield dispatcher?.(action.type, memberUpdatedPayload, instance)
 }
 
-export const MEMBER_POSITION_COMPOUND_EVENTS = new Map<any, any>([
-  [
-    'video.member.updated',
-    [
-      'video.layout.changed',
-      // `member.joined` and `member.left` are needed to
-      // keep the member list up to date
-      'video.member.joined',
-      'video.member.left',
-    ],
-  ],
-])
-
 export const memberPositionWorker: SDKWorker<any> =
   function* memberPositionWorker({
     instance,
@@ -256,9 +243,12 @@ const initializeMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const memberList: MemberEventParamsList = new Map()
 
   members.forEach((member) => {
-    memberList.set(member.id, {
+    const memberId = member.id || member.member_id!
+    const roomSessionId =
+      payload.room_session.id || payload.room_session.room_session_id!
+    memberList.set(memberId, {
       room_id: payload.room_session.room_id,
-      room_session_id: payload.room_session.id,
+      room_session_id: roomSessionId,
       // At this point we don't have `member.updated`
       // @ts-expect-error
       member,

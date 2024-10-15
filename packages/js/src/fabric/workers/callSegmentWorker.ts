@@ -74,38 +74,42 @@ export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
         case 'member.joined':
         case 'member.left':
         case 'member.updated':
-        case 'member.talking':
-          {
-            const updatedAction = {
-              ...action,
-              payload: {
-                ...action.payload,
-                id: action.payload.member_id,
+        case 'member.talking': {
+          const updatedAction = {
+            ...action,
+            payload: {
+              ...action.payload,
+              member: {
+                ...action.payload.member,
+                id: action.payload.member.member_id,
               },
-              type: `video.${type}` as VideoMemberEventNames,
-            }
+            },
+            type: `video.${type}` as VideoMemberEventNames,
+          }
 
+          // The "member.updated" event is handled by the @memberPositionWorker
+          if (type !== 'member.updated') {
             yield sagaEffects.fork(videoMemberWorker, {
               action: updatedAction,
               ...options,
             })
+          }
 
-            yield sagaEffects.put(swEventChannel, updatedAction)
-          }
+          yield sagaEffects.put(swEventChannel, updatedAction)
           break
-        case 'layout.changed':
-          {
-            // Upsert the layout event which is needed for rootElement
-            cfRoomSession.lastLayoutEvent = action.payload
-            const updatedAction = {
-              ...action,
-              type: `video.${type}` as 'video.layout.changed',
-            }
-            // TODO stop send layout events to legacy workers
-            yield sagaEffects.put(swEventChannel, updatedAction)
-            cfRoomSession.emit(type, payload)
+        }
+        case 'layout.changed': {
+          // Upsert the layout event which is needed for rootElement
+          cfRoomSession.lastLayoutEvent = action.payload
+          const updatedAction = {
+            ...action,
+            type: `video.${type}` as 'video.layout.changed',
           }
+          // TODO stop send layout events to legacy workers
+          yield sagaEffects.put(swEventChannel, updatedAction)
+          cfRoomSession.emit(type, payload)
           break
+        }
         case 'member.demoted':
         case 'member.promoted':
           getLogger().warn('promoted/demoted events not supported')
