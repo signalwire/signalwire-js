@@ -422,7 +422,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           offerOptions.offerToReceiveAudio = this.options.negotiateAudio
           offerOptions.offerToReceiveVideo = this.options.negotiateVideo
         }
+
         const offer = await this.instance.createOffer(offerOptions)
+        console.log(offer.sdp)
         await this._setLocalDescription(offer)
       }
       if (this.isAnswer) {
@@ -517,6 +519,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._rejectStartMethod = reject
 
       try {
+        this._disposeLocalStream()
         this._localStream = await this._retrieveLocalStream()
       } catch (error) {
         this._rejectStartMethod(error)
@@ -619,6 +622,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.startNegotiation()
       }
     })
+  }
+  _disposeLocalStream() {
+    this._localStream?.getTracks().forEach((track) => track.stop())
+    this._localStream = undefined
   }
 
   detachAndStop() {
