@@ -11,6 +11,7 @@ import {
   buildVideo,
   cleanupElement,
   makeLayoutChangedHandler,
+  makeOverlayHandler,
   setVideoMediaTrack,
   waitForVideoReady,
 } from '../utils/videoElement'
@@ -20,6 +21,7 @@ export interface BuildVideoElementParams {
   room: CallFabricRoomSession
   rootElement?: HTMLElement
   applyLocalVideoOverlay?: boolean
+  applyMemberOverlay?: boolean
 }
 
 export interface BuildVideoElementReturnType {
@@ -33,7 +35,12 @@ export const buildVideoElement = async (
   params: BuildVideoElementParams
 ): Promise<BuildVideoElementReturnType> => {
   try {
-    const { room, rootElement: element, applyLocalVideoOverlay = true } = params
+    const {
+      room,
+      rootElement: element,
+      applyLocalVideoOverlay = true,
+      applyMemberOverlay = true,
+    } = params
 
     const id = uuid()
 
@@ -45,8 +52,6 @@ export const buildVideoElement = async (
       rootElement.id = `rootElement-${id}`
     }
 
-    // Create a video element
-    const videoEl = buildVideo()
     const layerMap = new Map<string, HTMLDivElement>()
     let hasVideoTrack = false
 
@@ -58,38 +63,10 @@ export const buildVideoElement = async (
      * Instead of querying the `document`, let's use our `layerMap`.
      */
     const localOverlay: LocalOverlay = {
-      // Each `layout.changed` event will update `status`
-      status: 'hidden',
+      ...makeOverlayHandler(layerMap)(id),
       get id() {
         // FIXME: Use `id` until the `memberId` is stable between promote/demote
         return addSDKPrefix(id)
-      },
-      get domElement() {
-        return layerMap.get(this.id)
-      },
-      set domElement(element: HTMLDivElement | undefined) {
-        if (element) {
-          getLogger().debug('Set localOverlay', element)
-          layerMap.set(this.id, element)
-        } else {
-          getLogger().debug('Remove localOverlay')
-          layerMap.delete(this.id)
-        }
-      },
-      hide() {
-        if (!this.domElement) {
-          return getLogger().warn('Missing localOverlay to hide')
-        }
-        this.domElement.style.opacity = '0'
-      },
-      show() {
-        if (!this.domElement) {
-          return getLogger().warn('Missing localOverlay to show')
-        }
-        if (this.status === 'hidden') {
-          return getLogger().info('localOverlay not visible')
-        }
-        this.domElement.style.opacity = '1'
       },
       setLocalOverlayMediaStream(stream: MediaStream) {
         if (!this.domElement) {
@@ -120,6 +97,8 @@ export const buildVideoElement = async (
     const makeLayoutHandler = makeLayoutChangedHandler({
       rootElement,
       localOverlay,
+      applyMemberOverlay: true,
+      layerMap: layerMap,
     })
 
     const processLayoutChanged = (params: any) => {
@@ -150,9 +129,9 @@ export const buildVideoElement = async (
 
       await videoElementSetup({
         applyLocalVideoOverlay,
+        applyMemberOverlay,
         rootElement,
         track,
-        videoElement: videoEl,
       })
 
       // @ts-expect-error
@@ -233,20 +212,25 @@ export const buildVideoElement = async (
 interface VideoElementSetupWorkerParams {
   rootElement: HTMLElement
   track: MediaStreamTrack
-  videoElement: HTMLVideoElement
   applyLocalVideoOverlay?: boolean
+  applyMemberOverlay?: boolean
 }
 
 const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
-    const { applyLocalVideoOverlay, track, videoElement, rootElement } = options
+    const { applyLocalVideoOverlay, applyMemberOverlay, track, rootElement } =
+      options
+
+    // Create a video element
+    const videoElement = buildVideo()
 
     setVideoMediaTrack({ element: videoElement, track })
 
     videoElement.style.width = '100%'
     videoElement.style.maxHeight = '100%'
 
-    if (!applyLocalVideoOverlay) {
+    // If the both flags are false, no need to create the MCU
+    if (!applyLocalVideoOverlay && !applyMemberOverlay) {
       rootElement.appendChild(videoElement)
       return
     }

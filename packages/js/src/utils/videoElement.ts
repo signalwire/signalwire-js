@@ -5,8 +5,12 @@ import {
   debounce,
 } from '@signalwire/core'
 
-const addSDKPrefix = (input: string) => {
-  return `sw-sdk-${input}`
+const addSDKPrefix = (id: string) => {
+  return `sw-sdk-${id}`
+}
+
+const addOverlayPrefix = (id: string) => {
+  return `sw-overlay-${id}`
 }
 
 const buildVideo = () => {
@@ -69,19 +73,83 @@ const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
   return layer
 }
 
-export interface LocalOverlay {
+const _updateLayer = ({
+  location,
+  element,
+}: {
+  location: InternalVideoLayoutLayer
+  element: HTMLElement
+}) => {
+  const { top, left, width, height } = _getLocationStyles(location)
+  element.style.top = top
+  element.style.left = left
+  element.style.width = width
+  element.style.height = height
+
+  return element
+}
+
+export interface MemberOverlay {
   readonly id: string
   status: 'hidden' | 'visible'
   domElement: HTMLDivElement | undefined
   hide(): void
   show(): void
+}
+
+export interface LocalOverlay extends MemberOverlay {
   setLocalOverlayMediaStream(stream: MediaStream): void
   setLocalOverlayMirror(mirror?: boolean): void
+}
+
+export type LayerMap = Map<string, HTMLDivElement>
+
+type MakeOverlayHandlerReturned = (id: string) => MemberOverlay
+
+export const makeOverlayHandler = (
+  layerMap: LayerMap
+): MakeOverlayHandlerReturned => {
+  return (id: string) => ({
+    // Each `layout.changed` event will update `status`
+    status: 'hidden',
+    get id() {
+      return addOverlayPrefix(id)
+    },
+    get domElement() {
+      return layerMap.get(this.id)
+    },
+    set domElement(element: HTMLDivElement | undefined) {
+      if (element) {
+        getLogger().debug('Set overlay', element)
+        layerMap.set(this.id, element)
+      } else {
+        getLogger().debug('Remove overlay')
+        layerMap.delete(this.id)
+      }
+    },
+    hide() {
+      if (!this.domElement) {
+        return getLogger().warn('Missing overlay to hide')
+      }
+      this.domElement.style.opacity = '0'
+    },
+    show() {
+      if (!this.domElement) {
+        return getLogger().warn('Missing overlay to show')
+      }
+      if (this.status === 'hidden') {
+        return getLogger().info('Overlay not visible')
+      }
+      this.domElement.style.opacity = '1'
+    },
+  })
 }
 
 interface MakeLayoutChangedHandlerParams {
   localOverlay: LocalOverlay
   rootElement: HTMLElement
+  applyMemberOverlay?: boolean
+  layerMap: LayerMap
 }
 
 interface LayoutChangedHandlerParams {
@@ -90,9 +158,14 @@ interface LayoutChangedHandlerParams {
   localStream: MediaStream
 }
 
-const makeLayoutChangedHandler =
-  ({ localOverlay, rootElement }: MakeLayoutChangedHandlerParams) =>
-  async ({ layout, myMemberId, localStream }: LayoutChangedHandlerParams) => {
+const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
+  const { localOverlay, rootElement, applyMemberOverlay, layerMap } = params
+
+  const getOverlay = makeOverlayHandler(layerMap)
+
+  return async (params: LayoutChangedHandlerParams) => {
+    const { layout, myMemberId, localStream } = params
+
     getLogger().debug('Process layout.changed')
     try {
       const { layers = [] } = layout
@@ -111,10 +184,12 @@ const makeLayoutChangedHandler =
         return
       }
 
+      const mcuLayers = rootElement.querySelector('.mcuLayers')
       if (!myLayer) {
         getLogger().debug('Build myLayer')
         myLayer = _buildLayer({ location })
         myLayer.id = localOverlay.id
+        myLayer.style.zIndex = '1'
 
         const localVideo = buildVideo()
         localVideo.srcObject = localStream
@@ -126,7 +201,6 @@ const makeLayoutChangedHandler =
 
         myLayer.appendChild(localVideo)
 
-        const mcuLayers = rootElement.querySelector('.mcuLayers')
         if (mcuLayers) {
           mcuLayers.innerHTML = ''
           getLogger().debug('Build myLayer append it')
@@ -140,8 +214,6 @@ const makeLayoutChangedHandler =
         return
       }
 
-      const { top, left, width, height } = _getLocationStyles(location)
-      getLogger().debug('Update myLayer:', top, left, width, height)
       /**
        * Show myLayer only if the localStream has a valid video track
        */
@@ -153,14 +225,47 @@ const makeLayoutChangedHandler =
         localOverlay.setLocalOverlayMediaStream(localStream)
       }
       myLayer.style.opacity = hasVideo ? '1' : '0'
-      myLayer.style.top = top
-      myLayer.style.left = left
-      myLayer.style.width = width
-      myLayer.style.height = height
+      _updateLayer({ location, element: myLayer })
+
+      // Make overlay for all members (including a self member)
+      if (applyMemberOverlay && mcuLayers) {
+        layers.forEach((location) => {
+          if (!location.member_id) return
+          const overlay = getOverlay(location.member_id)
+
+          let memberLayer = overlay.domElement
+
+          // If the layer already exists, modify its styles
+          if (memberLayer) {
+            _updateLayer({ location, element: memberLayer })
+          } else {
+            // If the layer doesn't exist, create a new one
+            memberLayer = _buildLayer({ location })
+            memberLayer.id = overlay.id
+            memberLayer.style.zIndex = '10'
+            overlay.domElement = memberLayer
+            mcuLayers.appendChild(memberLayer)
+          }
+        })
+
+        // Remove layers that no longer have a corresponding member
+        layerMap.forEach((layer, id) => {
+          console.log(`ID: ${id}, Layer Element:`, layer)
+          const memberId = id.replace('sw-overlay-', '')
+          if (!layers.some((location) => location.member_id === memberId)) {
+            const overlay = getOverlay(memberId)
+            if (overlay.domElement) {
+              mcuLayers.removeChild(overlay.domElement)
+              overlay.domElement = undefined // This removes it from the layerMap
+            }
+          }
+        })
+      }
     } catch (error) {
       getLogger().error('Layout Changed Error', error)
     }
   }
+}
 
 const cleanupElement = (rootElement: HTMLElement) => {
   while (rootElement.firstChild) {
