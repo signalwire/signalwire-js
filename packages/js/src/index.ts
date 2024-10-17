@@ -97,6 +97,7 @@ export type {
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   InternalVideoMemberEntity,
+  InternalVideoLayoutLayer,
   VideoPosition,
   VideoPositions,
   /**
