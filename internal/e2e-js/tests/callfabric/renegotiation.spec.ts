@@ -3,6 +3,7 @@ import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
+  dialAddress,
   expectMCUVisible,
   expectMCUVisibleForAudience,
   getStats,
@@ -47,7 +48,7 @@ test.describe('CallFabric Renegotiation', () => {
     await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
-        // @ts-expect-error
+        
         await cfRoomSession.enableVideo();
     });
 
@@ -98,7 +99,7 @@ test.describe('CallFabric Renegotiation', () => {
     await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
-        // @ts-expect-error
+        
         await cfRoomSession.enableVideo({sendOnly: true});
     });
 
@@ -167,7 +168,7 @@ test.describe('CallFabric Renegotiation', () => {
     await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession =  (window._roomObj as CallFabricRoomSession)
-        // @ts-expect-error
+        
         await cfRoomSession.enableVideo({video: false, sendOnly: false});
     });
 
