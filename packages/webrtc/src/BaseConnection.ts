@@ -1084,8 +1084,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   async renegotiateMedia(renegotiateMediaParams: UpdateMediaOptions): Promise<void> {
     this.updateMediaOptions(renegotiateMediaParams)
-    //starts with offering = true
-    await this.peer?.start(true)
+    await this.peer?.start({isRenegotiate: true})
   }
 
   async enableVideo(enableVideoParam?: Pick<UpdateMediaOptions, 'video'> & {sendOnly?: boolean}): Promise<void> {

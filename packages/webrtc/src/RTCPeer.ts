@@ -508,11 +508,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  async start(offering=false) {
-    if(offering) { // allow callee to send renegotiation offers
+  async start(startParam?:{isRenegotiate:boolean}) {
+    const isRenegotiate = startParam?.isRenegotiate ?? false
+    if(isRenegotiate) { // allow callee to send renegotiation offers
       this.options.remoteSdp = undefined
       this.type = 'offer'
     }
+    
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
