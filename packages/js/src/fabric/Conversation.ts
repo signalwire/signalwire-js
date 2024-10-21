@@ -24,6 +24,7 @@ import type {
   JoinConversationResponse,
   JoinConversationResult,
   CoversationSubscribeResult,
+  PaginatedResult,
 } from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -173,28 +174,65 @@ export class Conversation {
     params: GetConversationChatMessageParams
   ): Promise<GetConversationChatMessageResult> {
     const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
-    const chatMessages = []
-    const isValid = (item: ConversationMessage) => (item.conversation_id === addressId && item.subtype === 'chat')
 
-    let conversationMessages: Awaited<ReturnType<typeof this.getConversationMessages>> | undefined
-    conversationMessages = await this.getConversationMessages({addressId, pageSize});
-     chatMessages.push(...conversationMessages.data.filter(isValid))
-     while(chatMessages.length < pageSize && conversationMessages?.hasNext) {
-      conversationMessages = await conversationMessages?.nextPage() 
-      if(!!conversationMessages) {
-        chatMessages.push(...conversationMessages.data.filter(isValid))
+    const fetchChatMessagesPage = async (
+      fetcherFn?: (() => Promise<GetConversationChatMessageResult>) | (() => Promise<PaginatedResult<ConversationChatMessage> | undefined>),
+      cached: ConversationMessage[] = [],
+      isDirectionNext = true,
+    ): Promise<GetConversationChatMessageResult> => {
+      const chatMessages = [...cached]
+      const isValid = (item: ConversationMessage) =>
+        item.conversation_id === addressId && item.subtype === 'chat'
+
+      let conversationMessages: GetConversationChatMessageResult | undefined
+      conversationMessages = await fetcherFn?.()
+      let chatOnlyMessages = conversationMessages?.data.filter(isValid) ?? []
+      let remaining = pageSize - chatMessages.length
+      for (
+        let idx = 0;
+        idx < chatOnlyMessages.length && idx < remaining;
+        idx++
+      ) {
+        chatMessages.push(chatOnlyMessages[idx])
       }
-     }
-    
-    return { 
-      data: chatMessages as ConversationChatMessage[],
-      hasNext: !!conversationMessages?.hasNext,
-      hasPrev: !!conversationMessages?.hasPrev,
-      // @ts-expect-error
-      nextPage: conversationMessages?.nextPage,
-      // @ts-expect-error
-      prevPage: conversationMessages?.prevPage,
+
+      while (chatMessages.length < pageSize && conversationMessages?.hasNext) {
+        conversationMessages = await (isDirectionNext ? conversationMessages?.nextPage() : conversationMessages?.prevPage())
+        if (!!conversationMessages) {
+          remaining = pageSize - chatMessages.length
+          chatOnlyMessages = conversationMessages.data.filter(isValid)
+          for (
+            let idx = 0;
+            idx < chatOnlyMessages.length && idx < remaining;
+            idx++
+          ) {
+            chatMessages.push(chatOnlyMessages[idx])
+          }
+        }
+      }
+
+      let missingReturns: ConversationMessage[] = []
+      if (remaining < chatOnlyMessages.length) {
+        missingReturns = chatOnlyMessages.slice(remaining)
+      }
+
+      return {
+        data: chatMessages as ConversationChatMessage[],
+        hasNext: !!conversationMessages?.hasNext || !!cached.length,
+        hasPrev: !!conversationMessages?.hasPrev,
+        
+        nextPage: () =>
+          fetchChatMessagesPage(conversationMessages?.nextPage, missingReturns),
+        prevPage: () =>
+          fetchChatMessagesPage(conversationMessages?.nextPage, missingReturns, false),
+        self: () => fetchChatMessagesPage(conversationMessages?.self, missingReturns),
+        firstPage: () => fetchChatMessagesPage(conversationMessages?.firstPage, missingReturns), 
+      }
     }
+
+    return fetchChatMessagesPage(() =>
+      this.getConversationMessages({ addressId, pageSize }) as Promise<GetConversationChatMessageResult>
+    )
   }
 
   public async subscribe(
