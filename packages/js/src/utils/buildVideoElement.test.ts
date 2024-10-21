@@ -150,7 +150,7 @@ describe('buildVideoElement', () => {
       },
     }
 
-    const renderAndStartVideo = (element?: HTMLDivElement) => {
+    const renderAndStartVideo = (element?: HTMLDivElement, simpleVideoElement = false) => {
       let mockRootEl: HTMLDivElement
       if (!element) {
         mockRootEl = document.createElement('div')
@@ -160,7 +160,7 @@ describe('buildVideoElement', () => {
       }
       document.body.appendChild(mockRootEl)
 
-      const promise = buildVideoElement({ room, rootElement: mockRootEl })
+      const promise = buildVideoElement({ room, rootElement: mockRootEl, simpleVideoElement })
 
       const videoElement = mockRootEl.querySelector('video')
       expect(videoElement).not.toBeNull()
@@ -227,6 +227,30 @@ describe('buildVideoElement', () => {
       const mcuLayers = result.element.querySelector('.mcuLayers')
       expect(mcuLayers).not.toBeNull()
       expect(mcuLayers!.childElementCount).toBe(1)
+    })
+
+    it('should not render the mcuLayers', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+
+      // @ts-expect-error
+      stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
+
+      const result = await renderAndStartVideo(undefined, true)
+
+      expect(result).toHaveProperty('element')
+      expect(result).toHaveProperty('unsubscribe')
+
+      const mcuLayers = result.element.querySelector('.mcuLayers')
+      expect(mcuLayers).toBeNull()
     })
 
     it('should render two elements if the IDs are different', async () => {
