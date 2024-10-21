@@ -5,12 +5,14 @@ import {
   debounce,
 } from '@signalwire/core'
 
+const SDK_PREFIX = 'sw-sdk-'
 const addSDKPrefix = (id: string) => {
-  return `sw-sdk-${id}`
+  return `${SDK_PREFIX}${id}`
 }
 
+const OVERLAY_PREFIX = 'sw-overlay-'
 const addOverlayPrefix = (id: string) => {
-  return `sw-overlay-${id}`
+  return `${OVERLAY_PREFIX}${id}`
 }
 
 const buildVideo = () => {
@@ -20,7 +22,7 @@ const buildVideo = () => {
   video.playsInline = true
 
   /**
-   * Local and Remov video elements should never be paused
+   * Local and Remote video elements should never be paused
    * and Safari/Firefox pause the video (ie: enabling PiP, switch cameras etc)
    * We try to force it to keep playing.
    */
@@ -89,7 +91,7 @@ const _updateLayer = ({
   return element
 }
 
-export interface MemberOverlay {
+export interface SimpleOverlay {
   readonly id: string
   status: 'hidden' | 'visible'
   domElement: HTMLDivElement | undefined
@@ -97,14 +99,14 @@ export interface MemberOverlay {
   show(): void
 }
 
-export interface LocalOverlay extends MemberOverlay {
+export interface LocalVideoOverlay extends SimpleOverlay {
   setLocalOverlayMediaStream(stream: MediaStream): void
   setLocalOverlayMirror(mirror?: boolean): void
 }
 
 export type LayerMap = Map<string, HTMLDivElement>
 
-type MakeOverlayHandlerReturned = (id: string) => MemberOverlay
+type MakeOverlayHandlerReturned = (id: string) => SimpleOverlay
 
 export const makeOverlayHandler = (
   layerMap: LayerMap
@@ -146,7 +148,7 @@ export const makeOverlayHandler = (
 }
 
 interface MakeLayoutChangedHandlerParams {
-  localOverlay: LocalOverlay
+  localVideoOverlay?: LocalVideoOverlay
   rootElement: HTMLElement
   applyMemberOverlay?: boolean
   layerMap: LayerMap
@@ -155,11 +157,12 @@ interface MakeLayoutChangedHandlerParams {
 interface LayoutChangedHandlerParams {
   layout: InternalVideoLayout
   myMemberId: string
-  localStream: MediaStream
+  localStream?: MediaStream
 }
 
 const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
-  const { localOverlay, rootElement, applyMemberOverlay, layerMap } = params
+  const { localVideoOverlay, rootElement, applyMemberOverlay, layerMap } =
+    params
 
   const getOverlay = makeOverlayHandler(layerMap)
 
@@ -169,64 +172,70 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
     getLogger().debug('Process layout.changed')
     try {
       const { layers = [] } = layout
-      const location = layers.find(({ member_id }) => member_id === myMemberId)
-
-      let myLayer = localOverlay.domElement
-      // Update localOverlay.status if a location has been found
-      localOverlay.status = location ? 'visible' : 'hidden'
-      if (!location) {
-        getLogger().debug('Location not found')
-        if (myLayer) {
-          getLogger().debug('Current layer not visible')
-          localOverlay.hide()
-        }
-
-        return
-      }
-
       const mcuLayers = rootElement.querySelector('.mcuLayers')
-      if (!myLayer) {
-        getLogger().debug('Build myLayer')
-        myLayer = _buildLayer({ location })
-        myLayer.id = localOverlay.id
-        myLayer.style.zIndex = '1'
 
-        const localVideo = buildVideo()
-        localVideo.srcObject = localStream
-        localVideo.disablePictureInPicture = true
-        localVideo.style.width = '100%'
-        localVideo.style.height = '100%'
-        localVideo.style.pointerEvents = 'none'
-        localVideo.style.objectFit = 'cover'
+      if (localVideoOverlay) {
+        const location = layers.find(
+          ({ member_id }) => member_id === myMemberId
+        )
 
-        myLayer.appendChild(localVideo)
+        let myLayer = localVideoOverlay.domElement
+        // Update localOverlay.status if a location has been found
+        localVideoOverlay.status = location ? 'visible' : 'hidden'
+        if (!location) {
+          getLogger().debug('Location not found')
+          if (myLayer) {
+            getLogger().debug('Current layer not visible')
+            localVideoOverlay.hide()
+          }
 
-        if (mcuLayers) {
-          mcuLayers.innerHTML = ''
-          getLogger().debug('Build myLayer append it')
-          mcuLayers.appendChild(myLayer)
-          localOverlay.domElement = myLayer
-          localOverlay.setLocalOverlayMirror()
           return
         }
 
-        getLogger().debug('Build myLayer >> wait next')
-        return
-      }
+        if (!myLayer && localStream) {
+          getLogger().debug('Build myLayer')
+          myLayer = _buildLayer({ location })
+          myLayer.id = localVideoOverlay.id
+          myLayer.style.zIndex = '1'
 
-      /**
-       * Show myLayer only if the localStream has a valid video track
-       */
-      const hasVideo =
-        localStream
-          .getVideoTracks()
-          .filter((t) => t.enabled && t.readyState === 'live').length > 0
-      if (hasVideo) {
-        localOverlay.setLocalOverlayMediaStream(localStream)
-      }
-      myLayer.style.opacity = hasVideo ? '1' : '0'
-      _updateLayer({ location, element: myLayer })
+          const localVideo = buildVideo()
+          localVideo.srcObject = localStream
+          localVideo.disablePictureInPicture = true
+          localVideo.style.width = '100%'
+          localVideo.style.height = '100%'
+          localVideo.style.pointerEvents = 'none'
+          localVideo.style.objectFit = 'cover'
 
+          myLayer.appendChild(localVideo)
+
+          if (mcuLayers) {
+            mcuLayers.innerHTML = ''
+            getLogger().debug('Build myLayer append it')
+            mcuLayers.appendChild(myLayer)
+            localVideoOverlay.domElement = myLayer
+            localVideoOverlay.setLocalOverlayMirror()
+            return
+          }
+
+          getLogger().debug('Build myLayer >> wait next')
+          return
+        }
+
+        if (myLayer && localStream) {
+          /**
+           * Show myLayer only if the localStream has a valid video track
+           */
+          const hasVideo =
+            localStream
+              .getVideoTracks()
+              .filter((t) => t.enabled && t.readyState === 'live').length > 0
+          if (hasVideo) {
+            localVideoOverlay.setLocalOverlayMediaStream(localStream)
+          }
+          myLayer.style.opacity = hasVideo ? '1' : '0'
+          _updateLayer({ location, element: myLayer })
+        }
+      }
       // Make overlay for all members (including a self member)
       if (applyMemberOverlay && mcuLayers) {
         layers.forEach((location) => {
@@ -251,7 +260,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
         // Remove layers that no longer have a corresponding member
         layerMap.forEach((layer, id) => {
           console.log(`ID: ${id}, Layer Element:`, layer)
-          const memberId = id.replace('sw-overlay-', '')
+          const memberId = id.replace(OVERLAY_PREFIX, '')
           if (!layers.some((location) => location.member_id === memberId)) {
             const overlay = getOverlay(memberId)
             if (overlay.domElement) {

@@ -2,13 +2,12 @@ import { LOCAL_EVENT_PREFIX, actions } from '@signalwire/core'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import { buildVideoElement } from './buildVideoElement'
 import {
-  CallFabricRoomSession,
   createCallFabricRoomSessionObject,
-} from './CallFabricRoomSession'
+} from '../fabric/CallFabricRoomSession'
 import { JSDOM } from 'jsdom'
-
+import { RoomSessionConnection } from 'packages/js/src/BaseRoomSession'
 describe('buildVideoElement', () => {
-  let room: CallFabricRoomSession
+  let room: RoomSessionConnection
   let stack: ReturnType<typeof configureFullStack>
   let store: any
   let jsdom: JSDOM
@@ -22,13 +21,13 @@ describe('buildVideoElement', () => {
     // @ts-expect-error
     room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
 
-    // @ts-expect-error
     room.runRTCPeerWorkers(callId)
   }
 
   beforeEach(() => {
     stack = configureFullStack()
     store = stack.store
+    //@ts-ignore
     room = createCallFabricRoomSessionObject({
       store,
       // @ts-expect-error
@@ -183,7 +182,7 @@ describe('buildVideoElement', () => {
       }
       // @ts-expect-error
       room.getRTCPeerById = jest.fn((_id: string) => newPeerMock)
-      // @ts-expect-error
+
       room.localStream = new MediaStream([])
     })
 

@@ -4,7 +4,7 @@ import { MakeRoomOptions } from '../video'
 import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { RoomSessionConnection } from '../BaseRoomSession'
-import { buildVideoElement } from './buildVideoElement'
+import { buildVideoElement } from '../utils/buildVideoElement'
 
 export class Client extends BaseClient<ClientEvents> {
   makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {
@@ -41,6 +41,8 @@ export class Client extends BaseClient<ClientEvents> {
      */
     if (rootElement) {
       try {
+        // FIXME Why CallFabricRoomSession don't extend RoomSessionConnection
+        //@ts-ignore
         buildVideoElement({ room, rootElement, applyLocalVideoOverlay })
       } catch (error) {
         this.logger.error('Unable to build the video element automatically')
