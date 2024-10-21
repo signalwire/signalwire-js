@@ -49,6 +49,7 @@ const inCallElements = [
   pauseRecordingBtn,
   resumeRecordingBtn,
   controlPlayback,
+  enableVideoBtn,
 ]
 
 const playbackElements = [
@@ -210,6 +211,8 @@ const initializeMicAnalyzer = async (stream) => {
 function restoreUI() {
   btnConnect.classList.remove('d-none')
   btnDisconnect.classList.add('d-none')
+  enableVideoBtn.classList.add('d-none')
+  enableVideoBtn.innerHTML = 'Enable Video'
   connectStatus.innerHTML = 'Not Connected'
 
   inCallElements.forEach((button) => {
@@ -377,6 +380,8 @@ window.connect = async ({ reattach = false } = {}) => {
     btnConnect.classList.add('d-none')
     btnDisconnect.classList.remove('d-none')
     connectStatus.innerHTML = 'Connected'
+    enableVideoBtn.classList.remove('d-none')
+    enableVideoBtn.innerHTML = roomObj.options.video ? 'Disable Video' : 'Enable Video'
     inCallElements.forEach((button) => {
       button.classList.remove('d-none')
       button.disabled = false
@@ -745,6 +750,17 @@ window.seekForwardPlayback = () => {
     .catch((error) => {
       console.error('Failed to forward playback:', error)
     })
+}
+
+window.enableVideo = async () => {
+ 
+  if(!roomObj.options.video) {
+    await roomObj.enableVideo()
+    enableVideoBtn.innerHTML = 'Disable Video'
+  } else {
+    await roomObj.disableVideo()
+    enableVideoBtn.innerHTML = 'Enable Video'
+  }
 }
 
 /**
