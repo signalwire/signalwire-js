@@ -1,4 +1,3 @@
-import { VideoLayoutChangedEventParams } from '@signalwire/core'
 import { UpdateMediaOptions } from '@signalwire/webrtc'
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
 
