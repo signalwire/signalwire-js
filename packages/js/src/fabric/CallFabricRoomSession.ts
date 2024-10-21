@@ -10,6 +10,7 @@ import {
   RoomSessionMember,
   getLogger,
   VideoLayoutChangedEventParams,
+  VideoPosition,
 } from '@signalwire/core'
 import {
   BaseRoomSession,
@@ -33,6 +34,12 @@ interface ExecuteActionParams {
 interface ExecuteMemberActionParams extends ExecuteActionParams {
   channel?: 'audio' | 'video'
   memberId?: string
+}
+
+interface RequestMemberParams {
+  node_id: string
+  member_id: string
+  call_id: string
 }
 
 type CallFabricBaseRoomSession = Omit<
@@ -88,6 +95,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   get currentLayout() {
     return this._lastLayoutEvent?.layout
+  }
+
+  get currentPosition() {
+    return this._lastLayoutEvent?.layout.layers.find(
+      (layer) => layer.member_id === this.memberId
+    )?.position
   }
 
   private executeAction<
@@ -160,7 +173,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  override async join() {
+  /** @internal */
+  public override async join() {
     if (this.options.attach) {
       this.options.prevCallId =
         getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
@@ -315,6 +329,53 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       memberId: params?.memberId,
       extraParams: {
         value: params?.value,
+      },
+    })
+  }
+
+  public setPositions(params: Rooms.SetPositionsParams) {
+    const positions = params.positions
+
+    if (positions && !Object.keys(positions).length) {
+      throw new Error('Invalid positions')
+    }
+
+    const targets: {
+      target: RequestMemberParams
+      position: VideoPosition
+    }[] = []
+
+    Object.entries(positions).forEach(([key, value]) => {
+      const targetMember =
+        key === 'self'
+          ? this.member
+          : this.instanceMap.get<RoomSessionMember>(key)
+
+      if (targetMember) {
+        targets.push({
+          target: {
+            member_id: targetMember.id,
+            call_id: targetMember.callId!,
+            node_id: targetMember.nodeId!,
+          },
+          position: value,
+        })
+      }
+    })
+
+    if (!targets.length) {
+      throw new Error('Invalid targets')
+    }
+
+    return this.execute({
+      method: 'call.member.position.set',
+      params: {
+        self: {
+          member_id: this.selfMember?.id,
+          call_id: this.selfMember?.callId,
+          node_id: this.selfMember?.nodeId,
+        },
+        targets,
       },
     })
   }

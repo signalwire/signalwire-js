@@ -1,4 +1,4 @@
-import type { Video } from '@signalwire/js'
+import type { SignalWireContract, Video } from '@signalwire/js'
 import type { MediaEvent } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
@@ -1215,14 +1215,14 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
-        const client = window._client
+        const client: SignalWireContract = window._client
 
         const dialer = reattach ? client.reattach : client.dial
 
         const call = await dialer({
           to: address,
           ...(shouldPassRootElement && {
-            rootElement: document.getElementById('rootElement'),
+            rootElement: document.getElementById('rootElement')!,
           }),
         })
 
