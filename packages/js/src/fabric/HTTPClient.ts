@@ -1,5 +1,5 @@
 import jwtDecode from 'jwt-decode'
-import { getLogger, type UserOptions } from '@signalwire/core'
+import { getLogger, HttpError, type UserOptions } from '@signalwire/core'
 import type {
   GetAddressResponse,
   GetAddressesParams,
@@ -61,7 +61,7 @@ export class HTTPClient {
 
   public async getAddress(
     params: GetAddressParams
-  ): Promise<GetAddressResult | undefined> {
+  ): Promise<GetAddressResult> {
     let path = '/api/fabric/addresses'
     if (isGetAddressByNameParams(params)) {
       path = `${path}?name=${params.name}`
@@ -72,8 +72,9 @@ export class HTTPClient {
     const { body } = await this.httpClient<
       GetAddressResponse | GetAddressesResponse
     >(path)
-    if (isGetAddressesResponse(body)) {
+    if (isGetAddressesResponse(body) ) {
       // FIXME until the server handles a index lookup by name we need to handle it as a search result
+      if(!body.data[0]) throw new HttpError(404, 'Not Found')
       return body.data[0]
     }
     return body
