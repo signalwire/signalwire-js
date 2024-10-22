@@ -421,6 +421,23 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         if (!this._supportsAddTransceiver()) {
           offerOptions.offerToReceiveAudio = this.options.negotiateAudio
           offerOptions.offerToReceiveVideo = this.options.negotiateVideo
+        } else {
+          this.instance.getTransceivers().forEach((transceiver) => {
+            const kind = transceiver.receiver.track.kind
+            if(kind == 'audio' && this.options.audio && this.options.negotiateAudio) {
+              transceiver.direction = 'sendrecv'
+            } else if (kind == 'audio' && this.options.audio) {
+              transceiver.direction = 'sendonly'
+            } else if (kind == 'audio' && this.options.negotiateAudio) {
+              transceiver.direction = 'recvonly'
+            } if(kind == 'video' && this.options.video && this.options.negotiateVideo) {
+              transceiver.direction = 'sendrecv'
+            } else if (kind == 'video' && this.options.video) {
+              transceiver.direction = 'sendonly'
+            } else if (kind == 'video' && this.options.negotiateVideo) {
+              transceiver.direction = 'recvonly'
+            }
+          })
         }
 
         const offer = await this.instance.createOffer(offerOptions)
@@ -508,19 +525,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  async start(startParam?:{isRenegotiate:boolean}) {
-    const isRenegotiate = startParam?.isRenegotiate ?? false
-    if(isRenegotiate) { // allow callee to send renegotiation offers
-      this.options.remoteSdp = undefined
-      this.type = 'offer'
-    }
+  async start() {
     
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
 
       try {
-        this._disposeLocalStream()
         this._localStream = await this._retrieveLocalStream()
       } catch (error) {
         this._rejectStartMethod(error)
@@ -623,11 +634,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.startNegotiation()
       }
     })
-  }
-
-  private _disposeLocalStream() {
-    this._localStream?.getTracks().forEach((track) => track.stop())
-    this._localStream = undefined
   }
 
   detachAndStop() {

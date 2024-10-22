@@ -59,7 +59,7 @@ test.describe('CallFabric Renegotiation', () => {
     expect(stats.outboundRTP).toHaveProperty('video')
     expect(stats.inboundRTP).toHaveProperty('video')
 
-    await page.waitForTimeout(2000)
+    await page.waitForTimeout(3000)
     expectMCUVisible(page)
   })
 
@@ -179,7 +179,7 @@ test.describe('CallFabric Renegotiation', () => {
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).toHaveProperty('video')
 
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(2000)
     expectMCUVisibleForAudience(page)
   })
 })

@@ -98,3 +98,5 @@ export interface ConnectionOptions {
 }
 
 export type UpdateMediaOptions = Pick<ConnectionOptions, 'video'|'audio'|'negotiateVideo'|'negotiateAudio'>
+export type EnableVideoOptions = Pick<UpdateMediaOptions, 'video'> & {sendOnly?: boolean}
+export type DisableVideoOptions = {recvOnly?: boolean}
