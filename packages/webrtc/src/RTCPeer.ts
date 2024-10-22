@@ -625,7 +625,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     })
   }
 
-  _disposeLocalStream() {
+  private _disposeLocalStream() {
     this._localStream?.getTracks().forEach((track) => track.stop())
     this._localStream = undefined
   }
