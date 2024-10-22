@@ -176,7 +176,7 @@ export class Conversation {
     const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
 
     const fetchChatMessagesPage = async (
-      fetcherFn?: (() => Promise<GetConversationChatMessageResult>) | (() => Promise<PaginatedResult<ConversationChatMessage> | undefined>),
+      fetcherFn?: (() => Promise<GetConversationChatMessageResult| undefined>),
       cached: ConversationMessage[] = [],
       isDirectionNext = true,
     ): Promise<GetConversationChatMessageResult> => {
@@ -224,7 +224,7 @@ export class Conversation {
         nextPage: () =>
           fetchChatMessagesPage(conversationMessages?.nextPage, missingReturns),
         prevPage: () =>
-          fetchChatMessagesPage(conversationMessages?.nextPage, missingReturns, false),
+          fetchChatMessagesPage(conversationMessages?.prevPage, missingReturns, false),
         self: () => fetchChatMessagesPage(conversationMessages?.self, missingReturns),
         firstPage: () => fetchChatMessagesPage(conversationMessages?.firstPage, missingReturns), 
       }

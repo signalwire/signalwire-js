@@ -59,9 +59,7 @@ export class HTTPClient {
     return `fabric.${host.split('.').splice(1).join('.')}`
   }
 
-  public async getAddress(
-    params: GetAddressParams
-  ): Promise<GetAddressResult> {
+  public async getAddress(params: GetAddressParams): Promise<GetAddressResult> {
     let path = '/api/fabric/addresses'
     if (isGetAddressByNameParams(params)) {
       path = `${path}?name=${params.name}`
@@ -72,9 +70,9 @@ export class HTTPClient {
     const { body } = await this.httpClient<
       GetAddressResponse | GetAddressesResponse
     >(path)
-    if (isGetAddressesResponse(body) ) {
+    if (isGetAddressesResponse(body)) {
       // FIXME until the server handles a index lookup by name we need to handle it as a search result
-      if(!body.data[0]) throw new HttpError(404, 'Not Found')
+      if (!body.data[0]) throw new HttpError(404, 'Not Found')
       return body.data[0]
     }
     return body
@@ -108,9 +106,7 @@ export class HTTPClient {
 
     const queryUrl = makeQueryParamsUrls(path, queryParams)
     getLogger().debug(`[getAddresses] query URL ${queryUrl}`)
-    const { body } = await this.httpClient<GetAddressesResponse>(
-      queryUrl
-    )
+    const { body } = await this.httpClient<GetAddressesResponse>(queryUrl)
 
     return buildPaginatedResult(body, this.httpClient)
   }
