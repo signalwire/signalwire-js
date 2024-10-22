@@ -782,7 +782,6 @@ window.seekForwardPlayback = () => {
 }
 
 window.enableVideo = async () => {
- 
   if(!roomObj.options.video) {
     await roomObj.enableVideo()
     enableVideoBtn.innerHTML = 'Disable Video'
