@@ -14,6 +14,7 @@ import {
 } from '@signalwire/core'
 import {
   BaseRoomSession,
+  BaseRoomSessionOptions,
   RoomSessionConnection,
   RoomSessionObjectEventsHandlerMapping,
 } from '../BaseRoomSession'
@@ -25,6 +26,7 @@ import {
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
+import { LayerMap, UserOverlay } from './VideoOverlays'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -57,6 +59,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
+  private _layerMap: LayerMap
+
+  constructor(props: BaseRoomSessionOptions) {
+    super(props)
+    this._layerMap = new Map()
+  }
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
@@ -65,12 +73,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return result
   }
 
-  get selfMember(): RoomSessionMember | undefined {
-    return this._self
-  }
-
   set selfMember(member: RoomSessionMember | undefined) {
     this._self = member
+  }
+
+  get selfMember(): RoomSessionMember | undefined {
+    return this._self
   }
 
   set member(member: RoomSessionMember) {
@@ -101,6 +109,26 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._lastLayoutEvent?.layout.layers.find(
       (layer) => layer.member_id === this.memberId
     )?.position
+  }
+
+  set layerMap(map: LayerMap) {
+    this._layerMap = map
+  }
+
+  get layerMap() {
+    return this._layerMap
+  }
+
+  get localVideoOverlay() {
+    const results: UserOverlay[] = []
+
+    this.layerMap.forEach((value, key) => {
+      if (key.startsWith('sw-sdk-')) {
+        results.push(value)
+      }
+    })
+
+    return results[0]
   }
 
   private executeAction<

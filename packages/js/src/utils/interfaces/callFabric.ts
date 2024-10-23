@@ -1,4 +1,5 @@
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
+import { LayerMap } from '../../fabric/VideoOverlays'
 
 export interface CallFabricRoomSessionConnectionContract {
   /**
@@ -9,6 +10,10 @@ export interface CallFabricRoomSessionConnectionContract {
    * The current position of the member returned from the `layout.changed` event
    */
   currentPosition: VideoPosition
+  /**
+   * A JS Map containing all the layers on top of the Root Element
+   */
+  layerMap: LayerMap
   /**
    * Starts the call via the WebRTC connection
    *

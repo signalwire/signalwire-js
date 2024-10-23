@@ -6,16 +6,15 @@ import {
 } from '@signalwire/core'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import {
-  LocalOverlay,
   addSDKPrefix,
   buildVideo,
   cleanupElement,
   makeLayoutChangedHandler,
-  makeOverlayHandler,
   setVideoMediaTrack,
   waitForVideoReady,
 } from '../utils/videoElement'
 import { DeprecatedVideoMemberHandlerParams } from '../video'
+import { LocalVideoOverlay } from './VideoOverlays'
 
 export interface BuildVideoElementParams {
   room: CallFabricRoomSession
@@ -52,53 +51,25 @@ export const buildVideoElement = async (
       rootElement.id = `rootElement-${id}`
     }
 
-    const layerMap = new Map<string, HTMLDivElement>()
     let hasVideoTrack = false
 
     /**
-     * We used this `LocalOverlay` interface to interact with the localVideo
+     * We used this `LocalVideoOverlay` class to interact with the localVideo
      * overlay DOM element in here and in the ``.
-     * The idea is to avoid APIs like `document.getElementById` because it
-     * won't work if the SDK is used within a Shadow DOM tree.
-     * Instead of querying the `document`, let's use our `layerMap`.
      */
-    const localOverlay: LocalOverlay = {
-      ...makeOverlayHandler(layerMap)(id),
-      get id() {
-        // FIXME: Use `id` until the `memberId` is stable between promote/demote
-        return addSDKPrefix(id)
-      },
-      setLocalOverlayMediaStream(stream: MediaStream) {
-        if (!this.domElement) {
-          return getLogger().warn(
-            'Missing localOverlay to set the local overlay stream'
-          )
-        }
-        const localVideo = this.domElement.querySelector('video')
-        if (localVideo) {
-          localVideo.srcObject = stream
-        }
-      },
-      setLocalOverlayMirror(mirror: boolean) {
-        if (!this.domElement || !this.domElement.firstChild) {
-          return getLogger().warn('Missing localOverlay to set the mirror')
-        }
-        const videoEl = this.domElement.firstChild as HTMLVideoElement
-        if (mirror ?? room.localOverlay.mirrored) {
-          videoEl.style.transform = 'scale(-1, 1)'
-          videoEl.style.webkitTransform = 'scale(-1, 1)'
-        } else {
-          videoEl.style.transform = 'scale(1, 1)'
-          videoEl.style.webkitTransform = 'scale(1, 1)'
-        }
-      },
-    }
+    const localVideoOverlay = new LocalVideoOverlay({
+      id: addSDKPrefix(id),
+      layerMap: room.layerMap,
+      room,
+    })
+
+    console.log('?? localVideoOverlay', localVideoOverlay)
 
     const makeLayoutHandler = makeLayoutChangedHandler({
       rootElement,
-      localOverlay,
+      localVideoOverlay,
       applyMemberOverlay: true,
-      layerMap: layerMap,
+      layerMap: room.layerMap,
     })
 
     const processLayoutChanged = (params: any) => {
@@ -107,10 +78,10 @@ export const buildVideoElement = async (
         makeLayoutHandler({
           layout: params.layout,
           localStream: room.localStream,
-          myMemberId: room.memberId,
+          memberId: room.memberId,
         })
       } else {
-        localOverlay.hide()
+        localVideoOverlay.hide()
       }
     }
 
@@ -164,7 +135,7 @@ export const buildVideoElement = async (
     room.on('track', trackHandler)
 
     const mirrorVideoHandler = (value: boolean) => {
-      localOverlay.setLocalOverlayMirror(value)
+      localVideoOverlay.setMirror(value)
     }
 
     // @ts-expect-error
@@ -176,7 +147,9 @@ export const buildVideoElement = async (
       try {
         const { member } = params
         if (member.id === room.memberId && 'video_muted' in member) {
-          member.video_muted ? localOverlay.hide() : localOverlay.show()
+          member.video_muted
+            ? localVideoOverlay.hide()
+            : localVideoOverlay.show()
         }
       } catch (error) {
         getLogger().error('Error handling video_muted', error)
@@ -187,7 +160,7 @@ export const buildVideoElement = async (
 
     const destroyHander = () => {
       cleanupElement(rootElement)
-      layerMap.clear()
+      room.layerMap.clear()
     }
 
     room.once('destroy', destroyHander)
