@@ -24,7 +24,6 @@ import type {
   JoinConversationResponse,
   JoinConversationResult,
   CoversationSubscribeResult,
-  PaginatedResult,
 } from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -176,9 +175,9 @@ export class Conversation {
     const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
 
     const fetchChatMessagesPage = async (
-      fetcherFn?: (() => Promise<GetConversationChatMessageResult| undefined>),
+      fetcherFn?: () => Promise<GetConversationChatMessageResult | undefined>,
       cached: ConversationMessage[] = [],
-      isDirectionNext = true,
+      isDirectionNext = true
     ): Promise<GetConversationChatMessageResult> => {
       const chatMessages = [...cached]
       const isValid = (item: ConversationMessage) =>
@@ -197,17 +196,22 @@ export class Conversation {
       }
 
       while (chatMessages.length < pageSize && conversationMessages?.hasNext) {
-        conversationMessages = await (isDirectionNext ? conversationMessages?.nextPage() : conversationMessages?.prevPage())
-        if (!!conversationMessages) {
-          remaining = pageSize - chatMessages.length
-          chatOnlyMessages = conversationMessages.data.filter(isValid)
-          for (
-            let idx = 0;
-            idx < chatOnlyMessages.length && idx < remaining;
-            idx++
-          ) {
-            chatMessages.push(chatOnlyMessages[idx])
-          }
+        conversationMessages = await (isDirectionNext
+          ? conversationMessages?.nextPage()
+          : conversationMessages?.prevPage())
+        if (!conversationMessages || !conversationMessages.data.length) {
+          //over caution in case of a server error, to prevent an infinite loop.
+          break
+        }
+
+        remaining = pageSize - chatMessages.length
+        chatOnlyMessages = conversationMessages.data.filter(isValid)
+        for (
+          let idx = 0;
+          idx < chatOnlyMessages.length && idx < remaining;
+          idx++
+        ) {
+          chatMessages.push(chatOnlyMessages[idx])
         }
       }
 
@@ -220,18 +224,31 @@ export class Conversation {
         data: chatMessages as ConversationChatMessage[],
         hasNext: !!conversationMessages?.hasNext || !!cached.length,
         hasPrev: !!conversationMessages?.hasPrev,
-        
+
         nextPage: () =>
           fetchChatMessagesPage(conversationMessages?.nextPage, missingReturns),
         prevPage: () =>
-          fetchChatMessagesPage(conversationMessages?.prevPage, missingReturns, false),
-        self: () => fetchChatMessagesPage(conversationMessages?.self, missingReturns),
-        firstPage: () => fetchChatMessagesPage(conversationMessages?.firstPage, missingReturns), 
+          fetchChatMessagesPage(
+            conversationMessages?.prevPage,
+            missingReturns,
+            false
+          ),
+        self: () =>
+          fetchChatMessagesPage(conversationMessages?.self, missingReturns),
+        firstPage: () =>
+          fetchChatMessagesPage(
+            conversationMessages?.firstPage,
+            missingReturns
+          ),
       }
     }
 
-    return fetchChatMessagesPage(() =>
-      this.getConversationMessages({ addressId, pageSize }) as Promise<GetConversationChatMessageResult>
+    return fetchChatMessagesPage(
+      () =>
+        this.getConversationMessages({
+          addressId,
+          pageSize,
+        }) as Promise<GetConversationChatMessageResult>
     )
   }
 
