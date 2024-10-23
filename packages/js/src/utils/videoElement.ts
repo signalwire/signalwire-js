@@ -5,12 +5,14 @@ import {
   debounce,
 } from '@signalwire/core'
 
+const SDK_PREFIX = 'sw-sdk-'
 const addSDKPrefix = (id: string) => {
-  return `sw-sdk-${id}`
+  return `${SDK_PREFIX}${id}`
 }
 
+const OVERLAY_PREFIX = 'sw-overlay-'
 const addOverlayPrefix = (id: string) => {
-  return `sw-overlay-${id}`
+  return `${OVERLAY_PREFIX}${id}`
 }
 
 const buildVideo = () => {
@@ -251,7 +253,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
         // Remove layers that no longer have a corresponding member
         layerMap.forEach((layer, id) => {
           console.log(`ID: ${id}, Layer Element:`, layer)
-          const memberId = id.replace('sw-overlay-', '')
+          const memberId = id.replace(OVERLAY_PREFIX, '')
           if (!layers.some((location) => location.member_id === memberId)) {
             const overlay = getOverlay(memberId)
             if (overlay.domElement) {
