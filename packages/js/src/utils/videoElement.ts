@@ -96,7 +96,7 @@ interface MakeLayoutChangedHandlerParams {
   localVideoOverlay: LocalVideoOverlay
   rootElement: HTMLElement
   applyMemberOverlay?: boolean
-  layerMap: LayerMap
+  layerMap?: LayerMap
 }
 
 interface LayoutChangedHandlerParams {
@@ -301,4 +301,5 @@ export {
   waitForVideoReady,
   addSDKPrefix,
   createRootElementResizeObserver,
+  LocalVideoOverlay,
 }

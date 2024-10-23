@@ -1,4 +1,4 @@
-import { CallFabricRoomSession } from 'packages/js/dist/js/src'
+import { CallFabricRoomSession } from './CallFabricRoomSession'
 import { getLogger } from '@signalwire/core'
 
 export type LayerMap = Map<string, UserOverlay>

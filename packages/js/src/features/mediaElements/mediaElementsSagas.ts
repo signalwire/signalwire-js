@@ -13,8 +13,8 @@ import {
   makeLayoutChangedHandler,
   setVideoMediaTrack,
   waitForVideoReady,
-  LocalOverlay,
   addSDKPrefix,
+  LocalVideoOverlay,
 } from '../../utils/videoElement'
 import { setAudioMediaTrack } from '../../utils/audioElement'
 import { audioSetSpeakerAction } from '../actions'
@@ -43,7 +43,7 @@ export const makeVideoElementSaga = ({
        * won't work if the SDK is used within a Shadow DOM tree.
        * Instead of querying the `document`, let's use our `layerMap`.
        */
-      const localOverlay: LocalOverlay = {
+      const localOverlay: LocalVideoOverlay = {
         // Each `layout.changed` event will update `status`
         status: 'hidden',
         get id() {
@@ -77,6 +77,7 @@ export const makeVideoElementSaga = ({
           }
           this.domElement.style.opacity = '1'
         },
+        // @ts-expect-error
         setLocalOverlayMediaStream(stream: MediaStream) {
           if (!this.domElement) {
             return getLogger().warn(
@@ -105,8 +106,7 @@ export const makeVideoElementSaga = ({
 
       const layoutChangedHandler = makeLayoutChangedHandler({
         rootElement,
-        localOverlay,
-        layerMap,
+        localVideoOverlay: localOverlay,
       })
 
       let hasVideoTrack = false
@@ -118,7 +118,7 @@ export const makeVideoElementSaga = ({
           layoutChangedHandler({
             layout: params.layout,
             localStream: room.localStream,
-            myMemberId: room.memberId,
+            memberId: room.memberId,
           })
         } else {
           localOverlay.hide()
@@ -127,6 +127,7 @@ export const makeVideoElementSaga = ({
 
       // @ts-expect-error
       room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, (value: boolean) => {
+        // @ts-expect-error
         localOverlay.setLocalOverlayMirror(value)
       })
 
