@@ -1078,7 +1078,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.rtcPeerMap.clear()
   }
 
-  async renegotiateMedia(renegotiateMediaParams: UpdateMediaOptions): Promise<void> {
+  async renegotiateMedia(params: UpdateMediaOptions): Promise<void> {
     this.updateMediaOptions(renegotiateMediaParams)
     await this.updateConstraints({video: this.options.video, audio: this.options.audio})
   }
