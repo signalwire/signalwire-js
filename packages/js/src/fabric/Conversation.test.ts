@@ -348,6 +348,8 @@ describe('Conversation', () => {
           data: [
             { subtype: 'log', conversation_id: 'abc' },
             { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
             { subtype: 'chat', conversation_id: 'xyz' },
           ],
           links: {
@@ -367,7 +369,42 @@ describe('Conversation', () => {
       ).toBe(true)
     })
 
-    it('Should return 5 adresss chat messages only', async () => {
+    it('Should return 10(default page) adresses chat messages only, on next', async () => {
+      ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+        body: {
+          data: [
+            { subtype: 'log', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'xyz' },
+          ],
+          links: {
+            next: 'http://next.url',
+            prev: 'http://prev.url',
+          },
+        },
+      })
+
+      const addressId = 'abc'
+      let messages = await conversation.getChatMessages({ addressId })
+
+      expect(messages.data).toHaveLength(10)
+      expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
+      expect(
+        messages.data.every((item) => item.conversation_id === addressId)
+      ).toBe(true)
+
+      //@ts-ignore
+      messages = await messages.nextPage()
+      expect(messages.data).toHaveLength(10)
+      expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
+      expect(
+        messages.data.every((item) => item.conversation_id === addressId)
+      ).toBe(true)
+    })
+
+    it('Should return 3 adresses chat messages only', async () => {
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: {
           data: [
@@ -389,7 +426,7 @@ describe('Conversation', () => {
         pageSize: 3,
       })
 
-      expect(messages.data).toHaveLength(4)
+      expect(messages.data).toHaveLength(3)
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
