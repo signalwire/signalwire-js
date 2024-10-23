@@ -1079,15 +1079,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   async renegotiateMedia(params: UpdateMediaOptions): Promise<void> {
-    this.updateMediaOptions(renegotiateMediaParams)
+    this.updateMediaOptions(params)
     await this.updateConstraints({video: this.options.video, audio: this.options.audio})
   }
 
-  async enableVideo(enableVideoParam?: EnableVideoOptions): Promise<void> {
-    await this.renegotiateMedia({video: enableVideoParam?.video ?? true, negotiateVideo: !enableVideoParam?.sendOnly})
+  async enableVideo(params?: EnableVideoOptions): Promise<void> {
+    await this.renegotiateMedia({video: params?.video ?? true, negotiateVideo: !params?.sendOnly})
   }
 
-  async disableVideo(disableVideoParam?: DisableVideoOptions): Promise<void> {
-    await this.renegotiateMedia({video: false, negotiateVideo: disableVideoParam?.recvOnly})
+  async disableVideo(params?: DisableVideoOptions): Promise<void> {
+    await this.renegotiateMedia({video: false, negotiateVideo: params?.recvOnly})
   }
 }
