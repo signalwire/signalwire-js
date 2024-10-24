@@ -107,6 +107,8 @@ export const makeVideoElementSaga = ({
       const layoutChangedHandler = makeLayoutChangedHandler({
         rootElement,
         localVideoOverlay: localOverlay,
+        // @ts-expect-error
+        layerMap,
       })
 
       let hasVideoTrack = false
