@@ -6,7 +6,6 @@ import {
 } from '@signalwire/core'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import {
-  LocalOverlay,
   addSDKPrefix,
   buildVideo,
   cleanupElement,
@@ -15,11 +14,13 @@ import {
   waitForVideoReady,
 } from '../utils/videoElement'
 import { DeprecatedVideoMemberHandlerParams } from '../video'
+import { LocalVideoOverlay } from './VideoOverlays'
 
 export interface BuildVideoElementParams {
   room: CallFabricRoomSession
   rootElement?: HTMLElement
   applyLocalVideoOverlay?: boolean
+  applyMemberOverlay?: boolean
 }
 
 export interface BuildVideoElementReturnType {
@@ -33,8 +34,14 @@ export const buildVideoElement = async (
   params: BuildVideoElementParams
 ): Promise<BuildVideoElementReturnType> => {
   try {
-    const { room, rootElement: element, applyLocalVideoOverlay = true } = params
+    const {
+      room,
+      rootElement: element,
+      applyLocalVideoOverlay = true,
+      applyMemberOverlay = true,
+    } = params
 
+    let hasVideoTrack = false
     const id = uuid()
 
     let rootElement: HTMLElement
@@ -45,81 +52,22 @@ export const buildVideoElement = async (
       rootElement.id = `rootElement-${id}`
     }
 
-    // Create a video element
-    const videoEl = buildVideo()
-    const layerMap = new Map<string, HTMLDivElement>()
-    let hasVideoTrack = false
-
     /**
-     * We used this `LocalOverlay` interface to interact with the localVideo
+     * We used this `LocalVideoOverlay` class to interact with the localVideo
      * overlay DOM element in here and in the ``.
-     * The idea is to avoid APIs like `document.getElementById` because it
-     * won't work if the SDK is used within a Shadow DOM tree.
-     * Instead of querying the `document`, let's use our `layerMap`.
      */
-    const localOverlay: LocalOverlay = {
-      // Each `layout.changed` event will update `status`
-      status: 'hidden',
-      get id() {
-        // FIXME: Use `id` until the `memberId` is stable between promote/demote
-        return addSDKPrefix(id)
-      },
-      get domElement() {
-        return layerMap.get(this.id)
-      },
-      set domElement(element: HTMLDivElement | undefined) {
-        if (element) {
-          getLogger().debug('Set localOverlay', element)
-          layerMap.set(this.id, element)
-        } else {
-          getLogger().debug('Remove localOverlay')
-          layerMap.delete(this.id)
-        }
-      },
-      hide() {
-        if (!this.domElement) {
-          return getLogger().warn('Missing localOverlay to hide')
-        }
-        this.domElement.style.opacity = '0'
-      },
-      show() {
-        if (!this.domElement) {
-          return getLogger().warn('Missing localOverlay to show')
-        }
-        if (this.status === 'hidden') {
-          return getLogger().info('localOverlay not visible')
-        }
-        this.domElement.style.opacity = '1'
-      },
-      setLocalOverlayMediaStream(stream: MediaStream) {
-        if (!this.domElement) {
-          return getLogger().warn(
-            'Missing localOverlay to set the local overlay stream'
-          )
-        }
-        const localVideo = this.domElement.querySelector('video')
-        if (localVideo) {
-          localVideo.srcObject = stream
-        }
-      },
-      setLocalOverlayMirror(mirror: boolean) {
-        if (!this.domElement || !this.domElement.firstChild) {
-          return getLogger().warn('Missing localOverlay to set the mirror')
-        }
-        const videoEl = this.domElement.firstChild as HTMLVideoElement
-        if (mirror ?? room.localOverlay.mirrored) {
-          videoEl.style.transform = 'scale(-1, 1)'
-          videoEl.style.webkitTransform = 'scale(-1, 1)'
-        } else {
-          videoEl.style.transform = 'scale(1, 1)'
-          videoEl.style.webkitTransform = 'scale(1, 1)'
-        }
-      },
-    }
+    const localVideoOverlay = new LocalVideoOverlay({
+      id: addSDKPrefix(id),
+      layerMap: room.layerMap,
+      room,
+    })
+    room.localVideoOverlay = localVideoOverlay
 
     const makeLayoutHandler = makeLayoutChangedHandler({
       rootElement,
-      localOverlay,
+      localVideoOverlay,
+      applyMemberOverlay: true,
+      layerMap: room.layerMap,
     })
 
     const processLayoutChanged = (params: any) => {
@@ -128,10 +76,10 @@ export const buildVideoElement = async (
         makeLayoutHandler({
           layout: params.layout,
           localStream: room.localStream,
-          myMemberId: room.memberId,
+          memberId: room.memberId,
         })
       } else {
-        localOverlay.hide()
+        localVideoOverlay.hide()
       }
     }
 
@@ -150,9 +98,9 @@ export const buildVideoElement = async (
 
       await videoElementSetup({
         applyLocalVideoOverlay,
+        applyMemberOverlay,
         rootElement,
         track,
-        videoElement: videoEl,
       })
 
       // @ts-expect-error
@@ -185,7 +133,7 @@ export const buildVideoElement = async (
     room.on('track', trackHandler)
 
     const mirrorVideoHandler = (value: boolean) => {
-      localOverlay.setLocalOverlayMirror(value)
+      localVideoOverlay.setMirror(value)
     }
 
     // @ts-expect-error
@@ -197,7 +145,9 @@ export const buildVideoElement = async (
       try {
         const { member } = params
         if (member.id === room.memberId && 'video_muted' in member) {
-          member.video_muted ? localOverlay.hide() : localOverlay.show()
+          member.video_muted
+            ? localVideoOverlay.hide()
+            : localVideoOverlay.show()
         }
       } catch (error) {
         getLogger().error('Error handling video_muted', error)
@@ -208,7 +158,7 @@ export const buildVideoElement = async (
 
     const destroyHander = () => {
       cleanupElement(rootElement)
-      layerMap.clear()
+      room.layerMap.clear()
     }
 
     room.once('destroy', destroyHander)
@@ -233,20 +183,25 @@ export const buildVideoElement = async (
 interface VideoElementSetupWorkerParams {
   rootElement: HTMLElement
   track: MediaStreamTrack
-  videoElement: HTMLVideoElement
   applyLocalVideoOverlay?: boolean
+  applyMemberOverlay?: boolean
 }
 
 const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
-    const { applyLocalVideoOverlay, track, videoElement, rootElement } = options
+    const { applyLocalVideoOverlay, applyMemberOverlay, track, rootElement } =
+      options
+
+    // Create a video element
+    const videoElement = buildVideo()
 
     setVideoMediaTrack({ element: videoElement, track })
 
     videoElement.style.width = '100%'
     videoElement.style.maxHeight = '100%'
 
-    if (!applyLocalVideoOverlay) {
+    // If the both flags are false, no need to create the MCU
+    if (!applyLocalVideoOverlay && !applyMemberOverlay) {
       rootElement.appendChild(videoElement)
       return
     }
