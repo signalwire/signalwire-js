@@ -39,7 +39,6 @@ test.describe('CallFabric Renegotiation', () => {
     await page.waitForTimeout(1000)
 
     let stats = await getStats(page)
-0
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).not.toHaveProperty('video')
 
