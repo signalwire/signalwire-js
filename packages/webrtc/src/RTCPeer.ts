@@ -421,7 +421,25 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         if (!this._supportsAddTransceiver()) {
           offerOptions.offerToReceiveAudio = this.options.negotiateAudio
           offerOptions.offerToReceiveVideo = this.options.negotiateVideo
+        } else {
+          this.instance.getTransceivers().forEach((transceiver) => {
+            const kind = transceiver.receiver.track.kind
+            if(kind == 'audio' && this.options.audio && this.options.negotiateAudio) {
+              transceiver.direction = 'sendrecv'
+            } else if (kind == 'audio' && this.options.audio) {
+              transceiver.direction = 'sendonly'
+            } else if (kind == 'audio' && this.options.negotiateAudio) {
+              transceiver.direction = 'recvonly'
+            } if(kind == 'video' && this.options.video && this.options.negotiateVideo) {
+              transceiver.direction = 'sendrecv'
+            } else if (kind == 'video' && this.options.video) {
+              transceiver.direction = 'sendonly'
+            } else if (kind == 'video' && this.options.negotiateVideo) {
+              transceiver.direction = 'recvonly'
+            }
+          })
         }
+
         const offer = await this.instance.createOffer(offerOptions)
         await this._setLocalDescription(offer)
       }
@@ -507,11 +525,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  async start(offering=false) {
-    if(offering) { // allow callee to send renegotiation offers
-      this.options.remoteSdp = undefined
-      this.type = 'offer'
-    }
+  async start() {
+    
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject

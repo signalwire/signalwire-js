@@ -21,7 +21,7 @@ import {
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import { ConnectionOptions } from './utils/interfaces'
+import { ConnectionOptions, DisableVideoOptions, EnableVideoOptions, UpdateMediaOptions } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
 import * as workers from './workers'
@@ -451,15 +451,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           this.__uuid,
           constraints
         )
-        const shouldContinueWithUpdate =
-          this.manageSendersWithConstraints(constraints)
-
-        if (!shouldContinueWithUpdate) {
-          this.logger.debug(
-            'Either `video` and `audio` (or both) constraints were set to `false` so their corresponding senders (if any) were stopped'
-          )
-          return resolve()
-        }
+        this.manageSendersWithConstraints(constraints)
 
         /**
          * On some devices/browsers you cannot open more than one MediaStream at
@@ -515,6 +507,10 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         }
 
         await this.updateStream(newStream)
+        if((!this.options.video && this.options.negotiateVideo) || (!this.options.audio && this.options.negotiateAudio)) {
+          // in this cases onneggotiationneeded won't be triggered
+          this.peer?.start()
+        }
         this.logger.debug('updateConstraints done')
         resolve()
       } catch (error) {
@@ -987,12 +983,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  updateMediaOptions(options: {
-    audio?: boolean
-    video?: boolean
-    negotiateAudio?: boolean
-    negotiateVideo?: boolean
-  }) {
+  updateMediaOptions(options: UpdateMediaOptions) {
     this.logger.debug('updateMediaOptions', { ...options })
     this.options = {
       ...this.options,
@@ -1085,5 +1076,18 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       rtcPeer.stop()
     })
     this.rtcPeerMap.clear()
+  }
+
+  async renegotiateMedia(params: UpdateMediaOptions): Promise<void> {
+    this.updateMediaOptions(params)
+    await this.updateConstraints({video: this.options.video, audio: this.options.audio})
+  }
+
+  async enableVideo(params?: EnableVideoOptions): Promise<void> {
+    await this.renegotiateMedia({video: params?.video ?? true, negotiateVideo: !params?.sendOnly})
+  }
+
+  async disableVideo(params?: DisableVideoOptions): Promise<void> {
+    await this.renegotiateMedia({video: false, negotiateVideo: params?.recvOnly})
   }
 }

@@ -1,3 +1,4 @@
+import { DisableVideoOptions, EnableVideoOptions, UpdateMediaOptions } from '@signalwire/webrtc'
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
 
 export interface CallFabricRoomSessionConnectionContract {
@@ -37,4 +38,25 @@ export interface CallFabricRoomSessionConnectionContract {
    * ```
    */
   hangup(id?: string): Promise<void>
+
+  /**
+   * Renegotiate RTC media channels based on the new media constraints
+   * 
+   * @param params 
+   */
+  renegotiateMedia(params: UpdateMediaOptions): Promise<void>
+
+  /**
+   * Convenience method to enable video in a call
+   * 
+   * @param params 
+   */
+  enableVideo(params?: EnableVideoOptions): Promise<void>
+  
+  /**
+   * Convenience method to disable video in a call
+   * 
+   * @param params 
+   */
+  disableVideo(params?: DisableVideoOptions): Promise<void>
 }
