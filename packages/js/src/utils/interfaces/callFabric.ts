@@ -4,7 +4,6 @@ import {
   UpdateMediaOptions,
 } from '@signalwire/webrtc'
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
-import { UpdateMediaOptions } from '@signalwire/webrtc'
 
 export interface CallFabricRoomSessionConnectionContract {
   /**
