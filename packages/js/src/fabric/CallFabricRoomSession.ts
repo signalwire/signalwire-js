@@ -26,7 +26,7 @@ import {
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
-import { LayerMap, UserOverlay } from './VideoOverlays'
+import { LayerMap, LocalVideoOverlay } from './VideoOverlays'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -60,6 +60,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
   private _layerMap: LayerMap
+  private _localVideoOverlay: LocalVideoOverlay
 
   constructor(props: BaseRoomSessionOptions) {
     super(props)
@@ -119,16 +120,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._layerMap
   }
 
+  set localVideoOverlay(overlay: LocalVideoOverlay) {
+    this._localVideoOverlay = overlay
+  }
+
   get localVideoOverlay() {
-    const results: UserOverlay[] = []
-
-    this.layerMap.forEach((value, key) => {
-      if (key.startsWith('sw-sdk-')) {
-        results.push(value)
-      }
-    })
-
-    return results[0]
+    return this._localVideoOverlay
   }
 
   private executeAction<

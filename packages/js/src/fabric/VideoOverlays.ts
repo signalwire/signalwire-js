@@ -1,3 +1,4 @@
+import { OVERLAY_PREFIX, SDK_PREFIX } from '../utils/videoElement'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import { getLogger } from '@signalwire/core'
 
@@ -24,12 +25,19 @@ export class UserOverlay {
     this.layerMap.set(this.id, this)
   }
 
+  get userId() {
+    return this.id.split(OVERLAY_PREFIX)[1]
+  }
+
   get domElement() {
     return this._domElement
   }
 
   set domElement(element: HTMLDivElement | undefined) {
     getLogger().debug('Setting domElement for ', this.id)
+    if (!element) {
+      this.layerMap.delete(this.id)
+    }
     this._domElement = element
   }
 
@@ -68,11 +76,15 @@ interface LocalVideoOverlayOptions {
 }
 
 export class LocalVideoOverlay extends UserOverlay {
-  private room: CallFabricRoomSession
+  private _room: CallFabricRoomSession
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
-    this.room = options.room
+    this._room = options.room
+  }
+
+  get userId() {
+    return this.id.split(SDK_PREFIX)[1]
   }
 
   setMediaStream(stream: MediaStream) {
@@ -85,13 +97,12 @@ export class LocalVideoOverlay extends UserOverlay {
     }
   }
 
-  setMirror(mirror: boolean = this.room.localOverlay.mirrored) {
+  setMirror(mirror: boolean = this._room.localOverlay.mirrored) {
     if (!this.domElement || !this.domElement.firstChild) {
       return getLogger().warn('Missing local overlay to set the mirror')
     }
     const videoEl = this.domElement.firstChild as HTMLVideoElement
-    const mirrorVideo = mirror ?? this.room.localOverlay.mirrored
-    videoEl.style.transform = mirrorVideo ? 'scale(-1, 1)' : 'scale(1, 1)'
-    videoEl.style.webkitTransform = mirrorVideo ? 'scale(-1, 1)' : 'scale(1, 1)'
+    videoEl.style.transform = mirror ? 'scale(-1, 1)' : 'scale(1, 1)'
+    videoEl.style.webkitTransform = mirror ? 'scale(-1, 1)' : 'scale(1, 1)'
   }
 }

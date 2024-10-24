@@ -41,6 +41,7 @@ export const buildVideoElement = async (
       applyMemberOverlay = true,
     } = params
 
+    let hasVideoTrack = false
     const id = uuid()
 
     let rootElement: HTMLElement
@@ -51,8 +52,6 @@ export const buildVideoElement = async (
       rootElement.id = `rootElement-${id}`
     }
 
-    let hasVideoTrack = false
-
     /**
      * We used this `LocalVideoOverlay` class to interact with the localVideo
      * overlay DOM element in here and in the ``.
@@ -62,8 +61,7 @@ export const buildVideoElement = async (
       layerMap: room.layerMap,
       room,
     })
-
-    console.log('?? localVideoOverlay', localVideoOverlay)
+    room.localVideoOverlay = localVideoOverlay
 
     const makeLayoutHandler = makeLayoutChangedHandler({
       rootElement,

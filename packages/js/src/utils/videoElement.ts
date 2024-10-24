@@ -4,17 +4,21 @@ import {
   InternalVideoLayout,
   debounce,
 } from '@signalwire/core'
-import { LayerMap, LocalVideoOverlay } from '../fabric/VideoOverlays'
+import {
+  LayerMap,
+  LocalVideoOverlay,
+  UserOverlay,
+} from '../fabric/VideoOverlays'
 
-const SDK_PREFIX = 'sw-sdk-'
+export const SDK_PREFIX = 'sw-sdk-'
 const addSDKPrefix = (id: string) => {
   return `${SDK_PREFIX}${id}`
 }
 
-// const OVERLAY_PREFIX = 'sw-overlay-'
-// const addOverlayPrefix = (id: string) => {
-//   return `${OVERLAY_PREFIX}${id}`
-// }
+export const OVERLAY_PREFIX = 'sw-overlay-'
+const addOverlayPrefix = (id: string) => {
+  return `${OVERLAY_PREFIX}${id}`
+}
 
 const buildVideo = () => {
   const video = document.createElement('video')
@@ -76,27 +80,27 @@ const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
   return layer
 }
 
-// const _updateLayer = ({
-//   location,
-//   element,
-// }: {
-//   location: InternalVideoLayoutLayer
-//   element: HTMLElement
-// }) => {
-//   const { top, left, width, height } = _getLocationStyles(location)
-//   element.style.top = top
-//   element.style.left = left
-//   element.style.width = width
-//   element.style.height = height
+const _updateLayer = ({
+  location,
+  element,
+}: {
+  location: InternalVideoLayoutLayer
+  element: HTMLElement
+}) => {
+  const { top, left, width, height } = _getLocationStyles(location)
+  element.style.top = top
+  element.style.left = left
+  element.style.width = width
+  element.style.height = height
 
-//   return element
-// }
+  return element
+}
 
 interface MakeLayoutChangedHandlerParams {
   localVideoOverlay: LocalVideoOverlay
   rootElement: HTMLElement
   applyMemberOverlay?: boolean
-  layerMap?: LayerMap
+  layerMap: LayerMap
 }
 
 interface LayoutChangedHandlerParams {
@@ -106,7 +110,8 @@ interface LayoutChangedHandlerParams {
 }
 
 const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
-  const { localVideoOverlay, rootElement } = params
+  const { localVideoOverlay, rootElement, applyMemberOverlay, layerMap } =
+    params
 
   return async (params: LayoutChangedHandlerParams) => {
     const { layout, memberId, localStream } = params
@@ -114,26 +119,66 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
     getLogger().debug('Process layout.changed')
     try {
       const { layers = [] } = layout
-      const location = layers.find(({ member_id }) => member_id === memberId)
+      const mcuLayers = rootElement.querySelector('.mcuLayers')
 
-      let myLayer = localVideoOverlay.domElement
+      // Make overlay for all members (including a self member)
+      const currMemberLayerIds = new Set([localVideoOverlay.userId])
+      if (applyMemberOverlay && mcuLayers) {
+        layers.forEach((location) => {
+          const memberIdInLocation = location.member_id
+          if (!memberIdInLocation) return
+
+          currMemberLayerIds.add(memberIdInLocation)
+
+          const memberLayer = layerMap.get(addOverlayPrefix(memberIdInLocation))
+          // If the layer already exists, modify its styles
+          if (memberLayer && memberLayer.domElement) {
+            _updateLayer({ location, element: memberLayer.domElement })
+          } else {
+            // If the layer doesn't exist, create a new overlay
+            const overlay = new UserOverlay({
+              id: addOverlayPrefix(memberIdInLocation),
+              layerMap,
+            })
+            const newMemberLayer = _buildLayer({ location })
+            newMemberLayer.id = overlay.id
+            newMemberLayer.style.zIndex = '10'
+            overlay.domElement = newMemberLayer
+            mcuLayers.appendChild(newMemberLayer)
+          }
+        })
+
+        // Remove layers that no longer have a corresponding member
+        layerMap.forEach((layer) => {
+          const memberId = layer.userId
+          if (!currMemberLayerIds.has(memberId)) {
+            if (layer?.domElement) {
+              mcuLayers.removeChild(layer.domElement)
+              layer.domElement = undefined // This removes it from the layerMap
+            }
+          }
+        })
+      }
+
+      // Make local video overlay for the self member
+      const location = layers.find(({ member_id }) => member_id === memberId)
+      let myLayerEl = localVideoOverlay.domElement
       // Update localOverlay.status if a location has been found
       localVideoOverlay.status = location ? 'visible' : 'hidden'
       if (!location) {
         getLogger().debug('Location not found')
-        if (myLayer) {
+        if (myLayerEl) {
           getLogger().debug('Current layer not visible')
           localVideoOverlay.hide()
         }
         return
       }
 
-      const mcuLayers = rootElement.querySelector('.mcuLayers')
-      if (!myLayer) {
+      if (!myLayerEl) {
         getLogger().debug('Build myLayer')
-        myLayer = _buildLayer({ location })
-        myLayer.id = localVideoOverlay.id
-        myLayer.style.zIndex = '1'
+        myLayerEl = _buildLayer({ location })
+        myLayerEl.id = localVideoOverlay.id
+        myLayerEl.style.zIndex = '1'
 
         const localVideo = buildVideo()
         localVideo.srcObject = localStream
@@ -143,13 +188,12 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
         localVideo.style.pointerEvents = 'none'
         localVideo.style.objectFit = 'cover'
 
-        myLayer.appendChild(localVideo)
+        myLayerEl.appendChild(localVideo)
 
         if (mcuLayers) {
-          mcuLayers.innerHTML = ''
           getLogger().debug('Build myLayer append it')
-          mcuLayers.appendChild(myLayer)
-          localVideoOverlay.domElement = myLayer
+          mcuLayers.appendChild(myLayerEl)
+          localVideoOverlay.domElement = myLayerEl
           localVideoOverlay.setMirror()
           return
         }
@@ -159,52 +203,19 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
       }
 
       /**
-       * Show myLayer only if the localStream has a valid video track
+       * Show local overlay element only if the localStream has a valid video track
        */
-      // const hasVideo =
-      //   localStream
-      //     .getVideoTracks()
-      //     .filter((t) => t.enabled && t.readyState === 'live').length > 0
-      // if (hasVideo) {
-      //   localVideoOverlay.setMediaStream(localStream)
-      // }
-      // myLayer.style.opacity = hasVideo ? '1' : '0'
-      // _updateLayer({ location, element: myLayer })
-
-      // // Make overlay for all members (including a self member)
-      // if (applyMemberOverlay && mcuLayers) {
-      //   layers.forEach((location) => {
-      //     if (!location.member_id) return
-      //     const overlay = getOverlay(location.member_id)
-
-      //     let memberLayer = overlay.domElement
-
-      //     // If the layer already exists, modify its styles
-      //     if (memberLayer) {
-      //       _updateLayer({ location, element: memberLayer })
-      //     } else {
-      //       // If the layer doesn't exist, create a new one
-      //       memberLayer = _buildLayer({ location })
-      //       memberLayer.id = overlay.id
-      //       memberLayer.style.zIndex = '10'
-      //       overlay.domElement = memberLayer
-      //       mcuLayers.appendChild(memberLayer)
-      //     }
-      //   })
-
-      //   // Remove layers that no longer have a corresponding member
-      //   layerMap.forEach((layer, id) => {
-      //     console.log(`ID: ${id}, Layer Element:`, layer)
-      //     const memberId = id.replace(OVERLAY_PREFIX, '')
-      //     if (!layers.some((location) => location.member_id === memberId)) {
-      //       const overlay = getOverlay(memberId)
-      //       if (overlay.domElement) {
-      //         mcuLayers.removeChild(overlay.domElement)
-      //         overlay.domElement = undefined // This removes it from the layerMap
-      //       }
-      //     }
-      //   })
-      // }
+      const hasVideo =
+        localStream
+          .getVideoTracks()
+          .filter((t) => t.enabled && t.readyState === 'live').length > 0
+      if (hasVideo) {
+        localVideoOverlay.setMediaStream(localStream)
+        localVideoOverlay.show()
+      } else {
+        localVideoOverlay.hide()
+      }
+      _updateLayer({ location, element: myLayerEl })
     } catch (error) {
       getLogger().error('Layout Changed Error', error)
     }
