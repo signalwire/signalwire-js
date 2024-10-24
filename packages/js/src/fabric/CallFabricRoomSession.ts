@@ -27,6 +27,7 @@ import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
 import { LayerMap, LocalVideoOverlay } from './VideoOverlays'
+import { addOverlayPrefix } from '../utils/videoElement'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -225,6 +226,10 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
         this.peer.restartIce()
       }
     }
+  }
+
+  public getMemberOverlay(memberId: string) {
+    return this.layerMap.get(addOverlayPrefix(memberId))
   }
 
   public audioMute(params: Rooms.RoomMemberMethodParams) {

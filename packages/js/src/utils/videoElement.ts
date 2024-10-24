@@ -10,12 +10,12 @@ import {
   UserOverlay,
 } from '../fabric/VideoOverlays'
 
-export const SDK_PREFIX = 'sw-sdk-'
+const SDK_PREFIX = 'sw-sdk-'
 const addSDKPrefix = (id: string) => {
   return `${SDK_PREFIX}${id}`
 }
 
-export const OVERLAY_PREFIX = 'sw-overlay-'
+const OVERLAY_PREFIX = 'sw-overlay-'
 const addOverlayPrefix = (id: string) => {
   return `${OVERLAY_PREFIX}${id}`
 }
@@ -311,6 +311,9 @@ export {
   setVideoMediaTrack,
   waitForVideoReady,
   addSDKPrefix,
+  addOverlayPrefix,
   createRootElementResizeObserver,
   LocalVideoOverlay,
+  SDK_PREFIX,
+  OVERLAY_PREFIX,
 }
