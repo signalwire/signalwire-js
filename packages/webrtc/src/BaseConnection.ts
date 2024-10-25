@@ -21,7 +21,13 @@ import {
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import { ConnectionOptions, DisableVideoOptions, EnableVideoOptions, UpdateMediaOptions } from './utils/interfaces'
+import {
+  ConnectionOptions,
+  // DisableVideoParams,
+  EnableVideoParams,
+  RenegotiateMediaParams,
+  UpdateMediaOptions,
+} from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
 import * as workers from './workers'
@@ -203,7 +209,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
-      attach, 
+      attach,
       callerName,
       callerNumber,
       remoteCallerName,
@@ -507,10 +513,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         }
 
         await this.updateStream(newStream)
-        if((!this.options.video && this.options.negotiateVideo) || (!this.options.audio && this.options.negotiateAudio)) {
-          // in this cases onneggotiationneeded won't be triggered
-          this.peer?.start()
-        }
         this.logger.debug('updateConstraints done')
         resolve()
       } catch (error) {
@@ -1078,16 +1080,43 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.rtcPeerMap.clear()
   }
 
-  async renegotiateMedia(params: UpdateMediaOptions): Promise<void> {
+  async renegotiateVideoMedia(params: RenegotiateMediaParams): Promise<void> {
     this.updateMediaOptions(params)
-    await this.updateConstraints({video: this.options.video, audio: this.options.audio})
+
+    if (!params.video && params.negotiateVideo) {
+      const transceiver = this.peer?.instance
+        .getTransceivers()
+        .find((tr) => tr.receiver.track?.kind === 'video')
+
+      if (!transceiver) {
+        // No video transceiver exists, add one in recvonly mode
+        this.peer?.instance.addTransceiver('video', { direction: 'recvonly' })
+        console.log('>> Added video transceiver in recvonly mode.')
+      } else if (transceiver.direction !== 'recvonly') {
+        // Ensure the transceiver is set to recvonly if it already exists
+        transceiver.direction = 'recvonly'
+        console.log('>> Updated video transceiver to recvonly mode.')
+      }
+      return
+    }
+
+    await this.updateConstraints({
+      video: params.video ?? this.options.video,
+      audio: this.options.audio,
+    })
   }
 
-  async enableVideo(params?: EnableVideoOptions): Promise<void> {
-    await this.renegotiateMedia({video: params?.video ?? true, negotiateVideo: !params?.sendOnly})
+  async enableVideo(params?: EnableVideoParams): Promise<void> {
+    await this.renegotiateVideoMedia({
+      video: params?.video ?? true,
+      negotiateVideo: params?.negotiateVideo ?? true,
+    })
   }
 
-  async disableVideo(params?: DisableVideoOptions): Promise<void> {
-    await this.renegotiateMedia({video: false, negotiateVideo: params?.recvOnly})
-  }
+  // async disableVideo(params?: DisableVideoParams): Promise<void> {
+  //   await this.renegotiateVideoMedia({
+  //     video: false,
+  //     direction: params?.direction ?? 'sendrecv',
+  //   })
+  // }
 }

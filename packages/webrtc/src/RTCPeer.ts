@@ -423,28 +423,25 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           offerOptions.offerToReceiveVideo = this.options.negotiateVideo
         } else {
           this.instance.getTransceivers().forEach((transceiver) => {
-            const kind = transceiver.receiver.track.kind
-            if (
-              kind == 'audio' &&
-              this.options.audio &&
-              this.options.negotiateAudio
-            ) {
-              transceiver.direction = 'sendrecv'
-            } else if (kind == 'audio' && this.options.audio) {
-              transceiver.direction = 'sendonly'
-            } else if (kind == 'audio' && this.options.negotiateAudio) {
-              transceiver.direction = 'recvonly'
+            const kind = transceiver.sender.track?.kind
+            if (kind === 'audio') {
+              if (this.options.audio && this.options.negotiateAudio) {
+                transceiver.direction = 'sendrecv'
+              } else if (this.options.audio && !this.options.negotiateAudio) {
+                transceiver.direction = 'sendonly'
+              } else if (!this.options.audio && this.options.negotiateAudio) {
+                transceiver.direction = 'recvonly'
+              }
             }
-            if (
-              kind == 'video' &&
-              this.options.video &&
-              this.options.negotiateVideo
-            ) {
-              transceiver.direction = 'sendrecv'
-            } else if (kind == 'video' && this.options.video) {
-              transceiver.direction = 'sendonly'
-            } else if (kind == 'video' && this.options.negotiateVideo) {
-              transceiver.direction = 'recvonly'
+
+            if (kind === 'video') {
+              if (this.options.video && this.options.negotiateVideo) {
+                transceiver.direction = 'sendrecv'
+              } else if (this.options.video && !this.options.negotiateVideo) {
+                transceiver.direction = 'sendonly'
+              } else if (!this.options.video && this.options.negotiateVideo) {
+                transceiver.direction = 'recvonly'
+              }
             }
           })
         }
