@@ -98,7 +98,7 @@ test.describe('CallFabric Renegotiation', () => {
       // @ts-expect-error
       const cfRoomSession = window._roomObj as CallFabricRoomSession
 
-      await cfRoomSession.enableVideo({ sendOnly: true })
+      await cfRoomSession.enableVideo({ video: true, negotiateVideo: false })
     })
 
     await page.waitForTimeout(1000)
@@ -146,7 +146,7 @@ test.describe('CallFabric Renegotiation', () => {
       // @ts-expect-error
       const cfRoomSession = window._roomObj as CallFabricRoomSession
 
-      await cfRoomSession.enableVideo({ video: false, sendOnly: false })
+      await cfRoomSession.enableVideo({ video: false, negotiateVideo: true })
     })
 
     await page.waitForTimeout(1000)
