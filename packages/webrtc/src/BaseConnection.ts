@@ -23,7 +23,7 @@ import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
   ConnectionOptions,
-  // DisableVideoParams,
+  DisableVideoParams,
   EnableVideoParams,
   RenegotiateMediaParams,
   UpdateMediaOptions,
@@ -1120,8 +1120,23 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   async renegotiateVideoMedia(params: RenegotiateMediaParams): Promise<void> {
     this.updateMediaOptions(params)
 
+    await this.updateConstraints({
+      video: params.video ?? this.options.video,
+      audio: this.options.audio,
+    })
+  }
+
+  async enableVideo(params?: EnableVideoParams): Promise<void> {
+    const { video = true, negotiateVideo = true } = params || {}
+
+    if (!video && !negotiateVideo) {
+      throw new Error('Invalid parameters!')
+    }
+
+    this.updateMediaOptions({ video, negotiateVideo })
+
     // When user want to enable the video in "recvonly" mode
-    if (!params.video && params.negotiateVideo) {
+    if (!video && negotiateVideo) {
       const transceiver = this.peer?.instance
         .getTransceivers()
         .find((tr) => tr.receiver.track?.kind === 'video')
@@ -1136,28 +1151,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     // If the transceiver already exist; updateConstraints will update the direction
     await this.updateConstraints({
-      video: params.video ?? this.options.video,
+      video: video ?? this.options.video,
       audio: this.options.audio,
     })
   }
 
-  async enableVideo(params?: EnableVideoParams): Promise<void> {
-    const { video = true, negotiateVideo = true } = params || {}
-
-    if (!video && !negotiateVideo) {
-      throw new Error('Invalid parameters!')
-    }
-
+  async disableVideo(params?: DisableVideoParams): Promise<void> {
     await this.renegotiateVideoMedia({
-      video: params?.video ?? true,
+      video: false,
       negotiateVideo: params?.negotiateVideo ?? true,
     })
   }
-
-  // async disableVideo(params?: DisableVideoParams): Promise<void> {
-  //   await this.renegotiateVideoMedia({
-  //     video: false,
-  //     direction: params?.direction ?? 'sendrecv',
-  //   })
-  // }
 }
