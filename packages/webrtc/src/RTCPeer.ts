@@ -421,29 +421,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         if (!this._supportsAddTransceiver()) {
           offerOptions.offerToReceiveAudio = this.options.negotiateAudio
           offerOptions.offerToReceiveVideo = this.options.negotiateVideo
-        } else {
-          this.instance.getTransceivers().forEach((transceiver) => {
-            const kind = transceiver.sender.track?.kind
-            if (kind === 'audio') {
-              if (this.options.audio && this.options.negotiateAudio) {
-                transceiver.direction = 'sendrecv'
-              } else if (this.options.audio && !this.options.negotiateAudio) {
-                transceiver.direction = 'sendonly'
-              } else if (!this.options.audio && this.options.negotiateAudio) {
-                transceiver.direction = 'recvonly'
-              }
-            }
-
-            if (kind === 'video') {
-              if (this.options.video && this.options.negotiateVideo) {
-                transceiver.direction = 'sendrecv'
-              } else if (this.options.video && !this.options.negotiateVideo) {
-                transceiver.direction = 'sendonly'
-              } else if (!this.options.video && this.options.negotiateVideo) {
-                transceiver.direction = 'recvonly'
-              }
-            }
-          })
         }
         const offer = await this.instance.createOffer(offerOptions)
         console.log(offer.sdp)
@@ -563,10 +540,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         hasLocalTracks = Boolean(audioTracks.length || videoTracks.length)
 
         // TODO: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
-        if (
-          this.isOffer &&
-          typeof this.instance.addTransceiver === 'function'
-        ) {
+        if (this.isOffer && this._supportsAddTransceiver()) {
           const audioTransceiverParams: RTCRtpTransceiverInit = {
             direction: this.options.negotiateAudio ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],
@@ -672,8 +646,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _checkMediaToNegotiate(kind: string) {
+    console.log('>> _checkMediaToNegotiate1', kind)
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
+    console.log('>> _checkMediaToNegotiate2', sender)
     if (!sender && this._supportsAddTransceiver()) {
       const transceiver = this.instance.addTransceiver(kind, {
         direction: 'recvonly',
@@ -857,6 +833,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _attachListeners() {
     this.instance.addEventListener('signalingstatechange', () => {
+      console.log('>> event signalingstatechange')
       this.logger.debug('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
@@ -890,6 +867,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     })
 
     this.instance.addEventListener('connectionstatechange', () => {
+      console.log('>> event connectionstatechange')
       this.logger.debug('connectionState:', this.instance.connectionState)
       switch (this.instance.connectionState) {
         // case 'new':
@@ -917,15 +895,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     })
 
     this.instance.addEventListener('negotiationneeded', () => {
+      console.log('>> event negotiationneeded')
       this.logger.debug('Negotiation needed event')
       this.startNegotiation()
     })
 
     this.instance.addEventListener('iceconnectionstatechange', () => {
+      console.log('>> event iceconnectionstatechange')
       this.logger.debug('iceConnectionState:', this.instance.iceConnectionState)
     })
 
     this.instance.addEventListener('icegatheringstatechange', () => {
+      console.log('>> event icegatheringstatechange')
       this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
     })
 
@@ -934,6 +915,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      console.log('>> event track')
       // @ts-expect-error
       this.call.emit('track', event)
 
@@ -946,6 +928,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     // @ts-ignore
     this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
+      console.log('>> addstream')
       if (event.stream) {
         this._remoteStream = event.stream
       }

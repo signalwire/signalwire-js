@@ -418,6 +418,36 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
+  private getTransceiverDirection(kind: 'video' | 'audio' | string) {
+    let direction: RTCRtpTransceiverDirection = 'inactive'
+
+    if (kind === 'audio') {
+      if (this.options.audio && this.options.negotiateAudio) {
+        direction = 'sendrecv'
+      } else if (this.options.audio && !this.options.negotiateAudio) {
+        direction = 'sendonly'
+      } else if (!this.options.audio && this.options.negotiateAudio) {
+        direction = 'recvonly'
+      } else {
+        direction = 'stopped'
+      }
+    }
+    if (kind === 'video') {
+      if (this.options.video && this.options.negotiateVideo) {
+        direction = 'sendrecv'
+      } else if (this.options.video && !this.options.negotiateVideo) {
+        direction = 'sendonly'
+      } else if (!this.options.video && this.options.negotiateVideo) {
+        direction = 'recvonly'
+      } else {
+        direction = 'stopped'
+      }
+    }
+
+    return direction
+  }
+
+  /** @internal */
   private manageSendersWithConstraints(constraints: MediaStreamConstraints) {
     if (constraints.audio === false) {
       this.logger.info('Switching off the microphone')
@@ -572,9 +602,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           transceiver.mid
         )
         await transceiver.sender.replaceTrack(newTrack)
-        this.logger.debug('updateStream replaceTrack')
-        transceiver.direction = 'sendrecv'
-        this.logger.debug('updateStream set to sendrecv')
+        this.logger.debug(`updateStream replaceTrack for ${newTrack.kind}`)
+        transceiver.direction = this.getTransceiverDirection(newTrack.kind)
+        this.logger.debug(`updateStream set to ${transceiver.direction}`)
         this.localStream.getTracks().forEach((track) => {
           if (track.kind === newTrack.kind && track.id !== newTrack.id) {
             this.logger.debug(
@@ -592,8 +622,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.peer.type = 'offer'
         this.doReinvite = true
         this.localStream.addTrack(newTrack)
-        instance.addTrack(newTrack, this.localStream)
+        // TODO: Review this
+        // instance.addTrack(newTrack, this.localStream)
+        const direction = this.getTransceiverDirection(newTrack.kind)
+        instance.addTransceiver(newTrack, {
+          direction: direction,
+          streams: [this.localStream],
+        })
       }
+
       this.logger.debug('updateStream simply update mic/cam')
       if (newTrack.kind === 'audio') {
         // @ts-expect-error
@@ -1083,23 +1120,21 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   async renegotiateVideoMedia(params: RenegotiateMediaParams): Promise<void> {
     this.updateMediaOptions(params)
 
+    // When user want to enable the video in "recvonly" mode
     if (!params.video && params.negotiateVideo) {
       const transceiver = this.peer?.instance
         .getTransceivers()
         .find((tr) => tr.receiver.track?.kind === 'video')
 
+      // No video transceiver exists, add one in "recvonly" mode
       if (!transceiver) {
-        // No video transceiver exists, add one in recvonly mode
         this.peer?.instance.addTransceiver('video', { direction: 'recvonly' })
-        console.log('>> Added video transceiver in recvonly mode.')
-      } else if (transceiver.direction !== 'recvonly') {
-        // Ensure the transceiver is set to recvonly if it already exists
-        transceiver.direction = 'recvonly'
-        console.log('>> Updated video transceiver to recvonly mode.')
+        this.logger.info('Added video transceiver in "recvonly" mode.')
+        return
       }
-      return
     }
 
+    // If the transceiver already exist; updateConstraints will update the direction
     await this.updateConstraints({
       video: params.video ?? this.options.video,
       audio: this.options.audio,
@@ -1107,6 +1142,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   async enableVideo(params?: EnableVideoParams): Promise<void> {
+    const { video = true, negotiateVideo = true } = params || {}
+
+    if (!video && !negotiateVideo) {
+      throw new Error('Invalid parameters!')
+    }
+
     await this.renegotiateVideoMedia({
       video: params?.video ?? true,
       negotiateVideo: params?.negotiateVideo ?? true,
