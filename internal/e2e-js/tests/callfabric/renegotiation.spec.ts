@@ -11,7 +11,7 @@ import {
 import { CallFabricRoomSession } from '@signalwire/js'
 
 test.describe('CallFabric Renegotiation', () => {
-  test('Joining a room with audio channel only and enable sendrecv video', async ({
+  test('it should join a room with audio channel and enable "sendrecv" video', async ({
     createCustomPage,
     resource,
   }) => {
@@ -37,31 +37,25 @@ test.describe('CallFabric Renegotiation', () => {
 
     await page.waitForTimeout(1000)
 
-    let stats = await getStats(page)
+    const stats = await getStats(page)
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).not.toHaveProperty('video')
-
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
       // @ts-expect-error
       const cfRoomSession = window._roomObj as CallFabricRoomSession
-
       await cfRoomSession.enableVideo()
     })
 
-    await page.waitForTimeout(2000)
+    await expectMCUVisible(page)
 
-    stats = await getStats(page)
-
-    expect(stats.outboundRTP).toHaveProperty('video')
-    expect(stats.inboundRTP).toHaveProperty('video')
-
-    await page.waitForTimeout(3000)
-    expectMCUVisible(page)
+    const newStats = await getStats(page)
+    expect(newStats.outboundRTP).toHaveProperty('video')
+    expect(newStats.inboundRTP).toHaveProperty('video')
   })
 
-  test('Joining a room with audio channel only and enable sendOnly video', async ({
+  test('it should join a room with audio channel and enable "sendonly" video', async ({
     createCustomPage,
     resource,
   }) => {
@@ -87,29 +81,25 @@ test.describe('CallFabric Renegotiation', () => {
 
     await page.waitForTimeout(1000)
 
-    let stats = await getStats(page)
-
+    const stats = await getStats(page)
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).not.toHaveProperty('video')
-
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
       // @ts-expect-error
       const cfRoomSession = window._roomObj as CallFabricRoomSession
-
       await cfRoomSession.enableVideo({ video: true, negotiateVideo: false })
     })
 
     await page.waitForTimeout(1000)
 
-    stats = await getStats(page)
-
-    expect(stats.outboundRTP).toHaveProperty('video')
-    expect(stats.inboundRTP).not.toHaveProperty('video')
+    const newStats = await getStats(page)
+    expect(newStats.outboundRTP).toHaveProperty('video')
+    expect(newStats.inboundRTP).not.toHaveProperty('video')
   })
 
-  test('Joining a room with audio channel only and enable recvOnly video', async ({
+  test('it should join a room with audio channel and enable "recvonly" video', async ({
     createCustomPage,
     resource,
   }) => {
@@ -135,28 +125,21 @@ test.describe('CallFabric Renegotiation', () => {
 
     await page.waitForTimeout(1000)
 
-    let stats = await getStats(page)
-
+    const stats = await getStats(page)
     expect(stats.outboundRTP).not.toHaveProperty('video')
     expect(stats.inboundRTP).not.toHaveProperty('video')
-
     expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
 
     await page.evaluate(async () => {
       // @ts-expect-error
       const cfRoomSession = window._roomObj as CallFabricRoomSession
-
       await cfRoomSession.enableVideo({ video: false, negotiateVideo: true })
     })
 
-    await page.waitForTimeout(1000)
+    await expectMCUVisibleForAudience(page)
 
-    stats = await getStats(page)
-
-    expect(stats.outboundRTP).not.toHaveProperty('video')
-    expect(stats.inboundRTP).toHaveProperty('video')
-
-    await page.waitForTimeout(2000)
-    expectMCUVisibleForAudience(page)
+    const newStats = await getStats(page)
+    expect(newStats.outboundRTP).not.toHaveProperty('video')
+    expect(newStats.inboundRTP).toHaveProperty('video')
   })
 })
