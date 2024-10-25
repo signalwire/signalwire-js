@@ -103,7 +103,9 @@ export type UpdateMediaOptions = Pick<
 >
 
 export interface RenegotiateMediaParams {
+  audio?: ConnectionOptions['audio']
   video?: ConnectionOptions['video']
+  negotiateAudio?: ConnectionOptions['negotiateAudio']
   negotiateVideo?: ConnectionOptions['negotiateVideo']
 }
 

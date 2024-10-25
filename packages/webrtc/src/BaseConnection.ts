@@ -617,12 +617,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.localStream.addTrack(newTrack)
       } else {
         this.logger.debug(
-          'updateStream no transceiver found. addTrack and start dancing!'
+          'updateStream no transceiver found; addTransceiver and start dancing!'
         )
         this.peer.type = 'offer'
         this.doReinvite = true
         this.localStream.addTrack(newTrack)
-        // TODO: Review this
+        // TODO: Review this; replacing addTrack with addTransceiver - both triggers negotiationneeded event
         // instance.addTrack(newTrack, this.localStream)
         const direction = this.getTransceiverDirection(newTrack.kind)
         instance.addTransceiver(newTrack, {
@@ -1117,12 +1117,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.rtcPeerMap.clear()
   }
 
-  async renegotiateVideoMedia(params: RenegotiateMediaParams): Promise<void> {
+  async renegotiateMedia(params: RenegotiateMediaParams): Promise<void> {
     this.updateMediaOptions(params)
-
     await this.updateConstraints({
       video: params.video ?? this.options.video,
-      audio: this.options.audio,
+      audio: params.audio ?? this.options.audio,
     })
   }
 
@@ -1152,14 +1151,28 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     // If the transceiver already exist; updateConstraints will update the direction
     await this.updateConstraints({
       video: video ?? this.options.video,
-      audio: this.options.audio,
     })
   }
 
   async disableVideo(params?: DisableVideoParams): Promise<void> {
-    await this.renegotiateVideoMedia({
-      video: false,
-      negotiateVideo: params?.negotiateVideo ?? true,
-    })
+    const { negotiateVideo = true } = params || {}
+
+    this.updateMediaOptions({ video: false, negotiateVideo })
+
+    // When user want to disable the video but keep on receiving it; "recvonly" mode
+    if (negotiateVideo) {
+      const transceiver = this.peer?.instance
+        .getTransceivers()
+        .find((tr) => tr.receiver.track?.kind === 'video')
+
+      // Video transceiver exists, update it to "recvonly" mode
+      if (transceiver) {
+        transceiver.direction = 'recvonly'
+        this.logger.info('Update video transceiver to "recvonly" mode.')
+      }
+    }
+
+    // Stop the outbound video
+    this.stopOutboundVideo()
   }
 }

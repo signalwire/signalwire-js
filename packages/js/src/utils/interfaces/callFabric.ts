@@ -45,22 +45,14 @@ export interface CallFabricRoomSessionConnectionContract {
 
   /**
    * Renegotiate RTC media channels based on the new media constraints
-   *
-   * @param params
    */
   renegotiateMedia(params: UpdateMediaOptions): Promise<void>
-
   /**
    * Convenience method to enable video in a call
-   *
-   * @param params
    */
   enableVideo(params?: EnableVideoParams): Promise<void>
-
   /**
    * Convenience method to disable video in a call
-   *
-   * @param params
    */
   disableVideo(params?: DisableVideoParams): Promise<void>
 }
