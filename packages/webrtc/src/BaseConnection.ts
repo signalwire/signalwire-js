@@ -1154,7 +1154,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   async disableVideo(params?: DisableVideoParams): Promise<void> {
-    const { negotiateVideo = true } = params || {}
+    const { negotiateVideo = false } = params || {}
 
     this.updateMediaOptions({ video: false, negotiateVideo })
 

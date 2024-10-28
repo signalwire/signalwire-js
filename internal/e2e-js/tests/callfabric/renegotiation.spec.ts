@@ -51,7 +51,7 @@ test.describe('CallFabric Renegotiation', () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession: CallFabricRoomSession = window._roomObj
-        await cfRoomSession.disableVideo({ negotiateVideo: false })
+        await cfRoomSession.disableVideo()
       })
 
       // Wait for renegotiation
@@ -117,7 +117,7 @@ test.describe('CallFabric Renegotiation', () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession: CallFabricRoomSession = window._roomObj
-        await cfRoomSession.disableVideo()
+        await cfRoomSession.disableVideo({ negotiateVideo: true })
       })
 
       // Wait for renegotiation
@@ -183,7 +183,7 @@ test.describe('CallFabric Renegotiation', () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession: CallFabricRoomSession = window._roomObj
-        await cfRoomSession.disableVideo({ negotiateVideo: false })
+        await cfRoomSession.disableVideo()
       })
 
       // Wait for renegotiation
