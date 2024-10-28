@@ -487,7 +487,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           this.__uuid,
           constraints
         )
-        this.manageSendersWithConstraints(constraints)
+        const shouldContinueWithUpdate =
+          this.manageSendersWithConstraints(constraints)
+
+        if (!shouldContinueWithUpdate) {
+          this.logger.debug(
+            'Either `video` and `audio` (or both) constraints were set to `false` so their corresponding senders (if any) were stopped'
+          )
+          return resolve()
+        }
 
         /**
          * On some devices/browsers you cannot open more than one MediaStream at
@@ -1134,24 +1142,26 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.updateMediaOptions({ video, negotiateVideo })
 
+    // If the video is set to false, the updateConstraints will stop the outbound video and that's it.
+    await this.updateConstraints({
+      video: video ?? true,
+    })
+
     // When user want to enable the video in "recvonly" mode
     if (!video && negotiateVideo) {
       const transceiver = this.peer?.instance
         .getTransceivers()
         .find((tr) => tr.receiver.track?.kind === 'video')
 
-      // No video transceiver exists, add one in "recvonly" mode
+      // No video transceiver exists, add one in "recvonly" mode. Updating the transceiver triggers the negotiationneeded.
       if (!transceiver) {
         this.peer?.instance.addTransceiver('video', { direction: 'recvonly' })
         this.logger.info('Added video transceiver in "recvonly" mode.')
-        return
+      } else {
+        transceiver.direction = 'recvonly'
+        this.logger.info('Updated video transceiver to "recvonly" mode.')
       }
     }
-
-    // If the transceiver already exist; updateConstraints will update the direction
-    await this.updateConstraints({
-      video: video ?? this.options.video,
-    })
   }
 
   async disableVideo(params?: DisableVideoParams): Promise<void> {
@@ -1159,20 +1169,26 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.updateMediaOptions({ video: false, negotiateVideo })
 
-    // When user want to disable the video but keep on receiving it; "recvonly" mode
-    if (negotiateVideo) {
-      const transceiver = this.peer?.instance
-        .getTransceivers()
-        .find((tr) => tr.receiver.track?.kind === 'video')
+    // The updateConstraints will stop the outbound video.
+    await this.updateConstraints({
+      video: false,
+    })
 
-      // Video transceiver exists, update it to "recvonly" mode
-      if (transceiver) {
+    // Get the video transceiver
+    const transceiver = this.peer?.instance
+      .getTransceivers()
+      .find((tr) => tr.receiver.track?.kind === 'video')
+
+    if (transceiver) {
+      if (negotiateVideo) {
+        // User wants to keep receiving video; set to 'recvonly'
         transceiver.direction = 'recvonly'
-        this.logger.info('Update video transceiver to "recvonly" mode.')
+        this.logger.info('Updated video transceiver to "recvonly" mode.')
+      } else {
+        // User wants to disable video completely; set to 'inactive'
+        transceiver.direction = 'inactive'
+        this.logger.info('Set video transceiver to "inactive" mode.')
       }
     }
-
-    // Stop the outbound video
-    this.stopOutboundVideo()
   }
 }
