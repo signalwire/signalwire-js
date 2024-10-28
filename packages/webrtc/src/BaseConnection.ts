@@ -25,7 +25,6 @@ import {
   ConnectionOptions,
   DisableVideoParams,
   EnableVideoParams,
-  RenegotiateMediaParams,
   UpdateMediaOptions,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
@@ -1123,14 +1122,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       rtcPeer.stop()
     })
     this.rtcPeerMap.clear()
-  }
-
-  async renegotiateMedia(params: RenegotiateMediaParams): Promise<void> {
-    this.updateMediaOptions(params)
-    await this.updateConstraints({
-      video: params.video ?? this.options.video,
-      audio: params.audio ?? this.options.audio,
-    })
   }
 
   async enableVideo(params?: EnableVideoParams): Promise<void> {

@@ -102,16 +102,8 @@ export type UpdateMediaOptions = Pick<
   'video' | 'audio' | 'negotiateVideo' | 'negotiateAudio'
 >
 
-export interface RenegotiateMediaParams {
-  audio?: ConnectionOptions['audio']
-  video?: ConnectionOptions['video']
-  negotiateAudio?: ConnectionOptions['negotiateAudio']
-  negotiateVideo?: ConnectionOptions['negotiateVideo']
-}
+export type EnableVideoParams =
+  | { video: true | MediaStreamConstraints['video']; negotiateVideo?: boolean }
+  | { video?: boolean; negotiateVideo: true }
 
-export type EnableVideoParams = {
-  video?: true | MediaStreamConstraints['video']
-  negotiateVideo?: RenegotiateMediaParams['negotiateVideo']
-}
-
-export type DisableVideoParams = Pick<RenegotiateMediaParams, 'negotiateVideo'>
+export type DisableVideoParams = Pick<ConnectionOptions, 'negotiateVideo'>
