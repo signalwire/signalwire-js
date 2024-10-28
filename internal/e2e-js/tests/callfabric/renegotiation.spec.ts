@@ -12,7 +12,7 @@ import {
 import { CallFabricRoomSession } from '@signalwire/js'
 
 test.describe('CallFabric Renegotiation', () => {
-  test('it should enable video with "sendrecv"', async ({
+  test('it should enable video with "sendrecv" and then disable', async ({
     createCustomPage,
     resource,
   }) => {
@@ -46,9 +46,39 @@ test.describe('CallFabric Renegotiation', () => {
     const newStats = await getStats(page)
     expect(newStats.outboundRTP).toHaveProperty('video')
     expect(newStats.inboundRTP).toHaveProperty('video')
+
+    await test.step('it should disable the video', async () => {
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        await cfRoomSession.disableVideo({ negotiateVideo: false })
+      })
+
+      // Wait for renegotiation
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const pc = window._roomObj.peer.instance as RTCPeerConnection
+        while (pc.signalingState !== 'stable') {
+          await new Promise((resolve) => setTimeout(resolve, 100))
+        }
+      })
+
+      // Ensure stats reflect changes
+      await page.waitForTimeout(1000)
+
+      const statsAfterDisabling = await getStats(page)
+      expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
+      // Assert that outboundRTP.video is either absent or inactive
+      if (statsAfterDisabling.outboundRTP.video) {
+        expect(statsAfterDisabling.outboundRTP.video.active).toBe(false)
+        expect(statsAfterDisabling.outboundRTP.video.packetsSent).toBe(0)
+      } else {
+        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('video')
+      }
+    })
   })
 
-  test('it should enable video with "sendonly"', async ({
+  test('it should enable video with "sendonly" and then disable with "recvonly"', async ({
     createCustomPage,
     resource,
   }) => {
@@ -82,9 +112,39 @@ test.describe('CallFabric Renegotiation', () => {
     const newStats = await getStats(page)
     expect(newStats.outboundRTP).toHaveProperty('video')
     expect(newStats.inboundRTP).not.toHaveProperty('video')
+
+    await test.step('it should disable the video with "recvonly"', async () => {
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        await cfRoomSession.disableVideo()
+      })
+
+      // Wait for renegotiation
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const pc = window._roomObj.peer.instance as RTCPeerConnection
+        while (pc.signalingState !== 'stable') {
+          await new Promise((resolve) => setTimeout(resolve, 100))
+        }
+      })
+
+      // Ensure stats reflect changes
+      await page.waitForTimeout(1000)
+
+      const statsAfterDisabling = await getStats(page)
+      expect(statsAfterDisabling.inboundRTP).toHaveProperty('video')
+      // Assert that outboundRTP.video is either absent or inactive
+      if (statsAfterDisabling.outboundRTP.video) {
+        expect(statsAfterDisabling.outboundRTP.video.active).toBe(false)
+        expect(statsAfterDisabling.outboundRTP.video.packetsSent).toBe(0)
+      } else {
+        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('video')
+      }
+    })
   })
 
-  test('it should enable video with "recvonly"', async ({
+  test('it should enable video with "recvonly" and then disable', async ({
     createCustomPage,
     resource,
   }) => {
@@ -118,6 +178,36 @@ test.describe('CallFabric Renegotiation', () => {
     const newStats = await getStats(page)
     expect(newStats.outboundRTP).not.toHaveProperty('video')
     expect(newStats.inboundRTP).toHaveProperty('video')
+
+    await test.step('it should disable the video', async () => {
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        await cfRoomSession.disableVideo({ negotiateVideo: false })
+      })
+
+      // Wait for renegotiation
+      await page.evaluate(async () => {
+        // @ts-expect-error
+        const pc = window._roomObj.peer.instance as RTCPeerConnection
+        while (pc.signalingState !== 'stable') {
+          await new Promise((resolve) => setTimeout(resolve, 100))
+        }
+      })
+
+      // Ensure stats reflect changes
+      await page.waitForTimeout(1000)
+
+      const statsAfterDisabling = await getStats(page)
+      expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
+      // Assert that outboundRTP.video is either absent or inactive
+      if (statsAfterDisabling.outboundRTP.video) {
+        expect(statsAfterDisabling.outboundRTP.video.active).toBe(false)
+        expect(statsAfterDisabling.outboundRTP.video.packetsSent).toBe(0)
+      } else {
+        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('video')
+      }
+    })
   })
 
   test('it should join one member with "sendrecv" and the other member with "sendonly"', async ({
