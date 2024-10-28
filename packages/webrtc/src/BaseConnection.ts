@@ -25,7 +25,7 @@ import {
   ConnectionOptions,
   DisableVideoParams,
   EnableVideoParams,
-  UpdateMediaOptions,
+  UpdateMediaOptionsParams,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
@@ -629,8 +629,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.peer.type = 'offer'
         this.doReinvite = true
         this.localStream.addTrack(newTrack)
-        // TODO: Review this; replacing addTrack with addTransceiver - both triggers negotiationneeded event
-        // instance.addTrack(newTrack, this.localStream)
         const direction = this.getTransceiverDirection(newTrack.kind)
         instance.addTransceiver(newTrack, {
           direction: direction,
@@ -1029,7 +1027,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  updateMediaOptions(options: UpdateMediaOptions) {
+  updateMediaOptions(options: UpdateMediaOptionsParams) {
     this.logger.debug('updateMediaOptions', { ...options })
     this.options = {
       ...this.options,

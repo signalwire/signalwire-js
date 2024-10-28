@@ -38,7 +38,6 @@ export interface CallFabricRoomSessionConnectionContract {
    * ```
    */
   hangup(id?: string): Promise<void>
-
   /**
    * Convenience method to enable video in a call
    */
