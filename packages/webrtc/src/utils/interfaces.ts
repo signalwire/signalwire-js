@@ -103,7 +103,10 @@ export type UpdateMediaOptions = Pick<
 >
 
 export type EnableVideoParams =
-  | { video: true | MediaStreamConstraints['video']; negotiateVideo?: boolean }
+  | {
+      video: true | Exclude<MediaStreamConstraints['video'], false>
+      negotiateVideo?: boolean
+    }
   | { video?: boolean; negotiateVideo: true }
 
 export type DisableVideoParams = Pick<ConnectionOptions, 'negotiateVideo'>

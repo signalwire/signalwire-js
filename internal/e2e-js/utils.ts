@@ -391,6 +391,11 @@ export const expectMCUVisible = async (page: Page) => {
   await page.waitForSelector('div[id^="sw-sdk-"] > video')
 }
 
+export const expectMCUNotVisible = async (page: Page) => {
+  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+  expect(mcuVideo).toBeNull()
+}
+
 export const expectMCUVisibleForAudience = async (page: Page) => {
   await page.waitForSelector('#rootElement video')
 }
