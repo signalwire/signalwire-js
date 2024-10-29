@@ -64,11 +64,11 @@ test.describe('CallFabric Renegotiation', () => {
       })
 
       // Ensure stats reflect changes
-      await page.waitForTimeout(1000)
+      await page.waitForTimeout(3000)
 
       const statsAfterDisabling = await getStats(page)
       // DEBUG: The stats shows inbound video
-      // expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
+      expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
 
       // Assert that outboundRTP.video is either absent or inactive
       if (statsAfterDisabling.outboundRTP.video) {
@@ -133,7 +133,7 @@ test.describe('CallFabric Renegotiation', () => {
       })
 
       // Ensure stats reflect changes
-      await page.waitForTimeout(1000)
+      await page.waitForTimeout(3000)
 
       const statsAfterDisabling = await getStats(page)
       expect(statsAfterDisabling.inboundRTP).toHaveProperty('video')
@@ -201,11 +201,11 @@ test.describe('CallFabric Renegotiation', () => {
       })
 
       // Ensure stats reflect changes
-      await page.waitForTimeout(1000)
+      await page.waitForTimeout(3000)
 
       const statsAfterDisabling = await getStats(page)
       // DEBUG: The stats shows inbound video
-      // expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
+      expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
 
       // Assert that outboundRTP.video is either absent or inactive
       if (statsAfterDisabling.outboundRTP.video) {
