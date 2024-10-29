@@ -23,7 +23,9 @@ import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
   ConnectionOptions,
+  DisableAudioParams,
   DisableVideoParams,
+  EnableAudioParams,
   EnableVideoParams,
   UpdateMediaOptionsParams,
 } from './utils/interfaces'
@@ -417,7 +419,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  private getTransceiverDirection(kind: 'video' | 'audio' | string) {
+  private _getTransceiverDirection(kind: 'video' | 'audio' | string) {
     let direction: RTCRtpTransceiverDirection = 'inactive'
 
     if (kind === 'audio') {
@@ -428,7 +430,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       } else if (!this.options.audio && this.options.negotiateAudio) {
         direction = 'recvonly'
       } else {
-        direction = 'stopped'
+        direction = 'inactive'
       }
     }
     if (kind === 'video') {
@@ -439,7 +441,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       } else if (!this.options.video && this.options.negotiateVideo) {
         direction = 'recvonly'
       } else {
-        direction = 'stopped'
+        direction = 'inactive'
       }
     }
 
@@ -610,7 +612,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         )
         await transceiver.sender.replaceTrack(newTrack)
         this.logger.debug(`updateStream replaceTrack for ${newTrack.kind}`)
-        transceiver.direction = this.getTransceiverDirection(newTrack.kind)
+        transceiver.direction = this._getTransceiverDirection(newTrack.kind)
         this.logger.debug(`updateStream set to ${transceiver.direction}`)
         this.localStream.getTracks().forEach((track) => {
           if (track.kind === newTrack.kind && track.id !== newTrack.id) {
@@ -629,7 +631,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.peer.type = 'offer'
         this.doReinvite = true
         this.localStream.addTrack(newTrack)
-        const direction = this.getTransceiverDirection(newTrack.kind)
+        const direction = this._getTransceiverDirection(newTrack.kind)
         instance.addTransceiver(newTrack, {
           direction: direction,
           streams: [this.localStream],
@@ -1122,67 +1124,110 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.rtcPeerMap.clear()
   }
 
-  async enableVideo(params?: EnableVideoParams): Promise<void> {
-    const { video = true, negotiateVideo = true } = params || {}
+  private async _toggleMedia(
+    kind: 'audio' | 'video',
+    params: {
+      enable: boolean | MediaTrackConstraints
+      negotiate: boolean
+    }
+  ) {
+    const { enable, negotiate } = params
 
-    if (!video && !negotiateVideo) {
-      throw new Error('Invalid parameters!')
+    // Update media options based on the kind
+    const mediaOptionsUpdate =
+      kind === 'audio'
+        ? { audio: enable, negotiateAudio: negotiate }
+        : { video: enable, negotiateVideo: negotiate }
+
+    this.updateMediaOptions(mediaOptionsUpdate)
+
+    // Update constraints to start or stop the outbound track
+    await this.updateConstraints({ [kind]: enable })
+
+    if (enable) {
+      // No need to adjust transceiver when enabling media
+      // updateConstraints and updateStream handle this
+      return
     }
 
-    this.updateMediaOptions({ video, negotiateVideo })
-
-    // If the video is set to false, the updateConstraints will stop the outbound video and that's it.
-    await this.updateConstraints({
-      video: video ?? true,
-    })
-
-    // When user want to enable the video in "recvonly" mode
-    if (!video && negotiateVideo && this.peer) {
+    // When disabling media or adding with "recvonly"
+    if (this.peer) {
       const transceiver = this.peer.instance
         .getTransceivers()
-        .find((tr) => tr.receiver.track?.kind === 'video')
+        .find(
+          (tr) =>
+            tr.receiver.track?.kind === kind || tr.sender.track?.kind === kind
+        )
 
-      // No video transceiver exists, add one in "recvonly" mode. Updating the transceiver triggers the negotiationneeded.
-      if (!transceiver) {
-        this.peer.type = 'offer'
-        this.peer.instance.addTransceiver('video', { direction: 'recvonly' })
-        this.logger.info('Added video transceiver in "recvonly" mode.')
+      if (transceiver) {
+        if (negotiate) {
+          // User wants to keep receiving media; set to 'recvonly'
+          transceiver.direction = 'recvonly'
+          this.logger.info(`Updated ${kind} transceiver to "recvonly" mode.`)
+        } else {
+          // User wants to disable media completely; set to 'inactive'
+          transceiver.direction = 'inactive'
+          this.logger.info(`Updated ${kind} transceiver to "inactive" mode.`)
+        }
       } else {
-        transceiver.direction = 'recvonly'
-        this.logger.info('Updated video transceiver to "recvonly" mode.')
+        // No transceiver exists; add one in 'recvonly' mode
+        if (negotiate) {
+          // Ensure we act as the offerer when adding the transceiver during renegotiation
+          this.peer.type = 'offer'
+          this.peer.instance.addTransceiver(kind, { direction: 'recvonly' })
+          this.logger.info(`Added ${kind} transceiver in "recvonly" mode.`)
+        }
       }
     }
   }
 
-  async disableVideo(params?: DisableVideoParams): Promise<void> {
+  public async enableAudio(params?: EnableAudioParams): Promise<void> {
+    const { audio = true, negotiateAudio = true } = params || {}
+
+    // Perform validation here
+    if (!audio && !negotiateAudio) {
+      throw new Error(
+        'Invalid parameters! At least one of "audio" or "negotiateAudio" must be true.'
+      )
+    }
+
+    await this._toggleMedia('audio', {
+      enable: audio,
+      negotiate: negotiateAudio,
+    })
+  }
+
+  public async disableAudio(params?: DisableAudioParams): Promise<void> {
+    const { negotiateAudio = false } = params || {}
+
+    await this._toggleMedia('audio', {
+      enable: false,
+      negotiate: negotiateAudio,
+    })
+  }
+
+  public async enableVideo(params?: EnableVideoParams): Promise<void> {
+    const { video = true, negotiateVideo = true } = params || {}
+
+    // Perform validation here
+    if (!video && !negotiateVideo) {
+      throw new Error(
+        'Invalid parameters! At least one of "video" or "negotiateVideo" must be true.'
+      )
+    }
+
+    await this._toggleMedia('video', {
+      enable: video,
+      negotiate: negotiateVideo,
+    })
+  }
+
+  public async disableVideo(params?: DisableVideoParams): Promise<void> {
     const { negotiateVideo = false } = params || {}
 
-    this.updateMediaOptions({ video: false, negotiateVideo })
-
-    // The updateConstraints will stop the outbound video.
-    await this.updateConstraints({
-      video: false,
+    await this._toggleMedia('video', {
+      enable: false,
+      negotiate: negotiateVideo,
     })
-
-    // Get the video transceiver
-    const transceiver = this.peer?.instance
-      .getTransceivers()
-      .find(
-        (tr) =>
-          tr.receiver.track?.kind === 'video' ||
-          tr.sender.track?.kind === 'video'
-      )
-
-    if (transceiver) {
-      if (negotiateVideo) {
-        // User wants to keep receiving video; set to 'recvonly'
-        transceiver.direction = 'recvonly'
-        this.logger.info('Updated video transceiver to "recvonly" mode.')
-      } else {
-        // User wants to disable video completely; set to 'inactive'
-        transceiver.direction = 'inactive'
-        this.logger.info('Set video transceiver to "inactive" mode.')
-      }
-    }
   }
 }
