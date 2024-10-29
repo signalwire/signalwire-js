@@ -1271,3 +1271,34 @@ export const waitForRenegotiation = async (page: Page) => {
     }
   })
 }
+
+export const getTransceiverStates = async (page: Page) => {
+  return page.evaluate(() => {
+    // @ts-expect-error
+    const pc = window._roomObj.peer.instance as RTCPeerConnection
+    const transceivers = pc.getTransceivers()
+
+    const states: Record<string, any> = {}
+
+    transceivers.forEach((tr) => {
+      const kind = tr.receiver.track?.kind || tr.sender.track?.kind
+      if (kind) {
+        states[kind] = {
+          direction: tr.direction,
+          receiver: {
+            hasTrack: tr.receiver.track !== null,
+            trackId: tr.receiver.track?.id,
+            trackReadyState: tr.receiver.track?.readyState,
+          },
+          sender: {
+            hasTrack: tr.sender.track !== null,
+            trackId: tr.sender.track?.id,
+            trackReadyState: tr.sender.track?.readyState,
+          },
+        }
+      }
+    })
+
+    return states
+  })
+}

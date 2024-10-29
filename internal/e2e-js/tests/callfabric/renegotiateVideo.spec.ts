@@ -62,7 +62,6 @@ test.describe('CallFabric Video Renegotiation', () => {
       await page.waitForTimeout(3000)
 
       const statsAfterDisabling = await getStats(page)
-      // DEBUG: The stats shows inbound video
       expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
 
       // Assert that outboundRTP.video is either absent or inactive
@@ -166,7 +165,7 @@ test.describe('CallFabric Video Renegotiation', () => {
       await cfRoomSession.enableVideo({ video: false, negotiateVideo: true })
     })
 
-    // Expect audience MCU is visible
+    // Expect incoming video stream is visible
     await expectMCUVisibleForAudience(page)
 
     const newStats = await getStats(page)
@@ -187,7 +186,6 @@ test.describe('CallFabric Video Renegotiation', () => {
       await page.waitForTimeout(3000)
 
       const statsAfterDisabling = await getStats(page)
-      // DEBUG: The stats shows inbound video
       expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
 
       // Assert that outboundRTP.video is either absent or inactive

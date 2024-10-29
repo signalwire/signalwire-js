@@ -1169,6 +1169,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           transceiver.direction = 'inactive'
           this.logger.info(`Updated ${kind} transceiver to "inactive" mode.`)
         }
+        // TODO: Should we replace the sender's track with null?
       } else {
         // No transceiver exists; add one in 'recvonly' mode
         if (negotiate) {
