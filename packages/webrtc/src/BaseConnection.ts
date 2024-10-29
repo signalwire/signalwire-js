@@ -1137,14 +1137,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
 
     // When user want to enable the video in "recvonly" mode
-    if (!video && negotiateVideo) {
-      const transceiver = this.peer?.instance
+    if (!video && negotiateVideo && this.peer) {
+      const transceiver = this.peer.instance
         .getTransceivers()
         .find((tr) => tr.receiver.track?.kind === 'video')
 
       // No video transceiver exists, add one in "recvonly" mode. Updating the transceiver triggers the negotiationneeded.
       if (!transceiver) {
-        this.peer?.instance.addTransceiver('video', { direction: 'recvonly' })
+        this.peer.type = 'offer'
+        this.peer.instance.addTransceiver('video', { direction: 'recvonly' })
         this.logger.info('Added video transceiver in "recvonly" mode.')
       } else {
         transceiver.direction = 'recvonly'
@@ -1166,7 +1167,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     // Get the video transceiver
     const transceiver = this.peer?.instance
       .getTransceivers()
-      .find((tr) => tr.receiver.track?.kind === 'video')
+      .find(
+        (tr) =>
+          tr.receiver.track?.kind === 'video' ||
+          tr.sender.track?.kind === 'video'
+      )
 
     if (transceiver) {
       if (negotiateVideo) {
