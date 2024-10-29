@@ -1197,14 +1197,16 @@ export const deleteResource = async (id: string) => {
 
 interface DialAddressParams {
   address: string
+  dialOptions?: Record<string, any>
+  reattach?: boolean
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
-  reattach?: boolean
 }
 export const dialAddress = (page: Page, params: DialAddressParams) => {
   const {
     address,
+    dialOptions = {},
     reattach = false,
     shouldPassRootElement = true,
     shouldStartCall = true,
@@ -1213,6 +1215,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
   return page.evaluate(
     async ({
       address,
+      dialOptions,
       reattach,
       shouldPassRootElement,
       shouldStartCall,
@@ -1229,6 +1232,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
+          ...dialOptions,
         })
 
         if (shouldWaitForJoin) {
@@ -1249,10 +1253,21 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     },
     {
       address,
+      dialOptions,
       reattach,
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
     }
   )
+}
+
+export const waitForRenegotiation = async (page: Page) => {
+  await page.evaluate(async () => {
+    // @ts-expect-error
+    const pc = window._roomObj.peer.instance as RTCPeerConnection
+    while (pc.signalingState !== 'stable') {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+  })
 }
