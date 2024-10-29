@@ -96,9 +96,7 @@ export const toExternalJSON = <T extends object>(
       }
     } else {
       if (isTimestampProperty(prop)) {
-        if(typeof value === 'number') {
-          reducer[prop] = toDateObject(value)
-        }
+        reducer[prop] = toDateObject(value)
       } else {
         reducer[prop] = value
       }

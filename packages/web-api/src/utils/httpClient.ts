@@ -1,6 +1,6 @@
 import { URL } from 'url'
 import fetch, { RequestInit, Response } from 'node-fetch'
-import AbortController from 'node-abort-controller'
+import { AbortController } from 'node-abort-controller'
 import { AuthError, HttpError } from '@signalwire/core'
 
 interface InternalHttpResponse<T> extends Response {
@@ -75,7 +75,7 @@ export const createHttpClient = (
     if (timeout) {
       const controller = new AbortController()
       const signal = controller.signal
-
+      //@ts-expect-error
       reqInit.signal = signal
 
       timerId = setTimeout(() => {

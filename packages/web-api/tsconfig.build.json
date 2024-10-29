@@ -1,10 +1,9 @@
 {
+  "module": "ESNext",
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "emitDeclarationOnly": true,
     "outDir": "dist",
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true
   },
   "include": ["./src/**/*.ts", "../core/src/**/*.ts"],
   "exclude": ["**/*.test.ts"]
