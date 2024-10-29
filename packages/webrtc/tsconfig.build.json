@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "es2017",
-    "outDir": "dist/mjs"
+    "outDir": "dist/mjs",
+    "importHelpers": true,
   },
   "include": ["./src/**/*.ts", "../core/src/**/*.ts", "../webrtc/src/**/*.ts"],
   "exclude": ["**/*.test.ts"]

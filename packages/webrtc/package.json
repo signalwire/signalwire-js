@@ -40,5 +40,9 @@
     "@signalwire/core": "4.1.0",
     "sdp": "^3.2.0"
   },
-  "types": "dist/cjs/webrtc/src/index.d.ts"
+  "types": "dist/cjs/webrtc/src/index.d.ts",
+  "devDependencies": {
+    "tslib": "^2.8.0",
+    "typescript": "^5.6.3"
+  }
 }

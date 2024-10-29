@@ -40,11 +40,11 @@
     "@signalwire/compatibility-api": "^3.1.3",
     "@signalwire/core": "4.1.0",
     "node-abort-controller": "^2.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.10",
-    "msw": "^0.28.2"
+    "msw": "^2.6.0"
   },
   "types": "dist/web-api/src/index.d.ts"
 }

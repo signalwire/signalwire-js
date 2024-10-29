@@ -3,7 +3,9 @@
   "compilerOptions": {
     "emitDeclarationOnly": true,
     "outDir": "dist",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true    
   },
   "include": [
     "./src/**/*.ts",
