@@ -77,7 +77,7 @@ export class Messaging extends BaseNamespace<
       this._client.logger.error('Error sending message', error)
       throw error as MessagingSendError
     }
-  } 
+  }
 }
 
 export * from './Message'
