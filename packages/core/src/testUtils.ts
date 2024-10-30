@@ -116,6 +116,7 @@ export const rpcConnectResultVRT: RPCConnectResult = {
     {
       urls: 'turn.swire.io:443',
       credential: 'sFTwvi8ShXcYNOcyYjFy3ATIUpQ=',
+      //@ts-expect-error
       credentialType: 'password',
       username: '1619521908:8f0a119a-cda7-4497-a47d-c81493b824d4',
     },

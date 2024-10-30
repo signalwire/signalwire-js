@@ -46,7 +46,7 @@
   "devDependencies": {
     "@redux-saga/testing-utils": "^1.1.5",
     "@types/uuid": "^9.0.2",
-    "jest-websocket-mock": "^2.4.0",
+    "jest-websocket-mock": "^2.5.0",
     "mock-socket": "^9.2.1",
     "redux-saga-test-plan": "^4.0.6"
   },

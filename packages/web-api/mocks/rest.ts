@@ -1,18 +1,27 @@
-import { rest } from 'msw'
-import { RoomResponse } from '../src/types'
+import { http as rest, HttpResponse} from 'msw'
 
 export const handlers = [
-  rest.get<RoomResponse>(`*/video/rooms/:id`, async (req, res, ctx) => {
-    if (req.params.id === 'timeout') {
+  rest.get(`*/video/rooms/:id`, async ({request: req, params, }) => {
+
+    if (params.id === 'timeout') {
       await new Promise((r) => setTimeout(r, 100000))
     } else if (req.headers.get('authorization')?.includes('invalid')) {
-      return res(ctx.status(401))
-    } else if (req.params.id === 'non-existing-id') {
-      return res(ctx.status(404))
+      return HttpResponse.text('Unauthorized',
+        {
+          status: 401,
+          statusText: 'Unauthorized',
+        },
+      )
+    } else if (params.id === 'non-existing-id') {
+      return HttpResponse.text('Not Found',
+        {
+          status: 404,
+          statusText: 'Not Found',
+        },
+      )
     }
 
-    return res(
-      ctx.json({
+    return HttpResponse.json({
         id: '63df00d5-85a7-4633-82e2-6d61d8143dfb',
         name: 'karaoke_night',
         display_name: 'Mandatory Fun Activities',
@@ -23,6 +32,6 @@ export const handlers = [
         created_at: '2021-04-27T19:35:21Z',
         updated_at: '2021-04-27T19:35:21Z',
       })
-    )
+    
   }),
 ]
