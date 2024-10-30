@@ -1,5 +1,4 @@
 {
-  "module": "ESNext",
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "emitDeclarationOnly": true,
