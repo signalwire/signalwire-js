@@ -18,9 +18,9 @@ async function http<T>(
       throw new AuthError(response.status, 'Unauthorized')
     }
 
-    let errorResponse: Record<string, any> | undefined
+    let errorResponse
     try {
-      errorResponse = await response.json() as Record<string, any> | undefined 
+      errorResponse = await response.json() 
     } catch (e) {}
 
     const errorMessage = errorResponse?.errors
@@ -32,7 +32,7 @@ async function http<T>(
 
   try {
     // might throw if body is empty
-    response.parsedBody = await response.json() as T | undefined
+    response.parsedBody = await response.json()
   } catch (e) {}
 
   return response

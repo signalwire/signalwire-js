@@ -121,10 +121,10 @@ export interface EnhancedStore<
  * @public
  */
 export function configureStore<
-  S = any,
+  S extends Reducer<CombinedState<S>, A> = any,
   A extends Action = AnyAction,
   M extends Middlewares<S> = []
->(options: ConfigureStoreOptions<CombinedState<S>, A, M>): EnhancedStore<S, A, M> {
+>(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
   const curriedGetDefaultMiddleware = curryGetDefaultMiddleware<S>()
 
   const {
@@ -135,7 +135,7 @@ export function configureStore<
     enhancers = undefined,
   } = options || {}
 
-  let rootReducer: Reducer<CombinedState<S>, A>
+  let rootReducer
 
   if (typeof reducer === 'function') {
     rootReducer = reducer
