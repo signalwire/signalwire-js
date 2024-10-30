@@ -3,8 +3,7 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "es2015",
-    "outDir": "dist/cjs",
-    "importHelpers": true,
+    "outDir": "dist/cjs"
   },
   "include": ["./src/**/*.ts", "../core/src/**/*.ts", "../webrtc/src/**/*.ts"],
   "exclude": ["**/*.test.ts"]
