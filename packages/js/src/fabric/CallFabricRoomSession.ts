@@ -24,7 +24,7 @@ import {
 } from '../video'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
+import { CallFabricRoomSessionContract } from '../utils/interfaces'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -48,7 +48,7 @@ type CallFabricBaseRoomSession = Omit<
 >
 
 export interface CallFabricRoomSession
-  extends CallFabricRoomSessionConnectionContract,
+  extends CallFabricRoomSessionContract,
     CallFabricBaseRoomSession {}
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {

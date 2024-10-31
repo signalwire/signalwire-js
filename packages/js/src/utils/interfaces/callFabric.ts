@@ -6,7 +6,7 @@ import {
 } from '@signalwire/webrtc'
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
 
-export interface CallFabricRoomSessionConnectionContract {
+export interface CallFabricRoomSessionContract {
   /**
    * The layout returned from the `layout.changed` event based on the current room layout
    */

@@ -84,6 +84,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return this.options.watchMediaPacketsTimeout ?? 2_000
   }
 
+  get isNegotiating() {
+    return this._negotiating
+  }
+
   get localStream() {
     return this._localStream
   }
@@ -454,6 +458,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
+      // Reject the pending renegotiation promise if there is any
+      this.call._rejectRenegotiation(error)
     }
   }
 

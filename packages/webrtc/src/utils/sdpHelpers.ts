@@ -8,12 +8,36 @@ const _getCodecPayloadType = (line: string) => {
   const result = line.match(pattern)
   return result && result.length == 2 ? result[1] : null
 }
+const _normalizeSDPLines = (sdp: string) => {
+  // Make the line break consistent
+  return sdp.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+}
 
 /**
- * test if sdp has a video section
+ * Check if SDP has a media section (audio or video)
  */
-export const hasMediaSection = (sdp: string, media: 'audio' | 'video') => {
-  return sdp.includes(`\r\nm=${media}`)
+export const sdpHasMediaSection = (sdp: string, media: 'audio' | 'video') => {
+  const lines = _normalizeSDPLines(sdp).split('\n')
+  for (let line of lines) {
+    if (line.startsWith(`m=${media}`)) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
+ * Check if SDP includes video
+ */
+export const sdpHasVideo = (sdp: string) => {
+  return sdpHasMediaSection(sdp, 'video')
+}
+
+/**
+ * Check if SDP includes audio
+ */
+export const sdpHasAudio = (sdp: string) => {
+  return sdpHasMediaSection(sdp, 'audio')
 }
 
 /**
@@ -176,4 +200,55 @@ export const sdpRemoveLocalCandidates = (sdp: string) => {
     .split(endOfLine)
     .filter((line) => !pattern.test(line))
     .join(endOfLine)
+}
+
+/**
+ * Get the SDP direction for the specified media type.
+ * Returns 'sendrecv' if no direction attribute is found, as per SDP standards.
+ */
+export const getSdpDirection = (
+  sdp: string,
+  media: 'audio' | 'video'
+): RTCRtpTransceiverDirection => {
+  const lines = _normalizeSDPLines(sdp).split('\n')
+  let inMediaSection = false
+
+  const directions = ['inactive', 'recvonly', 'sendonly', 'sendrecv', 'stopped']
+
+  for (let line of lines) {
+    if (line.startsWith('m=')) {
+      // Check if this is the media section we're interested in
+      inMediaSection = line.startsWith(`m=${media}`)
+    } else if (inMediaSection && line.startsWith('a=')) {
+      // Check for direction attribute within this media section
+      const attr = line.substring(2)
+      if (directions.includes(attr)) {
+        // Return the found direction attribute
+        return attr as RTCRtpTransceiverDirection
+      }
+    }
+  }
+
+  // If no direction attribute is found, return 'sendrecv' as per SDP standard
+  return 'sendrecv'
+}
+
+/**
+ * Returns the opposite SDP direction based on the provided direction.
+ */
+export const getOppositeSdpDirection = (
+  direction: RTCRtpTransceiverDirection
+): RTCRtpTransceiverDirection => {
+  switch (direction) {
+    case 'sendrecv':
+      return 'sendrecv'
+    case 'sendonly':
+      return 'recvonly'
+    case 'recvonly':
+      return 'sendonly'
+    case 'inactive':
+      return 'inactive'
+    default:
+      return 'inactive'
+  }
 }

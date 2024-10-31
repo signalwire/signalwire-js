@@ -19,7 +19,7 @@ import {
   // VertoAttach,
   VertoAnswer,
 } from '@signalwire/core'
-import type { ReduxComponent } from '@signalwire/core'
+import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
   ConnectionOptions,
@@ -30,7 +30,11 @@ import {
   UpdateMediaOptionsParams,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
-import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
+import {
+  getOppositeSdpDirection,
+  getSdpDirection,
+  sdpRemoveLocalCandidates,
+} from './utils/sdpHelpers'
 import * as workers from './workers'
 
 interface OnVertoByeParams {
@@ -116,6 +120,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /** @internal */
   public doReinvite = false
+
+  /**
+   * These promise properties are used to have granular
+   * control over when to `resolve` and when to `reject` the
+   * `_toggleMedia()` method or the renegotiation process.
+   */
+  private _renegotiationPromise: Promise<VertoModifyResponse> | null = null
+  private _resolveRenegotiationPromise:
+    | ((value: VertoModifyResponse) => void)
+    | null = null
+  private _rejectRenegotiationPromise: ((error: Error) => void) | null = null
 
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
@@ -367,7 +382,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
    * Verto messages have to be wrapped into an execute
    * request and sent using the proper RPC WebRTCMethod.
    */
-  private vertoExecute(params: {
+  private vertoExecute<InputType, OutputType = InputType>(params: {
     message: JSONRPCRequest
     callID?: string
     node_id?: string
@@ -375,7 +390,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       EventTypes & BaseConnectionStateEventTypes
     >[]
   }) {
-    return this.execute({
+    return this.execute<InputType, OutputType>({
       method: this._getRPCMethod(),
       params,
     })
@@ -416,6 +431,21 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.updateConstraints({
       audio: constraints,
     })
+  }
+
+  /** @internal */
+  private _clearRenegotiationPromise() {
+    this._renegotiationPromise = null
+    this._resolveRenegotiationPromise = null
+    this._rejectRenegotiationPromise = null
+  }
+
+  /** @internal */
+  public _rejectRenegotiation(error: any) {
+    if (this._rejectRenegotiationPromise) {
+      this._rejectRenegotiationPromise(error)
+      this._clearRenegotiationPromise()
+    }
   }
 
   /** @internal */
@@ -874,7 +904,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  /** @internal */
+  /**
+   * Send the `verto.modify` when it's an offer and remote is already present
+   * It helps in renegotiation.
+   * @internal
+   */
   async executeUpdateMedia(sdp: string, rtcPeerId: string) {
     try {
       const message = VertoModify({
@@ -882,7 +916,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         sdp,
         action: 'updateMedia',
       })
-      const response: any = await this.vertoExecute({
+      const response = await this.vertoExecute<VertoModifyResponse>({
         message,
         callID: rtcPeerId,
         node_id: this.nodeId,
@@ -896,9 +930,21 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         return this.logger.error('Invalid RTCPeer to updateMedia')
       }
       await this.peer.onRemoteSdp(response.sdp)
+
+      // Resolve the pending renegotiation promise with the response
+      if (this._resolveRenegotiationPromise) {
+        this._resolveRenegotiationPromise(response)
+        this._clearRenegotiationPromise()
+      }
     } catch (error) {
+      // Should we hangup when renegotiation fails?
       this.logger.error('UpdateMedia error', error)
-      // this.setState('hangup')
+
+      // Reject the pending renegotiation promise
+      if (this._rejectRenegotiationPromise) {
+        this._rejectRenegotiationPromise(error)
+        this._clearRenegotiationPromise()
+      }
       throw error
     }
   }
@@ -1131,27 +1177,62 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       negotiate: boolean
     }
   ) {
-    const { enable, negotiate } = params
+    try {
+      const { enable, negotiate } = params
 
-    // Update media options based on the kind
-    const mediaOptionsUpdate =
-      kind === 'audio'
-        ? { audio: enable, negotiateAudio: negotiate }
-        : { video: enable, negotiateVideo: negotiate }
+      if (!this.peer) {
+        throw new Error('Invalid RTCPeerConnection')
+      }
 
-    this.updateMediaOptions(mediaOptionsUpdate)
+      // Check if the peer is already negotiating
+      if (this.peer.isNegotiating) {
+        throw new Error('The peer is already negotiating the media!')
+      }
 
-    // Update constraints to start or stop the outbound track
-    await this.updateConstraints({ [kind]: enable })
+      // Determine the current media options based on the kind
+      const currentEnable =
+        kind === 'audio' ? this.options.audio : this.options.video
+      const currentNegotiate =
+        kind === 'audio'
+          ? this.options.negotiateAudio
+          : this.options.negotiateVideo
 
-    if (enable) {
-      // No need to adjust transceiver when enabling media
-      // updateConstraints and updateStream handle this
-      return
-    }
+      // No need to negotiate if the params are the same as currently set
+      if (enable === currentEnable && negotiate === currentNegotiate) {
+        this.logger.info(`The ${kind} media is already in the desired state!`)
+        return
+      }
 
-    // When disabling media or adding with "recvonly"
-    if (this.peer) {
+      // Wait for the previous renegotiation to complete if there is any
+      if (this._renegotiationPromise) {
+        this.logger.info('Waiting for the previous negotiation to complete')
+        await this._renegotiationPromise
+      }
+
+      // Create a new renegotiation promise that would be resolved by the executeUpdateMedia
+      this._renegotiationPromise = new Promise<any>((resolve, reject) => {
+        this._resolveRenegotiationPromise = resolve
+        this._rejectRenegotiationPromise = reject
+      })
+
+      // Update media options based on the kind
+      const mediaOptionsUpdate =
+        kind === 'audio'
+          ? { audio: enable, negotiateAudio: negotiate }
+          : { video: enable, negotiateVideo: negotiate }
+
+      this.updateMediaOptions(mediaOptionsUpdate)
+
+      // Update constraints to start or stop the outbound track
+      await this.updateConstraints({ [kind]: enable })
+
+      if (enable) {
+        // No need to adjust transceiver when enabling media
+        // updateConstraints and updateStream handle this
+        return this._renegotiationPromise
+      }
+
+      // When disabling media or adding with "recvonly"
       const transceiver = this.peer.instance
         .getTransceivers()
         .find(
@@ -1160,6 +1241,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         )
 
       if (transceiver) {
+        // Stop the sender track
+        transceiver.sender.track?.stop()
         if (negotiate) {
           // User wants to keep receiving media; set to 'recvonly'
           transceiver.direction = 'recvonly'
@@ -1179,13 +1262,33 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           this.logger.info(`Added ${kind} transceiver in "recvonly" mode.`)
         }
       }
+
+      const result = await this._renegotiationPromise
+
+      // Throw error if the remote SDP does not include the expected direction
+      const localDirection = getSdpDirection(this.peer.localSdp!, kind)
+      const expectedRemoteDirection = getOppositeSdpDirection(localDirection)
+      const remoteDirection = getSdpDirection(this.peer.remoteSdp!, kind)
+      if (expectedRemoteDirection !== remoteDirection) {
+        throw new Error(
+          `The server did not set the ${kind} direction correctly`
+        )
+        // Should we stop user stream?
+      }
+      return result
+    } catch (error) {
+      // Reject the promise if an error occurs
+      if (this._rejectRenegotiationPromise) {
+        this._rejectRenegotiationPromise(error)
+        this._clearRenegotiationPromise()
+      }
+      throw error
     }
   }
 
-  public async enableAudio(params?: EnableAudioParams): Promise<void> {
+  public async enableAudio(params?: EnableAudioParams) {
     const { audio = true, negotiateAudio = true } = params || {}
 
-    // Perform validation here
     if (!audio && !negotiateAudio) {
       throw new Error(
         'Invalid parameters! At least one of "audio" or "negotiateAudio" must be true.'
@@ -1198,7 +1301,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
   }
 
-  public async disableAudio(params?: DisableAudioParams): Promise<void> {
+  public async disableAudio(params?: DisableAudioParams) {
     const { negotiateAudio = false } = params || {}
 
     await this._toggleMedia('audio', {
@@ -1207,10 +1310,13 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
   }
 
-  public async enableVideo(params?: EnableVideoParams): Promise<void> {
+  public async enableVideo(params?: EnableVideoParams) {
+    if (this.peer?.isNegotiating) {
+      throw new Error('The peer is already negotiating the media!')
+    }
+
     const { video = true, negotiateVideo = true } = params || {}
 
-    // Perform validation here
     if (!video && !negotiateVideo) {
       throw new Error(
         'Invalid parameters! At least one of "video" or "negotiateVideo" must be true.'
@@ -1223,7 +1329,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     })
   }
 
-  public async disableVideo(params?: DisableVideoParams): Promise<void> {
+  public async disableVideo(params?: DisableVideoParams) {
     const { negotiateVideo = false } = params || {}
 
     await this._toggleMedia('video', {
