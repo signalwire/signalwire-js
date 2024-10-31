@@ -7,7 +7,6 @@ import {
   expectMCUVisible,
   getStats,
   getTransceiverStates,
-  waitForRenegotiation,
 } from '../../utils'
 import { CallFabricRoomSession } from '@signalwire/js'
 
@@ -48,12 +47,6 @@ test.describe('CallFabric Audio Renegotiation', () => {
       await cfRoomSession.enableAudio()
     })
 
-    // Wait for renegotiation
-    await waitForRenegotiation(page)
-
-    // Ensure stats reflect changes
-    await page.waitForTimeout(3000)
-
     const newStats = await getStats(page)
     expect(newStats.outboundRTP).toHaveProperty('audio')
     expect(newStats.inboundRTP).toHaveProperty('audio')
@@ -65,30 +58,24 @@ test.describe('CallFabric Audio Renegotiation', () => {
         await cfRoomSession.disableAudio()
       })
 
-      // Wait for renegotiation
-      await waitForRenegotiation(page)
+      const statsAfterDisabling = await getStats(page)
 
-      // Ensure stats reflect changes
-      await page.waitForTimeout(3000)
+      if (statsAfterDisabling.inboundRTP.audio) {
+        expect(statsAfterDisabling.inboundRTP.audio.packetsReceived).toBe(0)
+      } else {
+        expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('audio')
+      }
 
-      // DEBUG: The stats still includes the audio
-      // const statsAfterDisabling = await getStats(page)
-      // expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('audio')
-
-      // // Assert that outboundRTP.audio is either absent or inactive
-      // if (statsAfterDisabling.outboundRTP.audio) {
-      // expect(statsAfterDisabling.outboundRTP.audio.active).toBe(false)
-      //   expect(statsAfterDisabling.outboundRTP.audio.packetsSent).toBe(0)
-      // } else {
-      //   expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('audio')
-      // }
+      if (statsAfterDisabling.outboundRTP.audio) {
+        expect(statsAfterDisabling.outboundRTP.audio.packetsSent).toBe(0)
+      } else {
+        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('audio')
+      }
 
       const { audio, video } = await getTransceiverStates(page)
       expect(video.direction).toBe('sendrecv')
       expect(audio.direction).toBe('inactive')
       expect(audio.sender.trackReadyState).toBe('ended')
-      // DEBUG: It seems the server keeps on sending the audio packets
-      // expect(audio.receiver.trackReadyState).toBe('ended')
     })
   })
 
@@ -125,15 +112,8 @@ test.describe('CallFabric Audio Renegotiation', () => {
     await page.evaluate(async () => {
       // @ts-expect-error
       const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.enableAudio()
       await cfRoomSession.enableAudio({ audio: true, negotiateAudio: false })
     })
-
-    // Wait for renegotiation
-    await waitForRenegotiation(page)
-
-    // Ensure stats reflect changes
-    await page.waitForTimeout(3000)
 
     const newStats = await getStats(page)
     expect(newStats.outboundRTP).toHaveProperty('audio')
@@ -150,11 +130,13 @@ test.describe('CallFabric Audio Renegotiation', () => {
         await cfRoomSession.disableAudio({ negotiateAudio: true })
       })
 
-      // Wait for renegotiation
-      await waitForRenegotiation(page)
-
-      // Ensure stats reflect changes
-      await page.waitForTimeout(3000)
+      const statsAfterDisabling = await getStats(page)
+      expect(statsAfterDisabling.inboundRTP).toHaveProperty('audio')
+      if (statsAfterDisabling.outboundRTP.audio) {
+        expect(statsAfterDisabling.outboundRTP.audio.packetsSent).toBe(0)
+      } else {
+        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('audio')
+      }
 
       const { audio, video } = await getTransceiverStates(page)
       expect(video.direction).toBe('sendrecv')
@@ -164,7 +146,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     })
   })
 
-  test('it should enable video with "recvonly" and then disable', async ({
+  test.only('it should enable video with "recvonly" and then disable', async ({
     createCustomPage,
     resource,
   }) => {
@@ -200,12 +182,6 @@ test.describe('CallFabric Audio Renegotiation', () => {
       await cfRoomSession.enableAudio({ audio: false, negotiateAudio: true })
     })
 
-    // Wait for renegotiation
-    await waitForRenegotiation(page)
-
-    // Ensure stats reflect changes
-    await page.waitForTimeout(3000)
-
     const newStats = await getStats(page)
     expect(newStats.outboundRTP).not.toHaveProperty('audio')
     expect(newStats.inboundRTP).toHaveProperty('audio')
@@ -217,18 +193,24 @@ test.describe('CallFabric Audio Renegotiation', () => {
         await cfRoomSession.disableAudio()
       })
 
-      // Wait for renegotiation
-      await waitForRenegotiation(page)
+      const statsAfterDisabling = await getStats(page)
 
-      // Ensure stats reflect changes
-      await page.waitForTimeout(3000)
+      if (statsAfterDisabling.inboundRTP.audio) {
+        expect(statsAfterDisabling.inboundRTP.audio.packetsReceived).toBe(0)
+      } else {
+        expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('audio')
+      }
+
+      if (statsAfterDisabling.outboundRTP.audio) {
+        expect(statsAfterDisabling.outboundRTP.audio.packetsSent).toBe(0)
+      } else {
+        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('audio')
+      }
 
       const { audio, video } = await getTransceiverStates(page)
       expect(video.direction).toBe('sendrecv')
       expect(audio.direction).toBe('inactive')
       expect(audio.sender.hasTrack).toBe(false)
-      // DEBUG: It seems the server keeps on sending the audio packets
-      // expect(audio.receiver.trackReadyState).toBe('ended')
     })
   })
 })

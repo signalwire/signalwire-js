@@ -1262,16 +1262,6 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
   )
 }
 
-export const waitForRenegotiation = async (page: Page) => {
-  await page.evaluate(async () => {
-    // @ts-expect-error
-    const pc = window._roomObj.peer.instance as RTCPeerConnection
-    while (pc.signalingState !== 'stable') {
-      await new Promise((resolve) => setTimeout(resolve, 100))
-    }
-  })
-}
-
 export const getTransceiverStates = async (page: Page) => {
   return page.evaluate(() => {
     // @ts-expect-error
