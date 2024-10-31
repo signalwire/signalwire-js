@@ -4,6 +4,8 @@ describe('BaseChat', () => {
   // Using 'any' data type to bypass TypeScript checks for private or protected members.
   let swClientMock: any
   let baseChat: any
+  let listenersMap:Record<string, ()=>void> = {}
+
   const listenOptions = {
     channels: ['channel1', 'channel2'],
     onEvent1: jest.fn(),
@@ -18,6 +20,13 @@ describe('BaseChat', () => {
     swClientMock = {
       client: {
         execute: jest.fn(),
+        session: {
+          on: jest.fn().mockImplementation((event: string, callback: ()=>void) => {
+            console.log(event, callback)
+            listenersMap[event] = callback
+          }),
+          removeListener: jest.fn()
+        }
       },
     }
     baseChat = new BaseChat(swClientMock)
@@ -95,6 +104,26 @@ describe('BaseChat', () => {
       await expect(unsub()).resolves.toBeUndefined()
       expect(removeChannelsMock).toHaveBeenCalledWith(channels)
       expect(detachListenersMock).toHaveBeenCalledWith(channels, listeners)
+    })
+
+    it('should resubscribe after a session reconnection', async () => {
+      const addChannelsMock = jest
+        .spyOn(baseChat, 'addChannels')
+        .mockResolvedValueOnce(null)
+
+      await expect(baseChat.subscribe(listenOptions)).resolves.toBeInstanceOf(
+        Function
+      )
+      expect(listenersMap['session.reconnecting']).toBeDefined()
+      // simulate ws closed
+      listenersMap['session.reconnecting']()
+
+      expect(listenersMap['session.connected']).toBeDefined()
+      // simulate ws opened
+      listenersMap['session.connected']()
+
+      expect(addChannelsMock).toHaveBeenCalledTimes(2)
+
     })
   })
 

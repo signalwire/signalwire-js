@@ -3,6 +3,7 @@ import {
   ExecuteParams,
   PubSubPublishParams,
   uuid,
+  getLogger,
 } from '@signalwire/core'
 import { BaseNamespace, Listeners } from '../BaseNamespace'
 
@@ -45,6 +46,32 @@ export class BaseChat<
       const _key = key as keyof Listeners<T>
       if (this._eventMap[_key]) events.push(this._eventMap[_key] as string)
     })
+
+    // will be called if requires a new subscribe 
+    const sessionReconnectedHandler = () => {
+      if (this._areListenersAttached(channels, listeners as Listeners<T>)) {
+        this.addChannels(channels, events).then(() =>
+          getLogger().info('channels added after ws reconnection')
+        )
+      }
+    }
+
+    // will be called when a new ws is required
+    const sessionReconnectingHandler = () => {
+      getLogger().debug(
+        'session.reconnecting emitted! handling existing subscriptions'
+      )
+      if (this._areListenersAttached(channels, listeners as Listeners<T>)) {
+        this._client.session.removeListener(
+          'session.connected',
+          sessionReconnectedHandler
+        )
+        this._client.session.on('session.connected', sessionReconnectedHandler)
+      }
+    }
+
+    this._client.session.on('session.reconnecting', sessionReconnectingHandler)
+
     await this.addChannels(channels, events)
 
     const unsub = () => {
@@ -63,6 +90,11 @@ export class BaseChat<
 
           // Remove channels from the listener map
           this.removeFromListenerMap(_uuid)
+
+          this._client.session.removeListener(
+            'session.reconnecting',
+            sessionReconnectingHandler
+          )
 
           resolve()
         } catch (error) {
