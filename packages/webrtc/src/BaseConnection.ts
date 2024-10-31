@@ -1189,16 +1189,17 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         throw new Error('The peer is already negotiating the media!')
       }
 
-      // Determine the current media options based on the kind
-      const currentEnable =
-        kind === 'audio' ? this.options.audio : this.options.video
-      const currentNegotiate =
+      // Update media options based on the kind
+      const mediaOptionsUpdate =
         kind === 'audio'
-          ? this.options.negotiateAudio
-          : this.options.negotiateVideo
+          ? { audio: enable, negotiateAudio: negotiate }
+          : { video: enable, negotiateVideo: negotiate }
+      this.updateMediaOptions(mediaOptionsUpdate)
 
-      // No need to negotiate if the params are the same as currently set
-      if (enable === currentEnable && negotiate === currentNegotiate) {
+      // No need to negotiate if the requested direction is already set
+      const reqDirection = this._getTransceiverDirection(kind)
+      const currDirection = getSdpDirection(this.peer.localSdp!, kind)
+      if (reqDirection === currDirection) {
         this.logger.info(`The ${kind} media is already in the desired state!`)
         return
       }
@@ -1208,14 +1209,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this._resolveRenegotiationPromise = resolve
         this._rejectRenegotiationPromise = reject
       })
-
-      // Update media options based on the kind
-      const mediaOptionsUpdate =
-        kind === 'audio'
-          ? { audio: enable, negotiateAudio: negotiate }
-          : { video: enable, negotiateVideo: negotiate }
-
-      this.updateMediaOptions(mediaOptionsUpdate)
 
       // Update constraints to start or stop the outbound track
       await this.updateConstraints({ [kind]: enable })
@@ -1235,8 +1228,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         )
 
       if (transceiver) {
-        // Stop the sender track
-        transceiver.sender.track?.stop()
         if (negotiate) {
           // User wants to keep receiving media; set to 'recvonly'
           transceiver.direction = 'recvonly'
@@ -1246,6 +1237,8 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           transceiver.direction = 'inactive'
           this.logger.info(`Updated ${kind} transceiver to "inactive" mode.`)
         }
+        // Stop the sender track
+        transceiver.sender.track?.stop()
         // TODO: Should we replace the sender's track with null?
       } else {
         // No transceiver exists; add one in 'recvonly' mode

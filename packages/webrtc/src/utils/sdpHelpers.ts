@@ -229,6 +229,11 @@ export const getSdpDirection = (
     }
   }
 
+  // If no media section is found, return `stopped`
+  if (!inMediaSection) {
+    return 'stopped'
+  }
+
   // If no direction attribute is found, return 'sendrecv' as per SDP standard
   return 'sendrecv'
 }
