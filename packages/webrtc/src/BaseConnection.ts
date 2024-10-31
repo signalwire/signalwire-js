@@ -1269,7 +1269,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const localDirection = getSdpDirection(this.peer.localSdp!, kind)
       const expectedRemoteDirection = getOppositeSdpDirection(localDirection)
       const remoteDirection = getSdpDirection(this.peer.remoteSdp!, kind)
-      if (expectedRemoteDirection !== remoteDirection) {
+      if (remoteDirection !== expectedRemoteDirection) {
         throw new Error(
           `The server did not set the ${kind} direction correctly`
         )

@@ -8,7 +8,6 @@ import {
   expectMCUVisible,
   expectMCUVisibleForAudience,
   getStats,
-  waitForRenegotiation,
 } from '../../utils'
 import { CallFabricRoomSession } from '@signalwire/js'
 
@@ -55,19 +54,9 @@ test.describe('CallFabric Video Renegotiation', () => {
         await cfRoomSession.disableVideo()
       })
 
-      // Wait for renegotiation
-      await waitForRenegotiation(page)
-
-      // Ensure stats reflect changes
-      await page.waitForTimeout(3000)
-
       const statsAfterDisabling = await getStats(page)
       expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
-
-      // Assert that outboundRTP.video is either absent or inactive
       if (statsAfterDisabling.outboundRTP.video) {
-        // DEBUG: The stats shows active video with 0 packet sent
-        // expect(statsAfterDisabling.outboundRTP.video.active).toBe(false)
         expect(statsAfterDisabling.outboundRTP.video.packetsSent).toBe(0)
       } else {
         expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('video')
@@ -117,19 +106,9 @@ test.describe('CallFabric Video Renegotiation', () => {
         await cfRoomSession.disableVideo({ negotiateVideo: true })
       })
 
-      // Wait for renegotiation
-      await waitForRenegotiation(page)
-
-      // Ensure stats reflect changes
-      await page.waitForTimeout(3000)
-
       const statsAfterDisabling = await getStats(page)
       expect(statsAfterDisabling.inboundRTP).toHaveProperty('video')
-
-      // Assert that outboundRTP.video is either absent or inactive
       if (statsAfterDisabling.outboundRTP.video) {
-        // DEBUG: The stats shows active video with 0 packet sent
-        // expect(statsAfterDisabling.outboundRTP.video.active).toBe(false)
         expect(statsAfterDisabling.outboundRTP.video.packetsSent).toBe(0)
       } else {
         expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('video')
@@ -179,19 +158,9 @@ test.describe('CallFabric Video Renegotiation', () => {
         await cfRoomSession.disableVideo()
       })
 
-      // Wait for renegotiation
-      await waitForRenegotiation(page)
-
-      // Ensure stats reflect changes
-      await page.waitForTimeout(3000)
-
       const statsAfterDisabling = await getStats(page)
       expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('video')
-
-      // Assert that outboundRTP.video is either absent or inactive
       if (statsAfterDisabling.outboundRTP.video) {
-        // DEBUG: The stats shows active video with 0 packet sent
-        // expect(statsAfterDisabling.outboundRTP.video.active).toBe(false)
         expect(statsAfterDisabling.outboundRTP.video.packetsSent).toBe(0)
       } else {
         expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('video')
