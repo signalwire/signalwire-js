@@ -146,7 +146,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     })
   })
 
-  test.only('it should enable video with "recvonly" and then disable', async ({
+  test('it should enable video with "recvonly" and then disable', async ({
     createCustomPage,
     resource,
   }) => {
