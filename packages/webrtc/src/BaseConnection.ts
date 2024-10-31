@@ -1185,7 +1185,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       }
 
       // Check if the peer is already negotiating
-      if (this.peer.isNegotiating) {
+      if (this.peer.isNegotiating || this._renegotiationPromise) {
         throw new Error('The peer is already negotiating the media!')
       }
 
@@ -1201,12 +1201,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       if (enable === currentEnable && negotiate === currentNegotiate) {
         this.logger.info(`The ${kind} media is already in the desired state!`)
         return
-      }
-
-      // Wait for the previous renegotiation to complete if there is any
-      if (this._renegotiationPromise) {
-        this.logger.info('Waiting for the previous negotiation to complete')
-        await this._renegotiationPromise
       }
 
       // Create a new renegotiation promise that would be resolved by the executeUpdateMedia
