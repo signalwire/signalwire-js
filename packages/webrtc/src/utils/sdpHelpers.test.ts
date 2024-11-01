@@ -132,7 +132,7 @@ describe('SDP utility functions', () => {
       expect(getSdpDirection(VIDEO_SDP, 'video')).toBe('sendonly')
     })
 
-    it('should return "sendrecv" as default when no direction is specified for video', () => {
+    it('should return "stopped" as default when no direction is specified for video', () => {
       const sdpWithoutDirection = `v=0
       o=FreeSWITCH 1707233696 1707233697 IN IP4 190.102.98.211
       s=FreeSWITCH
@@ -140,7 +140,7 @@ describe('SDP utility functions', () => {
       t=0 0
       m=video 19828 RTP/SAVPF 0 8 102`
 
-      expect(getSdpDirection(sdpWithoutDirection, 'video')).toBe('sendrecv')
+      expect(getSdpDirection(sdpWithoutDirection, 'video')).toBe('stopped')
     })
 
     it('should return the specified direction for video in combined audio-video SDP', () => {
