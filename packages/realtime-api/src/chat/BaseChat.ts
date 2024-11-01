@@ -91,7 +91,7 @@ export class BaseChat<
           // Remove channels from the listener map
           this.removeFromListenerMap(_uuid)
 
-          this._client.session.removeListener(
+          this._client.session.off(
             'session.reconnecting',
             sessionReconnectingHandler
           )
