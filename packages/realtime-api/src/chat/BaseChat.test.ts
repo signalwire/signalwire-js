@@ -22,10 +22,12 @@ describe('BaseChat', () => {
         execute: jest.fn(),
         session: {
           on: jest.fn().mockImplementation((event: string, callback: ()=>void) => {
-            console.log(event, callback)
             listenersMap[event] = callback
           }),
-          removeListener: jest.fn()
+          once: jest.fn().mockImplementation((event: string, callback: ()=>void) => {
+            listenersMap[event] = callback
+          }),
+          off: jest.fn()
         }
       },
     }
