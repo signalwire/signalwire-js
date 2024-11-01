@@ -47,7 +47,7 @@ export class BaseChat<
       if (this._eventMap[_key]) events.push(this._eventMap[_key] as string)
     })
 
-    // will be called if requires a new subscribe 
+    // will be called if requires a new subscribe
     const sessionReconnectedHandler = () => {
       if (this._areListenersAttached(channels, listeners as Listeners<T>)) {
         this.addChannels(channels, events).then(() =>
@@ -61,13 +61,9 @@ export class BaseChat<
       getLogger().debug(
         'session.reconnecting emitted! handling existing subscriptions'
       )
-      if (this._areListenersAttached(channels, listeners as Listeners<T>)) {
-        this._client.session.off(
-          'session.connected',
-          sessionReconnectedHandler
-        )
-        this._client.session.on('session.connected', sessionReconnectedHandler)
-      }
+      // remove the previous listener if any
+      this._client.session.off('session.connected', sessionReconnectedHandler)
+      this._client.session.once('session.connected', sessionReconnectedHandler)
     }
 
     this._client.session.on('session.reconnecting', sessionReconnectingHandler)
