@@ -62,7 +62,7 @@ export class BaseChat<
         'session.reconnecting emitted! handling existing subscriptions'
       )
       if (this._areListenersAttached(channels, listeners as Listeners<T>)) {
-        this._client.session.removeListener(
+        this._client.session.off(
           'session.connected',
           sessionReconnectedHandler
         )
