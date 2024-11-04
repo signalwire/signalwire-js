@@ -18,6 +18,7 @@ export class Client extends BaseClient<ClientEvents> {
       applyMemberOverlay = true,
       stopCameraWhileMuted = true,
       stopMicrophoneWhileMuted = true,
+      mirrorLocalVideoOverlay = true,
       ...options
     } = makeRoomOptions
 
@@ -49,6 +50,7 @@ export class Client extends BaseClient<ClientEvents> {
         buildVideoElement({
           applyLocalVideoOverlay,
           applyMemberOverlay,
+          mirrorLocalVideoOverlay,
           room,
           rootElement,
         })

@@ -65,20 +65,27 @@ export class UserOverlay {
 interface LocalVideoOverlayOptions {
   id: string
   room: CallFabricRoomSession
+  mirrorLocalVideoOverlay: boolean
 }
 
 export class LocalVideoOverlay extends UserOverlay {
   private _room: CallFabricRoomSession
+  private _mirrored: boolean
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
     this._room = options.room
+    this._mirrored = options.mirrorLocalVideoOverlay
 
     this.attachListeners()
   }
 
   get userId() {
     return this.id.split(SDK_PREFIX)[1]
+  }
+
+  get mirrored() {
+    return this._mirrored
   }
 
   private attachListeners() {
@@ -118,12 +125,13 @@ export class LocalVideoOverlay extends UserOverlay {
     }
   }
 
-  public setMirror(mirror: boolean = this._room.localOverlay.mirrored) {
+  public setMirror(mirror: boolean = this._mirrored) {
     if (!this.domElement || !this.domElement.firstChild) {
       return getLogger().warn('Missing local overlay to set the mirror')
     }
     const videoEl = this.domElement.firstChild as HTMLVideoElement
     videoEl.style.transform = mirror ? 'scale(-1, 1)' : 'scale(1, 1)'
     videoEl.style.webkitTransform = mirror ? 'scale(-1, 1)' : 'scale(1, 1)'
+    this._mirrored = mirror
   }
 }

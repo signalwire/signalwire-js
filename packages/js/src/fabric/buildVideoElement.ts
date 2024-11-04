@@ -12,10 +12,11 @@ import {
 import { LayerMap, LocalVideoOverlay } from './VideoOverlays'
 
 export interface BuildVideoElementParams {
-  room: CallFabricRoomSession
-  rootElement?: HTMLElement
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
+  mirrorLocalVideoOverlay?: boolean
+  room: CallFabricRoomSession
+  rootElement?: HTMLElement
 }
 
 export interface BuildVideoElementReturnType {
@@ -36,6 +37,7 @@ export const buildVideoElement = async (
       rootElement: element,
       applyLocalVideoOverlay = true,
       applyMemberOverlay = true,
+      mirrorLocalVideoOverlay = true,
     } = params
 
     let hasVideoTrack = false
@@ -51,12 +53,18 @@ export const buildVideoElement = async (
     }
 
     /**
+     * Cleanup rootElement before creating any layers
+     */
+    cleanupElement(rootElement)
+
+    /**
      * We used this `LocalVideoOverlay` class to interact with the localVideo
      * overlay DOM element in here and in the `makeLayoutChangedHandler`.
      */
     const overlayId = addSDKPrefix(id)
     const localVideoOverlay = new LocalVideoOverlay({
       id: overlayId,
+      mirrorLocalVideoOverlay,
       room,
     })
     layerMap.set(overlayId, localVideoOverlay)
@@ -240,7 +248,7 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     }
     getLogger().debug('MCU is ready..')
 
-    // Do we need this anymore?
+    // DEBUG: Do we need this anymore?
     const rootElementResizeObserver = createRootElementResizeObserver({
       rootElement,
       video: videoElement,
