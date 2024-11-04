@@ -54,9 +54,6 @@ export class UserOverlay {
     if (!this.domElement) {
       return getLogger().warn('Missing overlay to show')
     }
-    if (this.status === 'hidden') {
-      return getLogger().info('Overlay not visible for ', this.id)
-    }
     this.domElement.style.opacity = '1'
     this.status = 'visible'
   }

@@ -304,7 +304,7 @@ describe('buildVideoElement', () => {
       expect(mcuLayers2!.childElementCount).toBe(2)
     })
 
-    it('should mirror the video', async () => {
+    it('should mirror the video overlay', async () => {
       // mock a call.joined event
       dispatchMockedCallJoined({
         session: stack.session,
@@ -332,6 +332,31 @@ describe('buildVideoElement', () => {
       room.localVideoOverlay.setMirror(true)
       expect(room.localVideoOverlay.mirrored).toBe(true)
       expect(videoElement!.style.transform).toBe('scale(-1, 1)')
+    })
+
+    it('should hide the video overlay', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+      // @ts-expect-error
+      stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
+
+      await renderAndStartVideo()
+
+      expect(room.localVideoOverlay.status).toBe('visible')
+
+      room.localVideoOverlay.hide()
+      expect(room.localVideoOverlay.status).toBe('hidden')
+
+      room.localVideoOverlay.show()
+      expect(room.localVideoOverlay.status).toBe('visible')
     })
   })
 })
