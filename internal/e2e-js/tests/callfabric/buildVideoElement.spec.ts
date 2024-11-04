@@ -1,3 +1,4 @@
+import { uuid } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -9,10 +10,12 @@ import {
 test.describe('buildVideoElement', () => {
   test('should not render any video if rootElement is not passed', async ({
     createCustomPage,
+    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = 'cf-e2e-test-room'
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
 
@@ -29,10 +32,14 @@ test.describe('buildVideoElement', () => {
     expect(overlayElement).toBeNull()
   })
 
-  test('should return the rootElement', async ({ createCustomPage }) => {
+  test('should return the rootElement', async ({
+    createCustomPage,
+    resource,
+  }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = 'cf-e2e-test-room'
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
 
@@ -78,10 +85,12 @@ test.describe('buildVideoElement', () => {
 
   test('should render multiple video elements', async ({
     createCustomPage,
+    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = 'cf-e2e-test-room'
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
 
@@ -225,10 +234,12 @@ test.describe('buildVideoElement', () => {
 
   test('should render the video even if the function is called before call.start', async ({
     createCustomPage,
+    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = 'cf-e2e-test-room'
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
 
@@ -273,10 +284,12 @@ test.describe('buildVideoElement', () => {
 
   test('should not create a new element if the elements are same', async ({
     createCustomPage,
+    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = 'cf-e2e-test-room'
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
 
