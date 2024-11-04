@@ -1,7 +1,7 @@
 import { OVERLAY_PREFIX, SDK_PREFIX } from '../utils/videoElement'
 import { DeprecatedVideoMemberHandlerParams } from '../video'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
-import { getLogger, LOCAL_EVENT_PREFIX } from '@signalwire/core'
+import { getLogger } from '@signalwire/core'
 
 export type LayerMap = Map<string, UserOverlay>
 
@@ -86,15 +86,11 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
-    // @ts-expect-error
-    this._room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, this.setMirror)
     this._room.on('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 
   /** @internal */
   public detachListeners() {
-    // @ts-expect-error
-    this._room.off(`${LOCAL_EVENT_PREFIX}.mirror.video`, this.setMirror)
     this._room.off('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 

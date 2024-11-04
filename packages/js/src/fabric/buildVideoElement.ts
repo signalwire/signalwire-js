@@ -53,11 +53,6 @@ export const buildVideoElement = async (
     }
 
     /**
-     * Cleanup rootElement before creating any layers
-     */
-    cleanupElement(rootElement)
-
-    /**
      * We used this `LocalVideoOverlay` class to interact with the localVideo
      * overlay DOM element in here and in the `makeLayoutChangedHandler`.
      */
@@ -72,7 +67,7 @@ export const buildVideoElement = async (
     const makeLayout = makeLayoutChangedHandler({
       rootElement,
       localVideoOverlay,
-      applyMemberOverlay: true,
+      applyMemberOverlay,
       layerMap,
     })
 

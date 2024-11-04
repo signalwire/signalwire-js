@@ -124,7 +124,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
 
       // Make overlay for all members (including a self member)
       const currMemberLayerIds = new Set([localVideoOverlay.userId])
-      if (applyMemberOverlay && mcuLayers) {
+      if (applyMemberOverlay) {
         getLogger().debug('Process member overlays')
         layers.forEach((location) => {
           const memberIdInLocation = location.member_id
@@ -146,22 +146,34 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
             })
             layerMap.set(overlayId, overlay)
             const newMemberLayer = _buildLayer({ location })
-            newMemberLayer.id = uuid() // Unique DOM ID since user is allowed to build multiple video elements
+            newMemberLayer.id = `${overlayId}-${uuid()}` // Unique DOM ID since user is allowed to build multiple video elements
             newMemberLayer.style.zIndex = '10'
-            overlay.domElement = newMemberLayer
-            mcuLayers.appendChild(newMemberLayer)
+
+            if (mcuLayers) {
+              // Remove all children whose id starts with overlayId
+              Array.from(mcuLayers.children).forEach((child) => {
+                if (child.id && child.id.startsWith(overlayId)) {
+                  mcuLayers.removeChild(child)
+                }
+              })
+
+              getLogger().debug('Append the built overlay')
+              mcuLayers.appendChild(newMemberLayer)
+              overlay.domElement = newMemberLayer
+            }
           }
         })
 
-        // Remove layers that no longer have a corresponding member
+        // Remove layers from the layerMap that no longer have a corresponding member
         layerMap.forEach((layer) => {
           const memberId = layer.userId
           if (!currMemberLayerIds.has(memberId)) {
-            if (layer?.domElement && mcuLayers.contains(layer.domElement)) {
+            const overlayId = addOverlayPrefix(memberId)
+            layerMap.delete(overlayId)
+
+            if (layer?.domElement && mcuLayers?.contains(layer.domElement)) {
               mcuLayers.removeChild(layer.domElement)
               layer.domElement = undefined
-              const overlayId = addOverlayPrefix(memberId)
-              layerMap.delete(overlayId)
             }
           }
         })
@@ -198,6 +210,13 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
         myLayerEl.appendChild(localVideo)
 
         if (mcuLayers) {
+          // Remove all children whose id starts with SDK_PREFIX
+          Array.from(mcuLayers.children).forEach((child) => {
+            if (child.id && child.id.startsWith(SDK_PREFIX)) {
+              mcuLayers.removeChild(child)
+            }
+          })
+
           getLogger().debug('Build myLayer append it')
           mcuLayers.appendChild(myLayerEl)
           localVideoOverlay.domElement = myLayerEl
