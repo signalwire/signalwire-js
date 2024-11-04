@@ -330,4 +330,64 @@ test.describe('buildVideoElement', () => {
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
   })
+
+  test('should handle the element for multiple users', async ({
+    createCustomPage,
+    resource,
+  }) => {
+    const pageOne = await createCustomPage({ name: '[page]' })
+    await pageOne.goto(SERVER_URL)
+
+    const pageTwo = await createCustomPage({ name: '[page]' })
+    await pageTwo.goto(SERVER_URL)
+
+    const roomName = `e2e-video-room_${uuid()}`
+    await resource.createVideoRoomResource(roomName)
+
+    await createCFClient(pageOne)
+    await createCFClient(pageTwo)
+
+    // Dial an address and join a video room from pageOne
+    await dialAddress(pageOne, {
+      address: `/public/${roomName}`,
+    })
+    await expectMCUVisible(pageOne)
+
+    await test.step('should have correct DOM elements and layerMap with one member', async () => {
+      const layerMapSize = await pageOne.evaluate<number>(() => {
+        // @ts-expect-error
+        return window._roomObj.layerMap.size
+      })
+      await expect(pageOne.locator('div.mcuLayers > *')).toHaveCount(2)
+      expect(await pageOne.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
+      expect(await pageOne.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
+      expect(layerMapSize).toBe(2)
+    })
+
+    // Dial an address and join a video room from pageTwo
+    await dialAddress(pageTwo, {
+      address: `/public/${roomName}`,
+    })
+    await expectMCUVisible(pageTwo)
+
+    await test.step('should have correct DOM elements and layerMap with two members', async () => {
+      const layerMapSizePageOne = await pageOne.evaluate<number>(() => {
+        // @ts-expect-error
+        return window._roomObj.layerMap.size
+      })
+      await expect(pageOne.locator('div.mcuLayers > *')).toHaveCount(3)
+      expect(await pageOne.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
+      expect(await pageOne.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
+      expect(layerMapSizePageOne).toBe(3)
+
+      const layerMapSizePageTwo = await pageTwo.evaluate<number>(() => {
+        // @ts-expect-error
+        return window._roomObj.layerMap.size
+      })
+      await expect(pageTwo.locator('div.mcuLayers > *')).toHaveCount(3)
+      expect(await pageTwo.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
+      expect(await pageTwo.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
+      expect(layerMapSizePageTwo).toBe(3)
+    })
+  })
 })
