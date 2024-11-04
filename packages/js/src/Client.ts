@@ -33,6 +33,8 @@ export interface MakeRoomOptions extends ConnectionOptions {
   rootElement?: HTMLElement
   /** Whether to apply the local-overlay on top of your video. Default: `true`. */
   applyLocalVideoOverlay?: boolean
+  /** Whether to apply an overlay on top of each member. Default: `true`. */
+  applyMemberOverlay?: boolean
   /** Whether to mirror the local video overlay. Default: `false`. */
   mirrorLocalVideoOverlay?: boolean
   /** Whether to stop the camera when the member is muted. Default: `true`. */

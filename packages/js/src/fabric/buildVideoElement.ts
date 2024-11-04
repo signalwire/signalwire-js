@@ -1,20 +1,15 @@
-import {
-  InternalVideoLayout,
-  LOCAL_EVENT_PREFIX,
-  getLogger,
-  uuid,
-} from '@signalwire/core'
+import { InternalVideoLayout, getLogger, uuid } from '@signalwire/core'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import {
   addSDKPrefix,
   buildVideo,
   cleanupElement,
+  createRootElementResizeObserver,
   makeLayoutChangedHandler,
   setVideoMediaTrack,
   waitForVideoReady,
 } from '../utils/videoElement'
-import { DeprecatedVideoMemberHandlerParams } from '../video'
-import { LocalVideoOverlay } from './VideoOverlays'
+import { LayerMap, LocalVideoOverlay } from './VideoOverlays'
 
 export interface BuildVideoElementParams {
   room: CallFabricRoomSession
@@ -25,6 +20,8 @@ export interface BuildVideoElementParams {
 
 export interface BuildVideoElementReturnType {
   element: HTMLElement
+  layerMap: LayerMap
+  localVideoOverlay: LocalVideoOverlay
   unsubscribe(): void
 }
 
@@ -42,6 +39,7 @@ export const buildVideoElement = async (
     } = params
 
     let hasVideoTrack = false
+    const layerMap: LayerMap = new Map()
     const id = uuid()
 
     let rootElement: HTMLElement
@@ -54,26 +52,26 @@ export const buildVideoElement = async (
 
     /**
      * We used this `LocalVideoOverlay` class to interact with the localVideo
-     * overlay DOM element in here and in the ``.
+     * overlay DOM element in here and in the `makeLayoutChangedHandler`.
      */
+    const overlayId = addSDKPrefix(id)
     const localVideoOverlay = new LocalVideoOverlay({
-      id: addSDKPrefix(id),
-      layerMap: room.layerMap,
+      id: overlayId,
       room,
     })
-    room.localVideoOverlay = localVideoOverlay
+    layerMap.set(overlayId, localVideoOverlay)
 
-    const makeLayoutHandler = makeLayoutChangedHandler({
+    const makeLayout = makeLayoutChangedHandler({
       rootElement,
       localVideoOverlay,
       applyMemberOverlay: true,
-      layerMap: room.layerMap,
+      layerMap,
     })
 
     const processLayoutChanged = (params: any) => {
       // @ts-expect-error
       if (room.peer?.hasVideoSender && room.localStream) {
-        makeLayoutHandler({
+        makeLayout({
           layout: params.layout,
           localStream: room.localStream,
           memberId: room.memberId,
@@ -132,48 +130,27 @@ export const buildVideoElement = async (
      */
     room.on('track', trackHandler)
 
-    const mirrorVideoHandler = (value: boolean) => {
-      localVideoOverlay.setMirror(value)
-    }
-
-    // @ts-expect-error
-    room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, mirrorVideoHandler)
-
-    const memberVideoMutedHandler = (
-      params: DeprecatedVideoMemberHandlerParams
-    ) => {
-      try {
-        const { member } = params
-        if (member.id === room.memberId && 'video_muted' in member) {
-          member.video_muted
-            ? localVideoOverlay.hide()
-            : localVideoOverlay.show()
-        }
-      } catch (error) {
-        getLogger().error('Error handling video_muted', error)
-      }
-    }
-
-    room.on('member.updated.video_muted', memberVideoMutedHandler)
-
-    const destroyHander = () => {
+    const unsubscribe = () => {
       cleanupElement(rootElement)
       room.layerMap.clear()
-    }
-
-    room.once('destroy', destroyHander)
-
-    const unsubscribe = () => {
       room.off('track', trackHandler)
       room.off('layout.changed', layoutChangedHandler)
-      room.off('member.updated.video_muted', memberVideoMutedHandler)
-      // @ts-expect-error
-      room.off(`${LOCAL_EVENT_PREFIX}.mirror.video`, mirrorVideoHandler)
-      room.off('destroy', destroyHander)
-      destroyHander()
+      room.off('destroy', unsubscribe)
+      localVideoOverlay.detachListeners()
     }
 
-    return { unsubscribe, element: rootElement }
+    room.once('destroy', unsubscribe)
+
+    /**
+     * The room object is only being used to listen for events.
+     * The "buildVideoElement" function does not directly manipulate the room object in order to maintain immutability.
+     * Currently, we are overriding the following room properties in case the user calls "buildVideoElement" more than once.
+     * However, this can be moved out of here easily if we prefer not to override.
+     */
+    room.layerMap = layerMap
+    room.localVideoOverlay = localVideoOverlay
+
+    return { element: rootElement, layerMap, localVideoOverlay, unsubscribe }
   } catch (error) {
     getLogger().error('Unable to build the video element')
     throw error
@@ -262,6 +239,19 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
       await waitForVideoReady({ element: videoElement })
     }
     getLogger().debug('MCU is ready..')
+
+    // Do we need this anymore?
+    const rootElementResizeObserver = createRootElementResizeObserver({
+      rootElement,
+      video: videoElement,
+      paddingWrapper,
+    })
+    rootElementResizeObserver.start()
+    track.addEventListener('ended', () => {
+      if (rootElementResizeObserver) {
+        rootElementResizeObserver.stop()
+      }
+    })
 
     layersWrapper.style.display = 'block'
   } catch (error) {

@@ -3,6 +3,7 @@ import {
   InternalVideoLayoutLayer,
   InternalVideoLayout,
   debounce,
+  uuid,
 } from '@signalwire/core'
 import {
   LayerMap,
@@ -110,7 +111,7 @@ interface LayoutChangedHandlerParams {
 }
 
 const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
-  const { localVideoOverlay, rootElement, applyMemberOverlay, layerMap } =
+  const { applyMemberOverlay, localVideoOverlay, layerMap, rootElement } =
     params
 
   return async (params: LayoutChangedHandlerParams) => {
@@ -124,6 +125,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
       // Make overlay for all members (including a self member)
       const currMemberLayerIds = new Set([localVideoOverlay.userId])
       if (applyMemberOverlay && mcuLayers) {
+        getLogger().debug('Process member overlays')
         layers.forEach((location) => {
           const memberIdInLocation = location.member_id
           if (!memberIdInLocation) return
@@ -133,15 +135,18 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
           const memberLayer = layerMap.get(addOverlayPrefix(memberIdInLocation))
           // If the layer already exists, modify its styles
           if (memberLayer && memberLayer.domElement) {
+            getLogger().debug('Update an overlay for ', memberIdInLocation)
             _updateLayer({ location, element: memberLayer.domElement })
           } else {
             // If the layer doesn't exist, create a new overlay
+            getLogger().debug('Build an overlay for ', memberIdInLocation)
+            const overlayId = addOverlayPrefix(memberIdInLocation)
             const overlay = new UserOverlay({
-              id: addOverlayPrefix(memberIdInLocation),
-              layerMap,
+              id: overlayId,
             })
+            layerMap.set(overlayId, overlay)
             const newMemberLayer = _buildLayer({ location })
-            newMemberLayer.id = overlay.id
+            newMemberLayer.id = uuid() // Unique DOM ID since user is allowed to build multiple video elements
             newMemberLayer.style.zIndex = '10'
             overlay.domElement = newMemberLayer
             mcuLayers.appendChild(newMemberLayer)
@@ -152,9 +157,11 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
         layerMap.forEach((layer) => {
           const memberId = layer.userId
           if (!currMemberLayerIds.has(memberId)) {
-            if (layer?.domElement) {
+            if (layer?.domElement && mcuLayers.contains(layer.domElement)) {
               mcuLayers.removeChild(layer.domElement)
-              layer.domElement = undefined // This removes it from the layerMap
+              layer.domElement = undefined
+              const overlayId = addOverlayPrefix(memberId)
+              layerMap.delete(overlayId)
             }
           }
         })
@@ -177,7 +184,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
       if (!myLayerEl) {
         getLogger().debug('Build myLayer')
         myLayerEl = _buildLayer({ location })
-        myLayerEl.id = localVideoOverlay.id
+        myLayerEl.id = localVideoOverlay.id // LocalVideoOverlay ID is already unique
         myLayerEl.style.zIndex = '1'
 
         const localVideo = buildVideo()
@@ -243,10 +250,6 @@ const setVideoMediaTrack = ({
   })
 }
 
-/**
- * @deprecated
- * FIXME remove this in the future
- */
 const createRootElementResizeObserver = ({
   video,
   rootElement,

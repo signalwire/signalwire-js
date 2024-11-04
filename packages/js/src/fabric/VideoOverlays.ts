@@ -1,28 +1,24 @@
 import { OVERLAY_PREFIX, SDK_PREFIX } from '../utils/videoElement'
+import { DeprecatedVideoMemberHandlerParams } from '../video'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
-import { getLogger } from '@signalwire/core'
+import { getLogger, LOCAL_EVENT_PREFIX } from '@signalwire/core'
 
 export type LayerMap = Map<string, UserOverlay>
 
 interface UserOverlayOptions {
   id: string
-  layerMap: LayerMap
 }
 
 type OverlayStatus = 'hidden' | 'visible'
 
 export class UserOverlay {
   public id: string
-  protected layerMap: LayerMap
-  private _status: OverlayStatus
   private _domElement: HTMLDivElement | undefined
+  private _status: OverlayStatus
 
   constructor(options: UserOverlayOptions) {
     this.id = options.id
-    this.layerMap = options.layerMap
     this._status = 'hidden'
-
-    this.layerMap.set(this.id, this)
   }
 
   get userId() {
@@ -35,9 +31,6 @@ export class UserOverlay {
 
   set domElement(element: HTMLDivElement | undefined) {
     getLogger().debug('Setting domElement for ', this.id)
-    if (!element) {
-      this.layerMap.delete(this.id)
-    }
     this._domElement = element
   }
 
@@ -49,7 +42,7 @@ export class UserOverlay {
     this._status = status
   }
 
-  hide() {
+  public hide() {
     if (!this.domElement) {
       return getLogger().warn('Missing overlay to hide')
     }
@@ -57,7 +50,7 @@ export class UserOverlay {
     this.status = 'hidden'
   }
 
-  show() {
+  public show() {
     if (!this.domElement) {
       return getLogger().warn('Missing overlay to show')
     }
@@ -71,7 +64,6 @@ export class UserOverlay {
 
 interface LocalVideoOverlayOptions {
   id: string
-  layerMap: LayerMap
   room: CallFabricRoomSession
 }
 
@@ -81,13 +73,42 @@ export class LocalVideoOverlay extends UserOverlay {
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
     this._room = options.room
+
+    this.attachListeners()
   }
 
   get userId() {
     return this.id.split(SDK_PREFIX)[1]
   }
 
-  setMediaStream(stream: MediaStream) {
+  private attachListeners() {
+    // @ts-expect-error
+    this._room.on(`${LOCAL_EVENT_PREFIX}.mirror.video`, this.setMirror)
+    this._room.on('member.updated.video_muted', this.memberVideoMutedHandler)
+  }
+
+  /** @internal */
+  public detachListeners() {
+    // @ts-expect-error
+    this._room.off(`${LOCAL_EVENT_PREFIX}.mirror.video`, this.setMirror)
+    this._room.off('member.updated.video_muted', this.memberVideoMutedHandler)
+  }
+
+  private memberVideoMutedHandler(params: DeprecatedVideoMemberHandlerParams) {
+    try {
+      const { member } = params
+      if (member.id === this._room.memberId && 'video_muted' in member) {
+        member.video_muted ? this.hide() : this.show()
+      }
+    } catch (error) {
+      getLogger().error(
+        'Error handling video_muted in LocalVideoOverlay',
+        error
+      )
+    }
+  }
+
+  public setMediaStream(stream: MediaStream) {
     if (!this.domElement) {
       return getLogger().warn('Missing local overlay to set the stream')
     }
@@ -97,7 +118,7 @@ export class LocalVideoOverlay extends UserOverlay {
     }
   }
 
-  setMirror(mirror: boolean = this._room.localOverlay.mirrored) {
+  public setMirror(mirror: boolean = this._room.localOverlay.mirrored) {
     if (!this.domElement || !this.domElement.firstChild) {
       return getLogger().warn('Missing local overlay to set the mirror')
     }
