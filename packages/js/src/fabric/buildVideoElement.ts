@@ -65,10 +65,12 @@ export const buildVideoElement = async (
     layerMap.set(overlayId, localVideoOverlay)
 
     const makeLayout = makeLayoutChangedHandler({
-      rootElement,
-      localVideoOverlay,
+      applyLocalVideoOverlay,
       applyMemberOverlay,
       layerMap,
+      localVideoOverlay,
+      mirrorLocalVideoOverlay,
+      rootElement,
     })
 
     const processLayoutChanged = (params: any) => {

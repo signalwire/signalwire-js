@@ -1,11 +1,12 @@
-import { LOCAL_EVENT_PREFIX, actions } from '@signalwire/core'
+import { actions } from '@signalwire/core'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
-import { buildVideoElement } from './buildVideoElement'
+import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
 import {
   CallFabricRoomSession,
   createCallFabricRoomSessionObject,
 } from './CallFabricRoomSession'
 import { JSDOM } from 'jsdom'
+import { addOverlayPrefix, SDK_PREFIX } from '../utils/videoElement'
 
 describe('buildVideoElement', () => {
   let room: CallFabricRoomSession
@@ -86,10 +87,6 @@ describe('buildVideoElement', () => {
       'member.updated.video_muted',
       expect.any(Function)
     )
-    expect(room.off).toHaveBeenCalledWith(
-      `${LOCAL_EVENT_PREFIX}.mirror.video`,
-      expect.any(Function)
-    )
     expect(room.off).toHaveBeenCalledWith('destroy', expect.any(Function))
   })
 
@@ -151,8 +148,11 @@ describe('buildVideoElement', () => {
       },
     }
 
-    const renderAndStartVideo = (element?: HTMLDivElement) => {
-      let mockRootEl: HTMLDivElement
+    const renderAndStartVideo = (
+      params?: Omit<BuildVideoElementParams, 'room'>
+    ) => {
+      const { rootElement: element } = params || {}
+      let mockRootEl: HTMLElement
       if (!element) {
         mockRootEl = document.createElement('div')
         mockRootEl.id = 'rootElement'
@@ -161,7 +161,11 @@ describe('buildVideoElement', () => {
       }
       document.body.appendChild(mockRootEl)
 
-      const promise = buildVideoElement({ room, rootElement: mockRootEl })
+      const promise = buildVideoElement({
+        room,
+        rootElement: mockRootEl,
+        ...params,
+      })
 
       const videoElement = mockRootEl.querySelector('video')
       expect(videoElement).not.toBeNull()
@@ -205,7 +209,7 @@ describe('buildVideoElement', () => {
       expect(mcuLayers!.childElementCount).toBe(0)
     })
 
-    it('should render the mcuLayers', async () => {
+    it('should render the mcuLayers with video and member overlay', async () => {
       // mock a call.joined event
       dispatchMockedCallJoined({
         session: stack.session,
@@ -228,6 +232,108 @@ describe('buildVideoElement', () => {
       const mcuLayers = result.element.querySelector('.mcuLayers')
       expect(mcuLayers).not.toBeNull()
       expect(mcuLayers!.childElementCount).toBe(2)
+
+      const children = Array.from(mcuLayers!.children)
+
+      // Check if the video overlay is present
+      const videoOverlay = children.find((child) =>
+        child.id.startsWith(SDK_PREFIX)
+      )
+      expect(videoOverlay).toBeDefined()
+      expect(videoOverlay?.id.startsWith(SDK_PREFIX)).toBe(true)
+
+      // Check if the member overlay is present
+      const memberOverlay = children.find((child) =>
+        child.id.startsWith(addOverlayPrefix('member-id-1'))
+      )
+      expect(memberOverlay).toBeDefined()
+      expect(
+        memberOverlay?.id.startsWith(addOverlayPrefix('member-id-1'))
+      ).toBe(true)
+    })
+
+    it('should not render the video overlay if applyLocalVideoOverlay is false', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+
+      // @ts-expect-error
+      stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
+
+      const result = await renderAndStartVideo({
+        applyLocalVideoOverlay: false,
+      })
+
+      expect(result).toHaveProperty('element')
+      expect(result).toHaveProperty('unsubscribe')
+
+      const mcuLayers = result.element.querySelector('.mcuLayers')
+      expect(mcuLayers).not.toBeNull()
+      expect(mcuLayers!.childElementCount).toBe(1)
+
+      const children = Array.from(mcuLayers!.children)
+
+      // Check if the video overlay is present
+      const videoOverlay = children.find((child) =>
+        child.id.startsWith(SDK_PREFIX)
+      )
+      expect(videoOverlay).not.toBeDefined()
+
+      // Check if the member overlay is present
+      const memberOverlay = children.find((child) =>
+        child.id.startsWith(addOverlayPrefix('member-id-1'))
+      )
+      expect(memberOverlay).toBeDefined()
+      expect(
+        memberOverlay?.id.startsWith(addOverlayPrefix('member-id-1'))
+      ).toBe(true)
+    })
+
+    it('should not render the member overlay if applyMemberOverlay is false', async () => {
+      // mock a call.joined event
+      dispatchMockedCallJoined({
+        session: stack.session,
+        callId: callId,
+        roomId: 'room-id-1',
+        roomSessionId: callId,
+        memberId: 'member-id-1',
+        nodeId: 'node-id-1',
+        originCallId: callId,
+      })
+
+      // @ts-expect-error
+      stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
+
+      const result = await renderAndStartVideo({ applyMemberOverlay: false })
+
+      expect(result).toHaveProperty('element')
+      expect(result).toHaveProperty('unsubscribe')
+
+      const mcuLayers = result.element.querySelector('.mcuLayers')
+      expect(mcuLayers).not.toBeNull()
+      expect(mcuLayers!.childElementCount).toBe(1)
+
+      const children = Array.from(mcuLayers!.children)
+
+      // Check if the video overlay is present
+      const videoOverlay = children.find((child) =>
+        child.id.startsWith(SDK_PREFIX)
+      )
+      expect(videoOverlay).toBeDefined()
+      expect(videoOverlay?.id.startsWith(SDK_PREFIX)).toBe(true)
+
+      // Check if the member overlay is present
+      const memberOverlay = children.find((child) =>
+        child.id.startsWith(addOverlayPrefix('member-id-1'))
+      )
+      expect(memberOverlay).not.toBeDefined()
     })
 
     it('should render two elements if the IDs are different', async () => {
@@ -248,7 +354,7 @@ describe('buildVideoElement', () => {
       const mockRootEl1 = document.createElement('div')
       mockRootEl1.id = 'rootElement1'
 
-      const result1 = await renderAndStartVideo(mockRootEl1)
+      const result1 = await renderAndStartVideo({ rootElement: mockRootEl1 })
       expect(result1).toHaveProperty('element')
       expect(result1).toHaveProperty('unsubscribe')
 
@@ -259,7 +365,7 @@ describe('buildVideoElement', () => {
       const mockRootEl2 = document.createElement('div')
       mockRootEl2.id = 'rootElement2'
 
-      const result2 = await renderAndStartVideo(mockRootEl2)
+      const result2 = await renderAndStartVideo({ rootElement: mockRootEl2 })
       expect(result2).toHaveProperty('element')
       expect(result2).toHaveProperty('unsubscribe')
 
@@ -287,7 +393,7 @@ describe('buildVideoElement', () => {
       const mockRootEl = document.createElement('div')
       mockRootEl.id = 'rootElement1'
 
-      const result1 = await renderAndStartVideo(mockRootEl)
+      const result1 = await renderAndStartVideo({ rootElement: mockRootEl })
       expect(result1).toHaveProperty('element')
       expect(result1).toHaveProperty('unsubscribe')
 
@@ -295,13 +401,15 @@ describe('buildVideoElement', () => {
       expect(mcuLayers1).not.toBeNull()
       expect(mcuLayers1!.childElementCount).toBe(2)
 
-      const result2 = await renderAndStartVideo(mockRootEl)
+      const result2 = await renderAndStartVideo({ rootElement: mockRootEl })
       expect(result2).toHaveProperty('element')
       expect(result2).toHaveProperty('unsubscribe')
 
       const mcuLayers2 = result2.element.querySelector('.mcuLayers')
       expect(mcuLayers2).not.toBeNull()
       expect(mcuLayers2!.childElementCount).toBe(2)
+
+      expect(mcuLayers1).toBe(mcuLayers2)
     })
 
     it('should mirror the video overlay', async () => {
