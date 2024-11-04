@@ -168,7 +168,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
       }
     })
 
-    // Remove layers from the layerMap that no longer have a corresponding member
+    // Remove layers from the layerMap and the DOM that no longer have a corresponding member
     layerMap.forEach((layer) => {
       const memberId = layer.userId
       if (!currMemberLayerIds.has(memberId)) {

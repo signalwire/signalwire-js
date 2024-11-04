@@ -24,6 +24,9 @@ test.describe('buildVideoElement', () => {
 
     const videoElement = await page.$('div[id^="sw-sdk-"] > video')
     expect(videoElement).toBeNull()
+
+    const overlayElement = await page.$('div[id^="sw-overlay-"] > video')
+    expect(overlayElement).toBeNull()
   })
 
   test('should return the rootElement', async ({ createCustomPage }) => {
@@ -37,10 +40,9 @@ test.describe('buildVideoElement', () => {
     await dialAddress(page, {
       address: `/public/${roomName}`,
       shouldPassRootElement: false,
-      shouldWaitForJoin: false,
     })
 
-    // Dial an address and join a video room
+    // Build a video element
     const { element } = await page.evaluate(async () => {
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
@@ -49,6 +51,8 @@ test.describe('buildVideoElement', () => {
         const { element } = await window._SWJS.buildVideoElement({
           room: call,
         })
+        // @ts-expect-error
+        window._element = element
 
         resolve({ element })
       })
@@ -57,6 +61,19 @@ test.describe('buildVideoElement', () => {
     const videoElement = await page.$('div[id^="sw-sdk-"] > video')
     expect(videoElement).toBeNull()
     expect(element).not.toBeNull()
+
+    await page.evaluate(() => {
+      // @ts-expect-error
+      const element = window._element
+      document.body.appendChild(element)
+      // @ts-expect-error
+      delete window._element
+    })
+
+    await expectMCUVisible(page)
+
+    const newVideoElement = await page.$('div[id^="sw-sdk-"] > video')
+    expect(newVideoElement).not.toBeNull()
   })
 
   test('should render multiple video elements', async ({
@@ -68,39 +85,68 @@ test.describe('buildVideoElement', () => {
 
     await createCFClient(page)
 
-    // Dial and expect 1 video elements
+    // Dial and expect both video and member overlays
     await dialAddress(page, {
       address: `/public/${roomName}`,
     })
 
     await expectMCUVisible(page)
 
-    const videoElements1 = await page.$$('div[id^="sw-sdk-"] > video')
-    expect(videoElements1).toHaveLength(1)
+    await test.step('rootElement1: should have correct DOM elements and layerMap', async () => {
+      const layerMapSize = await page.evaluate<number>(() => {
+        // @ts-expect-error
+        return window._roomObj.layerMap.size
+      })
+      await expect(page.locator('div.mcuLayers > *')).toHaveCount(2)
+      expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
+      expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
+      expect(
+        await page.$$('div#rootElement div[id^="sw-sdk-"] > video')
+      ).toHaveLength(1)
+      expect(
+        await page.$$('div#rootElement div[id^="sw-overlay-"]')
+      ).toHaveLength(1)
+      expect(layerMapSize).toBe(2)
+    })
 
-    // Create and expect 2 video elements
+    // Create and expect only video overlay
     await page.evaluate(async () => {
       // @ts-expect-error
       const room = window._roomObj
 
       const rootElement = document.createElement('div')
-      rootElement.id = 'rootElement1'
+      rootElement.id = 'rootElement2'
       document.body.appendChild(rootElement)
 
       // @ts-expect-error
       const { unsubscribe } = await window._SWJS.buildVideoElement({
         room,
         rootElement,
+        applyMemberOverlay: false,
       })
 
       // @ts-expect-error
       window._unsubscribe = unsubscribe
     })
 
-    const videoElements2 = await page.$$('div[id^="sw-sdk-"] > video')
-    expect(videoElements2).toHaveLength(2)
+    await test.step('rootElement2: should have correct DOM elements and layerMap', async () => {
+      const layerMapSize = await page.evaluate<number>(() => {
+        // @ts-expect-error
+        return window._roomObj.layerMap.size
+      })
+      await expect(page.locator('div.mcuLayers > *')).toHaveCount(3)
+      expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(2)
+      expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
+      expect(
+        await page.$$('div#rootElement2 div[id^="sw-sdk-"] > video')
+      ).toHaveLength(1)
+      expect(
+        await page.$$('div#rootElement2 div[id^="sw-overlay-"]')
+      ).toHaveLength(0)
+      expect(layerMapSize).toBe(1)
+    })
 
-    // Create and expect 3 video elements
+    // Create and expect only member overlay
     await page.evaluate(async () => {
       // @ts-expect-error
       const room = window._roomObj
@@ -108,18 +154,33 @@ test.describe('buildVideoElement', () => {
       // @ts-expect-error
       const { element } = await window._SWJS.buildVideoElement({
         room,
+        applyLocalVideoOverlay: false,
       })
 
       const rootElement = document.createElement('div')
-      rootElement.id = 'rootElement2'
+      rootElement.id = 'rootElement3'
       document.body.appendChild(rootElement)
       rootElement.append(element)
     })
 
-    const videoElements3 = await page.$$('div[id^="sw-sdk-"] > video')
-    expect(videoElements3).toHaveLength(3)
+    await test.step('rootElement3: should have correct DOM elements and layerMap', async () => {
+      const layerMapSize = await page.evaluate<number>(() => {
+        // @ts-expect-error
+        return window._roomObj.layerMap.size
+      })
+      await expect(page.locator('div.mcuLayers > *')).toHaveCount(4)
+      expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(2)
+      expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
+      expect(
+        await page.$$('div#rootElement3 div[id^="sw-sdk-"] > video')
+      ).toHaveLength(0)
+      expect(
+        await page.$$('div#rootElement3 div[id^="sw-overlay-"]')
+      ).toHaveLength(1)
+      expect(layerMapSize).toBe(1)
+    })
 
-    // Unsubscribe from the 2nd video element and expect 2 video elements
+    // Unsubscribe from the 2nd video element
     await page.evaluate(async () => {
       // @ts-expect-error
       const unsubscribe = window._unsubscribe
@@ -129,8 +190,37 @@ test.describe('buildVideoElement', () => {
       delete window._unsubscribe
     })
 
-    const videoElements4 = await page.$$('div[id^="sw-sdk-"] > video')
-    expect(videoElements4).toHaveLength(2)
+    await test.step('unsubscribe2: should have correct DOM elements and layerMap', async () => {
+      const layerMapSize = await page.evaluate<number>(() => {
+        // @ts-expect-error
+        return window._roomObj.layerMap.size
+      })
+      await expect(page.locator('div.mcuLayers > *')).toHaveCount(3)
+      expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
+      expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
+      // First element has both
+      expect(
+        await page.$$('div#rootElement div[id^="sw-sdk-"] > video')
+      ).toHaveLength(1)
+      expect(
+        await page.$$('div#rootElement div[id^="sw-overlay-"]')
+      ).toHaveLength(1)
+      // Second element is unsubsribed
+      expect(
+        await page.$$('div#rootElement2 div[id^="sw-sdk-"] > video')
+      ).toHaveLength(0)
+      expect(
+        await page.$$('div#rootElement2 div[id^="sw-overlay-"]')
+      ).toHaveLength(0)
+      // Third element has member overlay only
+      expect(
+        await page.$$('div#rootElement3 div[id^="sw-sdk-"] > video')
+      ).toHaveLength(0)
+      expect(
+        await page.$$('div#rootElement3 div[id^="sw-overlay-"]')
+      ).toHaveLength(1)
+      expect(layerMapSize).toBe(0)
+    })
   })
 
   test('should render the video even if the function is called before call.start', async ({
@@ -176,8 +266,9 @@ test.describe('buildVideoElement', () => {
 
     await expectMCUVisible(page)
 
-    const videoElements1 = await page.$$('div[id^="sw-sdk-"] > video')
-    expect(videoElements1).toHaveLength(2)
+    await expect(page.locator('div.mcuLayers > *')).toHaveCount(4)
+    expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(2)
+    expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
   })
 
   test('should not create a new element if the elements are same', async ({
@@ -222,7 +313,8 @@ test.describe('buildVideoElement', () => {
 
     await expectMCUVisible(page)
 
-    const videoElements1 = await page.$$('div[id^="sw-sdk-"] > video')
-    expect(videoElements1).toHaveLength(1)
+    await expect(page.locator('div.mcuLayers > *')).toHaveCount(2)
+    expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
+    expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
   })
 })

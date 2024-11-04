@@ -62,7 +62,9 @@ export const buildVideoElement = async (
       mirrorLocalVideoOverlay,
       room,
     })
-    layerMap.set(overlayId, localVideoOverlay)
+    if (applyLocalVideoOverlay) {
+      layerMap.set(overlayId, localVideoOverlay)
+    }
 
     const makeLayout = makeLayoutChangedHandler({
       applyLocalVideoOverlay,
@@ -137,7 +139,8 @@ export const buildVideoElement = async (
 
     const unsubscribe = () => {
       cleanupElement(rootElement)
-      room.layerMap.clear()
+      layerMap.clear()
+      room.layerMap = layerMap
       room.off('track', trackHandler)
       room.off('layout.changed', layoutChangedHandler)
       room.off('destroy', unsubscribe)
