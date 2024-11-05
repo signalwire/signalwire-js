@@ -1,11 +1,6 @@
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
-import {
-  OverlayMap,
-  LocalVideoOverlay,
-  UserOverlay,
-} from '../../fabric/VideoOverlays'
 
-export interface CallFabricRoomSessionConnectionContract {
+export interface CallFabricRoomSessionContract {
   /**
    * The layout returned from the `layout.changed` event based on the current room layout
    */
@@ -14,18 +9,6 @@ export interface CallFabricRoomSessionConnectionContract {
    * The current position of the member returned from the `layout.changed` event
    */
   currentPosition: VideoPosition
-  /**
-   * A JS Map containing all the layers on top of the Root Element
-   */
-  overlayMap: OverlayMap | undefined
-  /**
-   * Local video overlay object that injects the DOM element inside the MCU
-   */
-  localVideoOverlay: LocalVideoOverlay | undefined
-  /**
-   * Return the member overlay on top of the root element
-   */
-  getMemberOverlay: (memberId: string) => UserOverlay
   /**
    * Starts the call via the WebRTC connection
    *

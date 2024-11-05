@@ -49,6 +49,8 @@ import {
   RoomSessionDeviceEvents,
 } from './RoomSessionDevice'
 import * as workers from './video/workers'
+import { LocalVideoOverlay, OverlayMap } from './fabric'
+import { addOverlayPrefix } from './utils/videoElement'
 
 export interface BaseRoomSession<T>
   extends RoomMethods,
@@ -81,6 +83,8 @@ export class RoomSessionConnection
   private _deviceList = new Set<RoomSessionDevice>()
   private _mirrored: LocalOverlay['mirrored']
   private _audioEl: AudioElement
+  private _overlayMap: OverlayMap
+  private _localVideoOverlay: LocalVideoOverlay
 
   constructor(options: BaseRoomSessionOptions) {
     super(options)
@@ -93,6 +97,22 @@ export class RoomSessionConnection
     this.runWorker('videoWorker', {
       worker: workers.videoWorker,
     })
+  }
+
+  set overlayMap(map: OverlayMap) {
+    this._overlayMap = map
+  }
+
+  get overlayMap() {
+    return this._overlayMap
+  }
+
+  set localVideoOverlay(overlay: LocalVideoOverlay) {
+    this._localVideoOverlay = overlay
+  }
+
+  get localVideoOverlay() {
+    return this._localVideoOverlay
   }
 
   get screenShareList() {
@@ -127,6 +147,10 @@ export class RoomSessionConnection
     this.runWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,
     })
+  }
+
+  getMemberOverlay(memberId: string) {
+    return this.overlayMap.get(addOverlayPrefix(memberId))
   }
 
   /** @deprecated Use {@link startScreenShare} instead. */

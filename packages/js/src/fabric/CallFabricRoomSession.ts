@@ -24,9 +24,7 @@ import {
 } from '../video'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
-import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
-import { addOverlayPrefix } from '../utils/videoElement'
+import { CallFabricRoomSessionContract } from '../utils/interfaces'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -50,7 +48,7 @@ type CallFabricBaseRoomSession = Omit<
 >
 
 export interface CallFabricRoomSession
-  extends CallFabricRoomSessionConnectionContract,
+  extends CallFabricRoomSessionContract,
     CallFabricBaseRoomSession {}
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
@@ -59,8 +57,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
-  private _overlayMap: OverlayMap
-  private _localVideoOverlay: LocalVideoOverlay
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
@@ -105,22 +101,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return this._lastLayoutEvent?.layout.layers.find(
       (layer) => layer.member_id === this.memberId
     )?.position
-  }
-
-  set overlayMap(map: OverlayMap) {
-    this._overlayMap = map
-  }
-
-  get overlayMap() {
-    return this._overlayMap
-  }
-
-  set localVideoOverlay(overlay: LocalVideoOverlay) {
-    this._localVideoOverlay = overlay
-  }
-
-  get localVideoOverlay() {
-    return this._localVideoOverlay
   }
 
   private executeAction<
@@ -220,10 +200,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
         this.peer.restartIce()
       }
     }
-  }
-
-  public getMemberOverlay(memberId: string) {
-    return this.overlayMap.get(addOverlayPrefix(memberId))
   }
 
   public audioMute(params: Rooms.RoomMemberMethodParams) {

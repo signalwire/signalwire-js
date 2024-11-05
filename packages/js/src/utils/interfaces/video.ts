@@ -43,6 +43,7 @@ import type { MediaEvent } from '@signalwire/webrtc'
 import type { RoomSession } from '../../RoomSession'
 import type { RoomSessionDevice } from '../../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
+import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../fabric'
 
 /**
  * @privateRemarks
@@ -349,6 +350,18 @@ export interface RoomSessionConnectionContract {
   localOverlay: LocalOverlay
   interactivityMode: VideoAuthorization['join_as']
   permissions: VideoAuthorization['scopes']
+  /**
+   * A JS Map containing all the layers on top of the Root Element
+   */
+  overlayMap: OverlayMap | undefined
+  /**
+   * Local video overlay object that injects the DOM element inside the MCU
+   */
+  localVideoOverlay: LocalVideoOverlay | undefined
+  /**
+   * Return the member overlay on top of the root element
+   */
+  getMemberOverlay: (memberId: string) => UserOverlay | undefined
   /**
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.

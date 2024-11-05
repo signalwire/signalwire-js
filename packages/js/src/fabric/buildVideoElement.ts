@@ -10,12 +10,14 @@ import {
   waitForVideoReady,
 } from '../utils/videoElement'
 import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
+import { BaseRoomSession } from '../BaseRoomSession'
+import { RoomSession } from '../video'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallFabricRoomSession
+  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
   rootElement?: HTMLElement
 }
 
