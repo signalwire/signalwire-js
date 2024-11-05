@@ -9,7 +9,7 @@ interface UserOverlayOptions {
   id: string
 }
 
-type OverlayStatus = 'hidden' | 'visible'
+export type OverlayStatus = 'hidden' | 'visible'
 
 export class UserOverlay {
   public id: string

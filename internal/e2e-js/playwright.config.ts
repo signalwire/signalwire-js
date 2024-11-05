@@ -37,7 +37,6 @@ const reattachTests = [
 ]
 const callfabricTests = [
   'address.spec.ts',
-  'buildVideoElement.spec.ts',
   'conversation.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
@@ -47,6 +46,7 @@ const callfabricTests = [
   'videoRoomLayout.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
+const videoElementTests = ['buildVideoElement.spec.ts']
 
 const useDesktopChrome = {
   ...devices['Desktop Chrome'],
@@ -123,6 +123,11 @@ const config: PlaywrightTestConfig = {
       name: 'callfabric',
       use: useDesktopChrome,
       testMatch: callfabricTests,
+    },
+    {
+      name: 'videoElement',
+      use: useDesktopChrome,
+      testMatch: videoElementTests,
     },
     {
       name: 'v2WebRTC',

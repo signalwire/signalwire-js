@@ -1,5 +1,9 @@
 import { uuid } from '@signalwire/core'
-import { OverlayMap, LocalVideoOverlay } from '@signalwire/js'
+import {
+  OverlayMap,
+  LocalVideoOverlay,
+  CallFabricRoomSession,
+} from '@signalwire/js'
 import { test, expect, Page } from '../../fixtures'
 import {
   SERVER_URL,
@@ -401,6 +405,35 @@ test.describe('buildVideoElement', () => {
       expect(await pageTwo.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
       expect(await getOverlayMapSize(pageTwo)).toBe(3)
       expect(await getLocalVideoOverlay(pageTwo)).toBeDefined()
+    })
+
+    await test.step('should return the element with getMemberOverlay', async () => {
+      const memberOneId = await pageOne.evaluate(() => {
+        // @ts-expect-error
+        return window._roomObj.memberId
+      })
+      const memberTwoId = await pageTwo.evaluate(() => {
+        // @ts-expect-error
+        return window._roomObj.memberId
+      })
+      expect(memberOneId).toBeDefined()
+      expect(memberTwoId).toBeDefined()
+
+      const [memberOneElement, memberTwoElement] = await pageOne.evaluate(
+        ({ memberOneId, memberTwoId }) => {
+          // @ts-expect-error
+          const room: CallFabricRoomSession = window._roomObj
+
+          return [
+            room.getMemberOverlay(memberOneId),
+            room.getMemberOverlay(memberTwoId),
+          ]
+        },
+        { memberOneId, memberTwoId }
+      )
+
+      expect(memberOneElement).toBeDefined()
+      expect(memberTwoElement).toBeDefined()
     })
   })
 })
