@@ -10,6 +10,7 @@ import {
   validateEventsToSubscribe,
   EventEmitter,
   SDKWorker,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -85,6 +86,7 @@ export class RoomSessionConnection
   private _audioEl: AudioElement
   private _overlayMap: OverlayMap
   private _localVideoOverlay: LocalVideoOverlay
+  private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   constructor(options: BaseRoomSessionOptions) {
     super(options)
@@ -112,6 +114,24 @@ export class RoomSessionConnection
 
   get localVideoOverlay() {
     return this._localVideoOverlay
+  }
+
+  set lastLayoutEvent(event: VideoLayoutChangedEventParams) {
+    this._lastLayoutEvent = event
+  }
+
+  get lastLayoutEvent() {
+    return this._lastLayoutEvent
+  }
+
+  get currentLayout() {
+    return this._lastLayoutEvent?.layout
+  }
+
+  get currentPosition() {
+    return this._lastLayoutEvent?.layout.layers.find(
+      (layer) => layer.member_id === this.memberId
+    )?.position
   }
 
   get screenShareList() {

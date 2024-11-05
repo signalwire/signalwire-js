@@ -37,6 +37,7 @@ import type {
   DeviceDisconnectedEventParams,
   VideoRoomDeviceEventNames,
   VideoLayoutChangedEventParams,
+  VideoPosition,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEvent } from '@signalwire/webrtc'
@@ -344,6 +345,14 @@ export interface RoomSessionConnectionContract {
   deviceList: RoomSessionDevice[]
   interactivityMode: VideoAuthorization['join_as']
   permissions: VideoAuthorization['scopes']
+  /**
+   * The layout returned from the `layout.changed` event based on the current room layout
+   */
+  currentLayout: VideoLayoutChangedEventParams['layout']
+  /**
+   * The current position of the member returned from the `layout.changed` event
+   */
+  currentPosition: VideoPosition | undefined
   /**
    * A JS Map containing all the layers on top of the Root Element
    */
