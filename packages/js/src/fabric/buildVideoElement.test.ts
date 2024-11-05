@@ -430,15 +430,15 @@ describe('buildVideoElement', () => {
       const mcuLayers = result.element.querySelector('.mcuLayers')
       const videoElement = mcuLayers!.querySelector('video')
 
-      expect(room.localVideoOverlay.mirrored).toBe(true)
+      expect(room.localVideoOverlay!.mirrored).toBe(true)
       expect(videoElement!.style.transform).toBe('scale(-1, 1)')
 
-      room.localVideoOverlay.setMirror(false)
-      expect(room.localVideoOverlay.mirrored).toBe(false)
+      room.localVideoOverlay!.setMirror(false)
+      expect(room.localVideoOverlay!.mirrored).toBe(false)
       expect(videoElement!.style.transform).toBe('scale(1, 1)')
 
-      room.localVideoOverlay.setMirror(true)
-      expect(room.localVideoOverlay.mirrored).toBe(true)
+      room.localVideoOverlay!.setMirror(true)
+      expect(room.localVideoOverlay!.mirrored).toBe(true)
       expect(videoElement!.style.transform).toBe('scale(-1, 1)')
     })
 
@@ -458,13 +458,13 @@ describe('buildVideoElement', () => {
 
       await renderAndStartVideo()
 
-      expect(room.localVideoOverlay.status).toBe('visible')
+      expect(room.localVideoOverlay!.status).toBe('visible')
 
-      room.localVideoOverlay.hide()
-      expect(room.localVideoOverlay.status).toBe('hidden')
+      room.localVideoOverlay!.hide()
+      expect(room.localVideoOverlay!.status).toBe('hidden')
 
-      room.localVideoOverlay.show()
-      expect(room.localVideoOverlay.status).toBe('visible')
+      room.localVideoOverlay!.show()
+      expect(room.localVideoOverlay!.status).toBe('visible')
     })
   })
 })
