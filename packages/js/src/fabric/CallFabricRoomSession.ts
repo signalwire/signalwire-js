@@ -14,7 +14,6 @@ import {
 } from '@signalwire/core'
 import {
   BaseRoomSession,
-  BaseRoomSessionOptions,
   RoomSessionConnection,
   RoomSessionObjectEventsHandlerMapping,
 } from '../BaseRoomSession'
@@ -26,7 +25,7 @@ import {
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
-import { LayerMap, LocalVideoOverlay } from './VideoOverlays'
+import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
 import { addOverlayPrefix } from '../utils/videoElement'
 
 interface ExecuteActionParams {
@@ -60,13 +59,8 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
   private _lastLayoutEvent: VideoLayoutChangedEventParams
-  private _layerMap: LayerMap
+  private _overlayMap: OverlayMap
   private _localVideoOverlay: LocalVideoOverlay
-
-  constructor(props: BaseRoomSessionOptions) {
-    super(props)
-    this._layerMap = new Map()
-  }
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
@@ -113,12 +107,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )?.position
   }
 
-  set layerMap(map: LayerMap) {
-    this._layerMap = map
+  set overlayMap(map: OverlayMap) {
+    this._overlayMap = map
   }
 
-  get layerMap() {
-    return this._layerMap
+  get overlayMap() {
+    return this._overlayMap
   }
 
   set localVideoOverlay(overlay: LocalVideoOverlay) {
@@ -229,7 +223,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public getMemberOverlay(memberId: string) {
-    return this.layerMap.get(addOverlayPrefix(memberId))
+    return this.overlayMap.get(addOverlayPrefix(memberId))
   }
 
   public audioMute(params: Rooms.RoomMemberMethodParams) {

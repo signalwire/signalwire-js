@@ -3,7 +3,7 @@ import { DeprecatedVideoMemberHandlerParams } from '../video'
 import { CallFabricRoomSession } from './CallFabricRoomSession'
 import { getLogger } from '@signalwire/core'
 
-export type LayerMap = Map<string, UserOverlay>
+export type OverlayMap = Map<string, UserOverlay>
 
 interface UserOverlayOptions {
   id: string

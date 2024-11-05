@@ -9,7 +9,7 @@ import {
   setVideoMediaTrack,
   waitForVideoReady,
 } from '../utils/videoElement'
-import { LayerMap, LocalVideoOverlay } from './VideoOverlays'
+import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
@@ -21,7 +21,7 @@ export interface BuildVideoElementParams {
 
 export interface BuildVideoElementReturnType {
   element: HTMLElement
-  layerMap: LayerMap
+  overlayMap: OverlayMap
   localVideoOverlay: LocalVideoOverlay
   unsubscribe(): void
 }
@@ -41,7 +41,7 @@ export const buildVideoElement = async (
     } = params
 
     let hasVideoTrack = false
-    const layerMap: LayerMap = new Map()
+    const overlayMap: OverlayMap = new Map()
     const id = uuid()
 
     let rootElement: HTMLElement
@@ -63,13 +63,13 @@ export const buildVideoElement = async (
       room,
     })
     if (applyLocalVideoOverlay) {
-      layerMap.set(overlayId, localVideoOverlay)
+      overlayMap.set(overlayId, localVideoOverlay)
     }
 
     const makeLayout = makeLayoutChangedHandler({
       applyLocalVideoOverlay,
       applyMemberOverlay,
-      layerMap,
+      overlayMap,
       localVideoOverlay,
       mirrorLocalVideoOverlay,
       rootElement,
@@ -139,8 +139,8 @@ export const buildVideoElement = async (
 
     const unsubscribe = () => {
       cleanupElement(rootElement)
-      layerMap.clear()
-      room.layerMap = layerMap
+      overlayMap.clear() // Use "delete" rather than "clear" if we want to update the reference
+      room.overlayMap = overlayMap
       room.off('track', trackHandler)
       room.off('layout.changed', layoutChangedHandler)
       room.off('destroy', unsubscribe)
@@ -155,10 +155,10 @@ export const buildVideoElement = async (
      * Currently, we are overriding the following room properties in case the user calls "buildVideoElement" more than once.
      * However, this can be moved out of here easily if we prefer not to override.
      */
-    room.layerMap = layerMap
+    room.overlayMap = overlayMap
     room.localVideoOverlay = localVideoOverlay
 
-    return { element: rootElement, layerMap, localVideoOverlay, unsubscribe }
+    return { element: rootElement, overlayMap, localVideoOverlay, unsubscribe }
   } catch (error) {
     getLogger().error('Unable to build the video element')
     throw error

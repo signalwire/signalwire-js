@@ -6,7 +6,7 @@ import {
   uuid,
 } from '@signalwire/core'
 import {
-  LayerMap,
+  OverlayMap,
   LocalVideoOverlay,
   UserOverlay,
 } from '../fabric/VideoOverlays'
@@ -100,7 +100,7 @@ const _updateLayer = ({
 interface MakeLayoutChangedHandlerParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
-  layerMap: LayerMap
+  overlayMap: OverlayMap
   localVideoOverlay: LocalVideoOverlay
   mirrorLocalVideoOverlay?: boolean
   rootElement: HTMLElement
@@ -116,7 +116,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
   const {
     applyLocalVideoOverlay,
     applyMemberOverlay,
-    layerMap,
+    overlayMap,
     localVideoOverlay,
     mirrorLocalVideoOverlay,
     rootElement,
@@ -136,7 +136,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
 
       currMemberLayerIds.add(memberIdInLocation)
 
-      const memberLayer = layerMap.get(addOverlayPrefix(memberIdInLocation))
+      const memberLayer = overlayMap.get(addOverlayPrefix(memberIdInLocation))
       // If the layer already exists, modify its styles
       if (memberLayer && memberLayer.domElement) {
         getLogger().debug('Update an overlay for ', memberIdInLocation)
@@ -148,7 +148,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
         const overlay = new UserOverlay({
           id: overlayId,
         })
-        layerMap.set(overlayId, overlay)
+        overlayMap.set(overlayId, overlay)
         const newMemberLayer = _buildLayer({ location })
         newMemberLayer.id = `${overlayId}-${uuid()}` // Unique DOM ID since user is allowed to build multiple video elements
         newMemberLayer.style.zIndex = '10'
@@ -168,12 +168,12 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
       }
     })
 
-    // Remove layers from the layerMap and the DOM that no longer have a corresponding member
-    layerMap.forEach((layer) => {
+    // Remove layers from the overlayMap and the DOM that no longer have a corresponding member
+    overlayMap.forEach((layer) => {
       const memberId = layer.userId
       if (!currMemberLayerIds.has(memberId)) {
         const overlayId = addOverlayPrefix(memberId)
-        layerMap.delete(overlayId)
+        overlayMap.delete(overlayId)
 
         if (layer?.domElement && mcuLayers?.contains(layer.domElement)) {
           mcuLayers.removeChild(layer.domElement)

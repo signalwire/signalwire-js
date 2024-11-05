@@ -1,5 +1,6 @@
 import { uuid } from '@signalwire/core'
-import { test, expect } from '../../fixtures'
+import { OverlayMap, LocalVideoOverlay } from '@signalwire/js'
+import { test, expect, Page } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
@@ -8,6 +9,24 @@ import {
 } from '../../utils'
 
 test.describe('buildVideoElement', () => {
+  const getOverlayMap = (page: Page) =>
+    page.evaluate<OverlayMap>(() => {
+      // @ts-expect-error
+      return window._roomObj.overlayMap
+    })
+
+  const getOverlayMapSize = (page: Page) =>
+    page.evaluate<number>(() => {
+      // @ts-expect-error
+      return window._roomObj.overlayMap.size
+    })
+
+  const getLocalVideoOverlay = (page: Page) =>
+    page.evaluate<LocalVideoOverlay>(() => {
+      // @ts-expect-error
+      return window._roomObj.localVideoOverlay
+    })
+
   test('should not render any video if rootElement is not passed', async ({
     createCustomPage,
     resource,
@@ -25,11 +44,10 @@ test.describe('buildVideoElement', () => {
       shouldPassRootElement: false,
     })
 
-    const videoElement = await page.$('div[id^="sw-sdk-"] > video')
-    expect(videoElement).toBeNull()
-
-    const overlayElement = await page.$('div[id^="sw-overlay-"] > video')
-    expect(overlayElement).toBeNull()
+    expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
+    expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
+    expect(await getOverlayMap(page)).toBeUndefined()
+    expect(await getLocalVideoOverlay(page)).toBeUndefined()
   })
 
   test('should return the rootElement', async ({
@@ -65,9 +83,13 @@ test.describe('buildVideoElement', () => {
       })
     })
 
-    const videoElement = await page.$('div[id^="sw-sdk-"] > video')
-    expect(videoElement).toBeNull()
-    expect(element).not.toBeNull()
+    expect(element).toBeDefined()
+    await expect(page.locator('div.mcuLayers > *')).toHaveCount(0)
+    expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
+    expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
+    expect(await getOverlayMap(page)).toBeDefined()
+    expect(await getOverlayMapSize(page)).toBe(2)
+    expect(await getLocalVideoOverlay(page)).toBeDefined()
 
     await page.evaluate(() => {
       // @ts-expect-error
@@ -79,8 +101,12 @@ test.describe('buildVideoElement', () => {
 
     await expectMCUVisible(page)
 
-    const newVideoElement = await page.$('div[id^="sw-sdk-"] > video')
-    expect(newVideoElement).not.toBeNull()
+    await expect(page.locator('div.mcuLayers > *')).toHaveCount(2)
+    expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
+    expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
+    expect(await getOverlayMap(page)).toBeDefined()
+    expect(await getOverlayMapSize(page)).toBe(2)
+    expect(await getLocalVideoOverlay(page)).toBeDefined()
   })
 
   test('should render multiple video elements', async ({
@@ -101,11 +127,7 @@ test.describe('buildVideoElement', () => {
 
     await expectMCUVisible(page)
 
-    await test.step('rootElement1: should have correct DOM elements and layerMap', async () => {
-      const layerMapSize = await page.evaluate<number>(() => {
-        // @ts-expect-error
-        return window._roomObj.layerMap.size
-      })
+    await test.step('rootElement1: should have correct DOM elements and overlayMap', async () => {
       await expect(page.locator('div.mcuLayers > *')).toHaveCount(2)
       expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
       expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
@@ -115,7 +137,8 @@ test.describe('buildVideoElement', () => {
       expect(
         await page.$$('div#rootElement div[id^="sw-overlay-"]')
       ).toHaveLength(1)
-      expect(layerMapSize).toBe(2)
+      expect(await getOverlayMapSize(page)).toBe(2)
+      expect(await getLocalVideoOverlay(page)).toBeDefined()
     })
 
     // Create and expect only video overlay
@@ -138,11 +161,7 @@ test.describe('buildVideoElement', () => {
       window._unsubscribe = unsubscribe
     })
 
-    await test.step('rootElement2: should have correct DOM elements and layerMap', async () => {
-      const layerMapSize = await page.evaluate<number>(() => {
-        // @ts-expect-error
-        return window._roomObj.layerMap.size
-      })
+    await test.step('rootElement2: should have correct DOM elements and overlayMap', async () => {
       await expect(page.locator('div.mcuLayers > *')).toHaveCount(3)
       expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(2)
       expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
@@ -152,7 +171,8 @@ test.describe('buildVideoElement', () => {
       expect(
         await page.$$('div#rootElement2 div[id^="sw-overlay-"]')
       ).toHaveLength(0)
-      expect(layerMapSize).toBe(1)
+      expect(await getOverlayMapSize(page)).toBe(1)
+      expect(await getLocalVideoOverlay(page)).toBeDefined()
     })
 
     // Create and expect only member overlay
@@ -172,11 +192,7 @@ test.describe('buildVideoElement', () => {
       rootElement.append(element)
     })
 
-    await test.step('rootElement3: should have correct DOM elements and layerMap', async () => {
-      const layerMapSize = await page.evaluate<number>(() => {
-        // @ts-expect-error
-        return window._roomObj.layerMap.size
-      })
+    await test.step('rootElement3: should have correct DOM elements and overlayMap', async () => {
       await expect(page.locator('div.mcuLayers > *')).toHaveCount(4)
       expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(2)
       expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
@@ -186,7 +202,9 @@ test.describe('buildVideoElement', () => {
       expect(
         await page.$$('div#rootElement3 div[id^="sw-overlay-"]')
       ).toHaveLength(1)
-      expect(layerMapSize).toBe(1)
+      expect(await getOverlayMapSize(page)).toBe(1)
+      expect(await getLocalVideoOverlay(page)).toBeDefined()
+      expect((await getLocalVideoOverlay(page)).domElement).not.toBeDefined()
     })
 
     // Unsubscribe from the 2nd video element
@@ -199,11 +217,7 @@ test.describe('buildVideoElement', () => {
       delete window._unsubscribe
     })
 
-    await test.step('unsubscribe2: should have correct DOM elements and layerMap', async () => {
-      const layerMapSize = await page.evaluate<number>(() => {
-        // @ts-expect-error
-        return window._roomObj.layerMap.size
-      })
+    await test.step('unsubscribe2: should have correct DOM elements and overlayMap', async () => {
       await expect(page.locator('div.mcuLayers > *')).toHaveCount(3)
       expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
       expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
@@ -228,7 +242,9 @@ test.describe('buildVideoElement', () => {
       expect(
         await page.$$('div#rootElement3 div[id^="sw-overlay-"]')
       ).toHaveLength(1)
-      expect(layerMapSize).toBe(0)
+      expect(await getOverlayMapSize(page)).toBe(0)
+      expect(await getLocalVideoOverlay(page)).toBeDefined()
+      expect((await getLocalVideoOverlay(page)).domElement).not.toBeDefined()
     })
   })
 
@@ -280,9 +296,12 @@ test.describe('buildVideoElement', () => {
     await expect(page.locator('div.mcuLayers > *')).toHaveCount(4)
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(2)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
+    expect(await getOverlayMap(page)).toBeDefined()
+    expect(await getOverlayMapSize(page)).toBe(2)
+    expect(await getLocalVideoOverlay(page)).toBeDefined()
   })
 
-  test('should not create a new element if the elements are same', async ({
+  test.only('should not create a new element if the elements are same', async ({
     createCustomPage,
     resource,
   }) => {
@@ -329,6 +348,9 @@ test.describe('buildVideoElement', () => {
     await expect(page.locator('div.mcuLayers > *')).toHaveCount(2)
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
+    expect(await getOverlayMap(page)).toBeDefined()
+    expect(await getOverlayMapSize(page)).toBe(2)
+    expect(await getLocalVideoOverlay(page)).toBeDefined()
   })
 
   test('should handle the element for multiple users', async ({
@@ -353,15 +375,12 @@ test.describe('buildVideoElement', () => {
     })
     await expectMCUVisible(pageOne)
 
-    await test.step('should have correct DOM elements and layerMap with one member', async () => {
-      const layerMapSize = await pageOne.evaluate<number>(() => {
-        // @ts-expect-error
-        return window._roomObj.layerMap.size
-      })
+    await test.step('should have correct DOM elements and overlayMap with one member', async () => {
       await expect(pageOne.locator('div.mcuLayers > *')).toHaveCount(2)
       expect(await pageOne.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
       expect(await pageOne.$$('div[id^="sw-overlay-"]')).toHaveLength(1)
-      expect(layerMapSize).toBe(2)
+      expect(await getOverlayMapSize(pageOne)).toBe(2)
+      expect(await getLocalVideoOverlay(pageOne)).toBeDefined()
     })
 
     // Dial an address and join a video room from pageTwo
@@ -370,24 +389,18 @@ test.describe('buildVideoElement', () => {
     })
     await expectMCUVisible(pageTwo)
 
-    await test.step('should have correct DOM elements and layerMap with two members', async () => {
-      const layerMapSizePageOne = await pageOne.evaluate<number>(() => {
-        // @ts-expect-error
-        return window._roomObj.layerMap.size
-      })
+    await test.step('should have correct DOM elements and overlayMap with two members', async () => {
       await expect(pageOne.locator('div.mcuLayers > *')).toHaveCount(3)
       expect(await pageOne.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
       expect(await pageOne.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
-      expect(layerMapSizePageOne).toBe(3)
+      expect(await getOverlayMapSize(pageOne)).toBe(3)
+      expect(await getLocalVideoOverlay(pageOne)).toBeDefined()
 
-      const layerMapSizePageTwo = await pageTwo.evaluate<number>(() => {
-        // @ts-expect-error
-        return window._roomObj.layerMap.size
-      })
       await expect(pageTwo.locator('div.mcuLayers > *')).toHaveCount(3)
       expect(await pageTwo.$$('div[id^="sw-sdk-"] > video')).toHaveLength(1)
       expect(await pageTwo.$$('div[id^="sw-overlay-"]')).toHaveLength(2)
-      expect(layerMapSizePageTwo).toBe(3)
+      expect(await getOverlayMapSize(pageTwo)).toBe(3)
+      expect(await getLocalVideoOverlay(pageTwo)).toBeDefined()
     })
   })
 })

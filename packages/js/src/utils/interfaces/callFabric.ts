@@ -1,6 +1,6 @@
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
 import {
-  LayerMap,
+  OverlayMap,
   LocalVideoOverlay,
   UserOverlay,
 } from '../../fabric/VideoOverlays'
@@ -17,11 +17,11 @@ export interface CallFabricRoomSessionConnectionContract {
   /**
    * A JS Map containing all the layers on top of the Root Element
    */
-  layerMap: LayerMap
+  overlayMap: OverlayMap | undefined
   /**
    * Local video overlay object that injects the DOM element inside the MCU
    */
-  localVideoOverlay: LocalVideoOverlay
+  localVideoOverlay: LocalVideoOverlay | undefined
   /**
    * Return the member overlay on top of the root element
    */

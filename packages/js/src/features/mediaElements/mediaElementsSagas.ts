@@ -33,7 +33,7 @@ export const makeVideoElementSaga = ({
     runSaga,
   }: CustomSagaParams<RoomSessionConnection>): SagaIterator {
     try {
-      const layerMap = new Map<string, HTMLDivElement>()
+      const overlayMap = new Map<string, HTMLDivElement>()
       const videoEl = buildVideo()
 
       /**
@@ -41,7 +41,7 @@ export const makeVideoElementSaga = ({
        * overlay DOM element in here and in the `layoutChangedHandler`.
        * The idea is to avoid APIs like `document.getElementById` because it
        * won't work if the SDK is used within a Shadow DOM tree.
-       * Instead of querying the `document`, let's use our `layerMap`.
+       * Instead of querying the `document`, let's use our `overlayMap`.
        */
       const localOverlay: LocalVideoOverlay = {
         // Each `layout.changed` event will update `status`
@@ -51,15 +51,15 @@ export const makeVideoElementSaga = ({
           return addSDKPrefix(room.id)
         },
         get domElement() {
-          return layerMap.get(this.id)
+          return overlayMap.get(this.id)
         },
         set domElement(element: HTMLDivElement | undefined) {
           if (element) {
             getLogger().debug('Set localOverlay', element)
-            layerMap.set(this.id, element)
+            overlayMap.set(this.id, element)
           } else {
             getLogger().debug('Remove localOverlay')
-            layerMap.delete(this.id)
+            overlayMap.delete(this.id)
           }
         },
         hide() {
@@ -108,7 +108,7 @@ export const makeVideoElementSaga = ({
         rootElement,
         localVideoOverlay: localOverlay,
         // @ts-expect-error
-        layerMap,
+        overlayMap,
       })
 
       let hasVideoTrack = false
@@ -183,7 +183,7 @@ export const makeVideoElementSaga = ({
 
       room.once('destroy', () => {
         cleanupElement(rootElement)
-        layerMap.clear()
+        overlayMap.clear()
         videoTask?.cancel()
       })
     } catch (error) {
