@@ -65,12 +65,12 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     return result
   }
 
-  set selfMember(member: RoomSessionMember | undefined) {
-    this._self = member
-  }
-
   get selfMember(): RoomSessionMember | undefined {
     return this._self
+  }
+
+  set selfMember(member: RoomSessionMember | undefined) {
+    this._self = member
   }
 
   set member(member: RoomSessionMember) {
