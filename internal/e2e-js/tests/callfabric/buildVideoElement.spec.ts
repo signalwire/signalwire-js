@@ -92,7 +92,8 @@ test.describe('buildVideoElement', () => {
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
     expect(await getOverlayMap(page)).toBeDefined()
-    expect(await getOverlayMapSize(page)).toBe(2)
+    // The side depends on the layout.changed has been received yet or not
+    expect(await getOverlayMapSize(page)).toBeGreaterThanOrEqual(1)
     expect(await getLocalVideoOverlay(page)).toBeDefined()
 
     await page.evaluate(() => {
