@@ -10,12 +10,13 @@ import {
 import { OverlayMap, LocalVideoOverlay, addSDKPrefix } from './VideoOverlays'
 import { CallFabricRoomSession } from './fabric'
 import { RoomSession } from './video'
+import { BaseRoomSession } from './BaseRoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallFabricRoomSession | RoomSession
+  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
   rootElement?: HTMLElement
 }
 
@@ -25,8 +26,6 @@ export interface BuildVideoElementReturnType {
   localVideoOverlay: LocalVideoOverlay
   unsubscribe(): void
 }
-
-const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize']
 
 export const buildVideoElement = async (
   params: BuildVideoElementParams
@@ -205,21 +204,10 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
 
     const paddingWrapper = document.createElement('div')
     paddingWrapper.classList.add('paddingWrapper')
+    paddingWrapper.style.paddingBottom = '56.25%'
     paddingWrapper.style.position = 'relative'
     paddingWrapper.style.width = '100%'
     paddingWrapper.appendChild(mcuWrapper)
-
-    // For less than 3 participants video call, the video aspect ratio can change
-    const fixInLandscapeOrientation =
-      rootElement.classList.contains('landscape-only')
-    VIDEO_SIZING_EVENTS.forEach((event) =>
-      videoElement.addEventListener(event, () => {
-        const paddingBottom = fixInLandscapeOrientation
-          ? '56.25'
-          : (videoElement.videoHeight / videoElement.videoWidth) * 100
-        paddingWrapper.style.paddingBottom = `${paddingBottom}%`
-      })
-    )
 
     const layersWrapper = document.createElement('div')
     layersWrapper.classList.add('mcuLayers')
@@ -248,7 +236,8 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     }
     getLogger().debug('MCU is ready..')
 
-    // DEBUG: Do we need this anymore?
+    // For less than 3 participants, the video aspect ratio can change
+    // Such as with "grid-responsive-mobile" layout event
     const rootElementResizeObserver = createRootElementResizeObserver({
       rootElement,
       video: videoElement,

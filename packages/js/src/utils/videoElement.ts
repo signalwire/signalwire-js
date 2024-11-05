@@ -188,6 +188,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
       getLogger().debug('Location not found')
       if (myLayerEl) {
         getLogger().debug('Current layer not visible')
+        // Should we remove it from the DOM and the OverlayMap?
         localVideoOverlay.hide()
       }
       return
