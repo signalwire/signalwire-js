@@ -76,11 +76,11 @@ interface LocalVideoOverlayOptions {
 }
 
 export class LocalVideoOverlay extends UserOverlay {
+  private _mirrored: boolean
   private _room:
     | CallFabricRoomSession
     | RoomSession
     | BaseRoomSession<RoomSession>
-  private _mirrored: boolean
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
