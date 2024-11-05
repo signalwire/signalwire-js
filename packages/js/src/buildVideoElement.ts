@@ -1,23 +1,21 @@
 import { InternalVideoLayout, getLogger, uuid } from '@signalwire/core'
-import { CallFabricRoomSession } from './CallFabricRoomSession'
 import {
-  addSDKPrefix,
   buildVideo,
   cleanupElement,
   createRootElementResizeObserver,
   makeLayoutChangedHandler,
   setVideoMediaTrack,
   waitForVideoReady,
-} from '../utils/videoElement'
-import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
-import { BaseRoomSession } from '../BaseRoomSession'
-import { RoomSession } from '../video'
+} from './utils/videoElement'
+import { OverlayMap, LocalVideoOverlay, addSDKPrefix } from './VideoOverlays'
+import { CallFabricRoomSession } from './fabric'
+import { RoomSession } from './video'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
+  room: CallFabricRoomSession | RoomSession
   rootElement?: HTMLElement
 }
 

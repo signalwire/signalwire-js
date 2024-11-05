@@ -17,9 +17,9 @@ import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
 import type { RoomSession } from './RoomSession'
-import { buildVideoElement } from './fabric'
+import { buildVideoElement } from './buildVideoElement'
 
-export interface Client<RoomSessionType extends RoomSession = RoomSession>
+export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
   rooms: ClientAPI<RoomSessionType>['rooms']
   chat: ClientAPI<RoomSessionType>['chat']
@@ -44,7 +44,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
 }
 
 export class ClientAPI<
-  RoomSessionType extends RoomSession = RoomSession
+  RoomSessionType = RoomSession
 > extends BaseClient<ClientEvents> {
   private _videoManager: VideoManager
   private _chat: ChatClient
@@ -92,6 +92,7 @@ export class ClientAPI<
               applyLocalVideoOverlay,
               applyMemberOverlay,
               mirrorLocalVideoOverlay,
+              // @ts-expect-error
               room,
               rootElement,
             })

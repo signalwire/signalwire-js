@@ -381,4 +381,3 @@ export interface RegisterDeviceResponse {
 export type RegisterDeviceResult = RegisterDeviceResponse
 
 export { CallFabricRoomSession }
-export * from './VideoOverlays'

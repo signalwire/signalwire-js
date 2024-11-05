@@ -1,8 +1,17 @@
-import { BaseRoomSession } from '../BaseRoomSession'
-import { OVERLAY_PREFIX, SDK_PREFIX } from '../utils/videoElement'
-import { DeprecatedVideoMemberHandlerParams, RoomSession } from '../video'
-import { CallFabricRoomSession } from './CallFabricRoomSession'
+import { BaseRoomSession } from './BaseRoomSession'
+import { DeprecatedVideoMemberHandlerParams, RoomSession } from './video'
+import { CallFabricRoomSession } from './fabric/CallFabricRoomSession'
 import { getLogger } from '@signalwire/core'
+
+export const SDK_PREFIX = 'sw-sdk-'
+export const addSDKPrefix = (id: string) => {
+  return `${SDK_PREFIX}${id}`
+}
+
+export const OVERLAY_PREFIX = 'sw-overlay-'
+export const addOverlayPrefix = (id: string) => {
+  return `${OVERLAY_PREFIX}${id}`
+}
 
 export type OverlayMap = Map<string, UserOverlay>
 

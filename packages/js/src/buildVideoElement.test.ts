@@ -1,12 +1,12 @@
 import { actions } from '@signalwire/core'
-import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
+import { configureFullStack, dispatchMockedCallJoined } from './testUtils'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
 import {
   CallFabricRoomSession,
   createCallFabricRoomSessionObject,
-} from './CallFabricRoomSession'
+} from './fabric/CallFabricRoomSession'
 import { JSDOM } from 'jsdom'
-import { addOverlayPrefix, SDK_PREFIX } from '../utils/videoElement'
+import { addOverlayPrefix, SDK_PREFIX } from './VideoOverlays'
 
 describe('buildVideoElement', () => {
   let room: CallFabricRoomSession

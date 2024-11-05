@@ -43,7 +43,7 @@ import type { MediaEvent } from '@signalwire/webrtc'
 import type { RoomSession } from '../../RoomSession'
 import type { RoomSessionDevice } from '../../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
-import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../fabric'
+import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../VideoOverlays'
 
 /**
  * @privateRemarks

@@ -49,8 +49,11 @@ import {
   RoomSessionDeviceEvents,
 } from './RoomSessionDevice'
 import * as workers from './video/workers'
-import { LocalVideoOverlay, OverlayMap } from './fabric'
-import { addOverlayPrefix } from './utils/videoElement'
+import {
+  addOverlayPrefix,
+  LocalVideoOverlay,
+  OverlayMap,
+} from './VideoOverlays'
 
 export interface BaseRoomSession<T>
   extends RoomMethods,

@@ -8,7 +8,7 @@ import { MakeRoomOptions } from '../video'
 import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { RoomSessionConnection } from '../BaseRoomSession'
-import { buildVideoElement } from './buildVideoElement'
+import { buildVideoElement } from '../buildVideoElement'
 
 export class Client extends BaseClient<ClientEvents> {
   makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {

@@ -9,17 +9,9 @@ import {
   OverlayMap,
   LocalVideoOverlay,
   UserOverlay,
-} from '../fabric/VideoOverlays'
-
-const SDK_PREFIX = 'sw-sdk-'
-const addSDKPrefix = (id: string) => {
-  return `${SDK_PREFIX}${id}`
-}
-
-const OVERLAY_PREFIX = 'sw-overlay-'
-const addOverlayPrefix = (id: string) => {
-  return `${OVERLAY_PREFIX}${id}`
-}
+  SDK_PREFIX,
+  addOverlayPrefix,
+} from '../VideoOverlays'
 
 const buildVideo = () => {
   const video = document.createElement('video')
@@ -356,10 +348,6 @@ export {
   makeLayoutChangedHandler,
   setVideoMediaTrack,
   waitForVideoReady,
-  addSDKPrefix,
-  addOverlayPrefix,
   createRootElementResizeObserver,
   LocalVideoOverlay,
-  SDK_PREFIX,
-  OVERLAY_PREFIX,
 }
