@@ -301,7 +301,7 @@ test.describe('buildVideoElement', () => {
     expect(await getLocalVideoOverlay(page)).toBeDefined()
   })
 
-  test.only('should not create a new element if the elements are same', async ({
+  test('should not create a new element if the elements are same', async ({
     createCustomPage,
     resource,
   }) => {
