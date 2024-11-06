@@ -46,7 +46,10 @@ const callfabricTests = [
   'videoRoomLayout.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
-const videoElementTests = ['buildVideoElement.spec.ts']
+const videoElementTests = [
+  'buildVideoWithVideoSdk.spec.ts',
+  'buildVideoWithCFSdk.spec.ts',
+]
 
 const useDesktopChrome = {
   ...devices['Desktop Chrome'],

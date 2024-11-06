@@ -1,18 +1,14 @@
-import { uuid } from '@signalwire/core'
-import {
-  OverlayMap,
-  LocalVideoOverlay,
-  CallFabricRoomSession,
-} from '@signalwire/js'
-import { test, expect, Page } from '../../fixtures'
+import { OverlayMap, LocalVideoOverlay } from '@signalwire/js'
+import { test, expect, Page } from '../fixtures'
 import {
   SERVER_URL,
-  createCFClient,
-  dialAddress,
+  createTestRoomSession,
   expectMCUVisible,
-} from '../../utils'
+  expectRoomJoined,
+  randomizeRoomName,
+} from '../utils'
 
-test.describe('buildVideoElement', () => {
+test.describe('buildVideoElement with Video SDK', () => {
   const getOverlayMap = (page: Page) =>
     page.evaluate<OverlayMap>(() => {
       // @ts-expect-error
@@ -31,22 +27,42 @@ test.describe('buildVideoElement', () => {
       return window._roomObj.localVideoOverlay
     })
 
+  const createRoomSession = (page: Page, options: any) => {
+    return createTestRoomSession(page, {
+      vrt: {
+        room_name: options.roomName,
+        user_name: 'e2e_test',
+        auto_create_room: true,
+        permissions: ['room.list_available_layouts'],
+      },
+      initialEvents: [
+        'layout.changed',
+        'track',
+        'destroy',
+        'member.joined',
+        'member.left',
+        'member.updated',
+        'member.updated.video_muted',
+      ],
+      ...options,
+    })
+  }
+
   test('should not render any video if rootElement is not passed', async ({
     createCustomPage,
-    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = `e2e-video-room_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    const roomName = randomizeRoomName('build-video-element')
 
-    // Dial an address and join a video room without passing the rootElement
-    await dialAddress(page, {
-      address: `/public/${roomName}`,
+    await createRoomSession(page, {
+      roomName,
       shouldPassRootElement: false,
     })
+
+    // Join a video room without passing the rootElement
+    await expectRoomJoined(page)
 
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
@@ -54,22 +70,19 @@ test.describe('buildVideoElement', () => {
     expect(await getLocalVideoOverlay(page)).toBeUndefined()
   })
 
-  test('should return the rootElement', async ({
-    createCustomPage,
-    resource,
-  }) => {
+  test('should return the rootElement', async ({ createCustomPage }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = `e2e-video-room_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    const roomName = randomizeRoomName('build-video-element')
 
-    // Dial an address and join a video room without passing the rootElement
-    await dialAddress(page, {
-      address: `/public/${roomName}`,
+    await createRoomSession(page, {
+      roomName,
       shouldPassRootElement: false,
     })
+
+    // Join a video room without passing the rootElement
+    await expectRoomJoined(page)
 
     // Build a video element
     const { element } = await page.evaluate(async () => {
@@ -92,7 +105,7 @@ test.describe('buildVideoElement', () => {
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
     expect(await getOverlayMap(page)).toBeDefined()
-    // The side depends on the layout.changed has been received yet or not
+    // The size depends on the layout.changed has been received yet or not
     expect(await getOverlayMapSize(page)).toBeGreaterThanOrEqual(1)
     expect(await getLocalVideoOverlay(page)).toBeDefined()
 
@@ -116,19 +129,32 @@ test.describe('buildVideoElement', () => {
 
   test('should render multiple video elements', async ({
     createCustomPage,
-    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = `e2e-video-room_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    const roomName = randomizeRoomName('build-video-element')
 
-    // Dial and expect both video and member overlays
-    await dialAddress(page, {
-      address: `/public/${roomName}`,
+    await createTestRoomSession(page, {
+      vrt: {
+        room_name: roomName,
+        user_name: 'e2e_test',
+        auto_create_room: true,
+        permissions: ['room.list_available_layouts'],
+      },
+      initialEvents: [
+        'layout.changed',
+        'track',
+        'destroy',
+        'member.joined',
+        'member.left',
+        'member.updated',
+        'member.updated.video_muted',
+      ],
     })
+
+    // Join a video room and expect both video and member overlays
+    await expectRoomJoined(page)
 
     await expectMCUVisible(page)
 
@@ -253,48 +279,34 @@ test.describe('buildVideoElement', () => {
     })
   })
 
-  test('should render the video even if the function is called before call.start', async ({
+  test('should render the video even if the function is called before room.join', async ({
     createCustomPage,
-    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = `e2e-video-room_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    const roomName = randomizeRoomName('build-video-element')
 
-    // Create and expect 1 video elements
-    await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
+    await createRoomSession(page, {
+      roomName,
+    })
 
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
+    // Create a video element
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const room = window._roomObj
+      const rootElement = document.createElement('div')
+      rootElement.id = 'rootElement2'
+      document.body.appendChild(rootElement)
+      // @ts-expect-error
+      await window._SWJS.buildVideoElement({
+        room,
+        rootElement,
+      })
+    })
 
-          call.on('room.joined', resolve)
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          const rootElement = document.createElement('div')
-          rootElement.id = 'rootElement2'
-          document.body.appendChild(rootElement)
-          // @ts-expect-error
-          await window._SWJS.buildVideoElement({
-            room: call,
-            rootElement,
-          })
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    // Join a video room
+    await expectRoomJoined(page)
 
     await expectMCUVisible(page)
 
@@ -308,45 +320,30 @@ test.describe('buildVideoElement', () => {
 
   test('should not create a new element if the elements are same', async ({
     createCustomPage,
-    resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
-    const roomName = `e2e-video-room_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    const roomName = randomizeRoomName('build-video-element')
 
-    // Create and expect 1 video elements
-    await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<void>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
+    await createRoomSession(page, {
+      roomName,
+    })
 
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
+    // Join a video room with rootElement
+    await expectRoomJoined(page)
 
-          call.on('room.joined', async () => {
-            // @ts-expect-error
-            await window._SWJS.buildVideoElement({
-              room: call,
-              rootElement: document.getElementById('rootElement'),
-            })
+    // Create a video element with the same rootElement
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
 
-            resolve()
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+      // @ts-expect-error
+      await window._SWJS.buildVideoElement({
+        room: call,
+        rootElement: document.getElementById('rootElement'),
+      })
+    })
 
     await expectMCUVisible(page)
 
@@ -360,24 +357,20 @@ test.describe('buildVideoElement', () => {
 
   test('should handle the element for multiple users', async ({
     createCustomPage,
-    resource,
   }) => {
-    const pageOne = await createCustomPage({ name: '[page]' })
-    await pageOne.goto(SERVER_URL)
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
+    const pageTwo = await createCustomPage({ name: '[pageTwo]' })
 
-    const pageTwo = await createCustomPage({ name: '[page]' })
-    await pageTwo.goto(SERVER_URL)
+    await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
-    const roomName = `e2e-video-room_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    const roomName = randomizeRoomName('build-video-element')
 
-    await createCFClient(pageOne)
-    await createCFClient(pageTwo)
-
-    // Dial an address and join a video room from pageOne
-    await dialAddress(pageOne, {
-      address: `/public/${roomName}`,
+    await createRoomSession(pageOne, {
+      roomName,
     })
+
+    // Join a video room from pageOne
+    await expectRoomJoined(pageOne)
     await expectMCUVisible(pageOne)
 
     await test.step('should have correct DOM elements and overlayMap with one member', async () => {
@@ -388,10 +381,12 @@ test.describe('buildVideoElement', () => {
       expect(await getLocalVideoOverlay(pageOne)).toBeDefined()
     })
 
-    // Dial an address and join a video room from pageTwo
-    await dialAddress(pageTwo, {
-      address: `/public/${roomName}`,
+    await createRoomSession(pageTwo, {
+      roomName,
     })
+
+    // Join a video room from pageTwo
+    await expectRoomJoined(pageTwo)
     await expectMCUVisible(pageTwo)
 
     await test.step('should have correct DOM elements and overlayMap with two members', async () => {
