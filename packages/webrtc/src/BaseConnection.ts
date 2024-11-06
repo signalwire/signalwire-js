@@ -391,9 +391,22 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       const rtcPeer = this._buildPeer('offer')
       this.logger.debug('Trigger start for the new RTCPeer!')
       await rtcPeer.start()
+      return rtcPeer
     } catch (error) {
       this.logger.error('Error building new RTCPeer to promote/demote', error)
+      throw error
     }
+  }
+
+  async _renegotiateInParallel() {
+    const oldPeer = this.peer  
+    try {
+    await this._triggerNewRTCPeer()
+    oldPeer?.detachAndStop()
+    } catch(e) {
+      this.peer = oldPeer
+    }
+    
   }
 
   updateCamera(constraints: MediaTrackConstraints) {
@@ -682,7 +695,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /** @internal */
-  onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
+  async onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
     if (!rtcPeer.instance.localDescription) {
       this.logger.error('Missing localDescription', rtcPeer)
       throw new Error('Invalid RTCPeerConnection localDescription')
@@ -694,7 +707,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       case 'offer':
         this._watchSessionAuth()
         // If we have a remoteDescription already, send reinvite
-        if (!this.resuming && rtcPeer.instance.remoteDescription) {
+        if (!this.resuming && (rtcPeer.instance.remoteDescription || this.peer !== rtcPeer)) {
+          rtcPeer.uuid = this.peer?.uuid!
+          this.peer = rtcPeer
           return this.executeUpdateMedia(mungedSDP, rtcPeer.uuid)
         } else {
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
@@ -1084,7 +1099,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   async renegotiateMedia(renegotiateMediaParams: UpdateMediaOptions): Promise<void> {
     this.updateMediaOptions(renegotiateMediaParams)
-    await this.peer?.start({isRenegotiate: true})
+    await this._renegotiateInParallel();
   }
 
   async enableVideo(enableVideoParam?: Pick<UpdateMediaOptions, 'video'> & {sendOnly?: boolean}): Promise<void> {
