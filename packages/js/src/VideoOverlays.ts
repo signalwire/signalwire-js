@@ -110,7 +110,7 @@ export class LocalVideoOverlay extends UserOverlay {
   private memberVideoMutedHandler(params: DeprecatedVideoMemberHandlerParams) {
     try {
       const { member } = params
-      if (member.id === this._room.memberId && 'video_muted' in member) {
+      if (member.id === this._room?.memberId && 'video_muted' in member) {
         member.video_muted ? this.hide() : this.show()
       }
     } catch (error) {
