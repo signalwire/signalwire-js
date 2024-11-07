@@ -71,8 +71,8 @@ export class UserOverlay {
 
 interface LocalVideoOverlayOptions {
   id: string
-  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
   mirrorLocalVideoOverlay: boolean
+  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
 }
 
 export class LocalVideoOverlay extends UserOverlay {
@@ -84,9 +84,11 @@ export class LocalVideoOverlay extends UserOverlay {
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
-    this._room = options.room
     this._mirrored = options.mirrorLocalVideoOverlay
+    this._room = options.room
 
+    // Bind the handler to preserve context
+    this.memberVideoMutedHandler = this.memberVideoMutedHandler.bind(this)
     this.attachListeners()
   }
 
@@ -110,7 +112,8 @@ export class LocalVideoOverlay extends UserOverlay {
   private memberVideoMutedHandler(params: DeprecatedVideoMemberHandlerParams) {
     try {
       const { member } = params
-      if (member.id === this._room?.memberId && 'video_muted' in member) {
+      const memberId = member.id ?? member.member_id
+      if (memberId === this._room.memberId && 'video_muted' in member) {
         member.video_muted ? this.hide() : this.show()
       }
     } catch (error) {
