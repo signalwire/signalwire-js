@@ -405,6 +405,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     oldPeer?.detachAndStop()
     } catch(e) {
       this.peer = oldPeer
+      throw e
     }
     
   }
