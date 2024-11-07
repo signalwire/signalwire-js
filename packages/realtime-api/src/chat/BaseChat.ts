@@ -91,6 +91,10 @@ export class BaseChat<
             'session.reconnecting',
             sessionReconnectingHandler
           )
+          this._client.session.off(
+            'session.connected',
+            sessionReconnectedHandler
+          )
 
           resolve()
         } catch (error) {
