@@ -465,13 +465,13 @@ describe('buildVideoElement', () => {
 
         await renderAndStartVideo()
 
-        expect(room.localVideoOverlay!.status).toBe('visible')
-
-        room.localVideoOverlay!.hide()
         expect(room.localVideoOverlay!.status).toBe('hidden')
 
         room.localVideoOverlay!.show()
         expect(room.localVideoOverlay!.status).toBe('visible')
+
+        room.localVideoOverlay!.hide()
+        expect(room.localVideoOverlay!.status).toBe('hidden')
       })
     })
   })
@@ -916,13 +916,13 @@ describe('buildVideoElement', () => {
 
         await renderAndStartVideo()
 
-        expect(room.localVideoOverlay!.status).toBe('visible')
-
-        room.localVideoOverlay!.hide()
         expect(room.localVideoOverlay!.status).toBe('hidden')
 
         room.localVideoOverlay!.show()
         expect(room.localVideoOverlay!.status).toBe('visible')
+
+        room.localVideoOverlay!.hide()
+        expect(room.localVideoOverlay!.status).toBe('hidden')
       })
     })
   })

@@ -40,6 +40,9 @@ class MockMediaStream {
   getTracks() {
     return this.tracks
   }
+  getVideoTracks() {
+    return this.tracks.filter((track) => track.kind === 'video')
+  }
 }
 
 // Mock MediaStream globally
