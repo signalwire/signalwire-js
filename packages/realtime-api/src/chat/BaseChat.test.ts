@@ -116,6 +116,7 @@ describe('BaseChat', () => {
       await expect(baseChat.subscribe(listenOptions)).resolves.toBeInstanceOf(
         Function
       )
+      
       expect(listenersMap['session.reconnecting']).toBeDefined()
       // simulate ws closed
       listenersMap['session.reconnecting']()
@@ -127,6 +128,33 @@ describe('BaseChat', () => {
       expect(addChannelsMock).toHaveBeenCalledTimes(2)
 
     })
+
+    it('should resubscribe only to one channel after a session reconnection', async () => {
+      const addChannelsMock = jest
+        .spyOn(baseChat, 'addChannels')
+        .mockResolvedValueOnce(null)
+
+      const unsub = await baseChat.subscribe(listenOptions);
+
+      await expect(baseChat.subscribe({...listenOptions, channels: ['channel-2']})).resolves.toBeInstanceOf(
+        Function
+      )
+
+      unsub()
+      addChannelsMock.mockClear()
+      
+      expect(listenersMap['session.reconnecting']).toBeDefined()
+      // simulate ws closed
+      listenersMap['session.reconnecting']()
+
+      expect(listenersMap['session.connected']).toBeDefined()
+      // simulate ws opened
+      listenersMap['session.connected']()
+
+      expect(addChannelsMock).toHaveBeenCalledTimes(1)
+
+    })
+
   })
 
   describe('publish', () => {
