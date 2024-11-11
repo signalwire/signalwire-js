@@ -238,15 +238,15 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     }
     getLogger().debug('MCU is ready..')
 
-    const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize']
-    VIDEO_SIZING_EVENTS.forEach((event) =>
-      videoElement.addEventListener(event, () => {
-        const paddingBottom =
-          (videoElement.videoHeight / videoElement.videoWidth) * 100
-        console.log('>> update', event, paddingBottom)
-        paddingWrapper.style.paddingBottom = `${paddingBottom}%`
-      })
-    )
+    // const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize']
+    // VIDEO_SIZING_EVENTS.forEach((event) =>
+    //   videoElement.addEventListener(event, () => {
+    //     const paddingBottom =
+    //       (videoElement.videoHeight / videoElement.videoWidth) * 100
+    //     console.log('>> update', event, paddingBottom)
+    //     paddingWrapper.style.paddingBottom = `${paddingBottom}%`
+    //   })
+    // )
 
     // For less than 3 participants, the video aspect ratio can change
     // Such as with "grid-responsive-mobile" layout event
@@ -259,6 +259,7 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
 
     const handleVideoSizingEvent = () => {
       const { width, height } = rootElement.getBoundingClientRect()
+      console.log('>> update - handleVideoSizingEvent', width, height)
       rootElementResizeObserver.update({ width, height })
     }
 
