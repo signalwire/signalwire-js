@@ -317,6 +317,7 @@ const createRootElementResizeObserver = ({
   return {
     start: () => observer.observe(rootElement),
     stop: () => observer.disconnect(),
+    update,
   }
 }
 
