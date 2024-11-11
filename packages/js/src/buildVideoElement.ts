@@ -249,7 +249,6 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
 
     const handleVideoSizingEvent = () => {
       const { width, height } = rootElement.getBoundingClientRect()
-      console.log('>> update - handleVideoSizingEvent', width, height)
       rootElementResizeObserver.update({ width, height })
     }
 
