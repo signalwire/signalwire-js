@@ -124,39 +124,6 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
       const fragment = document.createDocumentFragment()
       const currentOverlayIds = new Set()
 
-      // Make overlay for all members (including a self member)
-      if (applyMemberOverlay) {
-        layers.forEach((location) => {
-          const memberIdInLocation = location.member_id
-          if (!memberIdInLocation) return
-
-          const overlayId = addOverlayPrefix(memberIdInLocation)
-          currentOverlayIds.add(overlayId)
-
-          let overlay = overlayMap.get(overlayId)
-
-          if (overlay && overlay.domElement) {
-            // If the overlay already exists, modify its styles
-            getLogger().debug('Update an overlay for ', memberIdInLocation)
-            _updateLayer({ location, element: overlay.domElement })
-          } else {
-            // If the overlay doesn't exist, create a new overlay
-            getLogger().debug('Build an overlay for ', memberIdInLocation)
-            overlay = new UserOverlay({ id: overlayId })
-            overlayMap.set(overlayId, overlay)
-
-            const newLayer = _buildLayer({ location })
-            newLayer.id = `${overlayId}-${uuid()}` // Unique DOM ID since user is allowed to build multiple video elements
-            newLayer.style.zIndex = '10'
-
-            overlay.domElement = newLayer
-          }
-
-          // Append the overlay element to the fragment
-          fragment.appendChild(overlay.domElement)
-        })
-      }
-
       // Make local video overlay for the self member
       if (applyLocalVideoOverlay) {
         const location = layers.find(({ member_id }) => member_id === memberId)
@@ -179,7 +146,6 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
             getLogger().debug('Build local video overlay')
             myLayerEl = _buildLayer({ location })
             myLayerEl.id = overlayId
-            myLayerEl.style.zIndex = '1'
 
             const localVideo = buildVideo()
             localVideo.srcObject = localStream
@@ -203,7 +169,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
             localStream
               .getVideoTracks()
               .filter((t) => t.enabled && t.readyState === 'live').length > 0
-          if (hasVideo) {
+          if (hasVideo && location.visible) {
             localVideoOverlay.setMediaStream(localStream)
             localVideoOverlay.show()
           } else {
@@ -213,6 +179,44 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
           // Append the local video overlay to the fragment
           fragment.appendChild(myLayerEl)
         }
+      }
+
+      // Make overlay for all members (including a self member)
+      if (applyMemberOverlay) {
+        layers.forEach((location) => {
+          const memberIdInLocation = location.member_id
+          if (!memberIdInLocation) return
+
+          const overlayId = addOverlayPrefix(memberIdInLocation)
+          currentOverlayIds.add(overlayId)
+
+          let overlay = overlayMap.get(overlayId)
+
+          if (overlay && overlay.domElement) {
+            // If the overlay already exists, modify its styles
+            getLogger().debug('Update an overlay for ', memberIdInLocation)
+            _updateLayer({ location, element: overlay.domElement })
+          } else {
+            // If the overlay doesn't exist, create a new overlay
+            getLogger().debug('Build an overlay for ', memberIdInLocation)
+            overlay = new UserOverlay({ id: overlayId })
+            overlayMap.set(overlayId, overlay)
+
+            const newLayer = _buildLayer({ location })
+            newLayer.id = `${overlayId}-${uuid()}` // Unique DOM ID since user is allowed to build multiple video elements
+
+            overlay.domElement = newLayer
+          }
+
+          if (!location.visible) {
+            overlay.hide()
+          } else {
+            overlay.show()
+          }
+
+          // Append the overlay element to the fragment
+          fragment.appendChild(overlay.domElement)
+        })
       }
 
       // Remove overlays that are no longer present
