@@ -171,6 +171,8 @@ interface VideoElementSetupWorkerParams {
   applyMemberOverlay?: boolean
 }
 
+const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize'] as const
+
 const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
     const { applyLocalVideoOverlay, applyMemberOverlay, track, rootElement } =
@@ -244,10 +246,25 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
       paddingWrapper,
     })
     rootElementResizeObserver.start()
+
+    const handleVideoSizingEvent = () => {
+      const { width, height } = rootElement.getBoundingClientRect()
+      console.log('>> update - handleVideoSizingEvent', width, height)
+      rootElementResizeObserver.update({ width, height })
+    }
+
+    // When the video media stream loads or resizes
+    VIDEO_SIZING_EVENTS.forEach((event) =>
+      videoElement.addEventListener(event, handleVideoSizingEvent)
+    )
+
     track.addEventListener('ended', () => {
       if (rootElementResizeObserver) {
         rootElementResizeObserver.stop()
       }
+      VIDEO_SIZING_EVENTS.forEach((event) =>
+        videoElement.removeEventListener(event, handleVideoSizingEvent)
+      )
     })
 
     layersWrapper.style.display = 'block'
