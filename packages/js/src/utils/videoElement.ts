@@ -298,8 +298,14 @@ const createRootElementResizeObserver = ({
         const { inlineSize, blockSize } = Array.isArray(entry.contentBoxSize)
           ? entry.contentBoxSize[0]
           : entry.contentBoxSize
+        console.log('>> update - contentBoxSize', inlineSize, blockSize)
         update({ width: inlineSize, height: blockSize })
       } else if (entry.contentRect) {
+        console.log(
+          '>> update - contentRect',
+          entry.contentRect.width,
+          entry.contentRect.height
+        )
         update({
           width: entry.contentRect.width,
           height: entry.contentRect.height,

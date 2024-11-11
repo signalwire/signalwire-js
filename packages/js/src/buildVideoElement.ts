@@ -2,7 +2,7 @@ import { InternalVideoLayout, getLogger, uuid } from '@signalwire/core'
 import {
   buildVideo,
   cleanupElement,
-  // createRootElementResizeObserver,
+  createRootElementResizeObserver,
   makeLayoutChangedHandler,
   setVideoMediaTrack,
   waitForVideoReady,
@@ -241,23 +241,24 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
       videoElement.addEventListener(event, () => {
         const paddingBottom =
           (videoElement.videoHeight / videoElement.videoWidth) * 100
+        console.log('>> update', event, paddingBottom)
         paddingWrapper.style.paddingBottom = `${paddingBottom}%`
       })
     )
 
     // For less than 3 participants, the video aspect ratio can change
     // Such as with "grid-responsive-mobile" layout event
-    // const rootElementResizeObserver = createRootElementResizeObserver({
-    //   rootElement,
-    //   video: videoElement,
-    //   paddingWrapper,
-    // })
-    // rootElementResizeObserver.start()
-    // track.addEventListener('ended', () => {
-    //   if (rootElementResizeObserver) {
-    //     rootElementResizeObserver.stop()
-    //   }
-    // })
+    const rootElementResizeObserver = createRootElementResizeObserver({
+      rootElement,
+      video: videoElement,
+      paddingWrapper,
+    })
+    rootElementResizeObserver.start()
+    track.addEventListener('ended', () => {
+      if (rootElementResizeObserver) {
+        rootElementResizeObserver.stop()
+      }
+    })
 
     layersWrapper.style.display = 'block'
   } catch (error) {

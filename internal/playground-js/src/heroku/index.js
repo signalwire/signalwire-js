@@ -382,8 +382,8 @@ window.connect = () => {
     .then(async (result) => {
       console.log('>> Room Joined', result)
 
-      container.classList.add('d-none')
-      root.classList.remove('d-none')
+      // container.classList.add('d-none')
+      // root.classList.remove('d-none')
 
       roomObj.getLayouts().then((layouts) => {
         console.log('>> Layouts', layouts)
