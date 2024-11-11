@@ -140,7 +140,7 @@ describe('BaseChat', () => {
         Function
       )
 
-      unsub()
+      await unsub()
       addChannelsMock.mockClear()
       
       expect(listenersMap['session.reconnecting']).toBeDefined()
