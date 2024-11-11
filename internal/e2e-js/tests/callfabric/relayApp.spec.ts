@@ -26,14 +26,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const reference = `e2e-relay-app_${uuid()}`
+    const topic = `e2e-relay-app_${uuid()}`
     await resource.createRelayAppResource({
-      name: reference,
-      reference,
+      name: topic,
+      topic,
     })
 
     await client.voice.listen({
-      topics: [reference],
+      topics: [topic],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -61,7 +61,7 @@ test.describe('CallFabric Relay Application', () => {
     await createCFClient(page)
 
     await dialAddress(page, {
-      address: `/private/${reference}`,
+      address: `/private/${topic}`,
       shouldWaitForJoin: false,
       shouldStartCall: false,
     })
@@ -135,14 +135,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const reference = `e2e-relay-app_${uuid()}`
+    const topic = `e2e-relay-app_${uuid()}`
     await resource.createRelayAppResource({
-      name: reference,
-      reference,
+      name: topic,
+      topic,
     })
 
     await client.voice.listen({
-      topics: [reference],
+      topics: [topic],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -166,7 +166,7 @@ test.describe('CallFabric Relay Application', () => {
     await createCFClient(page)
 
     await dialAddress(page, {
-      address: `/private/${reference}`,
+      address: `/private/${topic}`,
       shouldWaitForJoin: false,
       shouldStartCall: false,
     })
@@ -249,14 +249,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const reference = `e2e-relay-app_${uuid()}`
+    const topic = `e2e-relay-app_${uuid()}`
     await resource.createRelayAppResource({
-      name: reference,
-      reference,
+      name: topic,
+      topic,
     })
 
     await client.voice.listen({
-      topics: [reference],
+      topics: [topic],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -278,7 +278,7 @@ test.describe('CallFabric Relay Application', () => {
     await createCFClient(page)
 
     await dialAddress(page, {
-      address: `/private/${reference}`,
+      address: `/private/${topic}`,
       shouldWaitForJoin: false,
       shouldStartCall: false,
     })

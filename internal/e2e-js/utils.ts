@@ -1151,11 +1151,11 @@ export const createSWMLAppResource = async ({
 
 export interface CreateRelayAppResourceParams {
   name?: string
-  reference: string
+  topic: string
 }
 export const createRelayAppResource = async ({
   name,
-  reference,
+  topic,
 }: CreateRelayAppResourceParams) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`,
@@ -1167,7 +1167,7 @@ export const createRelayAppResource = async ({
       },
       body: JSON.stringify({
         name: name ?? `e2e-relay-app_${uuid()}`,
-        reference,
+        topic,
       }),
     }
   )
