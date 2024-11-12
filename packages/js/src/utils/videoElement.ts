@@ -280,10 +280,10 @@ const createRootElementResizeObserver = ({
     }
   }
 
-  const maxPaddingBottom = (video.videoHeight / video.videoWidth) * 100
-  // debounce to avoid multiple calls
+  // Debounce to avoid multiple calls
   const update = debounce(
     ({ width, height }: { width: number; height: number }) => {
+      const maxPaddingBottom = (video.videoHeight / video.videoWidth) * 100
       if (paddingWrapper) {
         const pb = (height / width) * 100
         paddingWrapper.style.paddingBottom = `${
@@ -318,10 +318,23 @@ const createRootElementResizeObserver = ({
     })
   })
 
+  // Event handler for the video 'resize' event based on the intrinsic dimensions
+  const onVideoResize = () => {
+    const width = rootElement.clientWidth
+    const height = rootElement.clientHeight
+    console.log('>> update - onVideoResize', width, height)
+    update({ width, height })
+  }
+
   return {
-    start: () => observer.observe(rootElement),
-    stop: () => observer.disconnect(),
-    update,
+    start: () => {
+      observer.observe(rootElement)
+      video.addEventListener('resize', onVideoResize)
+    },
+    stop: () => {
+      observer.disconnect()
+      video.removeEventListener('resize', onVideoResize)
+    },
   }
 }
 

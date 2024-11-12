@@ -239,10 +239,10 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     // const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize']
     // VIDEO_SIZING_EVENTS.forEach((event) =>
     //   videoElement.addEventListener(event, () => {
-    //     const paddingBottom =
-    //       (videoElement.videoHeight / videoElement.videoWidth) * 100
-    //     console.log('>> update', event, paddingBottom)
-    //     paddingWrapper.style.paddingBottom = `${paddingBottom}%`
+    //     // const paddingBottom =
+    //     //   (videoElement.videoHeight / videoElement.videoWidth) * 100
+    //     console.log('>> update', event)
+    //     // paddingWrapper.style.paddingBottom = `${paddingBottom}%`
     //   })
     // )
 
