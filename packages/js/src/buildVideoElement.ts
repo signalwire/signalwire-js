@@ -171,8 +171,6 @@ interface VideoElementSetupWorkerParams {
   applyMemberOverlay?: boolean
 }
 
-const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize'] as const
-
 const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
   try {
     const { applyLocalVideoOverlay, applyMemberOverlay, track, rootElement } =
@@ -238,8 +236,13 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     }
     getLogger().debug('MCU is ready..')
 
-    // For less than 3 participants, the video aspect ratio can change
-    // Such as with "grid-responsive-mobile" layout event
+    /**
+     * Listen for the rootElement and the videoElement size changes and update the paddingWrapper.
+     * The ResizeObserver and the video "resize" event make sure:
+     * - The video should always maintain the aspect ratio.
+     * - The video should not overflow the user passed rootElement.
+     * - The video should not be cropped.
+     */
     const rootElementResizeObserver = createRootElementResizeObserver({
       rootElement,
       video: videoElement,
@@ -247,23 +250,10 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     })
     rootElementResizeObserver.start()
 
-    const handleVideoSizingEvent = () => {
-      const { width, height } = rootElement.getBoundingClientRect()
-      rootElementResizeObserver.update({ width, height })
-    }
-
-    // When the video media stream loads or resizes
-    VIDEO_SIZING_EVENTS.forEach((event) =>
-      videoElement.addEventListener(event, handleVideoSizingEvent)
-    )
-
     track.addEventListener('ended', () => {
       if (rootElementResizeObserver) {
         rootElementResizeObserver.stop()
       }
-      VIDEO_SIZING_EVENTS.forEach((event) =>
-        videoElement.removeEventListener(event, handleVideoSizingEvent)
-      )
     })
 
     layersWrapper.style.display = 'block'

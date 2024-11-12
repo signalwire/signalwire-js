@@ -280,10 +280,10 @@ const createRootElementResizeObserver = ({
     }
   }
 
-  const maxPaddingBottom = (video.videoHeight / video.videoWidth) * 100
-  // debounce to avoid multiple calls
+  // Debounce to avoid multiple calls
   const update = debounce(
     ({ width, height }: { width: number; height: number }) => {
+      const maxPaddingBottom = (video.videoHeight / video.videoWidth) * 100
       if (paddingWrapper) {
         const pb = (height / width) * 100
         paddingWrapper.style.paddingBottom = `${
@@ -312,10 +312,26 @@ const createRootElementResizeObserver = ({
     })
   })
 
+  /**
+   * When the intrinsic dimensions of the video changes, the root element resize may or may not trigger.
+   * For example; remote stream from the server changes dimensions from 16/9 (Landscape) to 9/16 (Portrait) mode.
+   * For this reason we need to listen for the 'resize' event on the video element.
+   */
+  const onVideoResize = () => {
+    const width = rootElement.clientWidth
+    const height = rootElement.clientHeight
+    update({ width, height })
+  }
+
   return {
-    start: () => observer.observe(rootElement),
-    stop: () => observer.disconnect(),
-    update,
+    start: () => {
+      observer.observe(rootElement)
+      video.addEventListener('resize', onVideoResize)
+    },
+    stop: () => {
+      observer.disconnect()
+      video.removeEventListener('resize', onVideoResize)
+    },
   }
 }
 
