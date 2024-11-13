@@ -116,6 +116,19 @@ export class BaseNamespace<
     })
   }
 
+  protected _areListenersAttached(topics: string[], listeners: Listeners<T>) {
+    return topics.every((topic) =>
+      Object.entries(listeners).every(([key, listener]) => {
+        const event = prefixEvent(
+          topic,
+          this._eventMap[key as keyof Listeners<T>] as string
+        )
+        // @ts-expect-error
+        return this.emitter.listeners(event).includes(listener)
+      })
+    )
+  }
+
   protected _detachListenersWithTopics(
     topics: string[],
     listeners: Listeners<T>
