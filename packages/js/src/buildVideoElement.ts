@@ -184,11 +184,6 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     videoElement.style.width = '100%'
     videoElement.style.maxHeight = '100%'
 
-    // If the both flags are false, no need to create the MCU
-    if (!applyLocalVideoOverlay && !applyMemberOverlay) {
-      rootElement.appendChild(videoElement)
-      return
-    }
     if (rootElement.querySelector('.mcuContent')) {
       getLogger().debug('MCU Content already there')
       return
@@ -204,15 +199,20 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
 
     const paddingWrapper = document.createElement('div')
     paddingWrapper.classList.add('paddingWrapper')
-    paddingWrapper.style.paddingBottom = '56.25%'
+    paddingWrapper.style.paddingBottom = '56.25%' // (9 / 16) * 100
     paddingWrapper.style.position = 'relative'
     paddingWrapper.style.width = '100%'
     paddingWrapper.appendChild(mcuWrapper)
 
-    const layersWrapper = document.createElement('div')
-    layersWrapper.classList.add('mcuLayers')
-    layersWrapper.style.display = 'none'
-    paddingWrapper.appendChild(layersWrapper)
+    let layersWrapper: HTMLDivElement | null = null
+
+    // If the both flags are false, no need to create the MCU
+    if (applyLocalVideoOverlay || applyMemberOverlay) {
+      layersWrapper = document.createElement('div')
+      layersWrapper.classList.add('mcuLayers')
+      layersWrapper.style.display = 'none'
+      paddingWrapper.appendChild(layersWrapper)
+    }
 
     const relativeWrapper = document.createElement('div')
     relativeWrapper.classList.add('mcuContent')
@@ -236,18 +236,13 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     }
     getLogger().debug('MCU is ready..')
 
-    // const VIDEO_SIZING_EVENTS = ['loadedmetadata', 'resize']
-    // VIDEO_SIZING_EVENTS.forEach((event) =>
-    //   videoElement.addEventListener(event, () => {
-    //     // const paddingBottom =
-    //     //   (videoElement.videoHeight / videoElement.videoWidth) * 100
-    //     console.log('>> update', event)
-    //     // paddingWrapper.style.paddingBottom = `${paddingBottom}%`
-    //   })
-    // )
-
-    // For less than 3 participants, the video aspect ratio can change
-    // Such as with "grid-responsive-mobile" layout event
+    /**
+     * Listen for the rootElement and the videoElement size changes and update the paddingWrapper.
+     * The ResizeObserver and the video "resize" event make sure:
+     * - The video should always maintain the aspect ratio.
+     * - The video should not overflow the user passed rootElement.
+     * - The video should not be cropped.
+     */
     const rootElementResizeObserver = createRootElementResizeObserver({
       rootElement,
       video: videoElement,
@@ -255,27 +250,15 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     })
     rootElementResizeObserver.start()
 
-    // const handleVideoSizingEvent = () => {
-    //   const { width, height } = rootElement.getBoundingClientRect()
-    //   console.log('>> update - handleVideoSizingEvent', width, height)
-    //   rootElementResizeObserver.update({ width, height })
-    // }
-
-    // // When the video media stream loads or resizes
-    // VIDEO_SIZING_EVENTS.forEach((event) =>
-    //   videoElement.addEventListener(event, handleVideoSizingEvent)
-    // )
-
     track.addEventListener('ended', () => {
       if (rootElementResizeObserver) {
         rootElementResizeObserver.stop()
       }
-      // VIDEO_SIZING_EVENTS.forEach((event) =>
-      //   videoElement.removeEventListener(event, handleVideoSizingEvent)
-      // )
     })
 
-    layersWrapper.style.display = 'block'
+    if (layersWrapper) {
+      layersWrapper.style.display = 'block'
+    }
   } catch (error) {
     getLogger().error('Handle video track error', error)
   }

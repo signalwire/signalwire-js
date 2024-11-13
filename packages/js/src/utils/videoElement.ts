@@ -302,14 +302,8 @@ const createRootElementResizeObserver = ({
         const { inlineSize, blockSize } = Array.isArray(entry.contentBoxSize)
           ? entry.contentBoxSize[0]
           : entry.contentBoxSize
-        console.log('>> update - contentBoxSize', inlineSize, blockSize)
         update({ width: inlineSize, height: blockSize })
       } else if (entry.contentRect) {
-        console.log(
-          '>> update - contentRect',
-          entry.contentRect.width,
-          entry.contentRect.height
-        )
         update({
           width: entry.contentRect.width,
           height: entry.contentRect.height,
@@ -318,11 +312,14 @@ const createRootElementResizeObserver = ({
     })
   })
 
-  // Event handler for the video 'resize' event based on the intrinsic dimensions
+  /**
+   * When the intrinsic dimensions of the video changes, the root element resize may or may not trigger.
+   * For example; remote stream from the server changes dimensions from 16/9 (Landscape) to 9/16 (Portrait) mode.
+   * For this reason we need to listen for the 'resize' event on the video element.
+   */
   const onVideoResize = () => {
     const width = rootElement.clientWidth
     const height = rootElement.clientHeight
-    console.log('>> update - onVideoResize', width, height)
     update({ width, height })
   }
 
