@@ -84,6 +84,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return this.options.watchMediaPacketsTimeout ?? 2_000
   }
 
+  get isNegotiating() {
+    return this._negotiating
+  }
+
   get localStream() {
     return this._localStream
   }
@@ -454,6 +458,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
+      // Reject the pending renegotiation promise if there is any
+      this.call._rejectRenegotiation(error)
     }
   }
 
@@ -507,11 +513,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  async start(offering=false) {
-    if(offering) { // allow callee to send renegotiation offers
-      this.options.remoteSdp = undefined
-      this.type = 'offer'
-    }
+  async start() {
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
@@ -543,10 +545,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         hasLocalTracks = Boolean(audioTracks.length || videoTracks.length)
 
         // TODO: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
-        if (
-          this.isOffer &&
-          typeof this.instance.addTransceiver === 'function'
-        ) {
+        if (this.isOffer && this._supportsAddTransceiver()) {
           const audioTransceiverParams: RTCRtpTransceiverInit = {
             direction: this.options.negotiateAudio ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],

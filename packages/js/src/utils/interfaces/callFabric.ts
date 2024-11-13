@@ -1,6 +1,12 @@
+import {
+  DisableAudioParams,
+  DisableVideoParams,
+  EnableAudioParams,
+  EnableVideoParams,
+} from '@signalwire/webrtc'
 import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
 
-export interface CallFabricRoomSessionConnectionContract {
+export interface CallFabricRoomSessionContract {
   /**
    * The layout returned from the `layout.changed` event based on the current room layout
    */
@@ -37,4 +43,36 @@ export interface CallFabricRoomSessionConnectionContract {
    * ```
    */
   hangup(id?: string): Promise<void>
+  /**
+   * Upgrades the media in the WebRTC connection to enable audio.
+   *
+   * @param params - {@link EnableAudioParams}
+   *
+   * @returns A Promise that resolves once the audio is upgraded in the WebRTC connection.
+   */
+  enableAudio(params?: EnableAudioParams): Promise<void>
+  /**
+   * Downgrades the media in the WebRTC connection to disable audio.
+   *
+   * @param params - {@link DisableAudioParams}
+   *
+   * @returns A Promise that resolves once the audio is downgraded in the WebRTC connection.
+   */
+  disableAudio(params?: DisableAudioParams): Promise<void>
+  /**
+   * Upgrades the media in the WebRTC connection to enable video.
+   *
+   * @param params - {@link EnableVideoParams}
+   *
+   * @returns A Promise that resolves once the video is upgraded in the WebRTC connection.
+   */
+  enableVideo(params?: EnableVideoParams): Promise<void>
+  /**
+   * Downgrades the media in the WebRTC connection to disable video.
+   *
+   * @param params - {@link DisableVideoParams}
+   *
+   * @returns A Promise that resolves once the video is downgraded in the WebRTC connection.
+   */
+  disableVideo(params?: DisableVideoParams): Promise<void>
 }

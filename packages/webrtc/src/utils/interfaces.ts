@@ -96,3 +96,26 @@ export interface ConnectionOptions {
   layout?: string
   positions?: VideoPositions
 }
+
+export type UpdateMediaOptionsParams = Pick<
+  ConnectionOptions,
+  'video' | 'audio' | 'negotiateVideo' | 'negotiateAudio'
+>
+
+export type EnableAudioParams =
+  | {
+      audio: true | Exclude<MediaStreamConstraints['audio'], false>
+      negotiateAudio?: boolean
+    }
+  | { audio?: boolean; negotiateAudio: true }
+
+export type DisableAudioParams = Pick<ConnectionOptions, 'negotiateAudio'>
+
+export type EnableVideoParams =
+  | {
+      video: true | Exclude<MediaStreamConstraints['video'], false>
+      negotiateVideo?: boolean
+    }
+  | { video?: boolean; negotiateVideo: true }
+
+export type DisableVideoParams = Pick<ConnectionOptions, 'negotiateVideo'>

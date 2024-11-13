@@ -391,6 +391,11 @@ export const expectMCUVisible = async (page: Page) => {
   await page.waitForSelector('div[id^="sw-sdk-"] > video')
 }
 
+export const expectMCUNotVisible = async (page: Page) => {
+  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+  expect(mcuVideo).toBeNull()
+}
+
 export const expectMCUVisibleForAudience = async (page: Page) => {
   await page.waitForSelector('#rootElement video')
 }
@@ -1192,14 +1197,16 @@ export const deleteResource = async (id: string) => {
 
 interface DialAddressParams {
   address: string
+  dialOptions?: Record<string, any>
+  reattach?: boolean
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
-  reattach?: boolean
 }
 export const dialAddress = (page: Page, params: DialAddressParams) => {
   const {
     address,
+    dialOptions = {},
     reattach = false,
     shouldPassRootElement = true,
     shouldStartCall = true,
@@ -1208,6 +1215,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
   return page.evaluate(
     async ({
       address,
+      dialOptions,
       reattach,
       shouldPassRootElement,
       shouldStartCall,
@@ -1224,6 +1232,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
+          ...dialOptions,
         })
 
         if (shouldWaitForJoin) {
@@ -1244,10 +1253,42 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     },
     {
       address,
+      dialOptions,
       reattach,
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
     }
   )
+}
+
+export const getTransceiverStates = async (page: Page) => {
+  return page.evaluate(() => {
+    // @ts-expect-error
+    const pc = window._roomObj.peer.instance as RTCPeerConnection
+    const transceivers = pc.getTransceivers()
+
+    const states: Record<string, any> = {}
+
+    transceivers.forEach((tr) => {
+      const kind = tr.receiver.track?.kind || tr.sender.track?.kind
+      if (kind) {
+        states[kind] = {
+          direction: tr.direction,
+          receiver: {
+            hasTrack: tr.receiver.track !== null,
+            trackId: tr.receiver.track?.id,
+            trackReadyState: tr.receiver.track?.readyState,
+          },
+          sender: {
+            hasTrack: tr.sender.track !== null,
+            trackId: tr.sender.track?.id,
+            trackReadyState: tr.sender.track?.readyState,
+          },
+        }
+      }
+    })
+
+    return states
+  })
 }
