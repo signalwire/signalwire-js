@@ -96,3 +96,5 @@ export interface ConnectionOptions {
   layout?: string
   positions?: VideoPositions
 }
+
+export type UpdateMediaOptions = Pick<ConnectionOptions, 'video'|'audio'|'negotiateVideo'|'negotiateAudio'>
