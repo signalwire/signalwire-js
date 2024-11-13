@@ -184,6 +184,18 @@ const videoElementSetup = async (options: VideoElementSetupWorkerParams) => {
     videoElement.style.width = '100%'
     videoElement.style.maxHeight = '100%'
 
+    // If the both flags are false, no need to create the MCU
+    if (!applyLocalVideoOverlay && !applyMemberOverlay) {
+      // rootElement.style.display = 'flex'
+      // rootElement.style.justifyContent = 'center'
+      // rootElement.style.alignItems = 'center'
+      rootElement.style.width = '100%'
+      rootElement.style.height = '100%'
+      videoElement.style.objectFit = 'contain'
+      rootElement.appendChild(videoElement)
+      return
+    }
+
     if (rootElement.querySelector('.mcuContent')) {
       getLogger().debug('MCU Content already there')
       return

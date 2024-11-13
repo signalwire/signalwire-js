@@ -89,8 +89,8 @@ export class ClientAPI<
         if (rootElement) {
           try {
             buildVideoElement({
-              applyLocalVideoOverlay,
-              applyMemberOverlay,
+              applyLocalVideoOverlay: false,
+              applyMemberOverlay: false,
               mirrorLocalVideoOverlay,
               // @ts-expect-error
               room,
