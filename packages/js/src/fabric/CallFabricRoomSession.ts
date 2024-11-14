@@ -9,7 +9,6 @@ import {
   VideoRoomSubscribedEventParams,
   RoomSessionMember,
   getLogger,
-  VideoLayoutChangedEventParams,
   VideoPosition,
 } from '@signalwire/core'
 import {
@@ -24,7 +23,7 @@ import {
 } from '../video'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallFabricRoomSessionConnectionContract } from '../utils/interfaces'
+import { CallFabricRoomSessionContract } from '../utils/interfaces'
 
 interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -48,7 +47,7 @@ type CallFabricBaseRoomSession = Omit<
 >
 
 export interface CallFabricRoomSession
-  extends CallFabricRoomSessionConnectionContract,
+  extends CallFabricRoomSessionContract,
     CallFabricBaseRoomSession {}
 
 export class CallFabricRoomSessionConnection extends RoomSessionConnection {
@@ -56,7 +55,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
-  private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
@@ -83,24 +81,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   override get memberId() {
     return this._member?.memberId
-  }
-
-  set lastLayoutEvent(event: VideoLayoutChangedEventParams) {
-    this._lastLayoutEvent = event
-  }
-
-  get lastLayoutEvent() {
-    return this._lastLayoutEvent
-  }
-
-  get currentLayout() {
-    return this._lastLayoutEvent?.layout
-  }
-
-  get currentPosition() {
-    return this._lastLayoutEvent?.layout.layers.find(
-      (layer) => layer.member_id === this.memberId
-    )?.position
   }
 
   private executeAction<

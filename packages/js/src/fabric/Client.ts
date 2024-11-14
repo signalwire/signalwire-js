@@ -1,18 +1,24 @@
 import { BaseClient, ClientEvents, actions } from '@signalwire/core'
-import type { CallJoinedEventParams, CustomSaga, VideoRoomSubscribedEventParams } from '@signalwire/core'
+import type {
+  CallJoinedEventParams,
+  CustomSaga,
+  VideoRoomSubscribedEventParams,
+} from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
 import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { RoomSessionConnection } from '../BaseRoomSession'
-import { buildVideoElement } from './buildVideoElement'
+import { buildVideoElement } from '../buildVideoElement'
 
 export class Client extends BaseClient<ClientEvents> {
   makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {
     const {
       rootElement,
       applyLocalVideoOverlay = true,
+      applyMemberOverlay = true,
       stopCameraWhileMuted = true,
       stopMicrophoneWhileMuted = true,
+      mirrorLocalVideoOverlay = true,
       ...options
     } = makeRoomOptions
 
@@ -41,7 +47,13 @@ export class Client extends BaseClient<ClientEvents> {
      */
     if (rootElement) {
       try {
-        buildVideoElement({ room, rootElement, applyLocalVideoOverlay })
+        buildVideoElement({
+          applyLocalVideoOverlay,
+          applyMemberOverlay,
+          mirrorLocalVideoOverlay,
+          room,
+          rootElement,
+        })
       } catch (error) {
         this.logger.error('Unable to build the video element automatically')
       }
@@ -52,7 +64,9 @@ export class Client extends BaseClient<ClientEvents> {
      * `join_audio_muted: true` we'll stop the streams
      * right away.
      */
-    const joinMutedHandler = (params: CallJoinedEventParams|VideoRoomSubscribedEventParams) => {
+    const joinMutedHandler = (
+      params: CallJoinedEventParams | VideoRoomSubscribedEventParams
+    ) => {
       const member = params.room_session.members?.find(
         (m) => m.id === room.memberId || m.member_id === room.memberId
       )
@@ -73,7 +87,7 @@ export class Client extends BaseClient<ClientEvents> {
         }
       }
     }
-    
+
     room.on('room.subscribed', joinMutedHandler)
 
     /**
