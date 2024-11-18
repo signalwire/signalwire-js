@@ -62,6 +62,7 @@ export interface CallJoinedEventParams {
   member_id: string
   node_id: string
   room_session: InternalVideoRoomSessionEntity
+  capabilities: CallCapabilities
 }
 
 export interface CallJoinedEvent extends SwEvent {
@@ -272,4 +273,31 @@ export type CallFabricAction = MapToPubSubShape<
   CallFabricEvent & HasEitherCallIdOrRoomSessionId
 >
 
+export interface OnOffCapability {
+  on?: boolean
+  off?: boolean
+}
 
+export interface ParticipantCapability {
+  muteAudio?: OnOffCapability
+  muteVideo?: OnOffCapability
+  microphoneVolume?: boolean
+  microphoneSensitivity?: boolean
+  speakerVolume?: boolean
+  deaf?: OnOffCapability
+  position?: boolean
+  meta?: boolean
+  remove?: Boolean 
+}
+
+export interface CallCapabilities {
+  self?: ParticipantCapability,
+  member?: ParticipantCapability,
+  end?:boolean
+  setLayout?: boolean
+  sendDigit?: boolean
+  vmutedHide?: OnOffCapability 
+  lock?: OnOffCapability
+  device?: boolean
+  screenshare?: boolean
+}

@@ -11,6 +11,7 @@ import {
 } from '@signalwire/core'
 import { CallFabricWorkerParams } from './callFabricWorker'
 import { videoMemberWorker } from '../../video/videoMemberWorker'
+import { mapCapabilitiesPayload } from 'packages/core/src/utils'
 
 export const callJoinWorker = function* (
   options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
@@ -61,7 +62,8 @@ export const callJoinWorker = function* (
     },
   })
 
-
+  // @ts-expect-error
+  payload.capabilities = mapCapabilitiesPayload(payload.capabilities)
   // @ts-expect-error
   cfRoomSession.emit('call.joined', payload)
 

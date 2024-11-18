@@ -16,6 +16,7 @@ import {
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
+import { mapCapabilitiesPayload } from 'packages/core/src/utils'
 
 type RoomSubscribedWorkerOnDone = (args: BaseConnection<any>) => void
 type RoomSubscribedWorkerOnFail = (args: { error: Error }) => void
@@ -171,6 +172,12 @@ function transformPayload(
       })
     }
   })
+
+  // @ts-expect-error TODO: Should we expose the capabilities in the video SDK too
+  if(payload.capabilities) {
+    // @ts-expect-error
+    payload.capabilities = mapCapabilitiesPayload(payload.capabilities)
+  }
 
   return payload
 }
