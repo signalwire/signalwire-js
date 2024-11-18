@@ -20,6 +20,7 @@ import {
   stripNamespacePrefix,
   isJSONRPCRequest,
   isJSONRPCResponse,
+  mapCapabilitiesPayload
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -74,6 +75,7 @@ export {
   isJSONRPCResponse,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
+  mapCapabilitiesPayload
 }
 
 export * from './redux/features/component/componentSlice'

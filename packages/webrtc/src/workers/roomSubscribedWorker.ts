@@ -13,10 +13,10 @@ import {
   RoomSessionStream,
   RoomSessionPlayback,
   RoomSessionRecording,
+  mapCapabilitiesPayload,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
-import { mapCapabilitiesPayload } from 'packages/core/src/utils'
 
 type RoomSubscribedWorkerOnDone = (args: BaseConnection<any>) => void
 type RoomSubscribedWorkerOnFail = (args: { error: Error }) => void

@@ -8,10 +8,10 @@ import {
   Rooms,
   MemberPosition,
   InternalMemberUpdatedEventNames,
+  mapCapabilitiesPayload
 } from '@signalwire/core'
 import { CallFabricWorkerParams } from './callFabricWorker'
 import { videoMemberWorker } from '../../video/videoMemberWorker'
-import { mapCapabilitiesPayload } from 'packages/core/src/utils'
 
 export const callJoinWorker = function* (
   options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
