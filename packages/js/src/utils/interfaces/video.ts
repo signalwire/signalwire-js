@@ -37,12 +37,14 @@ import type {
   DeviceDisconnectedEventParams,
   VideoRoomDeviceEventNames,
   VideoLayoutChangedEventParams,
+  VideoPosition,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEvent } from '@signalwire/webrtc'
 import type { RoomSession } from '../../RoomSession'
 import type { RoomSessionDevice } from '../../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
+import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../VideoOverlays'
 
 /**
  * @privateRemarks
@@ -201,11 +203,6 @@ export interface BaseRoomInterface {
   leave(): Promise<unknown>
 }
 
-export interface LocalOverlay {
-  mirrored: boolean
-  setMirrored(mirror: boolean): void
-}
-
 interface RoomMemberSelfMethodsInterface {
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -346,9 +343,28 @@ export interface RoomMethods
 export interface RoomSessionConnectionContract {
   screenShareList: RoomSessionScreenShare[]
   deviceList: RoomSessionDevice[]
-  localOverlay: LocalOverlay
   interactivityMode: VideoAuthorization['join_as']
   permissions: VideoAuthorization['scopes']
+  /**
+   * The layout returned from the `layout.changed` event based on the current room layout
+   */
+  currentLayout: VideoLayoutChangedEventParams['layout']
+  /**
+   * The current position of the member returned from the `layout.changed` event
+   */
+  currentPosition: VideoPosition | undefined
+  /**
+   * A JS Map containing all the layers on top of the Root Element
+   */
+  overlayMap: OverlayMap | undefined
+  /**
+   * Local video overlay object that injects the DOM element inside the MCU
+   */
+  localVideoOverlay: LocalVideoOverlay | undefined
+  /**
+   * Return the member overlay on top of the root element
+   */
+  getMemberOverlay: (memberId: string) => UserOverlay | undefined
   /**
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.

@@ -8,10 +8,7 @@ import {
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
-import {
-  makeVideoElementSaga,
-  makeAudioElementSaga,
-} from './features/mediaElements/mediaElementsSagas'
+import { makeAudioElementSaga } from './features/mediaElements/mediaElementsSagas'
 import {
   createBaseRoomSessionObject,
   RoomSessionConnection,
@@ -20,6 +17,7 @@ import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
 import type { RoomSession } from './RoomSession'
+import { buildVideoElement } from './buildVideoElement'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -33,6 +31,8 @@ export interface MakeRoomOptions extends ConnectionOptions {
   rootElement?: HTMLElement
   /** Whether to apply the local-overlay on top of your video. Default: `true`. */
   applyLocalVideoOverlay?: boolean
+  /** Whether to apply an overlay on top of each member. Default: `true`. */
+  applyMemberOverlay?: boolean
   /** Whether to mirror the local video overlay. Default: `false`. */
   mirrorLocalVideoOverlay?: boolean
   /** Whether to stop the camera when the member is muted. Default: `true`. */
@@ -56,6 +56,8 @@ export class ClientAPI<
         const {
           rootElement,
           applyLocalVideoOverlay = true,
+          applyMemberOverlay = true,
+          mirrorLocalVideoOverlay = true,
           stopCameraWhileMuted = true,
           stopMicrophoneWhileMuted = true,
           ...options
@@ -74,24 +76,30 @@ export class ClientAPI<
           })
         )
 
-        /**
-         * If the user provides a `rootElement` we'll
-         * automatically handle the Video element for them
-         */
-        if (rootElement) {
-          customSagas.push(
-            makeVideoElementSaga({
-              rootElement,
-              applyLocalVideoOverlay,
-            })
-          )
-        }
-
         const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
           customSagas,
         })
+
+        /**
+         * If the user provides a `rootElement` we'll
+         * automatically handle the Video element for them
+         */
+        if (rootElement) {
+          try {
+            buildVideoElement({
+              applyLocalVideoOverlay,
+              applyMemberOverlay,
+              mirrorLocalVideoOverlay,
+              // @ts-expect-error
+              room,
+              rootElement,
+            })
+          } catch (error) {
+            this.logger.error('Unable to build the video element automatically')
+          }
+        }
 
         /**
          * If the user joins with `join_video_muted: true` or

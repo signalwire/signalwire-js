@@ -63,6 +63,7 @@ export const createTestRoomSession = async (
     initialEvents?: string[]
     expectToJoin?: boolean
     roomSessionOptions?: Record<string, any>
+    shouldPassRootElement?: boolean
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -77,7 +78,9 @@ export const createTestRoomSession = async (
       const roomSession = new Video.RoomSession({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
+        ...(options.shouldPassRootElement && {
+          rootElement: document.getElementById('rootElement'),
+        }),
         logLevel: options.CI ? 'info' : 'debug',
         debug: {
           logWsTraffic: true, //Boolean(options.CI),
@@ -106,6 +109,7 @@ export const createTestRoomSession = async (
       initialEvents: options.initialEvents,
       CI: process.env.CI,
       roomSessionOptions: options.roomSessionOptions,
+      shouldPassRootElement: options.shouldPassRootElement ?? true,
     }
   )
 
