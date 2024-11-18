@@ -891,6 +891,18 @@ export interface VideoRoomStartedEvent extends SwEvent {
   params: VideoRoomStartedEventParams
 }
 
+
+export type VideoRoomCapability =   'device' | 
+'digit' | 
+'end' | 
+'handraise' | 
+'layout' | 
+'lock' | 
+'member' | 
+'screenshare' | 
+'self' | 
+'vmuted'
+
 /**
  * 'video.room.subscribed'
  */
@@ -904,6 +916,7 @@ export interface VideoRoomSubscribedEventParams {
     members: InternalVideoMemberEntity[]
     // TODO: add recordings[] and other bootstrap things
   }
+  capabilities?: VideoRoomCapability[] 
   // FIXME: only for webrtc
   call_id: string
   member_id: string
