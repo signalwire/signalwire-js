@@ -13,7 +13,6 @@ import {
   RoomSessionStream,
   RoomSessionPlayback,
   RoomSessionRecording,
-  mapCapabilityPayload,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
