@@ -11,6 +11,7 @@ import {
   getLogger,
   VideoPosition,
 } from '@signalwire/core'
+import type { CallCapabilities } from '@signalwire/core'
 import {
   BaseRoomSession,
   RoomSessionConnection,
@@ -55,6 +56,9 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
+
+  //describes what are methods are allow for the user in a call segment
+  capabilities: CallCapabilities = {}
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
@@ -183,6 +187,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public audioMute(params: Rooms.RoomMemberMethodParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.muteAudio?.off
+        : !this.capabilities.member?.muteAudio?.off
+    ) {
+      throw Error('Missing audio mute capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'audio',
@@ -191,6 +202,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public audioUnmute(params: Rooms.RoomMemberMethodParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.muteAudio?.on
+        : !this.capabilities.member?.muteAudio?.on
+    ) {
+      throw Error('Missing audio unmute capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'audio',
@@ -199,6 +217,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public videoMute(params: Rooms.RoomMemberMethodParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.muteVideo?.off
+        : !this.capabilities.member?.muteVideo?.on
+    ) {
+      throw Error('Missing video mute capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'video',
@@ -207,6 +232,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public videoUnmute(params: Rooms.RoomMemberMethodParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.muteVideo?.on
+        : !this.capabilities.member?.muteVideo?.on
+    ) {
+      throw Error('Missing video unmute capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'video',
@@ -215,6 +247,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public deaf(params: Rooms.RoomMemberMethodParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.deaf?.on
+        : !this.capabilities.member?.deaf?.on
+    ) {
+      throw Error('Missing deaf capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.deaf',
       memberId: params?.memberId,
@@ -222,6 +261,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public undeaf(params: Rooms.RoomMemberMethodParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.deaf?.off
+        : !this.capabilities.member?.deaf?.off
+    ) {
+      throw Error('Missing undeaf capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.undeaf',
       memberId: params?.memberId,
@@ -255,6 +301,9 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public removeMember(params: Required<Rooms.RoomMemberMethodParams>) {
+    if (!this.capabilities.member?.remove) {
+      throw Error('Missing setLayout capability')
+    }
     if (!params?.memberId) {
       throw new TypeError('Invalid or missing "memberId" argument')
     }
@@ -266,6 +315,20 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public setRaisedHand(params?: Rooms.SetRaisedHandRoomParams) {
     const { raised = true, memberId } = params || {}
+    if (
+      memberId == this.member.id && raised
+        ? !this.capabilities.self?.raisehand?.on
+        : !this.capabilities.member?.raisehand?.on
+    ) {
+      throw Error('Missing raisehand capability')
+    }
+    if (
+      memberId == this.member.id && !raised
+        ? !this.capabilities.self?.raisehand?.off
+        : !this.capabilities.member?.raisehand?.off
+    ) {
+      throw Error('Missing lowerhand capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: raised ? 'call.raisehand' : 'call.lowerhand',
       memberId,
@@ -273,6 +336,9 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public setLayout(params: Rooms.SetLayoutParams) {
+    if (!this.capabilities.setLayout) {
+      throw Error('Missing setLayout capability')
+    }
     const extraParams = {
       layout: params.name,
       positions: params.positions,
@@ -284,6 +350,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public setInputVolume(params: MemberCommandWithVolumeParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.microphoneVolume
+        : !this.capabilities.member?.microphoneVolume
+    ) {
+      throw Error('Missing setInputVolume capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.volume.set',
       memberId: params?.memberId,
@@ -294,6 +367,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public setOutputVolume(params: MemberCommandWithVolumeParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.speakerVolume
+        : !this.capabilities.member?.speakerVolume
+    ) {
+      throw Error('Missing setOutputVolume capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'video.member.set_output_volume',
       memberId: params?.memberId,
@@ -304,6 +384,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public setInputSensitivity(params: MemberCommandWithValueParams) {
+    if (
+      params?.memberId == this.member.id
+        ? !this.capabilities.self?.microphoneSensitivity
+        : !this.capabilities.member?.microphoneSensitivity
+    ) {
+      throw Error('Missing setOutputVolume capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.sensitivity.set',
       memberId: params?.memberId,
@@ -318,6 +405,17 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
     if (positions && !Object.keys(positions).length) {
       throw new Error('Invalid positions')
+    }
+
+    if (
+      Object.keys(positions).includes('self') &&
+      !this.capabilities.self?.position
+    ) {
+      throw Error('Missing self setPositions capability')
+    }
+
+    if (!this.capabilities.member?.position) {
+      throw Error('Missing member setPositions capability')
     }
 
     const targets: {
@@ -361,12 +459,18 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 
   public lock() {
+    if (!this.capabilities.lock?.on) {
+      throw Error('Missing lock capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.lock',
     })
   }
 
   public unlock() {
+    if (!this.capabilities.lock?.off) {
+      throw Error('Missing unlock capability')
+    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.unlock',
     })

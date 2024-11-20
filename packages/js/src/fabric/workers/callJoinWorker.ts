@@ -8,7 +8,7 @@ import {
   Rooms,
   MemberPosition,
   InternalMemberUpdatedEventNames,
-  mapCapabilitiesPayload
+  mapCapabilitiesPayload,
 } from '@signalwire/core'
 import { CallFabricWorkerParams } from './callFabricWorker'
 import { videoMemberWorker } from '../../video/videoMemberWorker'
@@ -62,10 +62,14 @@ export const callJoinWorker = function* (
     },
   })
 
+  cfRoomSession.capabilities = mapCapabilitiesPayload(
+    payload.capabilities || []
+  )
   // @ts-expect-error
-  payload.capabilities = mapCapabilitiesPayload(payload.capabilities)
-  // @ts-expect-error
-  cfRoomSession.emit('call.joined', payload)
+  cfRoomSession.emit('call.joined', {
+    ...payload,
+    capabilities: cfRoomSession.capabilities,
+  })
 
   getLogger().trace('callJoinWorker ended')
 }

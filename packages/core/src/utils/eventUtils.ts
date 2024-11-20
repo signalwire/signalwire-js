@@ -16,210 +16,121 @@ export const stripNamespacePrefix = (
   return event
 }
 
-const mapCapabilityPayload = (capability: string) => {
-  switch (capability) {
-    case 'digit':
-      return { sendDigit: true }
-    case 'device':
-      return { device: true }
-    case 'end':
-      return { end: true }
-    case 'layout':
-      return { setLayout: true }
-    case 'screenshare':
-      return { screenshare: true }
-    case 'vmuted':
-      return { vmutedHide: { on: true, off: true } }
-    case 'vmuted.hide.on':
-      return { vmutedHide: { on: true } }
-    case 'vmuted.hide.off':
-      return { vmutedHide: { off: true } }
-    case 'member':
-      return {
-        member: {
-          muteAudio: { on: true, off: true },
-          muteVideo: { on: true, off: true },
-          microphoneVolume: true,
-          microphoneSensitivity: true,
-          speakerVolume: true,
-          deaf: { on: true, off: true },
-          position: true,
-          meta: true,
-          remove: true,
-        },
-      }
-    case 'member.position':
-      return { member: { position: true } }
-    case 'member.meta':
-      return { member: { meta: true } }
-    case 'member.remove':
-      return { member: { remove: true } }
-    case 'member.microphone':
-      return { member: { microphoneVolume: true, microphoneSensitivity: true } }
-    case 'member.microphone.volume':
-      return { member: { microphoneVolume: true } }
-    case 'member.sensitivity':
-      return { member: { microphoneSensitivity: true } }
-    case 'member.speaker':
-      return { member: { speakerVolume: true } }
-    case 'member.deaf':
-      return {
-        member: {
-          deaf: { on: true, off: true },
-        },
-      }
-    case 'member.deaf.on':
-      return {
-        member: {
-          deaf: { on: true },
-        },
-      }
-    case 'member.deaf.off':
-      return {
-        member: {
-          deaf: { off: true },
-        },
-      }
-    case 'member.mute':
-      return {
-        member: {
-          muteAudio: { on: true, off: true },
-          muteVideo: { on: true, off: true },
-        },
-      }
-    case 'member.mute.audio':
-      return {
-        member: {
-          muteAudio: { on: true, off: true },
-        },
-      }
-    case 'member.mute.audio.on':
-      return {
-        member: {
-          muteAudio: { on: true },
-        },
-      }
-    case 'member.mute.audio.off':
-      return {
-        member: {
-          muteAudio: { off: true },
-        },
-      }
-    case 'member.mute.video':
-      return {
-        member: {
-          muteAudio: { on: true, off: true },
-        },
-      }
-    case 'member.mute.video.on':
-      return {
-        member: {
-          muteAudio: { on: true },
-        },
-      }
-    case 'member.mute.video.off':
-      return {
-        member: {
-          muteAudio: { off: true },
-        },
-      }
-
-    case 'self':
-      return {
-        self: {
-          muteAudio: { on: true, off: true },
-          muteVideo: { on: true, off: true },
-          microphoneVolume: true,
-          microphoneSensitivity: true,
-          speakerVolume: true,
-          deaf: { on: true, off: true },
-          position: true,
-          meta: true,
-          remove: true,
-        },
-      }
-    case 'self.position':
-      return { self: { position: true } }
-    case 'self.meta':
-      return { self: { meta: true } }
-    case 'self.remove':
-      return { self: { remove: true } }
-    case 'self.microphone':
-      return { self: { microphoneVolume: true, microphoneSensitivity: true } }
-    case 'self.microphone.volume':
-      return { self: { microphoneVolume: true } }
-    case 'self.sensitivity':
-      return { self: { microphoneSensitivity: true } }
-    case 'self.speaker':
-      return { self: { speakerVolume: true } }
-    case 'self.deaf':
-      return {
-        self: {
-          deaf: { on: true, off: true },
-        },
-      }
-    case 'self.deaf.on':
-      return {
-        self: {
-          deaf: { on: true },
-        },
-      }
-    case 'self.deaf.off':
-      return {
-        self: {
-          deaf: { off: true },
-        },
-      }
-    case 'self.mute':
-      return {
-        self: {
-          muteAudio: { on: true, off: true },
-          muteVideo: { on: true, off: true },
-        },
-      }
-    case 'self.mute.audio':
-      return {
-        self: {
-          muteAudio: { on: true, off: true },
-        },
-      }
-    case 'self.mute.audio.on':
-      return {
-        self: {
-          muteAudio: { on: true },
-        },
-      }
-    case 'self.mute.audio.off':
-      return {
-        self: {
-          muteAudio: { off: true },
-        },
-      }
-    case 'self.mute.video':
-      return {
-        self: {
-          muteAudio: { on: true, off: true },
-        },
-      }
-    case 'self.mute.video.on':
-      return {
-        self: {
-          muteAudio: { on: true },
-        },
-      }
-    case 'self.mute.video.off':
-      return {
-        self: {
-          muteAudio: { off: true },
-        },
-      }
-    default: return {} as CallCapabilities
-  }
+const capabilityStringToObjectMap = {
+  device: { device: true } as CallCapabilities,
+  'digit.send': { sendDigit: true } as CallCapabilities,
+  end: { end: true } as CallCapabilities,
+  'layout.set': { setLayout: true } as CallCapabilities,
+  screenshare: { screenshare: true } as CallCapabilities,
+  'vmuted.hide.on': { vmutedHide: { on: true } } as CallCapabilities,
+  'vmuted.hide.off': { vmutedHide: { off: true } } as CallCapabilities,
+  'lock.on': { lock: { on: true } } as CallCapabilities,
+  'lock.off': { lock: { off: true } } as CallCapabilities,
+  'member.position.set': { member: { position: true } } as CallCapabilities,
+  'member.meta': { member: { meta: true } } as CallCapabilities,
+  'member.remove': { member: { remove: true } } as CallCapabilities,
+  'member.microphone.volume.set': {
+    member: { microphoneVolume: true },
+  } as CallCapabilities,
+  'member.microphone.sensitivity.set': {
+    member: { microphoneSensitivity: true },
+  } as CallCapabilities,
+  'member.speaker.volume.set': {
+    member: { speakerVolume: true },
+  } as CallCapabilities,
+  'member.deaf.on': { member: { deaf: { on: true } } } as CallCapabilities,
+  'member.deaf.off': { member: { deaf: { off: true } } } as CallCapabilities,
+  'member.mute.audio.on': {
+    member: { muteAudio: { on: true } },
+  } as CallCapabilities,
+  'member.mute.audio.off': {
+    member: { muteAudio: { off: true } },
+  } as CallCapabilities,
+  'member.mute.video.on': {
+    member: { muteVideo: { on: true } },
+  } as CallCapabilities,
+  'member.mute.video.off': {
+    member: { muteVideo: { off: true } },
+  } as CallCapabilities,
+  'member.raisehand.on': {
+    member: { raisehand: { on: true } },
+  } as CallCapabilities,
+  'member.raisehand.off': {
+    member: { raisehand: { off: true } },
+  } as CallCapabilities,
+  'self.position.set': { self: { position: true } } as CallCapabilities,
+  'self.meta': { self: { meta: true } } as CallCapabilities,
+  'self.remove': { self: { remove: true } } as CallCapabilities,
+  'self.microphone': {
+    self: { microphoneVolume: true, microphoneSensitivity: true },
+  } as CallCapabilities,
+  'self.microphone.volume.set': {
+    self: { microphoneVolume: true },
+  } as CallCapabilities,
+  'self.microphone.sensitivity.set': {
+    self: { microphoneSensitivity: true },
+  } as CallCapabilities,
+  'self.speaker.volume.set': {
+    self: { speakerVolume: true },
+  } as CallCapabilities,
+  'self.deaf.on': { self: { deaf: { on: true } } } as CallCapabilities,
+  'self.deaf.off': { self: { deaf: { off: true } } } as CallCapabilities,
+  'self.mute.audio.on': {
+    self: { muteAudio: { on: true } },
+  } as CallCapabilities,
+  'self.mute.audio.off': {
+    self: { muteAudio: { off: true } },
+  } as CallCapabilities,
+  'self.mute.video.on': {
+    self: { muteVideo: { on: true } },
+  } as CallCapabilities,
+  'self.mute.video.off': {
+    self: { muteVideo: { off: true } },
+  } as CallCapabilities,
+  'self.raisehand.on': {
+    self: { raisehand: { on: true } },
+  } as CallCapabilities,
+  'self.raisehand.off': {
+    self: { raisehand: { off: true } },
+  } as CallCapabilities,
 }
 
-export const mapCapabilitiesPayload = (
-  capabilities: string[]
-): CallCapabilities =>
+const isObjectGuard = (o: unknown): o is Object => o instanceof Object
+
+const capabilityStringToObjects = (capability: string) =>
+  Object.entries(capabilityStringToObjectMap)
+    .filter(([key]) => key.startsWith(capability))
+    .map(([_, value]) => value)
+
+const mergeCapabilityObjects = <T extends Object>(target: T, source: T): T => {
+  const result = { ...target }
+  for (const key in source) {
+    if (
+      result[key] &&
+      isObjectGuard(target[key]) &&
+      isObjectGuard(source[key])
+    ) {
+      result[key] = mergeCapabilityObjects(target[key], source[key])
+    } else {
+      result[key] = source[key]
+    }
+  }
+  return result
+}
+
+export const mapCapabilityPayload = (capabilities: string[]) =>
   capabilities
-    .map(mapCapabilityPayload)
-    .reduce((prev, current) => ({ ...prev, ...current }), {})
+    .flatMap(capabilityStringToObjects)
+    .reduce<CallCapabilities>(mergeCapabilityObjects, {} as CallCapabilities)
+
+// const map = (c: string[]): CallCapabilities => ({
+//   device: c.includes('device'),
+//   self: {
+//     deaf: {
+//       on: c.some((cap) => ['self', 'self.deaf', 'self.deaf.on'].includes(cap)),
+//       off: c.some((cap) =>
+//         ['self', 'self.deaf', 'self.deaf.off'].includes(cap)
+//       ),
+//     },
+//   },
+// })

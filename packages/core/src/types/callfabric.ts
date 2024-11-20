@@ -273,31 +273,33 @@ export type CallFabricAction = MapToPubSubShape<
   CallFabricEvent & HasEitherCallIdOrRoomSessionId
 >
 
-export interface OnOffCapability {
-  on?: boolean
-  off?: boolean
+interface OnOffCapability {
+  on?: true
+  off?: true
 }
 
-export interface ParticipantCapability {
+interface ParticipantCapability {
   muteAudio?: OnOffCapability
   muteVideo?: OnOffCapability
-  microphoneVolume?: boolean
-  microphoneSensitivity?: boolean
-  speakerVolume?: boolean
+  microphoneVolume?: true
+  microphoneSensitivity?: true
+  speakerVolume?: true
   deaf?: OnOffCapability
-  position?: boolean
-  meta?: boolean
-  remove?: Boolean 
+  raisehand?: OnOffCapability
+  position?: true
+  meta?: true
+  remove?: true 
 }
 
 export interface CallCapabilities {
   self?: ParticipantCapability,
   member?: ParticipantCapability,
-  end?:boolean
-  setLayout?: boolean
-  sendDigit?: boolean
+  end?:true
+  setLayout?: true
+  sendDigit?: true
   vmutedHide?: OnOffCapability 
   lock?: OnOffCapability
-  device?: boolean
-  screenshare?: boolean
+  device?: true
+  screenshare?: true
 }
+

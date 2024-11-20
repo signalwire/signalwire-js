@@ -173,11 +173,5 @@ function transformPayload(
     }
   })
 
-  // @ts-expect-error TODO: Should we expose the capabilities in the video SDK too
-  if(payload.capabilities) {
-    // @ts-expect-error
-    payload.capabilities = mapCapabilitiesPayload(payload.capabilities)
-  }
-
   return payload
 }
