@@ -122,15 +122,3 @@ export const mapCapabilityPayload = (capabilities: string[]) =>
   capabilities
     .flatMap(capabilityStringToObjects)
     .reduce<CallCapabilities>(mergeCapabilityObjects, {} as CallCapabilities)
-
-// const map = (c: string[]): CallCapabilities => ({
-//   device: c.includes('device'),
-//   self: {
-//     deaf: {
-//       on: c.some((cap) => ['self', 'self.deaf', 'self.deaf.on'].includes(cap)),
-//       off: c.some((cap) =>
-//         ['self', 'self.deaf', 'self.deaf.off'].includes(cap)
-//       ),
-//     },
-//   },
-// })
