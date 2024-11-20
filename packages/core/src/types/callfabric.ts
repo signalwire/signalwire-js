@@ -62,7 +62,7 @@ export interface CallJoinedEventParams {
   member_id: string
   node_id: string
   room_session: InternalVideoRoomSessionEntity
-  capabilities: CallCapabilities
+  capabilities: string[]
 }
 
 export interface CallJoinedEvent extends SwEvent {

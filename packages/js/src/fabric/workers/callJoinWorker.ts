@@ -8,7 +8,7 @@ import {
   Rooms,
   MemberPosition,
   InternalMemberUpdatedEventNames,
-  mapCapabilitiesPayload,
+  mapCapabilityPayload,
 } from '@signalwire/core'
 import { CallFabricWorkerParams } from './callFabricWorker'
 import { videoMemberWorker } from '../../video/videoMemberWorker'
@@ -62,7 +62,7 @@ export const callJoinWorker = function* (
     },
   })
 
-  cfRoomSession.capabilities = mapCapabilitiesPayload(
+  cfRoomSession.capabilities = mapCapabilityPayload(
     payload.capabilities || []
   )
   // @ts-expect-error
