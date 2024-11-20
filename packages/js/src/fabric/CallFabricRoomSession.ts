@@ -186,7 +186,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     }
   }
 
-  public audioMute(params: Rooms.RoomMemberMethodParams) {
+  public async audioMute(params: Rooms.RoomMemberMethodParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.muteAudio?.off
@@ -201,7 +201,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public audioUnmute(params: Rooms.RoomMemberMethodParams) {
+  public async audioUnmute(params: Rooms.RoomMemberMethodParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.muteAudio?.on
@@ -216,7 +216,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public videoMute(params: Rooms.RoomMemberMethodParams) {
+  public async videoMute(params: Rooms.RoomMemberMethodParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.muteVideo?.off
@@ -231,7 +231,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public videoUnmute(params: Rooms.RoomMemberMethodParams) {
+  public async videoUnmute(params: Rooms.RoomMemberMethodParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.muteVideo?.on
@@ -246,7 +246,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public deaf(params: Rooms.RoomMemberMethodParams) {
+  public async deaf(params: Rooms.RoomMemberMethodParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.deaf?.on
@@ -260,7 +260,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public undeaf(params: Rooms.RoomMemberMethodParams) {
+  public async undeaf(params: Rooms.RoomMemberMethodParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.deaf?.off
@@ -274,7 +274,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public getLayouts() {
+  public async getLayouts() {
     return this.executeAction<{ layouts: string[] }>(
       {
         method: 'call.layout.list',
@@ -287,7 +287,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )
   }
 
-  public getMembers() {
+  public async getMembers() {
     return this.executeAction<{ members: VideoMemberEntity[] }>(
       {
         method: 'call.member.list',
@@ -300,7 +300,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )
   }
 
-  public removeMember(params: Required<Rooms.RoomMemberMethodParams>) {
+  public async removeMember(params: Required<Rooms.RoomMemberMethodParams>) {
     if (!this.capabilities.member?.remove) {
       throw Error('Missing setLayout capability')
     }
@@ -313,7 +313,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setRaisedHand(params?: Rooms.SetRaisedHandRoomParams) {
+  public async setRaisedHand(params?: Rooms.SetRaisedHandRoomParams) {
     const { raised = true, memberId } = params || {}
     if (
       memberId == this.member.id && raised
@@ -335,7 +335,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setLayout(params: Rooms.SetLayoutParams) {
+  public async setLayout(params: Rooms.SetLayoutParams) {
     if (!this.capabilities.setLayout) {
       throw Error('Missing setLayout capability')
     }
@@ -349,7 +349,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setInputVolume(params: MemberCommandWithVolumeParams) {
+  public async setInputVolume(params: MemberCommandWithVolumeParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.microphoneVolume
@@ -366,7 +366,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setOutputVolume(params: MemberCommandWithVolumeParams) {
+  public async setOutputVolume(params: MemberCommandWithVolumeParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.speakerVolume
@@ -383,7 +383,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setInputSensitivity(params: MemberCommandWithValueParams) {
+  public async setInputSensitivity(params: MemberCommandWithValueParams) {
     if (
       params?.memberId == this.member.id
         ? !this.capabilities.self?.microphoneSensitivity
@@ -400,7 +400,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public setPositions(params: Rooms.SetPositionsParams) {
+  public async setPositions(params: Rooms.SetPositionsParams) {
     const positions = params.positions
 
     if (positions && !Object.keys(positions).length) {
@@ -458,7 +458,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public lock() {
+  public async lock() {
     if (!this.capabilities.lock?.on) {
       throw Error('Missing lock capability')
     }
@@ -467,7 +467,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public unlock() {
+  public async unlock() {
     if (!this.capabilities.lock?.off) {
       throw Error('Missing unlock capability')
     }
