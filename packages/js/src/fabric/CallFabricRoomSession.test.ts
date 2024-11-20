@@ -63,6 +63,18 @@ describe('CallFabricRoomSession', () => {
       memberId: 'member-id-1',
       nodeId: 'node-id-1',
       originCallId: callId,
+      capabilities: [
+        'self',
+        'member',
+        'device',
+        'screenshare',
+        'lock',
+        'end',
+        'vmuted',
+        'layout',
+        'digit',
+        'lock',
+      ]
     })
     dispatchMockedCallJoined({
       session: stack.session,
@@ -72,6 +84,18 @@ describe('CallFabricRoomSession', () => {
       memberId: 'member-id-2',
       nodeId: 'node-id-2',
       originCallId: callId,
+      capabilities: [
+        'self',
+        'member',
+        'device',
+        'screenshare',
+        'lock',
+        'end',
+        'vmuted',
+        'layout',
+        'digit',
+        'lock',
+      ]
     })
   })
 
@@ -393,6 +417,18 @@ describe('CallFabricRoomSession', () => {
         memberId: 'member-id-3',
         nodeId: 'node-id-3',
         originCallId: callId,
+        capabilities: [
+          'self',
+          'member',
+          'device',
+          'screenshare',
+          'lock',
+          'end',
+          'vmuted',
+          'layout',
+          'digit',
+          'lock',
+        ]
       })
 
       expect(callJoinedHandler).toHaveBeenCalledTimes(3)

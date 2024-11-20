@@ -87,7 +87,6 @@ describe('eventUtils', () => {
         'self.remove',
         'self.microphone',
       ])
-      console.dir(callCapabilities)
       expect(callCapabilities.member?.deaf?.on).toEqual(true)
       expect(callCapabilities.member?.deaf?.off).toEqual(true)
       expect(callCapabilities.member?.raisehand?.on).toBeFalsy()
