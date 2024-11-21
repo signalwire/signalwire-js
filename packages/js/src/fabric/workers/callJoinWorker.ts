@@ -43,6 +43,9 @@ export const callJoinWorker = function* (
   })
 
   cfRoomSession.member = get<RoomSessionMember>(payload.member_id)
+  cfRoomSession.capabilities = mapCapabilityPayload(
+    payload.capabilities || []
+  )
 
   cfRoomSession.runWorker('memberPositionWorker', {
     worker: MemberPosition.memberPositionWorker,
@@ -62,9 +65,6 @@ export const callJoinWorker = function* (
     },
   })
 
-  cfRoomSession.capabilities = mapCapabilityPayload(
-    payload.capabilities || []
-  )
   // @ts-expect-error
   cfRoomSession.emit('call.joined', {
     ...payload,

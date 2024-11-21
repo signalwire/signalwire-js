@@ -278,7 +278,7 @@ interface OnOffCapability {
   off?: true
 }
 
-interface ParticipantCapability {
+interface MemberCapability {
   muteAudio?: OnOffCapability
   muteVideo?: OnOffCapability
   microphoneVolume?: true
@@ -292,8 +292,8 @@ interface ParticipantCapability {
 }
 
 export interface CallCapabilities {
-  self?: ParticipantCapability,
-  member?: ParticipantCapability,
+  self?: MemberCapability,
+  member?: MemberCapability,
   end?:true
   setLayout?: true
   sendDigit?: true

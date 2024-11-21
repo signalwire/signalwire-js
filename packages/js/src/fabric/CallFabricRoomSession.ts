@@ -188,7 +188,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async audioMute(params: Rooms.RoomMemberMethodParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.muteAudio?.off
         : !this.capabilities.member?.muteAudio?.off
     ) {
@@ -203,7 +203,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async audioUnmute(params: Rooms.RoomMemberMethodParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.muteAudio?.on
         : !this.capabilities.member?.muteAudio?.on
     ) {
@@ -218,7 +218,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async videoMute(params: Rooms.RoomMemberMethodParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.muteVideo?.off
         : !this.capabilities.member?.muteVideo?.on
     ) {
@@ -233,7 +233,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async videoUnmute(params: Rooms.RoomMemberMethodParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.muteVideo?.on
         : !this.capabilities.member?.muteVideo?.on
     ) {
@@ -248,7 +248,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async deaf(params: Rooms.RoomMemberMethodParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.deaf?.on
         : !this.capabilities.member?.deaf?.on
     ) {
@@ -262,7 +262,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async undeaf(params: Rooms.RoomMemberMethodParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.deaf?.off
         : !this.capabilities.member?.deaf?.off
     ) {
@@ -351,7 +351,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async setInputVolume(params: MemberCommandWithVolumeParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.microphoneVolume
         : !this.capabilities.member?.microphoneVolume
     ) {
@@ -368,7 +368,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async setOutputVolume(params: MemberCommandWithVolumeParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.speakerVolume
         : !this.capabilities.member?.speakerVolume
     ) {
@@ -385,7 +385,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
 
   public async setInputSensitivity(params: MemberCommandWithValueParams) {
     if (
-      params?.memberId == this.member.id
+      !params || params.memberId == this.member.id
         ? !this.capabilities.self?.microphoneSensitivity
         : !this.capabilities.member?.microphoneSensitivity
     ) {
@@ -408,14 +408,13 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     }
 
     if (
-      Object.keys(positions).includes('self') &&
-      !this.capabilities.self?.position
+      Object.keys(positions).some((p) =>
+        ['self', `${this.memberId}`].includes(p)
+      )
+        ? !this.capabilities.self?.position
+        : !this.capabilities.member?.position
     ) {
-      throw Error('Missing self setPositions capability')
-    }
-
-    if (!this.capabilities.member?.position) {
-      throw Error('Missing member setPositions capability')
+      throw Error('Missing setPositions capability')
     }
 
     const targets: {
