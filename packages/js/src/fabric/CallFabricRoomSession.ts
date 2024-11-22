@@ -58,13 +58,21 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   private _member?: RoomSessionMember
 
   //describes what are methods are allow for the user in a call segment
-  capabilities: CallCapabilities = {}
+  private _capabilities: CallCapabilities = {}
 
   override async hangup(id?: string): Promise<void> {
     this._self = undefined
     this._member = undefined
     const result = await super.hangup(id)
     return result
+  }
+
+  get capabilities(): CallCapabilities {
+    return this._capabilities
+  }
+
+  set capabilities(capabilities: CallCapabilities) {
+    this._capabilities = capabilities
   }
 
   get selfMember(): RoomSessionMember | undefined {
