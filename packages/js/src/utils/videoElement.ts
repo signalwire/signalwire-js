@@ -63,7 +63,6 @@ const _buildLayer = ({ location }: { location: InternalVideoLayoutLayer }) => {
   const { top, left, width, height } = _getLocationStyles(location)
   const layer = document.createElement('div')
   layer.style.position = 'absolute'
-  layer.style.overflow = 'hidden'
   layer.style.top = top
   layer.style.left = left
   layer.style.width = width
