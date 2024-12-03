@@ -1,15 +1,14 @@
 import {
-  MapToPubSubShape,
   SDKActions,
   SDKWorker,
   SagaIterator,
-  VideoAPIEventParams,
   getLogger,
   sagaEffects,
   SDKWorkerParams,
   MemberPosition,
   VideoAPIEventNames,
   stripNamespacePrefix,
+  VideoAction,
 } from '@signalwire/core'
 import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
@@ -28,7 +27,7 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   const { channels, instance: roomSession } = options
   const { swEventChannel } = channels
 
-  function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
+  function* worker(action: VideoAction) {
     const { type, payload } = action
 
     switch (type) {
@@ -96,8 +95,10 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   }
 
   while (true) {
-    const action: MapToPubSubShape<VideoAPIEventParams> =
-      yield sagaEffects.take(swEventChannel, isVideoEvent)
+    const action: VideoAction = yield sagaEffects.take(
+      swEventChannel,
+      isVideoEvent
+    )
 
     yield sagaEffects.fork(worker, action)
   }

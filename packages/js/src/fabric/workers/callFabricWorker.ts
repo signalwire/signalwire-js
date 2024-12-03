@@ -66,20 +66,18 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
 
     let firstCallJoinedReceived = false
     const isCallJoinedorCallStateEvent = (action: SDKActions) => {
-      const cfAction = action as CallFabricAction
-
-      if (cfAction.type === 'call.state') {
+      if (action.type === 'call.state') {
         return true
       }
 
-      if (cfAction.type !== 'call.joined') {
+      if (action.type !== 'call.joined') {
         return false
       }
 
       // If this is the first call.joined event, verify the call origin ID
       if (!firstCallJoinedReceived) {
-        const callId = cfAction.payload.call_id
-        const originCallId = cfAction.payload.origin_call_id
+        const callId = action.payload.call_id
+        const originCallId = action.payload.origin_call_id
         if (callId === originCallId) {
           firstCallJoinedReceived = true
           return true
@@ -92,11 +90,11 @@ export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
     }
 
     while (true) {
-      const action = yield sagaEffects.take(
+      const action: CallFabricAction = yield sagaEffects.take(
         swEventChannel,
         isCallJoinedorCallStateEvent
       )
-      console.log('?? action', action.type)
+
       yield sagaEffects.fork(worker, action)
     }
   }

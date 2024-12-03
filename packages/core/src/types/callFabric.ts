@@ -9,8 +9,10 @@ import {
   CallRecord,
   InternalCallFabricRoomSessionEntity,
   CallFabricMemberEvent,
+  CallFabricMemberEventParams,
+  CallFabricLayoutEvent,
+  CallFabricLayoutEventParams,
 } from '..'
-import { CallFabricLayoutEvent } from './callFabricLayout'
 
 export type CallJoined = 'call.joined'
 export type CallStarted = 'call.started'
@@ -249,17 +251,21 @@ export type CallFabricEvent =
   | CallFabricMemberEvent
   | CallFabricLayoutEvent
 
-type HasCallId = {
-  params: { call_id: string; room_session_id?: string; origin_call_id?: String }
-}
-type HasRoomSessionId = {
-  params: { call_id?: string; room_session_id: string; origin_call_id?: String }
-}
-type HasEitherCallIdOrRoomSessionId = HasCallId | HasRoomSessionId
+export type CallFabricEventParams =
+  | CallJoinedEventParams
+  | CallStartedEventParams
+  | CallUpdatedEventParams
+  | CallEndedEventParams
+  | CallLeftEventParams
+  | CallStateEventParams
+  | CallPlayEventParams
+  | CallRecordEventParams
+  | CallStreamEventParams
+  | CallConnectEventParams
+  | CallFabricMemberEventParams
+  | CallFabricLayoutEventParams
 
-export type CallFabricAction = MapToPubSubShape<
-  CallFabricEvent & HasEitherCallIdOrRoomSessionId
->
+export type CallFabricAction = MapToPubSubShape<CallFabricEvent>
 
 interface CapabilityOnOffState {
   on?: true
