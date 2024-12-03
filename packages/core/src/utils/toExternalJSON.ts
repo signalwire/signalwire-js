@@ -60,7 +60,7 @@ export type ToExternalJSONResult<T> = {
  * payloads formatted this way.
  * @internal
  */
-export const toExternalJSON = <T>(
+export const toExternalJSON = <T extends object>(
   input: T,
   options: typeof DEFAULT_OPTIONS = DEFAULT_OPTIONS
 ) => {

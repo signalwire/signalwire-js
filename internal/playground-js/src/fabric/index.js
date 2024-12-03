@@ -33,6 +33,8 @@ const inCallElements = [
   unmuteVideoSelfBtn,
   deafSelfBtn,
   undeafSelfBtn,
+  raiseHandBtn,
+  lowerHandBtn,
   controlSliders,
   controlLayout,
   hideVMutedBtn,
@@ -104,6 +106,29 @@ async function loadLayouts(currentLayoutId) {
     fillSelectElement('ssLayout')
   } catch (error) {
     console.warn('Error listing layout', error)
+  }
+}
+
+let currentPositionId = null
+async function loadPositions(layout) {
+  const positionEl = document.getElementById('position')
+  positionEl.innerHTML = ''
+
+  const defOption = document.createElement('option')
+  defOption.value = ''
+  defOption.innerHTML = 'Change position...'
+  positionEl.appendChild(defOption)
+
+  const layers = layout.layers || []
+  for (var i = 0; i < layers.length; i++) {
+    const position = layers[i].position
+    var opt = document.createElement('option')
+    opt.value = position
+    opt.innerHTML = position
+    positionEl.appendChild(opt)
+  }
+  if (currentPositionId) {
+    positionEl.value = currentPositionId
   }
 }
 
@@ -331,9 +356,10 @@ window.connect = async ({ reattach = false } = {}) => {
     }
   })
 
-  roomObj.on('layout.changed', (params) =>
+  roomObj.on('layout.changed', (params) => {
     console.debug('>> layout.changed', params)
-  )
+    loadPositions(params.layout)
+  })
 
   roomObj.on('track', (event) => console.debug('>> DEMO track', event))
 
@@ -513,6 +539,14 @@ window.showVideoMuted = () => {
   roomObj.showVideoMuted()
 }
 
+window.raiseHand = () => {
+  roomObj.setRaisedHand({ raised: true })
+}
+
+window.lowerHand = () => {
+  roomObj.setRaisedHand({ raised: false })
+}
+
 window.lockRoom = () => {
   roomObj.lock()
 }
@@ -523,6 +557,11 @@ window.unlockRoom = () => {
 
 window.changeLayout = (select) => {
   roomObj.setLayout({ name: select.value })
+}
+
+window.changePosition = (select) => {
+  roomObj.setPositions({ positions: { self: select.value } })
+  currentPositionId = select.value
 }
 
 window.changeMicrophone = (select) => {

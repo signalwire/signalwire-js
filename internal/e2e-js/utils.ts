@@ -1,4 +1,4 @@
-import type { Video } from '@signalwire/js'
+import type { SignalWireContract, Video } from '@signalwire/js'
 import type { MediaEvent } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
@@ -63,6 +63,7 @@ export const createTestRoomSession = async (
     initialEvents?: string[]
     expectToJoin?: boolean
     roomSessionOptions?: Record<string, any>
+    shouldPassRootElement?: boolean
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -77,7 +78,9 @@ export const createTestRoomSession = async (
       const roomSession = new Video.RoomSession({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
+        ...(options.shouldPassRootElement && {
+          rootElement: document.getElementById('rootElement'),
+        }),
         logLevel: options.CI ? 'info' : 'debug',
         debug: {
           logWsTraffic: true, //Boolean(options.CI),
@@ -106,6 +109,7 @@ export const createTestRoomSession = async (
       initialEvents: options.initialEvents,
       CI: process.env.CI,
       roomSessionOptions: options.roomSessionOptions,
+      shouldPassRootElement: options.shouldPassRootElement ?? true,
     }
   )
 
@@ -762,8 +766,8 @@ export const createCallWithCompatibilityApi = async (
 
   if (Number.isInteger(Number(response.status)) && response.status !== null) {
     if (response.status !== 201) {
-      const responseBody = await response.json();
-      const formattedBody = JSON.stringify(responseBody, null, 2);
+      const responseBody = await response.json()
+      const formattedBody = JSON.stringify(responseBody, null, 2)
 
       console.log(
         'ERROR - response from REST API: ',
@@ -999,18 +1003,20 @@ export const expectInjectRelayHost = async (page: Page, host: string) => {
   )
 }
 
-export const expectInjectIceTransportPolicy = async (page: Page, iceTransportPolicy: string) => {
+export const expectInjectIceTransportPolicy = async (
+  page: Page,
+  iceTransportPolicy: string
+) => {
   await page.evaluate(
     async (params) => {
       // @ts-expect-error
       window.__iceTransportPolicy = params.iceTransportPolicy
     },
     {
-      iceTransportPolicy
+      iceTransportPolicy,
     }
   )
 }
-
 
 export const expectRelayConnected = async (
   page: Page,
@@ -1086,12 +1092,11 @@ export const expectCFFinalEvents = (
       roomObj.on('destroy', () => resolve(true))
     })
 
-    return callLeft;
+    return callLeft
   })
 
   return Promise.all([finalEvents, ...extraEvents])
 }
-
 
 export interface Resource {
   id: string
@@ -1150,11 +1155,11 @@ export const createSWMLAppResource = async ({
 
 export interface CreateRelayAppResourceParams {
   name?: string
-  reference: string
+  topic: string
 }
 export const createRelayAppResource = async ({
   name,
-  reference,
+  topic,
 }: CreateRelayAppResourceParams) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`,
@@ -1166,7 +1171,7 @@ export const createRelayAppResource = async ({
       },
       body: JSON.stringify({
         name: name ?? `e2e-relay-app_${uuid()}`,
-        reference,
+        topic,
       }),
     }
   )
@@ -1187,4 +1192,66 @@ export const deleteResource = async (id: string) => {
     }
   )
   return response
+}
+
+interface DialAddressParams {
+  address: string
+  shouldWaitForJoin?: boolean
+  shouldStartCall?: boolean
+  shouldPassRootElement?: boolean
+  reattach?: boolean
+}
+export const dialAddress = (page: Page, params: DialAddressParams) => {
+  const {
+    address,
+    reattach = false,
+    shouldPassRootElement = true,
+    shouldStartCall = true,
+    shouldWaitForJoin = true,
+  } = params
+  return page.evaluate(
+    async ({
+      address,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }) => {
+      return new Promise<any>(async (resolve, _reject) => {
+        // @ts-expect-error
+        const client: SignalWireContract = window._client
+
+        const dialer = reattach ? client.reattach : client.dial
+
+        const call = await dialer({
+          to: address,
+          ...(shouldPassRootElement && {
+            rootElement: document.getElementById('rootElement')!,
+          }),
+        })
+
+        if (shouldWaitForJoin) {
+          call.on('room.joined', resolve)
+        }
+
+        // @ts-expect-error
+        window._roomObj = call
+
+        if (shouldStartCall) {
+          await call.start()
+        }
+
+        if (!shouldWaitForJoin) {
+          resolve(call)
+        }
+      })
+    },
+    {
+      address,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }
+  )
 }

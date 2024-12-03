@@ -121,7 +121,7 @@ export interface EnhancedStore<
  * @public
  */
 export function configureStore<
-  S = any,
+  S extends Reducer<CombinedState<S>, A> = any,
   A extends Action = AnyAction,
   M extends Middlewares<S> = []
 >(options: ConfigureStoreOptions<S, A, M>): EnhancedStore<S, A, M> {
@@ -135,7 +135,7 @@ export function configureStore<
     enhancers = undefined,
   } = options || {}
 
-  let rootReducer: Reducer<S, A>
+  let rootReducer
 
   if (typeof reducer === 'function') {
     rootReducer = reducer

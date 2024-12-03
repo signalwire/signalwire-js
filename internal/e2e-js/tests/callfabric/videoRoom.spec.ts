@@ -5,6 +5,7 @@ import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
+  dialAddress,
   expectLayoutChanged,
   expectMCUVisible,
   getStats,
@@ -25,28 +26,9 @@ test.describe('CallFabric VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client as SignalWireContract
-
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          call.on('room.joined', resolve)
-          call.on('room.updated', () => {})
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    const roomSession = await dialAddress(page, {
+      address: `/public/${roomName}`,
+    })
 
     expect(roomSession.room_session).toBeDefined()
     expect(
@@ -439,28 +421,9 @@ test.describe('CallFabric VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address with audio only channel
-    const roomSession = await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/public/${roomName}?channel=audio`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          call.on('room.joined', resolve)
-          call.on('room.updated', () => {})
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    const roomSession = await dialAddress(page, {
+      address: `/public/${roomName}?channel=audio`,
+    })
 
     expect(roomSession.room_session).toBeDefined()
     expect(

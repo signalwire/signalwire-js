@@ -10,6 +10,7 @@ import {
   validateEventsToSubscribe,
   EventEmitter,
   SDKWorker,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import {
   getDisplayMedia,
@@ -31,7 +32,6 @@ import type {
   StartScreenShareOptions,
   RoomSessionConnectionContract,
   BaseRoomSessionJoinParams,
-  LocalOverlay,
   AudioElement,
 } from './utils/interfaces'
 import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
@@ -49,6 +49,11 @@ import {
   RoomSessionDeviceEvents,
 } from './RoomSessionDevice'
 import * as workers from './video/workers'
+import {
+  addOverlayPrefix,
+  LocalVideoOverlay,
+  OverlayMap,
+} from './VideoOverlays'
 
 export interface BaseRoomSession<
   T,
@@ -71,7 +76,6 @@ export interface BaseRoomSession<
 
 export interface BaseRoomSessionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
-  mirrorLocalVideoOverlay: boolean
   eventsWatcher?: SDKWorker<RoomSessionConnection>
 }
 
@@ -83,12 +87,13 @@ export class RoomSessionConnection<
 {
   private _screenShareList = new Set<RoomSessionScreenShare>()
   private _deviceList = new Set<RoomSessionDevice>()
-  private _mirrored: LocalOverlay['mirrored']
   private _audioEl: AudioElement
+  private _overlayMap: OverlayMap
+  private _localVideoOverlay: LocalVideoOverlay
+  private _lastLayoutEvent: VideoLayoutChangedEventParams
 
   constructor(options: BaseRoomSessionOptions) {
     super(options)
-    this._mirrored = options.mirrorLocalVideoOverlay
 
     this.initWorker()
   }
@@ -97,6 +102,40 @@ export class RoomSessionConnection<
     this.runWorker('videoWorker', {
       worker: workers.videoWorker,
     })
+  }
+
+  set overlayMap(map: OverlayMap) {
+    this._overlayMap = map
+  }
+
+  get overlayMap() {
+    return this._overlayMap
+  }
+
+  set localVideoOverlay(overlay: LocalVideoOverlay) {
+    this._localVideoOverlay = overlay
+  }
+
+  get localVideoOverlay() {
+    return this._localVideoOverlay
+  }
+
+  set lastLayoutEvent(event: VideoLayoutChangedEventParams) {
+    this._lastLayoutEvent = event
+  }
+
+  get lastLayoutEvent() {
+    return this._lastLayoutEvent
+  }
+
+  get currentLayout() {
+    return this._lastLayoutEvent?.layout
+  }
+
+  get currentPosition() {
+    return this._lastLayoutEvent?.layout.layers.find(
+      (layer) => layer.member_id === this.memberId
+    )?.position
   }
 
   get screenShareList() {
@@ -131,6 +170,10 @@ export class RoomSessionConnection<
     this.runWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,
     })
+  }
+
+  getMemberOverlay(memberId: string) {
+    return this.overlayMap.get(addOverlayPrefix(memberId))
   }
 
   /** @deprecated Use {@link startScreenShare} instead. */
@@ -432,23 +475,6 @@ export class RoomSessionConnection<
   getMemberList() {
     // @ts-expect-error
     return this.getMembers()
-  }
-
-  /**
-   * Local video stream overlay
-   */
-  get localOverlay() {
-    return {
-      mirrored: this._mirrored,
-      setMirrored: (value: boolean) => {
-        this._mirrored = value
-        this.emit(
-          // @ts-expect-error
-          `${LOCAL_EVENT_PREFIX}.mirror.video`,
-          this._mirrored
-        )
-      },
-    }
   }
 
   /** @internal */

@@ -2,6 +2,7 @@ import { uuid } from '@signalwire/core'
 import { SignalWire } from '@signalwire/realtime-api'
 import {
   createCFClient,
+  dialAddress,
   expectCFFinalEvents,
   expectCFInitialEvents,
   expectPageReceiveAudio,
@@ -15,7 +16,7 @@ test.describe('CallFabric Relay Application', () => {
     createCustomPage,
     resource,
   }) => {
-    let playback;
+    let playback
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
@@ -25,14 +26,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const reference = `e2e-relay-app_${uuid()}`
+    const topic = `e2e-relay-app_${uuid()}`
     await resource.createRelayAppResource({
-      name: reference,
-      reference,
+      name: topic,
+      topic,
     })
 
     await client.voice.listen({
-      topics: [reference],
+      topics: [topic],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -59,25 +60,11 @@ test.describe('CallFabric Relay Application', () => {
 
     await createCFClient(page)
 
-    await page.evaluate(
-      async (options) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/private/${options.reference}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          resolve(call)
-        })
-      },
-      { reference }
-    )
+    await dialAddress(page, {
+      address: `/private/${topic}`,
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+    })
 
     const callPlayStarted = page.evaluate(async () => {
       // @ts-expect-error
@@ -108,7 +95,7 @@ test.describe('CallFabric Relay Application', () => {
 
     // stop relayApp playback
     await playback!.stop()
-    
+
     await page.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
@@ -138,7 +125,7 @@ test.describe('CallFabric Relay Application', () => {
     createCustomPage,
     resource,
   }) => {
-    let playback;
+    let playback
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
       project: process.env.RELAY_PROJECT as string,
@@ -148,14 +135,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const reference = `e2e-relay-app_${uuid()}`
+    const topic = `e2e-relay-app_${uuid()}`
     await resource.createRelayAppResource({
-      name: reference,
-      reference,
+      name: topic,
+      topic,
     })
 
     await client.voice.listen({
-      topics: [reference],
+      topics: [topic],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -178,25 +165,11 @@ test.describe('CallFabric Relay Application', () => {
 
     await createCFClient(page)
 
-    await page.evaluate(
-      async (options) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/private/${options.reference}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          resolve(call)
-        })
-      },
-      { reference }
-    )
+    await dialAddress(page, {
+      address: `/private/${topic}`,
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+    })
 
     const callPlayStarted = page.evaluate(async () => {
       // @ts-expect-error
@@ -248,7 +221,7 @@ test.describe('CallFabric Relay Application', () => {
       })
     })
 
-   const expectFinalEvents = expectCFFinalEvents(page);
+    const expectFinalEvents = expectCFFinalEvents(page)
 
     // Hangup the call
     await page.evaluate(async () => {
@@ -276,14 +249,14 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const reference = `e2e-relay-app_${uuid()}`
+    const topic = `e2e-relay-app_${uuid()}`
     await resource.createRelayAppResource({
-      name: reference,
-      reference,
+      name: topic,
+      topic,
     })
 
     await client.voice.listen({
-      topics: [reference],
+      topics: [topic],
       onCallReceived: async (call) => {
         try {
           console.log('Call received', call.id)
@@ -304,29 +277,14 @@ test.describe('CallFabric Relay Application', () => {
 
     await createCFClient(page)
 
-    await page.evaluate(
-      async (options) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/private/${options.reference}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          resolve(call)
-        })
-      },
-      { reference }
-    )
+    await dialAddress(page, {
+      address: `/private/${topic}`,
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+    })
 
     const expectInitialEvents = expectCFInitialEvents(page)
     const expectFinalEvents = expectCFFinalEvents(page)
-
 
     await page.evaluate(async () => {
       // @ts-expect-error

@@ -355,11 +355,14 @@ export type CallFabricMethod =
   | 'call.layout.list'
   | 'call.member.list'
   | 'call.member.remove'
+  | 'call.member.position.set'
   | 'call.layout.set'
   | 'call.microphone.volume.set'
   | 'call.microphone.sensitivity.set'
   | 'call.lock'
   | 'call.unlock'
+  | 'call.raisehand'
+  | 'call.lowerhand'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

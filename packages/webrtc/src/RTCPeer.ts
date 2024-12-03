@@ -507,7 +507,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  async start() {
+  async start(offering=false) {
+    if(offering) { // allow callee to send renegotiation offers
+      this.options.remoteSdp = undefined
+      this.type = 'offer'
+    }
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
@@ -827,8 +831,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (streamIsValid(this.options.localStream)) {
       return this.options.localStream
     }
-    const remoteSDP = this.remoteSdp ?? this.options.remoteSdp
-    const constraints = await getMediaConstraints(this.options, remoteSDP)
+    const constraints = await getMediaConstraints(this.options)
     return getUserMedia(constraints)
   }
 

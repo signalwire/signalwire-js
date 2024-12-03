@@ -8,7 +8,7 @@ export interface ConversationMessageEventParams {
   details: Record<string, unknown>
   hidden: boolean
   id: string
-  kind: string
+  kind?: string
   metadata: Record<string, unknown>
   subtype: string
   text?: string
@@ -16,6 +16,8 @@ export interface ConversationMessageEventParams {
   type: string
   user_id: string
   user_name: string
+  address_id: string
+  from_address_id: string
 }
 
 export interface ConversationMessageEvent extends SwEvent {

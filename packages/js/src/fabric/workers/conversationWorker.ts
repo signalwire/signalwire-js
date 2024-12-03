@@ -26,7 +26,7 @@ export const conversationWorker: SDKWorker<WSClient> = function* (
   const { conversation } = initialState as ConversationWorkerInitialState
 
   const isConversationEvent = (action: SDKActions) => {
-    return action.type === 'conversation.message'
+    return action.type.startsWith('conversation.')
   }
 
   while (true) {

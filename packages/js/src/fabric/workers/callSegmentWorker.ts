@@ -53,7 +53,6 @@ export const callSegmentWorker = function* (
         cfRoomSession.emit(newEventName, payload)
         cfRoomSession.emit(type, payload)
         break
-
       case 'member.joined':
       case 'member.left':
       case 'member.updated':

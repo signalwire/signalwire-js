@@ -173,7 +173,11 @@ export interface GetAddressResponse {
     messaging?: string
     video?: string
   }
+  locked: boolean
+  created_at: string
 }
+
+export type Address = GetAddressResponse 
 
 export interface GetAddressesParams {
   type?: string
@@ -287,9 +291,12 @@ export interface GetMessagesParams {
 
 export interface ConversationMessage {
   id: string
+  address_id: string
   conversation_id: string
   user_id: string
+  from_address_id: string
   ts: number
+  metadata?: Record<string, any>
   details: Record<string, any>
   type: string
   subtype: string
@@ -351,6 +358,7 @@ export interface GetSubscriberInfoResponse {
     display_name: string
     scopes: string[]
   }
+  fabric_addresses: Address[]
 }
 
 export type GetSubscriberInfoResult = GetSubscriberInfoResponse
