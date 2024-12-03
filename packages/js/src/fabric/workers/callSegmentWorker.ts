@@ -95,14 +95,18 @@ export const callSegmentWorker = function* (
   const isSegmentEvent = (action: SDKActions) => {
     const cfAction = action as CallFabricAction
     const shouldWatch =
-      action.type.startsWith('call.') ||
-      action.type.startsWith('member.') ||
-      action.type.startsWith('layout.')
+      cfAction.type.startsWith('call.') ||
+      cfAction.type.startsWith('member.') ||
+      cfAction.type.startsWith('layout.')
+
     return shouldWatch && segmentCallId === cfAction.payload.call_id
   }
 
   while (true) {
-    const action = yield sagaEffects.take(swEventChannel, isSegmentEvent)
+    const action: CallFabricAction = yield sagaEffects.take(
+      swEventChannel,
+      isSegmentEvent
+    )
     yield sagaEffects.fork(worker, action)
   }
 }
