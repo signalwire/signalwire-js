@@ -97,11 +97,13 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
+    // @ts-expect-error
     this._room.on('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 
   /** @internal */
   public detachListeners() {
+    // @ts-expect-error
     this._room.off('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 
