@@ -30,7 +30,7 @@ import { JWTSession } from './JWTSession'
  * ```
  * @internal
  */
-export const createClient = (userOptions: UserOptions) => {
+export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
   const baseUserOptions = {
     ...userOptions,
     emitter: getEventEmitter<ClientEvents>(),
@@ -39,7 +39,11 @@ export const createClient = (userOptions: UserOptions) => {
     userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
-  const client = connect<ClientEvents, ClientAPI, Client>({
+  const client = connect<
+    ClientEvents,
+    ClientAPI<RoomSessionType>,
+    Client<RoomSessionType>
+  >({
     store,
     Component: ClientAPI,
   })(baseUserOptions)

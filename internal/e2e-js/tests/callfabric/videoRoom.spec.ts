@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { CallFabricRoomSession, SignalWireContract } from '@signalwire/js'
+import { CallFabricRoomSession } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 
 import {

@@ -5,7 +5,7 @@ import {
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { createClient } from './createClient'
-import { BaseRoomSession, VideoRoomSession } from './BaseRoomSession'
+import { BaseRoomSession } from './BaseRoomSession'
 import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
 import type {
@@ -159,7 +159,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     },
   }
 
-  const client = createClient(userOptions)
+  const client = createClient<RoomSession>(userOptions)
   const room = client.rooms.makeRoomObject({
     // audio,
     // video: video === true ? VIDEO_CONSTRAINTS : video,
@@ -270,8 +270,8 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
     join,
   } as const
 
-  return new Proxy<Omit<VideoRoomSession, 'new'>>(room, {
-    get(target: VideoRoomSession, prop: keyof VideoRoomSession, receiver: any) {
+  return new Proxy<Omit<RoomSession, 'new'>>(room, {
+    get(target: RoomSession, prop: keyof RoomSession, receiver: any) {
       if (prop in interceptors) {
         // @ts-expect-error
         return interceptors[prop]

@@ -1,5 +1,4 @@
-import { VideoRoomSession } from './BaseRoomSession'
-import { DeprecatedVideoMemberHandlerParams } from './video'
+import { DeprecatedVideoMemberHandlerParams, RoomSession } from './video'
 import { CallFabricRoomSession } from './fabric/CallFabricRoomSession'
 import { getLogger } from '@signalwire/core'
 
@@ -72,12 +71,12 @@ export class UserOverlay {
 interface LocalVideoOverlayOptions {
   id: string
   mirrorLocalVideoOverlay: boolean
-  room: CallFabricRoomSession | VideoRoomSession
+  room: CallFabricRoomSession | RoomSession
 }
 
 export class LocalVideoOverlay extends UserOverlay {
   private _mirrored: boolean
-  private _room: CallFabricRoomSession | VideoRoomSession
+  private _room: CallFabricRoomSession | RoomSession
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
@@ -98,13 +97,11 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
-    // @ts-expect-error
     this._room.on('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 
   /** @internal */
   public detachListeners() {
-    // @ts-expect-error
     this._room.off('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 

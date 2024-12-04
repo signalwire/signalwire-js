@@ -54,9 +54,9 @@ import {
   LocalVideoOverlay,
   OverlayMap,
 } from './VideoOverlays'
-import { RoomSession } from './video'
 
 export interface BaseRoomSession<
+  T,
   TEvents extends EventEmitter.ValidEventTypes = RoomSessionObjectEvents
 > extends RoomMethods,
     RoomSessionConnectionContract,
@@ -65,7 +65,7 @@ export interface BaseRoomSession<
   /**
    * Joins the room session.
    */
-  join(options?: BaseRoomSessionJoinParams): Promise<RoomSession>
+  join(options?: BaseRoomSessionJoinParams): Promise<T>
 
   /**
    * Leaves the room. This detaches all the locally originating streams from the
@@ -78,8 +78,6 @@ export interface BaseRoomSessionOptions
   extends BaseConnection<RoomSessionObjectEvents> {
   eventsWatcher?: SDKWorker<RoomSessionConnection>
 }
-
-export type VideoRoomSession = BaseRoomSession<RoomSessionObjectEvents>
 
 export class RoomSessionConnection<
     TEvents extends EventEmitter.ValidEventTypes = RoomSessionObjectEvents
@@ -541,13 +539,13 @@ export type RoomSessionObjectEventsHandlerMapping = RoomSessionObjectEvents &
   BaseConnectionStateEventTypes
 
 /** @internal */
-export const createBaseRoomSessionObject = (
+export const createBaseRoomSessionObject = <RoomSessionType>(
   params: BaseComponentOptions
-): VideoRoomSession => {
+): BaseRoomSession<RoomSessionType> => {
   const room = connect<
     RoomSessionObjectEventsHandlerMapping,
     RoomSessionConnection,
-    VideoRoomSession
+    BaseRoomSession<RoomSessionType>
   >({
     store: params.store,
     customSagas: params.customSagas,

@@ -14,8 +14,8 @@ import {
   InternalVideoRoomJoinedEvent,
   MapToPubSubShape,
 } from '@signalwire/core'
+import type { RoomSession } from '../RoomSession'
 import type { VideoMemberListUpdatedParams } from '../utils/interfaces'
-import { VideoRoomSession } from '../BaseRoomSession'
 
 const noop = () => {}
 
@@ -104,7 +104,7 @@ export const getUpdatedMembers = ({
 }
 
 const initMemberListSubscriptions = (
-  room: VideoRoomSession,
+  room: RoomSession,
   subscriptions: MemberListUpdatedTargetActions['type'][]
 ) => {
   const events = getMemberListEventsToSubscribe(subscriptions)
@@ -192,7 +192,7 @@ function* membersListUpdatedWatcher({
   }
 }
 
-export const memberListUpdatedWorker: SDKWorker<VideoRoomSession> =
+export const memberListUpdatedWorker: SDKWorker<RoomSession> =
   function* membersChangedWorker({
     channels: { swEventChannel },
     instance,

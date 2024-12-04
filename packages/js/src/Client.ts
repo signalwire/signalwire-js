@@ -16,12 +16,14 @@ import {
 import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
+import type { RoomSession } from './RoomSession'
 import { buildVideoElement } from './buildVideoElement'
 
-export interface Client extends ClientContract<Client, ClientEvents> {
-  rooms: ClientAPI['rooms']
-  chat: ClientAPI['chat']
-  pubSub: ClientAPI['pubSub']
+export interface Client<RoomSessionType = RoomSession>
+  extends ClientContract<Client<RoomSessionType>, ClientEvents> {
+  rooms: ClientAPI<RoomSessionType>['rooms']
+  chat: ClientAPI<RoomSessionType>['chat']
+  pubSub: ClientAPI<RoomSessionType>['pubSub']
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -41,7 +43,9 @@ export interface MakeRoomOptions extends ConnectionOptions {
   localStream?: MediaStream
 }
 
-export class ClientAPI extends BaseClient<ClientEvents> {
+export class ClientAPI<
+  RoomSessionType = RoomSession
+> extends BaseClient<ClientEvents> {
   private _videoManager: VideoManager
   private _chat: ChatClient
   private _pubSub: PubSubClient
@@ -72,7 +76,7 @@ export class ClientAPI extends BaseClient<ClientEvents> {
           })
         )
 
-        const room = createBaseRoomSessionObject({
+        const room = createBaseRoomSessionObject<RoomSessionType>({
           ...options,
           store: this.store,
           customSagas,
@@ -88,6 +92,7 @@ export class ClientAPI extends BaseClient<ClientEvents> {
               applyLocalVideoOverlay,
               applyMemberOverlay,
               mirrorLocalVideoOverlay,
+              // @ts-expect-error
               room,
               rootElement,
             })

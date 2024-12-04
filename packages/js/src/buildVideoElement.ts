@@ -9,13 +9,13 @@ import {
 } from './utils/videoElement'
 import { OverlayMap, LocalVideoOverlay, addSDKPrefix } from './VideoOverlays'
 import { CallFabricRoomSession } from './fabric'
-import { VideoRoomSession } from './BaseRoomSession'
+import { RoomSession } from './RoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallFabricRoomSession | VideoRoomSession
+  room: CallFabricRoomSession | RoomSession
   rootElement?: HTMLElement
 }
 
@@ -94,7 +94,6 @@ export const buildVideoElement = async (
       }
     }
 
-    // @ts-expect-error
     room.on('layout.changed', layoutChangedHandler)
 
     const processVideoTrack = async (track: MediaStreamTrack) => {
@@ -134,23 +133,18 @@ export const buildVideoElement = async (
      * there are cases (promote/demote) where we need to handle multiple `track`
      * events and update the videoEl with the new track.
      */
-    // @ts-expect-error
     room.on('track', trackHandler)
 
     const unsubscribe = () => {
       cleanupElement(rootElement)
       overlayMap.clear() // Use "delete" rather than "clear" if we want to update the reference
       room.overlayMap = overlayMap
-      // @ts-expect-error
       room.off('track', trackHandler)
-      // @ts-expect-error
       room.off('layout.changed', layoutChangedHandler)
-      // @ts-expect-error
       room.off('destroy', unsubscribe)
       localVideoOverlay.detachListeners()
     }
 
-    // @ts-expect-error
     room.once('destroy', unsubscribe)
 
     /**
