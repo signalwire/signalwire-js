@@ -98,17 +98,20 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
+    // @ts-expect-error
     this._room.on('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 
   /** @internal */
   public detachListeners() {
+    // @ts-expect-error
     this._room.off('member.updated.video_muted', this.memberVideoMutedHandler)
   }
 
   private memberVideoMutedHandler(params: DeprecatedVideoMemberHandlerParams) {
     try {
       const { member } = params
+      // @ts-expect-error
       const memberId = member.id ?? member.member_id
       if (memberId === this._room.memberId && 'video_muted' in member) {
         member.video_muted ? this.hide() : this.show()
