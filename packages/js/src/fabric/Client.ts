@@ -15,6 +15,7 @@ export interface Client extends ClientContract<Client, ClientEvents> {
   makeCallFabricObject: ClientAPI['makeCallFabricObject']
   execute: ClientAPI['execute']
   reauthenticate: ClientAPI['reauthenticate']
+  runWorker: ClientAPI['runWorker']
 }
 
 export class ClientAPI extends BaseClient<ClientEvents> {
