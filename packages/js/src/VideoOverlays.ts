@@ -1,5 +1,5 @@
-import { BaseRoomSession } from './BaseRoomSession'
-import { DeprecatedVideoMemberHandlerParams, RoomSession } from './video'
+import { VideoRoomSession } from './BaseRoomSession'
+import { DeprecatedVideoMemberHandlerParams } from './video'
 import { CallFabricRoomSession } from './fabric/CallFabricRoomSession'
 import { getLogger } from '@signalwire/core'
 
@@ -72,15 +72,12 @@ export class UserOverlay {
 interface LocalVideoOverlayOptions {
   id: string
   mirrorLocalVideoOverlay: boolean
-  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
+  room: CallFabricRoomSession | VideoRoomSession
 }
 
 export class LocalVideoOverlay extends UserOverlay {
   private _mirrored: boolean
-  private _room:
-    | CallFabricRoomSession
-    | RoomSession
-    | BaseRoomSession<RoomSession>
+  private _room: CallFabricRoomSession | VideoRoomSession
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)

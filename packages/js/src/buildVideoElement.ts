@@ -9,14 +9,13 @@ import {
 } from './utils/videoElement'
 import { OverlayMap, LocalVideoOverlay, addSDKPrefix } from './VideoOverlays'
 import { CallFabricRoomSession } from './fabric'
-import { RoomSession } from './video'
-import { BaseRoomSession } from './BaseRoomSession'
+import { VideoRoomSession } from './BaseRoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
+  room: CallFabricRoomSession | VideoRoomSession
   rootElement?: HTMLElement
 }
 

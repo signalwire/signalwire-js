@@ -60,7 +60,7 @@ export const createRoomObject = (
       ...userOptions
     } = roomOptions
 
-    const client = createClient<Room>({
+    const client = createClient({
       ...userOptions,
     })
     await client.connect()

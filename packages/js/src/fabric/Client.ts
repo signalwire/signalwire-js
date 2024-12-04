@@ -1,6 +1,7 @@
 import { BaseClient, ClientEvents, actions } from '@signalwire/core'
 import type {
   CallJoinedEventParams,
+  ClientContract,
   CustomSaga,
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
@@ -10,7 +11,13 @@ import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSag
 import { RoomSessionConnection } from '../BaseRoomSession'
 import { buildVideoElement } from '../buildVideoElement'
 
-export class Client extends BaseClient<ClientEvents> {
+export interface Client extends ClientContract<Client, ClientEvents> {
+  makeCallFabricObject: ClientAPI['makeCallFabricObject']
+  execute: ClientAPI['execute']
+  reauthenticate: ClientAPI['reauthenticate']
+}
+
+export class ClientAPI extends BaseClient<ClientEvents> {
   makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {
     const {
       rootElement,
@@ -68,6 +75,7 @@ export class Client extends BaseClient<ClientEvents> {
       params: CallJoinedEventParams | VideoRoomSubscribedEventParams
     ) => {
       const member = params.room_session.members?.find(
+        // @ts-expect-error FIXME:
         (m) => m.id === room.memberId || m.member_id === room.memberId
       )
 

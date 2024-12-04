@@ -42,10 +42,7 @@ interface RequestMemberParams {
 }
 
 type CallFabricBaseRoomSession = Omit<
-  BaseRoomSession<
-    CallFabricRoomSessionConnection,
-    CallFabricRoomSessionObjectEvents
-  >,
+  BaseRoomSession<CallFabricRoomSessionObjectEvents>,
   'join'
 >
 export interface CallFabricRoomSession
