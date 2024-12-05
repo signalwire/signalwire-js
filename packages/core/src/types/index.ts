@@ -36,7 +36,10 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 
   /** @internal */
-  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]): void
+  emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): void
 }
 
 export interface BaseComponentContract {
