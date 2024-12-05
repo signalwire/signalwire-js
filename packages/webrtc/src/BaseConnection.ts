@@ -953,8 +953,8 @@ export class BaseConnection<
 
   /** @internal */
   updateMediaOptions(options: {
-    audio?: boolean
-    video?: boolean
+    audio?: boolean | MediaTrackConstraints
+    video?: boolean | MediaTrackConstraints
     negotiateAudio?: boolean
     negotiateVideo?: boolean
   }) {

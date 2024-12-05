@@ -5,7 +5,6 @@ import {
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { createClient } from './createClient'
-import { BaseRoomSession } from './BaseRoomSession'
 import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
 import type { MakeRoomOptions } from './Client'
 import type {
@@ -13,6 +12,7 @@ import type {
   RoomSessionObjectEvents,
 } from './utils/interfaces'
 import { getStorage, sessionStorageManager } from './utils/storage'
+import { VideoRoomSession } from './video/VideoRoomSession'
 
 /**
  * List of properties/methods the user shouldn't be able to
@@ -71,7 +71,7 @@ const noop = () => {}
 
 export interface RoomSessionOptions extends UserOptions, MakeRoomOptions {}
 
-export interface RoomSession extends BaseRoomSession<RoomSession> {
+export interface RoomSession extends VideoRoomSession {
   new (opts: RoomSessionOptions): this
 }
 
@@ -237,7 +237,6 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
            * Note: params.sendAudio: `true` will override audio: `false` so
            * we're using `||` instead of `??` for that reason.
            */
-          // @ts-expect-error
           room.updateMediaOptions({
             audio: mediaOptions.mustSendAudio ? audio || true : false,
             video: mediaOptions.mustSendVideo ? video || true : false,
