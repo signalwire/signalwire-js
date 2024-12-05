@@ -6,20 +6,23 @@ import {
   sagaEffects,
   SDKWorkerParams,
   MemberPosition,
-  VideoAPIEventNames,
   stripNamespacePrefix,
   VideoAction,
+  VideoRoomDeviceEventNames,
+  BaseConnectionState,
 } from '@signalwire/core'
-import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
+import { VideoRoomSessionConnection } from './VideoRoomSession'
+import { MediaEventNames } from '@signalwire/webrtc'
 
-export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
-  action: T
-}
+export type VideoWorkerParams<T> =
+  SDKWorkerParams<VideoRoomSessionConnection> & {
+    action: T
+  }
 
-export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
+export const videoWorker: SDKWorker<VideoRoomSessionConnection> = function* (
   options
 ): SagaIterator {
   getLogger().trace('videoWorker started')
@@ -86,7 +89,10 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
         break
     }
 
-    const event = stripNamespacePrefix(type, 'video') as VideoAPIEventNames
+    const event = stripNamespacePrefix(type, 'video') as
+      | VideoRoomDeviceEventNames
+      | MediaEventNames
+      | BaseConnectionState
     roomSession.emit(event, payload)
   }
 

@@ -21,11 +21,14 @@ import {
 } from '@signalwire/core'
 import type { ReduxComponent } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
-import { ConnectionOptions } from './utils/interfaces'
+import {
+  ConnectionOptions,
+  BaseConnectionEvents,
+  OnVertoByeParams,
+} from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
 import * as workers from './workers'
-import { BaseConnectionEvents, OnVertoByeParams } from './utils/types'
 import {
   AUDIO_CONSTRAINTS,
   AUDIO_CONSTRAINTS_SCREENSHARE,
@@ -36,11 +39,13 @@ import {
 
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
-export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
-  extends BaseComponent<EventTypes | BaseConnectionEvents>
+export class BaseConnection<
+    EventTypes extends EventEmitter.ValidEventTypes = BaseConnectionEvents
+  >
+  extends BaseComponent<EventTypes>
   implements
-    Rooms.BaseRoomInterface<EventTypes | BaseConnectionEvents>,
-    BaseConnectionContract<EventTypes | BaseConnectionEvents>
+    Rooms.BaseRoomInterface<EventTypes>,
+    BaseConnectionContract<EventTypes>
 {
   public direction: 'inbound' | 'outbound'
   public options: BaseConnectionOptions
@@ -207,6 +212,26 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.activeRTCPeerId = rtcPeer.uuid
   }
 
+  // Overload for BaseConnection events
+  override emit<E extends EventEmitter.EventNames<BaseConnectionEvents>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<BaseConnectionEvents, E>
+  ): boolean
+
+  // Overload for additional events
+  override emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): boolean
+
+  // Implementation for the overloaded emit
+  override emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): boolean {
+    return super.emit(event, ...args)
+  }
+
   /** @internal */
   dialogParams(rtcPeerId: string) {
     const {
@@ -311,7 +336,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     message: JSONRPCRequest
     callID?: string
     node_id?: string
-    subscribe?: EventEmitter.EventNames<EventTypes | BaseConnectionEvents>[]
+    subscribe?: EventEmitter.EventNames<EventTypes>[]
   }) {
     return this.execute({
       method: this._getRPCMethod(),
@@ -713,9 +738,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         sdp,
       })
 
-      let subscribe: EventEmitter.EventNames<
-        EventTypes | BaseConnectionEvents
-      >[] = []
+      let subscribe: EventEmitter.EventNames<EventTypes>[] = []
       if (this.options.screenShare) {
         /** @ts-expect-error - Only being used for debugging purposes */
         subscribe = ['video.room.screenshare']

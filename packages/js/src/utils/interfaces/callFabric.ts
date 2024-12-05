@@ -43,9 +43,27 @@ import {
   CallUpdatedEventParams,
   CallEndedEventParams,
   CallEnded,
+  JSONRPCMethod,
+  CallFabricRoomSessionContract,
 } from '@signalwire/core'
-import { MediaEvent } from '@signalwire/webrtc'
+import { MediaEventNames } from '@signalwire/webrtc'
 import { CallFabricRoomSession } from '../../fabric'
+
+export interface ExecuteActionParams {
+  method: JSONRPCMethod
+  extraParams?: Record<string, any>
+}
+
+export interface ExecuteMemberActionParams extends ExecuteActionParams {
+  channel?: 'audio' | 'video'
+  memberId?: string
+}
+
+export interface RequestMemberParams {
+  node_id: string
+  member_id: string
+  call_id: string
+}
 
 const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
@@ -118,7 +136,7 @@ export type CallFabricRoomSessionObjectEventsHandlerMap = Record<
     (params: VideoRoomSubscribedEventParams) => void
   > &
   Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
-  Record<MediaEvent, () => void> &
+  Record<MediaEventNames, () => void> &
   Record<
     VideoRoomDeviceUpdatedEventNames,
     (params: DeviceUpdatedEventParams) => void
@@ -142,6 +160,13 @@ export type CallFabricRoomSessionObjectEventsHandlerMap = Record<
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallEnded, (stream: CallEndedEventParams) => void>
 
+// TODO: Remove this and use FabricRoomSessionEvents
 export type CallFabricRoomSessionObjectEvents = {
   [k in keyof CallFabricRoomSessionObjectEventsHandlerMap]: CallFabricRoomSessionObjectEventsHandlerMap[k]
 }
+
+export type FabricRoomSessionEvents = {
+  [k in keyof CallFabricRoomSessionObjectEventsHandlerMap]: CallFabricRoomSessionObjectEventsHandlerMap[k]
+}
+
+export type FabricRoomSessionContract = CallFabricRoomSessionContract

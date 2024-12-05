@@ -13,6 +13,7 @@ import {
 /**
  * Public Contract for a CallFabricRoomSession
  */
+// TODO: Rename this to FabricRoomSessionContract
 export interface CallFabricRoomSessionContract {
   /**
    * The `layout.changed` event based on the current room layout
@@ -35,15 +36,6 @@ export interface CallFabricRoomSessionContract {
    * ```
    */
   start(): Promise<void>
-  /**
-   * Answers the incoming call and starts the WebRTC connection
-   *
-   * @example:
-   * ```typescript
-   * await call.answer()
-   * ```
-   */
-  answer(): Promise<void>
   /**
    * Hangs up the current call and disconnects the WebRTC connection.
    * If an RTC Peer ID is passed, the method will only disconnect that Peer, otherwise all Peers will be destroyed

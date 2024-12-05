@@ -1,75 +1,65 @@
 import {
-  BaseComponentOptions,
-  BaseRPCResult,
   connect,
-  ExecuteExtendedOptions,
-  JSONRPCMethod,
-  VideoMemberEntity,
-  Rooms,
-  VideoRoomSubscribedEventParams,
-  RoomSessionMember,
-  getLogger,
-  CallFabricRoomSessionContract,
-  VideoLayoutChangedEventParams,
+  BaseComponentContract,
+  BaseRPCResult,
   CallCapabilities,
+  CallFabricLayoutChangedEventParams,
+  ExecuteExtendedOptions,
+  Rooms,
+  RoomSessionMember,
+  VideoMemberEntity,
   VideoPosition,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
-import { BaseRoomSession, RoomSessionConnection } from '../BaseRoomSession'
-import { callFabricWorker } from './workers'
+import { BaseConnection } from '@signalwire/webrtc'
 import {
-  MemberCommandWithVolumeParams,
+  BaseRoomSessionConnection,
+  BaseRoomSessionOptions,
+} from '../BaseRoomSession'
+import {
+  BaseRoomSessionContract,
+  ExecuteMemberActionParams,
+  FabricRoomSessionContract,
+  FabricRoomSessionEvents,
   MemberCommandWithValueParams,
-} from '../video'
+  MemberCommandWithVolumeParams,
+  RequestMemberParams,
+  RoomMethods,
+} from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallFabricRoomSessionObjectEvents } from '../utils/interfaces'
-import { BaseConnectionEvents } from '@signalwire/webrtc'
+import { callFabricWorker } from './workers'
 
-interface ExecuteActionParams {
-  method: JSONRPCMethod
-  extraParams?: Record<string, any>
-}
+export interface FabricRoomSession
+  extends FabricRoomSessionContract,
+    // TODO: Declare dedicated RoomMethods for the Fabric
+    RoomMethods,
+    BaseRoomSessionContract,
+    BaseConnection<FabricRoomSessionEvents>,
+    BaseComponentContract {}
 
-interface ExecuteMemberActionParams extends ExecuteActionParams {
-  channel?: 'audio' | 'video'
-  memberId?: string
-}
+export interface FabricRoomSessionOptions extends BaseRoomSessionOptions {}
 
-interface RequestMemberParams {
-  node_id: string
-  member_id: string
-  call_id: string
-}
-
-type CallFabricBaseRoomSession = Omit<
-  BaseRoomSession<
-    CallFabricRoomSessionConnection,
-    CallFabricRoomSessionObjectEvents
-  >,
-  'join'
->
-
-export interface CallFabricRoomSession
-  extends CallFabricBaseRoomSession,
-    CallFabricRoomSessionContract {}
-
-export class CallFabricRoomSessionConnection
-  extends RoomSessionConnection<CallFabricRoomSessionObjectEvents>
-  implements CallFabricRoomSessionContract
+export class FabricRoomSessionConnection
+  extends BaseRoomSessionConnection<FabricRoomSessionEvents>
+  implements FabricRoomSessionContract
 {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
-  private _currentLayoutEvent: VideoLayoutChangedEventParams
+  private _currentLayoutEvent: CallFabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities: CallCapabilities = {}
 
-  override async hangup(id?: string): Promise<void> {
-    this._self = undefined
-    this._member = undefined
-    const result = await super.hangup(id)
-    return result
+  constructor(options: FabricRoomSessionOptions) {
+    super(options)
+
+    this.initWorker()
+  }
+
+  override get memberId() {
+    return this._member?.memberId
   }
 
   get capabilities(): CallCapabilities {
@@ -96,11 +86,7 @@ export class CallFabricRoomSessionConnection
     return this._member!
   }
 
-  override get memberId() {
-    return this._member?.memberId
-  }
-
-  set currentLayoutEvent(event: VideoLayoutChangedEventParams) {
+  set currentLayoutEvent(event: CallFabricLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }
 
@@ -115,6 +101,12 @@ export class CallFabricRoomSessionConnection
   // @TODO: Finish this
   get members() {
     return []
+  }
+
+  private initWorker() {
+    this.runWorker('callFabricWorker', {
+      worker: callFabricWorker,
+    })
   }
 
   private executeAction<
@@ -154,14 +146,33 @@ export class CallFabricRoomSessionConnection
     )
   }
 
-  protected override initWorker() {
-    /**
-     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
-     * For now, the member instances are only required in the CallFabric SDK.
-     */
-    this.runWorker('callFabricWorker', {
-      worker: callFabricWorker,
-    })
+  /** @internal */
+  public override async resume() {
+    this.logger.warn(`[resume] Call ${this.id}`)
+    if (this.peer?.instance) {
+      const { connectionState } = this.peer.instance
+      this.logger.debug(
+        `[resume] connectionState for ${this.id} is '${connectionState}'`
+      )
+      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
+        this.resuming = true
+        this.peer.restartIce()
+      }
+    }
+  }
+
+  /** @internal */
+  public async join() {
+    if (this.options.attach) {
+      this.options.prevCallId =
+        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    this.logger.debug(
+      `Tying to reattach to previuos call? ${!!this.options
+        .prevCallId} - prevCallId: ${this.options.prevCallId}`
+    )
+
+    return super.invite<this>()
   }
 
   public async start() {
@@ -185,35 +196,6 @@ export class CallFabricRoomSessionConnection
         reject(error)
       }
     })
-  }
-
-  /** @internal */
-  public override async join() {
-    if (this.options.attach) {
-      this.options.prevCallId =
-        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-    }
-    getLogger().debug(
-      `Tying to reattach to previuos call? ${!!this.options
-        .prevCallId} - prevCallId: ${this.options.prevCallId}`
-    )
-
-    return super.join()
-  }
-
-  /** @internal */
-  public override async resume() {
-    this.logger.warn(`[resume] Call ${this.id}`)
-    if (this.peer?.instance) {
-      const { connectionState } = this.peer.instance
-      this.logger.debug(
-        `[resume] connectionState for ${this.id} is '${connectionState}'`
-      )
-      if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
-        this.resuming = true
-        this.peer.restartIce()
-      }
-    }
   }
 
   public async audioMute(params: Rooms.RoomMemberMethodParams) {
@@ -506,20 +488,18 @@ export class CallFabricRoomSessionConnection
   }
 }
 
-export type CallFabricRoomSessionObjectEventsHandlerMapping =
-  CallFabricRoomSessionObjectEvents & BaseConnectionEvents
-
-export const createCallFabricRoomSessionObject = (
-  params: BaseComponentOptions
-): CallFabricRoomSession => {
+/** @internal */
+export const createFabricRoomSessionObject = (
+  params: FabricRoomSessionOptions
+): FabricRoomSession => {
   const room = connect<
-    CallFabricRoomSessionObjectEventsHandlerMapping,
-    CallFabricRoomSessionConnection,
-    CallFabricRoomSession
+    FabricRoomSessionEvents,
+    FabricRoomSessionConnection,
+    FabricRoomSession
   >({
     store: params.store,
     customSagas: params.customSagas,
-    Component: CallFabricRoomSessionConnection,
+    Component: FabricRoomSessionConnection,
   })(params)
 
   return room

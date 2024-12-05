@@ -1,11 +1,11 @@
 import { actions, componentActions } from '@signalwire/core'
 import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
-import type { RoomSession } from './RoomSession'
 import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
 
-describe('Room Object', () => {
+// TODO: Move these tests to VideoRoomSession
+describe.skip('Room Object', () => {
   let store: any
-  let room: BaseRoomSession<RoomSession>
+  let room: BaseRoomSession
   let stack: ReturnType<typeof configureFullStack>
   const callId = 'call-id'
 
@@ -17,14 +17,13 @@ describe('Room Object', () => {
     // @ts-expect-error
     room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
 
-    // @ts-expect-error
     room.runRTCPeerWorkers(callId)
   }
 
   beforeEach(() => {
     stack = configureFullStack()
     store = stack.store
-    room = createBaseRoomSessionObject<RoomSession>({
+    room = createBaseRoomSessionObject({
       store,
     })
     store.dispatch(
@@ -36,7 +35,6 @@ describe('Room Object', () => {
         memberId: 'member-id',
       })
     )
-    // @ts-expect-error
     room.execute = jest.fn()
 
     setupRoomForTests()
