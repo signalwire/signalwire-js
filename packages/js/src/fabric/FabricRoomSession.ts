@@ -62,6 +62,24 @@ export class FabricRoomSessionConnection
     return this._member?.memberId
   }
 
+  set currentLayoutEvent(event: CallFabricLayoutChangedEventParams) {
+    this._currentLayoutEvent = event
+  }
+
+  get currentLayoutEvent() {
+    return this._currentLayoutEvent
+  }
+
+  get currentLayout() {
+    return this._currentLayoutEvent?.layout
+  }
+
+  get currentPosition() {
+    return this._currentLayoutEvent?.layout.layers.find(
+      (layer) => layer.member_id === this.memberId
+    )?.position
+  }
+
   get capabilities(): CallCapabilities {
     return this._capabilities
   }
@@ -84,18 +102,6 @@ export class FabricRoomSessionConnection
 
   get member(): RoomSessionMember {
     return this._member!
-  }
-
-  set currentLayoutEvent(event: CallFabricLayoutChangedEventParams) {
-    this._currentLayoutEvent = event
-  }
-
-  get currentLayoutEvent() {
-    return this._currentLayoutEvent
-  }
-
-  get currentLayout() {
-    return this._currentLayoutEvent.layout
   }
 
   // @TODO: Finish this

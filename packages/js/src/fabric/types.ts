@@ -39,6 +39,8 @@ export interface SignalWireContract {
   }
 }
 
+export type SignalWireClient = SignalWireContract
+
 /**
  * WSClient
  */
@@ -389,3 +391,10 @@ export interface RegisterDeviceResponse {
 export type RegisterDeviceResult = RegisterDeviceResponse
 
 export { FabricRoomSession }
+export type {
+  ConversationMessageEventName,
+  ConversationMessageEventParams,
+  ConversationMessageEvent,
+  ConversationEvent,
+  ConversationEventParams,
+} from '@signalwire/core'

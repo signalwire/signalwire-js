@@ -5,6 +5,8 @@ import {
   OnlyStateProperties,
   InternalCallFabricMemberEntity,
   VideoLayoutChangedEventParams,
+  VideoPosition,
+  CallFabricLayoutChangedEventParams,
 } from '..'
 
 // TODO: Finish the Call Fabric room session contract.
@@ -18,11 +20,15 @@ export interface CallFabricRoomSessionContract {
   /**
    * The `layout.changed` event based on the current room layout
    */
-  currentLayoutEvent: VideoLayoutChangedEventParams
+  currentLayoutEvent: CallFabricLayoutChangedEventParams
   /**
    * The layout returned from the `layout.changed` event based on the current room layout
    */
   currentLayout: VideoLayoutChangedEventParams['layout']
+  /**
+   * The current position of the member returned from the `layout.changed` event
+   */
+  currentPosition: VideoPosition | undefined
   /**
    * List of members that are part of this room session
    */

@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { CallFabricRoomSession } from '@signalwire/js'
+import { FabricRoomSession } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 
 import {
@@ -49,7 +49,7 @@ test.describe('CallFabric VideoRoom', () => {
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
-        const roomObj: CallFabricRoomSession = window._roomObj
+        const roomObj: FabricRoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
           const memberUpdatedEvent = new Promise((res) => {
@@ -119,7 +119,7 @@ test.describe('CallFabric VideoRoom', () => {
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
-        const roomObj: CallFabricRoomSession = window._roomObj
+        const roomObj: FabricRoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
           const memberUpdatedEvent = new Promise((res) => {
@@ -194,7 +194,7 @@ test.describe('CallFabric VideoRoom', () => {
     // --------------- Screenshare ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: CallFabricRoomSession = window._roomObj
+      const roomObj: FabricRoomSession = window._roomObj
 
       let screenMemberId: string | undefined
       const screenJoined = new Promise((resolve) => {

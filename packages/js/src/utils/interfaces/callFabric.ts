@@ -32,7 +32,6 @@ import {
   VideoRoomSessionEventNames,
   VideoRoomSubscribedEventParams,
   VideoStreamEventNames,
-  InternalVideoLayout,
   CallJoined,
   CallJoinedEventParams,
   CallState,
@@ -45,6 +44,7 @@ import {
   CallEnded,
   JSONRPCMethod,
   CallFabricRoomSessionContract,
+  CallFabricLayoutChangedEventParams,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { FabricRoomSession } from '../../fabric'
@@ -102,7 +102,7 @@ export type CallFabricRoomSessionObjectEventsHandlerMap = Record<
 > &
   Record<
     VideoLayoutEventNames,
-    (params: { layout: InternalVideoLayout }) => void
+    (params: CallFabricLayoutChangedEventParams) => void
   > &
   Record<
     Exclude<

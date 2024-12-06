@@ -50,7 +50,7 @@ export class VideoRoomSessionConnection
   implements VideoRoomSessionContract
 {
   private _deviceList = new Set<RoomSessionDevice>()
-  private _lastLayoutEvent: VideoLayoutChangedEventParams
+  private _currentLayoutEvent: VideoLayoutChangedEventParams
 
   constructor(options: VideoRoomSessionOptions) {
     super(options)
@@ -58,20 +58,20 @@ export class VideoRoomSessionConnection
     this.initWorker()
   }
 
-  set lastLayoutEvent(event: VideoLayoutChangedEventParams) {
-    this._lastLayoutEvent = event
+  set currentLayoutEvent(event: VideoLayoutChangedEventParams) {
+    this._currentLayoutEvent = event
   }
 
-  get lastLayoutEvent() {
-    return this._lastLayoutEvent
+  get currentLayoutEvent() {
+    return this._currentLayoutEvent
   }
 
   get currentLayout() {
-    return this._lastLayoutEvent?.layout
+    return this._currentLayoutEvent?.layout
   }
 
   get currentPosition() {
-    return this._lastLayoutEvent?.layout.layers.find(
+    return this._currentLayoutEvent?.layout.layers.find(
       (layer) => layer.member_id === this.memberId
     )?.position
   }
