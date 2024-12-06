@@ -47,7 +47,7 @@ import {
   CallFabricRoomSessionContract,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-import { CallFabricRoomSession } from '../../fabric'
+import { FabricRoomSession } from '../../fabric'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -152,7 +152,7 @@ export type CallFabricRoomSessionObjectEventsHandlerMap = Record<
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
   Record<VideoPlaybackEventNames, (recording: RoomSessionPlayback) => void> &
-  Record<BaseConnectionState, (params: CallFabricRoomSession) => void> &
+  Record<BaseConnectionState, (params: FabricRoomSession) => void> &
   Record<VideoStreamEventNames, (stream: RoomSessionStream) => void> &
   Record<CallJoined, (stream: CallJoinedEventParams) => void> &
   Record<CallState, (stream: CallStateEventParams) => void> &

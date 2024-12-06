@@ -6,10 +6,10 @@ import type {
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
-import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
-import { RoomSessionConnection } from '../BaseRoomSession'
 import { buildVideoElement } from '../buildVideoElement'
+import { VideoRoomSessionConnection } from '../video/VideoRoomSession'
+import { createFabricRoomSessionObject } from './FabricRoomSession'
 
 export interface Client extends ClientContract<Client, ClientEvents> {
   makeCallFabricObject: ClientAPI['makeCallFabricObject']
@@ -31,7 +31,7 @@ export class ClientAPI extends BaseClient<ClientEvents> {
     } = makeRoomOptions
 
     // TODO: This might not be needed here. We can initiate these sagas in the BaseRoomSession constructor.
-    const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
+    const customSagas: Array<CustomSaga<VideoRoomSessionConnection>> = []
 
     /**
      * By default the SDK will attach the audio to
@@ -43,7 +43,7 @@ export class ClientAPI extends BaseClient<ClientEvents> {
       })
     )
 
-    const room = createCallFabricRoomSessionObject({
+    const room = createFabricRoomSessionObject({
       ...options,
       store: this.store,
       customSagas,

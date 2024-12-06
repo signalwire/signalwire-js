@@ -10,7 +10,7 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
-import { CallFabricRoomSession } from './CallFabricRoomSession'
+import { FabricRoomSession } from './FabricRoomSession'
 import { createClient } from './createClient'
 import { Client } from './Client'
 
@@ -69,7 +69,7 @@ export class WSClient {
   }
 
   private async connectAndbuildRoomSession(params: BuildRoomParams) {
-    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+    return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
         const call = this.buildRoomSession(params)

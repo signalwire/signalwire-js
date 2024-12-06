@@ -2,7 +2,7 @@ import type { ConversationEventParams, UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
-import type { CallFabricRoomSession } from './CallFabricRoomSession'
+import type { FabricRoomSession } from './FabricRoomSession'
 
 export interface SignalWireOptions extends WSClientOptions {}
 
@@ -116,7 +116,7 @@ export interface IncomingInvite {
 export interface IncomingCallNotification {
   invite: {
     details: IncomingInvite
-    accept: (param: CallParams) => Promise<CallFabricRoomSession>
+    accept: (param: CallParams) => Promise<FabricRoomSession>
     reject: () => Promise<void>
   }
 }
@@ -177,7 +177,7 @@ export interface GetAddressResponse {
   created_at: string
 }
 
-export type Address = GetAddressResponse 
+export type Address = GetAddressResponse
 
 export interface GetAddressesParams {
   type?: string
@@ -388,4 +388,4 @@ export interface RegisterDeviceResponse {
 
 export type RegisterDeviceResult = RegisterDeviceResponse
 
-export { CallFabricRoomSession }
+export { FabricRoomSession }

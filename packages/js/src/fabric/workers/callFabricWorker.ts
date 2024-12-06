@@ -8,15 +8,15 @@ import {
   SDKActions,
   CallFabricAction,
 } from '@signalwire/core'
-import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
+import { FabricRoomSessionConnection } from '../FabricRoomSession'
 import { callSegmentWorker } from './callSegmentWorker'
 
 export type CallFabricWorkerParams<T> =
-  SDKWorkerParams<CallFabricRoomSessionConnection> & {
+  SDKWorkerParams<FabricRoomSessionConnection> & {
     action: T
   }
 
-export const callFabricWorker: SDKWorker<CallFabricRoomSessionConnection> =
+export const callFabricWorker: SDKWorker<FabricRoomSessionConnection> =
   function* (options): SagaIterator {
     getLogger().trace('callFabricWorker started')
 
