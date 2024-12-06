@@ -23,8 +23,10 @@ type VideoMemberEvents = MapToPubSubShape<
   | InternalVideoMemberUpdatedEvent
 >
 
+type VideoMemberWorkerOptions = VideoWorkerParams<VideoMemberEvents>
+
 export const videoMemberWorker = function* (
-  options: VideoWorkerParams<VideoMemberEvents>
+  options: VideoMemberWorkerOptions
 ): SagaIterator {
   getLogger().trace('videoMemberWorker started')
   const {
@@ -34,8 +36,11 @@ export const videoMemberWorker = function* (
   } = options
 
   // For now, we are not storing the RoomSession object in the instance map
+  let memberId = payload.member?.id
 
-  const memberId = payload.member?.id || payload.member?.member_id
+  if ('member_id' in payload.member) {
+    memberId = payload.member?.member_id!
+  }
 
   let memberInstance = get<RoomSessionMember>(memberId!)
   if (!memberInstance) {
@@ -47,7 +52,6 @@ export const videoMemberWorker = function* (
     memberInstance.setPayload(payload as Rooms.RoomSessionMemberEventParams)
   }
   set<RoomSessionMember>(memberId!, memberInstance)
-
 
   const event = stripNamespacePrefix(type) as VideoMemberEventNames
 

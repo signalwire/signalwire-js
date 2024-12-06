@@ -102,7 +102,7 @@ export type InternalVideoAPIEvent =
   | InternalVideoRoomEvent
   | InternalVideoMemberEvent
 
-export type VideoAPIEventParams =
+export type VideoAPIEvent =
   | VideoRoomEvent
   | VideoMemberEvent
   | VideoLayoutEvent
@@ -121,5 +121,5 @@ export type VideoAPIEventNames =
   | VideoStreamEventNames
 
 export type VideoAction = MapToPubSubShape<
-  InternalVideoAPIEvent | VideoAPIEventParams | VideoRoomAudienceCountEvent
+  InternalVideoAPIEvent | VideoAPIEvent | VideoRoomAudienceCountEvent
 >

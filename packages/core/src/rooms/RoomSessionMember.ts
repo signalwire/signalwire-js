@@ -1,21 +1,21 @@
 import {
-  VideoMemberContract,
-  VideoMemberEventNames,
-  VideoMemberJoinedEventParams,
-  VideoMemberLeftEventParams,
-  VideoMemberTalkingEventParams,
-  VideoMemberUpdatedEventParams,
-} from '../types/videoMember'
+  CallFabricMemberEventNames,
+  CallFabricMemberJoinedEventParams,
+  CallFabricMemberLeftEventParams,
+  CallFabricMemberTalkingEventParams,
+  CallFabricMemberUpdatedEventParams,
+} from '../types/callFabricMember'
+import { CallFabricMemberContract } from '../types/callFabricMember'
 import { BaseComponent } from '../BaseComponent'
 import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import { connect } from '../redux'
 
-export interface RoomSessionMember extends VideoMemberContract {
+export interface RoomSessionMember extends CallFabricMemberContract {
   setPayload(payload: RoomSessionMemberEventParams): void
 }
 
 export type RoomSessionMemberEventsHandlerMapping = Record<
-  VideoMemberEventNames,
+  CallFabricMemberEventNames,
   (playback: RoomSessionMember) => void
 >
 
@@ -23,12 +23,10 @@ export interface RoomSessionMemberOptions
   extends BaseComponentOptionsWithPayload<RoomSessionMemberEventParams> {}
 
 export type RoomSessionMemberEventParams =
-  | (
-      | VideoMemberJoinedEventParams
-      | VideoMemberLeftEventParams
-      | VideoMemberUpdatedEventParams
-    ) &
-      VideoMemberTalkingEventParams
+  | CallFabricMemberJoinedEventParams
+  | CallFabricMemberLeftEventParams
+  | CallFabricMemberUpdatedEventParams
+  | CallFabricMemberTalkingEventParams
 
 // @TODO: Implement class using a contract
 export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsHandlerMapping> {

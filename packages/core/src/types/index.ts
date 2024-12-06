@@ -1,5 +1,5 @@
 import type { EventEmitter } from '../utils/EventEmitter'
-import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
+import type { VideoAPIEvent, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 import type { VideoManagerEvent } from './cantina'
 import type { ChatEvent } from './chat'
@@ -36,7 +36,10 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 
   /** @internal */
-  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]): void
+  emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): void
 }
 
 export interface BaseComponentContract {
@@ -225,7 +228,7 @@ export interface SwAuthorizationStateParams {
 
 // prettier-ignore
 export type SwEventParams =
-  | VideoAPIEventParams
+  | VideoAPIEvent
   | WebRTCMessageParams
   | VideoManagerEvent
   | ChatEvent
@@ -234,7 +237,7 @@ export type SwEventParams =
   | VoiceCallEvent
   | SwAuthorizationStateParams
   | ConversationEvent
-| CallFabricEvent
+  | CallFabricEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =
@@ -250,5 +253,8 @@ export * from './pubSub'
 export * from './task'
 export * from './messaging'
 export * from './voice'
-export * from './callfabric'
+export * from './callFabric'
+export * from './callFabricRoomSession'
+export * from './callFabricMember'
+export * from './callFabricLayout'
 export * from './conversation'

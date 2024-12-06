@@ -243,6 +243,7 @@ const initializeMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const memberList: MemberEventParamsList = new Map()
 
   members.forEach((member) => {
+    // @ts-expect-error
     const memberId = member.id || member.member_id!
     const roomSessionId =
       payload.room_session.id || payload.room_session.room_session_id!
