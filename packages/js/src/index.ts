@@ -59,7 +59,6 @@ export * as PubSub from './pubSub'
  * CallFabric namespace
  */
 export * as Fabric from './fabric'
-export { SignalWire } from './fabric'
 export * from './fabric/types'
 
 /**
@@ -67,6 +66,7 @@ export * from './fabric/types'
  * create a video conferencing application.
  */
 export * as Video from './video'
+export { VideoRoomSession } from './video'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and
@@ -124,6 +124,8 @@ export type {
   StartScreenShareOptions,
 } from './utils/interfaces'
 
-// Build Video Element
+/**
+ * Build Video Element
+ */
 export { buildVideoElement } from './buildVideoElement'
 export { LocalVideoOverlay, OverlayMap, UserOverlay } from './VideoOverlays'

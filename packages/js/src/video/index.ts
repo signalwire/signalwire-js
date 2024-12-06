@@ -42,3 +42,5 @@ export type {
   RoomSessionRecording,
   RoomSessionPlayback,
 } from '@signalwire/core'
+
+export { VideoRoomSession } from './VideoRoomSession'
