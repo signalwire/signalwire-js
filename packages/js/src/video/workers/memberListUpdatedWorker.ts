@@ -14,8 +14,8 @@ import {
   InternalVideoRoomJoinedEvent,
   MapToPubSubShape,
 } from '@signalwire/core'
-import type { RoomSession } from '../RoomSession'
-import type { VideoMemberListUpdatedParams } from '../utils/interfaces'
+import type { VideoMemberListUpdatedParams } from '../../utils/interfaces'
+import { VideoRoomSession } from '../VideoRoomSession'
 
 const noop = () => {}
 
@@ -104,7 +104,7 @@ export const getUpdatedMembers = ({
 }
 
 const initMemberListSubscriptions = (
-  room: RoomSession,
+  room: VideoRoomSession,
   subscriptions: MemberListUpdatedTargetActions['type'][]
 ) => {
   const events = getMemberListEventsToSubscribe(subscriptions)
@@ -192,7 +192,7 @@ function* membersListUpdatedWatcher({
   }
 }
 
-export const memberListUpdatedWorker: SDKWorker<RoomSession> =
+export const memberListUpdatedWorker: SDKWorker<VideoRoomSession> =
   function* membersChangedWorker({
     channels: { swEventChannel },
     instance,
@@ -204,6 +204,7 @@ export const memberListUpdatedWorker: SDKWorker<RoomSession> =
       return
     }
 
+    // @ts-expect-error
     const { cleanup } = initMemberListSubscriptions(instance, subscriptions)
 
     yield sagaEffects.fork(membersListUpdatedWatcher, {

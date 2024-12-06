@@ -14,7 +14,7 @@ import {
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
-import { VideoRoomSessionConnection } from './VideoRoomSession'
+import { VideoRoomSessionConnection } from '../VideoRoomSession'
 import { MediaEventNames } from '@signalwire/webrtc'
 
 export type VideoWorkerParams<T> =

@@ -11,7 +11,7 @@ import {
   mapCapabilityPayload,
 } from '@signalwire/core'
 import { CallFabricWorkerParams } from './callFabricWorker'
-import { videoMemberWorker } from '../../video/videoMemberWorker'
+import { videoMemberWorker } from '../../video/workers/videoMemberWorker'
 
 export const callJoinWorker = function* (
   options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>

@@ -11,7 +11,7 @@ import {
 } from '@signalwire/core'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
-import { videoMemberWorker } from '../../video/videoMemberWorker'
+import { videoMemberWorker } from '../../video/workers/videoMemberWorker'
 import { CallFabricWorkerParams } from './callFabricWorker'
 
 export const callSegmentWorker = function* (
