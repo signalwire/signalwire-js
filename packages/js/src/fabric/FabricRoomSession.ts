@@ -3,15 +3,16 @@ import {
   BaseComponentContract,
   BaseRPCResult,
   CallCapabilities,
-  CallFabricLayoutChangedEventParams,
+  FabricLayoutChangedEventParams,
   ExecuteExtendedOptions,
   Rooms,
   RoomSessionMember,
   VideoMemberEntity,
   VideoPosition,
   VideoRoomSubscribedEventParams,
+  FabricRoomSessionContract,
+  BaseConnectionContract,
 } from '@signalwire/core'
-import { BaseConnection } from '@signalwire/webrtc'
 import {
   BaseRoomSessionConnection,
   BaseRoomSessionOptions,
@@ -19,7 +20,6 @@ import {
 import {
   BaseRoomSessionContract,
   ExecuteMemberActionParams,
-  FabricRoomSessionContract,
   FabricRoomSessionEvents,
   MemberCommandWithValueParams,
   MemberCommandWithVolumeParams,
@@ -28,14 +28,14 @@ import {
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { callFabricWorker } from './workers'
+import { fabricWorker } from './workers'
 
 export interface FabricRoomSession
   extends FabricRoomSessionContract,
-    // TODO: Declare dedicated RoomMethods for the Fabric
+    // TODO: Use FabricRoomMethods
     RoomMethods,
     BaseRoomSessionContract,
-    BaseConnection<FabricRoomSessionEvents>,
+    BaseConnectionContract<FabricRoomSessionEvents>,
     BaseComponentContract {}
 
 export interface FabricRoomSessionOptions extends BaseRoomSessionOptions {}
@@ -48,7 +48,7 @@ export class FabricRoomSessionConnection
   private _self?: RoomSessionMember
   // this is "the member" on the last/active call segment
   private _member?: RoomSessionMember
-  private _currentLayoutEvent: CallFabricLayoutChangedEventParams
+  private _currentLayoutEvent: FabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities: CallCapabilities = {}
 
@@ -62,7 +62,7 @@ export class FabricRoomSessionConnection
     return this._member?.memberId
   }
 
-  set currentLayoutEvent(event: CallFabricLayoutChangedEventParams) {
+  set currentLayoutEvent(event: FabricLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }
 
@@ -110,8 +110,8 @@ export class FabricRoomSessionConnection
   }
 
   private initWorker() {
-    this.runWorker('callFabricWorker', {
-      worker: callFabricWorker,
+    this.runWorker('fabricWorker', {
+      worker: fabricWorker,
     })
   }
 

@@ -6,10 +6,10 @@ import {
   RoomSessionMember,
   Rooms,
 } from '@signalwire/core'
-import { CallFabricWorkerParams } from './callFabricWorker'
+import { FabricWorkerParams } from './fabricWorker'
 
 export const callLeftWorker = function* (
-  options: CallFabricWorkerParams<MapToPubSubShape<CallLeftEvent>>
+  options: FabricWorkerParams<MapToPubSubShape<CallLeftEvent>>
 ): SagaIterator {
   getLogger().trace('callLeftWorker started')
 

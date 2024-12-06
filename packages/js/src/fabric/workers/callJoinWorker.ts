@@ -10,11 +10,11 @@ import {
   InternalMemberUpdatedEventNames,
   mapCapabilityPayload,
 } from '@signalwire/core'
-import { CallFabricWorkerParams } from './callFabricWorker'
+import { FabricWorkerParams } from './fabricWorker'
 import { videoMemberWorker } from '../../video/workers/videoMemberWorker'
 
 export const callJoinWorker = function* (
-  options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
+  options: FabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
 ): SagaIterator {
   getLogger().trace('callJoinWorker started')
   const { action, instanceMap, instance: cfRoomSession } = options

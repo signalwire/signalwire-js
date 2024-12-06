@@ -94,7 +94,7 @@ export class WSClient {
       negotiateVideo = false
     }
 
-    const call = this.wsClient.makeCallFabricObject({
+    const call = this.wsClient.makeFabricObject({
       audio: params.audio ?? true,
       video,
       negotiateAudio: params.negotiateAudio ?? true,

@@ -1,4 +1,4 @@
-// TODO: Should be changed to "Fabric" rather than "CallFabric"
+// TODO: Should be changed to "Fabric" rather than "Fabric"
 
 import {
   CallState,
@@ -9,11 +9,11 @@ import {
   SwEvent,
   CallEnded,
   CallRecord,
-  InternalCallFabricRoomSessionEntity,
-  CallFabricMemberEvent,
-  CallFabricMemberEventParams,
-  CallFabricLayoutEvent,
-  CallFabricLayoutEventParams,
+  InternalFabricRoomSessionEntity,
+  FabricMemberEvent,
+  FabricMemberEventParams,
+  FabricLayoutEvent,
+  FabricLayoutEventParams,
 } from '..'
 
 export type CallJoined = 'call.joined'
@@ -66,7 +66,7 @@ export interface CallJoinedEventParams {
   node_id: string
   origin_call_id: string
   room_id: string
-  room_session: InternalCallFabricRoomSessionEntity
+  room_session: InternalFabricRoomSessionEntity
   room_session_id: string
 }
 
@@ -239,7 +239,7 @@ export interface CallConnectEvent extends SwEvent {
   params: CallConnectEventParams
 }
 
-export type CallFabricEvent =
+export type FabricEvent =
   | CallJoinedEvent
   | CallStartedEvent
   | CallUpdatedEvent
@@ -250,10 +250,10 @@ export type CallFabricEvent =
   | CallRecordEvent
   | CallStreamEvent
   | CallConnectEvent
-  | CallFabricMemberEvent
-  | CallFabricLayoutEvent
+  | FabricMemberEvent
+  | FabricLayoutEvent
 
-export type CallFabricEventParams =
+export type FabricEventParams =
   | CallJoinedEventParams
   | CallStartedEventParams
   | CallUpdatedEventParams
@@ -264,10 +264,10 @@ export type CallFabricEventParams =
   | CallRecordEventParams
   | CallStreamEventParams
   | CallConnectEventParams
-  | CallFabricMemberEventParams
-  | CallFabricLayoutEventParams
+  | FabricMemberEventParams
+  | FabricLayoutEventParams
 
-export type CallFabricAction = MapToPubSubShape<CallFabricEvent>
+export type FabricAction = MapToPubSubShape<FabricEvent>
 
 interface CapabilityOnOffState {
   on?: true

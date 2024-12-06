@@ -3,9 +3,9 @@ import {
   DeviceDisconnectedEventParams,
   DeviceUpdatedEventParams,
   INTERNAL_MEMBER_UPDATABLE_PROPS,
-  InternalCallFabricMemberEntity,
-  InternalCallFabricMemberUpdatableProps,
-  InternalCallFabricMemberEntityUpdated,
+  InternalFabricMemberEntity,
+  InternalFabricMemberUpdatableProps,
+  InternalFabricMemberEntityUpdated,
   MemberListUpdated,
   MemberTalkingEventNames,
   MemberUpdated,
@@ -43,11 +43,11 @@ import {
   CallEndedEventParams,
   CallEnded,
   JSONRPCMethod,
-  CallFabricRoomSessionContract,
-  CallFabricLayoutChangedEventParams,
+  FabricLayoutChangedEventParams,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { FabricRoomSession } from '../../fabric'
+import { RoomMethods } from './video'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -69,59 +69,59 @@ const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_MEMBER_UPDATABLE_PROPS
 ).map((key) => {
   return `member.updated.${
-    key as keyof InternalCallFabricMemberUpdatableProps
+    key as keyof InternalFabricMemberUpdatableProps
   }` as const
 })
 
 /** @deprecated */
-export type DeprecatedCallFabricMemberUpdatableProps =
+export type DeprecatedFabricMemberUpdatableProps =
   (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
 /** @deprecated */
 
-export type DeprecatedCallFabricMemberHandlerParams = {
-  member: InternalCallFabricMemberEntity
+export type DeprecatedFabricMemberHandlerParams = {
+  member: InternalFabricMemberEntity
 }
 
-export type CallFabricMemberHandlerParams = {
-  member: InternalCallFabricMemberEntity
+export type FabricMemberHandlerParams = {
+  member: InternalFabricMemberEntity
 }
 
-export type CallFabricMemberUpdatedHandlerParams = {
-  member: InternalCallFabricMemberEntityUpdated
+export type FabricMemberUpdatedHandlerParams = {
+  member: InternalFabricMemberEntityUpdated
   room_id?: string
   room_session_id?: string
 }
 
-export type CallFabricMemberListUpdatedParams = {
-  members: InternalCallFabricMemberEntity[]
+export type FabricMemberListUpdatedParams = {
+  members: InternalFabricMemberEntity[]
 }
 
-export type CallFabricRoomSessionObjectEventsHandlerMap = Record<
+export type FabricRoomSessionEventsHandlerMap = Record<
   VideoRoomDeviceEventNames,
   (params: DeviceUpdatedEventParams) => void
 > &
   Record<
     VideoLayoutEventNames,
-    (params: CallFabricLayoutChangedEventParams) => void
+    (params: FabricLayoutChangedEventParams) => void
   > &
   Record<
     Exclude<
       VideoMemberEventNames,
       MemberUpdated | MemberUpdatedEventNames | MemberListUpdated
     >,
-    (params: CallFabricMemberHandlerParams) => void
+    (params: FabricMemberHandlerParams) => void
   > &
   Record<
     Extract<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
-    (params: CallFabricMemberUpdatedHandlerParams) => void
+    (params: FabricMemberUpdatedHandlerParams) => void
   > &
   Record<
     Extract<VideoMemberEventNames, MemberListUpdated>,
-    (params: CallFabricMemberListUpdatedParams) => void
+    (params: FabricMemberListUpdatedParams) => void
   > &
   Record<
-    DeprecatedCallFabricMemberUpdatableProps,
-    (params: DeprecatedCallFabricMemberHandlerParams) => void
+    DeprecatedFabricMemberUpdatableProps,
+    (params: DeprecatedFabricMemberHandlerParams) => void
   > &
   Record<
     MemberTalkingEventNames,
@@ -160,13 +160,26 @@ export type CallFabricRoomSessionObjectEventsHandlerMap = Record<
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallEnded, (stream: CallEndedEventParams) => void>
 
-// TODO: Remove this and use FabricRoomSessionEvents
-export type CallFabricRoomSessionObjectEvents = {
-  [k in keyof CallFabricRoomSessionObjectEventsHandlerMap]: CallFabricRoomSessionObjectEventsHandlerMap[k]
-}
-
 export type FabricRoomSessionEvents = {
-  [k in keyof CallFabricRoomSessionObjectEventsHandlerMap]: CallFabricRoomSessionObjectEventsHandlerMap[k]
+  [k in keyof FabricRoomSessionEventsHandlerMap]: FabricRoomSessionEventsHandlerMap[k]
 }
 
-export type FabricRoomSessionContract = CallFabricRoomSessionContract
+export type FabricRoomMethods = Pick<
+  RoomMethods,
+  | 'audioMute'
+  | 'audioUnmute'
+  | 'deaf'
+  | 'getLayouts'
+  | 'getMembers'
+  | 'lock'
+  | 'removeMember'
+  | 'setInputVolume'
+  | 'setLayout'
+  | 'setOutputVolume'
+  | 'setPositions'
+  | 'setRaisedHand'
+  | 'undeaf'
+  | 'unlock'
+  | 'videoMute'
+  | 'videoUnmute'
+>

@@ -3,24 +3,23 @@ import {
   EntityUpdated,
   OnlyFunctionProperties,
   OnlyStateProperties,
-  InternalCallFabricMemberEntity,
+  InternalFabricMemberEntity,
   VideoLayoutChangedEventParams,
   VideoPosition,
-  CallFabricLayoutChangedEventParams,
+  FabricLayoutChangedEventParams,
 } from '..'
 
 // TODO: Finish the Call Fabric room session contract.
 // Omit VideoRoomSessionContract properties which are not offered in CF SDK
 
 /**
- * Public Contract for a CallFabricRoomSession
+ * Public Contract for a FabricRoomSession
  */
-// TODO: Rename this to FabricRoomSessionContract
-export interface CallFabricRoomSessionContract {
+export interface FabricRoomSessionContract {
   /**
    * The `layout.changed` event based on the current room layout
    */
-  currentLayoutEvent: CallFabricLayoutChangedEventParams
+  currentLayoutEvent: FabricLayoutChangedEventParams
   /**
    * The layout returned from the `layout.changed` event based on the current room layout
    */
@@ -32,7 +31,7 @@ export interface CallFabricRoomSessionContract {
   /**
    * List of members that are part of this room session
    */
-  members: InternalCallFabricMemberEntity[]
+  members: InternalFabricMemberEntity[]
   /**
    * Starts the call via the WebRTC connection
    *
@@ -55,29 +54,29 @@ export interface CallFabricRoomSessionContract {
 }
 
 /**
- * CallFabricRoomSession properties
+ * FabricRoomSession properties
  */
-export type CallFabricRoomSessionEntity =
-  OnlyStateProperties<CallFabricRoomSessionContract>
+export type FabricRoomSessionEntity =
+  OnlyStateProperties<FabricRoomSessionContract>
 
 /**
- * CallFabricRoomSession methods
+ * FabricRoomSession methods
  */
-export type CallFabricRoomSessionMethods =
-  OnlyFunctionProperties<CallFabricRoomSessionContract>
+export type FabricRoomSessionMethods =
+  OnlyFunctionProperties<FabricRoomSessionContract>
 
 /**
- * CallFabricRoomSessionEntity plus `updated` field
+ * FabricRoomSessionEntity plus `updated` field
  */
-export type CallFabricRoomSessionEntityUpdated =
-  EntityUpdated<CallFabricRoomSessionEntity>
+export type FabricRoomSessionEntityUpdated =
+  EntityUpdated<FabricRoomSessionEntity>
 
 /**
- * CallFabricRoomSessionEntity for internal usage (converted to snake_case)
+ * FabricRoomSessionEntity for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalCallFabricRoomSessionEntity = {
+export type InternalFabricRoomSessionEntity = {
   [K in NonNullable<
-    keyof CallFabricRoomSessionEntity
-  > as CamelToSnakeCase<K>]: CallFabricRoomSessionEntity[K]
+    keyof FabricRoomSessionEntity
+  > as CamelToSnakeCase<K>]: FabricRoomSessionEntity[K]
 }

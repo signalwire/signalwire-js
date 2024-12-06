@@ -12,14 +12,14 @@ import { VideoRoomSessionConnection } from '../video/VideoRoomSession'
 import { createFabricRoomSessionObject } from './FabricRoomSession'
 
 export interface Client extends ClientContract<Client, ClientEvents> {
-  makeCallFabricObject: ClientAPI['makeCallFabricObject']
+  makeFabricObject: ClientAPI['makeFabricObject']
   execute: ClientAPI['execute']
   reauthenticate: ClientAPI['reauthenticate']
   runWorker: ClientAPI['runWorker']
 }
 
 export class ClientAPI extends BaseClient<ClientEvents> {
-  makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {
+  makeFabricObject(makeRoomOptions: MakeRoomOptions) {
     const {
       rootElement,
       applyLocalVideoOverlay = true,

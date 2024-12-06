@@ -1,5 +1,6 @@
 import {
   BaseComponentContract,
+  BaseConnectionContract,
   connect,
   EventEmitter,
   extendComponent,
@@ -8,11 +9,7 @@ import {
   VideoAuthorization,
   VideoLayoutChangedEventParams,
 } from '@signalwire/core'
-import {
-  BaseConnection,
-  BaseConnectionOptions,
-  getSpeakerById,
-} from '@signalwire/webrtc'
+import { BaseConnectionOptions, getSpeakerById } from '@signalwire/webrtc'
 import {
   BaseRoomSessionConnection,
   BaseRoomSessionOptions,
@@ -40,7 +37,7 @@ export interface VideoRoomSession
   extends VideoRoomSessionContract,
     RoomMethods,
     BaseRoomSessionContract,
-    BaseConnection<VideoRoomSessionEvents>,
+    BaseConnectionContract<VideoRoomSessionEvents>,
     BaseComponentContract {}
 
 export interface VideoRoomSessionOptions extends BaseRoomSessionOptions {}
@@ -127,7 +124,7 @@ export class VideoRoomSessionConnection
   }
 
   join() {
-    return super.invite<this>()
+    return super.invite<VideoRoomSessionContract>()
   }
 
   leave() {

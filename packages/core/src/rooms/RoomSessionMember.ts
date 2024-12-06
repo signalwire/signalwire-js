@@ -1,21 +1,21 @@
 import {
-  CallFabricMemberEventNames,
-  CallFabricMemberJoinedEventParams,
-  CallFabricMemberLeftEventParams,
-  CallFabricMemberTalkingEventParams,
-  CallFabricMemberUpdatedEventParams,
-} from '../types/callFabricMember'
-import { CallFabricMemberContract } from '../types/callFabricMember'
+  FabricMemberEventNames,
+  FabricMemberJoinedEventParams,
+  FabricMemberLeftEventParams,
+  FabricMemberTalkingEventParams,
+  FabricMemberUpdatedEventParams,
+} from '../types/fabricMember'
+import { FabricMemberContract } from '../types/fabricMember'
 import { BaseComponent } from '../BaseComponent'
 import { BaseComponentOptionsWithPayload } from '../utils/interfaces'
 import { connect } from '../redux'
 
-export interface RoomSessionMember extends CallFabricMemberContract {
+export interface RoomSessionMember extends FabricMemberContract {
   setPayload(payload: RoomSessionMemberEventParams): void
 }
 
 export type RoomSessionMemberEventsHandlerMapping = Record<
-  CallFabricMemberEventNames,
+  FabricMemberEventNames,
   (playback: RoomSessionMember) => void
 >
 
@@ -23,13 +23,16 @@ export interface RoomSessionMemberOptions
   extends BaseComponentOptionsWithPayload<RoomSessionMemberEventParams> {}
 
 export type RoomSessionMemberEventParams =
-  | CallFabricMemberJoinedEventParams
-  | CallFabricMemberLeftEventParams
-  | CallFabricMemberUpdatedEventParams
-  | CallFabricMemberTalkingEventParams
+  | FabricMemberJoinedEventParams
+  | FabricMemberLeftEventParams
+  | FabricMemberUpdatedEventParams
+  | FabricMemberTalkingEventParams
 
 // @TODO: Implement class using a contract
-export class RoomSessionMemberAPI extends BaseComponent<RoomSessionMemberEventsHandlerMapping> {
+export class RoomSessionMemberAPI
+  extends BaseComponent<RoomSessionMemberEventsHandlerMapping>
+  implements FabricMemberContract
+{
   private _payload: RoomSessionMemberEventParams
 
   constructor(options: RoomSessionMemberOptions) {

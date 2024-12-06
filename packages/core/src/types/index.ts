@@ -6,7 +6,7 @@ import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
-import { CallFabricEvent, ConversationEvent } from '..'
+import { FabricEvent, ConversationEvent } from '..'
 
 export interface SwEvent {
   event_channel: string
@@ -53,6 +53,8 @@ export interface BaseComponentContract {
 export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /** Unique id for this room session */
+  readonly id: string
   /** @internal The BaseConnection options  */
   readonly options: Record<any, any>
 
@@ -237,7 +239,7 @@ export type SwEventParams =
   | VoiceCallEvent
   | SwAuthorizationStateParams
   | ConversationEvent
-  | CallFabricEvent
+  | FabricEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =
@@ -253,8 +255,8 @@ export * from './pubSub'
 export * from './task'
 export * from './messaging'
 export * from './voice'
-export * from './callFabric'
-export * from './callFabricRoomSession'
-export * from './callFabricMember'
-export * from './callFabricLayout'
+export * from './fabric'
+export * from './fabricRoomSession'
+export * from './fabricMember'
+export * from './fabricLayout'
 export * from './conversation'

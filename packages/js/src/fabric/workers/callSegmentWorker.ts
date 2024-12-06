@@ -1,5 +1,5 @@
 import {
-  CallFabricAction,
+  FabricAction,
   CallJoinedEvent,
   MapToPubSubShape,
   SDKActions,
@@ -12,10 +12,10 @@ import {
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { videoMemberWorker } from '../../video/workers/videoMemberWorker'
-import { CallFabricWorkerParams } from './callFabricWorker'
+import { FabricWorkerParams } from './fabricWorker'
 
 export const callSegmentWorker = function* (
-  options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
+  options: FabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
 ): SagaIterator {
   const {
     action,
@@ -32,7 +32,7 @@ export const callSegmentWorker = function* (
     action,
   })
 
-  function* worker(action: CallFabricAction) {
+  function* worker(action: FabricAction) {
     const { type, payload } = action
 
     switch (type) {
@@ -93,7 +93,7 @@ export const callSegmentWorker = function* (
   }
 
   const isSegmentEvent = (action: SDKActions) => {
-    const cfAction = action as CallFabricAction
+    const cfAction = action as FabricAction
     const shouldWatch =
       cfAction.type.startsWith('call.') ||
       cfAction.type.startsWith('member.') ||
@@ -103,7 +103,7 @@ export const callSegmentWorker = function* (
   }
 
   while (true) {
-    const action: CallFabricAction = yield sagaEffects.take(
+    const action: FabricAction = yield sagaEffects.take(
       swEventChannel,
       isSegmentEvent
     )

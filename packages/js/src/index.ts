@@ -56,7 +56,7 @@ export * as Chat from './chat'
 export * as PubSub from './pubSub'
 
 /**
- * CallFabric namespace
+ * Call Fabric namespace
  */
 export * as Fabric from './fabric'
 export * from './fabric/types'
