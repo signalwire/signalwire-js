@@ -1,13 +1,13 @@
-import { createRoomObject, Room } from './createRoomObject'
-import { createClient } from './createClient'
-import { joinRoom } from './joinRoom'
-import { MakeRoomOptions } from './Client'
+import { createRoomObject, Room } from '../createRoomObject'
+import { createClient } from '../createClient'
+import { joinRoom } from '../joinRoom'
+import { MakeRoomOptions } from '../Client'
 import { RoomSession, RoomSessionOptions } from './RoomSession'
-import { RoomSessionDevice, RoomDevice } from './RoomSessionDevice'
+import { RoomSessionDevice, RoomDevice } from '../RoomSessionDevice'
 import {
   RoomSessionScreenShare,
   RoomScreenShare,
-} from './RoomSessionScreenShare'
+} from '../RoomSessionScreenShare'
 
 export {
   RoomSession,
@@ -34,9 +34,9 @@ export type {
   DeprecatedVideoMemberHandlerParams,
   VideoMemberHandlerParams,
   VideoMemberListUpdatedParams,
-} from './utils/interfaces'
+} from '../utils/interfaces'
 
-export type { CreateRoomObjectOptions } from './createRoomObject'
+export type { CreateRoomObjectOptions } from '../createRoomObject'
 
 export type {
   RoomSessionRecording,

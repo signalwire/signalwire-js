@@ -9,7 +9,7 @@ import {
 } from './utils/videoElement'
 import { OverlayMap, LocalVideoOverlay, addSDKPrefix } from './VideoOverlays'
 import { CallFabricRoomSession } from './fabric'
-import { RoomSession } from './RoomSession'
+import { RoomSession } from './video/RoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean

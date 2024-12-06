@@ -12,7 +12,7 @@ import { makeAudioElementSaga } from './features/mediaElements/mediaElementsSaga
 import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
-import type { RoomSession } from './RoomSession'
+import type { RoomSession } from './video/RoomSession'
 import { buildVideoElement } from './buildVideoElement'
 import {
   createVideoRoomSessionObject,
@@ -90,7 +90,6 @@ export class ClientAPI extends BaseClient<ClientEvents> {
               applyLocalVideoOverlay,
               applyMemberOverlay,
               mirrorLocalVideoOverlay,
-              // @ts-expect-error
               room,
               rootElement,
             })

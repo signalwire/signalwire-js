@@ -4,15 +4,15 @@ import {
   VideoAuthorization,
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
-import { createClient } from './createClient'
-import { checkMediaParams, getJoinMediaParams } from './utils/roomSession'
-import type { MakeRoomOptions } from './Client'
+import { createClient } from '../createClient'
+import { checkMediaParams, getJoinMediaParams } from '../utils/roomSession'
+import type { MakeRoomOptions } from '../Client'
 import type {
   BaseRoomSessionJoinParams,
   RoomSessionObjectEvents,
-} from './utils/interfaces'
-import { getStorage, sessionStorageManager } from './utils/storage'
-import { VideoRoomSession } from './video/VideoRoomSession'
+} from '../utils/interfaces'
+import { getStorage, sessionStorageManager } from '../utils/storage'
+import { VideoRoomSession } from './VideoRoomSession'
 
 /**
  * List of properties/methods the user shouldn't be able to
