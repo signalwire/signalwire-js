@@ -9,7 +9,6 @@ import {
   RoomSessionMember,
   VideoMemberEntity,
   VideoPosition,
-  VideoRoomSubscribedEventParams,
   BaseConnectionContract,
   FabricRoomSessionMethods,
   MemberCommandParams,
@@ -184,13 +183,10 @@ export class FabricRoomSessionConnection
   public async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once(
-          'room.subscribed',
-          ({ call_id }: VideoRoomSubscribedEventParams) => {
-            getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
-            resolve()
-          }
-        )
+        this.once('room.subscribed', (params) => {
+          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
+          resolve()
+        })
 
         this.once('destroy', () => {
           getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)

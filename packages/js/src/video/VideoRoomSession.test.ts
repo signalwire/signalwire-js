@@ -1,11 +1,14 @@
 import { actions, componentActions } from '@signalwire/core'
-import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
-import { configureFullStack, dispatchMockedRoomSubscribed } from './testUtils'
+import {
+  VideoRoomSession,
+  createVideoRoomSessionObject,
+} from './VideoRoomSession'
+import { configureFullStack, dispatchMockedRoomSubscribed } from '../testUtils'
 
 // TODO: Move these tests to VideoRoomSession
 describe.skip('Room Object', () => {
   let store: any
-  let room: BaseRoomSession
+  let room: VideoRoomSession
   let stack: ReturnType<typeof configureFullStack>
   const callId = 'call-id'
 
@@ -16,14 +19,14 @@ describe.skip('Room Object', () => {
     }
     // @ts-expect-error
     room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
-
+    // @ts-expect-error
     room.runRTCPeerWorkers(callId)
   }
 
   beforeEach(() => {
     stack = configureFullStack()
     store = stack.store
-    room = createBaseRoomSessionObject({
+    room = createVideoRoomSessionObject({
       store,
     })
     store.dispatch(
@@ -35,6 +38,7 @@ describe.skip('Room Object', () => {
         memberId: 'member-id',
       })
     )
+    // @ts-expect-error
     room.execute = jest.fn()
 
     setupRoomForTests()
@@ -382,7 +386,7 @@ describe.skip('Room Object', () => {
   describe('as event emitter', () => {
     it('should listen on the talking events', () => {
       const { store, session, emitter, destroy } = configureFullStack()
-      room = createBaseRoomSessionObject({
+      room = createVideoRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,
@@ -457,7 +461,7 @@ describe.skip('Room Object', () => {
       const memberId = '465ea212-c456-423b-9bcc-838c5e1b2851'
 
       const { store, session, emitter, destroy } = configureFullStack()
-      room = createBaseRoomSessionObject({
+      room = createVideoRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,
@@ -572,7 +576,7 @@ describe.skip('Room Object', () => {
         message: 'OK',
       })
 
-      room = createBaseRoomSessionObject({
+      room = createVideoRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,
@@ -620,7 +624,7 @@ describe.skip('Room Object', () => {
         message: 'OK',
       })
 
-      room = createBaseRoomSessionObject({
+      room = createVideoRoomSessionObject({
         store,
         // @ts-expect-error
         emitter,

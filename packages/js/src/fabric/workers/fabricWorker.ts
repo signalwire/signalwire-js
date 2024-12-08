@@ -20,7 +20,7 @@ export type FabricWorkerParams<T> =
 export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
   options
 ): SagaIterator {
-  getLogger().trace('FabricWorker started')
+  getLogger().trace('fabricWorker started')
   const {
     channels: { swEventChannel },
     instance: cfRoomSession,
@@ -95,4 +95,6 @@ export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
 
     yield sagaEffects.fork(worker, action)
   }
+
+  getLogger().trace('fabricWorker ended')
 }
