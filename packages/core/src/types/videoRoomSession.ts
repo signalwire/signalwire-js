@@ -77,7 +77,8 @@ export type InternalVideoRoomSessionEventNames =
 
 /**
  * Public Contract for a VideoRoomSession
- * List of all the properties we receive from the server for the room plus the video room methods.
+ * List of all the properties we receive from the server for the room session
+ * Plus the video room methods
  * We do not use this contract anywhere directly.
  */
 export interface VideoRoomSessionContract {

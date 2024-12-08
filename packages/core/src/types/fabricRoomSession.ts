@@ -8,37 +8,100 @@ import {
   Rooms,
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
+  SwEvent,
+  CallState,
+  CallPlay,
+  CallConnect,
 } from '..'
 
-// TODO: Finish the Call Fabric room session contract.
-// Omit VideoRoomSessionContract properties which are not offered in CF SDK
+/**
+ * Public event types
+ * Intentionally not declaring common events with voice APIs (or should we declare these types with a Fabric prefix?)
+ */
+export type CallJoined = 'call.joined'
+export type CallUpdated = 'call.updated'
+export type CallLeft = 'call.left'
+export type CallRoom = 'call.room'
+
+export type FabricCallConnectState = 'connecting' | 'connected'
+export type FabricCallState =
+  | 'created'
+  | 'ringing'
+  | 'answered'
+  | 'ending'
+  | 'ended'
+export type FabricCallDirection = 'inbound' | 'outbound'
+export type FabricCallPlayState = 'playing' | 'paused' | 'finished'
+
+interface CallDeviceCommonParams {
+  headers?: any[]
+}
+
+export interface CallDeviceWebRTCOrSIPParams extends CallDeviceCommonParams {
+  from: string
+  to: string
+}
+
+export interface CallDevicePhoneParams extends CallDeviceCommonParams {
+  from_number: string
+  to_number: string
+}
+
+export interface CallDeviceWebRTCOrSIP {
+  type: 'webrtc' | 'sip'
+  params: CallDeviceWebRTCOrSIPParams
+}
+
+export interface CallDevicePhone {
+  type: 'phone'
+  params: CallDevicePhoneParams
+}
+
+export type CallDevice = CallDeviceWebRTCOrSIP | CallDevicePhone
 
 /**
  * Public Contract for a FabricRoomSession
- * List of all the properties we receive from the server for the room plus the fabric room methods.
+ * List of all the properties we receive from the server for the room session
+ * Plus the fabric room methods
  * We do not use this contract anywhere directly.
  */
 export interface FabricRoomSessionContract {
-  /** Unique id for this room session */
-  id: string
-  /** Display name for this room. Defaults to the value of `name` */
-  displayName: string
-  /** Id of the room associated to this room session */
-  roomId: string
   /** Id of the room associated to this room session */
   roomSessionId: string
-  /** List of this room capabilities (operations) */
-  capabilities: string[] // TODO: Include more strong typed - Need a list of all capabilities from the server
+  /** Id of the room associated to this room session */
+  roomId: string
+  /** Unique id for this room session */
+  id: string
+  /** @internal */
+  eventChannel: string
   /** Name of this room */
   name: string
-  /** URL to the room preview. */
-  previewUrl?: string
   /** Current layout name used in the room. */
   layoutName: string
+  /** Display name for this room. Defaults to the value of `name` */
+  displayName: string
+  /** Whether recording is active */
+  recording: boolean
+  /** Whether streaming is active */
+  streaming: boolean
+  /** Prioritize the hand raise for the layout */
+  prioritizeHandraise: Boolean
+  /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
+  hideVideoMuted: boolean
   /** Whether the room is locked */
   locked: boolean
+  /** URL to the room preview. */
+  previewUrl: string
+  /** Metadata associated to this room session. */
+  meta: Record<string, unknown>
   /** List of members that are part of this room session */
   members: InternalFabricMemberEntity[]
+  /** List of active recordings in the room */
+  recordings?: [] // TODO: Finalize the type when the feature is ready
+  /** List of active streamings in the room */
+  streamings?: [] // TODO: Finalize the type when the feature is ready
+  /** List of active playbacks in the room */
+  playbacks?: [] // TODO: Finalize the type when the feature is ready
   /** Fields that have changed in this room session */
   updated?: Array<Exclude<keyof FabricRoomSessionContract, 'updated'>>
 
@@ -423,3 +486,154 @@ export type InternalFabricRoomSessionEntity = {
     keyof FabricRoomSessionEntity
   > as CamelToSnakeCase<K>]: FabricRoomSessionEntity[K]
 }
+
+/**
+ * ==========
+ * ==========
+ * Server-Side Events
+ * ==========
+ * ==========
+ */
+
+/**
+ * 'call.joined'
+ */
+export interface CallJoinedEventParams {
+  room_session: InternalFabricRoomSessionEntity
+  room_id: string
+  room_session_id: string
+  call_id: string
+  member_id: string
+  node_id?: string
+  origin_call_id: string
+  capabilities: string[] // TODO: More stronger type is required through server
+}
+
+export interface CallJoinedEvent extends SwEvent {
+  event_type: CallJoined
+  params: CallJoinedEventParams
+}
+
+/**
+ * call.updated
+ */
+export interface CallUpdatedEventParams {
+  room_session: InternalFabricRoomSessionEntity
+  room_id: string
+  room_session_id: string
+}
+
+export interface CallUpdatedEvent extends SwEvent {
+  event_type: CallUpdated
+  params: CallUpdatedEventParams
+}
+
+/**
+ * call.left
+ */
+export interface CallLeftEventParams {
+  room_session: InternalFabricRoomSessionEntity
+  room_id: string
+  room_session_id: string
+  call_id: string
+  member_id: string
+  origin_call_id: string
+  reason: string
+}
+
+export interface CallLeftEvent extends SwEvent {
+  event_type: CallLeft
+  params: CallLeftEventParams
+}
+
+/**
+ * call.state
+ */
+export interface CallStateEventParams {
+  call_id: string
+  node_id: string
+  segment_id: string
+  call_state: FabricCallState
+  direction: FabricCallDirection
+  device: CallDevice
+  start_time: number
+  answer_time: number
+  end_time: number
+  room_session_id: string
+}
+
+export interface CallStateEvent extends SwEvent {
+  event_type: CallState
+  params: CallStateEventParams
+}
+
+/**
+ * call.play
+ */
+export interface CallPlayEventParams {
+  control_id: string
+  call_id: string
+  node_id: string
+  state: FabricCallPlayState
+  room_session_id: string
+}
+
+export interface CallPlayEvent extends SwEvent {
+  event_type: CallPlay
+  params: CallPlayEventParams
+}
+
+/**
+ * call.connect
+ */
+export interface CallConnectEventParams {
+  connect_state: FabricCallConnectState
+  call_id: string
+  node_id: string
+  segment_id: string
+  room_session_id: string
+  peer?: {
+    call_id: string
+    node_id: string
+    device: CallDevice
+  }
+}
+
+export interface CallConnectEvent extends SwEvent {
+  event_type: CallConnect
+  params: CallConnectEventParams
+}
+
+/**
+ * call.room
+ */
+export interface CallRoomEventParams {
+  joined_status: string // TODO: Need ENUM from the server
+  call_id: string
+  node_id: string
+  segment_id: string
+  room_session_id: string
+}
+
+export interface CallRoomEvent extends SwEvent {
+  event_type: CallConnect
+  params: CallRoomEventParams
+}
+
+export type FabricRoomEvent =
+  | CallJoinedEvent
+  | CallUpdatedEvent
+  | CallLeftEvent
+  | CallStateEvent
+  | CallPlayEvent
+  | CallConnectEvent
+  | CallRoomEvent
+
+export type FabricRoomEventParams =
+  | CallJoinedEventParams
+  | CallUpdatedEventParams
+  | CallLeftEventParams
+  | CallStateEventParams
+  | CallPlayEventParams
+  | CallConnectEventParams
+  | CallRoomEventParams

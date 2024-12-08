@@ -23,17 +23,11 @@ import {
 export interface FabricMemberContract
   extends Pick<
     VideoMemberContract,
-    | 'id'
-    | 'roomId'
     | 'roomSessionId'
+    | 'roomId'
     | 'name'
-    | 'parentId'
     | 'type'
-    | 'requestedPosition'
-    | 'currentPosition'
-    | 'meta'
     | 'handraised'
-    | 'talking'
     | 'visible'
     | 'audioMuted'
     | 'videoMuted'
@@ -41,13 +35,22 @@ export interface FabricMemberContract
     | 'inputVolume'
     | 'outputVolume'
     | 'inputSensitivity'
+    | 'meta'
   > {
-  /** The ID of the call that this member is associated with */
-  callId?: string
-  /** The ID of the node that this member is associated with */
-  nodeId?: string
   /** Unique id of this member. */
-  memberId?: string
+  memberId: string
+  /** The ID of the call that this member is associated with */
+  callId: string
+  /** The ID of the node that this member is associated with */
+  nodeId: string
+  /** Fields that have changed for this member */
+  updated?: Array<Exclude<keyof FabricMemberContract, 'updated'>>
+  /** The data associated to this member subscriber */
+  subscriberData?: {
+    fabricSubscriberName: string
+    fabricAddressId: string
+    fabricSubscriberId: string
+  }
 }
 
 /**
