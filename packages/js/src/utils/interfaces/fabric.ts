@@ -1,30 +1,21 @@
 import {
-  BaseConnectionState,
   DeviceDisconnectedEventParams,
   DeviceUpdatedEventParams,
-  INTERNAL_MEMBER_UPDATABLE_PROPS,
   InternalFabricMemberEntity,
-  InternalFabricMemberUpdatableProps,
   InternalFabricMemberEntityUpdated,
   MemberListUpdated,
   MemberTalkingEventNames,
   MemberUpdated,
   MemberUpdatedEventNames,
-  RoomAudienceCount,
   RoomJoined,
   RoomLeft,
   RoomLeftEventParams,
-  RoomSessionPlayback,
-  RoomSessionRecording,
   RoomSessionStream,
   RoomSubscribed,
   RTCTrackEventName,
   VideoLayoutEventNames,
   VideoMemberEventNames,
   VideoMemberTalkingEventParams,
-  VideoPlaybackEventNames,
-  VideoRecordingEventNames,
-  VideoRoomAudienceCountEventParams,
   VideoRoomDeviceDisconnectedEventNames,
   VideoRoomDeviceEventNames,
   VideoRoomDeviceUpdatedEventNames,
@@ -44,10 +35,11 @@ import {
   CallEnded,
   JSONRPCMethod,
   FabricLayoutChangedEventParams,
+  BaseConnectionState,
+  VideoPosition,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { FabricRoomSession } from '../../fabric'
-import { RoomMethods } from './video'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -63,23 +55,6 @@ export interface RequestMemberParams {
   node_id: string
   member_id: string
   call_id: string
-}
-
-const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
-  INTERNAL_MEMBER_UPDATABLE_PROPS
-).map((key) => {
-  return `member.updated.${
-    key as keyof InternalFabricMemberUpdatableProps
-  }` as const
-})
-
-/** @deprecated */
-export type DeprecatedFabricMemberUpdatableProps =
-  (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
-/** @deprecated */
-
-export type DeprecatedFabricMemberHandlerParams = {
-  member: InternalFabricMemberEntity
 }
 
 export type FabricMemberHandlerParams = {
@@ -120,10 +95,6 @@ export type FabricRoomSessionEventsHandlerMap = Record<
     (params: FabricMemberListUpdatedParams) => void
   > &
   Record<
-    DeprecatedFabricMemberUpdatableProps,
-    (params: DeprecatedFabricMemberHandlerParams) => void
-  > &
-  Record<
     MemberTalkingEventNames,
     (params: VideoMemberTalkingEventParams) => void
   > &
@@ -145,13 +116,7 @@ export type FabricRoomSessionEventsHandlerMap = Record<
     VideoRoomDeviceDisconnectedEventNames,
     (params: DeviceDisconnectedEventParams) => void
   > &
-  Record<
-    RoomAudienceCount,
-    (params: VideoRoomAudienceCountEventParams) => void
-  > &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
-  Record<VideoPlaybackEventNames, (recording: RoomSessionPlayback) => void> &
   Record<BaseConnectionState, (params: FabricRoomSession) => void> &
   Record<VideoStreamEventNames, (stream: RoomSessionStream) => void> &
   Record<CallJoined, (stream: CallJoinedEventParams) => void> &
@@ -164,22 +129,30 @@ export type FabricRoomSessionEvents = {
   [k in keyof FabricRoomSessionEventsHandlerMap]: FabricRoomSessionEventsHandlerMap[k]
 }
 
-export type FabricRoomMethods = Pick<
-  RoomMethods,
-  | 'audioMute'
-  | 'audioUnmute'
-  | 'deaf'
-  | 'getLayouts'
-  | 'getMembers'
-  | 'lock'
-  | 'removeMember'
-  | 'setInputVolume'
-  | 'setLayout'
-  | 'setOutputVolume'
-  | 'setPositions'
-  | 'setRaisedHand'
-  | 'undeaf'
-  | 'unlock'
-  | 'videoMute'
-  | 'videoUnmute'
->
+export interface FabricRoomSessionContract {
+  /** The `layout.changed` event based on the current room layout */
+  currentLayoutEvent: FabricLayoutChangedEventParams
+  /** The layout returned from the `layout.changed` event based on the current room layout */
+  currentLayout: FabricLayoutChangedEventParams['layout']
+  /** The current position of the member returned from the `layout.changed` event */
+  currentPosition: VideoPosition | undefined
+  /**
+   * Starts the call via the WebRTC connection
+   *
+   * @example:
+   * ```typescript
+   * await call.start()
+   * ```
+   */
+  start(): Promise<void>
+  /**
+   * Hangs up the current call and disconnects the WebRTC connection.
+   * If an RTC Peer ID is passed, the method will only disconnect that Peer, otherwise all Peers will be destroyed
+   *
+   * @example:
+   * ```typescript
+   * await call.hangup()
+   * ```
+   */
+  hangup(id?: string): Promise<void>
+}

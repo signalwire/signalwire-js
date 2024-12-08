@@ -26,7 +26,7 @@ import {
   AddDeviceOptions,
   AddMicrophoneOptions,
   CreateScreenShareObjectOptions,
-  RoomMethods,
+  VideoRoomSessionMethods,
   VideoRoomSessionEvents,
   VideoRoomSessionContract,
   BaseRoomSessionContract,
@@ -35,7 +35,7 @@ import { audioSetSpeakerAction } from '../features/actions'
 
 export interface VideoRoomSession
   extends VideoRoomSessionContract,
-    RoomMethods,
+    VideoRoomSessionMethods,
     BaseRoomSessionContract,
     BaseConnectionContract<VideoRoomSessionEvents>,
     BaseComponentContract {}
@@ -270,7 +270,7 @@ export class VideoRoomSessionConnection
 
 export const VideoRoomSessionAPI = extendComponent<
   VideoRoomSessionConnection,
-  RoomMethods
+  VideoRoomSessionMethods
 >(VideoRoomSessionConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,

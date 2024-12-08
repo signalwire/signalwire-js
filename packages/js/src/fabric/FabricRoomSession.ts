@@ -10,8 +10,9 @@ import {
   VideoMemberEntity,
   VideoPosition,
   VideoRoomSubscribedEventParams,
-  FabricRoomSessionContract,
   BaseConnectionContract,
+  FabricRoomSessionMethods,
+  MemberCommandParams,
 } from '@signalwire/core'
 import {
   BaseRoomSessionConnection,
@@ -20,11 +21,11 @@ import {
 import {
   BaseRoomSessionContract,
   ExecuteMemberActionParams,
+  FabricRoomSessionContract,
   FabricRoomSessionEvents,
   MemberCommandWithValueParams,
   MemberCommandWithVolumeParams,
   RequestMemberParams,
-  RoomMethods,
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
@@ -32,8 +33,7 @@ import { fabricWorker } from './workers'
 
 export interface FabricRoomSession
   extends FabricRoomSessionContract,
-    // TODO: Use FabricRoomMethods
-    RoomMethods,
+    FabricRoomSessionMethods,
     BaseRoomSessionContract,
     BaseConnectionContract<FabricRoomSessionEvents>,
     BaseComponentContract {}
@@ -118,7 +118,7 @@ export class FabricRoomSessionConnection
   private executeAction<
     InputType,
     OutputType = InputType,
-    ParamsType extends Rooms.RoomMemberMethodParams = Rooms.RoomMemberMethodParams
+    ParamsType extends MemberCommandParams = MemberCommandParams
   >(
     params: ExecuteMemberActionParams,
     options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
@@ -204,7 +204,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async audioMute(params: Rooms.RoomMemberMethodParams) {
+  public async audioMute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteAudio?.off
@@ -219,7 +219,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async audioUnmute(params: Rooms.RoomMemberMethodParams) {
+  public async audioUnmute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteAudio?.on
@@ -234,7 +234,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async videoMute(params: Rooms.RoomMemberMethodParams) {
+  public async videoMute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteVideo?.off
@@ -249,7 +249,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async videoUnmute(params: Rooms.RoomMemberMethodParams) {
+  public async videoUnmute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteVideo?.on
@@ -264,7 +264,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async deaf(params: Rooms.RoomMemberMethodParams) {
+  public async deaf(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.deaf?.on
@@ -278,7 +278,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async undeaf(params: Rooms.RoomMemberMethodParams) {
+  public async undeaf(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.deaf?.off
@@ -318,7 +318,7 @@ export class FabricRoomSessionConnection
     )
   }
 
-  public async removeMember(params: Required<Rooms.RoomMemberMethodParams>) {
+  public async removeMember(params: Required<MemberCommandParams>) {
     if (!this.capabilities.member?.remove) {
       throw Error('Missing setLayout capability')
     }

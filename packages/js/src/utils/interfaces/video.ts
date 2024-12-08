@@ -336,7 +336,7 @@ interface RoomMemberSelfMethodsInterface {
  * forces TS checking while Object.defineProperties allow us
  * flexibility across different objects.
  */
-export interface RoomMethods
+export interface VideoRoomSessionMethods
   extends OnlyFunctionProperties<CoreVideoRoomSessionContract> {
   /** @deprecated Use {@link setVideoMuted} instead */
   hideVideoMuted(): Rooms.HideVideoMuted
@@ -348,17 +348,11 @@ export interface VideoRoomSessionContract {
   deviceList: RoomSessionDevice[]
   interactivityMode: VideoAuthorization['join_as']
   permissions: VideoAuthorization['scopes']
-  /**
-   * The `layout.changed` event based on the current room layout
-   */
+  /** The `layout.changed` event based on the current room layout */
   currentLayoutEvent: VideoLayoutChangedEventParams
-  /**
-   * The layout returned from the `layout.changed` event based on the current room layout
-   */
+  /** The layout returned from the `layout.changed` event based on the current room layout */
   currentLayout: VideoLayoutChangedEventParams['layout']
-  /**
-   * The current position of the member returned from the `layout.changed` event
-   */
+  /** The current position of the member returned from the `layout.changed` event */
   currentPosition: VideoPosition | undefined
   /**
    * Joins the room session.

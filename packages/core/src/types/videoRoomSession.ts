@@ -77,6 +77,8 @@ export type InternalVideoRoomSessionEventNames =
 
 /**
  * Public Contract for a VideoRoomSession
+ * List of all the properties we receive from the server for the room plus the video room methods.
+ * We do not use this contract anywhere directly.
  */
 export interface VideoRoomSessionContract {
   /** Unique id for this room session */
@@ -757,7 +759,37 @@ export interface VideoRoomSessionContract {
    * ```
    */
   startStream(params: Rooms.StartStreamParams): Promise<Rooms.RoomSessionStream>
+  /**
+   * Lock the room
+   *
+   * @permissions
+   *  - `room.lock`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.lock()
+   * ```
+   */
   lock(): Rooms.Lock
+  /**
+   * Unlock the room
+   *
+   * @permissions
+   *  - `room.unlock`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.lock()
+   * ```
+   */
   unlock(): Rooms.Unlock
   /**
    * Set the priority of members hand raise

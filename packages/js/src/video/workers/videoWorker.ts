@@ -82,7 +82,7 @@ export const videoWorker: SDKWorker<VideoRoomSessionConnection> = function* (
       }
       case 'video.layout.changed': {
         // Upsert the layout event which is needed for buildVideoElement
-        roomSession.lastLayoutEvent = action.payload
+        roomSession.currentLayoutEvent = action.payload
         break
       }
       default:

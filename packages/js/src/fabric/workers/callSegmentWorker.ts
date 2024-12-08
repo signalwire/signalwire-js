@@ -13,6 +13,7 @@ import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { videoMemberWorker } from '../../video/workers/videoMemberWorker'
 import { FabricWorkerParams } from './fabricWorker'
+import { VideoRoomSessionEvents } from '../../utils/interfaces'
 
 export const callSegmentWorker = function* (
   options: FabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
@@ -45,11 +46,13 @@ export const callSegmentWorker = function* (
           action,
         })
         break
+      // FIXME: Verify if we even have these events?
+      // It seems we only have call.joined, call.updated, call.left and maybe call.state
       case 'call.started':
       case 'call.updated':
       case 'call.ended':
         const suffix = type.split('.')[1]
-        const newEventName = `room.${suffix}` as VideoRoomSessionEventNames
+        const newEventName = `room.${suffix}`
         cfRoomSession.emit(newEventName, payload)
         cfRoomSession.emit(type, payload)
         break
