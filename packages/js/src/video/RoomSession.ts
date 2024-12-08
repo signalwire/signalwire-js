@@ -237,6 +237,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
            * Note: params.sendAudio: `true` will override audio: `false` so
            * we're using `||` instead of `??` for that reason.
            */
+          // @ts-expect-error
           room.updateMediaOptions({
             audio: mediaOptions.mustSendAudio ? audio || true : false,
             video: mediaOptions.mustSendVideo ? video || true : false,

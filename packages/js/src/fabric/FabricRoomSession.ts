@@ -6,7 +6,6 @@ import {
   FabricLayoutChangedEventParams,
   ExecuteExtendedOptions,
   Rooms,
-  RoomSessionMember,
   VideoMemberEntity,
   VideoPosition,
   BaseConnectionContract,
@@ -29,6 +28,7 @@ import {
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { fabricWorker } from './workers'
+import { FabricRoomSessionMember } from './FabricRoomSessionMember'
 
 export interface FabricRoomSession
   extends FabricRoomSessionContract,
@@ -44,9 +44,9 @@ export class FabricRoomSessionConnection
   implements FabricRoomSessionContract
 {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
-  private _self?: RoomSessionMember
+  private _self?: FabricRoomSessionMember
   // this is "the member" on the last/active call segment
-  private _member?: RoomSessionMember
+  private _member?: FabricRoomSessionMember
   private _currentLayoutEvent: FabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities: CallCapabilities = {}
@@ -87,19 +87,19 @@ export class FabricRoomSessionConnection
     this._capabilities = capabilities
   }
 
-  get selfMember(): RoomSessionMember | undefined {
+  get selfMember(): FabricRoomSessionMember | undefined {
     return this._self
   }
 
-  set selfMember(member: RoomSessionMember | undefined) {
+  set selfMember(member: FabricRoomSessionMember | undefined) {
     this._self = member
   }
 
-  set member(member: RoomSessionMember) {
+  set member(member: FabricRoomSessionMember) {
     this._member = member
   }
 
-  get member(): RoomSessionMember {
+  get member(): FabricRoomSessionMember {
     return this._member!
   }
 
@@ -125,7 +125,7 @@ export class FabricRoomSessionConnection
     const { method, channel, memberId, extraParams = {} } = params
 
     const targetMember = memberId
-      ? this.instanceMap.get<RoomSessionMember>(memberId)
+      ? this.instanceMap.get<FabricRoomSessionMember>(memberId)
       : this.member
     if (!targetMember) throw new Error('No target param found to execute')
 
@@ -440,7 +440,7 @@ export class FabricRoomSessionConnection
       const targetMember =
         key === 'self'
           ? this.member
-          : this.instanceMap.get<RoomSessionMember>(key)
+          : this.instanceMap.get<FabricRoomSessionMember>(key)
 
       if (targetMember) {
         targets.push({

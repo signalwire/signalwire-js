@@ -204,7 +204,6 @@ export const memberListUpdatedWorker: SDKWorker<VideoRoomSession> =
       return
     }
 
-    // @ts-expect-error
     const { cleanup } = initMemberListSubscriptions(instance, subscriptions)
 
     yield sagaEffects.fork(membersListUpdatedWatcher, {

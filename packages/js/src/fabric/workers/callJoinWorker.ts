@@ -3,7 +3,6 @@ import {
   SagaIterator,
   CallJoinedEvent,
   sagaEffects,
-  RoomSessionMember,
   MemberPosition,
   InternalMemberUpdatedEventNames,
   mapCapabilityPayload,
@@ -41,10 +40,10 @@ export const callJoinWorker = function* (
         room_session_id: payload.room_session_id,
       })
     }
-    set<RoomSessionMember>(member.member_id, memberInstance)
+    set<FabricRoomSessionMember>(member.member_id, memberInstance)
   })
 
-  cfRoomSession.member = get<RoomSessionMember>(payload.member_id)
+  cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
   cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities || [])
 
   cfRoomSession.runWorker('memberPositionWorker', {

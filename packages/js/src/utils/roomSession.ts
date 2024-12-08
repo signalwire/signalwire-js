@@ -1,10 +1,6 @@
 import { getLogger } from '@signalwire/core'
 import type { VideoAuthorization } from '@signalwire/core'
 import type { BaseRoomSessionJoinParams } from './interfaces'
-import { FabricRoomSession } from '../fabric'
-import { VideoRoomSession } from '../video'
-import { FabricRoomSessionConnection } from '../fabric/FabricRoomSession'
-import { VideoRoomSessionConnection } from '../video/VideoRoomSession'
 
 type GetJoinMediaParamsOptions = BaseRoomSessionJoinParams & {
   authState: VideoAuthorization
@@ -76,16 +72,4 @@ export const checkMediaParams = (
 ) => {
   // At least one value must be true
   return Object.values(options).some(Boolean)
-}
-
-export const isFabricRoomSession = (
-  room: FabricRoomSession | VideoRoomSession
-): room is FabricRoomSession => {
-  return room instanceof FabricRoomSessionConnection
-}
-
-export const isVideoRoomSession = (
-  room: FabricRoomSession | VideoRoomSession
-): room is VideoRoomSession => {
-  return room instanceof VideoRoomSessionConnection
 }

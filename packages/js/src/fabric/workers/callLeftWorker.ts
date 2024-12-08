@@ -1,11 +1,9 @@
-import {
-  getLogger,
-  SagaIterator,
-  CallLeftEvent,
-  RoomSessionMember,
-} from '@signalwire/core'
+import { getLogger, SagaIterator, CallLeftEvent } from '@signalwire/core'
 import { FabricWorkerParams } from './fabricWorker'
-import { FabricRoomSessionMemberAPI } from '../FabricRoomSessionMember'
+import {
+  FabricRoomSessionMember,
+  FabricRoomSessionMemberAPI,
+} from '../FabricRoomSessionMember'
 
 export const callLeftWorker = function* (
   options: FabricWorkerParams<CallLeftEvent>
@@ -21,7 +19,7 @@ export const callLeftWorker = function* (
   const { room_session_id } = payload
 
   // Remove all the member instance where roomSessionId matches
-  instanceMap.getAll<RoomSessionMember>().forEach(([key, obj]) => {
+  instanceMap.getAll<FabricRoomSessionMember>().forEach(([key, obj]) => {
     if (
       obj instanceof FabricRoomSessionMemberAPI &&
       obj.roomSessionId === room_session_id

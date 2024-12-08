@@ -12,10 +12,15 @@ import {
   setVideoMediaTrack,
   waitForVideoReady,
 } from './utils/videoElement'
-import { OverlayMap, LocalVideoOverlay, addSDKPrefix } from './VideoOverlays'
+import {
+  OverlayMap,
+  LocalVideoOverlay,
+  addSDKPrefix,
+  isFabricRoomSession,
+  isVideoRoomSession,
+} from './VideoOverlays'
 import { FabricRoomSession } from './fabric'
 import { VideoRoomSession } from './video'
-import { isFabricRoomSession, isVideoRoomSession } from './utils/roomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean

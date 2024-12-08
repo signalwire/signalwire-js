@@ -17,6 +17,8 @@ import {
 } from '@signalwire/core'
 
 export interface FabricRoomSessionMember extends FabricMemberContract {
+  /** Unique id of this member. */
+  id: string
   setPayload(payload: FabricMemberEventParams): void
 }
 

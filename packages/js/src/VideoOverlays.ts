@@ -1,8 +1,9 @@
+import { FabricMemberUpdatedEventParams, getLogger } from '@signalwire/core'
 import { VideoRoomSession } from './video'
 import { FabricRoomSession } from './fabric'
-import { FabricMemberUpdatedEventParams, getLogger } from '@signalwire/core'
-import { isFabricRoomSession, isVideoRoomSession } from './utils/roomSession'
 import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
+import { FabricRoomSessionConnection } from './fabric/FabricRoomSession'
+import { VideoRoomSessionConnection } from './video/VideoRoomSession'
 
 export const SDK_PREFIX = 'sw-sdk-'
 export const addSDKPrefix = (id: string) => {
@@ -171,4 +172,16 @@ export class LocalVideoOverlay extends UserOverlay {
     videoEl.style.webkitTransform = mirror ? 'scale(-1, 1)' : 'scale(1, 1)'
     this._mirrored = mirror
   }
+}
+
+export const isFabricRoomSession = (
+  room: FabricRoomSession | VideoRoomSession
+): room is FabricRoomSession => {
+  return room instanceof FabricRoomSessionConnection
+}
+
+export const isVideoRoomSession = (
+  room: FabricRoomSession | VideoRoomSession
+): room is VideoRoomSession => {
+  return room instanceof VideoRoomSessionConnection
 }
