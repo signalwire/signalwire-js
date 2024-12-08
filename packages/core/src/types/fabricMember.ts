@@ -35,6 +35,7 @@ export interface FabricMemberContract
     | 'inputSensitivity'
     | 'meta'
     | 'talking'
+    | 'currentPosition'
   > {
   /** Unique id of this member. */
   memberId: string
@@ -205,3 +206,8 @@ export type FabricMemberEventParams =
   | FabricMemberLeftEventParams
   | FabricMemberUpdatedEventParams
   | FabricMemberTalkingEventParams
+
+export type FabricMemberEventParamsWithoutTalking =
+  | FabricMemberJoinedEventParams
+  | FabricMemberLeftEventParams
+  | FabricMemberUpdatedEventParams

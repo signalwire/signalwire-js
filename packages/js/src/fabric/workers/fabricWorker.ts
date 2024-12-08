@@ -4,12 +4,12 @@ import {
   getLogger,
   sagaEffects,
   SDKWorkerParams,
-  Rooms,
   SDKActions,
   FabricAction,
 } from '@signalwire/core'
 import { FabricRoomSessionConnection } from '../FabricRoomSession'
 import { callSegmentWorker } from './callSegmentWorker'
+import { createFabricRoomSessionMemberObject } from '../FabricRoomSessionMember'
 
 export type FabricWorkerParams<T> =
   SDKWorkerParams<FabricRoomSessionConnection> & {
@@ -35,15 +35,12 @@ export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
         // we need to make sure we update the `cfRoomSession.selfMember`
         // in this worker or have a race condition.
         if (!cfRoomSession.selfMember) {
-          const memberInstance = Rooms.createRoomSessionMemberObject({
+          const memberInstance = createFabricRoomSessionMemberObject({
             store: cfRoomSession.store,
             payload: {
-              call_id: action.payload.call_id,
-              member_id: action.payload.member_id,
               member: action.payload.room_session.members.find(
                 (m) => m.member_id === action.payload.member_id
               )!,
-              node_id: action.payload.node_id,
               room_id: action.payload.room_id,
               room_session_id: action.payload.room_session_id,
             },

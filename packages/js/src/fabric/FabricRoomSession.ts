@@ -13,7 +13,6 @@ import {
   BaseConnectionContract,
   FabricRoomSessionMethods,
   MemberCommandParams,
-  validateEventsToSubscribe,
 } from '@signalwire/core'
 import {
   BaseRoomSessionConnection,
