@@ -1,3 +1,4 @@
+import { JSDOM } from 'jsdom'
 import { actions } from '@signalwire/core'
 import {
   configureFullStack,
@@ -5,20 +6,19 @@ import {
   dispatchMockedRoomSubscribed,
 } from './testUtils'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
-import {
-  CallFabricRoomSession,
-  createCallFabricRoomSessionObject,
-} from './fabric/CallFabricRoomSession'
-import { JSDOM } from 'jsdom'
 import { addOverlayPrefix, SDK_PREFIX } from './VideoOverlays'
 import {
-  createBaseRoomSessionObject,
+  FabricRoomSession,
+  createFabricRoomSessionObject,
+} from './fabric/FabricRoomSession'
+import {
+  createVideoRoomSessionObject,
   VideoRoomSession,
-} from './BaseRoomSession'
+} from './video/VideoRoomSession'
 
 describe('buildVideoElement', () => {
-  describe('with CallFabricRoomSession', () => {
-    let room: CallFabricRoomSession
+  describe('with FabricRoomSession', () => {
+    let room: FabricRoomSession
     let stack: ReturnType<typeof configureFullStack>
     let store: any
     let jsdom: JSDOM
@@ -39,7 +39,7 @@ describe('buildVideoElement', () => {
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store
-      room = createCallFabricRoomSessionObject({
+      room = createFabricRoomSessionObject({
         store,
         // @ts-expect-error
         emitter: stack.emitter,
@@ -507,7 +507,7 @@ describe('buildVideoElement', () => {
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store
-      room = createBaseRoomSessionObject({
+      room = createVideoRoomSessionObject({
         store,
         // @ts-expect-error
         emitter: stack.emitter,
