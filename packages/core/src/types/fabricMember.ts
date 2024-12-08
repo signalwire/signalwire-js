@@ -1,21 +1,19 @@
+import { SwEvent } from '.'
 import {
   CamelToSnakeCase,
   EntityUpdated,
+  OnlyFunctionProperties,
+  OnlyStateProperties,
+} from './utils'
+import {
   MemberJoined,
   MemberLeft,
   MemberListUpdated,
   MemberTalking,
-  MemberTalkingEventNames,
   MemberUpdated,
   MemberUpdatedEventNames,
-  OnlyFunctionProperties,
-  OnlyStateProperties,
-  SwEvent,
   VideoMemberContract,
-} from '..'
-
-// TODO: Finish the Call Fabric member contract.
-// Omit VideoMemberContract properties which are not offered in CF SDK
+} from './videoMember'
 
 /**
  * Public Contract for a FabricMember
@@ -36,6 +34,7 @@ export interface FabricMemberContract
     | 'outputVolume'
     | 'inputSensitivity'
     | 'meta'
+    | 'talking'
   > {
   /** Unique id of this member. */
   memberId: string
@@ -59,13 +58,13 @@ export interface FabricMemberContract
  * `key`: `type`
  */
 const INTERNAL_MEMBER_UPDATABLE_PROPS = {
-  audio_muted: true,
-  video_muted: true,
+  audioMuted: true,
+  videoMuted: true,
   deaf: true,
   visible: true,
-  input_volume: 1,
-  output_volume: 1,
-  input_sensitivity: 1,
+  inputVolume: 1,
+  outputVolume: 1,
+  inputSensitivity: 1,
 }
 
 export const INTERNAL_CALL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
@@ -81,17 +80,6 @@ export type InternalFabricMemberUpdatableProps =
 
 export type InternalFabricMemberUpdatedEventNames =
   (typeof INTERNAL_CALL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
-
-/**
- * List of public events
- */
-export type FabricMemberEventNames =
-  | MemberJoined
-  | MemberLeft
-  | MemberUpdated
-  | MemberUpdatedEventNames
-  | MemberTalkingEventNames
-  | MemberListUpdated
 
 /**
  * FabricMember properties
@@ -131,14 +119,7 @@ export interface InternalFabricMemberUpdatedEvent extends SwEvent {
   params: FabricMemberUpdatedEventParams
 }
 
-export interface InternalFabricMemberTalkingEvent extends SwEvent {
-  event_type: MemberTalkingEventNames
-  params: FabricMemberTalkingEventParams
-}
-
-export type InternalFabricMemberEvent =
-  | InternalFabricMemberUpdatedEvent
-  | InternalFabricMemberTalkingEvent
+export type InternalFabricMemberEvent = InternalFabricMemberUpdatedEvent
 
 /**
  * ==========
@@ -149,15 +130,12 @@ export type InternalFabricMemberEvent =
  */
 
 /**
- * 'member.joined'
+ * member.joined
  */
 export interface FabricMemberJoinedEventParams {
-  call_id: string
-  member_id: string
-  node_id: string
-  room_session_id: string
-  room_id: string
   member: InternalFabricMemberEntity
+  room_id: string
+  room_session_id: string
 }
 
 export interface FabricMemberJoinedEvent extends SwEvent {
@@ -166,15 +144,12 @@ export interface FabricMemberJoinedEvent extends SwEvent {
 }
 
 /**
- * 'member.updated'
+ * member.updated
  */
 export interface FabricMemberUpdatedEventParams {
-  call_id: string
-  member_id: string
-  node_id: string
-  room_session_id: string
+  member: InternalFabricMemberEntity
   room_id: string
-  member: InternalFabricMemberEntityUpdated
+  room_session_id: string
 }
 
 export interface FabricMemberUpdatedEvent extends SwEvent {
@@ -183,15 +158,13 @@ export interface FabricMemberUpdatedEvent extends SwEvent {
 }
 
 /**
- * 'member.left'
+ * member.left
  */
 export interface FabricMemberLeftEventParams {
-  call_id: string
-  member_id: string
-  node_id: string
-  room_session_id: string
-  room_id: string
   member: InternalFabricMemberEntity
+  room_id: string
+  room_session_id: string
+  reason: string
 }
 
 export interface FabricMemberLeftEvent extends SwEvent {
@@ -200,21 +173,26 @@ export interface FabricMemberLeftEvent extends SwEvent {
 }
 
 /**
- * 'member.talking'
+ * member.talking
  */
 export interface FabricMemberTalkingEventParams {
-  call_id: string
-  member_id: string
-  node_id: string
-  room_session_id: string
   room_id: string
-  member: InternalFabricMemberEntity
+  room_session_id: string
+  member: Pick<InternalFabricMemberEntity, 'member_id' | 'talking' | 'node_id'>
 }
 
 export interface FabricMemberTalkingEvent extends SwEvent {
   event_type: MemberTalking
   params: FabricMemberTalkingEventParams
 }
+
+export type FabricMemberEventNames =
+  | MemberJoined
+  | MemberLeft
+  | MemberUpdated
+  | MemberTalking
+  | MemberUpdatedEventNames
+  | MemberListUpdated
 
 export type FabricMemberEvent =
   | FabricMemberJoinedEvent

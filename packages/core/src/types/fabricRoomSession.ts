@@ -620,6 +620,15 @@ export interface CallRoomEvent extends SwEvent {
   params: CallRoomEventParams
 }
 
+export type FabricRoomEventNames =
+  | CallJoined
+  | CallUpdated
+  | CallLeft
+  | CallState
+  | CallPlay
+  | CallConnect
+  | CallRoom
+
 export type FabricRoomEvent =
   | CallJoinedEvent
   | CallUpdatedEvent

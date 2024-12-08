@@ -1,4 +1,5 @@
-import { InternalVideoLayout, LayoutChanged, SwEvent } from '..'
+import { SwEvent } from '.'
+import { InternalVideoLayout, LayoutChanged } from './videoLayout'
 
 /**
  * ==========
@@ -9,14 +10,11 @@ import { InternalVideoLayout, LayoutChanged, SwEvent } from '..'
  */
 
 /**
- * 'layout.changed
+ * layout.changed
  */
 export interface FabricLayoutChangedEventParams {
-  call_id: string
-  member_id: string
-  node_id: string
-  room_session_id: string
   room_id: string
+  room_session_id: string
   layout: InternalVideoLayout
 }
 
@@ -24,6 +22,8 @@ export interface FabricLayoutChangedEvent extends SwEvent {
   event_type: LayoutChanged
   params: FabricLayoutChangedEventParams
 }
+
+export type FabricLayoutEventNames = LayoutChanged
 
 export type FabricLayoutEvent = FabricLayoutChangedEvent
 

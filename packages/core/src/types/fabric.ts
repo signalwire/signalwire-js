@@ -1,19 +1,23 @@
 import { MapToPubSubShape } from '../redux/interfaces'
-import { FabricLayoutEvent, FabricLayoutEventParams } from './fabricLayout'
-import { FabricMemberEvent, FabricMemberEventParams } from './fabricMember'
-import { FabricRoomEvent, FabricRoomEventParams } from './fabricRoomSession'
+import {
+  FabricLayoutEvent,
+  FabricLayoutEventNames,
+  FabricLayoutEventParams,
+} from './fabricLayout'
+import {
+  FabricMemberEvent,
+  FabricMemberEventNames,
+  FabricMemberEventParams,
+} from './fabricMember'
+import {
+  FabricRoomEvent,
+  FabricRoomEventNames,
+  FabricRoomEventParams,
+} from './fabricRoomSession'
 
-export type FabricEvent =
-  | FabricRoomEvent
-  | FabricMemberEvent
-  | FabricLayoutEvent
-
-export type FabricEventParams =
-  | FabricRoomEventParams
-  | FabricMemberEventParams
-  | FabricLayoutEventParams
-
-export type FabricAction = MapToPubSubShape<FabricEvent>
+export * from './fabricRoomSession'
+export * from './fabricMember'
+export * from './fabricLayout'
 
 interface CapabilityOnOffState {
   on?: true
@@ -44,3 +48,23 @@ export interface CallCapabilities {
   device?: true
   screenshare?: true
 }
+
+/**
+ * List of all call fabric events
+ */
+export type FabricEventNames =
+  | FabricRoomEventNames
+  | FabricMemberEventNames
+  | FabricLayoutEventNames
+
+export type FabricEvent =
+  | FabricRoomEvent
+  | FabricMemberEvent
+  | FabricLayoutEvent
+
+export type FabricEventParams =
+  | FabricRoomEventParams
+  | FabricMemberEventParams
+  | FabricLayoutEventParams
+
+export type FabricAction = MapToPubSubShape<FabricEvent>

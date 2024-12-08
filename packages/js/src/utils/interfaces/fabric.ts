@@ -27,16 +27,14 @@ import {
   CallJoinedEventParams,
   CallState,
   CallStateEventParams,
-  CallStarted,
-  CallStartedEventParams,
   CallUpdated,
   CallUpdatedEventParams,
-  CallEndedEventParams,
-  CallEnded,
+  CallLeft,
   JSONRPCMethod,
   FabricLayoutChangedEventParams,
   BaseConnectionState,
   VideoPosition,
+  CallLeftEventParams,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { FabricRoomSession } from '../../fabric'
@@ -120,10 +118,9 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   Record<BaseConnectionState, (params: FabricRoomSession) => void> &
   Record<VideoStreamEventNames, (stream: RoomSessionStream) => void> &
   Record<CallJoined, (stream: CallJoinedEventParams) => void> &
-  Record<CallState, (stream: CallStateEventParams) => void> &
-  Record<CallStarted, (stream: CallStartedEventParams) => void> &
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
-  Record<CallEnded, (stream: CallEndedEventParams) => void>
+  Record<CallLeft, (stream: CallLeftEventParams) => void> &
+  Record<CallState, (stream: CallStateEventParams) => void>
 
 export type FabricRoomSessionEvents = {
   [k in keyof FabricRoomSessionEventsHandlerMap]: FabricRoomSessionEventsHandlerMap[k]

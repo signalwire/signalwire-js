@@ -58,6 +58,8 @@ export type VideoPosition =
   | `reserved-${number}`
   | `standard-${number}`
   | 'off-canvas'
+  | 'playback'
+  | 'full-screen'
 
 /**
  * An object whose keys represent member IDs, and values are chosen from
