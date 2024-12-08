@@ -43,8 +43,6 @@ export interface FabricMemberContract
   callId: string
   /** The ID of the node that this member is associated with */
   nodeId: string
-  /** Fields that have changed for this member */
-  updated?: Array<Exclude<keyof FabricMemberContract, 'updated'>>
   /** The data associated to this member subscriber */
   subscriberData?: {
     fabricSubscriberName: string
@@ -148,7 +146,7 @@ export interface FabricMemberJoinedEvent extends SwEvent {
  * member.updated
  */
 export interface FabricMemberUpdatedEventParams {
-  member: InternalFabricMemberEntity
+  member: InternalFabricMemberEntityUpdated
   room_id: string
   room_session_id: string
 }
@@ -200,6 +198,11 @@ export type FabricMemberEvent =
   | FabricMemberLeftEvent
   | FabricMemberUpdatedEvent
   | FabricMemberTalkingEvent
+
+export type FabricMemberEventWithoutTalking =
+  | FabricMemberJoinedEvent
+  | FabricMemberLeftEvent
+  | FabricMemberUpdatedEvent
 
 export type FabricMemberEventParams =
   | FabricMemberJoinedEventParams

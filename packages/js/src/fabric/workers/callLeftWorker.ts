@@ -1,15 +1,14 @@
 import {
   getLogger,
   SagaIterator,
-  MapToPubSubShape,
   CallLeftEvent,
   RoomSessionMember,
-  Rooms,
 } from '@signalwire/core'
 import { FabricWorkerParams } from './fabricWorker'
+import { FabricRoomSessionMemberAPI } from '../FabricRoomSessionMember'
 
 export const callLeftWorker = function* (
-  options: FabricWorkerParams<MapToPubSubShape<CallLeftEvent>>
+  options: FabricWorkerParams<CallLeftEvent>
 ): SagaIterator {
   getLogger().trace('callLeftWorker started')
 
@@ -24,15 +23,15 @@ export const callLeftWorker = function* (
   // Remove all the member instance where roomSessionId matches
   instanceMap.getAll<RoomSessionMember>().forEach(([key, obj]) => {
     if (
-      obj instanceof Rooms.RoomSessionMemberAPI &&
+      obj instanceof FabricRoomSessionMemberAPI &&
       obj.roomSessionId === room_session_id
     ) {
       instanceMap.remove(key)
     }
   })
 
-  // @ts-expect-error
   cfRoomSession.emit('call.left', payload)
+  cfRoomSession.emit('room.left', payload)
 
   getLogger().trace('callLeftWorker ended')
 }

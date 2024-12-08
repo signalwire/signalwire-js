@@ -158,6 +158,7 @@ export const memberPositionWorker: SDKWorker<any> =
     }
 
     while (true) {
+      // TODO: Handle CallFabric member.* and layout.* events as well
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {
         const istargetEvent =
           action.type === 'video.member.updated' ||

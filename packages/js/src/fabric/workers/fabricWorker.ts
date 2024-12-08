@@ -8,19 +8,19 @@ import {
   FabricAction,
 } from '@signalwire/core'
 import { FabricRoomSessionConnection } from '../FabricRoomSession'
-import { callSegmentWorker } from './callSegmentWorker'
 import { createFabricRoomSessionMemberObject } from '../FabricRoomSessionMember'
+import { callSegmentWorker } from './callSegmentWorker'
+import { MapToPubSubShape } from 'packages/core/dist/core/src'
 
 export type FabricWorkerParams<T> =
   SDKWorkerParams<FabricRoomSessionConnection> & {
-    action: T
+    action: MapToPubSubShape<T>
   }
 
 export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
   options
 ): SagaIterator {
   getLogger().trace('FabricWorker started')
-
   const {
     channels: { swEventChannel },
     instance: cfRoomSession,
@@ -63,7 +63,7 @@ export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
   }
 
   let firstCallJoinedReceived = false
-  const isCallJoinedorCallStateEvent = (action: SDKActions) => {
+  const isFirstCallJoinedorCallStateEvent = (action: SDKActions) => {
     if (action.type === 'call.state') {
       return true
     }
@@ -90,7 +90,7 @@ export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
   while (true) {
     const action: FabricAction = yield sagaEffects.take(
       swEventChannel,
-      isCallJoinedorCallStateEvent
+      isFirstCallJoinedorCallStateEvent
     )
 
     yield sagaEffects.fork(worker, action)

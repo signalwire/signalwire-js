@@ -1,20 +1,22 @@
 import {
   getLogger,
   SagaIterator,
-  MapToPubSubShape,
   CallJoinedEvent,
   sagaEffects,
   RoomSessionMember,
-  Rooms,
   MemberPosition,
   InternalMemberUpdatedEventNames,
   mapCapabilityPayload,
 } from '@signalwire/core'
+import {
+  createFabricRoomSessionMemberObject,
+  FabricRoomSessionMember,
+} from '../FabricRoomSessionMember'
 import { FabricWorkerParams } from './fabricWorker'
-import { videoMemberWorker } from '../../video/workers/videoMemberWorker'
+import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callJoinWorker = function* (
-  options: FabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
+  options: FabricWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   getLogger().trace('callJoinWorker started')
   const { action, instanceMap, instance: cfRoomSession } = options
@@ -22,25 +24,19 @@ export const callJoinWorker = function* (
   const { get, set } = instanceMap
 
   payload.room_session.members?.forEach((member: any) => {
-    let memberInstance = get<RoomSessionMember>(member.member_id!)
+    let memberInstance = get<FabricRoomSessionMember>(member.member_id!)
     if (!memberInstance) {
-      memberInstance = Rooms.createRoomSessionMemberObject({
+      memberInstance = createFabricRoomSessionMemberObject({
         store: cfRoomSession.store,
         payload: {
-          call_id: payload.call_id,
-          member_id: payload.member_id,
           member: member,
-          node_id: payload.node_id,
           room_id: payload.room_id,
           room_session_id: payload.room_session_id,
         },
       })
     } else {
       memberInstance.setPayload({
-        call_id: payload.call_id,
-        member_id: payload.member_id,
         member: member,
-        node_id: payload.node_id,
         room_id: payload.room_id,
         room_session_id: payload.room_session_id,
       })
@@ -63,13 +59,15 @@ export const callJoinWorker = function* (
       subPayload
     ) {
       // @ts-expect-error
-      yield sagaEffects.fork(videoMemberWorker, {
+      yield sagaEffects.fork(fabricMemberWorker, {
         ...options,
         action: { type: subType, payload: subPayload },
       })
     },
   })
 
+  // FIXME: Capabilities type is incompatible.
+  // @ts-expect-error
   cfRoomSession.emit('call.joined', {
     ...payload,
     capabilities: cfRoomSession.capabilities,

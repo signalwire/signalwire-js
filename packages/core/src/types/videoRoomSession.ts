@@ -127,7 +127,7 @@ export interface VideoRoomSessionContract {
   /** List of active streams in the room session. */
   streams?: Rooms.RoomSessionStream[]
   /** Prioritize the hand raise for the layout */
-  prioritizeHandraise: Boolean
+  prioritizeHandraise: boolean
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio

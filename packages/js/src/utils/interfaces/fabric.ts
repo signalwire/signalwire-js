@@ -4,25 +4,15 @@ import {
   InternalFabricMemberEntity,
   InternalFabricMemberEntityUpdated,
   MemberListUpdated,
-  MemberTalkingEventNames,
   MemberUpdated,
   MemberUpdatedEventNames,
   RoomJoined,
   RoomLeft,
-  RoomLeftEventParams,
-  RoomSessionStream,
   RoomSubscribed,
   RTCTrackEventName,
   VideoLayoutEventNames,
-  VideoMemberEventNames,
-  VideoMemberTalkingEventParams,
   VideoRoomDeviceDisconnectedEventNames,
-  VideoRoomDeviceEventNames,
   VideoRoomDeviceUpdatedEventNames,
-  VideoRoomEventParams,
-  VideoRoomSessionEventNames,
-  VideoRoomSubscribedEventParams,
-  VideoStreamEventNames,
   CallJoined,
   CallJoinedEventParams,
   CallState,
@@ -35,6 +25,20 @@ import {
   BaseConnectionState,
   VideoPosition,
   CallLeftEventParams,
+  MemberTalking,
+  RoomUpdated,
+  FabricMemberTalkingEventParams,
+  MemberJoined,
+  FabricMemberJoinedEventParams,
+  FabricMemberUpdatedEventParams,
+  FabricMemberLeftEventParams,
+  MemberLeft,
+  CallPlay,
+  CallPlayEventParams,
+  CallConnect,
+  CallConnectEventParams,
+  CallRoom,
+  CallRoomEventParams,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { FabricRoomSession } from '../../fabric'
@@ -70,57 +74,38 @@ export type FabricMemberListUpdatedParams = {
 }
 
 export type FabricRoomSessionEventsHandlerMap = Record<
-  VideoRoomDeviceEventNames,
+  VideoRoomDeviceUpdatedEventNames,
   (params: DeviceUpdatedEventParams) => void
 > &
-  Record<
-    VideoLayoutEventNames,
-    (params: FabricLayoutChangedEventParams) => void
-  > &
-  Record<
-    Exclude<
-      VideoMemberEventNames,
-      MemberUpdated | MemberUpdatedEventNames | MemberListUpdated
-    >,
-    (params: FabricMemberHandlerParams) => void
-  > &
-  Record<
-    Extract<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
-    (params: FabricMemberUpdatedHandlerParams) => void
-  > &
-  Record<
-    Extract<VideoMemberEventNames, MemberListUpdated>,
-    (params: FabricMemberListUpdatedParams) => void
-  > &
-  Record<
-    MemberTalkingEventNames,
-    (params: VideoMemberTalkingEventParams) => void
-  > &
-  Record<
-    Exclude<VideoRoomSessionEventNames, RoomLeft | RoomJoined | RoomSubscribed>,
-    (params: VideoRoomEventParams) => void
-  > &
-  Record<
-    RoomJoined | RoomSubscribed,
-    (params: VideoRoomSubscribedEventParams) => void
-  > &
-  Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
-  Record<MediaEventNames, () => void> &
-  Record<
-    VideoRoomDeviceUpdatedEventNames,
-    (params: DeviceUpdatedEventParams) => void
-  > &
   Record<
     VideoRoomDeviceDisconnectedEventNames,
     (params: DeviceDisconnectedEventParams) => void
   > &
+  Record<MediaEventNames, () => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<BaseConnectionState, (params: FabricRoomSession) => void> &
-  Record<VideoStreamEventNames, (stream: RoomSessionStream) => void> &
   Record<CallJoined, (stream: CallJoinedEventParams) => void> &
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallLeft, (stream: CallLeftEventParams) => void> &
-  Record<CallState, (stream: CallStateEventParams) => void>
+  Record<CallState, (stream: CallStateEventParams) => void> &
+  Record<CallPlay, (stream: CallPlayEventParams) => void> &
+  Record<CallConnect, (stream: CallConnectEventParams) => void> &
+  Record<CallRoom, (stream: CallRoomEventParams) => void> &
+  Record<RoomJoined | RoomSubscribed, (params: CallJoinedEventParams) => void> &
+  Record<RoomUpdated, (params: CallUpdatedEventParams) => void> &
+  Record<RoomLeft, (params?: CallLeftEventParams) => void> &
+  Record<MemberJoined, (params: FabricMemberJoinedEventParams) => void> &
+  Record<
+    MemberUpdated | MemberUpdatedEventNames,
+    (params: FabricMemberUpdatedEventParams) => void
+  > &
+  Record<MemberListUpdated, (params: FabricMemberListUpdatedParams) => void> &
+  Record<MemberLeft, (params: FabricMemberLeftEventParams) => void> &
+  Record<MemberTalking, (params: FabricMemberTalkingEventParams) => void> &
+  Record<
+    VideoLayoutEventNames,
+    (params: FabricLayoutChangedEventParams) => void
+  >
 
 export type FabricRoomSessionEvents = {
   [k in keyof FabricRoomSessionEventsHandlerMap]: FabricRoomSessionEventsHandlerMap[k]

@@ -1,22 +1,18 @@
 import {
   FabricAction,
   CallJoinedEvent,
-  MapToPubSubShape,
   SDKActions,
   SagaIterator,
-  VideoMemberEventNames,
-  VideoRoomSessionEventNames,
   getLogger,
   sagaEffects,
 } from '@signalwire/core'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
-import { videoMemberWorker } from '../../video/workers/videoMemberWorker'
 import { FabricWorkerParams } from './fabricWorker'
-import { VideoRoomSessionEvents } from '../../utils/interfaces'
+import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callSegmentWorker = function* (
-  options: FabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
+  options: FabricWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   const {
     action,
@@ -38,7 +34,7 @@ export const callSegmentWorker = function* (
 
     switch (type) {
       case 'call.joined':
-        getLogger().warn('got a repeated call.joined event', action)
+        getLogger().warn('Got a repeated call.joined event', action)
         break
       case 'call.left':
         yield sagaEffects.fork(callLeftWorker, {
@@ -46,63 +42,52 @@ export const callSegmentWorker = function* (
           action,
         })
         break
-      // FIXME: Verify if we even have these events?
-      // It seems we only have call.joined, call.updated, call.left and maybe call.state
-      case 'call.started':
       case 'call.updated':
-      case 'call.ended':
-        const suffix = type.split('.')[1]
-        const newEventName = `room.${suffix}`
-        cfRoomSession.emit(newEventName, payload)
+        cfRoomSession.emit(type, payload)
+        cfRoomSession.emit('room.updated', payload)
+        break
+      case 'call.play':
         cfRoomSession.emit(type, payload)
         break
+      case 'call.connect':
+        cfRoomSession.emit(type, payload)
+        break
+      case 'call.room':
+        cfRoomSession.emit(type, payload)
+        break
+      // TODO: We might not need to listen for these events here because of {@link memberPositionWorker}
       case 'member.joined':
       case 'member.left':
       case 'member.updated':
       case 'member.talking': {
-        const updatedAction = {
-          ...action,
-          payload: {
-            ...action.payload,
-            id: action.payload.member_id,
-          },
-          type: `video.${type}` as VideoMemberEventNames,
-        }
-        // @ts-expect-error
-        yield sagaEffects.fork(videoMemberWorker, {
+        yield sagaEffects.fork(fabricMemberWorker, {
           ...options,
-          action: updatedAction,
+          action: action,
         })
-        // @ts-expect-error
-        yield sagaEffects.put(swEventChannel, updatedAction)
         break
       }
       case 'layout.changed': {
         // Upsert the layout event which is needed for rootElement
         cfRoomSession.currentLayoutEvent = action.payload
-        const updatedAction = {
-          ...action,
-          type: `video.${type}` as 'video.layout.changed',
-        }
-        // TODO stop send layout events to legacy workers
-        yield sagaEffects.put(swEventChannel, updatedAction)
         cfRoomSession.emit(type, payload)
         break
       }
-      default:
-        // @ts-expect-error
-        cfRoomSession.emit(type, payload)
+      default: {
+        getLogger().warn('Got an unknown fabric event', action)
+      }
     }
   }
 
   const isSegmentEvent = (action: SDKActions) => {
     const cfAction = action as FabricAction
-    const shouldWatch =
+    return (
       cfAction.type.startsWith('call.') ||
       cfAction.type.startsWith('member.') ||
       cfAction.type.startsWith('layout.')
+    )
 
-    return shouldWatch && segmentCallId === cfAction.payload.call_id
+    // FIXME: Many events do not have the call_id property
+    // return shouldWatch && segmentCallId === cfAction.payload.call_id
   }
 
   while (true) {

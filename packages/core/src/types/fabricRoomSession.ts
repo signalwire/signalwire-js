@@ -85,7 +85,7 @@ export interface FabricRoomSessionContract {
   /** Whether streaming is active */
   streaming: boolean
   /** Prioritize the hand raise for the layout */
-  prioritizeHandraise: Boolean
+  prioritizeHandraise: boolean
   /** Whether muted videos are shown in the room layout. See {@link setHideVideoMuted} */
   hideVideoMuted: boolean
   /** Whether the room is locked */
@@ -99,7 +99,7 @@ export interface FabricRoomSessionContract {
   /** List of active recordings in the room */
   recordings?: [] // TODO: Finalize the type when the feature is ready
   /** List of active streamings in the room */
-  streamings?: [] // TODO: Finalize the type when the feature is ready
+  streams?: [] // TODO: Finalize the type when the feature is ready
   /** List of active playbacks in the room */
   playbacks?: [] // TODO: Finalize the type when the feature is ready
   /** Fields that have changed in this room session */
@@ -616,7 +616,7 @@ export interface CallRoomEventParams {
 }
 
 export interface CallRoomEvent extends SwEvent {
-  event_type: CallConnect
+  event_type: CallRoom
   params: CallRoomEventParams
 }
 
