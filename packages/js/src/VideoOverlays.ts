@@ -1,6 +1,8 @@
-import { DeprecatedVideoMemberHandlerParams, RoomSession } from './video'
-import { CallFabricRoomSession } from './fabric/CallFabricRoomSession'
-import { getLogger } from '@signalwire/core'
+import { VideoRoomSession } from './video'
+import { FabricRoomSession } from './fabric'
+import { FabricMemberUpdatedEventParams, getLogger } from '@signalwire/core'
+import { isFabricRoomSession, isVideoRoomSession } from './utils/roomSession'
+import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
 
 export const SDK_PREFIX = 'sw-sdk-'
 export const addSDKPrefix = (id: string) => {
@@ -71,12 +73,12 @@ export class UserOverlay {
 interface LocalVideoOverlayOptions {
   id: string
   mirrorLocalVideoOverlay: boolean
-  room: CallFabricRoomSession | RoomSession
+  room: FabricRoomSession | VideoRoomSession
 }
 
 export class LocalVideoOverlay extends UserOverlay {
   private _mirrored: boolean
-  private _room: CallFabricRoomSession | RoomSession
+  private _room: FabricRoomSession | VideoRoomSession
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
@@ -97,30 +99,57 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
-    // @ts-expect-error
-    this._room.on('member.updated.video_muted', this.memberVideoMutedHandler)
+    if (isFabricRoomSession(this._room)) {
+      this._room.on(
+        'member.updated.videoMuted',
+        this.fabricMemberVideoMutedHandler
+      )
+    } else if (isVideoRoomSession(this._room)) {
+      this._room.on(
+        'member.updated.videoMuted',
+        this.videoMemberVideoMutedHandler
+      )
+    }
   }
 
   /** @internal */
   public detachListeners() {
-    // @ts-expect-error
-    this._room.off('member.updated.video_muted', this.memberVideoMutedHandler)
-  }
-
-  private memberVideoMutedHandler(params: DeprecatedVideoMemberHandlerParams) {
-    try {
-      const { member } = params
-      // @ts-expect-error
-      const memberId = member.id ?? member.member_id
-      if (memberId === this._room.memberId && 'video_muted' in member) {
-        member.video_muted ? this.hide() : this.show()
-      }
-    } catch (error) {
-      getLogger().error(
-        'Error handling video_muted in LocalVideoOverlay',
-        error
+    if (isFabricRoomSession(this._room)) {
+      this._room.off(
+        'member.updated.videoMuted',
+        this.fabricMemberVideoMutedHandler
+      )
+    } else if (isVideoRoomSession(this._room)) {
+      this._room.off(
+        'member.updated.videoMuted',
+        this.videoMemberVideoMutedHandler
       )
     }
+  }
+
+  private memberVideoMutedHandler(memberId: string, videoMuted: boolean) {
+    try {
+      if (memberId === this._room.memberId) {
+        videoMuted ? this.hide() : this.show()
+      }
+    } catch (error) {
+      getLogger().error('Error handling videoMuted in LocalVideoOverlay', error)
+    }
+  }
+
+  private fabricMemberVideoMutedHandler(
+    params: FabricMemberUpdatedEventParams
+  ) {
+    this.memberVideoMutedHandler(
+      params.member.member_id,
+      params.member.video_muted
+    )
+  }
+
+  private videoMemberVideoMutedHandler(
+    params: VideoMemberUpdatedHandlerParams
+  ) {
+    this.memberVideoMutedHandler(params.member.id, params.member.video_muted)
   }
 
   public setMediaStream(stream: MediaStream) {
