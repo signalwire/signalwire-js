@@ -1,20 +1,21 @@
 import {
   getLogger,
   SagaIterator,
-  MapToPubSubShape,
   CallJoinedEvent,
   sagaEffects,
-  RoomSessionMember,
-  Rooms,
   MemberPosition,
   InternalMemberUpdatedEventNames,
   mapCapabilityPayload,
 } from '@signalwire/core'
-import { CallFabricWorkerParams } from './callFabricWorker'
-import { videoMemberWorker } from '../../video/videoMemberWorker'
+import {
+  createFabricRoomSessionMemberObject,
+  FabricRoomSessionMember,
+} from '../FabricRoomSessionMember'
+import { FabricWorkerParams } from './fabricWorker'
+import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callJoinWorker = function* (
-  options: CallFabricWorkerParams<MapToPubSubShape<CallJoinedEvent>>
+  options: FabricWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   getLogger().trace('callJoinWorker started')
   const { action, instanceMap, instance: cfRoomSession } = options
@@ -22,30 +23,28 @@ export const callJoinWorker = function* (
   const { get, set } = instanceMap
 
   payload.room_session.members?.forEach((member: any) => {
-    let memberInstance = get<RoomSessionMember>(member.member_id!)
+    let memberInstance = get<FabricRoomSessionMember>(member.member_id!)
     if (!memberInstance) {
-      memberInstance = Rooms.createRoomSessionMemberObject({
+      memberInstance = createFabricRoomSessionMemberObject({
         store: cfRoomSession.store,
         payload: {
+          member: member,
           room_id: payload.room_id,
           room_session_id: payload.room_session_id,
-          member,
         },
       })
     } else {
       memberInstance.setPayload({
+        member: member,
         room_id: payload.room_id,
         room_session_id: payload.room_session_id,
-        member: member,
       })
     }
-    set<RoomSessionMember>(member.member_id, memberInstance)
+    set<FabricRoomSessionMember>(member.member_id, memberInstance)
   })
 
-  cfRoomSession.member = get<RoomSessionMember>(payload.member_id)
-  cfRoomSession.capabilities = mapCapabilityPayload(
-    payload.capabilities || []
-  )
+  cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
+  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities || [])
 
   cfRoomSession.runWorker('memberPositionWorker', {
     worker: MemberPosition.memberPositionWorker,
@@ -58,13 +57,15 @@ export const callJoinWorker = function* (
       // @ts-expect-error
       subPayload
     ) {
-      yield sagaEffects.fork(videoMemberWorker, {
+      // @ts-expect-error
+      yield sagaEffects.fork(fabricMemberWorker, {
         ...options,
         action: { type: subType, payload: subPayload },
       })
     },
   })
 
+  // FIXME: Capabilities type is incompatible.
   // @ts-expect-error
   cfRoomSession.emit('call.joined', {
     ...payload,

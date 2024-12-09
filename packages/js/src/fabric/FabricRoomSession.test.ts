@@ -1,14 +1,14 @@
 import { JSONRPCRequest, actions, componentActions } from '@signalwire/core'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
-  CallFabricRoomSession,
-  CallFabricRoomSessionConnection,
-  createCallFabricRoomSessionObject,
-} from './CallFabricRoomSession'
+  FabricRoomSession,
+  FabricRoomSessionConnection,
+  createFabricRoomSessionObject,
+} from './FabricRoomSession'
 
-describe('CallFabricRoomSession', () => {
+describe('FabricRoomSession', () => {
   let store: any
-  let room: CallFabricRoomSession & {
+  let room: FabricRoomSession & {
     execute: (params: any) => any
   }
   const callJoinedHandler = jest.fn()
@@ -32,7 +32,7 @@ describe('CallFabricRoomSession', () => {
     stack = configureFullStack()
     store = stack.store
     // @ts-expect-error
-    room = createCallFabricRoomSessionObject({
+    room = createFabricRoomSessionObject({
       store,
       // @ts-expect-error
       emitter: stack.emitter,
@@ -40,7 +40,7 @@ describe('CallFabricRoomSession', () => {
 
     //@ts-ignore
     room.on('call.joined', callJoinedHandler)
-    
+
     store.dispatch(
       componentActions.upsert({
         id: callId,
@@ -74,7 +74,7 @@ describe('CallFabricRoomSession', () => {
         'layout',
         'digit',
         'lock',
-      ]
+      ],
     })
     dispatchMockedCallJoined({
       session: stack.session,
@@ -95,7 +95,7 @@ describe('CallFabricRoomSession', () => {
         'layout',
         'digit',
         'lock',
-      ]
+      ],
     })
   })
 
@@ -104,7 +104,7 @@ describe('CallFabricRoomSession', () => {
     callJoinedHandler.mockReset()
   })
 
-  describe('should use CallFabricRoomSessionConnection implementation', () => {
+  describe('should use FabricRoomSessionConnection implementation', () => {
     const actionParams = {
       self: {
         call_id: 'call-id-1',
@@ -119,10 +119,7 @@ describe('CallFabricRoomSession', () => {
     }
 
     test('audioMute implementation', async () => {
-      const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
-        'audioMute'
-      )
+      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'audioMute')
       await room.audioMute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -139,7 +136,7 @@ describe('CallFabricRoomSession', () => {
 
     test('audioUnmute implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'audioUnmute'
       )
       await room.audioUnmute({ memberId: 'member-id-2' })
@@ -157,10 +154,7 @@ describe('CallFabricRoomSession', () => {
     })
 
     test('videoMute implementation', async () => {
-      const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
-        'videoMute'
-      )
+      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'videoMute')
       await room.videoMute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -177,7 +171,7 @@ describe('CallFabricRoomSession', () => {
 
     test('videoUnmute implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'videoUnmute'
       )
       await room.videoUnmute({ memberId: 'member-id-2' })
@@ -195,7 +189,7 @@ describe('CallFabricRoomSession', () => {
     })
 
     test('deaf implementation', async () => {
-      const spy = jest.spyOn(CallFabricRoomSessionConnection.prototype, 'deaf')
+      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'deaf')
       await room.deaf({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -210,10 +204,7 @@ describe('CallFabricRoomSession', () => {
     })
 
     test('undeaf implementation', async () => {
-      const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
-        'undeaf'
-      )
+      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'undeaf')
       await room.undeaf({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -229,7 +220,7 @@ describe('CallFabricRoomSession', () => {
 
     test('getLayouts implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'getLayouts'
       )
       await room.getLayouts()
@@ -247,7 +238,7 @@ describe('CallFabricRoomSession', () => {
 
     test('getMembers implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'getMembers'
       )
       await room.getMembers()
@@ -265,7 +256,7 @@ describe('CallFabricRoomSession', () => {
 
     test('removeMember implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'removeMember'
       )
       await room.removeMember({ memberId: 'member-id-1' })
@@ -287,10 +278,7 @@ describe('CallFabricRoomSession', () => {
     })
 
     test('setLayout implementation', async () => {
-      const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
-        'setLayout'
-      )
+      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'setLayout')
       await room.setLayout({ name: 'layout-1' })
       expect(spy).toHaveBeenCalledWith({ name: 'layout-1' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -307,7 +295,7 @@ describe('CallFabricRoomSession', () => {
 
     test('setInputVolume implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'setInputVolume'
       )
       await room.setInputVolume({ volume: 10 })
@@ -326,7 +314,7 @@ describe('CallFabricRoomSession', () => {
 
     test('setOutputVolume implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'setOutputVolume'
       )
       await room.setOutputVolume({ volume: 10 })
@@ -344,10 +332,7 @@ describe('CallFabricRoomSession', () => {
     })
 
     test('lock implementation', async () => {
-      const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
-        'lock'
-      )
+      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'lock')
       await room.lock()
       expect(spy).toHaveBeenCalledWith()
       expect(room.execute).toHaveBeenCalledWith(
@@ -362,10 +347,7 @@ describe('CallFabricRoomSession', () => {
     })
 
     test('unlock implementation', async () => {
-      const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
-        'unlock'
-      )
+      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'unlock')
       await room.unlock()
       expect(spy).toHaveBeenCalledWith()
       expect(room.execute).toHaveBeenCalledWith(
@@ -381,7 +363,7 @@ describe('CallFabricRoomSession', () => {
 
     test('setInputSensitivity implementation', async () => {
       const spy = jest.spyOn(
-        CallFabricRoomSessionConnection.prototype,
+        FabricRoomSessionConnection.prototype,
         'setInputSensitivity'
       )
       await room.setInputSensitivity({ value: 10 })
@@ -428,7 +410,7 @@ describe('CallFabricRoomSession', () => {
           'layout',
           'digit',
           'lock',
-        ]
+        ],
       })
 
       expect(callJoinedHandler).toHaveBeenCalledTimes(3)
@@ -446,16 +428,12 @@ describe('CallFabricRoomSession', () => {
   describe('Emit events', () => {
     it('should emit events in order', () => {
       let talking
-      let talkingStatus
 
-      room.on('member.talking.started', () => (talkingStatus = 'started'))
-      room.on('member.talking.ended', () => (talkingStatus = 'stoped'))
-      room.on(
-        'member.talking',
-        (payload: any) => (talking = payload.member.talking)
-      )
+      room.on('member.talking', (payload) => {
+        talking = payload.member.talking
+      })
 
-      const talkingTrue = {
+      const createTalkingEvent = (talking: boolean) => ({
         jsonrpc: '2.0',
         id: '2f260116-9447-4a16-a806-231137c2a111',
         method: 'signalwire.event',
@@ -470,63 +448,44 @@ describe('CallFabricRoomSession', () => {
             room_session_id: callId,
             member: {
               member_id: 'member-id-1',
-              talking: true,
+              talking: talking,
               node_id: '2c71e542-d639-4043-8fd9-6b8bb3c5e0ed@',
             },
           },
         },
-      }
-      const talkingFalse = {
-        jsonrpc: '2.0',
-        id: '2f260116-9447-4a16-a806-231137c2a111',
-        method: 'signalwire.event',
-        params: {
-          event_type: 'member.talking',
-          event_channel: [
-            'signalwire_cf91bf05-aaa1-4dcc-ad5c-04715fa70276_582e7ba1-a075-4893-8cef-b505cac633c6_9ba74bce-5b02-475c-b183-2b5a7f6cfa8b',
-          ],
-          timestamp: 1718299953114539,
-          params: {
-            room_id: 'b121ef92-2e47-400d-b742-2e2bd4356064',
-            room_session_id: callId,
-            member: {
-              member_id: 'member-id-1',
-              talking: false,
-              node_id: '2c71e542-d639-4043-8fd9-6b8bb3c5e0ed@',
-            },
-          },
-        },
-      }
+      })
+
+      const talkingTrue = createTalkingEvent(true)
+      const talkingFalse = createTalkingEvent(false)
 
       stack.session.dispatch(
         actions.socketMessageAction(talkingFalse as JSONRPCRequest)
       )
+
+      expect(talking).toBeFalsy()
+
       stack.session.dispatch(
         actions.socketMessageAction(talkingTrue as JSONRPCRequest)
       )
 
-      expect(talking).toBeDefined()
-      expect(talkingStatus).toBeDefined()
       expect(talking).toBeTruthy()
-      expect(talkingStatus).toEqual('started')
     })
   })
 
   describe('should throw if capability is missing', () => {
-
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store
       // @ts-expect-error
-      room = createCallFabricRoomSessionObject({
+      room = createFabricRoomSessionObject({
         store,
         // @ts-expect-error
         emitter: stack.emitter,
       })
-  
+
       //@ts-ignore
       room.on('call.joined', callJoinedHandler)
-      
+
       store.dispatch(
         componentActions.upsert({
           id: callId,
@@ -537,9 +496,9 @@ describe('CallFabricRoomSession', () => {
         })
       )
       room.execute = jest.fn()
-  
+
       setupRoomForTests()
-  
+
       // mock a call.joined event
       dispatchMockedCallJoined({
         session: stack.session,
@@ -549,7 +508,7 @@ describe('CallFabricRoomSession', () => {
         memberId: 'member-id-1',
         nodeId: 'node-id-1',
         originCallId: callId,
-        capabilities: []
+        capabilities: [],
       })
       dispatchMockedCallJoined({
         session: stack.session,
@@ -559,7 +518,7 @@ describe('CallFabricRoomSession', () => {
         memberId: 'member-id-2',
         nodeId: 'node-id-2',
         originCallId: callId,
-        capabilities: []
+        capabilities: [],
       })
     })
 
@@ -568,46 +527,64 @@ describe('CallFabricRoomSession', () => {
       callJoinedHandler.mockReset()
     })
 
-
     test('audioMute implementation', async () => {
-      await expect(room.audioMute({ memberId: 'member-id-2' })).rejects.toThrow(/^Missing/)
+      await expect(room.audioMute({ memberId: 'member-id-2' })).rejects.toThrow(
+        /^Missing/
+      )
     })
 
     test('audioUnmute implementation', async () => {
-      await expect(room.audioUnmute({ memberId: 'member-id-2' })).rejects.toThrow(/^Missing/)
+      await expect(
+        room.audioUnmute({ memberId: 'member-id-2' })
+      ).rejects.toThrow(/^Missing/)
     })
 
     test('videoMute implementation', async () => {
-      await expect(room.videoMute({ memberId: 'member-id-2' })).rejects.toThrow(/^Missing/)   
+      await expect(room.videoMute({ memberId: 'member-id-2' })).rejects.toThrow(
+        /^Missing/
+      )
     })
 
     test('videoUnmute implementation', async () => {
-      await expect(room.videoUnmute({ memberId: 'member-id-2' })).rejects.toThrow(/^Missing/)
+      await expect(
+        room.videoUnmute({ memberId: 'member-id-2' })
+      ).rejects.toThrow(/^Missing/)
     })
 
     test('deaf implementation', async () => {
-      await expect(room.deaf({ memberId: 'member-id-2' })).rejects.toThrow(/^Missing/)
+      await expect(room.deaf({ memberId: 'member-id-2' })).rejects.toThrow(
+        /^Missing/
+      )
     })
 
     test('undeaf implementation', async () => {
-      await expect(room.undeaf({ memberId: 'member-id-2' })).rejects.toThrow(/^Missing/)
+      await expect(room.undeaf({ memberId: 'member-id-2' })).rejects.toThrow(
+        /^Missing/
+      )
     })
 
-
     test('removeMember implementation', async () => {
-      await expect(room.removeMember({ memberId: 'member-id-1' })).rejects.toThrow(/^Missing/)
+      await expect(
+        room.removeMember({ memberId: 'member-id-1' })
+      ).rejects.toThrow(/^Missing/)
     })
 
     test('setLayout implementation', async () => {
-      await expect(room.setLayout({ name: 'layout-1' })).rejects.toThrow(/^Missing/)
+      await expect(room.setLayout({ name: 'layout-1' })).rejects.toThrow(
+        /^Missing/
+      )
     })
 
     test('setInputVolume implementation', async () => {
-      await expect(room.setInputVolume({ volume: 10 })).rejects.toThrow(/^Missing/)
+      await expect(room.setInputVolume({ volume: 10 })).rejects.toThrow(
+        /^Missing/
+      )
     })
 
     test('setOutputVolume implementation', async () => {
-      await expect(room.setOutputVolume({ volume: 10 })).rejects.toThrow(/^Missing/)
+      await expect(room.setOutputVolume({ volume: 10 })).rejects.toThrow(
+        /^Missing/
+      )
     })
 
     test('lock implementation', async () => {
@@ -619,7 +596,9 @@ describe('CallFabricRoomSession', () => {
     })
 
     test('setInputSensitivity implementation', async () => {
-      await expect(room.setInputSensitivity({ value: 10 })).rejects.toThrow(/^Missing/)
+      await expect(room.setInputSensitivity({ value: 10 })).rejects.toThrow(
+        /^Missing/
+      )
     })
   })
 })

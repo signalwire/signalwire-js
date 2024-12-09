@@ -6,9 +6,9 @@ type VideoManagerNamespace = 'video-manager'
 type ToInternalVideoManagerEvent<T extends string> =
   `${VideoManagerNamespace}.${T}`
 
-type RoomsSubscribed = 'rooms.subscribed'
-type RoomAdded = 'room.added'
-type RoomDeleted = 'room.deleted'
+export type RoomsSubscribed = 'rooms.subscribed'
+export type RoomAdded = 'room.added'
+export type RoomDeleted = 'room.deleted'
 
 /** @internal */
 export type VideoManagerRoomEventNames =

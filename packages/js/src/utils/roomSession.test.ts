@@ -21,6 +21,7 @@ describe('getJoinMediaParams', () => {
       meta: {},
     },
     signature: 'signature',
+    project_id: '',
   }
   const authStateMap = new Map<string, VideoAuthorization>()
   authStateMap.set('member-all', authState)

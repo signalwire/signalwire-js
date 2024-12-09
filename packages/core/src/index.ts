@@ -20,7 +20,7 @@ import {
   stripNamespacePrefix,
   isJSONRPCRequest,
   isJSONRPCResponse,
-  mapCapabilityPayload
+  mapCapabilityPayload,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -75,7 +75,7 @@ export {
   isJSONRPCResponse,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
-  mapCapabilityPayload
+  mapCapabilityPayload,
 }
 
 export * from './redux/features/component/componentSlice'
@@ -109,7 +109,6 @@ export type {
   RoomSessionRecording,
   RoomSessionPlayback,
   RoomSessionStream,
-  RoomSessionMember,
 } from './rooms'
 export const selectors = {
   ...sessionSelectors,

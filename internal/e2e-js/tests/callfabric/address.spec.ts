@@ -1,3 +1,4 @@
+import { SignalWireClient } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
 
@@ -13,7 +14,7 @@ test.describe('Addresses', () => {
     const { addressById, addressByName, addressToCompare } =
       await page.evaluate(async () => {
         // @ts-expect-error
-        const client = window._client
+        const client: SignalWireClient = window._client
 
         const response = await client.address.getAddresses()
         const addressToCompare = response.data[1]
@@ -42,7 +43,7 @@ test.describe('Addresses', () => {
 
     const isCorrectlySorted = await page.evaluate(async () => {
       // @ts-expect-error
-      const client = window._client
+      const client: SignalWireClient = window._client
 
       const response = await client.address.getAddresses({
         type: 'room',
@@ -62,10 +63,10 @@ test.describe('Addresses', () => {
       }
 
       return isSorted(
-        // @ts-expect-error
         response.data.map((addr) => {
-          console.log(addr.name) 
-          return addr.name})
+          console.log(addr.name)
+          return addr.name
+        })
       )
     })
 
@@ -102,7 +103,7 @@ test.describe('Addresses', () => {
 
     const isCorrectlySorted = await page.evaluate(async () => {
       // @ts-expect-error
-      const client = window._client
+      const client: SignalWireClient = window._client
 
       const response = await client.address.getAddresses({
         type: 'room',
@@ -122,10 +123,10 @@ test.describe('Addresses', () => {
       }
 
       return isSorted(
-        // @ts-expect-error
         response.data.map((addr) => {
-          console.log(addr.name) 
-          return addr.name})
+          console.log(addr.name)
+          return addr.name
+        })
       )
     })
 

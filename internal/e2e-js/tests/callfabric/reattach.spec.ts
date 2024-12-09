@@ -6,13 +6,10 @@ import {
   dialAddress,
   expectMCUVisible,
 } from '../../utils'
+import { SignalWireClient } from '@signalwire/js'
 
 test.describe('Reattach Tests', () => {
-  test('WebRTC to Room', async ({
-    createCustomPage,
-    resource,
-  }) => {
-
+  test('WebRTC to Room', async ({ createCustomPage, resource }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
@@ -31,7 +28,7 @@ test.describe('Reattach Tests', () => {
 
     await expectMCUVisible(page)
 
-    await page.reload({ waitUntil: 'domcontentloaded'})
+    await page.reload({ waitUntil: 'domcontentloaded' })
     await createCFClient(page)
 
     // Reattach to an address to join the same call session
@@ -39,7 +36,7 @@ test.describe('Reattach Tests', () => {
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
-          const client = window._client
+          const client: SignalWireClient = window._client
 
           const call = await client.reattach({
             to: `/public/${roomName}`,
@@ -57,7 +54,7 @@ test.describe('Reattach Tests', () => {
     )
 
     expect(roomSession.call_id).toEqual(currentCallId)
-    // TODO the server is not sending a layout state on reattach 
+    // TODO the server is not sending a layout state on reattach
     // await expectMCUVisible(page)
   })
 
@@ -169,13 +166,13 @@ test.describe('Reattach Tests', () => {
     )
 
     expect(callJoinedEvent.call_id).toEqual(currentCallId)
-    
+
     const localVideoTrack = await page.evaluate(
       // @ts-expect-error
       () => window._roomObj.peer.localVideoTrack
     )
     expect(localVideoTrack).toEqual({})
-    
+
     const localAudioTrack = await page.evaluate(
       // @ts-expect-error
       () => window._roomObj.peer.localAudioTrack

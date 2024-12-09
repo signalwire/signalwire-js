@@ -3,7 +3,7 @@ import {
   SDKActions,
   SDKWorker,
   SagaIterator,
-  VideoAPIEventParams,
+  VideoAPIEvent,
   getLogger,
   sagaEffects,
   sagaHelpers,
@@ -39,7 +39,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
 
   const { video } = initialState as VideoCallingWorkerInitialState
 
-  function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
+  function* worker(action: MapToPubSubShape<VideoAPIEvent>) {
     const { type } = action
 
     switch (type) {
@@ -110,7 +110,7 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
   }
 
   const workerCatchable = sagaHelpers.createCatchableSaga<
-    MapToPubSubShape<VideoAPIEventParams>
+    MapToPubSubShape<VideoAPIEvent>
   >(worker, (error) => {
     getLogger().error('Voice calling event error', error)
   })
@@ -118,8 +118,10 @@ export const videoCallingWorker: SDKWorker<Client> = function* (
   const isVideoEvent = (action: SDKActions) => action.type.startsWith('video.')
 
   while (true) {
-    const action: MapToPubSubShape<VideoAPIEventParams> =
-      yield sagaEffects.take(swEventChannel, isVideoEvent)
+    const action: MapToPubSubShape<VideoAPIEvent> = yield sagaEffects.take(
+      swEventChannel,
+      isVideoEvent
+    )
 
     yield sagaEffects.fork(workerCatchable, action)
   }

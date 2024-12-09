@@ -1,6 +1,5 @@
 import type {
   Rooms,
-  BaseConnectionState,
   VideoLayoutEventNames,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
@@ -17,7 +16,7 @@ import type {
   VideoPlaybackEventNames,
   RoomSessionRecording,
   RoomSessionPlayback,
-  VideoRoomSessionContract,
+  VideoRoomSessionContract as CoreVideoRoomSessionContract,
   OnlyFunctionProperties,
   MemberListUpdated,
   VideoPositions,
@@ -38,13 +37,13 @@ import type {
   VideoRoomDeviceEventNames,
   VideoLayoutChangedEventParams,
   VideoPosition,
+  BaseConnectionState,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
-import type { MediaEvent } from '@signalwire/webrtc'
-import type { RoomSession } from '../../RoomSession'
+import type { MediaEventNames } from '@signalwire/webrtc'
 import type { RoomSessionDevice } from '../../RoomSessionDevice'
 import type { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
-import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../VideoOverlays'
+import { RoomSession } from '../../video/RoomSession'
 
 /**
  * @privateRemarks
@@ -135,7 +134,7 @@ export type RoomSessionObjectEventsHandlerMap = Record<
     (params: VideoRoomSubscribedEventParams) => void
   > &
   Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
-  Record<MediaEvent, () => void> &
+  Record<MediaEventNames, () => void> &
   Record<
     VideoRoomDeviceUpdatedEventNames,
     (params: DeviceUpdatedEventParams) => void
@@ -154,7 +153,12 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   Record<BaseConnectionState, (params: RoomSession) => void> &
   Record<VideoStreamEventNames, (stream: RoomSessionStream) => void>
 
+// @deprecated Please use {@link VideoRoomSessionEvents}
 export type RoomSessionObjectEvents = {
+  [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
+}
+
+export type VideoRoomSessionEvents = {
   [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
 }
 
@@ -332,39 +336,33 @@ interface RoomMemberSelfMethodsInterface {
  * forces TS checking while Object.defineProperties allow us
  * flexibility across different objects.
  */
-export interface RoomMethods
-  extends OnlyFunctionProperties<VideoRoomSessionContract> {
+export interface VideoRoomSessionMethods
+  extends OnlyFunctionProperties<CoreVideoRoomSessionContract> {
   /** @deprecated Use {@link setVideoMuted} instead */
   hideVideoMuted(): Rooms.HideVideoMuted
   /** @deprecated Use {@link setVideoMuted} instead */
   showVideoMuted(): Rooms.ShowVideoMuted
 }
 
-export interface RoomSessionConnectionContract {
-  screenShareList: RoomSessionScreenShare[]
+export interface VideoRoomSessionContract {
   deviceList: RoomSessionDevice[]
   interactivityMode: VideoAuthorization['join_as']
   permissions: VideoAuthorization['scopes']
-  /**
-   * The layout returned from the `layout.changed` event based on the current room layout
-   */
+  /** The `layout.changed` event based on the current room layout */
+  currentLayoutEvent: VideoLayoutChangedEventParams
+  /** The layout returned from the `layout.changed` event based on the current room layout */
   currentLayout: VideoLayoutChangedEventParams['layout']
-  /**
-   * The current position of the member returned from the `layout.changed` event
-   */
+  /** The current position of the member returned from the `layout.changed` event */
   currentPosition: VideoPosition | undefined
   /**
-   * A JS Map containing all the layers on top of the Root Element
+   * Joins the room session.
    */
-  overlayMap: OverlayMap | undefined
+  join(options?: BaseRoomSessionJoinParams): Promise<VideoRoomSessionContract>
   /**
-   * Local video overlay object that injects the DOM element inside the MCU
+   * Leaves the room. This detaches all the locally originating streams from the
+   * room.
    */
-  localVideoOverlay: LocalVideoOverlay | undefined
-  /**
-   * Return the member overlay on top of the root element
-   */
-  getMemberOverlay: (memberId: string) => UserOverlay | undefined
+  leave(): Promise<void>
   /**
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.
@@ -375,20 +373,6 @@ export interface RoomSessionConnectionContract {
    */
   createScreenShareObject(
     opts?: CreateScreenShareObjectOptions
-  ): Promise<RoomSessionScreenShare>
-  /**
-   * Adds a screen sharing instance to the room. You can create multiple screen
-   * sharing instances and add all of them to the room.
-   * @param opts - {@link StartScreenShareOptions}
-   * @returns - {@link RoomSessionScreenShare}
-   *
-   * @example Sharing the screen together with the associated audio:
-   * ```js
-   * await roomSession.startScreenShare({ audio: true, video: true })
-   * ```
-   */
-  startScreenShare(
-    opts?: StartScreenShareOptions
   ): Promise<RoomSessionScreenShare>
   /**
    * Adds a camera device to the room. Using this method, a user can stream

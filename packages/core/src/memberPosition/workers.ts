@@ -158,6 +158,7 @@ export const memberPositionWorker: SDKWorker<any> =
     }
 
     while (true) {
+      // TODO: Handle CallFabric member.* and layout.* events as well
       const action = yield sagaEffects.take(swEventChannel, (action: any) => {
         const istargetEvent =
           action.type === 'video.member.updated' ||
@@ -243,6 +244,7 @@ const initializeMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const memberList: MemberEventParamsList = new Map()
 
   members.forEach((member) => {
+    // @ts-expect-error
     const memberId = member.id || member.member_id!
     const roomSessionId =
       payload.room_session.id || payload.room_session.room_session_id!
