@@ -5,8 +5,7 @@ import {
 } from './VideoRoomSession'
 import { configureFullStack, dispatchMockedRoomSubscribed } from '../testUtils'
 
-// TODO: Move these tests to VideoRoomSession
-describe.skip('Room Object', () => {
+describe('Room Object', () => {
   let store: any
   let room: VideoRoomSession
   let stack: ReturnType<typeof configureFullStack>

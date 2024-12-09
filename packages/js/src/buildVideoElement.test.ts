@@ -31,7 +31,6 @@ describe('buildVideoElement', () => {
     const setupRoomForTests = () => {
       // @ts-expect-error
       room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
-
       // @ts-expect-error
       room.runRTCPeerWorkers(callId)
     }
@@ -93,13 +92,13 @@ describe('buildVideoElement', () => {
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith(
-        'member.updated.video_muted',
+        'member.updated.videoMuted',
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith('destroy', expect.any(Function))
     })
 
-    describe.skip('with remoteVideoTrack', () => {
+    describe('with remoteVideoTrack', () => {
       const layoutEventPayload = {
         jsonrpc: '2.0',
         id: '79996d32-aefd-4e37-b1c1-382144334122',
@@ -561,7 +560,7 @@ describe('buildVideoElement', () => {
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith(
-        'member.updated.video_muted',
+        'member.updated.videoMuted',
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith('destroy', expect.any(Function))

@@ -426,16 +426,14 @@ describe('FabricRoomSession', () => {
   })
 
   describe('Emit events', () => {
-    it.skip('should emit events in order', () => {
+    it('should emit events in order', () => {
       let talking
-      let talkingStatus
 
-      room.on(
-        'member.talking',
-        (payload: any) => (talking = payload.member.talking)
-      )
+      room.on('member.talking', (payload) => {
+        talking = payload.member.talking
+      })
 
-      const talkingTrue = {
+      const createTalkingEvent = (talking: boolean) => ({
         jsonrpc: '2.0',
         id: '2f260116-9447-4a16-a806-231137c2a111',
         method: 'signalwire.event',
@@ -450,45 +448,27 @@ describe('FabricRoomSession', () => {
             room_session_id: callId,
             member: {
               member_id: 'member-id-1',
-              talking: true,
+              talking: talking,
               node_id: '2c71e542-d639-4043-8fd9-6b8bb3c5e0ed@',
             },
           },
         },
-      }
-      const talkingFalse = {
-        jsonrpc: '2.0',
-        id: '2f260116-9447-4a16-a806-231137c2a111',
-        method: 'signalwire.event',
-        params: {
-          event_type: 'member.talking',
-          event_channel: [
-            'signalwire_cf91bf05-aaa1-4dcc-ad5c-04715fa70276_582e7ba1-a075-4893-8cef-b505cac633c6_9ba74bce-5b02-475c-b183-2b5a7f6cfa8b',
-          ],
-          timestamp: 1718299953114539,
-          params: {
-            room_id: 'b121ef92-2e47-400d-b742-2e2bd4356064',
-            room_session_id: callId,
-            member: {
-              member_id: 'member-id-1',
-              talking: false,
-              node_id: '2c71e542-d639-4043-8fd9-6b8bb3c5e0ed@',
-            },
-          },
-        },
-      }
+      })
+
+      const talkingTrue = createTalkingEvent(true)
+      const talkingFalse = createTalkingEvent(false)
 
       stack.session.dispatch(
         actions.socketMessageAction(talkingFalse as JSONRPCRequest)
       )
+
+      expect(talking).toBeFalsy()
+
       stack.session.dispatch(
         actions.socketMessageAction(talkingTrue as JSONRPCRequest)
       )
 
-      expect(talking).toBeDefined()
-      expect(talkingStatus).toBeDefined()
       expect(talking).toBeTruthy()
-      expect(talkingStatus).toEqual('started')
     })
   })
 
