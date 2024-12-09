@@ -1,5 +1,4 @@
 import {
-  FabricLayoutChangedEventParams,
   uuid,
   VideoPosition,
   VideoRoomSubscribedEventParams,
@@ -43,17 +42,14 @@ test.describe('CallFabric Video Room Layout', () => {
         const roomObj: FabricRoomSession = window._roomObj
 
         const layoutUpdated = new Promise((resolve) => {
-          roomObj.on(
-            'layout.changed',
-            (params: FabricLayoutChangedEventParams) => {
-              if (
-                params.room_session_id === roomSessionId &&
-                params.layout.id == expectLayout
-              ) {
-                resolve(true)
-              }
+          roomObj.on('layout.changed', (params) => {
+            if (
+              params.room_session_id === roomSessionId &&
+              params.layout.id == expectLayout
+            ) {
+              resolve(true)
             }
-          )
+          })
         })
 
         await roomObj.setLayout({ name: expectLayout })

@@ -1,8 +1,4 @@
-import {
-  OverlayMap,
-  LocalVideoOverlay,
-  FabricRoomSession,
-} from '@signalwire/js'
+import { OverlayMap, LocalVideoOverlay, VideoRoomSession } from '@signalwire/js'
 import { test, expect, Page } from '../fixtures'
 import {
   SERVER_URL,
@@ -422,7 +418,7 @@ test.describe('buildVideoElement with Video SDK', () => {
       const [memberOneElement, memberTwoElement] = await pageOne.evaluate(
         ({ memberOneId, memberTwoId }) => {
           // @ts-expect-error
-          const room: FabricRoomSession = window._roomObj
+          const room: VideoRoomSession = window._roomObj
 
           return [
             room.getMemberOverlay(memberOneId),
