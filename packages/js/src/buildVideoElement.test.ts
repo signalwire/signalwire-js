@@ -6,7 +6,6 @@ import {
   dispatchMockedRoomSubscribed,
 } from './testUtils'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
-import { addOverlayPrefix, SDK_PREFIX } from './VideoOverlays'
 import {
   FabricRoomSession,
   createFabricRoomSessionObject,
@@ -15,6 +14,7 @@ import {
   createVideoRoomSessionObject,
   VideoRoomSession,
 } from './video/VideoRoomSession'
+import { addOverlayPrefix, SDK_PREFIX } from './utils/roomSession'
 
 describe('buildVideoElement', () => {
   describe('with FabricRoomSession', () => {

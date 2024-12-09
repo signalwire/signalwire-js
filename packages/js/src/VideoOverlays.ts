@@ -1,19 +1,11 @@
 import { FabricMemberUpdatedEventParams, getLogger } from '@signalwire/core'
-import { VideoRoomSession } from './video'
-import { FabricRoomSession } from './fabric'
+import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
+import {
+  FabricRoomSession,
+  isFabricRoomSession,
+} from './fabric/FabricRoomSession'
 import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
-import { FabricRoomSessionConnection } from './fabric/FabricRoomSession'
-import { VideoRoomSessionConnection } from './video/VideoRoomSession'
-
-export const SDK_PREFIX = 'sw-sdk-'
-export const addSDKPrefix = (id: string) => {
-  return `${SDK_PREFIX}${id}`
-}
-
-export const OVERLAY_PREFIX = 'sw-overlay-'
-export const addOverlayPrefix = (id: string) => {
-  return `${OVERLAY_PREFIX}${id}`
-}
+import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/roomSession'
 
 export type OverlayMap = Map<string, UserOverlay>
 
@@ -172,16 +164,4 @@ export class LocalVideoOverlay extends UserOverlay {
     videoEl.style.webkitTransform = mirror ? 'scale(-1, 1)' : 'scale(1, 1)'
     this._mirrored = mirror
   }
-}
-
-export const isFabricRoomSession = (
-  room: FabricRoomSession | VideoRoomSession
-): room is FabricRoomSession => {
-  return room instanceof FabricRoomSessionConnection
-}
-
-export const isVideoRoomSession = (
-  room: FabricRoomSession | VideoRoomSession
-): room is VideoRoomSession => {
-  return room instanceof VideoRoomSessionConnection
 }

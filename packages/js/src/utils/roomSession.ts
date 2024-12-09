@@ -73,3 +73,13 @@ export const checkMediaParams = (
   // At least one value must be true
   return Object.values(options).some(Boolean)
 }
+
+export const SDK_PREFIX = 'sw-sdk-'
+export const addSDKPrefix = (id: string) => {
+  return `${SDK_PREFIX}${id}`
+}
+
+export const OVERLAY_PREFIX = 'sw-overlay-'
+export const addOverlayPrefix = (id: string) => {
+  return `${OVERLAY_PREFIX}${id}`
+}

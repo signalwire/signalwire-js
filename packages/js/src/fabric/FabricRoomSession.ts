@@ -490,6 +490,12 @@ export class FabricRoomSessionConnection
   }
 }
 
+export const isFabricRoomSession = (
+  room: unknown
+): room is FabricRoomSession => {
+  return room instanceof FabricRoomSessionConnection
+}
+
 /** @internal */
 export const createFabricRoomSessionObject = (
   params: FabricRoomSessionOptions

@@ -13,17 +13,14 @@ import {
   supportsMediaOutput,
   MediaEventNames,
 } from '@signalwire/webrtc'
-import {
-  addOverlayPrefix,
-  LocalVideoOverlay,
-  OverlayMap,
-} from './VideoOverlays'
+import { LocalVideoOverlay, OverlayMap } from './VideoOverlays'
 import {
   AudioElement,
   BaseRoomSessionContract,
   StartScreenShareOptions,
 } from './utils/interfaces'
 import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
+import { addOverlayPrefix } from './utils/roomSession'
 import {
   RoomSessionScreenShare,
   RoomSessionScreenShareAPI,

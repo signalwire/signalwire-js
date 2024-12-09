@@ -315,6 +315,10 @@ export const VideoRoomSessionAPI = extendComponent<
   setPrioritizeHandraise: Rooms.setPrioritizeHandraise,
 })
 
+export const isVideoRoomSession = (room: unknown): room is VideoRoomSession => {
+  return room instanceof VideoRoomSessionConnection
+}
+
 /** @internal */
 export const createVideoRoomSessionObject = (
   params: VideoRoomSessionOptions
