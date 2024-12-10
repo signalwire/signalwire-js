@@ -1,7 +1,6 @@
 import { uuid } from '@signalwire/core'
 import { FabricRoomSession } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
-
 import {
   SERVER_URL,
   createCFClient,
@@ -92,7 +91,7 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
           const memberUpdatedMutedEvent = new Promise((res) => {
-            roomObj.on('member.updated.audio_muted', (params) => {
+            roomObj.on('member.updated.audioMuted', (params) => {
               if (
                 params.member.member_id === roomSession.member_id &&
                 params.member.audio_muted === false
@@ -136,7 +135,7 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
           const memberUpdatedMutedEvent = new Promise((res) => {
-            roomObj.on('member.updated.video_muted', (params) => {
+            roomObj.on('member.updated.videoMuted', (params) => {
               if (
                 params.member.member_id === roomSession.member_id &&
                 params.member.video_muted === true &&
@@ -167,7 +166,7 @@ test.describe('CallFabric VideoRoom', () => {
             })
           })
           const memberUpdatedMutedEvent = new Promise((res) => {
-            roomObj.on('member.updated.video_muted', (params) => {
+            roomObj.on('member.updated.videoMuted', (params) => {
               if (
                 params.member.member_id === roomSession.member_id &&
                 params.member.video_muted === false &&

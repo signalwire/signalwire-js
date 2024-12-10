@@ -6,7 +6,7 @@ import {
   dialAddress,
   expectMCUVisible,
 } from '../../utils'
-import { SignalWireClient } from '@signalwire/js'
+import { FabricRoomSession, SignalWireClient } from '@signalwire/js'
 
 test.describe('Reattach Tests', () => {
   test('WebRTC to Room', async ({ createCustomPage, resource }) => {
@@ -101,14 +101,14 @@ test.describe('Reattach Tests', () => {
     // --------------- Muting Video (self) ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: FabricRoomSession = window._roomObj
 
       const memberUpdatedMuted = new Promise((resolve) => {
         const memberUpdatedEvent = new Promise((res) => {
           roomObj.on('member.updated', () => res(true))
         })
         const memberUpdatedMutedEvent = new Promise((res) => {
-          roomObj.on('member.updated.video_muted', () => res(true))
+          roomObj.on('member.updated.videoMuted', () => res(true))
         })
 
         Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
@@ -122,14 +122,14 @@ test.describe('Reattach Tests', () => {
     // --------------- Muting Audio (self) ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: FabricRoomSession = window._roomObj
 
       const memberUpdatedMuted = new Promise((resolve) => {
         const memberUpdatedEvent = new Promise((res) => {
           roomObj.on('member.updated', () => res(true))
         })
         const memberUpdatedMutedEvent = new Promise((res) => {
-          roomObj.on('member.updated.audio_muted', () => res(true))
+          roomObj.on('member.updated.audioMuted', () => res(true))
         })
 
         Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(resolve)
