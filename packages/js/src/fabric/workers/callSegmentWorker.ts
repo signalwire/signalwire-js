@@ -60,36 +60,47 @@ export const callSegmentWorker = function* (
       case 'call.room':
         cfRoomSession.emit(type, payload)
         break
+
+      /**
+       * A generic worker in Core, {@link memberPositionWorker}, already handles member events.
+       * This worker is started within the {@link callJoinWorker} worker.
+       * Therefore, these events are not handled directly in the CF SDK.
+       * Instead, we map these events to Video SDK events and re-publish them on the channel,
+       * ensuring they reach the generic worker.
+       */
       case 'member.joined':
       case 'member.left': {
         const videoAction =
           mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
-        console.log('>> member.joined/left videoAction', videoAction)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
       case 'member.updated': {
         const videoAction =
           mapFabricMemberActionToVideoMemberUpdatedAction(action)
-        console.log('>> member.updated videoAction', videoAction)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
+      case 'layout.changed': {
+        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
+        yield sagaEffects.put(swEventChannel, videoAction)
+
+        /**
+         * The generic worker do not emit the "layout.changed" event.
+         * We also need to update the layout event which is needed for rootElement.
+         */
+        cfRoomSession.currentLayoutEvent = action.payload
+        cfRoomSession.emit(type, payload)
+        break
+      }
+      /**
+       * The generic worker do not handle the "member.talking" event
+       */
       case 'member.talking': {
         yield sagaEffects.fork(fabricMemberWorker, {
           ...options,
           action,
         })
-        break
-      }
-      case 'layout.changed': {
-        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
-        console.log('>> layout.changed videoAction', videoAction)
-        yield sagaEffects.put(swEventChannel, videoAction)
-
-        // Upsert the layout event which is needed for rootElement
-        cfRoomSession.currentLayoutEvent = action.payload
-        cfRoomSession.emit(type, payload)
         break
       }
       default: {

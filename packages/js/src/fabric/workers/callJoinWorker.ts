@@ -27,8 +27,17 @@ export const callJoinWorker = function* (
 
   yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
     ...options,
+    /**
+     * The {@link memberPositionWorker} worker understands only the Video SDK events.
+     * So, we need to map CF SDK event to Video SDK event.
+     * Similar to what we do in the {@link callSegmentWorker}, for member events.
+     */
     initialState: mapCallJoinedToRoomSubscribedEventParams(payload),
     dispatcher: function* (subType, subPayload) {
+      /**
+       * The {@link memberPositionWorker} dispatches the Video SDK events.
+       * We need to convert it back to CF SDK event before emitting to the user.
+       */
       const fabricType = stripNamespacePrefix(subType, 'video') as any
       const fabricPaylod = {
         ...subPayload,
@@ -37,6 +46,7 @@ export const callJoinWorker = function* (
           member_id: subPayload.member.id,
         },
       }
+
       yield sagaEffects.fork(fabricMemberWorker, {
         ...options,
         action: { type: fabricType, payload: fabricPaylod },
