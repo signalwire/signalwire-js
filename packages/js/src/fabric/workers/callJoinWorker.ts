@@ -23,8 +23,6 @@ export const callJoinWorker = function* (
   const { payload } = action
   const { get, set } = instanceMap
 
-  // TODO: Put `video.room.subscribed` event on the channel for roomSubscribedWorker
-
   yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
     ...options,
     /**

@@ -103,11 +103,6 @@ export class FabricRoomSessionConnection
     return this._member!
   }
 
-  // @TODO: Finish this
-  get members() {
-    return []
-  }
-
   private initWorker() {
     this.runWorker('fabricWorker', {
       worker: fabricWorker,
