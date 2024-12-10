@@ -1,4 +1,11 @@
-import { FabricMemberEvent, SagaIterator, getLogger } from '@signalwire/core'
+import {
+  FabricMemberEvent,
+  FabricMemberUpdatedEventParams,
+  MemberUpdatedEventNames,
+  SagaIterator,
+  fromSnakeToCamelCase,
+  getLogger,
+} from '@signalwire/core'
 import { FabricWorkerParams } from './fabricWorker'
 import {
   createFabricRoomSessionMemberObject,
@@ -30,7 +37,8 @@ export const fabricMemberWorker = function* (
   }
 
   if (type.startsWith('member.updated.')) {
-    roomSession.emit(type, payload)
+    const clientType = fromSnakeToCamelCase(type) as MemberUpdatedEventNames
+    roomSession.emit(clientType, payload as FabricMemberUpdatedEventParams)
   }
 
   switch (type) {

@@ -118,7 +118,22 @@ export interface InternalFabricMemberUpdatedEvent extends SwEvent {
   params: FabricMemberUpdatedEventParams
 }
 
-export type InternalFabricMemberEvent = InternalFabricMemberUpdatedEvent
+export interface InternalFabricMemberListUpdatedEvent extends SwEvent {
+  event_type: MemberListUpdated
+  params: FabricMemberUpdatedEventParams
+}
+
+export type InternalFabricMemberEventNames =
+  | MemberUpdatedEventNames
+  | MemberListUpdated
+
+export type InternalFabricMemberEvent =
+  | InternalFabricMemberUpdatedEvent
+  | InternalFabricMemberListUpdatedEvent
+
+export type InternalFabricMemberEventParams =
+  | FabricMemberUpdatedEventParams
+  | FabricMemberUpdatedEventParams
 
 /**
  * ==========
@@ -190,8 +205,11 @@ export type FabricMemberEventNames =
   | MemberLeft
   | MemberUpdated
   | MemberTalking
-  | MemberUpdatedEventNames
-  | MemberListUpdated
+
+export type FabricMemberEventNamesWithoutTalking =
+  | MemberJoined
+  | MemberLeft
+  | MemberUpdated
 
 export type FabricMemberEvent =
   | FabricMemberJoinedEvent

@@ -9,6 +9,11 @@ import {
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { FabricWorkerParams } from './fabricWorker'
+import {
+  mapFabricLayoutActionToVideoLayoutAction,
+  mapFabricMemberActionToVideoMemberJoinAndLeftAction,
+  mapFabricMemberActionToVideoMemberUpdatedAction,
+} from '../utils/helpers'
 import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callSegmentWorker = function* (
@@ -55,18 +60,33 @@ export const callSegmentWorker = function* (
       case 'call.room':
         cfRoomSession.emit(type, payload)
         break
-      // TODO: We might not need to listen for these events here because of {@link memberPositionWorker}
       case 'member.joined':
-      case 'member.left':
-      case 'member.updated':
+      case 'member.left': {
+        const videoAction =
+          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
+        console.log('>> member.joined/left videoAction', videoAction)
+        yield sagaEffects.put(swEventChannel, videoAction)
+        break
+      }
+      case 'member.updated': {
+        const videoAction =
+          mapFabricMemberActionToVideoMemberUpdatedAction(action)
+        console.log('>> member.updated videoAction', videoAction)
+        yield sagaEffects.put(swEventChannel, videoAction)
+        break
+      }
       case 'member.talking': {
         yield sagaEffects.fork(fabricMemberWorker, {
           ...options,
-          action: action,
+          action,
         })
         break
       }
       case 'layout.changed': {
+        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
+        console.log('>> layout.changed videoAction', videoAction)
+        yield sagaEffects.put(swEventChannel, videoAction)
+
         // Upsert the layout event which is needed for rootElement
         cfRoomSession.currentLayoutEvent = action.payload
         cfRoomSession.emit(type, payload)

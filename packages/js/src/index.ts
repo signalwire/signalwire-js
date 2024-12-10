@@ -59,6 +59,7 @@ export * as PubSub from './pubSub'
  * Call Fabric namespace
  */
 export * as Fabric from './fabric'
+export { SignalWire } from './fabric'
 export * from './fabric/types'
 
 /**

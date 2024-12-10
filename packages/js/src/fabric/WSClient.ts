@@ -123,6 +123,7 @@ export class WSClient {
       this.logger.debug('Session Disconnected')
     })
 
+    // TODO: This is for memberList.updated event and it is not yet supported in CF SDK
     // @ts-expect-error
     call.attachPreConnectWorkers()
     return call

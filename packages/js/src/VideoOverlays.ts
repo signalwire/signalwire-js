@@ -79,7 +79,11 @@ export class LocalVideoOverlay extends UserOverlay {
     this._room = options.room
 
     // Bind the handler to preserve context
-    this.memberVideoMutedHandler = this.memberVideoMutedHandler.bind(this)
+    this.fabricMemberVideoMutedHandler =
+      this.fabricMemberVideoMutedHandler.bind(this)
+    this.videoMemberVideoMutedHandler =
+      this.videoMemberVideoMutedHandler.bind(this)
+
     this.attachListeners()
   }
 
