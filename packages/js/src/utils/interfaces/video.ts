@@ -359,11 +359,6 @@ export interface VideoRoomSessionContract {
    */
   join(options?: BaseRoomSessionJoinParams): Promise<VideoRoomSessionContract>
   /**
-   * Leaves the room. This detaches all the locally originating streams from the
-   * room.
-   */
-  leave(): Promise<void>
-  /**
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.
    * @param opts - {@link CreateScreenShareObjectOptions}

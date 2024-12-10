@@ -136,6 +136,10 @@ export class BaseRoomSessionConnection<
     return super.hangup(id)
   }
 
+  leave() {
+    return this.hangup()
+  }
+
   /**
    * This method will be called by `join()` right before the
    * `connect()` happens and it's a way for us to control

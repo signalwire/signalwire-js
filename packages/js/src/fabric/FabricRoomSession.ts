@@ -109,6 +109,19 @@ export class FabricRoomSessionConnection
     })
   }
 
+  private async join() {
+    if (this.options.attach) {
+      this.options.prevCallId =
+        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    this.logger.debug(
+      `Tying to reattach to previuos call? ${!!this.options
+        .prevCallId} - prevCallId: ${this.options.prevCallId}`
+    )
+
+    return super.invite<FabricRoomSession>()
+  }
+
   private executeAction<
     InputType,
     OutputType = InputType,
@@ -159,20 +172,6 @@ export class FabricRoomSessionConnection
         this.peer.restartIce()
       }
     }
-  }
-
-  /** @internal */
-  public async join() {
-    if (this.options.attach) {
-      this.options.prevCallId =
-        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-    }
-    this.logger.debug(
-      `Tying to reattach to previuos call? ${!!this.options
-        .prevCallId} - prevCallId: ${this.options.prevCallId}`
-    )
-
-    return super.invite<this>()
   }
 
   public async start() {

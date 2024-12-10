@@ -124,11 +124,7 @@ export class VideoRoomSessionConnection
   }
 
   join() {
-    return super.invite<VideoRoomSessionContract>()
-  }
-
-  leave() {
-    return this.hangup()
+    return super.invite<VideoRoomSession>()
   }
 
   /**
