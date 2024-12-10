@@ -5,12 +5,8 @@ import {
   debounce,
   uuid,
 } from '@signalwire/core'
-import {
-  OverlayMap,
-  LocalVideoOverlay,
-  UserOverlay,
-  addOverlayPrefix,
-} from '../VideoOverlays'
+import { OverlayMap, LocalVideoOverlay, UserOverlay } from '../VideoOverlays'
+import { addOverlayPrefix } from './roomSession'
 
 const buildVideo = () => {
   const video = document.createElement('video')
@@ -19,7 +15,7 @@ const buildVideo = () => {
   video.playsInline = true
 
   /**
-   * Local and Remov video elements should never be paused
+   * Local and Remote video elements should never be paused
    * and Safari/Firefox pause the video (ie: enabling PiP, switch cameras etc)
    * We try to force it to keep playing.
    */

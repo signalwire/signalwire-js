@@ -1,4 +1,9 @@
-import { InternalVideoLayout, getLogger, uuid } from '@signalwire/core'
+import {
+  FabricLayoutChangedEventParams,
+  VideoLayoutChangedEventParams,
+  getLogger,
+  uuid,
+} from '@signalwire/core'
 import {
   buildVideo,
   cleanupElement,
@@ -7,16 +12,19 @@ import {
   setVideoMediaTrack,
   waitForVideoReady,
 } from './utils/videoElement'
-import { OverlayMap, LocalVideoOverlay, addSDKPrefix } from './VideoOverlays'
-import { CallFabricRoomSession } from './fabric'
-import { RoomSession } from './video'
-import { BaseRoomSession } from './BaseRoomSession'
+import { addSDKPrefix } from './utils/roomSession'
+import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
+import {
+  FabricRoomSession,
+  isFabricRoomSession,
+} from './fabric/FabricRoomSession'
+import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallFabricRoomSession | RoomSession | BaseRoomSession<RoomSession>
+  room: FabricRoomSession | VideoRoomSession
   rootElement?: HTMLElement
 }
 
@@ -87,7 +95,9 @@ export const buildVideoElement = async (
       }
     }
 
-    const layoutChangedHandler = (params: { layout: InternalVideoLayout }) => {
+    const layoutChangedHandler = (
+      params: FabricLayoutChangedEventParams | VideoLayoutChangedEventParams
+    ) => {
       getLogger().debug('Received layout.changed - videoTrack', hasVideoTrack)
       if (hasVideoTrack) {
         processLayoutChanged(params)
@@ -95,7 +105,11 @@ export const buildVideoElement = async (
       }
     }
 
-    room.on('layout.changed', layoutChangedHandler)
+    if (isFabricRoomSession(room)) {
+      room.on('layout.changed', layoutChangedHandler)
+    } else if (isVideoRoomSession(room)) {
+      room.on('layout.changed', layoutChangedHandler)
+    }
 
     const processVideoTrack = async (track: MediaStreamTrack) => {
       hasVideoTrack = true
@@ -107,8 +121,7 @@ export const buildVideoElement = async (
         track,
       })
 
-      // @ts-expect-error
-      const roomCurrentLayoutEvent = room.lastLayoutEvent
+      const roomCurrentLayoutEvent = room.currentLayoutEvent
       // If the `layout.changed` has already been received, process the layout
       if (roomCurrentLayoutEvent) {
         processLayoutChanged(roomCurrentLayoutEvent)
@@ -134,19 +147,33 @@ export const buildVideoElement = async (
      * there are cases (promote/demote) where we need to handle multiple `track`
      * events and update the videoEl with the new track.
      */
-    room.on('track', trackHandler)
+    if (isFabricRoomSession(room)) {
+      room.on('track', trackHandler)
+    } else if (isVideoRoomSession(room)) {
+      room.on('track', trackHandler)
+    }
 
     const unsubscribe = () => {
       cleanupElement(rootElement)
       overlayMap.clear() // Use "delete" rather than "clear" if we want to update the reference
       room.overlayMap = overlayMap
-      room.off('track', trackHandler)
-      room.off('layout.changed', layoutChangedHandler)
-      room.off('destroy', unsubscribe)
+      if (isFabricRoomSession(room)) {
+        room.off('track', trackHandler)
+        room.off('layout.changed', layoutChangedHandler)
+        room.off('destroy', unsubscribe)
+      } else if (isVideoRoomSession(room)) {
+        room.off('track', trackHandler)
+        room.off('layout.changed', layoutChangedHandler)
+        room.off('destroy', unsubscribe)
+      }
       localVideoOverlay.detachListeners()
     }
 
-    room.once('destroy', unsubscribe)
+    if (isFabricRoomSession(room)) {
+      room.once('destroy', unsubscribe)
+    } else if (isVideoRoomSession(room)) {
+      room.once('destroy', unsubscribe)
+    }
 
     /**
      * The room object is only being used to listen for events.

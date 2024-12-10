@@ -6,7 +6,7 @@ import {
   UserOptions,
 } from '@signalwire/core'
 import { SATSession } from './SATSession'
-import { Client } from './Client'
+import { Client, ClientAPI } from './Client'
 
 /**
  * With `await SignalWire()` you can establish a WebSocket connection
@@ -39,9 +39,9 @@ export const createClient = (userOptions: UserOptions) => {
     userOptions: baseUserOptions,
     SessionConstructor: SATSession,
   })
-  const client = connect<ClientEvents, Client, Client>({
+  const client = connect<ClientEvents, ClientAPI, Client>({
     store,
-    Component: Client,
+    Component: ClientAPI,
   })(baseUserOptions)
 
   return client

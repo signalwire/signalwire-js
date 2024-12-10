@@ -1,3 +1,4 @@
+import { JSDOM } from 'jsdom'
 import { actions } from '@signalwire/core'
 import {
   configureFullStack,
@@ -6,17 +7,18 @@ import {
 } from './testUtils'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
 import {
-  CallFabricRoomSession,
-  createCallFabricRoomSessionObject,
-} from './fabric/CallFabricRoomSession'
-import { JSDOM } from 'jsdom'
-import { addOverlayPrefix, SDK_PREFIX } from './VideoOverlays'
-import { RoomSession } from './video'
-import { BaseRoomSession, createBaseRoomSessionObject } from './BaseRoomSession'
+  FabricRoomSession,
+  createFabricRoomSessionObject,
+} from './fabric/FabricRoomSession'
+import {
+  createVideoRoomSessionObject,
+  VideoRoomSession,
+} from './video/VideoRoomSession'
+import { addOverlayPrefix, SDK_PREFIX } from './utils/roomSession'
 
 describe('buildVideoElement', () => {
-  describe('with CallFabricRoomSession', () => {
-    let room: CallFabricRoomSession
+  describe('with FabricRoomSession', () => {
+    let room: FabricRoomSession
     let stack: ReturnType<typeof configureFullStack>
     let store: any
     let jsdom: JSDOM
@@ -29,7 +31,6 @@ describe('buildVideoElement', () => {
     const setupRoomForTests = () => {
       // @ts-expect-error
       room.getRTCPeerById = jest.fn((_id: string) => mockPeer)
-
       // @ts-expect-error
       room.runRTCPeerWorkers(callId)
     }
@@ -37,7 +38,7 @@ describe('buildVideoElement', () => {
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store
-      room = createCallFabricRoomSessionObject({
+      room = createFabricRoomSessionObject({
         store,
         // @ts-expect-error
         emitter: stack.emitter,
@@ -91,7 +92,7 @@ describe('buildVideoElement', () => {
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith(
-        'member.updated.video_muted',
+        'member.updated.videoMuted',
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith('destroy', expect.any(Function))
@@ -226,6 +227,7 @@ describe('buildVideoElement', () => {
           memberId: 'member-id-1',
           nodeId: 'node-id-1',
           originCallId: callId,
+          capabilities: [],
         })
 
         // @ts-expect-error
@@ -269,6 +271,7 @@ describe('buildVideoElement', () => {
           memberId: 'member-id-1',
           nodeId: 'node-id-1',
           originCallId: callId,
+          capabilities: [],
         })
 
         // @ts-expect-error
@@ -313,6 +316,7 @@ describe('buildVideoElement', () => {
           memberId: 'member-id-1',
           nodeId: 'node-id-1',
           originCallId: callId,
+          capabilities: [],
         })
 
         // @ts-expect-error
@@ -353,6 +357,7 @@ describe('buildVideoElement', () => {
           memberId: 'member-id-1',
           nodeId: 'node-id-1',
           originCallId: callId,
+          capabilities: [],
         })
 
         // @ts-expect-error
@@ -393,6 +398,7 @@ describe('buildVideoElement', () => {
           memberId: 'member-id-1',
           nodeId: 'node-id-1',
           originCallId: callId,
+          capabilities: [],
         })
         // @ts-expect-error
         stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
@@ -429,6 +435,7 @@ describe('buildVideoElement', () => {
           memberId: 'member-id-1',
           nodeId: 'node-id-1',
           originCallId: callId,
+          capabilities: [],
         })
         // @ts-expect-error
         stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
@@ -459,6 +466,7 @@ describe('buildVideoElement', () => {
           memberId: 'member-id-1',
           nodeId: 'node-id-1',
           originCallId: callId,
+          capabilities: [],
         })
         // @ts-expect-error
         stack.session.dispatch(actions.socketMessageAction(layoutEventPayload))
@@ -477,7 +485,7 @@ describe('buildVideoElement', () => {
   })
 
   describe('with VideoRoomSession', () => {
-    let room: BaseRoomSession<RoomSession>
+    let room: VideoRoomSession
     let stack: ReturnType<typeof configureFullStack>
     let store: any
     let jsdom: JSDOM
@@ -498,7 +506,7 @@ describe('buildVideoElement', () => {
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store
-      room = createBaseRoomSessionObject<RoomSession>({
+      room = createVideoRoomSessionObject({
         store,
         // @ts-expect-error
         emitter: stack.emitter,
@@ -552,7 +560,7 @@ describe('buildVideoElement', () => {
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith(
-        'member.updated.video_muted',
+        'member.updated.videoMuted',
         expect.any(Function)
       )
       expect(room.off).toHaveBeenCalledWith('destroy', expect.any(Function))

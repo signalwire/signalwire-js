@@ -4,7 +4,7 @@ import type { PayloadAction } from '../../toolkit'
 import { BaseSession } from '../../../BaseSession'
 import { JSONRPCRequest } from '../../../utils/interfaces'
 import type {
-  VideoAPIEventParams,
+  VideoAPIEvent,
   SwEventParams,
   WebRTCMessageParams,
   SwAuthorizationStateParams,
@@ -24,7 +24,7 @@ type SessionSagaParams = {
 const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
   return isWebrtcEventType(e?.event_type)
 }
-const isVideoEvent = (e: SwEventParams): e is VideoAPIEventParams => {
+const isVideoEvent = (e: SwEventParams): e is VideoAPIEvent => {
   return !!e?.event_type?.startsWith('video.')
 }
 const isSwAuthorizationState = (
