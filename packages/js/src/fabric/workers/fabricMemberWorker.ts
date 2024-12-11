@@ -23,18 +23,17 @@ export const fabricMemberWorker = function* (
   } = options
 
   const memberId = payload.member.member_id
-  if (type !== 'member.talking') {
-    let memberInstance = get<FabricRoomSessionMember>(memberId)
-    if (!memberInstance) {
-      memberInstance = createFabricRoomSessionMemberObject({
-        store: roomSession.store,
-        payload: payload,
-      })
-    } else {
-      memberInstance.setPayload(payload)
-    }
-    set<FabricRoomSessionMember>(memberId, memberInstance)
+  let memberInstance = get<FabricRoomSessionMember>(memberId)
+  if (!memberInstance && type !== 'member.talking') {
+    memberInstance = createFabricRoomSessionMemberObject({
+      store: roomSession.store,
+      payload: payload,
+    })
   }
+  if (memberInstance) {
+    memberInstance.setPayload(payload)
+  }
+  set<FabricRoomSessionMember>(memberId, memberInstance)
 
   if (type.startsWith('member.updated.')) {
     const clientType = fromSnakeToCamelCase(type) as MemberUpdatedEventNames
