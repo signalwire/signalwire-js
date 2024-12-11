@@ -39,14 +39,15 @@ export const callSegmentWorker = function* (
 
     switch (type) {
       case 'call.joined':
-        getLogger().warn('Got a repeated call.joined event', action)
+        /** NOOP since this event is handled by the {@link fabricWorker} */
         break
       case 'call.left':
         yield sagaEffects.fork(callLeftWorker, {
           ...options,
           action,
         })
-        break
+        // Stop this particular segment worker
+        return
       case 'call.updated':
         cfRoomSession.emit(type, payload)
         cfRoomSession.emit('room.updated', payload)

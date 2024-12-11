@@ -23,7 +23,7 @@ export const callJoinWorker = function* (
   const { payload } = action
   const { get, set } = instanceMap
 
-  yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+  yield sagaEffects.fork(MemberPosition.memberPositionWorker, {
     ...options,
     /**
      * The {@link memberPositionWorker} worker understands only the Video SDK events.

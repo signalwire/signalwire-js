@@ -49,7 +49,7 @@ export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
         }
 
         // Segment worker for each call_id
-        yield sagaEffects.spawn(callSegmentWorker, {
+        yield sagaEffects.fork(callSegmentWorker, {
           ...options,
           instance: cfRoomSession,
           action,

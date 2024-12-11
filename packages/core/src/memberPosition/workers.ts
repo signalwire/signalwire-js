@@ -166,7 +166,6 @@ export const memberPositionWorker: SDKWorker<any> =
     }
 
     while (true) {
-      // TODO: Handle CallFabric member.* and layout.* events as well
       const action: SDKActions = yield sagaEffects.take(
         swEventChannel,
         (action: SDKActions) => {
