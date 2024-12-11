@@ -4,6 +4,7 @@ import {
   connect,
   EventEmitter,
   extendComponent,
+  LOCAL_EVENT_PREFIX,
   Rooms,
   validateEventsToSubscribe,
   VideoAuthorization,
