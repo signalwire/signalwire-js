@@ -76,6 +76,10 @@ export class FabricRoomSessionMemberAPI
     return this._payload.room_id
   }
 
+  get parentId() {
+    return this._payload.member.parent_id
+  }
+
   get name() {
     return this._payload.member.name
   }
@@ -84,16 +88,24 @@ export class FabricRoomSessionMemberAPI
     return this._payload.member.type
   }
 
-  get meta() {
-    return this._payload.member.meta
+  get requestedPosition() {
+    return this._payload.member.requested_position
   }
 
   get currentPosition() {
     return this._payload.member.current_position
   }
 
-  get visible() {
-    return this._payload.member.visible
+  get meta() {
+    return this._payload.member.meta
+  }
+
+  get handraised() {
+    return this._payload.member.handraised
+  }
+
+  get talking() {
+    return this._payload.member.talking
   }
 
   get audioMuted() {
@@ -108,6 +120,10 @@ export class FabricRoomSessionMemberAPI
     return this._payload.member.deaf
   }
 
+  get visible() {
+    return this._payload.member.visible
+  }
+
   get inputVolume() {
     return this._payload.member.input_volume
   }
@@ -120,12 +136,8 @@ export class FabricRoomSessionMemberAPI
     return this._payload.member.input_sensitivity
   }
 
-  get talking() {
-    return this._payload.member.talking
-  }
-
-  get handraised() {
-    return this._payload.member.handraised
+  get subscriberData() {
+    return this._payload.member.subscriber_data
   }
 
   /** @internal */

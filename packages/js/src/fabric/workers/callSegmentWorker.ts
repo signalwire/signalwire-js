@@ -62,14 +62,25 @@ export const callSegmentWorker = function* (
         break
 
       /**
-       * A generic worker in Core, {@link memberPositionWorker}, already handles member events.
-       * This worker is started within the {@link callJoinWorker} worker.
-       * Therefore, these events are not handled directly in the CF SDK.
-       * Instead, we map these events to Video SDK events and re-publish them on the channel,
-       * ensuring they reach the generic worker.
+       * The Core module includes a generic worker, {@link memberPositionWorker},
+       * which listens for member & layout events to add a "current_position" parameter
+       * and handle member "updated" parameter.
+       * This worker in CF SDK is initialized by the {@link callJoinWorker} worker.
+       *
+       * To ensure compatibility, we map these events to Video SDK events and
+       * re-publish them on the channel so that they can be processed by the
+       * generic worker. Note that the generic worker only dispatches "member.updated"
+       * and "member.updated.*" events.
+       *
+       * Additionally, the "member.joined" event is monitored by another worker,
+       * {@link childMemberJoinedWorker}, specifically for the screen share API.
        */
       case 'member.joined':
       case 'member.left': {
+        yield sagaEffects.fork(fabricMemberWorker, {
+          ...options,
+          action,
+        })
         const videoAction =
           mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
@@ -82,20 +93,13 @@ export const callSegmentWorker = function* (
         break
       }
       case 'layout.changed': {
-        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
-        yield sagaEffects.put(swEventChannel, videoAction)
-
-        /**
-         * The generic worker do not emit the "layout.changed" event.
-         * We also need to update the layout event which is needed for rootElement.
-         */
+        // We need to update the layout event which is needed for rootElement.
         cfRoomSession.currentLayoutEvent = action.payload
         cfRoomSession.emit(type, payload)
+        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
+        yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
-      /**
-       * The generic worker do not handle the "member.talking" event
-       */
       case 'member.talking': {
         yield sagaEffects.fork(fabricMemberWorker, {
           ...options,

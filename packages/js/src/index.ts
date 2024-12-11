@@ -104,6 +104,20 @@ export type {
   /**
    * Call Fabric types
    */
+  CallJoinedEventParams,
+  CallUpdatedEventParams,
+  CallLeftEventParams,
+  CallStateEventParams,
+  CallPlayEventParams,
+  CallConnectEventParams,
+  CallRoomEventParams,
+  FabricRoomEventParams,
+  FabricLayoutChangedEventParams,
+  FabricMemberJoinedEventParams,
+  FabricMemberUpdatedEventParams,
+  FabricMemberLeftEventParams,
+  FabricMemberTalkingEventParams,
+  FabricMemberEventParams,
   ConversationMessageEventName,
   ConversationMessageEvent,
   ConversationEventParams,

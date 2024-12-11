@@ -19,6 +19,7 @@ import {
   InternalVideoMemberEntityUpdated,
   InternalVideoRoomEntity,
   InternalVideoRoomSessionEntity,
+  MapToPubSubShape,
   VideoLayoutChangedEvent,
   VideoMemberJoinedEvent,
   VideoMemberJoinedEventParams,
@@ -33,7 +34,6 @@ import {
   VideoRoomUpdatedEvent,
   VideoRoomUpdatedEventParams,
 } from '@signalwire/core'
-import { MapToPubSubShape } from 'packages/core/dist/core/src'
 
 /**
  * Map the InternalFabricMemberEntity to InternalVideoMemberEntity
@@ -58,8 +58,8 @@ export const mapInternalFabricMemberToInternalVideoMemberEntity = (
     meta: params.meta,
     talking: params.talking,
     current_position: params.current_position,
-    requested_position: 'auto',
-    parent_id: undefined,
+    requested_position: params.requested_position,
+    parent_id: params.parent_id,
   }
 }
 

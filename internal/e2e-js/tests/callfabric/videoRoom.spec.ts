@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { FabricRoomSession } from '@signalwire/js'
+import { FabricRoomSession, CallJoinedEventParams } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -25,22 +25,18 @@ test.describe('CallFabric VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const roomSession: CallJoinedEventParams = await dialAddress(page, {
       address: `/public/${roomName}`,
     })
 
     expect(roomSession.room_session).toBeDefined()
+    expect(roomSession.room_session.name).toBeDefined()
+    expect(roomSession.room_session.display_name).toBeDefined()
     expect(
       roomSession.room_session.members.some(
-        (member: any) => member.member_id === roomSession.member_id
+        (member) => member.member_id === roomSession.member_id
       )
     ).toBeTruthy()
-
-    // FIXME:
-    // console.log('>> roomSession.room_session', roomSession)
-    // expect(roomSession.room_session.name.startsWith(roomName)).toBeTruthy()
-    // expect(roomSession.room.name.startsWith(roomName)).toBeTruthy()
-    // expect(roomSession.room_session.display_name).toBe(roomName)
 
     await expectMCUVisible(page)
 
@@ -114,7 +110,7 @@ test.describe('CallFabric VideoRoom', () => {
       { roomSession }
     )
 
-    // --------------- Muting Video (self) ---------------
+    // // --------------- Muting Video (self) ---------------
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
@@ -196,6 +192,7 @@ test.describe('CallFabric VideoRoom', () => {
       const roomObj: FabricRoomSession = window._roomObj
 
       let screenMemberId: string | undefined
+
       const screenJoined = new Promise((resolve) => {
         roomObj.on('member.joined', (params) => {
           if (params.member.type === 'screen') {
@@ -242,42 +239,36 @@ test.describe('CallFabric VideoRoom', () => {
     })
 
     // --------------- Room lock/unlock ---------------
-    // TODO uncomment once the feature is avaliable on PROD
-    // await page.evaluate(
-    //   // @ts-expect-error
-    //   async ({ roomSession }) => {
-    //     // @ts-expect-error
-    //     const roomObj: Video.RoomSession = window._roomObj
+    await page.evaluate(
+      // @ts-expect-error
+      async ({ roomSession }) => {
+        // @ts-expect-error
+        const roomObj: FabricRoomSession = window._roomObj
 
-    //     const roomUpdatedLocked = new Promise((resolve) => {
-    //       roomObj.on('room.updated', (params) => {
-    //         if (
-    //           params.room_session.locked === true
-    //         ) {
-    //           resolve(true)
-    //         }
-    //       })
-    //     })
+        const roomUpdatedLocked = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (params.room_session.locked === true) {
+              resolve(true)
+            }
+          })
+        })
 
-    //     const roomUpdatedUnlocked = new Promise((resolve) => {
-    //       roomObj.on('room.updated', (params) => {
-    //         if (
-    //           params.room_session.locked === false
-    //         ) {
-    //           resolve(true)
-    //         }
-    //       })
-    //     })
+        const roomUpdatedUnlocked = new Promise((resolve) => {
+          roomObj.on('room.updated', (params) => {
+            if (params.room_session.locked === false) {
+              resolve(true)
+            }
+          })
+        })
 
-    //     await roomObj.lock()
-    //     await roomUpdatedLocked
+        await roomObj.lock()
+        await roomUpdatedLocked
 
-    //     await roomObj.unlock()
-    //     await roomUpdatedUnlocked
-
-    //   },
-    //   { roomSession }
-    // )
+        await roomObj.unlock()
+        await roomUpdatedUnlocked
+      },
+      { roomSession }
+    )
 
     // --------------- Set layout ---------------
     const layoutName = '3x3'

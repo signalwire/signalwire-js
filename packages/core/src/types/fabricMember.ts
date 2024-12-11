@@ -24,18 +24,20 @@ export interface FabricMemberContract
     | 'roomSessionId'
     | 'roomId'
     | 'name'
+    | 'parentId'
     | 'type'
+    | 'requestedPosition'
+    | 'currentPosition'
+    | 'meta'
     | 'handraised'
-    | 'visible'
+    | 'talking'
     | 'audioMuted'
     | 'videoMuted'
     | 'deaf'
+    | 'visible'
     | 'inputVolume'
     | 'outputVolume'
     | 'inputSensitivity'
-    | 'meta'
-    | 'talking'
-    | 'currentPosition'
   > {
   /** Unique id of this member. */
   memberId: string
@@ -206,6 +208,7 @@ export type FabricMemberEventNames =
   | MemberUpdated
   | MemberTalking
 
+// TODO: See why Exclude is not working?
 export type FabricMemberEventNamesWithoutTalking =
   | MemberJoined
   | MemberLeft
