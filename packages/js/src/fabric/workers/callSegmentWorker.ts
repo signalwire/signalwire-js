@@ -42,12 +42,12 @@ export const callSegmentWorker = function* (
         /** NOOP since this event is handled by the {@link fabricWorker} */
         break
       case 'call.left':
-        yield sagaEffects.fork(callLeftWorker, {
+        // Wait for the `callLeftWorker` to finish and then stop this particular segment worker
+        yield sagaEffects.call(callLeftWorker, {
           ...options,
           action,
         })
-        // Stop this particular segment worker
-        return
+        return true
       case 'call.updated':
         cfRoomSession.emit(type, payload)
         cfRoomSession.emit('room.updated', payload)
@@ -112,6 +112,8 @@ export const callSegmentWorker = function* (
         getLogger().warn('Got an unknown fabric event', action)
       }
     }
+
+    return false
   }
 
   const isSegmentEvent = (action: SDKActions) => {
@@ -131,6 +133,13 @@ export const callSegmentWorker = function* (
       swEventChannel,
       isSegmentEvent
     )
-    yield sagaEffects.fork(worker, action)
+    const task = yield sagaEffects.fork(worker, action)
+
+    /**
+     * Wait for `worker` to finish and get its return value
+     * Stop the `callSegmentWorker' if the returned value is true
+     */
+    const shouldStop = yield sagaEffects.join(task)
+    if (shouldStop) return
   }
 }
