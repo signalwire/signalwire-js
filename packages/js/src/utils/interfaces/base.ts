@@ -8,7 +8,7 @@ export interface BaseRoomSessionContract {
    */
   overlayMap: OverlayMap | undefined
   /**
-   * Local video overlay object that injects the DOM element inside the MCU
+   * Local video overlay object that the SDK injects in the DOM element inside the MCU
    */
   localVideoOverlay: LocalVideoOverlay | undefined
   /**
@@ -16,8 +16,7 @@ export interface BaseRoomSessionContract {
    */
   screenShareList: RoomSessionScreenShare[]
   /**
-   * Leaves the room. This detaches all the locally originating streams from the
-   * room.
+   * Leaves the room. This detaches all the locally originating streams from the room.
    */
   leave(): Promise<void>
   /**

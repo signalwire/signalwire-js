@@ -434,7 +434,10 @@ export interface VideoMemberLeftEvent extends SwEvent {
 export interface VideoMemberTalkingEventParams {
   room_session_id: string
   room_id: string
-  member: Pick<InternalVideoMemberEntity, 'id' | 'talking'>
+  member: {
+    id: string
+    talking: boolean
+  }
 }
 
 export interface VideoMemberTalkingEvent extends SwEvent {
