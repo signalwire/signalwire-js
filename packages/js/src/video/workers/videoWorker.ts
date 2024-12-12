@@ -35,7 +35,7 @@ export const videoWorker: SDKWorker<VideoRoomSessionConnection> = function* (
 
     switch (type) {
       case 'video.room.subscribed':
-        yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+        yield sagaEffects.fork(MemberPosition.memberPositionWorker, {
           ...options,
           instance: roomSession,
           initialState: payload,
