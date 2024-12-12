@@ -1,7 +1,7 @@
 import {
   FabricMemberEventNames,
   FabricMemberEventParams,
-  FabricMemberEventParamsWithoutTalking,
+  FabricMemberEventParamsExcludeTalking,
   FabricMemberJoinedEventParams,
   FabricMemberLeftEventParams,
   FabricMemberTalkingEventParams,
@@ -22,6 +22,7 @@ export interface FabricRoomSessionMember extends FabricMemberContract {
   setPayload(payload: FabricMemberEventParams): void
 }
 
+// TODO: Fabric Room Session Member instance does not emit any events yet
 export type FabricRoomSessionMemberEventsHandlerMap = Record<
   MemberJoined,
   (params: FabricMemberJoinedEventParams) => void
@@ -39,13 +40,13 @@ export type FabricRoomSessionMemberEvents = {
 }
 
 export interface FabricRoomSessionMemberOptions
-  extends BaseComponentOptionsWithPayload<FabricMemberEventParamsWithoutTalking> {}
+  extends BaseComponentOptionsWithPayload<FabricMemberEventParamsExcludeTalking> {}
 
 export class FabricRoomSessionMemberAPI
   extends BaseComponent<FabricRoomSessionMemberEvents>
   implements FabricMemberContract
 {
-  private _payload: FabricMemberEventParamsWithoutTalking
+  private _payload: FabricMemberEventParamsExcludeTalking
 
   constructor(options: FabricRoomSessionMemberOptions) {
     super(options)

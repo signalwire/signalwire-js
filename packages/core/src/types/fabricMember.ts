@@ -194,7 +194,11 @@ export interface FabricMemberLeftEvent extends SwEvent {
 export interface FabricMemberTalkingEventParams {
   room_id: string
   room_session_id: string
-  member: Pick<InternalFabricMemberEntity, 'member_id' | 'talking' | 'node_id'>
+  member: {
+    member_id: string
+    talking: boolean
+    node_id: string
+  }
 }
 
 export interface FabricMemberTalkingEvent extends SwEvent {
@@ -208,22 +212,11 @@ export type FabricMemberEventNames =
   | MemberUpdated
   | MemberTalking
 
-// TODO: See why Exclude is not working?
-export type FabricMemberEventNamesWithoutTalking =
-  | MemberJoined
-  | MemberLeft
-  | MemberUpdated
-
 export type FabricMemberEvent =
   | FabricMemberJoinedEvent
   | FabricMemberLeftEvent
   | FabricMemberUpdatedEvent
   | FabricMemberTalkingEvent
-
-export type FabricMemberEventWithoutTalking =
-  | FabricMemberJoinedEvent
-  | FabricMemberLeftEvent
-  | FabricMemberUpdatedEvent
 
 export type FabricMemberEventParams =
   | FabricMemberJoinedEventParams
@@ -231,7 +224,7 @@ export type FabricMemberEventParams =
   | FabricMemberUpdatedEventParams
   | FabricMemberTalkingEventParams
 
-export type FabricMemberEventParamsWithoutTalking =
-  | FabricMemberJoinedEventParams
-  | FabricMemberLeftEventParams
-  | FabricMemberUpdatedEventParams
+export type FabricMemberEventParamsExcludeTalking = Exclude<
+  FabricMemberEventParams,
+  FabricMemberTalkingEventParams
+>
