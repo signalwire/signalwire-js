@@ -40,8 +40,6 @@ describe('buildVideoElement', () => {
       store = stack.store
       room = createFabricRoomSessionObject({
         store,
-        // @ts-expect-error
-        emitter: stack.emitter,
       })
       setupRoomForTests()
 
@@ -508,8 +506,6 @@ describe('buildVideoElement', () => {
       store = stack.store
       room = createVideoRoomSessionObject({
         store,
-        // @ts-expect-error
-        emitter: stack.emitter,
       })
       setupRoomForTests()
 

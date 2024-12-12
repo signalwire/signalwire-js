@@ -105,12 +105,6 @@ export const buildVideoElement = async (
       }
     }
 
-    if (isFabricRoomSession(room)) {
-      room.on('layout.changed', layoutChangedHandler)
-    } else if (isVideoRoomSession(room)) {
-      room.on('layout.changed', layoutChangedHandler)
-    }
-
     const processVideoTrack = async (track: MediaStreamTrack) => {
       hasVideoTrack = true
 
@@ -142,17 +136,6 @@ export const buildVideoElement = async (
       }
     }
 
-    /**
-     * Using `on` instead of `once` (or `off` within trackHandler) because
-     * there are cases (promote/demote) where we need to handle multiple `track`
-     * events and update the videoEl with the new track.
-     */
-    if (isFabricRoomSession(room)) {
-      room.on('track', trackHandler)
-    } else if (isVideoRoomSession(room)) {
-      room.on('track', trackHandler)
-    }
-
     const unsubscribe = () => {
       cleanupElement(rootElement)
       overlayMap.clear() // Use "delete" rather than "clear" if we want to update the reference
@@ -169,9 +152,18 @@ export const buildVideoElement = async (
       localVideoOverlay.detachListeners()
     }
 
+    /**
+     * Using `on` instead of `once` (or `off` within trackHandler) because
+     * there are cases (promote/demote) where we need to handle multiple `track`
+     * events and update the videoEl with the new track.
+     */
     if (isFabricRoomSession(room)) {
+      room.on('layout.changed', layoutChangedHandler)
+      room.on('track', trackHandler)
       room.once('destroy', unsubscribe)
     } else if (isVideoRoomSession(room)) {
+      room.on('layout.changed', layoutChangedHandler)
+      room.on('track', trackHandler)
       room.once('destroy', unsubscribe)
     }
 
