@@ -60,7 +60,7 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
  * Client object.
  */
 export const Client = function (chatOptions: ClientOptions) {
-  const client = createClient<Client>(chatOptions)
+  const client = createClient(chatOptions)
 
   const createInterceptor = <K extends keyof Client>(prop: K) => {
     return async (...params: Parameters<Client[K]>) => {

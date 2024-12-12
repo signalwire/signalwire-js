@@ -1,17 +1,25 @@
 import { BaseClient, ClientEvents, actions } from '@signalwire/core'
 import type {
   CallJoinedEventParams,
+  ClientContract,
   CustomSaga,
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
-import { createCallFabricRoomSessionObject } from './CallFabricRoomSession'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
-import { RoomSessionConnection } from '../BaseRoomSession'
 import { buildVideoElement } from '../buildVideoElement'
+import { VideoRoomSessionConnection } from '../video/VideoRoomSession'
+import { createFabricRoomSessionObject } from './FabricRoomSession'
 
-export class Client extends BaseClient<ClientEvents> {
-  makeCallFabricObject(makeRoomOptions: MakeRoomOptions) {
+export interface Client extends ClientContract<Client, ClientEvents> {
+  makeFabricObject: ClientAPI['makeFabricObject']
+  execute: ClientAPI['execute']
+  reauthenticate: ClientAPI['reauthenticate']
+  runWorker: ClientAPI['runWorker']
+}
+
+export class ClientAPI extends BaseClient<ClientEvents> {
+  makeFabricObject(makeRoomOptions: MakeRoomOptions) {
     const {
       rootElement,
       applyLocalVideoOverlay = true,
@@ -23,7 +31,7 @@ export class Client extends BaseClient<ClientEvents> {
     } = makeRoomOptions
 
     // TODO: This might not be needed here. We can initiate these sagas in the BaseRoomSession constructor.
-    const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
+    const customSagas: Array<CustomSaga<VideoRoomSessionConnection>> = []
 
     /**
      * By default the SDK will attach the audio to
@@ -35,7 +43,7 @@ export class Client extends BaseClient<ClientEvents> {
       })
     )
 
-    const room = createCallFabricRoomSessionObject({
+    const room = createFabricRoomSessionObject({
       ...options,
       store: this.store,
       customSagas,
@@ -68,6 +76,7 @@ export class Client extends BaseClient<ClientEvents> {
       params: CallJoinedEventParams | VideoRoomSubscribedEventParams
     ) => {
       const member = params.room_session.members?.find(
+        // @ts-expect-error FIXME:
         (m) => m.id === room.memberId || m.member_id === room.memberId
       )
 
@@ -94,7 +103,7 @@ export class Client extends BaseClient<ClientEvents> {
      * Stop and Restore outbound audio on audio_muted event
      */
     if (stopMicrophoneWhileMuted) {
-      room.on('member.updated.audio_muted', ({ member }) => {
+      room.on('member.updated.audioMuted', ({ member }) => {
         try {
           if (member.member_id === room.memberId && 'audio_muted' in member) {
             member.audio_muted
@@ -111,7 +120,7 @@ export class Client extends BaseClient<ClientEvents> {
      * Stop and Restore outbound video on video_muted event
      */
     if (stopCameraWhileMuted) {
-      room.on('member.updated.video_muted', ({ member }) => {
+      room.on('member.updated.videoMuted', ({ member }) => {
         try {
           if (member.member_id === room.memberId && 'video_muted' in member) {
             member.video_muted

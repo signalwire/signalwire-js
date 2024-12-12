@@ -1,5 +1,8 @@
 import { uuid } from '@signalwire/core'
-import { SignalWireContract } from '@signalwire/js'
+import {
+  SignalWireClient,
+  ConversationMessageEventParams,
+} from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
 
@@ -23,9 +26,9 @@ test.describe('Conversation Room', () => {
 
     const firstMsgEvent = await page.evaluate(
       ({ roomName }) => {
-        return new Promise(async (resolve) => {
+        return new Promise<ConversationMessageEventParams>(async (resolve) => {
           // @ts-expect-error
-          const client = window._client as SignalWireContract
+          const client: SignalWireClient = window._client
           const addresses = await client.address.getAddresses({
             displayName: roomName,
           })
@@ -41,25 +44,23 @@ test.describe('Conversation Room', () => {
       { roomName }
     )
 
-    // @ts-expect-error
     expect(firstMsgEvent.type).toBe('message')
 
-    // @ts-expect-error
     const addressId = firstMsgEvent.address_id
 
     const secondMsgEventPromiseFromPage1 = page.evaluate(() => {
-      return new Promise((resolve) => {
+      return new Promise<ConversationMessageEventParams>((resolve) => {
         // @ts-expect-error
-        const client = window._client
+        const client: SignalWireClient = window._client
         client.conversation.subscribe(resolve)
       })
     })
 
     const firstMsgEventFromPage2 = await page2.evaluate(
       ({ addressId }) => {
-        return new Promise(async (resolve) => {
+        return new Promise<ConversationMessageEventParams>(async (resolve) => {
           // @ts-expect-error
-          const client = window._client as SignalWireContract
+          const client: SignalWireClient = window._client
           await client.connect()
           client.conversation.subscribe(resolve)
           const result = await client.conversation.getConversations()
@@ -75,18 +76,16 @@ test.describe('Conversation Room', () => {
     const secondMsgEventFromPage1 = await secondMsgEventPromiseFromPage1
     expect(secondMsgEventFromPage1).not.toBeUndefined()
 
-    // @ts-expect-error
     expect(secondMsgEventFromPage1.type).toBe('message')
 
     expect(firstMsgEventFromPage2).not.toBeUndefined()
 
-    // @ts-expect-error
     expect(firstMsgEventFromPage2.type).toBe('message')
 
     const messages = await page.evaluate(
       async ({ addressId }) => {
         // @ts-expect-error
-        const client = window._client as SignalWireContract
+        const client: SignalWireClient = window._client
         const result = await client.conversation.getConversations()
         const convo = result.data.filter((c) => c.id == addressId)[0]
         return await convo.getMessages({})

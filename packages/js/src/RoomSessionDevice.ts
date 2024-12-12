@@ -2,11 +2,11 @@ import {
   Rooms,
   extendComponent,
   BaseConnectionContract,
-  BaseConnectionState,
   RoomLeft,
   RoomLeftEventParams,
+  BaseConnectionState,
 } from '@signalwire/core'
-import { BaseConnection, MediaEvent } from '@signalwire/webrtc'
+import { BaseConnection, MediaEventNames } from '@signalwire/webrtc'
 import { RoomSessionDeviceMethods } from './utils/interfaces'
 
 type RoomSessionDeviceEventsHandlerMap = Record<
@@ -14,7 +14,7 @@ type RoomSessionDeviceEventsHandlerMap = Record<
   (params: RoomSessionDevice) => void
 > &
   Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
-  Record<MediaEvent, () => void>
+  Record<MediaEventNames, () => void>
 
 export type RoomSessionDeviceEvents = {
   [k in keyof RoomSessionDeviceEventsHandlerMap]: RoomSessionDeviceEventsHandlerMap[k]

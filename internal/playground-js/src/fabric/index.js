@@ -80,7 +80,7 @@ window.playbackEnded = () => {
 
 async function loadLayouts(currentLayoutId) {
   try {
-    const { layouts } = await roomObj.getLayoutList()
+    const { layouts } = await roomObj.getLayouts()
     const fillSelectElement = (id) => {
       const layoutEl = document.getElementById(id)
       layoutEl.innerHTML = ''
@@ -279,21 +279,30 @@ window.connect = async ({ reattach = false } = {}) => {
   window.__call = call
   roomObj = call
 
-  roomObj.on('media.connected', () => {
-    console.debug('>> media.connected')
+  roomObj.on('call.state', (params) => {
+    console.debug('>> call.state', params)
   })
-  roomObj.on('media.reconnecting', () => {
-    console.debug('>> media.reconnecting')
+  roomObj.on('call.joined', (params) => {
+    console.debug('>> call.joined', params)
   })
-  roomObj.on('media.disconnected', () => {
-    console.debug('>> media.disconnected')
+  roomObj.on('call.updated', (params) => {
+    console.debug('>> call.updated', params)
+  })
+  roomObj.on('call.left', (params) => {
+    console.debug('>> call.left', params)
+  })
+  roomObj.on('call.play', (params) => {
+    console.debug('>> call.play', params)
+  })
+  roomObj.on('call.connect', (params) => {
+    console.debug('>> call.connect', params)
+  })
+  roomObj.on('call.room', (params) => {
+    console.debug('>> call.room', params)
   })
 
   roomObj.on('room.subscribed', (params) =>
     console.debug('>> room.subscribed', params)
-  )
-  roomObj.on('room.started', (params) =>
-    console.debug('>> room.started', params)
   )
   roomObj.on('room.joined', (params) => {
     console.debug('>> room.joined ', params)
@@ -306,11 +315,42 @@ window.connect = async ({ reattach = false } = {}) => {
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
   )
+  roomObj.on('room.left', (params) => {
+    console.debug('>> room.left', params)
+  })
   roomObj.on('room.ended', (params) => {
     console.debug('>> room.ended', params)
     hangup()
   })
 
+  roomObj.on('member.joined', (params) =>
+    console.debug('>> member.joined', params)
+  )
+  roomObj.on('member.updated', (params) =>
+    console.debug('>> member.updated', params)
+  )
+  roomObj.on('member.updated.audioMuted', (params) =>
+    console.debug('>> member.updated.audioMuted', params)
+  )
+  roomObj.on('member.updated.videoMuted', (params) =>
+    console.debug('>> member.updated.videoMuted', params)
+  )
+  roomObj.on('member.left', (params) => console.debug('>> member.left', params))
+  roomObj.on('member.talking', (params) =>
+    console.debug('>> member.talking', params)
+  )
+
+  roomObj.on('media.connected', () => {
+    console.debug('>> media.connected')
+  })
+  roomObj.on('media.reconnecting', () => {
+    console.debug('>> media.reconnecting')
+  })
+  roomObj.on('media.disconnected', () => {
+    console.debug('>> media.disconnected')
+  })
+
+  // CF SDK does not support recording events yet
   roomObj.on('recording.started', (params) => {
     console.debug('>> recording.started', params)
     document.getElementById('recordingState').innerText = 'recording'
@@ -324,23 +364,7 @@ window.connect = async ({ reattach = false } = {}) => {
     document.getElementById('recordingState').innerText = params.state
   })
 
-  roomObj.on('member.joined', (params) =>
-    console.debug('>> member.joined', params)
-  )
-  roomObj.on('member.updated', (params) =>
-    console.debug('>> member.updated', params)
-  )
-  roomObj.on('member.updated.audio_muted', (params) =>
-    console.debug('>> member.updated.audio_muted', params)
-  )
-  roomObj.on('member.updated.video_muted', (params) =>
-    console.debug('>> member.updated.video_muted', params)
-  )
-  roomObj.on('member.left', (params) => console.debug('>> member.left', params))
-  roomObj.on('member.talking', (params) =>
-    console.debug('>> member.talking', params)
-  )
-
+  // CF SDK does not support playback events yet
   roomObj.on('playback.started', (params) => {
     console.debug('>> playback.started', params)
     playbackStarted()

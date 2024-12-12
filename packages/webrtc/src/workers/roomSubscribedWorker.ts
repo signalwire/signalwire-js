@@ -13,6 +13,7 @@ import {
   RoomSessionStream,
   RoomSessionPlayback,
   RoomSessionRecording,
+  CallJoinedEvent,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -37,7 +38,7 @@ export const roomSubscribedWorker: SDKWorker<
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
   }
 
-  const action: MapToPubSubShape<VideoRoomSubscribedEvent> =
+  const action: MapToPubSubShape<VideoRoomSubscribedEvent | CallJoinedEvent> =
     yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
       if (
         action.type === 'video.room.subscribed' ||

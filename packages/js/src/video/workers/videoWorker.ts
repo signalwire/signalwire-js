@@ -1,26 +1,28 @@
 import {
-  MapToPubSubShape,
   SDKActions,
   SDKWorker,
   SagaIterator,
-  VideoAPIEventParams,
   getLogger,
   sagaEffects,
   SDKWorkerParams,
   MemberPosition,
-  VideoAPIEventNames,
   stripNamespacePrefix,
+  VideoAction,
+  VideoRoomDeviceEventNames,
+  BaseConnectionState,
 } from '@signalwire/core'
-import { RoomSessionConnection } from '../BaseRoomSession'
 import { videoStreamWorker } from './videoStreamWorker'
 import { videoRecordWorker } from './videoRecordWorker'
 import { videoPlaybackWorker } from './videoPlaybackWorker'
+import { VideoRoomSessionConnection } from '../VideoRoomSession'
+import { MediaEventNames } from '@signalwire/webrtc'
 
-export type VideoWorkerParams<T> = SDKWorkerParams<RoomSessionConnection> & {
-  action: T
-}
+export type VideoWorkerParams<T> =
+  SDKWorkerParams<VideoRoomSessionConnection> & {
+    action: T
+  }
 
-export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
+export const videoWorker: SDKWorker<VideoRoomSessionConnection> = function* (
   options
 ): SagaIterator {
   getLogger().trace('videoWorker started')
@@ -28,12 +30,12 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   const { channels, instance: roomSession } = options
   const { swEventChannel } = channels
 
-  function* worker(action: MapToPubSubShape<VideoAPIEventParams>) {
+  function* worker(action: VideoAction) {
     const { type, payload } = action
 
     switch (type) {
       case 'video.room.subscribed':
-        yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+        yield sagaEffects.fork(MemberPosition.memberPositionWorker, {
           ...options,
           instance: roomSession,
           initialState: payload,
@@ -80,14 +82,17 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
       }
       case 'video.layout.changed': {
         // Upsert the layout event which is needed for buildVideoElement
-        roomSession.lastLayoutEvent = action.payload
+        roomSession.currentLayoutEvent = action.payload
         break
       }
       default:
         break
     }
 
-    const event = stripNamespacePrefix(type, 'video') as VideoAPIEventNames
+    const event = stripNamespacePrefix(type, 'video') as
+      | VideoRoomDeviceEventNames
+      | MediaEventNames
+      | BaseConnectionState
     roomSession.emit(event, payload)
   }
 
@@ -96,8 +101,10 @@ export const videoWorker: SDKWorker<RoomSessionConnection> = function* (
   }
 
   while (true) {
-    const action: MapToPubSubShape<VideoAPIEventParams> =
-      yield sagaEffects.take(swEventChannel, isVideoEvent)
+    const action: VideoAction = yield sagaEffects.take(
+      swEventChannel,
+      isVideoEvent
+    )
 
     yield sagaEffects.fork(worker, action)
   }

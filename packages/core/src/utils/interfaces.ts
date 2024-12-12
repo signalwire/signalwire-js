@@ -61,7 +61,7 @@ export type JSONRPCMethod =
   | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
-  | CallFabricMethod
+  | FabricMethod
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
@@ -347,7 +347,7 @@ export type RoomMethod =
 /**
  * List of all Call Fabric methods
  */
-export type CallFabricMethod =
+export type FabricMethod =
   | 'call.mute'
   | 'call.unmute'
   | 'call.deaf'

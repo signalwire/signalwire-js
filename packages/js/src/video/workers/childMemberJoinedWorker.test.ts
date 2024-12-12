@@ -44,7 +44,13 @@ describe('childMemberJoinedWorker', () => {
       initialState: {
         parentId,
       },
-      instanceMap: { get: jest.fn(), set: jest.fn(), remove: jest.fn() },
+      instanceMap: {
+        get: jest.fn(),
+        set: jest.fn(),
+        remove: jest.fn(),
+        getAll: jest.fn(),
+        deleteAll: jest.fn(),
+      },
       getSession,
       runSaga: jest.fn(),
     })
