@@ -3,7 +3,6 @@ import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
-import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
 
 type CreateTestServerOptions = {
@@ -644,7 +643,8 @@ export const getStats = async (page: Page) => {
   const stats = await page.evaluate(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
-    const rtcPeer = roomObj.peer!
+    // @ts-expect-error
+    const rtcPeer = roomObj.peer
     const stats = await rtcPeer.instance.getStats(null)
     const result: {
       inboundRTP: Record<any, any>
@@ -658,7 +658,6 @@ export const getStats = async (page: Page) => {
 
     const inboundRTPHandler = (report: any) => {
       const media = report.mediaType as 'video' | 'audio'
-      // @ts-expect-error
       const trackId = rtcPeer._getReceiverByKind(media)!.track.id
       console.log(`getStats trackId "${trackId}" for media ${media}`)
       if (report.trackIdentifier !== trackId) {
