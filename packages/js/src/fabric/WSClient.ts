@@ -84,26 +84,32 @@ export class WSClient {
   private buildRoomSession(params: BuildRoomParams) {
     const { to, callID, nodeId, sdp } = params
 
-    let video = params.video ?? true
-    let negotiateVideo = true
+    let video = false
+    let negotiateVideo = false
 
-    const toURL = new URL(`address:${to}`)
-
-    if (to && toURL.searchParams.get('channel') === 'audio') {
-      video = false
-      negotiateVideo = false
+    try {
+      if (to && to.includes('?')) {
+        const params = new URLSearchParams(to.split('?')[1])
+        const channel = params.get('channel')
+        if (channel === 'video') {
+          video = true
+          negotiateVideo = true
+        }
+      }
+    } catch (error) {
+      throw new Error('Error parsing the destination address:', error)
     }
 
     const call = this.wsClient.makeCallFabricObject({
       audio: params.audio ?? true,
-      video,
+      video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
       negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.options.rootElement,
       applyLocalVideoOverlay: true,
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
-      destinationNumber: toURL.pathname,
+      destinationNumber: to,
       watchMediaPackets: false,
       remoteSdp: sdp,
       prevCallId: callID,
