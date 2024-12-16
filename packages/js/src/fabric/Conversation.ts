@@ -256,7 +256,7 @@ export class Conversation {
     callback: CoversationSubscribeCallback
   ): Promise<CoversationSubscribeResult> {
     // Connect the websocket client first
-    this.wsClient.connect()
+    await this.wsClient.connect()
 
     this.callbacks.add(callback)
 

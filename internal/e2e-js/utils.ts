@@ -63,6 +63,7 @@ export const createTestRoomSession = async (
     initialEvents?: string[]
     expectToJoin?: boolean
     roomSessionOptions?: Record<string, any>
+    shouldPassRootElement?: boolean
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -77,7 +78,9 @@ export const createTestRoomSession = async (
       const roomSession = new Video.RoomSession({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
+        ...(options.shouldPassRootElement && {
+          rootElement: document.getElementById('rootElement'),
+        }),
         logLevel: options.CI ? 'info' : 'debug',
         debug: {
           logWsTraffic: true, //Boolean(options.CI),
@@ -106,6 +109,7 @@ export const createTestRoomSession = async (
       initialEvents: options.initialEvents,
       CI: process.env.CI,
       roomSessionOptions: options.roomSessionOptions,
+      shouldPassRootElement: options.shouldPassRootElement ?? true,
     }
   )
 
@@ -1156,11 +1160,11 @@ export const createSWMLAppResource = async ({
 
 export interface CreateRelayAppResourceParams {
   name?: string
-  reference: string
+  topic: string
 }
 export const createRelayAppResource = async ({
   name,
-  reference,
+  topic,
 }: CreateRelayAppResourceParams) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`,
@@ -1172,7 +1176,7 @@ export const createRelayAppResource = async ({
       },
       body: JSON.stringify({
         name: name ?? `e2e-relay-app_${uuid()}`,
-        reference,
+        topic,
       }),
     }
   )

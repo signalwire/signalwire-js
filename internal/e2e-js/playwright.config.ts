@@ -37,7 +37,6 @@ const reattachTests = [
 ]
 const callfabricTests = [
   'address.spec.ts',
-  'buildVideoElement.spec.ts',
   'conversation.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
@@ -51,6 +50,10 @@ const cfRenegotiationTests = [
   'renegotiateVideo.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
+const videoElementTests = [
+  'buildVideoWithVideoSdk.spec.ts',
+  'buildVideoWithCFSdk.spec.ts',
+]
 
 const useDesktopChrome = {
   ...devices['Desktop Chrome'],
@@ -133,6 +136,11 @@ const config: PlaywrightTestConfig = {
       name: 'cfRenegotiation',
       use: useDesktopChrome,
       testMatch: cfRenegotiationTests,
+    },
+    {
+      name: 'videoElement',
+      use: useDesktopChrome,
+      testMatch: videoElementTests,
     },
     {
       name: 'v2WebRTC',

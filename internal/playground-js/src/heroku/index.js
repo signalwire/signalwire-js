@@ -1,4 +1,4 @@
-import { Video, Fabric } from '@signalwire/js'
+import { Video } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,

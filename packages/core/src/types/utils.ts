@@ -144,6 +144,6 @@ export type Promisify<T> = {
 /*
  * Type Debug Helper
  */
-export type Prettify<T> = {
+export type Prettify<T> = NonNullable<unknown> & {
   [K in keyof T]: Prettify<T[K]>
 } & {}

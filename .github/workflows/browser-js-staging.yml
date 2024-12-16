@@ -28,6 +28,7 @@ jobs:
             # reattach,
             callfabric,
             cfRenegotiation,
+            videoElement,
             v2WebRTC,
           ]
     steps:

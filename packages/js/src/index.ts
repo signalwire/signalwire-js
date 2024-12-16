@@ -59,7 +59,7 @@ export * as PubSub from './pubSub'
  * CallFabric namespace
  */
 export * as Fabric from './fabric'
-export { SignalWire, buildVideoElement } from './fabric'
+export { SignalWire } from './fabric'
 export * from './fabric/types'
 
 /**
@@ -97,6 +97,7 @@ export type {
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   InternalVideoMemberEntity,
+  InternalVideoLayoutLayer,
   VideoPosition,
   VideoPositions,
   /**
@@ -126,3 +127,7 @@ export type {
   RoomEventNames,
   StartScreenShareOptions,
 } from './utils/interfaces'
+
+// Build Video Element
+export { buildVideoElement } from './buildVideoElement'
+export { LocalVideoOverlay, OverlayMap, UserOverlay } from './VideoOverlays'

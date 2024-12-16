@@ -271,22 +271,20 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return this.peer ? this.peer.getDeviceLabel('audio') : null
   }
 
-  /** @internal */
   get withAudio() {
     return Boolean(this.peer?.hasAudioReceiver)
   }
 
-  /** @internal */
   get withVideo() {
     return Boolean(this.peer?.hasVideoReceiver)
   }
 
-  get localVideoTrack() {
-    return this.peer ? this.peer.localVideoTrack : null
-  }
-
   get localAudioTrack() {
     return this.peer ? this.peer.localAudioTrack : null
+  }
+
+  get localVideoTrack() {
+    return this.peer ? this.peer.localVideoTrack : null
   }
 
   get peer() {

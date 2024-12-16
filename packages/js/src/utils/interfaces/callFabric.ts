@@ -4,17 +4,13 @@ import {
   EnableAudioParams,
   EnableVideoParams,
 } from '@signalwire/webrtc'
-import { VideoLayoutChangedEventParams, VideoPosition } from '@signalwire/core'
+import { CallCapabilities } from '@signalwire/core'
 
 export interface CallFabricRoomSessionContract {
   /**
-   * The layout returned from the `layout.changed` event based on the current room layout
+   * describe what capabilities the user have in a call
    */
-  currentLayout: VideoLayoutChangedEventParams['layout']
-  /**
-   * The current position of the member returned from the `layout.changed` event
-   */
-  currentPosition: VideoPosition
+  readonly capabilities: CallCapabilities
   /**
    * Starts the call via the WebRTC connection
    *

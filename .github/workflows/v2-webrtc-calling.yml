@@ -13,7 +13,9 @@ on:
           - 'us'
           - 'ch'
           - 'eu'
+          - 'me'
           - 'spr-preprod'
+          - 'spr-prod'
           - 'euswcom'
           - 'staging'
   schedule:
@@ -36,7 +38,9 @@ jobs:
             {"name": "us", "environment": "production", "config": "PRODUCTION_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""},
             {"name": "ch", "environment": "production-ch", "config": "PRODUCTION_E2E_JS_CHREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
             {"name": "eu", "environment": "production-eu", "config": "PRODUCTION_E2E_JS_EUREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "me", "environment": "production-me", "config": "PRODUCTION_E2E_JS_MEREGION_SW_TEST_CONFIG", "cxml_conference_region": "" },
             {"name": "spr-preprod", "environment": "production-spr-preprod", "config": "PRODUCTION_E2E_JS_SPRPREPRODREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
+            {"name": "spr-prod", "environment": "production-spr-prod", "config": "PRODUCTION_E2E_JS_SPRPRODREGION_SW_TEST_CONFIG", "cxml_conference_region": "region=\"eu\""},
             {"name": "euswcom", "environment": "production-euswcom", "config": "PRODUCTION_EUSWCOM_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""},
             {"name": "staging", "environment": "staging", "config": "STAGING_E2E_JS_SW_TEST_CONFIG", "cxml_conference_region": ""}
           ]'
@@ -55,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 3
       matrix: ${{ fromJson(needs.determine_regions.outputs.matrix) }}
     steps:
       - run: |

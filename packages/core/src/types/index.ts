@@ -60,13 +60,17 @@ export interface BaseConnectionContract<
   readonly cameraId: string | null
   /** The label of the video device, or null if not available */
   readonly cameraLabel: string | null
+  /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
+  readonly localStream: MediaStream | undefined
+  /** Indicates if there is any receiving audio */
+  readonly withAudio: boolean
+  /** Indicates if there is any receiving video */
+  readonly withVideo: boolean
   /**
    * Provides access to the local audio
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
   readonly localAudioTrack: MediaStreamTrack | null
-  /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
-  readonly localStream: MediaStream | undefined
   /**
    * Provides access to the local video
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).

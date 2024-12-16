@@ -307,8 +307,8 @@ describe('Conversation', () => {
       const mockCallback1 = jest.fn()
       const mockCallback2 = jest.fn()
 
-      conversation.subscribe(mockCallback1)
-      conversation.subscribe(mockCallback2)
+      await conversation.subscribe(mockCallback1)
+      await conversation.subscribe(mockCallback2)
 
       const event = {
         type: 'conversation.message',
@@ -555,6 +555,8 @@ describe('Conversation', () => {
         ts: 1,
         user_id: 'test_user_id',
         user_name: 'test_user_name',
+        address_id: 'text_address_id',
+        from_address_id: 'test_from_address_id',
       }
       conversation.handleEvent(eventForAddressId1)
 
@@ -563,6 +565,8 @@ describe('Conversation', () => {
         conversation_id: 'different_id',
         subtype: 'chat',
         type: 'message',
+        address_id: '',
+        from_address_id: '',
       })
 
       conversation.handleEvent({
@@ -570,6 +574,8 @@ describe('Conversation', () => {
         conversation_id: 'abc',
         subtype: 'log',
         type: 'message',
+        address_id: '',
+        from_address_id: '',
       })
 
       expect(mockCallback1).toHaveBeenCalledWith(eventForAddressId1)

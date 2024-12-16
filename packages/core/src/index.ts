@@ -20,6 +20,7 @@ import {
   stripNamespacePrefix,
   isJSONRPCRequest,
   isJSONRPCResponse,
+  mapCapabilityPayload
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -74,6 +75,7 @@ export {
   isJSONRPCResponse,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
+  mapCapabilityPayload
 }
 
 export * from './redux/features/component/componentSlice'
@@ -115,4 +117,3 @@ export const selectors = {
 export { ChatMember, ChatMessage } from './chat'
 export { PubSubMessage } from './pubSub'
 export * as testUtils from './testUtils'
-export * from './utils/mapObject'
