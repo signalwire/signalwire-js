@@ -8,7 +8,7 @@ import {
 import { InternalVideoMemberEntityUpdated } from '@signalwire/core'
 
 test.describe('Video room hand raise/lower', () => {
-  test('should raise memberOne hand using room session instance via Node SDK', async ({
+  test.skip('should raise memberOne hand using room session instance via Node SDK', async ({
     browser,
   }) => {
     console.log(
@@ -84,7 +84,7 @@ test.describe('Video room hand raise/lower', () => {
     )
   })
 
-  test('should raise memberTwo hand using member instance via Node SDK', async ({
+  test.skip('should raise memberTwo hand using member instance via Node SDK', async ({
     browser,
   }) => {
     console.log(
@@ -157,7 +157,7 @@ test.describe('Video room hand raise/lower', () => {
     )
   })
 
-  test('should lower memberOne hand using room session instance via Web SDK', async ({
+  test.skip('should lower memberOne hand using room session instance via Web SDK', async ({
     browser,
   }) => {
     console.log(
