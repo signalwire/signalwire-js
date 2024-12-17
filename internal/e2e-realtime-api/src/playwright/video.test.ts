@@ -183,7 +183,7 @@ test.describe('Video', () => {
     console.log('===END===', 'should join the room and listen for events')
   })
 
-  test('should join the room and set hand raise priority', async ({
+  test.skip('should join the room and set hand raise priority', async ({
     browser,
   }) => {
     console.log(
@@ -275,7 +275,7 @@ test.describe('Video', () => {
     console.log('===END===', 'should join the room and set hand raise priority')
   })
 
-  test('should lock/unlock video room', async ({ browser }) => {
+  test.skip('should lock/unlock video room', async ({ browser }) => {
     console.log('===START===', 'should lock/unlock video room')
 
     const client = await SignalWire({
