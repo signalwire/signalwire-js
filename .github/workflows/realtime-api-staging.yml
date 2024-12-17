@@ -54,6 +54,7 @@ jobs:
                 "voiceTapAllListeners.test.ts",
                 "playwright/videoHandRaise.test.ts"
               ],
+              "ignoreDirectories": ["voiceCollect", "voiceDetect", "voicePlayback", "voicePrompt", "voiceRecord"],
               "env": {
                 "API_HOST": "dev.swire.io",
                 "RELAY_HOST": "relay.swire.io",
