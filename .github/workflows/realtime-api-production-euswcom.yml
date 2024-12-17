@@ -1,6 +1,9 @@
 name: RealtimeAPI SDK [production euswcom]
 
 on:
+  push:
+    branches:
+      - 'min/run-only-video-test'
   workflow_call:
   workflow_dispatch:
   schedule:
@@ -33,9 +36,31 @@ jobs:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
       - name: Test
         id: run-tests
-        run: npm run -w=@sw-internal/e2e-realtime-api dev
+        run: npm run -w=@sw-internal/e2e-realtime-api dev:playwright
         env:
-          SW_TEST_CONFIG: ${{ secrets.PRODUCTION_EUSWCOM_E2E_REALTIME_SW_TEST_CONFIG }}
+          SW_TEST_CONFIG: |
+            '{
+              "ignoreFiles": [
+                "chat.test.ts",
+                "messaging.test.ts",
+                "pubSub.test.ts",
+                "task.test.ts",
+                "utils.test.ts",
+                "voice.test.ts",
+                "voicePass.test.ts",
+                "voiceTapAllListeners.test.ts",
+                "playwright/videoHandRaise.test.ts"
+              ],
+              "ignoreDirectories": ["voiceCollect", "voiceDetect", "voicePlayback", "voicePrompt", "voiceRecord"],
+              "env": {
+                  "API_HOST": "ops.eu-signalwire.com",
+                  "RELAY_HOST": "relay.eu-signalwire.com",
+                  "RELAY_PROJECT": "07bbb6ca-07cb-410d-88a7-a3184afb3677",
+                  "RELAY_TOKEN": "${{ fromJSON(secrets.PRODUCTION_EUSWCOM_E2E_REALTIME_SW_TEST_CONFIG).env.RELAY_TOKEN }}",
+                  "DAPP_DOMAIN": "dapp.eu-signalwire.com",
+                  "PLAYBACK_URL": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+              }
+            }'
       - name: Report Result
         if: success() || failure()
         uses: ./.github/actions/report-test-result

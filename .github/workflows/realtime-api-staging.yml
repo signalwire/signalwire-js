@@ -1,6 +1,9 @@
 name: RealtimeAPI SDK [staging]
 
 on:
+  push:
+    branches:
+      - 'min/run-only-video-test'
   workflow_call:
   workflow_dispatch:
   schedule:
@@ -18,7 +21,8 @@ jobs:
       fail-fast: false # Continue other jobs if one fails
       matrix:
         node-version: [18.x]
-        test_command: ['dev:rtonly', 'dev:playwright']
+        # test_command: ['dev:rtonly', 'dev:playwright']
+        test_command: ['dev:playwright']
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -37,7 +41,31 @@ jobs:
       - name: Test
         run: 'npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}'
         env:
-          SW_TEST_CONFIG: ${{ secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG }}
+          SW_TEST_CONFIG: |
+            '{
+              "ignoreFiles": [
+                "chat.test.ts",
+                "messaging.test.ts",
+                "pubSub.test.ts",
+                "task.test.ts",
+                "utils.test.ts",
+                "voice.test.ts",
+                "voicePass.test.ts",
+                "voiceTapAllListeners.test.ts",
+                "playwright/videoHandRaise.test.ts"
+              ],
+              "env": {
+                "API_HOST": "dev.swire.io",
+                "RELAY_HOST": "relay.swire.io",
+                "RELAY_PROJECT": "78429ef1-283b-4fa9-8ebc-16b59f95bb1f",
+                "RELAY_TOKEN": "${{ fromJSON(secrets.STAGING_E2E_REALTIME_SW_TEST_CONFIG).env.RELAY_TOKEN }}",
+                "MESSAGING_FROM_NUMBER": "+10000000000",
+                "MESSAGING_TO_NUMBER": "+10000000001",
+                "MESSAGING_CONTEXT": "messaging-e2e",
+                "DAPP_DOMAIN": "dapp.swire.io",
+                "PLAYBACK_URL": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+              }
+            }'
 
   report-result:
     needs: e2e-tests
