@@ -18,7 +18,7 @@ jobs:
       fail-fast: false # Continue other jobs if one fails
       matrix:
         node-version: [18.x]
-        # test_command: ['dev:rtonly', 'dev:playwright']
+        test_command: ['dev:rtonly', 'dev:playwright']
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -30,12 +30,12 @@ jobs:
         with:
           NODE_VERSION: ${{ matrix.node-version }}
       - name: Install Playwright
-        # if: matrix.test_command == 'dev:playwright'
+        if: matrix.test_command == 'dev:playwright'
         uses: ./.github/actions/playwright
         with:
           PLAYWRIGHT_VERSION: '1.35.1'
       - name: Test
-        run: 'npm run -w=@sw-internal/e2e-realtime-api dev:playwright -- video.test.ts'
+        run: 'npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}'
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
 
