@@ -42,7 +42,7 @@ jobs:
         run: 'npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}'
         env:
           SW_TEST_CONFIG: |
-            '{
+            {
               "ignoreFiles": [
                 "chat.test.ts",
                 "messaging.test.ts",
@@ -65,7 +65,7 @@ jobs:
                 "DAPP_DOMAIN": "dapp.swire.io",
                 "PLAYBACK_URL": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
               }
-            }'
+            }
 
   report-result:
     needs: e2e-tests
