@@ -444,7 +444,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  /** @internal */
+  /**
+   * Determines the appropriate {@link RTCRtpTransceiverDirection} based on current audio/video
+   * and negotiation options. The returned direction tells the peer connection
+   * whether to send, receive, both, or remain inactive for the given media kind.
+   */
   private _getTransceiverDirection(kind: 'video' | 'audio' | string) {
     let direction: RTCRtpTransceiverDirection = 'inactive'
 
@@ -474,7 +478,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return direction
   }
 
-  /** @internal */
+  /**
+   * Adjusts senders based on the given audio/video constraints. If a constraint is set to false,
+   * it stops the corresponding outbound track. Returns true if at least one sender is active,
+   * otherwise false.
+   */
   private manageSendersWithConstraints(constraints: MediaStreamConstraints) {
     if (constraints.audio === false) {
       this.logger.info('Switching off the microphone')
@@ -489,7 +497,12 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return constraints.audio || constraints.video
   }
 
-  /** @internal */
+  /**
+   * Attempts to obtain a new media stream that matches the given constraints, using a recursive
+   * strategy. If the new constraints fail, it tries to restore the old constraints.
+   * Returns a Promise that resolves to the new MediaStream or resolves without a stream if
+   * constraints were fully disabled. Rejects on unrecoverable errors.
+   */
   private updateConstraints(
     constraints: MediaStreamConstraints,
     { attempt = 0 } = {}
@@ -586,7 +599,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
   /**
    * Updates local tracks and transceivers from the given stream.
-   * For each new track, it adds or updates a transceiver and emits updated device events.
+   * For each new track, it adds/updates a transceiver and emits updated device events.
    */
   private async updateStream(stream: MediaStream) {
     if (!this.peer) {
@@ -628,9 +641,9 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   /**
-   * Finds or creates a suitable transceiver for the new track. If an existing transceiver
-   * is found, replaces its track if needed and updates its direction. If no transceiver
-   * is found, adds a new one, potentially triggering renegotiation.
+   * Finds or creates a transceiver for the new track. If an existing transceiver is found,
+   * replaces its track and updates its direction, if needed. If no transceiver is found,
+   * adds a new one. The method can trigger renegotiation.
    */
   private async handleTransceiverForTrack(
     newTrack: MediaStreamTrack
@@ -735,7 +748,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     prevAudioTrack,
     prevVideoTrack,
   }: EmitDeviceUpdatedEventsParams) {
-    this.logger.debug('updateStream updating device events and options')
     if (newTrack.kind === 'audio') {
       // @ts-expect-error
       this.emit('microphone.updated', {
