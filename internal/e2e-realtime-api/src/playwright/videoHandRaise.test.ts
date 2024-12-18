@@ -7,7 +7,7 @@ import {
 } from './videoUtils'
 import { InternalVideoMemberEntityUpdated } from '@signalwire/core'
 
-test.describe.skip('Video room hand raise/lower', () => {
+test.describe('Video room hand raise/lower', () => {
   test('should raise memberOne hand using room session instance via Node SDK', async ({
     browser,
   }) => {

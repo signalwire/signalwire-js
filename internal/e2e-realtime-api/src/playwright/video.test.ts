@@ -11,7 +11,7 @@ import {
 import { SERVER_URL } from '../../utils'
 
 test.describe('Video', () => {
-  test.only('should join the room and listen for events', async ({
+  test('should join the room and listen for events', async ({
     browser,
   }) => {
     console.log('===START===', 'should join the room and listen for events')
