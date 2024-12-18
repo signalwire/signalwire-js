@@ -97,6 +97,12 @@ export interface ConnectionOptions {
   positions?: VideoPositions
 }
 
+export interface EmitDeviceUpdatedEventsParams {
+  newTrack: MediaStreamTrack
+  prevAudioTrack?: MediaStreamTrack | null
+  prevVideoTrack?: MediaStreamTrack | null
+}
+
 export type UpdateMediaOptionsParams = Pick<
   ConnectionOptions,
   'video' | 'audio' | 'negotiateVideo' | 'negotiateAudio'

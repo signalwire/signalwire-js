@@ -25,6 +25,7 @@ import {
   ConnectionOptions,
   DisableAudioParams,
   DisableVideoParams,
+  EmitDeviceUpdatedEventsParams,
   EnableAudioParams,
   EnableVideoParams,
   UpdateMediaOptionsParams,
@@ -117,9 +118,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   public causeCode: string
   /** @internal */
   public gotEarly = false
-
-  /** @internal */
-  public doReinvite = false
 
   /**
    * These promise properties are used to have granular
@@ -417,7 +415,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   updateCamera(constraints: MediaTrackConstraints) {
-    return this.updateConstraints({
+    return this.applyConstraintsAndRefreshStream({
       video: {
         aspectRatio: 16 / 9,
         ...constraints,
@@ -426,7 +424,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   }
 
   updateMicrophone(constraints: MediaTrackConstraints) {
-    return this.updateConstraints({
+    return this.applyConstraintsAndRefreshStream({
       audio: constraints,
     })
   }
@@ -491,13 +489,11 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     return constraints.audio || constraints.video
   }
 
-  /**
-   * @internal
-   */
+  /** @internal */
   private updateConstraints(
     constraints: MediaStreamConstraints,
     { attempt = 0 } = {}
-  ): Promise<void> {
+  ): Promise<MediaStream | void> {
     if (attempt > 1) {
       return Promise.reject(new Error('Failed to update constraints'))
     }
@@ -579,123 +575,205 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
           return reject(error)
         }
 
-        await this.updateStream(newStream)
         this.logger.debug('updateConstraints done')
-        resolve()
+        resolve(newStream)
       } catch (error) {
         this.logger.error('updateConstraints', error)
         reject(error)
-      } finally {
-        this.peer?._attachAudioTrackListener()
-        this.peer?._attachVideoTrackListener()
       }
     })
   }
 
+  /**
+   * Updates local tracks and transceivers from the given stream.
+   * For each new track, it adds or updates a transceiver and emits updated device events.
+   */
   private async updateStream(stream: MediaStream) {
     if (!this.peer) {
       throw new Error('Invalid RTCPeerConnection.')
     }
 
-    // Store the previous tracks for device.updated event
-    const prevVideoTrack = this.localVideoTrack
-    const prevAudioTrack = this.localAudioTrack
+    try {
+      // Store the previous tracks for device.updated events
+      const prevVideoTrack = this.localVideoTrack
+      const prevAudioTrack = this.localAudioTrack
 
-    // Detach listeners because updateStream will trigger the track ended event
+      this.logger.debug('updateStream got stream', stream)
+      if (!this.localStream) {
+        this.localStream = new MediaStream()
+      }
+
+      const tracks = stream.getTracks()
+      this.logger.debug(`updateStream got ${tracks.length} tracks`)
+
+      for (const newTrack of tracks) {
+        this.logger.debug('updateStream apply track: ', newTrack)
+
+        // Add or update the transceiver (may trigger renegotiation)
+        await this.handleTransceiverForTrack(newTrack)
+
+        // Emit the device.updated events
+        this.emitDeviceUpdatedEvents({
+          newTrack,
+          prevAudioTrack,
+          prevVideoTrack,
+        })
+      }
+
+      this.logger.debug('updateStream done')
+    } catch (error) {
+      this.logger.error('updateStream error', error)
+      throw error
+    }
+  }
+
+  /**
+   * Finds or creates a suitable transceiver for the new track. If an existing transceiver
+   * is found, replaces its track if needed and updates its direction. If no transceiver
+   * is found, adds a new one, potentially triggering renegotiation.
+   */
+  private async handleTransceiverForTrack(
+    newTrack: MediaStreamTrack
+  ): Promise<void> {
+    if (!this.peer) {
+      return this.logger.error('Invalid RTCPeerConnection.')
+    }
+
+    const transceiver = this.peer.instance
+      .getTransceivers()
+      .find(({ mid, sender, receiver }) => {
+        if (sender.track && sender.track.kind === newTrack.kind) return true
+        if (receiver.track && receiver.track.kind === newTrack.kind) return true
+        if (mid === null) return true
+        return false
+      })
+
+    if (transceiver) {
+      this.logger.debug(
+        'handleTransceiverForTrack got transceiver',
+        transceiver.currentDirection,
+        transceiver.mid
+      )
+
+      // Existing transceiver found, replace track if it's different
+      if (transceiver.sender.track?.id !== newTrack.id) {
+        await transceiver.sender.replaceTrack(newTrack)
+        this.logger.debug(
+          `handleTransceiverForTrack replaceTrack for ${newTrack.kind}`
+        )
+      }
+
+      // Update direction if needed
+      const newDirection = this._getTransceiverDirection(newTrack.kind)
+      if (transceiver.direction !== newDirection) {
+        transceiver.direction = newDirection
+        this.logger.debug(
+          `handleTransceiverForTrack set direction to ${newDirection}`
+        )
+      }
+
+      // Stop old track and add a new one
+      this.replaceOldTrack(newTrack)
+    } else {
+      this.logger.debug(
+        'handleTransceiverForTrack no transceiver found; addTransceiver and start dancing!'
+      )
+
+      // No suitable transceiver found, add a new one
+      const direction = this._getTransceiverDirection(newTrack.kind)
+      this.peer.type = 'offer'
+      this.localStream?.addTrack(newTrack)
+      this.peer.instance.addTransceiver(newTrack, {
+        direction: direction,
+        streams: [this.localStream!],
+      })
+    }
+  }
+
+  /**
+   * Replaces old tracks of the same kind in the local stream with the new track.
+   * Stops and removes the old track, then adds the new one. Also updates related
+   * device options and reattaches track listeners.
+   */
+  private replaceOldTrack(newTrack: MediaStreamTrack) {
+    if (!this.peer || !this.localStream) {
+      return this.logger.error('Invalid RTCPeerConnection or local stream')
+    }
+
+    // Detach listeners because stopTrack will trigger the track ended event
     this.peer._detachAudioTrackListener()
     this.peer._detachVideoTrackListener()
 
-    this.logger.debug('updateStream got stream', stream)
-    if (!this.localStream) {
-      this.localStream = new MediaStream()
-    }
-    const { instance } = this.peer
-    const tracks = stream.getTracks()
-    this.logger.debug(`updateStream got ${tracks.length} tracks`)
-    for (let i = 0; i < tracks.length; i++) {
-      const newTrack = tracks[i]
-      this.logger.debug('updateStream apply track: ', newTrack)
-      const transceiver = instance
-        .getTransceivers()
-        .find(({ mid, sender, receiver }) => {
-          if (sender.track && sender.track.kind === newTrack.kind) {
-            this.logger.debug('Found transceiver by sender')
-            return true
-          }
-          if (receiver.track && receiver.track.kind === newTrack.kind) {
-            this.logger.debug('Found transceiver by receiver')
-            return true
-          }
-          if (mid === null) {
-            this.logger.debug('Found disassociated transceiver')
-            return true
-          }
-          return false
-        })
-      if (transceiver && transceiver.sender) {
-        this.logger.debug(
-          'updateStream got transceiver',
-          transceiver.currentDirection,
-          transceiver.mid
-        )
-        await transceiver.sender.replaceTrack(newTrack)
-        this.logger.debug(`updateStream replaceTrack for ${newTrack.kind}`)
-        transceiver.direction = this._getTransceiverDirection(newTrack.kind)
-        this.logger.debug(`updateStream set to ${transceiver.direction}`)
-        this.localStream.getTracks().forEach((track) => {
-          if (track.kind === newTrack.kind && track.id !== newTrack.id) {
-            this.logger.debug(
-              'updateStream stop old track and apply new one - '
-            )
-            stopTrack(track)
-            this.localStream?.removeTrack(track)
-          }
-        })
-        this.localStream.addTrack(newTrack)
-      } else {
-        this.logger.debug(
-          'updateStream no transceiver found; addTransceiver and start dancing!'
-        )
-        this.peer.type = 'offer'
-        this.doReinvite = true
-        this.localStream.addTrack(newTrack)
-        const direction = this._getTransceiverDirection(newTrack.kind)
-        instance.addTransceiver(newTrack, {
-          direction: direction,
-          streams: [this.localStream],
-        })
+    this.localStream.getTracks().forEach((oldTrack) => {
+      if (oldTrack.kind === newTrack.kind && oldTrack.id !== newTrack.id) {
+        this.logger.debug('updateStream stop old track and apply new one')
+        stopTrack(oldTrack)
+        this.localStream?.removeTrack(oldTrack)
       }
+    })
+    this.localStream.addTrack(newTrack)
 
-      this.logger.debug('updateStream simply update mic/cam')
-      if (newTrack.kind === 'audio') {
-        // @ts-expect-error
-        this.emit('microphone.updated', {
-          previous: {
-            deviceId: prevAudioTrack?.id,
-            label: prevAudioTrack?.label,
-          },
-          current: {
-            deviceId: newTrack?.id,
-            label: newTrack?.label,
-          },
-        })
-        this.options.micId = newTrack.getSettings().deviceId
-      } else if (newTrack.kind === 'video') {
-        // @ts-expect-error
-        this.emit('camera.updated', {
-          previous: {
-            deviceId: prevVideoTrack?.id,
-            label: prevVideoTrack?.label,
-          },
-          current: {
-            deviceId: newTrack?.id,
-            label: newTrack?.label,
-          },
-        })
-        this.options.camId = newTrack.getSettings().deviceId
-      }
+    if (newTrack.kind === 'audio') {
+      this.options.micId = newTrack.getSettings().deviceId
     }
-    this.logger.debug('updateStream done')
+
+    if (newTrack.kind === 'video') {
+      this.options.camId = newTrack.getSettings().deviceId
+    }
+
+    // Attach listeners again
+    this.peer._attachAudioTrackListener()
+    this.peer._attachVideoTrackListener()
+  }
+
+  /**
+   * Emits device updated events for audio or video. Uses previously stored
+   * track references to indicate what changed between old and new devices.
+   */
+  private emitDeviceUpdatedEvents({
+    newTrack,
+    prevAudioTrack,
+    prevVideoTrack,
+  }: EmitDeviceUpdatedEventsParams) {
+    this.logger.debug('updateStream updating device events and options')
+    if (newTrack.kind === 'audio') {
+      // @ts-expect-error
+      this.emit('microphone.updated', {
+        previous: {
+          deviceId: prevAudioTrack?.id,
+          label: prevAudioTrack?.label,
+        },
+        current: {
+          deviceId: newTrack.id,
+          label: newTrack.label,
+        },
+      })
+    } else if (newTrack.kind === 'video') {
+      // @ts-expect-error
+      this.emit('camera.updated', {
+        previous: {
+          deviceId: prevVideoTrack?.id,
+          label: prevVideoTrack?.label,
+        },
+        current: {
+          deviceId: newTrack.id,
+          label: newTrack.label,
+        },
+      })
+    }
+  }
+
+  /**
+   * Applies the given constraints by retrieving a new stream and then uses
+   * {@link updateStream} to synchronize local tracks with that new stream.
+   */
+  private async applyConstraintsAndRefreshStream(
+    constraints: MediaStreamConstraints
+  ): Promise<void> {
+    const newStream = await this.updateConstraints(constraints)
+    if (newStream) {
+      await this.updateStream(newStream)
+    }
   }
 
   runRTCPeerWorkers(rtcPeerId: string) {
