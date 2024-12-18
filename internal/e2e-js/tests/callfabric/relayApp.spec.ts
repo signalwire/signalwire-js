@@ -166,7 +166,7 @@ test.describe('CallFabric Relay Application', () => {
     await createCFClient(page)
 
     await dialAddress(page, {
-      address: `/private/${topic}`,
+      address: `/private/${topic}?channel=video`,
       shouldWaitForJoin: false,
       shouldStartCall: false,
     })
@@ -278,7 +278,7 @@ test.describe('CallFabric Relay Application', () => {
     await createCFClient(page)
 
     await dialAddress(page, {
-      address: `/private/${topic}`,
+      address: `/private/${topic}?channel=video`,
       shouldWaitForJoin: false,
       shouldStartCall: false,
     })
