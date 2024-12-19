@@ -42,6 +42,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _resolveStartMethod: (value?: unknown) => void
   private _rejectStartMethod: (error: unknown) => void
 
+  public _pendingNegotiationPromise?: {
+    resolve: (value?: unknown) => void
+    reject: (error: unknown) => void
+  }
+
   private _localStream?: MediaStream
   private _remoteStream?: MediaStream
   private rtcConfigPolyfill: RTCConfiguration
@@ -82,6 +87,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   get watchMediaPacketsTimeout() {
     return this.options.watchMediaPacketsTimeout ?? 2_000
+  }
+
+  get isNegotiating() {
+    return this._negotiating
   }
 
   get localStream() {
@@ -454,15 +463,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
+      this._pendingNegotiationPromise?.reject(error)
     }
   }
 
   onRemoteBye({ code, message }: { code: string; message: string }) {
     // It could be a negotiation/signaling error so reject the "startMethod"
-    this._rejectStartMethod?.({
-      code,
-      message,
-    })
+    const error = { code, message }
+    this._rejectStartMethod?.(error)
+    this._pendingNegotiationPromise?.reject(error)
     this.stop()
   }
 
@@ -497,6 +506,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       )
       this.call.hangup()
       this._rejectStartMethod(error)
+      this._pendingNegotiationPromise?.reject(error)
     }
   }
 
@@ -507,11 +517,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  async start(offering=false) {
-    if(offering) { // allow callee to send renegotiation offers
-      this.options.remoteSdp = undefined
-      this.type = 'offer'
-    }
+  async start() {
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
@@ -520,6 +526,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._localStream = await this._retrieveLocalStream()
       } catch (error) {
         this._rejectStartMethod(error)
+        this._pendingNegotiationPromise?.reject(error)
         return this.call.setState('hangup')
       }
 
@@ -543,10 +550,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         hasLocalTracks = Boolean(audioTracks.length || videoTracks.length)
 
         // TODO: use transceivers way only for offer - when answer gotta match mid from the ones from SRD
-        if (
-          this.isOffer &&
-          typeof this.instance.addTransceiver === 'function'
-        ) {
+        if (this.isOffer && this._supportsAddTransceiver()) {
           const audioTransceiverParams: RTCRtpTransceiverInit = {
             direction: this.options.negotiateAudio ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],
@@ -692,6 +696,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this._rejectStartMethod(error)
+      this._pendingNegotiationPromise?.reject(error)
     }
   }
 
@@ -718,10 +723,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     const config = this.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       this.logger.info('RTCPeer already with "iceTransportPolicy: relay"')
-      this._rejectStartMethod({
+      const error = {
         code: 'ICE_GATHERING_FAILED',
         message: 'Ice gathering timeout',
-      })
+      }
+      this._rejectStartMethod(error)
+      this._pendingNegotiationPromise?.reject(error)
       this.call.setState('destroy')
       return
     }

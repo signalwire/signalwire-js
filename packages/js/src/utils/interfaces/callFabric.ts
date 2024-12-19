@@ -1,8 +1,8 @@
-import { CallCapabilities } from "@signalwire/core"
+import { CallCapabilities } from '@signalwire/core'
 
 export interface CallFabricRoomSessionContract {
   /**
-   * describe what capabilities the user have in a call 
+   * describe what capabilities the user have in a call
    */
   readonly capabilities: CallCapabilities
   /**
