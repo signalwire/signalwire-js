@@ -112,10 +112,6 @@ export type {
 export type {
   BaseConnectionOptions,
   ConnectionOptions,
-  EnableAudioParams,
-  DisableAudioParams,
-  EnableVideoParams,
-  DisableVideoParams,
 } from '@signalwire/webrtc'
 
 export type {

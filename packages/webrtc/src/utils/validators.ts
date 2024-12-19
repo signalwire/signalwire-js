@@ -1,6 +1,6 @@
-import { MediaControlParams } from './interfaces'
+import { UpdateMediaParams } from '@signalwire/core'
 
-export const validateUpdateMediaParams = (params: MediaControlParams) => {
+export const validateUpdateMediaParams = (params: UpdateMediaParams) => {
   const { audio, video } = params
   const enabledDirections = ['send', 'sendrecv']
   const disabledDirections = ['none', 'receive']
