@@ -44,7 +44,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     // Dial an address and join a video room without passing the rootElement
     await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
       shouldPassRootElement: false,
     })
 
@@ -67,7 +67,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     // Dial an address and join a video room without passing the rootElement
     await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
       shouldPassRootElement: false,
     })
 
@@ -127,7 +127,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     // Dial and expect both video and member overlays
     await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     await expectMCUVisible(page)
@@ -272,7 +272,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${roomName}`,
+            to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
@@ -319,7 +319,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     // Dial an address and join a video room with rootElement
     await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     // Create a video element with the same rootElement
@@ -360,7 +360,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     // Dial an address and join a video room from pageOne
     await dialAddress(pageOne, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
     await expectMCUVisible(pageOne)
 
@@ -374,7 +374,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     // Dial an address and join a video room from pageTwo
     await dialAddress(pageTwo, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
     await expectMCUVisible(pageTwo)
 

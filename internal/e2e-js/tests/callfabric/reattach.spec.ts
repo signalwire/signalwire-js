@@ -81,7 +81,7 @@ test.describe('Reattach Tests', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${roomName}`,
+            to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
