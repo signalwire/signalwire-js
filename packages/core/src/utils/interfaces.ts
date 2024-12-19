@@ -514,3 +514,23 @@ export interface WsTrafficOptions {
 export interface InternalSDKLogger extends SDKLogger {
   wsTraffic: (options: WsTrafficOptions) => void
 }
+
+export type UpdateMediaDirection = 'send' | 'receive' | 'sendrecv' | 'none'
+
+type EnabledUpdateMedia = {
+  enable: true
+  direction: Extract<UpdateMediaDirection, 'send' | 'sendrecv'>
+  constraints?: MediaTrackConstraints
+}
+
+type DisabledUpdateMedia = {
+  enable: false
+  direction: Extract<UpdateMediaDirection, 'none' | 'receive'>
+  constraints?: never
+}
+
+type MediaControl = EnabledUpdateMedia | DisabledUpdateMedia
+
+export type UpdateMediaParams =
+  | { audio: MediaControl; video?: MediaControl }
+  | { audio?: MediaControl; video: MediaControl }

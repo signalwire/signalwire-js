@@ -18,13 +18,14 @@ import {
   WebRTCMethod,
   // VertoAttach,
   VertoAnswer,
+  UpdateMediaParams,
+  UpdateMediaDirection,
 } from '@signalwire/core'
 import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
   ConnectionOptions,
   EmitDeviceUpdatedEventsParams,
-  MediaControlParams,
   UpdateMediaOptionsParams,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
@@ -1230,7 +1231,58 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     this.rtcPeerMap.clear()
   }
 
-  public async updateMedia(params: MediaControlParams) {
+  /**
+   * Add or update the transceiver based on the media type and direction
+   */
+  private _upsertTransceiverByKind(
+    direction: RTCRtpTransceiverDirection,
+    kind: 'audio' | 'video'
+  ) {
+    if (!this.peer) {
+      return this.logger.error('Invalid RTCPeerConnection')
+    }
+
+    let transceiver = this.peer.instance
+      .getTransceivers()
+      .find(
+        (tr) =>
+          tr.sender.track?.kind === kind || tr.receiver.track?.kind === kind
+      )
+
+    if (transceiver) {
+      if (transceiver.direction === direction) {
+        this.logger.info(
+          `Transceiver ${kind} has the same direction "${direction}".`
+        )
+        return
+      }
+
+      transceiver.direction = direction
+      this.logger.info(`Updated ${kind} transceiver to "${direction}" mode.`)
+    } else {
+      // No transceiver exists; add one if the direction is not "inactive"
+      if (direction !== 'inactive') {
+        // Ensure we act as the offerer when adding the transceiver during renegotiation
+        this.peer.type = 'offer'
+        transceiver = this.peer.instance.addTransceiver(kind, { direction })
+        this.logger.info(`Added ${kind} transceiver in "${direction}" mode.`)
+      }
+    }
+
+    // Stop the sender track and replace it with null to free up the resource
+    if (transceiver && (direction === 'recvonly' || direction === 'inactive')) {
+      transceiver.sender.track?.stop()
+      transceiver.sender.replaceTrack(null)
+    }
+  }
+
+  /**
+   * Allow user to upgrade/downgrade media in a call.
+   * This performs RTC Peer renegotiation.
+   *
+   * @param params: {@link UpdateMediaParams}
+   */
+  public async updateMedia(params: UpdateMediaParams) {
     try {
       const { audio, video } = params
 
@@ -1253,7 +1305,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
        * Create a new renegotiation promise that would be resolved by the {@link executeUpdateMedia}
        */
       const peer = this.peer
-      const promise = new Promise((resolve, reject) => {
+      const negotiationPromise = new Promise((resolve, reject) => {
         peer._pendingNegotiationPromise = {
           resolve,
           reject,
@@ -1286,20 +1338,20 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       if (audio && !audio.enable) {
         const newDirection =
           audio.direction === 'receive' ? 'recvonly' : 'inactive'
-        this._upsertTransceiverDirByKind(newDirection, 'audio')
+        this._upsertTransceiverByKind(newDirection, 'audio')
       }
 
       // When disabling video
       if (video && !video.enable) {
         const newDirection =
           video.direction === 'receive' ? 'recvonly' : 'inactive'
-        this._upsertTransceiverDirByKind(newDirection, 'video')
+        this._upsertTransceiverByKind(newDirection, 'video')
       }
 
       // Manually trigger the negotiation (just to be sure)
       await this.peer.startNegotiation()
 
-      await promise
+      await negotiationPromise
 
       // Throw error if the remote SDP does not include the expected audio direction
       if (
@@ -1329,37 +1381,55 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     }
   }
 
-  private _upsertTransceiverDirByKind(
-    direction: 'recvonly' | 'inactive',
-    kind: 'audio' | 'video'
-  ) {
-    if (!this.peer) {
-      return this.logger.error('Invalid RTCPeerConnection')
-    }
-
-    const transceiver = this.peer.instance
-      .getTransceivers()
-      .find((tr) => tr.receiver.track?.kind === kind)
-
-    if (transceiver) {
-      if (transceiver.direction !== direction) {
-        this.logger.info(`Transceiver has the same direction "${direction}".`)
-        return
-      }
-
-      transceiver.direction = direction
-      this.logger.info(`Updated audio transceiver to "${direction}" mode.`)
-      // Stop the sender track and replace it with null to free up the resource
-      transceiver.sender.track?.stop()
-      transceiver.sender.replaceTrack(null)
+  /**
+   * Allow user to set the audio direction on the RTC Peer.
+   * This performs RTC Peer renegotiation.
+   *
+   * @param direction {@link UpdateMediaDirection}
+   */
+  public async setAudioDirection(direction: UpdateMediaDirection) {
+    if (direction === 'send' || direction === 'sendrecv') {
+      return this.updateMedia({
+        audio: {
+          enable: true,
+          direction,
+        },
+      })
+    } else if (direction === 'receive' || direction === 'none') {
+      return this.updateMedia({
+        audio: {
+          enable: false,
+          direction,
+        },
+      })
     } else {
-      // No transceiver exists; add one if the direction is not "inactive"
-      if (direction !== 'inactive') {
-        // Ensure we act as the offerer when adding the transceiver during renegotiation
-        this.peer.type = 'offer'
-        this.peer.instance.addTransceiver(kind, { direction })
-        this.logger.info(`Added ${kind} transceiver in "${direction}" mode.`)
-      }
+      throw new Error('Invalid params')
+    }
+  }
+
+  /**
+   * Allow user to set the video direction on the RTC Peer.
+   * This performs RTC Peer renegotiation.
+   *
+   * @param direction {@link UpdateMediaDirection}
+   */
+  public async setVideoDirection(direction: UpdateMediaDirection) {
+    if (direction === 'send' || direction === 'sendrecv') {
+      return this.updateMedia({
+        video: {
+          enable: true,
+          direction,
+        },
+      })
+    } else if (direction === 'receive' || direction === 'none') {
+      return this.updateMedia({
+        video: {
+          enable: false,
+          direction,
+        },
+      })
+    } else {
+      throw new Error('Invalid params')
     }
   }
 }
