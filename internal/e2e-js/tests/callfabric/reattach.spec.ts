@@ -23,7 +23,7 @@ test.describe('Reattach Tests', () => {
 
     // Dial an address and join a video room
     let roomSession = await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSession.room_session).toBeDefined()
