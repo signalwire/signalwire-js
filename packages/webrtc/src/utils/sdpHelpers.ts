@@ -257,3 +257,21 @@ export const getOppositeSdpDirection = (
       return 'inactive'
   }
 }
+
+/**
+ * Returns boolean indicating remote and local SDPs has the expected opposite direction
+ */
+export const hasMatchingSdpDirection = ({
+  localSdp,
+  remoteSdp,
+  media,
+}: {
+  localSdp: string
+  remoteSdp: string
+  media: 'audio' | 'video'
+}) => {
+  const localDirection = getSdpDirection(localSdp, media)
+  const expectedRemoteDirection = getOppositeSdpDirection(localDirection)
+  const remoteDirection = getSdpDirection(remoteSdp, media)
+  return remoteDirection === expectedRemoteDirection
+}

@@ -42,6 +42,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _resolveStartMethod: (value?: unknown) => void
   private _rejectStartMethod: (error: unknown) => void
 
+  public _pendingNegotiationPromise?: {
+    resolve: (value?: unknown) => void
+    reject: (error: unknown) => void
+  }
+
   private _localStream?: MediaStream
   private _remoteStream?: MediaStream
   private rtcConfigPolyfill: RTCConfiguration
@@ -458,17 +463,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
-      // Reject the pending renegotiation promise if there is any
-      this.call._rejectRenegotiation(error)
+      this._pendingNegotiationPromise?.reject(error)
     }
   }
 
   onRemoteBye({ code, message }: { code: string; message: string }) {
     // It could be a negotiation/signaling error so reject the "startMethod"
-    this._rejectStartMethod?.({
-      code,
-      message,
-    })
+    const error = { code, message }
+    this._rejectStartMethod?.(error)
+    this._pendingNegotiationPromise?.reject(error)
     this.stop()
   }
 
@@ -503,6 +506,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       )
       this.call.hangup()
       this._rejectStartMethod(error)
+      this._pendingNegotiationPromise?.reject(error)
     }
   }
 
@@ -522,6 +526,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._localStream = await this._retrieveLocalStream()
       } catch (error) {
         this._rejectStartMethod(error)
+        this._pendingNegotiationPromise?.reject(error)
         return this.call.setState('hangup')
       }
 
@@ -691,6 +696,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this._rejectStartMethod(error)
+      this._pendingNegotiationPromise?.reject(error)
     }
   }
 
@@ -717,10 +723,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     const config = this.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       this.logger.info('RTCPeer already with "iceTransportPolicy: relay"')
-      this._rejectStartMethod({
+      const error = {
         code: 'ICE_GATHERING_FAILED',
         message: 'Ice gathering timeout',
-      })
+      }
+      this._rejectStartMethod(error)
+      this._pendingNegotiationPromise?.reject(error)
       this.call.setState('destroy')
       return
     }

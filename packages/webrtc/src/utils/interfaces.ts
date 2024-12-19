@@ -108,20 +108,22 @@ export type UpdateMediaOptionsParams = Pick<
   'video' | 'audio' | 'negotiateVideo' | 'negotiateAudio'
 >
 
-export type EnableAudioParams =
-  | {
-      audio: true | Exclude<MediaStreamConstraints['audio'], false>
-      negotiateAudio?: boolean
-    }
-  | { audio?: boolean; negotiateAudio: true }
+export type MediaDirection = 'send' | 'receive' | 'sendrecv' | 'none'
 
-export type DisableAudioParams = Pick<ConnectionOptions, 'negotiateAudio'>
+type EnabledMediaControl = {
+  enable: true
+  direction: Extract<MediaDirection, 'send' | 'sendrecv'>
+  constraints?: MediaTrackConstraints
+}
 
-export type EnableVideoParams =
-  | {
-      video: true | Exclude<MediaStreamConstraints['video'], false>
-      negotiateVideo?: boolean
-    }
-  | { video?: boolean; negotiateVideo: true }
+type DisabledMediaControl = {
+  enable: false
+  direction: Extract<MediaDirection, 'none' | 'receive'>
+  constraints?: never
+}
 
-export type DisableVideoParams = Pick<ConnectionOptions, 'negotiateVideo'>
+type MediaControl = EnabledMediaControl | DisabledMediaControl
+
+export type MediaControlParams =
+  | { audio: MediaControl; video?: MediaControl }
+  | { audio?: MediaControl; video: MediaControl }
