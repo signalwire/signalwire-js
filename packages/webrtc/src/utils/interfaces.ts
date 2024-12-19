@@ -96,3 +96,34 @@ export interface ConnectionOptions {
   layout?: string
   positions?: VideoPositions
 }
+
+export interface EmitDeviceUpdatedEventsParams {
+  newTrack: MediaStreamTrack
+  prevAudioTrack?: MediaStreamTrack | null
+  prevVideoTrack?: MediaStreamTrack | null
+}
+
+export type UpdateMediaOptionsParams = Pick<
+  ConnectionOptions,
+  'video' | 'audio' | 'negotiateVideo' | 'negotiateAudio'
+>
+
+export type MediaDirection = 'send' | 'receive' | 'sendrecv' | 'none'
+
+type EnabledMediaControl = {
+  enable: true
+  direction: Extract<MediaDirection, 'send' | 'sendrecv'>
+  constraints?: MediaTrackConstraints
+}
+
+type DisabledMediaControl = {
+  enable: false
+  direction: Extract<MediaDirection, 'none' | 'receive'>
+  constraints?: never
+}
+
+type MediaControl = EnabledMediaControl | DisabledMediaControl
+
+export type MediaControlParams =
+  | { audio: MediaControl; video?: MediaControl }
+  | { audio?: MediaControl; video: MediaControl }
