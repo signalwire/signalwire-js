@@ -704,7 +704,6 @@ export const getStats = async (page: Page) => {
 
     return result
   })
-  console.log('RTC Stats', stats)
 
   return stats
 }

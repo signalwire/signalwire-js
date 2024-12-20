@@ -1268,12 +1268,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this.logger.info(`Added ${kind} transceiver in "${direction}" mode.`)
       }
     }
-
-    // Stop the sender track and replace it with null to free up the resource
-    if (transceiver && (direction === 'recvonly' || direction === 'inactive')) {
-      transceiver.sender.track?.stop()
-      transceiver.sender.replaceTrack(null)
-    }
   }
 
   /**
