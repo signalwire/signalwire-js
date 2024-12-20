@@ -38,8 +38,8 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const stats1 = await getStats(page)
     expect(stats1.outboundRTP.video?.packetsSent).toBeGreaterThan(0)
     expect(stats1.inboundRTP.video?.packetsReceived).toBeGreaterThan(0)
-    expect(stats1.outboundRTP).not.toHaveProperty('audio')
-    expect(stats1.inboundRTP).not.toHaveProperty('audio')
+    expect(stats1.outboundRTP.audio?.packetsSent).toBe(0)
+    expect(stats1.inboundRTP.audio?.packetsReceived).toBe(0)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -129,8 +129,8 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const stats1 = await getStats(page)
     expect(stats1.outboundRTP.video?.packetsSent).toBeGreaterThan(0)
     expect(stats1.inboundRTP.video?.packetsReceived).toBeGreaterThan(0)
-    expect(stats1.outboundRTP).not.toHaveProperty('audio')
-    expect(stats1.inboundRTP).not.toHaveProperty('audio')
+    expect(stats1.outboundRTP.audio?.packetsSent).toBe(0)
+    expect(stats1.inboundRTP.audio?.packetsReceived).toBe(0)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -147,7 +147,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
         return stats.outboundRTP.audio?.packetsSent
       })
       .toBeGreaterThan(0)
-    expect(stats2.inboundRTP).not.toHaveProperty('audio')
+    expect(stats2.inboundRTP.audio?.packetsReceived).toBe(0)
 
     await test.step('it should disable the audio with "recvonly"', async () => {
       await page.evaluate(async () => {
@@ -171,8 +171,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
             return stats.inboundRTP.audio?.packetsReceived
           },
           {
-            message:
-              'should have more than 0 audio packets received in inbound-rtp',
+            message: 'should have more than 0 audio packets received',
             timeout: 5000,
           }
         )
@@ -207,8 +206,8 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const stats1 = await getStats(page)
     expect(stats1.outboundRTP.video?.packetsSent).toBeGreaterThan(0)
     expect(stats1.inboundRTP.video?.packetsReceived).toBeGreaterThan(0)
-    expect(stats1.outboundRTP).not.toHaveProperty('audio')
-    expect(stats1.inboundRTP).not.toHaveProperty('audio')
+    expect(stats1.outboundRTP.audio?.packetsSent).toBe(0)
+    expect(stats1.inboundRTP.audio?.packetsReceived).toBe(0)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -229,7 +228,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
         return stats.inboundRTP.video?.packetsReceived
       })
       .toBeGreaterThan(0)
-    expect(stats2.outboundRTP).not.toHaveProperty('audio')
+    expect(stats2.outboundRTP.audio?.packetsSent).toBe(0)
     await expect
       .poll(
         async () => {
@@ -237,8 +236,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
           return stats.inboundRTP.audio?.packetsReceived
         },
         {
-          message:
-            'should have more than 0 video packets received in inbound-rtp',
+          message: 'should have more than 0 video packets received',
           timeout: 5000,
         }
       )
@@ -253,6 +251,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
         })
       })
 
+      const stats3 = await getStats(page)
       await expect
         .poll(async () => {
           const stats = await getStats(page)
@@ -265,7 +264,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
           return stats.inboundRTP.video?.packetsReceived
         })
         .toBeGreaterThan(0)
-      expect(stats2.outboundRTP).not.toHaveProperty('audio')
+      expect(stats3.outboundRTP.audio?.packetsSent).toBe(0)
       await waitForStabilizedStats(page, {
         path: 'stats.inboundRTP.audio.packetsReceived',
       })

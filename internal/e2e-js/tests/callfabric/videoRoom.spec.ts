@@ -434,8 +434,8 @@ test.describe('CallFabric VideoRoom', () => {
 
     // There should be no inbound/outbound video
     const stats = await getStats(page)
-    expect(stats.outboundRTP).not.toHaveProperty('video')
-    expect(stats.inboundRTP).not.toHaveProperty('video')
+    expect(stats.outboundRTP.video?.packetsSent).toBe(0)
+    expect(stats.inboundRTP.video?.packetsReceived).toBe(0)
 
     // There should be audio packets
     expect(stats.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)

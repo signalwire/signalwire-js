@@ -669,67 +669,162 @@ interface GetStatsResult {
   }
 }
 
-export const getStats = async (page: Page) => {
-  const stats = await page.evaluate<GetStatsResult>(async () => {
+interface RTPInboundMediaStats {
+  packetsReceived: number
+  packetsLost: number
+  packetsDiscarded?: number
+}
+
+interface RTPOutboundMediaStats {
+  active: boolean
+  packetsSent: number
+  targetBitrate: number
+  totalPacketSendDelay: number
+}
+
+interface GetStatsResult {
+  inboundRTP: {
+    audio?: RTPInboundMediaStats
+    video?: RTPInboundMediaStats
+  }
+  outboundRTP: {
+    audio?: RTPOutboundMediaStats
+    video?: RTPOutboundMediaStats
+  }
+}
+
+export const getStats = async (page: Page): Promise<GetStatsResult> => {
+  return await page.evaluate<GetStatsResult>(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
     // @ts-expect-error
     const rtcPeer = roomObj.peer
-    const stats = await rtcPeer.instance.getStats(null)
-    const result: {
-      inboundRTP: Record<any, any>
-      outboundRTP: Record<any, any>
-    } = { inboundRTP: {}, outboundRTP: {} }
+
+    // Get the currently active inbound and outbound tracks.
+    const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
+    const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
+    const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
+    const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
+
+    // Default return value
+    const result: GetStatsResult = {
+      inboundRTP: {
+        audio: {
+          packetsReceived: 0,
+          packetsLost: 0,
+          packetsDiscarded: 0,
+        },
+        video: {
+          packetsReceived: 0,
+          packetsLost: 0,
+          packetsDiscarded: 0,
+        },
+      },
+      outboundRTP: {
+        audio: {
+          active: false,
+          packetsSent: 0,
+          targetBitrate: 0,
+          totalPacketSendDelay: 0,
+        },
+        video: {
+          active: false,
+          packetsSent: 0,
+          targetBitrate: 0,
+          totalPacketSendDelay: 0,
+        },
+      },
+    }
 
     const inboundRTPFilters = {
-      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
-      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
-    } as const
-
-    const inboundRTPHandler = (report: any) => {
-      const media = report.mediaType as 'video' | 'audio'
-      const trackId = rtcPeer._getReceiverByKind(media).track.id
-      console.log(`getStats trackId "${trackId}" for media ${media}`)
-      if (report.trackIdentifier !== trackId) {
-        console.log(
-          `trackIdentifier "${report.trackIdentifier}" and trackId "${trackId}" are different`
-        )
-        return
-      }
-      result.inboundRTP[media] = result.inboundRTP[media] || {}
-      inboundRTPFilters[media].forEach((key) => {
-        result.inboundRTP[media][key] = report[key]
-      })
+      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
     }
 
     const outboundRTPFilters = {
-      audio: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
-      video: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
-    } as const
+      audio: [
+        'active',
+        'packetsSent',
+        'targetBitrate',
+        'totalPacketSendDelay',
+      ] as const,
+      video: [
+        'active',
+        'packetsSent',
+        'targetBitrate',
+        'totalPacketSendDelay',
+      ] as const,
+    }
 
-    const outboundRTPHandler = (report: any) => {
-      const media = report.mediaType as 'video' | 'audio'
-      result.outboundRTP[media] = result.outboundRTP[media] || {}
-      outboundRTPFilters[media].forEach((key) => {
-        result.outboundRTP[media][key] = report[key]
+    const handleInboundRTP = (report: any) => {
+      const media = report.mediaType as 'audio' | 'video'
+      if (!media) return
+
+      // Check if trackIdentifier matches the currently active inbound track
+      const expectedTrackId =
+        media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
+
+      if (
+        report.trackIdentifier &&
+        report.trackIdentifier !== expectedTrackId
+      ) {
+        console.log(
+          `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+        )
+        return
+      }
+
+      if (!result.inboundRTP[media]) {
+        result.inboundRTP[media] = {} as RTPInboundMediaStats
+      }
+
+      inboundRTPFilters[media].forEach((key) => {
+        ;(result.inboundRTP[media] as RTPInboundMediaStats)[key] = report[key]
       })
     }
 
-    stats.forEach((report: any) => {
+    const handleOutboundRTP = (report: any) => {
+      const media = report.mediaType as 'audio' | 'video'
+      if (!media) return
+
+      // Check if trackIdentifier matches the currently active outbound track
+      const expectedTrackId =
+        media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
+      if (
+        report.trackIdentifier &&
+        report.trackIdentifier !== expectedTrackId
+      ) {
+        console.log(
+          `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+        )
+        return
+      }
+
+      if (!result.outboundRTP[media]) {
+        result.outboundRTP[media] = {} as RTPOutboundMediaStats
+      }
+
+      outboundRTPFilters[media].forEach((key) => {
+        ;(result.outboundRTP[media] as any)[key] = report[key]
+      })
+    }
+
+    // Iterate over all RTCStats entries
+    const pc: RTCPeerConnection = rtcPeer.instance
+    const stats = await pc.getStats()
+    stats.forEach((report) => {
       switch (report.type) {
         case 'inbound-rtp':
-          inboundRTPHandler(report)
+          handleInboundRTP(report)
           break
         case 'outbound-rtp':
-          outboundRTPHandler(report)
+          handleOutboundRTP(report)
           break
       }
     })
 
     return result
   })
-
-  return stats
 }
 
 interface WaitForStabilizedStatsParams {
