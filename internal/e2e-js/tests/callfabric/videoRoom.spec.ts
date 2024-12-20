@@ -438,7 +438,7 @@ test.describe('CallFabric VideoRoom', () => {
     expect(stats.inboundRTP).not.toHaveProperty('video')
 
     // There should be audio packets
-    expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
 
     // There should be no MCU either
     const videoElement = await page.$('div[id^="sw-sdk-"] > video')

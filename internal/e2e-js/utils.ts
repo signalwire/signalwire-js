@@ -2,8 +2,8 @@ import type { SignalWireContract, Video } from '@signalwire/js'
 import type { MediaEvent } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
-import { Page, expect } from '@playwright/test'
-import fetch from 'node-fetch'
+import { expect } from './fixtures'
+import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
 
 type CreateTestServerOptions = {
@@ -645,8 +645,32 @@ export const expectScreenShareJoined = async (page: Page) => {
   })
 }
 
+interface RTPInboundMediaStats {
+  packetsReceived: number
+  packetsLost: number
+  packetsDiscarded?: number
+}
+
+interface RTPOutboundMediaStats {
+  active: boolean
+  packetsSent: number
+  targetBitrate: number
+  totalPacketSendDelay: number
+}
+
+interface GetStatsResult {
+  inboundRTP: {
+    audio?: RTPInboundMediaStats
+    video?: RTPInboundMediaStats
+  }
+  outboundRTP: {
+    audio?: RTPOutboundMediaStats
+    video?: RTPOutboundMediaStats
+  }
+}
+
 export const getStats = async (page: Page) => {
-  const stats = await page.evaluate(async () => {
+  const stats = await page.evaluate<GetStatsResult>(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
     // @ts-expect-error
@@ -708,6 +732,73 @@ export const getStats = async (page: Page) => {
   return stats
 }
 
+interface WaitForStabilizedStatsParams {
+  path: string
+  maxAttempts?: number
+  stabilityCount?: number
+  intervalMs?: number
+}
+/**
+ * Waits for a given RTP stats property to stabilize.
+ * A stat is considered stable if the last `stabilityCount` readings are constant.
+ */
+export const waitForStabilizedStats = async (
+  page: Page,
+  params: WaitForStabilizedStatsParams
+) => {
+  const {
+    path,
+    maxAttempts = 50,
+    stabilityCount = 10,
+    intervalMs = 1000,
+  } = params
+
+  const recentValues: number[] = []
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const stats = await getStats(page)
+    const currentValue = getValueFromPath(stats, path) as number
+
+    recentValues.push(currentValue)
+
+    if (recentValues.length >= stabilityCount) {
+      const lastNValues = recentValues.slice(-stabilityCount)
+      const allEqual = lastNValues.every((val) => val === lastNValues[0])
+      if (allEqual) {
+        // The stat is stable now
+        return
+      }
+    }
+
+    if (attempt < maxAttempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs))
+    }
+  }
+
+  // If we get here, the value never stabilized.
+  throw new Error(
+    `The value at "${path}" did not stabilize after ${maxAttempts} attempts.`
+  )
+}
+
+/**
+ * Retrieves a value from an object at a given path.
+ *
+ * @example
+ * const obj = { a: { b: { c: 42 } } };
+ * const result = getValueFromPath(obj, "a.b.c"); // 42
+ */
+const getValueFromPath = <T>(obj: T, path: string) => {
+  let current: unknown = obj
+  for (const part of path.split('.')) {
+    if (current == null || typeof current !== 'object') {
+      return undefined
+    }
+    current = (current as Record<string, unknown>)[part]
+  }
+  return current
+}
+
 export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const first = await getStats(page)
   await page.waitForTimeout(delay)
@@ -717,11 +808,11 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const minAudioPacketsExpected = 40 * seconds
   const minVideoPacketsExpected = 25 * seconds
 
-  expect(last.inboundRTP.video.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.video.packetsReceived + minVideoPacketsExpected
+  expect(last.inboundRTP.video?.packetsReceived).toBeGreaterThan(
+    (first.inboundRTP.video?.packetsReceived || 0) + minVideoPacketsExpected
   )
-  expect(last.inboundRTP.audio.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
+  expect(last.inboundRTP.audio?.packetsReceived).toBeGreaterThan(
+    (first.inboundRTP.audio?.packetsReceived || 0) + minAudioPacketsExpected
   )
 }
 

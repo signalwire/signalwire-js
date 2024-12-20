@@ -496,6 +496,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        */
       if (this.isOffer) {
         this._resolveStartMethod()
+        this._pendingNegotiationPromise?.resolve()
       }
 
       this.resetNeedResume()

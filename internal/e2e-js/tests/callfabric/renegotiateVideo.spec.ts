@@ -30,8 +30,8 @@ test.describe('CallFabric Video Renegotiation', () => {
     })
 
     const stats1 = await getStats(page)
-    expect(stats1.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-    expect(stats1.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats1.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+    expect(stats1.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
     expect(stats1.outboundRTP).not.toHaveProperty('video')
     expect(stats1.inboundRTP).not.toHaveProperty('video')
 
@@ -45,10 +45,10 @@ test.describe('CallFabric Video Renegotiation', () => {
     await expectMCUVisible(page)
 
     const stats2 = await getStats(page)
-    expect(stats2.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-    expect(stats2.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
-    expect(stats2.outboundRTP.video.packetsSent).toBeGreaterThan(0)
-    expect(stats2.inboundRTP.video.packetsReceived).toBeGreaterThan(0)
+    expect(stats2.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+    expect(stats2.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
+    expect(stats2.outboundRTP.video?.packetsSent).toBeGreaterThan(0)
+    expect(stats2.inboundRTP.video?.packetsReceived).toBeGreaterThan(0)
 
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {
@@ -60,13 +60,13 @@ test.describe('CallFabric Video Renegotiation', () => {
       })
 
       const stats3 = await getStats(page)
-      expect(stats3.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-      expect(stats3.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+      expect(stats3.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+      expect(stats3.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
       await expect
         .poll(
           async () => {
             const stats = await getStats(page)
-            return stats.outboundRTP.video.packetsSent
+            return stats.outboundRTP.video?.packetsSent
           },
           {
             message: 'should have 0 video packets sent in outbound-rtp',
@@ -96,8 +96,8 @@ test.describe('CallFabric Video Renegotiation', () => {
     })
 
     const stats1 = await getStats(page)
-    expect(stats1.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-    expect(stats1.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats1.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+    expect(stats1.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
     expect(stats1.outboundRTP).not.toHaveProperty('video')
     expect(stats1.inboundRTP).not.toHaveProperty('video')
 
@@ -111,13 +111,13 @@ test.describe('CallFabric Video Renegotiation', () => {
     await expectMCUNotVisible(page)
 
     const stats2 = await getStats(page)
-    expect(stats2.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-    expect(stats2.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats2.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+    expect(stats2.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
     await expect
       .poll(
         async () => {
           const stats = await getStats(page)
-          return stats.outboundRTP.video.packetsSent
+          return stats.outboundRTP.video?.packetsSent
         },
         {
           message: 'should have more than 0 video packets sent in outbound-rtp',
@@ -137,13 +137,13 @@ test.describe('CallFabric Video Renegotiation', () => {
       })
 
       const stats3 = await getStats(page)
-      expect(stats3.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-      expect(stats3.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+      expect(stats3.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+      expect(stats3.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
       await expect
         .poll(
           async () => {
             const stats = await getStats(page)
-            return stats.outboundRTP.video.packetsSent
+            return stats.outboundRTP.video?.packetsSent
           },
           {
             message: 'should have 0 video packets sent in outbound-rtp',
@@ -155,7 +155,7 @@ test.describe('CallFabric Video Renegotiation', () => {
         .poll(
           async () => {
             const stats = await getStats(page)
-            return stats.inboundRTP.video.packetsReceived
+            return stats.inboundRTP.video?.packetsReceived
           },
           {
             message:
@@ -185,8 +185,8 @@ test.describe('CallFabric Video Renegotiation', () => {
     })
 
     const stats1 = await getStats(page)
-    expect(stats1.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-    expect(stats1.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats1.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+    expect(stats1.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
     expect(stats1.outboundRTP).not.toHaveProperty('video')
     expect(stats1.inboundRTP).not.toHaveProperty('video')
 
@@ -200,14 +200,14 @@ test.describe('CallFabric Video Renegotiation', () => {
     await expectMCUVisibleForAudience(page)
 
     const stats2 = await getStats(page)
-    expect(stats2.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-    expect(stats2.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats2.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+    expect(stats2.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
     expect(stats2.outboundRTP).not.toHaveProperty('video')
     await expect
       .poll(
         async () => {
           const stats = await getStats(page)
-          return stats.inboundRTP.video.packetsReceived
+          return stats.inboundRTP.video?.packetsReceived
         },
         {
           message:
@@ -227,8 +227,8 @@ test.describe('CallFabric Video Renegotiation', () => {
       })
 
       const stats3 = await getStats(page)
-      expect(stats3.outboundRTP.audio.packetsSent).toBeGreaterThan(0)
-      expect(stats3.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+      expect(stats3.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
+      expect(stats3.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
       expect(stats3.inboundRTP).not.toHaveProperty('video')
       expect(stats3.inboundRTP).not.toHaveProperty('video')
     })

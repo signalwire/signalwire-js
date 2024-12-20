@@ -997,9 +997,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         return this.logger.error('Invalid RTCPeer to updateMedia')
       }
       await this.peer.onRemoteSdp(response.sdp)
-
-      // Resolve the pending negotiation promise with the response
-      this.peer._pendingNegotiationPromise?.resolve(response)
     } catch (error) {
       // Should we hangup when renegotiation fails?
       this.logger.error('UpdateMedia error', error)
@@ -1342,7 +1339,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         this._upsertTransceiverByKind(newDirection, 'video')
       }
 
-      // Manually trigger the negotiation (just to be sure)
+      // Manually trigger the negotiation (just to be sure) - we skip twice negotiation
       await this.peer.startNegotiation()
 
       await negotiationPromise

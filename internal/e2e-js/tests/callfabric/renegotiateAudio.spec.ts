@@ -6,12 +6,12 @@ import {
   dialAddress,
   expectMCUVisible,
   getStats,
-  getTransceiverStates,
+  waitForStabilizedStats,
 } from '../../utils'
 import { CallFabricRoomSession } from '@signalwire/js'
 
 test.describe('CallFabric Audio Renegotiation', () => {
-  test('it should enable audio with "sendrecv" and then disable', async ({
+  test('it should enable audio with "sendrecv" and then disable with "inactive"', async ({
     createCustomPage,
     resource,
   }) => {
@@ -25,7 +25,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     // Dial an address with video only channel
     await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
       dialOptions: {
         audio: false,
         negotiateAudio: false,
@@ -35,47 +35,70 @@ test.describe('CallFabric Audio Renegotiation', () => {
     // Expect MCU is visible
     await expectMCUVisible(page)
 
-    const stats = await getStats(page)
-    expect(stats.outboundRTP).toHaveProperty('video')
-    expect(stats.inboundRTP).toHaveProperty('video')
-    expect(stats.outboundRTP).not.toHaveProperty('audio')
-    expect(stats.inboundRTP).not.toHaveProperty('audio')
+    const stats1 = await getStats(page)
+    expect(stats1.outboundRTP.video?.packetsSent).toBeGreaterThan(0)
+    expect(stats1.inboundRTP.video?.packetsReceived).toBeGreaterThan(0)
+    expect(stats1.outboundRTP).not.toHaveProperty('audio')
+    expect(stats1.inboundRTP).not.toHaveProperty('audio')
 
     await page.evaluate(async () => {
       // @ts-expect-error
       const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.enableAudio()
+      await cfRoomSession.setAudioDirection('sendrecv')
     })
 
-    const newStats = await getStats(page)
-    expect(newStats.outboundRTP).toHaveProperty('audio')
-    expect(newStats.inboundRTP).toHaveProperty('audio')
+    await expect
+      .poll(async () => {
+        const stats = await getStats(page)
+        return stats.outboundRTP.video?.packetsSent
+      })
+      .toBeGreaterThan(0)
+    await expect
+      .poll(async () => {
+        const stats = await getStats(page)
+        return stats.inboundRTP.video?.packetsReceived
+      })
+      .toBeGreaterThan(0)
+    await expect
+      .poll(async () => {
+        const stats = await getStats(page)
+        return stats.outboundRTP.audio?.packetsSent
+      })
+      .toBeGreaterThan(0)
+    await expect
+      .poll(async () => {
+        const stats = await getStats(page)
+        return stats.inboundRTP.audio?.packetsReceived
+      })
+      .toBeGreaterThan(0)
 
-    await test.step('it should disable the audio', async () => {
+    await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession: CallFabricRoomSession = window._roomObj
-        await cfRoomSession.disableAudio()
+        await cfRoomSession.updateMedia({
+          audio: { enable: false, direction: 'none' },
+        })
       })
 
-      const statsAfterDisabling = await getStats(page)
-
-      if (statsAfterDisabling.inboundRTP.audio) {
-        expect(statsAfterDisabling.inboundRTP.audio.packetsReceived).toBe(0)
-      } else {
-        expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('audio')
-      }
-
-      if (statsAfterDisabling.outboundRTP.audio) {
-        expect(statsAfterDisabling.outboundRTP.audio.packetsSent).toBe(0)
-      } else {
-        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('audio')
-      }
-
-      const { audio, video } = await getTransceiverStates(page)
-      expect(video.direction).toBe('sendrecv')
-      expect(audio.direction).toBe('inactive')
-      expect(audio.sender.trackReadyState).toBe('ended')
+      await expect
+        .poll(async () => {
+          const stats = await getStats(page)
+          return stats.outboundRTP.video?.packetsSent
+        })
+        .toBeGreaterThan(0)
+      await expect
+        .poll(async () => {
+          const stats = await getStats(page)
+          return stats.inboundRTP.video?.packetsReceived
+        })
+        .toBeGreaterThan(0)
+      await waitForStabilizedStats(page, {
+        path: 'stats.outboundRTP.audio.packetsSent',
+      })
+      await waitForStabilizedStats(page, {
+        path: 'stats.inboundRTP.audio.packetsReceived',
+      })
     })
   })
 
@@ -93,7 +116,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     // Dial an address with video only channel
     await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
       dialOptions: {
         audio: false,
         negotiateAudio: false,
@@ -103,50 +126,61 @@ test.describe('CallFabric Audio Renegotiation', () => {
     // Expect MCU is visible
     await expectMCUVisible(page)
 
-    const stats = await getStats(page)
-    expect(stats.outboundRTP).toHaveProperty('video')
-    expect(stats.inboundRTP).toHaveProperty('video')
-    expect(stats.outboundRTP).not.toHaveProperty('audio')
-    expect(stats.inboundRTP).not.toHaveProperty('audio')
+    const stats1 = await getStats(page)
+    expect(stats1.outboundRTP.video?.packetsSent).toBeGreaterThan(0)
+    expect(stats1.inboundRTP.video?.packetsReceived).toBeGreaterThan(0)
+    expect(stats1.outboundRTP).not.toHaveProperty('audio')
+    expect(stats1.inboundRTP).not.toHaveProperty('audio')
 
     await page.evaluate(async () => {
       // @ts-expect-error
       const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.enableAudio({ audio: true, negotiateAudio: false })
+      await cfRoomSession.setAudioDirection('send')
     })
 
-    const newStats = await getStats(page)
-    expect(newStats.outboundRTP).toHaveProperty('audio')
-    if (newStats.inboundRTP.audio) {
-      expect(newStats.inboundRTP.audio.packetsReceived).toBe(0)
-    } else {
-      expect(newStats.inboundRTP).not.toHaveProperty('audio')
-    }
+    const stats2 = await getStats(page)
+    expect(stats2.outboundRTP).toHaveProperty('video')
+    expect(stats2.inboundRTP).toHaveProperty('video')
+    await expect
+      .poll(async () => {
+        const stats = await getStats(page)
+        return stats.outboundRTP.audio?.packetsSent
+      })
+      .toBeGreaterThan(0)
+    expect(stats2.inboundRTP).not.toHaveProperty('audio')
 
     await test.step('it should disable the audio with "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession: CallFabricRoomSession = window._roomObj
-        await cfRoomSession.disableAudio({ negotiateAudio: true })
+        await cfRoomSession.updateMedia({
+          audio: { enable: false, direction: 'receive' },
+        })
       })
 
-      const statsAfterDisabling = await getStats(page)
-      expect(statsAfterDisabling.inboundRTP).toHaveProperty('audio')
-      if (statsAfterDisabling.outboundRTP.audio) {
-        expect(statsAfterDisabling.outboundRTP.audio.packetsSent).toBe(0)
-      } else {
-        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('audio')
-      }
-
-      const { audio, video } = await getTransceiverStates(page)
-      expect(video.direction).toBe('sendrecv')
-      expect(audio.direction).toBe('recvonly')
-      expect(audio.sender.trackReadyState).toBe('ended')
-      expect(audio.receiver.trackReadyState).toBe('live')
+      const stats3 = await getStats(page)
+      expect(stats3.outboundRTP).toHaveProperty('video')
+      expect(stats3.inboundRTP).toHaveProperty('video')
+      await waitForStabilizedStats(page, {
+        path: 'stats.outboundRTP.audio?.packetsSent',
+      })
+      await expect
+        .poll(
+          async () => {
+            const stats = await getStats(page)
+            return stats.inboundRTP.audio?.packetsReceived
+          },
+          {
+            message:
+              'should have more than 0 audio packets received in inbound-rtp',
+            timeout: 5000,
+          }
+        )
+        .toBeGreaterThan(0)
     })
   })
 
-  test('it should enable video with "recvonly" and then disable', async ({
+  test('it should enable video with "recvonly" and then disable with "inactive"', async ({
     createCustomPage,
     resource,
   }) => {
@@ -160,7 +194,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     // Dial an address with video only channel
     await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
       dialOptions: {
         audio: false,
         negotiateAudio: false,
@@ -170,47 +204,71 @@ test.describe('CallFabric Audio Renegotiation', () => {
     // Expect MCU is visible
     await expectMCUVisible(page)
 
-    const stats = await getStats(page)
-    expect(stats.outboundRTP).toHaveProperty('video')
-    expect(stats.inboundRTP).toHaveProperty('video')
-    expect(stats.outboundRTP).not.toHaveProperty('audio')
-    expect(stats.inboundRTP).not.toHaveProperty('audio')
+    const stats1 = await getStats(page)
+    expect(stats1.outboundRTP.video?.packetsSent).toBeGreaterThan(0)
+    expect(stats1.inboundRTP.video?.packetsReceived).toBeGreaterThan(0)
+    expect(stats1.outboundRTP).not.toHaveProperty('audio')
+    expect(stats1.inboundRTP).not.toHaveProperty('audio')
 
     await page.evaluate(async () => {
       // @ts-expect-error
       const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.enableAudio({ audio: false, negotiateAudio: true })
+      await cfRoomSession.setAudioDirection('receive')
     })
 
-    const newStats = await getStats(page)
-    expect(newStats.outboundRTP).not.toHaveProperty('audio')
-    expect(newStats.inboundRTP).toHaveProperty('audio')
+    const stats2 = await getStats(page)
+    await expect
+      .poll(async () => {
+        const stats = await getStats(page)
+        return stats.outboundRTP.video?.packetsSent
+      })
+      .toBeGreaterThan(0)
+    await expect
+      .poll(async () => {
+        const stats = await getStats(page)
+        return stats.inboundRTP.video?.packetsReceived
+      })
+      .toBeGreaterThan(0)
+    expect(stats2.outboundRTP).not.toHaveProperty('audio')
+    await expect
+      .poll(
+        async () => {
+          const stats = await getStats(page)
+          return stats.inboundRTP.audio?.packetsReceived
+        },
+        {
+          message:
+            'should have more than 0 video packets received in inbound-rtp',
+          timeout: 5000,
+        }
+      )
+      .toBeGreaterThan(0)
 
-    await test.step('it should disable the audio', async () => {
+    await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const cfRoomSession: CallFabricRoomSession = window._roomObj
-        await cfRoomSession.disableAudio()
+        await cfRoomSession.updateMedia({
+          audio: { enable: false, direction: 'none' },
+        })
       })
 
-      const statsAfterDisabling = await getStats(page)
-
-      if (statsAfterDisabling.inboundRTP.audio) {
-        expect(statsAfterDisabling.inboundRTP.audio.packetsReceived).toBe(0)
-      } else {
-        expect(statsAfterDisabling.inboundRTP).not.toHaveProperty('audio')
-      }
-
-      if (statsAfterDisabling.outboundRTP.audio) {
-        expect(statsAfterDisabling.outboundRTP.audio.packetsSent).toBe(0)
-      } else {
-        expect(statsAfterDisabling.outboundRTP).not.toHaveProperty('audio')
-      }
-
-      const { audio, video } = await getTransceiverStates(page)
-      expect(video.direction).toBe('sendrecv')
-      expect(audio.direction).toBe('inactive')
-      expect(audio.sender.hasTrack).toBe(false)
+      await expect
+        .poll(async () => {
+          const stats = await getStats(page)
+          return stats.outboundRTP.video?.packetsSent
+        })
+        .toBeGreaterThan(0)
+      await expect
+        .poll(async () => {
+          const stats = await getStats(page)
+          return stats.inboundRTP.video?.packetsReceived
+        })
+        .toBeGreaterThan(0)
+      expect(stats2.outboundRTP).not.toHaveProperty('audio')
+      await waitForStabilizedStats(page, {
+        path: 'stats.inboundRTP.audio.packetsReceived',
+      })
     })
   })
 })
