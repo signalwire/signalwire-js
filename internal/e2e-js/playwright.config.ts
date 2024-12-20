@@ -45,7 +45,7 @@ const callfabricTests = [
   'videoRoom.spec.ts',
   'videoRoomLayout.spec.ts',
 ]
-const cfRenegotiationTests = [
+const renegotiationTests = [
   'renegotiateAudio.spec.ts',
   'renegotiateVideo.spec.ts',
 ]
@@ -93,7 +93,7 @@ const config: PlaywrightTestConfig = {
         ...audienceTests,
         ...reattachTests,
         ...callfabricTests,
-        ...cfRenegotiationTests,
+        ...renegotiationTests,
         ...v2WebRTC,
       ],
     },
@@ -133,9 +133,9 @@ const config: PlaywrightTestConfig = {
       testMatch: callfabricTests,
     },
     {
-      name: 'cfRenegotiation',
+      name: 'renegotiation',
       use: useDesktopChrome,
-      testMatch: cfRenegotiationTests,
+      testMatch: renegotiationTests,
     },
     {
       name: 'videoElement',

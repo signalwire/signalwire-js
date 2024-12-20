@@ -27,7 +27,7 @@ jobs:
             # audience,
             # reattach,
             callfabric,
-            cfRenegotiation,
+            renegotiation,
             videoElement,
             v2WebRTC,
           ]
