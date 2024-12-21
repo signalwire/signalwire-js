@@ -2,8 +2,8 @@ import type { SignalWireContract, Video } from '@signalwire/js'
 import type { MediaEvent } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
-import { Page, expect } from '@playwright/test'
-import fetch from 'node-fetch'
+import { expect } from './fixtures'
+import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
 
 type CreateTestServerOptions = {
@@ -395,6 +395,11 @@ export const expectMCUVisible = async (page: Page) => {
   await page.waitForSelector('div[id^="sw-sdk-"] > video')
 }
 
+export const expectMCUNotVisible = async (page: Page) => {
+  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+  expect(mcuVideo).toBeNull()
+}
+
 export const expectMCUVisibleForAudience = async (page: Page) => {
   await page.waitForSelector('#rootElement video')
 }
@@ -640,68 +645,253 @@ export const expectScreenShareJoined = async (page: Page) => {
   })
 }
 
-export const getStats = async (page: Page) => {
-  const stats = await page.evaluate(async () => {
+interface RTPInboundMediaStats {
+  packetsReceived: number
+  packetsLost: number
+  packetsDiscarded?: number
+}
+
+interface RTPOutboundMediaStats {
+  active: boolean
+  packetsSent: number
+  targetBitrate: number
+  totalPacketSendDelay: number
+}
+
+interface GetStatsResult {
+  inboundRTP: {
+    audio?: RTPInboundMediaStats
+    video?: RTPInboundMediaStats
+  }
+  outboundRTP: {
+    audio?: RTPOutboundMediaStats
+    video?: RTPOutboundMediaStats
+  }
+}
+
+interface RTPInboundMediaStats {
+  packetsReceived: number
+  packetsLost: number
+  packetsDiscarded?: number
+}
+
+interface RTPOutboundMediaStats {
+  active: boolean
+  packetsSent: number
+  targetBitrate: number
+  totalPacketSendDelay: number
+}
+
+interface GetStatsResult {
+  inboundRTP: {
+    audio?: RTPInboundMediaStats
+    video?: RTPInboundMediaStats
+  }
+  outboundRTP: {
+    audio?: RTPOutboundMediaStats
+    video?: RTPOutboundMediaStats
+  }
+}
+
+export const getStats = async (page: Page): Promise<GetStatsResult> => {
+  return await page.evaluate<GetStatsResult>(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
     // @ts-expect-error
     const rtcPeer = roomObj.peer
-    const stats = await rtcPeer.instance.getStats(null)
-    const result: {
-      inboundRTP: Record<any, any>
-      outboundRTP: Record<any, any>
-    } = { inboundRTP: {}, outboundRTP: {} }
+
+    // Get the currently active inbound and outbound tracks.
+    const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
+    const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
+    const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
+    const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
+
+    // Default return value
+    const result: GetStatsResult = {
+      inboundRTP: {
+        audio: {
+          packetsReceived: 0,
+          packetsLost: 0,
+          packetsDiscarded: 0,
+        },
+        video: {
+          packetsReceived: 0,
+          packetsLost: 0,
+          packetsDiscarded: 0,
+        },
+      },
+      outboundRTP: {
+        audio: {
+          active: false,
+          packetsSent: 0,
+          targetBitrate: 0,
+          totalPacketSendDelay: 0,
+        },
+        video: {
+          active: false,
+          packetsSent: 0,
+          targetBitrate: 0,
+          totalPacketSendDelay: 0,
+        },
+      },
+    }
 
     const inboundRTPFilters = {
-      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
-      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
-    } as const
-
-    const inboundRTPHandler = (report: any) => {
-      const media = report.mediaType as 'video' | 'audio'
-      const trackId = rtcPeer._getReceiverByKind(media).track.id
-      console.log(`getStats trackId "${trackId}" for media ${media}`)
-      if (report.trackIdentifier !== trackId) {
-        console.log(
-          `trackIdentifier "${report.trackIdentifier}" and trackId "${trackId}" are different`
-        )
-        return
-      }
-      result.inboundRTP[media] = result.inboundRTP[media] || {}
-      inboundRTPFilters[media].forEach((key) => {
-        result.inboundRTP[media][key] = report[key]
-      })
+      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
     }
 
     const outboundRTPFilters = {
-      audio: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
-      video: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
-    } as const
+      audio: [
+        'active',
+        'packetsSent',
+        'targetBitrate',
+        'totalPacketSendDelay',
+      ] as const,
+      video: [
+        'active',
+        'packetsSent',
+        'targetBitrate',
+        'totalPacketSendDelay',
+      ] as const,
+    }
 
-    const outboundRTPHandler = (report: any) => {
-      const media = report.mediaType as 'video' | 'audio'
-      result.outboundRTP[media] = result.outboundRTP[media] || {}
-      outboundRTPFilters[media].forEach((key) => {
-        result.outboundRTP[media][key] = report[key]
+    const handleInboundRTP = (report: any) => {
+      const media = report.mediaType as 'audio' | 'video'
+      if (!media) return
+
+      // Check if trackIdentifier matches the currently active inbound track
+      const expectedTrackId =
+        media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
+
+      if (
+        report.trackIdentifier &&
+        report.trackIdentifier !== expectedTrackId
+      ) {
+        console.log(
+          `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+        )
+        return
+      }
+
+      if (!result.inboundRTP[media]) {
+        result.inboundRTP[media] = {} as RTPInboundMediaStats
+      }
+
+      inboundRTPFilters[media].forEach((key) => {
+        ;(result.inboundRTP[media] as RTPInboundMediaStats)[key] = report[key]
       })
     }
 
-    stats.forEach((report: any) => {
+    const handleOutboundRTP = (report: any) => {
+      const media = report.mediaType as 'audio' | 'video'
+      if (!media) return
+
+      // Check if trackIdentifier matches the currently active outbound track
+      const expectedTrackId =
+        media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
+      if (
+        report.trackIdentifier &&
+        report.trackIdentifier !== expectedTrackId
+      ) {
+        console.log(
+          `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+        )
+        return
+      }
+
+      if (!result.outboundRTP[media]) {
+        result.outboundRTP[media] = {} as RTPOutboundMediaStats
+      }
+
+      outboundRTPFilters[media].forEach((key) => {
+        ;(result.outboundRTP[media] as any)[key] = report[key]
+      })
+    }
+
+    // Iterate over all RTCStats entries
+    const pc: RTCPeerConnection = rtcPeer.instance
+    const stats = await pc.getStats()
+    stats.forEach((report) => {
       switch (report.type) {
         case 'inbound-rtp':
-          inboundRTPHandler(report)
+          handleInboundRTP(report)
           break
         case 'outbound-rtp':
-          outboundRTPHandler(report)
+          handleOutboundRTP(report)
           break
       }
     })
 
     return result
   })
-  console.log('RTC Stats', stats)
+}
 
-  return stats
+interface WaitForStabilizedStatsParams {
+  path: string
+  maxAttempts?: number
+  stabilityCount?: number
+  intervalMs?: number
+}
+/**
+ * Waits for a given RTP stats property to stabilize.
+ * A stat is considered stable if the last `stabilityCount` readings are constant.
+ */
+export const waitForStabilizedStats = async (
+  page: Page,
+  params: WaitForStabilizedStatsParams
+) => {
+  const {
+    path,
+    maxAttempts = 50,
+    stabilityCount = 10,
+    intervalMs = 1000,
+  } = params
+
+  const recentValues: number[] = []
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const stats = await getStats(page)
+    const currentValue = getValueFromPath(stats, path) as number
+
+    recentValues.push(currentValue)
+
+    if (recentValues.length >= stabilityCount) {
+      const lastNValues = recentValues.slice(-stabilityCount)
+      const allEqual = lastNValues.every((val) => val === lastNValues[0])
+      if (allEqual) {
+        // The stat is stable now
+        return
+      }
+    }
+
+    if (attempt < maxAttempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs))
+    }
+  }
+
+  // If we get here, the value never stabilized.
+  throw new Error(
+    `The value at "${path}" did not stabilize after ${maxAttempts} attempts.`
+  )
+}
+
+/**
+ * Retrieves a value from an object at a given path.
+ *
+ * @example
+ * const obj = { a: { b: { c: 42 } } };
+ * const result = getValueFromPath(obj, "a.b.c"); // 42
+ */
+export const getValueFromPath = <T>(obj: T, path: string) => {
+  let current: unknown = obj
+  for (const part of path.split('.')) {
+    if (current == null || typeof current !== 'object') {
+      return undefined
+    }
+    current = (current as Record<string, unknown>)[part]
+  }
+  return current
 }
 
 export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
@@ -713,11 +903,11 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const minAudioPacketsExpected = 40 * seconds
   const minVideoPacketsExpected = 25 * seconds
 
-  expect(last.inboundRTP.video.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.video.packetsReceived + minVideoPacketsExpected
+  expect(last.inboundRTP.video?.packetsReceived).toBeGreaterThan(
+    (first.inboundRTP.video?.packetsReceived || 0) + minVideoPacketsExpected
   )
-  expect(last.inboundRTP.audio.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
+  expect(last.inboundRTP.audio?.packetsReceived).toBeGreaterThan(
+    (first.inboundRTP.audio?.packetsReceived || 0) + minAudioPacketsExpected
   )
 }
 
@@ -1196,14 +1386,16 @@ export const deleteResource = async (id: string) => {
 
 interface DialAddressParams {
   address: string
+  dialOptions?: Record<string, any>
+  reattach?: boolean
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
-  reattach?: boolean
 }
 export const dialAddress = (page: Page, params: DialAddressParams) => {
   const {
     address,
+    dialOptions = {},
     reattach = false,
     shouldPassRootElement = true,
     shouldStartCall = true,
@@ -1212,6 +1404,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
   return page.evaluate(
     async ({
       address,
+      dialOptions,
       reattach,
       shouldPassRootElement,
       shouldStartCall,
@@ -1228,6 +1421,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
+          ...dialOptions,
         })
 
         if (shouldWaitForJoin) {
@@ -1248,10 +1442,42 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     },
     {
       address,
+      dialOptions,
       reattach,
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
     }
   )
+}
+
+export const getTransceiverStates = async (page: Page) => {
+  return page.evaluate(() => {
+    // @ts-expect-error
+    const pc = window._roomObj.peer.instance as RTCPeerConnection
+    const transceivers = pc.getTransceivers()
+
+    const states: Record<string, any> = {}
+
+    transceivers.forEach((tr) => {
+      const kind = tr.receiver.track?.kind || tr.sender.track?.kind
+      if (kind) {
+        states[kind] = {
+          direction: tr.direction,
+          receiver: {
+            hasTrack: tr.receiver.track !== null,
+            trackId: tr.receiver.track?.id,
+            trackReadyState: tr.receiver.track?.readyState,
+          },
+          sender: {
+            hasTrack: tr.sender.track !== null,
+            trackId: tr.sender.track?.id,
+            trackReadyState: tr.sender.track?.readyState,
+          },
+        }
+      }
+    })
+
+    return states
+  })
 }
