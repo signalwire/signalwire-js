@@ -23,7 +23,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
 
     // Dial an address and join a video room
     const roomSession = await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSession.room_session).toBeDefined()
@@ -99,7 +99,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     // Create client, dial an address and join a video room from page-one
     await createCFClient(pageOne)
     const roomSessionOne = await dialAddress(pageOne, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSessionOne.room_session).toBeDefined()
@@ -114,7 +114,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     // Create client, dial an address and join a video room from page-two
     await createCFClient(pageTwo)
     const roomSessionTwo = await dialAddress(pageTwo, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSessionTwo.room_session).toBeDefined()
