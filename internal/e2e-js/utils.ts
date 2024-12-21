@@ -883,7 +883,7 @@ export const waitForStabilizedStats = async (
  * const obj = { a: { b: { c: 42 } } };
  * const result = getValueFromPath(obj, "a.b.c"); // 42
  */
-const getValueFromPath = <T>(obj: T, path: string) => {
+export const getValueFromPath = <T>(obj: T, path: string) => {
   let current: unknown = obj
   for (const part of path.split('.')) {
     if (current == null || typeof current !== 'object') {

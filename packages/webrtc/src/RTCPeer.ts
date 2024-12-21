@@ -203,6 +203,21 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
+  stopTrackReceiver(kind: string) {
+    try {
+      const receiver = this._getReceiverByKind(kind)
+      if (!receiver) {
+        return this.logger.info(`There is not a '${kind}' receiver to stop.`)
+      }
+      if (receiver.track) {
+        stopTrack(receiver.track)
+        this._remoteStream?.removeTrack(receiver.track)
+      }
+    } catch (error) {
+      this.logger.error('RTCPeer stopTrackReceiver error', kind, error)
+    }
+  }
+
   async restoreTrackSender(kind: string) {
     try {
       const sender = this._getSenderByKind(kind)
