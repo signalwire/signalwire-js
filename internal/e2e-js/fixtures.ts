@@ -74,7 +74,7 @@ const test = baseTest.extend<CustomFixture>({
               // @ts-expect-error
               window._roomObj
             console.log('Fixture roomObj', roomObj, roomObj.roomSessionId)
-            if (roomObj) {
+            if (roomObj && roomObj.roomSessionId) {
               console.log('Fixture has room', roomObj.roomSessionId)
               await roomObj.leave()
             }
