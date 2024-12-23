@@ -7,6 +7,7 @@ import {
   expectMCUNotVisible,
   expectMCUVisible,
   expectMCUVisibleForAudience,
+  expectStatWithPolling,
   getStats,
 } from '../../utils'
 import { CallFabricRoomSession } from '@signalwire/js'
@@ -62,30 +63,16 @@ test.describe('CallFabric Video Renegotiation', () => {
       const stats3 = await getStats(page)
       expect(stats3.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
       expect(stats3.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
-      await expect
-        .poll(
-          async () => {
-            const stats = await getStats(page)
-            return stats.outboundRTP.video?.packetsSent
-          },
-          {
-            message: 'should have 0 video packets sent',
-            timeout: 5000,
-          }
-        )
-        .toBe(0)
-      await expect
-        .poll(
-          async () => {
-            const stats = await getStats(page)
-            return stats.inboundRTP.video?.packetsReceived
-          },
-          {
-            message: 'should have 0 video packets received',
-            timeout: 5000,
-          }
-        )
-        .toBe(0)
+      await expectStatWithPolling(page, {
+        propertyPath: 'outboundRTP.video.packetsSent',
+        matcher: 'toBe',
+        expected: 0,
+      })
+      await expectStatWithPolling(page, {
+        propertyPath: 'inboundRTP.video.packetsReceived',
+        matcher: 'toBe',
+        expected: 0,
+      })
     })
   })
 
@@ -124,30 +111,16 @@ test.describe('CallFabric Video Renegotiation', () => {
     const stats2 = await getStats(page)
     expect(stats2.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
     expect(stats2.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
-    await expect
-      .poll(
-        async () => {
-          const stats = await getStats(page)
-          return stats.outboundRTP.video?.packetsSent
-        },
-        {
-          message: 'should have more than 0 video packets sent',
-          timeout: 5000,
-        }
-      )
-      .toBeGreaterThan(0)
-    await expect
-      .poll(
-        async () => {
-          const stats = await getStats(page)
-          return stats.inboundRTP.video?.packetsReceived
-        },
-        {
-          message: 'should have 0 video packets received',
-          timeout: 5000,
-        }
-      )
-      .toBe(0)
+    await expectStatWithPolling(page, {
+      propertyPath: 'outboundRTP.video.packetsSent',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
+    await expectStatWithPolling(page, {
+      propertyPath: 'inboundRTP.video.packetsReceived',
+      matcher: 'toBe',
+      expected: 0,
+    })
 
     await test.step('it should disable the video with "recvonly"', async () => {
       await page.evaluate(async () => {
@@ -161,30 +134,16 @@ test.describe('CallFabric Video Renegotiation', () => {
       const stats3 = await getStats(page)
       expect(stats3.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
       expect(stats3.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
-      await expect
-        .poll(
-          async () => {
-            const stats = await getStats(page)
-            return stats.outboundRTP.video?.packetsSent
-          },
-          {
-            message: 'should have 0 video packets sent',
-            timeout: 5000,
-          }
-        )
-        .toBe(0)
-      await expect
-        .poll(
-          async () => {
-            const stats = await getStats(page)
-            return stats.inboundRTP.video?.packetsReceived
-          },
-          {
-            message: 'should have more than 0 video packets received',
-            timeout: 5000,
-          }
-        )
-        .toBeGreaterThan(0)
+      await expectStatWithPolling(page, {
+        propertyPath: 'outboundRTP.video.packetsSent',
+        matcher: 'toBe',
+        expected: 0,
+      })
+      await expectStatWithPolling(page, {
+        propertyPath: 'inboundRTP.video.packetsReceived',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
     })
   })
 
@@ -224,18 +183,11 @@ test.describe('CallFabric Video Renegotiation', () => {
     expect(stats2.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
     expect(stats2.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
     expect(stats2.outboundRTP.video?.packetsSent).toBe(0)
-    await expect
-      .poll(
-        async () => {
-          const stats = await getStats(page)
-          return stats.inboundRTP.video?.packetsReceived
-        },
-        {
-          message: 'should have more than 0 video packets received',
-          timeout: 5000,
-        }
-      )
-      .toBeGreaterThan(0)
+    await expectStatWithPolling(page, {
+      propertyPath: 'inboundRTP.video.packetsReceived',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
 
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {

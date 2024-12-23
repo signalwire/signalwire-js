@@ -1,8 +1,3 @@
-import type {
-  CallFabricRoomSession,
-  SignalWireContract,
-  Video,
-} from '@signalwire/js'
 import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
@@ -13,7 +8,9 @@ import {
   createSWMLAppResource,
   createVideoRoomResource,
   deleteResource,
+  disconnectClient,
   enablePageLogs,
+  leaveRoom,
 } from './utils'
 
 type CustomPage = Page & {
@@ -67,26 +64,7 @@ const test = baseTest.extend<CustomFixture>({
        * Invoke `.leave()` only if we have a valid `roomSessionId`.
        * Then double check the SDK elements got properly removed from the DOM.
        */
-      const results = await Promise.all(
-        context.pages().map((page) => {
-          return page.evaluate(async () => {
-            const roomObj: Video.RoomSession | CallFabricRoomSession =
-              // @ts-expect-error
-              window._roomObj
-            console.log('Fixture roomObj', roomObj, roomObj.roomSessionId)
-            if (roomObj && roomObj.roomSessionId) {
-              console.log('Fixture has room', roomObj.roomSessionId)
-              await roomObj.leave()
-            }
-
-            return {
-              videos: Array.from(document.querySelectorAll('video')).length,
-              rootEl:
-                document.getElementById('rootElement')?.childElementCount ?? 0,
-            }
-          })
-        })
-      )
+      const results = await Promise.all(context.pages().map(leaveRoom))
       results.forEach((row) => {
         expect(row.videos).toBe(0)
         expect(row.rootEl).toBe(0)
@@ -96,30 +74,7 @@ const test = baseTest.extend<CustomFixture>({
        * The Call Fabric SDK does not destory the client when the call is finished.
        * Make sure we cleanup the client as well.
        */
-      await Promise.all(
-        context.pages().map((page) => {
-          return page.evaluate(async () => {
-            return new Promise<void>((resolve, _reject) => {
-              // @ts-expect-error
-              const client: SignalWireContract = window._client
-              console.log('Fixture client', client)
-              if (!client) {
-                resolve()
-              }
-              // @ts-expect-error
-              client.__wsClient.clientApi.sessionEmitter.on(
-                'session.disconnected',
-                () => {
-                  console.log('Client has been disconnected')
-                  resolve()
-                }
-              )
-              console.log('Disconnecting the client')
-              client.disconnect()
-            })
-          })
-        })
-      )
+      await Promise.all(context.pages().map(disconnectClient))
     }
   },
   createCustomVanillaPage: async ({ context }, use) => {

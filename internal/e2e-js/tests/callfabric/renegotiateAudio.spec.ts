@@ -5,6 +5,7 @@ import {
   createCFClient,
   dialAddress,
   expectMCUVisible,
+  expectStatWithPolling,
   getStats,
   waitForStabilizedStats,
 } from '../../utils'
@@ -47,30 +48,26 @@ test.describe('CallFabric Audio Renegotiation', () => {
       await cfRoomSession.setAudioDirection('sendrecv')
     })
 
-    await expect
-      .poll(async () => {
-        const stats = await getStats(page)
-        return stats.outboundRTP.video?.packetsSent
-      })
-      .toBeGreaterThan(0)
-    await expect
-      .poll(async () => {
-        const stats = await getStats(page)
-        return stats.inboundRTP.video?.packetsReceived
-      })
-      .toBeGreaterThan(0)
-    await expect
-      .poll(async () => {
-        const stats = await getStats(page)
-        return stats.outboundRTP.audio?.packetsSent
-      })
-      .toBeGreaterThan(0)
-    await expect
-      .poll(async () => {
-        const stats = await getStats(page)
-        return stats.inboundRTP.audio?.packetsReceived
-      })
-      .toBeGreaterThan(0)
+    await expectStatWithPolling(page, {
+      propertyPath: 'outboundRTP.video.packetsSent',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
+    await expectStatWithPolling(page, {
+      propertyPath: 'inboundRTP.video.packetsReceived',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
+    await expectStatWithPolling(page, {
+      propertyPath: 'outboundRTP.audio.packetsSent',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
+    await expectStatWithPolling(page, {
+      propertyPath: 'inboundRTP.audio.packetsReceived',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
 
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
@@ -81,23 +78,21 @@ test.describe('CallFabric Audio Renegotiation', () => {
         })
       })
 
-      await expect
-        .poll(async () => {
-          const stats = await getStats(page)
-          return stats.outboundRTP.video?.packetsSent
-        })
-        .toBeGreaterThan(0)
-      await expect
-        .poll(async () => {
-          const stats = await getStats(page)
-          return stats.inboundRTP.video?.packetsReceived
-        })
-        .toBeGreaterThan(0)
-      await waitForStabilizedStats(page, {
-        path: 'stats.outboundRTP.audio.packetsSent',
+      await expectStatWithPolling(page, {
+        propertyPath: 'outboundRTP.video.packetsSent',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
+      await expectStatWithPolling(page, {
+        propertyPath: 'inboundRTP.video.packetsReceived',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
       })
       await waitForStabilizedStats(page, {
-        path: 'stats.inboundRTP.audio.packetsReceived',
+        propertyPath: 'outboundRTP.audio.packetsSent',
+      })
+      await waitForStabilizedStats(page, {
+        propertyPath: 'inboundRTP.audio.packetsReceived',
       })
     })
   })
@@ -141,12 +136,11 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const stats2 = await getStats(page)
     expect(stats2.outboundRTP).toHaveProperty('video')
     expect(stats2.inboundRTP).toHaveProperty('video')
-    await expect
-      .poll(async () => {
-        const stats = await getStats(page)
-        return stats.outboundRTP.audio?.packetsSent
-      })
-      .toBeGreaterThan(0)
+    await expectStatWithPolling(page, {
+      propertyPath: 'outboundRTP.audio.packetsSent',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
     expect(stats2.inboundRTP.audio?.packetsReceived).toBe(0)
 
     await test.step('it should disable the audio with "recvonly"', async () => {
@@ -162,20 +156,13 @@ test.describe('CallFabric Audio Renegotiation', () => {
       expect(stats3.outboundRTP).toHaveProperty('video')
       expect(stats3.inboundRTP).toHaveProperty('video')
       await waitForStabilizedStats(page, {
-        path: 'stats.outboundRTP.audio?.packetsSent',
+        propertyPath: 'outboundRTP.audio.packetsSent',
       })
-      await expect
-        .poll(
-          async () => {
-            const stats = await getStats(page)
-            return stats.inboundRTP.audio?.packetsReceived
-          },
-          {
-            message: 'should have more than 0 audio packets received',
-            timeout: 5000,
-          }
-        )
-        .toBeGreaterThan(0)
+      await expectStatWithPolling(page, {
+        propertyPath: 'inboundRTP.audio.packetsReceived',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
     })
   })
 
@@ -216,31 +203,22 @@ test.describe('CallFabric Audio Renegotiation', () => {
     })
 
     const stats2 = await getStats(page)
-    await expect
-      .poll(async () => {
-        const stats = await getStats(page)
-        return stats.outboundRTP.video?.packetsSent
-      })
-      .toBeGreaterThan(0)
-    await expect
-      .poll(async () => {
-        const stats = await getStats(page)
-        return stats.inboundRTP.video?.packetsReceived
-      })
-      .toBeGreaterThan(0)
+    await expectStatWithPolling(page, {
+      propertyPath: 'outboundRTP.video.packetsSent',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
+    await expectStatWithPolling(page, {
+      propertyPath: 'inboundRTP.video.packetsReceived',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
     expect(stats2.outboundRTP.audio?.packetsSent).toBe(0)
-    await expect
-      .poll(
-        async () => {
-          const stats = await getStats(page)
-          return stats.inboundRTP.audio?.packetsReceived
-        },
-        {
-          message: 'should have more than 0 video packets received',
-          timeout: 5000,
-        }
-      )
-      .toBeGreaterThan(0)
+    await expectStatWithPolling(page, {
+      propertyPath: 'inboundRTP.audio.packetsReceived',
+      matcher: 'toBeGreaterThan',
+      expected: 0,
+    })
 
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
@@ -252,21 +230,19 @@ test.describe('CallFabric Audio Renegotiation', () => {
       })
 
       const stats3 = await getStats(page)
-      await expect
-        .poll(async () => {
-          const stats = await getStats(page)
-          return stats.outboundRTP.video?.packetsSent
-        })
-        .toBeGreaterThan(0)
-      await expect
-        .poll(async () => {
-          const stats = await getStats(page)
-          return stats.inboundRTP.video?.packetsReceived
-        })
-        .toBeGreaterThan(0)
+      await expectStatWithPolling(page, {
+        propertyPath: 'outboundRTP.video.packetsSent',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
+      await expectStatWithPolling(page, {
+        propertyPath: 'inboundRTP.video.packetsReceived',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
       expect(stats3.outboundRTP.audio?.packetsSent).toBe(0)
       await waitForStabilizedStats(page, {
-        path: 'stats.inboundRTP.audio.packetsReceived',
+        propertyPath: 'inboundRTP.audio.packetsReceived',
       })
     })
   })

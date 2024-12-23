@@ -42,6 +42,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _resolveStartMethod: (value?: unknown) => void
   private _rejectStartMethod: (error: unknown) => void
 
+  /**
+   * The promise that resolves or rejects when the negotiation succeed or fail.
+   * The consumer needs to declare the promise and assign it to this in order to
+   * wait for the negotiation to complete.
+   */
   public _pendingNegotiationPromise?: {
     resolve: (value?: unknown) => void
     reject: (error: unknown) => void
@@ -708,6 +713,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
       if (this.isAnswer) {
         this._resolveStartMethod()
+        this._pendingNegotiationPromise?.resolve()
       }
     } catch (error) {
       this._rejectStartMethod(error)
