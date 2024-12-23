@@ -403,8 +403,8 @@ export const leaveRoom = async (page: Page) => {
     const roomObj: Video.RoomSession | CallFabricRoomSession =
       // @ts-expect-error
       window._roomObj
-    console.log('Fixture roomObj', roomObj, roomObj.roomSessionId)
-    if (roomObj && roomObj.roomSessionId) {
+    console.log('Fixture roomObj', roomObj)
+    if (roomObj && roomObj?.roomSessionId) {
       console.log('Fixture has room', roomObj.roomSessionId)
       await roomObj.leave()
     }
@@ -921,15 +921,12 @@ export async function expectStatWithPolling(
 ) {
   const { propertyPath, matcher, expected, message, timeout = 10000 } = params
 
-  console.log('>> propertyPath', propertyPath)
   const defaultMessage = `Expected \`${propertyPath}\` ${matcher} ${expected}`
   await expect
     .poll(
       async () => {
         const stats = await getStats(page)
-        console.log('>> stats', stats)
         const value = getValueFromPath(stats, propertyPath) as number
-        console.log('>> value', value)
         return value
       },
       { message: message ?? defaultMessage, timeout }
