@@ -51,8 +51,8 @@ const renegotiationTests = [
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 const videoElementTests = [
-  'buildVideoWithVideoSdk.spec.ts',
-  'buildVideoWithCFSdk.spec.ts',
+  'buildVideoWithVideoSDK.spec.ts',
+  'buildVideoWithFabricSDK.spec.ts',
 ]
 
 const useDesktopChrome = {

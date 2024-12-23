@@ -103,7 +103,9 @@ const test = baseTest.extend<CustomFixture>({
               // @ts-expect-error
               const client: SignalWireContract = window._client
               console.log('Fixture client', client)
-              if (!client) return
+              if (!client) {
+                resolve()
+              }
               // @ts-expect-error
               client.__wsClient.clientApi.sessionEmitter.on(
                 'session.disconnected',
