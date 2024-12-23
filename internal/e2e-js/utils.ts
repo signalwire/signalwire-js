@@ -195,7 +195,7 @@ export const createCFClient = async (page: Page) => {
     async (options) => {
       // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
-      const client = await SignalWire({
+      const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         debug: { logWsTraffic: true },
