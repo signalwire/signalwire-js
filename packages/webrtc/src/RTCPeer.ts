@@ -315,7 +315,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.logger.debug('Restart ICE')
     // Type must be Offer to send reinvite.
     this.type = 'offer'
-    // @ts-ignore
     this.instance.restartIce()
   }
 

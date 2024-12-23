@@ -1231,7 +1231,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
   /**
    * Add or update the transceiver based on the media type and direction
    */
-  private async _upsertTransceiverByKind(
+  private _upsertTransceiverByKind(
     direction: RTCRtpTransceiverDirection,
     kind: 'audio' | 'video'
   ) {
@@ -1266,13 +1266,15 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       }
     }
 
-    if (['inactive', 'sendonly', 'stopped'].includes(direction)) {
+    if (direction === 'stopped' || direction === 'inactive') {
       this.peer.stopTrackReceiver(kind)
-      await transceiver?.sender.replaceTrack(null)
-    }
-
-    if (['recvonly'].includes(direction)) {
       this.peer.stopTrackSender(kind)
+    } else if (direction === 'sendonly') {
+      this.peer.stopTrackReceiver(kind)
+    } else if (direction === 'recvonly') {
+      this.peer.stopTrackSender(kind)
+      // TBD: Should we replace the sender track with null?
+      // await transceiver?.sender.replaceTrack(null)
     }
   }
 
@@ -1338,14 +1340,14 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       if (audio && !audio.enable) {
         const newDirection =
           audio.direction === 'receive' ? 'recvonly' : 'inactive'
-        await this._upsertTransceiverByKind(newDirection, 'audio')
+        this._upsertTransceiverByKind(newDirection, 'audio')
       }
 
       // When disabling video
       if (video && !video.enable) {
         const newDirection =
           video.direction === 'receive' ? 'recvonly' : 'inactive'
-        await this._upsertTransceiverByKind(newDirection, 'video')
+        this._upsertTransceiverByKind(newDirection, 'video')
       }
 
       // Manually trigger the negotiation (just to be sure) - we skip twice negotiation
