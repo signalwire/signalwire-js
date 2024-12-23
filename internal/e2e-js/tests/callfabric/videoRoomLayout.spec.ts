@@ -28,7 +28,7 @@ test.describe('CallFabric Video Room Layout', () => {
 
     // Dial an address and join a video room
     const roomSession = await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSession.room_session).toBeDefined()
@@ -78,7 +78,7 @@ test.describe('CallFabric Video Room Layout', () => {
 
     // Dial an address and join a video room
     const roomSession = await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSession.room_session).toBeDefined()
@@ -149,7 +149,7 @@ test.describe('CallFabric Video Room Layout', () => {
     // Create client for pageOne and Dial an address to join a video room
     await createCFClient(pageOne)
     const roomSessionOne = (await dialAddress(pageOne, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })) as VideoRoomSubscribedEventParams
     expect(roomSessionOne.room_session).toBeDefined()
     await expectMCUVisible(pageOne)
@@ -157,7 +157,7 @@ test.describe('CallFabric Video Room Layout', () => {
     // Create client for pageTwo and Dial an address to join a video room
     await createCFClient(pageTwo)
     const roomSessionTwo = (await dialAddress(pageTwo, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })) as VideoRoomSubscribedEventParams
     expect(roomSessionTwo.room_session).toBeDefined()
     await expectMCUVisible(pageTwo)

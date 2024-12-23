@@ -23,7 +23,7 @@ test.describe('Reattach Tests', () => {
 
     // Dial an address and join a video room
     let roomSession = await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSession.room_session).toBeDefined()
@@ -42,7 +42,7 @@ test.describe('Reattach Tests', () => {
           const client = window._client
 
           const call = await client.reattach({
-            to: `/public/${roomName}`,
+            to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
@@ -81,7 +81,7 @@ test.describe('Reattach Tests', () => {
           const client = window._client
 
           const call = await client.dial({
-            to: `/public/${roomName}`,
+            to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
@@ -154,7 +154,7 @@ test.describe('Reattach Tests', () => {
           const client = window._client
 
           const call = await client.reattach({
-            to: `/public/${roomName}`,
+            to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
