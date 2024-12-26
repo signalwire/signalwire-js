@@ -871,7 +871,7 @@ export const waitForStabilizedStats = async (
       const allEqual = lastNValues.every((val) => val === lastNValues[0])
       if (allEqual) {
         // The stat is stable now
-        return
+        return lastNValues[0]
       }
     }
 
@@ -901,7 +901,6 @@ export const getValueFromPath = <T>(obj: T, path: string) => {
     }
     current = (current as Record<string, unknown>)[part]
   }
-  console.log('>> current', current)
   return current
 }
 

@@ -46,6 +46,7 @@ const callfabricTests = [
   'videoRoomLayout.spec.ts',
 ]
 const renegotiationTests = [
+  'roomSessionUpdateMedia.spec.ts',
   'renegotiateAudio.spec.ts',
   'renegotiateVideo.spec.ts',
 ]
