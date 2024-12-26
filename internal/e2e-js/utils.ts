@@ -846,6 +846,7 @@ interface WaitForStabilizedStatsParams {
 /**
  * Waits for a given RTP stats property to stabilize.
  * A stat is considered stable if the last `stabilityCount` readings are constant.
+ * Returns the stabled value.
  */
 export const waitForStabilizedStats = async (
   page: Page,
