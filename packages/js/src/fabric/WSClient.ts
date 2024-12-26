@@ -17,6 +17,7 @@ import { Client } from './Client'
 export class WSClient {
   private wsClient: Client
   private logger = getLogger()
+  private _sessionConnected = false
   private _incomingCallManager: IncomingCallManager
 
   constructor(public options: WSClientOptions) {
@@ -26,6 +27,7 @@ export class WSClient {
         this.buildInboundCall(payload, params),
       (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
     )
+    this.listenForSessionEvents()
   }
 
   /** @internal */
@@ -33,9 +35,26 @@ export class WSClient {
     return this.wsClient
   }
 
+  get sessionConnected() {
+    return this._sessionConnected
+  }
+
+  private listenForSessionEvents() {
+    this.wsClient.session.on('session.connected', () => {
+      this._sessionConnected = true
+    })
+
+    this.wsClient.session.on('session.disconnected', () => {
+      this._sessionConnected = false
+    })
+  }
+
   async connect() {
     // @ts-ignore
-    if (!this.wsClient.connected) {
+    if (!this.sessionConnected) {
+      await this.wsClient.connect()
+
+      // FIXME: This is a workaround to avoid the worker to be created multiple times
       this.wsClient.runWorker('wsClientWorker', {
         worker: wsClientWorker,
         initialState: {
@@ -43,7 +62,6 @@ export class WSClient {
             this.notifyIncomingInvite('websocket', incomingInvite),
         },
       })
-      await this.wsClient.connect()
     }
   }
 

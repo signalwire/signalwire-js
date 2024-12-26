@@ -523,19 +523,22 @@ export const disconnectClient = (page: Page) => {
       // @ts-expect-error
       const client: SignalWireContract = window._client
       console.log('Fixture client', client)
-      if (!client) {
-        resolve()
-      }
       // @ts-expect-error
-      client.__wsClient.clientApi.sessionEmitter.on(
-        'session.disconnected',
-        () => {
-          console.log('Client has been disconnected')
-          resolve()
-        }
-      )
-      console.log('Disconnecting the client')
-      client.disconnect()
+      if (!client || !client.__wsClient.sessionConnected) {
+        console.log('Client not connected')
+        resolve()
+      } else {
+        // @ts-expect-error
+        client.__wsClient.clientApi.sessionEmitter.on(
+          'session.disconnected',
+          () => {
+            console.log('Client has been disconnected')
+            resolve()
+          }
+        )
+        console.log('Disconnecting the client')
+        client.disconnect()
+      }
     })
   })
 }
