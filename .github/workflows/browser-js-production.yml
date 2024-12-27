@@ -41,10 +41,18 @@ jobs:
         uses: ./.github/actions/build
         with:
           NODE_VERSION: ${{ matrix.node-version }}
+      - name: Get Playwright version
+        run: |
+          # Navigate to the internal/e2e-js package directory
+          PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' ./internal/e2e-js/package.json)
+          # Remove caret (^) from version if present
+          PLAYWRIGHT_VERSION=${PLAYWRIGHT_VERSION#^}
+          echo "Playwright version: $PLAYWRIGHT_VERSION"
+          echo "PLAYWRIGHT_VERSION=$PLAYWRIGHT_VERSION" >> $GITHUB_ENV
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+          PLAYWRIGHT_VERSION: $PLAYWRIGHT_VERSION
       - name: Test
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
