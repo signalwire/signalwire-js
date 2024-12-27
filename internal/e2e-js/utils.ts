@@ -579,12 +579,12 @@ interface RTPOutboundMediaStats {
 
 interface GetStatsResult {
   inboundRTP: {
-    audio?: RTPInboundMediaStats
-    video?: RTPInboundMediaStats
+    audio: RTPInboundMediaStats
+    video: RTPInboundMediaStats
   }
   outboundRTP: {
-    audio?: RTPOutboundMediaStats
-    video?: RTPOutboundMediaStats
+    audio: RTPOutboundMediaStats
+    video: RTPOutboundMediaStats
   }
 }
 
@@ -669,12 +669,8 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
         return
       }
 
-      if (!result.inboundRTP[media]) {
-        result.inboundRTP[media] = {} as RTPInboundMediaStats
-      }
-
       inboundRTPFilters[media].forEach((key) => {
-        ;(result.inboundRTP[media] as RTPInboundMediaStats)[key] = report[key]
+        result.inboundRTP[media][key] = report[key]
       })
     }
 
@@ -693,10 +689,6 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
           `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
         )
         return
-      }
-
-      if (!result.outboundRTP[media]) {
-        result.outboundRTP[media] = {} as RTPOutboundMediaStats
       }
 
       outboundRTPFilters[media].forEach((key) => {
