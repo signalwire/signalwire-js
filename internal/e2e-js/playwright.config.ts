@@ -9,12 +9,6 @@ const streamingTests = [
   'roomSessionAutomaticStream.spec.ts',
 ]
 const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
-const audienceTests = [
-  'roomSessionAudienceCount.spec.ts',
-  'roomSessionFollowLeader.spec.ts',
-  'roomSessionTalkingEventsToAudience.spec.ts',
-  'roomSessionUnauthorized.spec.ts',
-]
 const promoteTests = [
   'roomSessionPromoteDemote.spec.ts',
   'roomSessionPromoteMeta.spec.ts',
@@ -26,6 +20,12 @@ const demoteTests = [
   'roomSessionDemoteAudience.spec.ts',
   'roomSessionDemoteReattachPromote.spec.ts',
   'roomSessionDemotePromote.spec.ts',
+]
+const audienceTests = [
+  'roomSessionAudienceCount.spec.ts',
+  'roomSessionFollowLeader.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
+  'roomSessionUnauthorized.spec.ts',
 ]
 const reattachTests = [
   'roomSessionReattach.spec.ts',
@@ -50,11 +50,11 @@ const renegotiationTests = [
   'renegotiateAudio.spec.ts',
   'renegotiateVideo.spec.ts',
 ]
-const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 const videoElementTests = [
   'buildVideoWithVideoSDK.spec.ts',
   'buildVideoWithFabricSDK.spec.ts',
 ]
+const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
 const useDesktopChrome = {
   ...devices['Desktop Chrome'],
@@ -95,6 +95,7 @@ const config: PlaywrightTestConfig = {
         ...reattachTests,
         ...callfabricTests,
         ...renegotiationTests,
+        ...videoElementTests,
         ...v2WebRTC,
       ],
     },
