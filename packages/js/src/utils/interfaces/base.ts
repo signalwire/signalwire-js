@@ -37,4 +37,19 @@ export interface BaseRoomSessionContract {
   startScreenShare(
     opts?: StartScreenShareOptions
   ): Promise<RoomSessionScreenShare>
+  /**
+   * Replaces the current speaker with a different one.
+   *
+   * > 📘
+   * > Some browsers do not support output device selection. You can check by calling {@link WebRTC.supportsMediaOutput}.
+   *
+   * @param opts
+   * @param opts.deviceId id of the new speaker device
+   *
+   * @example Replaces the current speaker:
+   * ```typescript
+   * await room.updateSpeaker({deviceId: "/o4ZeWzroh+8q0Ds/CFfmn9XpqaHzmW3L/5ZBC22CRg="})
+   * ```
+   */
+  updateSpeaker(opts: { deviceId: string }): Promise<undefined>
 }

@@ -4,7 +4,7 @@ import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
 import type { FabricRoomSession } from './FabricRoomSession'
 
-export interface SignalWireOptions extends WSClientOptions {}
+export interface SignalWireClientParams extends WSClientOptions {}
 
 export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
@@ -86,9 +86,9 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type CFUserOptions = Omit<UserOptions, 'onRefreshToken'>
+export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'>
 
-export interface WSClientOptions extends CFUserOptions {
+export interface WSClientOptions extends FabricUserOptions {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Call back function to receive the incoming call */

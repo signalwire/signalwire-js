@@ -3,6 +3,7 @@ import {
   BaseConnectionState,
   connect,
   EventEmitter,
+  LOCAL_EVENT_PREFIX,
 } from '@signalwire/core'
 import {
   BaseConnection,
@@ -21,6 +22,7 @@ import {
 } from './utils/interfaces'
 import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
 import { addOverlayPrefix } from './utils/roomSession'
+import { audioSetSpeakerAction } from './features/actions'
 import {
   RoomSessionScreenShare,
   RoomSessionScreenShareAPI,
@@ -241,6 +243,34 @@ export class BaseRoomSessionConnection<
         reject(error)
       }
     })
+  }
+
+  updateSpeaker({ deviceId }: { deviceId: string }) {
+    const prevId = this.audioEl.sinkId as string
+    this.once(
+      // @ts-expect-error
+      `${LOCAL_EVENT_PREFIX}.speaker.updated`,
+      async (newId: string) => {
+        const prevSpeaker = await getSpeakerById(prevId)
+        const newSpeaker = await getSpeakerById(newId)
+
+        const isSame = newSpeaker?.deviceId === prevSpeaker?.deviceId
+        if (!newSpeaker?.deviceId || isSame) return
+
+        this.emit('speaker.updated', {
+          previous: {
+            deviceId: prevSpeaker?.deviceId,
+            label: prevSpeaker?.label,
+          },
+          current: {
+            deviceId: newSpeaker.deviceId,
+            label: newSpeaker.label,
+          },
+        })
+      }
+    )
+
+    return this.triggerCustomSaga<undefined>(audioSetSpeakerAction(deviceId))
   }
 }
 

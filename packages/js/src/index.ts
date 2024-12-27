@@ -56,7 +56,9 @@ export * as Chat from './chat'
 export * as PubSub from './pubSub'
 
 /**
- * Call Fabric namespace
+ * The Fabric namespace contains the classes and functions that you need to
+ * create a unified communication application that includes Audio/Video calling
+ * with Chat/Messaging capabilties.
  */
 export * as Fabric from './fabric'
 export { SignalWire } from './fabric'
@@ -68,6 +70,8 @@ export * from './fabric/types'
  */
 export * as Video from './video'
 export { VideoRoomSession } from './video'
+export { RoomSessionScreenShare } from './RoomSessionScreenShare'
+export { RoomSessionDevice } from './RoomSessionDevice'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and
@@ -118,6 +122,8 @@ export type {
   FabricMemberLeftEventParams,
   FabricMemberTalkingEventParams,
   FabricMemberEventParams,
+  FabricMemberEntity,
+  InternalFabricMemberEntity,
   ConversationMessageEventName,
   ConversationMessageEvent,
   ConversationEventParams,

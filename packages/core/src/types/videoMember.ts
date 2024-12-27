@@ -175,7 +175,7 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
   /** Name of this member. */
   name: string
   /** Id of the parent video member, if it exists. */
-  parentId?: string
+  parentId?: string | undefined
   /** Type of this video member. Can be `'member'`, `'screen'`, or `'device'`. */
   type: VideoMemberType
   /**
@@ -184,13 +184,13 @@ export interface VideoMemberContract extends VideoMemberUpdatableProps {
    */
   requestedPosition: VideoPosition
   /** Current position of this member in the layout. */
-  currentPosition?: VideoPosition
+  currentPosition?: VideoPosition | undefined
   /** Metadata associated to this member. */
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown> | undefined
   /** Indicate if the member hand is raised or not */
   handraised: boolean
   /** Indicate if the member is talking or not */
-  talking?: boolean
+  talking?: boolean | undefined
 
   /**
    * Mutes the outbound audio for this member (e.g., the one coming from a
