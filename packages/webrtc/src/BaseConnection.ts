@@ -68,7 +68,7 @@ const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   userVariables: {},
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
-  iceGatheringTimeout: 2 * 1000,
+  iceGatheringTimeout: 1000,
   maxIceGatheringTimeout: 5 * 1000,
   maxConnectionStateTimeout: 3 * 1000,
   watchMediaPackets: true,

@@ -20,6 +20,8 @@ import {
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
 const RESUME_TIMEOUT = 12_000
+const DEFAULT_ICE_CANDIDATE_POOL_SIZE = 3
+const ICE_POOL_GATHERING_TIMEOUT = 15
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
@@ -155,6 +157,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       iceServers: filterIceServers(this.call.iceServers, {
         disableUdpIceServers: this.options.disableUdpIceServers,
       }),
+      iceCandidatePoolSize: DEFAULT_ICE_CANDIDATE_POOL_SIZE,
       // @ts-ignore
       sdpSemantics: 'unified-plan',
       ...rtcPeerConfig,
@@ -513,6 +516,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.type = 'offer'
     }
     return new Promise(async (resolve, reject) => {
+      this._setupRTCPeerConnection()
+
       this._resolveStartMethod = resolve
       this._rejectStartMethod = reject
 
@@ -522,15 +527,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._rejectStartMethod(error)
         return this.call.setState('hangup')
       }
-
-      /**
-       * We need to defer the creation of RTCPeerConnection
-       * until we gain gUM access otherwise it will have
-       * private IP addresses in ICE host candidates
-       * replaced by an mDNS hostname
-       * @see https://groups.google.com/g/discuss-webrtc/c/6stQXi72BEU?pli=1
-       */
-      this._setupRTCPeerConnection()
 
       let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
@@ -770,8 +766,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._iceTimeout = setTimeout(() => {
         this.instance.removeEventListener('icecandidate', this._onIce)
         this._sdpReady()
-      }, this.options.iceGatheringTimeout)
+      }, this._iceGatheringTimeout())
     }
+  }
+
+  private _iceGatheringTimeout(): number | undefined {
+    return DEFAULT_ICE_CANDIDATE_POOL_SIZE > 0 ? ICE_POOL_GATHERING_TIMEOUT : this.options.iceGatheringTimeout
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
