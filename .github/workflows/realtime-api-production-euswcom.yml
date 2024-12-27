@@ -27,10 +27,16 @@ jobs:
         uses: ./.github/actions/build
         with:
           NODE_VERSION: ${{ matrix.node-version }}
+      - name: Get Playwright version
+        id: playwright-version
+        run: |
+          PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' ./internal/e2e-realtime-api/package.json)
+          echo "Playwright version: $PLAYWRIGHT_VERSION"
+          echo "playwright_version=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.49.1' # TODO: Read from deps ?
+          PLAYWRIGHT_VERSION: ${{ steps.playwright-version.outputs.playwright_version }}
       - name: Test
         id: run-tests
         run: npm run -w=@sw-internal/e2e-realtime-api dev
