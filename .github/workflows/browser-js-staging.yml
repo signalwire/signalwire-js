@@ -44,6 +44,7 @@ jobs:
         id: playwright-version
         run: |
           PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' ./internal/e2e-js/package.json)
+          PLAYWRIGHT_VERSION=${PLAYWRIGHT_VERSION#^}
           echo "Playwright version: $PLAYWRIGHT_VERSION"
           echo "playwright_version=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
       - name: Install Playwright
