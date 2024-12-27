@@ -26,7 +26,7 @@ test.describe('CallFabric VideoRoom', () => {
 
     // Dial an address and join a video room
     const roomSession: CallJoinedEventParams = await dialAddress(page, {
-      address: `/public/${roomName}`,
+      address: `/public/${roomName}?channel=video`,
     })
 
     expect(roomSession.room_session).toBeDefined()
@@ -380,7 +380,7 @@ test.describe('CallFabric VideoRoom', () => {
         const client = window._client
 
         const call = await client.dial({
-          to: `/public/invalid-address`,
+          to: `/public/invalid-address?channel=video`,
           rootElement: document.getElementById('rootElement'),
         })
 
