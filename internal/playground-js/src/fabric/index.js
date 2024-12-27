@@ -413,13 +413,13 @@ window.connect = async ({ reattach = false } = {}) => {
 /**
  * Hangup the roomObj if present
  */
-window.hangup = async () => {
+window.hangup = () => {
   if (micAnalyzer) {
     micAnalyzer.destroy()
   }
 
   if (roomObj) {
-    await roomObj.hangup()
+    roomObj.hangup()
   }
 
   restoreUI()
@@ -428,9 +428,6 @@ window.hangup = async () => {
   const url = new URL(window.location.href)
   url.searchParams.delete('room')
   window.history.pushState({}, '', url)
-
-  console.log('>> disconnect')
-  client.disconnect()
 }
 
 window.saveInLocalStorage = (e) => {
