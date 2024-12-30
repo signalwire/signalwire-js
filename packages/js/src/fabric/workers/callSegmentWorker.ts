@@ -25,8 +25,11 @@ export const callSegmentWorker = function* (
     instance: cfRoomSession,
   } = options
   const segmentCallId = action.payload.call_id
+  const segmentRooSessionId = action.payload.room_session_id
 
-  getLogger().debug(`callSegmentWorker started for: callId ${segmentCallId}`)
+  getLogger().debug(
+    `callSegmentWorker started for: callId ${segmentCallId}, roomSessionId ${segmentRooSessionId}`
+  )
 
   // Handles the `call.joined` event before the worker loop
   yield sagaEffects.fork(callJoinWorker, {
@@ -117,15 +120,21 @@ export const callSegmentWorker = function* (
   }
 
   const isSegmentEvent = (action: SDKActions) => {
-    const cfAction = action as FabricAction
-    return (
-      cfAction.type.startsWith('call.') ||
-      cfAction.type.startsWith('member.') ||
-      cfAction.type.startsWith('layout.')
-    )
+    const { type, payload } = action as FabricAction
+    const shouldWatch =
+      type.startsWith('call.') ||
+      type.startsWith('member.') ||
+      type.startsWith('layout.')
+    const hasSegmentCallId =
+      'call_id' in payload && segmentCallId === payload.call_id
+    const hasSegmentRoomSessionId =
+      segmentRooSessionId === payload.room_session_id
 
-    // FIXME: Many events do not have the call_id property
-    // return shouldWatch && segmentCallId === cfAction.payload.call_id
+    if (shouldWatch && (hasSegmentCallId || hasSegmentRoomSessionId)) {
+      return true
+    }
+
+    return false
   }
 
   while (true) {
