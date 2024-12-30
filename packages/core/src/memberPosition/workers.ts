@@ -1,20 +1,26 @@
 import { fork } from '@redux-saga/core/effects'
 import {
   InternalMemberUpdatedEventNames,
+  InternalVideoMemberEntity,
+  MapToPubSubShape,
   sagaEffects,
   SagaIterator,
+  SDKActions,
   SDKWorker,
   SDKWorkerParams,
   stripNamespacePrefix,
+  VideoMemberJoinedEventParams,
+  VideoMemberUpdatedEvent,
   VideoMemberUpdatedEventParams,
   VideoPosition,
   VideoRoomSubscribedEventParams,
 } from '..'
 
 /**
- * These workers are shared between the realtime-api and the browser SDK
- * For the realtime-api: we pass the dispatcher function since we emit RoomSessionMember instance
- * For the browser SDK: we use the default dispatcher function since we emit whatever we get from the server
+ * These workers are shared between the realtime-api and the browser SDKs (Video and CallFabric)
+ * For the Realtime-API: we pass the dispatcher function since we emit RoomSessionMember instance
+ * For the Video SDK: we use the default dispatcher function since we emit whatever we get from the server
+ * For the CF SDK: we pass the dispatcher function to map "id" into "member_id".
  */
 
 const defaultDispatcher = function* (
@@ -22,7 +28,8 @@ const defaultDispatcher = function* (
   payload: any,
   instance?: any
 ) {
-  instance.emit(type, payload)
+  const event = stripNamespacePrefix(type)
+  instance.emit(event, payload)
 }
 
 function* memberPositionLayoutChangedWorker(options: any) {
@@ -61,7 +68,7 @@ function* memberPositionLayoutChangedWorker(options: any) {
 
   for (const [memberId, payload] of memberList) {
     if (processedMembers[memberId]) {
-      yield dispatcher?.('member.updated', payload, instance)
+      yield dispatcher?.('video.member.updated', payload, instance)
 
       /**
        * `undefined` means that we couldn't find the
@@ -79,7 +86,11 @@ function* memberPositionLayoutChangedWorker(options: any) {
         return
       }
 
-      yield dispatcher?.('member.updated', updatedMemberEventParams, instance)
+      yield dispatcher?.(
+        'video.member.updated',
+        updatedMemberEventParams,
+        instance
+      )
     }
   }
 }
@@ -91,7 +102,7 @@ export function* memberUpdatedWorker({
   dispatcher = defaultDispatcher,
 }: Omit<SDKWorkerParams<any>, 'runSaga'> & {
   memberList: MemberEventParamsList
-  action: any
+  action: MapToPubSubShape<VideoMemberUpdatedEvent>
 }) {
   const memberId = action.payload.member.id
   const updatedMemberEventParams = mutateMemberCurrentPosition({
@@ -118,27 +129,13 @@ export function* memberUpdatedWorker({
   /** member.updated event is the only one updating the memberList payload */
   memberList.set(memberId, memberUpdatedPayload)
 
-  const event = stripNamespacePrefix(action.type)
   for (const key of updated) {
-    const type = `${event}.${key}` as InternalMemberUpdatedEventNames
+    const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
     yield dispatcher?.(type, memberUpdatedPayload, instance)
   }
 
-  yield dispatcher?.(event, memberUpdatedPayload, instance)
+  yield dispatcher?.(action.type, memberUpdatedPayload, instance)
 }
-
-export const MEMBER_POSITION_COMPOUND_EVENTS = new Map<any, any>([
-  [
-    'video.member.updated',
-    [
-      'video.layout.changed',
-      // `member.joined` and `member.left` are needed to
-      // keep the member list up to date
-      'video.member.joined',
-      'video.member.left',
-    ],
-  ],
-])
 
 export const memberPositionWorker: SDKWorker<any> =
   function* memberPositionWorker({
@@ -156,7 +153,9 @@ export const memberPositionWorker: SDKWorker<any> =
     const { swEventChannel } = channels
     let memberList = initializeMemberList(initialState)
 
-    const addToMemberList = (payload: VideoMemberUpdatedEventParams) => {
+    const addToMemberList = (
+      payload: VideoMemberJoinedEventParams | VideoMemberUpdatedEventParams
+    ) => {
       /**
        * Add to memberList for both `member.joined` and `member.updated`
        * note: changes made for audience users.
@@ -167,17 +166,24 @@ export const memberPositionWorker: SDKWorker<any> =
     }
 
     while (true) {
-      const action = yield sagaEffects.take(swEventChannel, (action: any) => {
-        const istargetEvent =
-          action.type === 'video.member.updated' ||
-          action.type === 'video.layout.changed' ||
-          action.type === 'video.member.joined' ||
-          action.type === 'video.member.left'
+      const action: SDKActions = yield sagaEffects.take(
+        swEventChannel,
+        (action: SDKActions) => {
+          const istargetEvent =
+            action.type === 'video.member.joined' ||
+            action.type === 'video.member.updated' ||
+            action.type === 'video.member.left' ||
+            action.type === 'video.layout.changed'
 
-        return istargetEvent
-      })
+          return istargetEvent
+        }
+      )
 
       switch (action.type) {
+        case 'video.member.joined': {
+          addToMemberList(action.payload)
+          break
+        }
         case 'video.member.updated': {
           addToMemberList(action.payload)
           yield fork(memberUpdatedWorker, {
@@ -189,10 +195,6 @@ export const memberPositionWorker: SDKWorker<any> =
             instanceMap,
             dispatcher,
           })
-          break
-        }
-        case 'video.member.joined': {
-          addToMemberList(action.payload)
           break
         }
         case 'video.member.left': {
@@ -214,8 +216,16 @@ export const memberPositionWorker: SDKWorker<any> =
     }
   }
 
-type MemberEventParamsList = Map<string, VideoMemberUpdatedEventParams>
+type MemberEventParamsList = Map<
+  string,
+  {
+    room_id: string
+    room_session_id: string
+    member: InternalVideoMemberEntity
+  }
+>
 
+/** Add the current_position param to the member object */
 const mutateMemberCurrentPosition = ({
   memberList,
   memberId,
@@ -235,7 +245,7 @@ const mutateMemberCurrentPosition = ({
     return memberEventParams
   }
 
-  const updatedMemberEventParams: VideoMemberUpdatedEventParams = {
+  const updatedMemberEventParams = {
     ...memberEventParams,
     member: {
       ...memberEventParams?.member,
@@ -252,11 +262,12 @@ const initializeMemberList = (payload: VideoRoomSubscribedEventParams) => {
   const memberList: MemberEventParamsList = new Map()
 
   members.forEach((member) => {
-    memberList.set(member.id, {
+    const memberId = member.id
+    const roomSessionId =
+      payload.room_session.id || payload.room_session.room_session_id
+    memberList.set(memberId, {
       room_id: payload.room_session.room_id,
-      room_session_id: payload.room_session.id,
-      // At this point we don't have `member.updated`
-      // @ts-expect-error
+      room_session_id: roomSessionId,
       member,
     })
   })

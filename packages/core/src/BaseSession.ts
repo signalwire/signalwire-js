@@ -6,7 +6,6 @@ import {
   parseRPCResponse,
   safeParseJson,
   isJSONRPCResponse,
-  isSATAuth,
   SWCloseEvent,
 } from './utils'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
@@ -29,6 +28,8 @@ import {
   WebSocketClient,
   SessionStatus,
   SessionAuthError,
+  VideoAuthorization,
+  ChatAuthorization,
 } from './utils/interfaces'
 import {
   authErrorAction,
@@ -84,6 +85,7 @@ export class BaseSession {
 
   constructor(public options: SessionOptions) {
     const { host, logLevel = 'info', sessionChannel } = options
+
     if (host) {
       this._host = checkWebSocketHost(host)
     }
@@ -140,9 +142,7 @@ export class BaseSession {
   get signature() {
     if (this._rpcConnectResult) {
       const { authorization } = this._rpcConnectResult
-      return isSATAuth(authorization)
-        ? authorization.jti
-        : authorization.signature
+      return (authorization as VideoAuthorization | ChatAuthorization).signature
     }
     return undefined
   }
@@ -339,12 +339,8 @@ export class BaseSession {
     })
   }
 
-  /**
-   * Authenticate with the SignalWire Network
-   * @return Promise<void>
-   */
-  async authenticate() {
-    const params: RPCConnectParams = {
+  protected get _connectParams(): RPCConnectParams {
+    return {
       agent: this.agent,
       version: this.connectVersion,
       authentication: {
@@ -352,6 +348,15 @@ export class BaseSession {
         token: this.options.token,
       },
     }
+  }
+
+  /**
+   * Authenticate with the SignalWire Network
+   * @return Promise<void>
+   */
+  async authenticate() {
+    const params: RPCConnectParams = this._connectParams
+
     if (this._relayProtocolIsValid()) {
       params.protocol = this.relayProtocol
     }

@@ -20,6 +20,7 @@ import type {
   VoiceCallAction,
   VideoManagerAction,
   PubSubEventAction,
+  FabricAction,
 } from '../types'
 import { SDKRunSaga } from '.'
 
@@ -89,9 +90,12 @@ export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
 
 /**
  * Converts from:
- * { event_type: <value>, params: <value> }
+ *
+ * `{ event_type: <value>, params: <value> }`
+ *
  * into
- * { type: <value>, payload: <value> }
+ *
+ * `{ type: <value>, payload: <value> }`
  */
 export type MapToPubSubShape<T> = {
   [K in keyof T as K extends 'event_type'
@@ -113,6 +117,7 @@ export type PubSubAction =
   | TaskAction
   | MessagingAction
   | VoiceCallAction
+  | FabricAction
 
 export type SessionChannelAction =
   | PayloadAction<void, SessionEvents>
@@ -120,6 +125,7 @@ export type SessionChannelAction =
   | PayloadAction<void, 'auth/success'>
   | PayloadAction<void, 'auth/expiring'>
   | PayloadAction<{ error: SessionAuthError }>
+  | PayloadAction<{ token: string }>
   | PayloadAction<SessionAuthStatus>
 
 export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>

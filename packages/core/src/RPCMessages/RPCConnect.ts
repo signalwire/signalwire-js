@@ -11,11 +11,18 @@ export type RPCConnectParams = {
   authorization_state?: string
   contexts?: string[]
   topics?: string[]
+  eventing?: string[]
   event_acks?: boolean
 }
 
 export const DEFAULT_CONNECT_VERSION = {
   major: 3,
+  minor: 0,
+  revision: 0,
+}
+
+export const UNIFIED_CONNECT_VERSION = {
+  major: 4,
   minor: 0,
   revision: 0,
 }

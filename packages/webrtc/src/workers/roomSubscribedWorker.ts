@@ -13,6 +13,7 @@ import {
   RoomSessionStream,
   RoomSessionPlayback,
   RoomSessionRecording,
+  CallJoinedEvent,
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
@@ -37,9 +38,12 @@ export const roomSubscribedWorker: SDKWorker<
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
   }
 
-  const action: MapToPubSubShape<VideoRoomSubscribedEvent> =
+  const action: MapToPubSubShape<VideoRoomSubscribedEvent | CallJoinedEvent> =
     yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-      if (action.type === 'video.room.subscribed') {
+      if (
+        action.type === 'video.room.subscribed' ||
+        action.type === 'call.joined'
+      ) {
         return action.payload.call_id === rtcPeerId
       }
       return false
@@ -53,6 +57,10 @@ export const roomSubscribedWorker: SDKWorker<
    */
   instance.setActiveRTCPeer(rtcPeerId)
 
+  const roomSessionId =
+    action.payload.room_session.id ||
+    action.payload.room_session.room_session_id
+
   /**
    * TODO: Replace the redux action/component with properties on RTCPeer instance?
    */
@@ -60,12 +68,13 @@ export const roomSubscribedWorker: SDKWorker<
     componentActions.upsert({
       id: action.payload.call_id,
       roomId: action.payload.room_session.room_id,
-      roomSessionId: action.payload.room_session.id,
+      roomSessionId: roomSessionId,
       memberId: action.payload.member_id,
       previewUrl: action.payload.room_session.preview_url,
     })
   )
 
+  instance.emit('room.subscribed', action.payload)
   instance.emit('room.joined', transformPayload.call(instance, clonedPayload))
 
   getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
@@ -77,7 +86,7 @@ function transformPayload(
 ) {
   const keys = ['room_session', 'room'] as const
   keys.forEach((key) => {
-    if (payload[key].recordings) {
+    if (payload[key] && payload[key].recordings) {
       payload[key].recordings = (payload[key].recordings || []).map(
         (recording: any) => {
           let recordingInstance = this.instanceMap.get<RoomSessionRecording>(
@@ -108,7 +117,7 @@ function transformPayload(
       )
     }
 
-    if (payload[key].playbacks) {
+    if (payload[key] && payload[key].playbacks) {
       payload[key].playbacks = (payload[key].playbacks || []).map(
         (playback) => {
           let playbackInstance = this.instanceMap.get<RoomSessionPlayback>(
@@ -139,7 +148,7 @@ function transformPayload(
       )
     }
 
-    if (payload[key].streams) {
+    if (payload[key] && payload[key].streams) {
       payload[key].streams = (payload[key].streams || []).map((stream: any) => {
         let streamInstance = this.instanceMap.get<RoomSessionStream>(stream.id)
         if (!streamInstance) {

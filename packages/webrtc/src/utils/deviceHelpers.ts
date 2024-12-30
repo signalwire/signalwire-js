@@ -700,7 +700,8 @@ interface MicrophoneAnalyzerEvents {
   destroyed: (reason: null | 'error' | 'disconnected') => void
 }
 
-interface MicrophoneAnalyzer extends EventEmitter<MicrophoneAnalyzerEvents> {
+export interface MicrophoneAnalyzer
+  extends EventEmitter<MicrophoneAnalyzerEvents> {
   destroy(): void
 }
 

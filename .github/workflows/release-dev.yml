@@ -2,7 +2,7 @@ name: Release dev tag to NPM
 
 on:
   workflow_run:
-    workflows: [Unit and stack tests]
+    workflows: [Tests]
     branches: [main]
     types:
       - completed
@@ -14,21 +14,18 @@ concurrency:
 jobs:
   release_dev:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        node-version: [20.x]
-
+        node-version: [18.x]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
-      - run: echo "GO"
-      # - run: npm ci
-      # - run: npm run release:dev
-      # env:
-      #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm i
+      - run: npm run release:dev
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

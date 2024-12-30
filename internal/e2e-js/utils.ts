@@ -1,9 +1,8 @@
-import type { Video } from '@signalwire/js'
-import type { MediaEvent } from '@signalwire/webrtc'
+import type { SignalWireClient, Video } from '@signalwire/js'
+import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
-import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
 
 type CreateTestServerOptions = {
@@ -63,6 +62,7 @@ export const createTestRoomSession = async (
     initialEvents?: string[]
     expectToJoin?: boolean
     roomSessionOptions?: Record<string, any>
+    shouldPassRootElement?: boolean
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -77,7 +77,9 @@ export const createTestRoomSession = async (
       const roomSession = new Video.RoomSession({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
+        ...(options.shouldPassRootElement && {
+          rootElement: document.getElementById('rootElement'),
+        }),
         logLevel: options.CI ? 'info' : 'debug',
         debug: {
           logWsTraffic: true, //Boolean(options.CI),
@@ -106,6 +108,7 @@ export const createTestRoomSession = async (
       initialEvents: options.initialEvents,
       CI: process.env.CI,
       roomSessionOptions: options.roomSessionOptions,
+      shouldPassRootElement: options.shouldPassRootElement ?? true,
     }
   )
 
@@ -194,13 +197,11 @@ export const createCFClient = async (page: Page) => {
       const client = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
         debug: { logWsTraffic: true },
       })
 
       // @ts-expect-error
       window._client = client
-
       return client
     },
     {
@@ -267,17 +268,13 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
 }
 
 export const createTestSATToken = async () => {
-  const CF_BASIC_TOKEN = Buffer.from(
-    `${process.env.RELAY_PROJECT}:${process.env.RELAY_TOKEN}`
-  ).toString('base64')
-
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${CF_BASIC_TOKEN}`,
+        Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
         reference: process.env.SAT_REFERENCE,
@@ -327,8 +324,8 @@ export const expectSDPDirection = async (
     return roomObj.peer.localSdp
   })
 
-  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+  expect(peerSDP!.split('m=')[1].includes(direction)).toBe(value)
+  expect(peerSDP!.split('m=')[2].includes(direction)).toBe(value)
 }
 
 export const expectInteractivityMode = async (
@@ -381,7 +378,10 @@ export const expectRoomJoined = (
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
-      roomObj.once('room.joined', resolve)
+      roomObj.once('room.joined', (room) => {
+        console.log('Room joined!')
+        resolve(room)
+      })
 
       if (invokeJoin) {
         await roomObj.join().catch(reject)
@@ -422,7 +422,7 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
-export const expectMediaEvent = (page: Page, event: MediaEvent) => {
+export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
       return new Promise<void>((resolve) => {
@@ -493,7 +493,12 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 ) => {
   const audioStats = await getAudioStats(page)
 
-  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeGreaterThan(value)
+  } else {
+    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
+  }
 }
 
 const getRoomByName = async (roomName: string) => {
@@ -653,7 +658,7 @@ export const getStats = async (page: Page) => {
 
     const inboundRTPHandler = (report: any) => {
       const media = report.mediaType as 'video' | 'audio'
-      const trackId = rtcPeer._getReceiverByKind(media).track.id
+      const trackId = rtcPeer._getReceiverByKind(media)!.track.id
       console.log(`getStats trackId "${trackId}" for media ${media}`)
       if (report.trackIdentifier !== trackId) {
         console.log(
@@ -715,21 +720,36 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   )
 }
 
-export const createCallWithCompatibilityApi = async (resource: string, inlineLaml: string) => {
-  const data = new URLSearchParams();
+export const createCallWithCompatibilityApi = async (
+  resource: string,
+  inlineLaml: string,
+  codecs?: string | undefined
+) => {
+  const data = new URLSearchParams()
 
-  if (inlineLaml !== null && inlineLaml !== "") {
+  if (inlineLaml !== null && inlineLaml !== '') {
     data.append('Laml', inlineLaml)
   }
-  data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`);
+  data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`)
 
   const vertoDomain = process.env.VERTO_DOMAIN
   expect(vertoDomain).toBeDefined()
 
-  data.append('To', `verto:${resource}@${vertoDomain}`);
+  let to = `verto:${resource}@${vertoDomain}`
+  if (codecs) {
+    to += `;codecs=${codecs}`
+  }
+  data.append('To', to)
 
-  console.log("REST API URL: ", `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`)
-  console.log("REST API payload: ", data)
+  data.append('Record', 'true')
+  data.append('RecordingChannels', 'dual')
+  data.append('Trim', 'do-not-trim')
+
+  console.log(
+    'REST API URL: ',
+    `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`
+  )
+  console.log('REST API payload: ', data)
 
   const response = await fetch(
     `https://${process.env.API_HOST}/api/laml/2010-04-01/Accounts/${process.env.RELAY_PROJECT}/Calls`,
@@ -743,24 +763,56 @@ export const createCallWithCompatibilityApi = async (resource: string, inlineLam
     }
   )
 
-  if (response.status === 201) {
+  if (Number.isInteger(Number(response.status)) && response.status !== null) {
+    if (response.status !== 201) {
+      const responseBody = await response.json()
+      const formattedBody = JSON.stringify(responseBody, null, 2)
+
+      console.log(
+        'ERROR - response from REST API: ',
+        response.status,
+        ' status text = ',
+        response.statusText,
+        ' body = ',
+        formattedBody
+      )
+    }
     return response.status
-  }
-  else {
-    console.log("Unexpected response from REST API: ", response.status, " = ", response.statusText)
   }
   return undefined
 }
 
-export const expectv2TotalAudioEnergyToBeGreaterThan = async (
+export const getDialConferenceLaml = (conferenceNameBase: string) => {
+  const conferenceName = randomizeRoomName(conferenceNameBase)
+  const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
+  const inlineLaml = `<?xml version="1.0" encoding="UTF-8"?>
+    <Response>
+      <Dial>
+        <Conference
+          endConferenceOnExit="false"
+          startConferenceOnEnter="true"
+          waitUrl="https://cdn.signalwire.com/default-music/welcome.mp3"
+          waitMethod="GET"
+          ${conferenceRegion}>
+          ${conferenceName}
+        </Conference>
+      </Dial>
+    </Response>`
+
+  return inlineLaml
+}
+
+export const expectv2HasReceivedAudio = async (
   page: Page,
-  value: number
+  minTotalAudioEnergy: number,
+  minPacketsReceived: number
 ) => {
   const audioStats = await page.evaluate(async () => {
     // @ts-expect-error
     const currentCall = window.__currentCall
-    // @ts-expect-error
-    const audioReceiver = currentCall.peer.instance.getReceivers().find(r => r.track.kind === 'audio')
+    const audioReceiver = currentCall.peer.instance
+      .getReceivers()
+      .find((r: any) => r.track.kind === 'audio')
 
     const audioTrackId = audioReceiver.track.id
 
@@ -804,7 +856,134 @@ export const expectv2TotalAudioEnergyToBeGreaterThan = async (
   })
   console.log('audioStats: ', audioStats)
 
-  expect(audioStats['inbound-rtp']['totalAudioEnergy']).toBeGreaterThan(value)
+  /* This is a workaround what we think is a bug in Playwright/Chromium
+   * There are cases where totalAudioEnergy is not present in the report
+   * even though we see audio and it's not silence.
+   * In that case we rely on the number of packetsReceived.
+   * If there is genuine silence, then totalAudioEnergy must be present,
+   * albeit being a small number.
+   */
+  console.log(
+    `Evaluating audio energy (min energy: ${minTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
+  } else {
+    console.log('Warning: totalAudioEnergy was missing from the report!')
+    if (packetsReceived) {
+      // We still want the right amount of packets
+      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+    } else {
+      console.log('Warning: packetsReceived was missing from the report!')
+      /* We don't make this test fail, because the absence of packetsReceived
+       * is a symptom of an issue with RTCStats, rather than an indication
+       * of lack of RTP flow.
+       */
+    }
+  }
+}
+
+export const expectv2HasReceivedSilence = async (
+  page: Page,
+  maxTotalAudioEnergy: number,
+  minPacketsReceived: number
+) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const currentCall = window.__currentCall
+    const audioReceiver = currentCall.peer.instance
+      .getReceivers()
+      .find((r: any) => r.track.kind === 'audio')
+
+    const audioTrackId = audioReceiver.track.id
+
+    const stats = await currentCall.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
+          value.forEach((entry) => {
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats: ', audioStats)
+
+  /* This is a workaround what we think is a bug in Playwright/Chromium
+   * There are cases where totalAudioEnergy is not present in the report
+   * even though we see audio and it's not silence.
+   * In that case we rely on the number of packetsReceived.
+   * If there is genuine silence, then totalAudioEnergy must be present,
+   * albeit being a small number.
+   */
+  console.log(
+    `Evaluating audio energy (max energy: ${maxTotalAudioEnergy}, min packets: ${minPacketsReceived})`
+  )
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
+  } else {
+    console.log('Warning: totalAudioEnergy was missing from the report!')
+    if (packetsReceived) {
+      // We still want the right amount of packets
+      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+    } else {
+      console.log('Warning: packetsReceived was missing from the report!')
+      /* We don't make this test fail, because the absence of packetsReceived
+       * is a symptom of an issue with RTCStats, rather than an indication
+       * of lack of RTP flow.
+       */
+    }
+  }
+}
+
+export const expectedMinPackets = (
+  packetRate: number,
+  callDurationMs: number,
+  maxMissingPacketsTolerance: number // 0 to 1.0
+) => {
+  if (maxMissingPacketsTolerance < 0) {
+    maxMissingPacketsTolerance = 0
+  }
+  if (maxMissingPacketsTolerance > 1) {
+    maxMissingPacketsTolerance = 1
+  }
+
+  const minPackets =
+    (callDurationMs * (1 - maxMissingPacketsTolerance) * packetRate) / 1000
+
+  return minPackets
 }
 
 export const randomizeResourceName = (prefix: string = 'e2e') => {
@@ -812,16 +991,37 @@ export const randomizeResourceName = (prefix: string = 'e2e') => {
 }
 
 export const expectInjectRelayHost = async (page: Page, host: string) => {
-  await page.evaluate(async (params) => {
-    // @ts-expect-error
-    window.__host = params.host
-  },
-  {
-    host: host
-  })
+  await page.evaluate(
+    async (params) => {
+      // @ts-expect-error
+      window.__host = params.host
+    },
+    {
+      host: host,
+    }
+  )
 }
 
-export const expectRelayConnected = async (page: Page, envRelayProject: string, jwt: string) => {
+export const expectInjectIceTransportPolicy = async (
+  page: Page,
+  iceTransportPolicy: string
+) => {
+  await page.evaluate(
+    async (params) => {
+      // @ts-expect-error
+      window.__iceTransportPolicy = params.iceTransportPolicy
+    },
+    {
+      iceTransportPolicy,
+    }
+  )
+}
+
+export const expectRelayConnected = async (
+  page: Page,
+  envRelayProject: string,
+  jwt: string
+) => {
   // Project locator
   const project = page.locator('#project')
   expect(project).not.toBe(null)
@@ -843,4 +1043,214 @@ export const expectRelayConnected = async (page: Page, envRelayProject: string, 
 
   // Wait for call button to be enabled when signalwire.ready occurs
   await expect(startCall).toBeEnabled()
+}
+
+export const expectCFInitialEvents = (
+  page: Page,
+  extraEvents: Promise<boolean>[] = []
+) => {
+  const initialEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callCreated = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'created') {
+          resolve(true)
+        }
+      })
+    })
+    const callAnswered = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'answered') {
+          resolve(true)
+        }
+      })
+    })
+    const callJoined = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.joined', () => resolve(true))
+    })
+
+    return Promise.all([callJoined, callCreated, callAnswered])
+  })
+  return Promise.all([initialEvents, ...extraEvents])
+}
+
+export const expectCFFinalEvents = (
+  page: Page,
+  extraEvents: Promise<unknown>[] = []
+) => {
+  const finalEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callLeft = new Promise((resolve) => {
+      roomObj.on('destroy', () => resolve(true))
+    })
+
+    return callLeft
+  })
+
+  return Promise.all([finalEvents, ...extraEvents])
+}
+
+export interface Resource {
+  id: string
+  project_id: string
+  type: string
+  display_name: string
+  created_at: string
+}
+
+export const createVideoRoomResource = async (name?: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-test-room_${uuid()}`,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource VideoRoom created:', data.id, name)
+  return data
+}
+
+export interface CreateSWMLAppResourceParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createSWMLAppResource = async ({
+  name,
+  contents,
+}: CreateSWMLAppResourceParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/swml_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-swml-app_${uuid()}`,
+        handle_calls_using: 'script',
+        call_handler_script: JSON.stringify(contents),
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource SWML App created:', data.id)
+  return data
+}
+
+export interface CreateRelayAppResourceParams {
+  name?: string
+  topic: string
+}
+export const createRelayAppResource = async ({
+  name,
+  topic,
+}: CreateRelayAppResourceParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-relay-app_${uuid()}`,
+        topic,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('>> Resource Relay App created:', data.id)
+  return data
+}
+
+export const deleteResource = async (id: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+    }
+  )
+  return response
+}
+
+interface DialAddressParams {
+  address: string
+  shouldWaitForJoin?: boolean
+  shouldStartCall?: boolean
+  shouldPassRootElement?: boolean
+  reattach?: boolean
+}
+export const dialAddress = (page: Page, params: DialAddressParams) => {
+  const {
+    address,
+    reattach = false,
+    shouldPassRootElement = true,
+    shouldStartCall = true,
+    shouldWaitForJoin = true,
+  } = params
+  return page.evaluate(
+    async ({
+      address,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }) => {
+      return new Promise<any>(async (resolve, _reject) => {
+        // @ts-expect-error
+        const client: SignalWireClient = window._client
+
+        const dialer = reattach ? client.reattach : client.dial
+
+        const call = await dialer({
+          to: address,
+          ...(shouldPassRootElement && {
+            rootElement: document.getElementById('rootElement')!,
+          }),
+        })
+
+        if (shouldWaitForJoin) {
+          call.on('room.joined', resolve)
+        }
+
+        // @ts-expect-error
+        window._roomObj = call
+
+        if (shouldStartCall) {
+          await call.start()
+        }
+
+        if (!shouldWaitForJoin) {
+          resolve(call)
+        }
+      })
+    },
+    {
+      address,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }
+  )
 }

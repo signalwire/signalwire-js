@@ -49,6 +49,7 @@ export type VertoMethod =
   | 'verto.announce'
 
 export type WebRTCMethod = 'video.message' | 'webrtc.verto'
+export type SubscriberMethod = 'subscriber.online' | 'subscriber.offline'
 export type JSONRPCMethod =
   | 'signalwire.connect'
   | 'signalwire.ping'
@@ -57,8 +58,10 @@ export type JSONRPCMethod =
   | 'signalwire.reauthenticate'
   | 'signalwire.subscribe'
   | 'signalwire.unsubscribe'
+  | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
+  | FabricMethod
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
@@ -108,16 +111,10 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  /** To refresh the auth token */
-  onRefreshToken?(): Promise<void>
-  /**
-   * The SDK invokes this method and uses the new token to re-auth.
-   * TODO: rename it: getNewToken, getRefreshedToken, fetchToken (?)
-   *
-   * @internal
-   * */
-  _onRefreshToken?(): Promise<void>
+  /** The SDK invokes this method and uses the new token to re-auth. */
+  onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
+  instanceMap?: InstanceMap
 }
 export interface UserOptions extends SessionOptions {
   /** @internal */
@@ -234,10 +231,9 @@ export interface SATAuthorization {
   }
 }
 
-export type Authorization =
-  | VideoAuthorization
-  | ChatAuthorization
-  | SATAuthorization
+export type JWTAuthorization = VideoAuthorization | ChatAuthorization
+
+export type Authorization = JWTAuthorization | SATAuthorization
 
 export interface RPCConnectResult {
   identity: string
@@ -348,6 +344,26 @@ export type RoomMethod =
   | 'video.member.lowerhand'
   | 'video.prioritize_handraise'
 
+/**
+ * List of all Call Fabric methods
+ */
+export type FabricMethod =
+  | 'call.mute'
+  | 'call.unmute'
+  | 'call.deaf'
+  | 'call.undeaf'
+  | 'call.layout.list'
+  | 'call.member.list'
+  | 'call.member.remove'
+  | 'call.member.position.set'
+  | 'call.layout.set'
+  | 'call.microphone.volume.set'
+  | 'call.microphone.sensitivity.set'
+  | 'call.lock'
+  | 'call.unlock'
+  | 'call.raisehand'
+  | 'call.lowerhand'
+
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
   removeEventListener: WebSocket['removeEventListener']
@@ -437,6 +453,8 @@ export type InstanceMap = {
   get: <T extends unknown>(key: string) => T
   set: <T extends unknown>(key: string, value: T) => Map<string, T>
   remove: <T extends unknown>(key: string) => Map<string, T>
+  getAll: <T extends unknown>() => [string, T][]
+  deleteAll: <T extends unknown>() => Map<string, T>
 }
 
 type SDKWorkerBaseParams<T> = {

@@ -2,7 +2,7 @@
 
 # RELAY Browser SDK
 
-[![Build Status](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![NPM](https://img.shields.io/npm/v/@signalwire/js.svg?color=brightgreen)
+[![The build status of the package @signalwire/js.](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![The NPM shield for the package @signalwire/js.](https://img.shields.io/npm/v/@signalwire/js.svg?color=brightgreen)
 
 The RELAY Browser SDK transforms your standard browser into a realtime media engine, enabling developers to directly make audio and video calls to phone numbers, SIP endpoints, and other browsers. Using the JavaScript SDK you can add immersive, scalable communication - from video conferences and softphones to click-to-call and mobile gaming - all available right in your own web pages and applications.
 
@@ -10,7 +10,7 @@ SignalWire's simple and powerful authentication system, using JWT, allows you to
 
 ## Getting Started
 
-Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://developer.signalwire.com/client-sdk/docs/getting-started) site.
+Read the implementation documentation, guides and API Reference at the official [SignalWire JavaScript SDK Documentation](https://developer.signalwire.com/sdks/reference/browser-sdk) site.
 
 ---
 
@@ -33,7 +33,7 @@ The JavaScript SDK is a package inside the [signalwire-js](https://github.com/si
 
 ## Versioning
 
-SignalWire JavaScript SDK follows Semantic Versioning 2.0 as defined at <http://semver.org>.
+SignalWire JavaScript SDK follows Semantic Versioning 2.0 as defined at [http://semver.org](http://semver.org).
 
 ## License
 

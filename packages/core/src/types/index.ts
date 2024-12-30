@@ -1,11 +1,12 @@
 import type { EventEmitter } from '../utils/EventEmitter'
-import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
+import type { VideoAPIEvent, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 import type { VideoManagerEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
+import { FabricEvent, ConversationEvent } from '..'
 
 export interface SwEvent {
   event_channel: string
@@ -35,7 +36,10 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 
   /** @internal */
-  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]): void
+  emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): void
 }
 
 export interface BaseComponentContract {
@@ -49,6 +53,8 @@ export interface BaseComponentContract {
 export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /** Unique id for this room session */
+  readonly id: string
   /** @internal The BaseConnection options  */
   readonly options: Record<any, any>
 
@@ -59,13 +65,17 @@ export interface BaseConnectionContract<
   readonly cameraId: string | null
   /** The label of the video device, or null if not available */
   readonly cameraLabel: string | null
+  /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
+  readonly localStream: MediaStream | undefined
+  /** Indicates if there is any receiving audio */
+  readonly withAudio: boolean
+  /** Indicates if there is any receiving video */
+  readonly withVideo: boolean
   /**
    * Provides access to the local audio
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
    */
   readonly localAudioTrack: MediaStreamTrack | null
-  /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
-  readonly localStream: MediaStream | undefined
   /**
    * Provides access to the local video
    * [MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack).
@@ -176,8 +186,18 @@ export interface ClientContract<
   ClientInstance,
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /**
+   * Connect the underlay WebSocket connection to the SignalWire network.
+   *
+   * @returns Promise that will resolve with the Client object.
+   *
+   * @example
+   *
+   * ```js
+   * client.connect()
+   * ```
+   */
   connect(): Promise<ClientInstance>
-
   /**
    * Disconnects this client. The client will stop receiving events and you will
    * need to create a new instance if you want to use it again.
@@ -214,7 +234,7 @@ export interface SwAuthorizationStateParams {
 
 // prettier-ignore
 export type SwEventParams =
-  | VideoAPIEventParams
+  | VideoAPIEvent
   | WebRTCMessageParams
   | VideoManagerEvent
   | ChatEvent
@@ -222,6 +242,8 @@ export type SwEventParams =
   | MessagingEvent
   | VoiceCallEvent
   | SwAuthorizationStateParams
+  | ConversationEvent
+  | FabricEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =
@@ -237,4 +259,8 @@ export * from './pubSub'
 export * from './task'
 export * from './messaging'
 export * from './voice'
-export * from './callfabric'
+export * from './fabric'
+export * from './fabricRoomSession'
+export * from './fabricMember'
+export * from './fabricLayout'
+export * from './conversation'

@@ -5,11 +5,51 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 const streamingTests = [
   'roomSessionStreamingAPI.spec.ts',
   'roomSessionStreaming.spec.ts',
+  'roomSessionMultipleStreams.spec.ts',
+  'roomSessionAutomaticStream.spec.ts',
 ]
-const slowTests = [
+const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
+const promoteTests = [
+  'roomSessionPromoteDemote.spec.ts',
+  'roomSessionPromoteMeta.spec.ts',
+  'roomSessionPromoteParticipant.spec.ts',
+  'roomSessionPromoteReattachDemote.spec.ts',
+]
+const demoteTests = [
+  'roomSessionDemote.spec.ts',
+  'roomSessionDemoteAudience.spec.ts',
+  'roomSessionDemoteReattachPromote.spec.ts',
+  'roomSessionDemotePromote.spec.ts',
+]
+const audienceTests = [
   'roomSessionAudienceCount.spec.ts',
-  'roomSessionBadNetwork.spec.ts',
+  'roomSessionFollowLeader.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
+  'roomSessionUnauthorized.spec.ts',
 ]
+const reattachTests = [
+  'roomSessionReattach.spec.ts',
+  'roomSessionReattachBadAuth.spec.ts',
+  'roomSessionReattachMultiple.spec.ts',
+  'roomSessionReattachScreenshare.spec.ts',
+  'roomSessionReattachWrongCallId.spec.ts',
+  'roomSessionReattachWrongProtocol.spec.ts',
+]
+const callfabricTests = [
+  'address.spec.ts',
+  'conversation.spec.ts',
+  'raiseHand.spec.ts',
+  'reattach.spec.ts',
+  'relayApp.spec.ts',
+  'swml.spec.ts',
+  'videoRoom.spec.ts',
+  'videoRoomLayout.spec.ts',
+]
+const videoElementTests = [
+  'buildVideoWithVideoSdk.spec.ts',
+  'buildVideoWithCFSdk.spec.ts',
+]
+const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
 const useDesktopChrome = {
   ...devices['Desktop Chrome'],
@@ -41,7 +81,17 @@ const config: PlaywrightTestConfig = {
     {
       name: 'default',
       use: useDesktopChrome,
-      testIgnore: [...slowTests, ...streamingTests],
+      testIgnore: [
+        ...badNetworkTests,
+        ...streamingTests,
+        ...promoteTests,
+        ...demoteTests,
+        ...audienceTests,
+        ...reattachTests,
+        ...callfabricTests,
+        ...videoElementTests,
+        ...v2WebRTC,
+      ],
     },
     {
       name: 'streaming',
@@ -49,9 +99,44 @@ const config: PlaywrightTestConfig = {
       testMatch: streamingTests,
     },
     {
-      name: 'slow',
+      name: 'badNetwork',
       use: useDesktopChrome,
-      testMatch: slowTests,
+      testMatch: badNetworkTests,
+    },
+    {
+      name: 'promote',
+      use: useDesktopChrome,
+      testMatch: promoteTests,
+    },
+    {
+      name: 'demote',
+      use: useDesktopChrome,
+      testMatch: demoteTests,
+    },
+    {
+      name: 'audience',
+      use: useDesktopChrome,
+      testMatch: audienceTests,
+    },
+    {
+      name: 'reattach',
+      use: useDesktopChrome,
+      testMatch: reattachTests,
+    },
+    {
+      name: 'callfabric',
+      use: useDesktopChrome,
+      testMatch: callfabricTests,
+    },
+    {
+      name: 'videoElement',
+      use: useDesktopChrome,
+      testMatch: videoElementTests,
+    },
+    {
+      name: 'v2WebRTC',
+      use: useDesktopChrome,
+      testMatch: v2WebRTC,
     },
   ],
 }

@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/stack-tests",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -9,6 +9,7 @@
     "test": ""
   },
   "dependencies": {
-    "execa": "^7.1.1"
+    "execa": "^7.1.1",
+    "tap": "^18.7.2"
   }
 }

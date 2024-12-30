@@ -12,7 +12,7 @@ import { SERVER_URL } from '../../utils'
 
 test.describe('Video', () => {
   test('should join the room and listen for events', async ({ browser }) => {
-    console.log('===Test===', 'should join the room and listen for events')
+    console.log('===START===', 'should join the room and listen for events')
 
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
@@ -26,6 +26,7 @@ test.describe('Video', () => {
 
     const roomSessionCreated = new Map<string, any>()
     const findRoomSessionsByPrefix = async () => {
+      console.log('GET rooms with prefix id', prefix)
       const { roomSessions } = await client.video.getRoomSessions()
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
@@ -178,13 +179,15 @@ test.describe('Video', () => {
 
     // Disconnect the client
     await client.disconnect()
+
+    console.log('===END===', 'should join the room and listen for events')
   })
 
   test('should join the room and set hand raise priority', async ({
     browser,
   }) => {
     console.log(
-      '===Test===',
+      '===START===',
       'should join the room and set hand raise priority'
     )
 
@@ -268,10 +271,12 @@ test.describe('Video', () => {
 
     // Disconnect the client
     await client.disconnect()
+
+    console.log('===END===', 'should join the room and set hand raise priority')
   })
 
   test('should lock/unlock video room', async ({ browser }) => {
-    console.log('===Test===', 'should lock/unlock video room')
+    console.log('===START===', 'should lock/unlock video room')
 
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
@@ -354,5 +359,7 @@ test.describe('Video', () => {
 
     // Disconnect the client
     await client.disconnect()
+
+    console.log('===END===', 'should lock/unlock video room')
   })
 })

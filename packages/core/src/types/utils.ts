@@ -140,3 +140,10 @@ export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
 export type Promisify<T> = {
   [K in keyof T]: Promise<T[K]>
 }
+
+/*
+ * Type Debug Helper
+ */
+export type Prettify<T> = NonNullable<unknown> & {
+  [K in keyof T]: Prettify<T[K]>
+} & {}

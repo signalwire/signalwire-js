@@ -1,4 +1,4 @@
-import { Video, Fabric } from '@signalwire/js'
+import { Video } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,
@@ -79,7 +79,7 @@ window.playbackEnded = () => {
 
 async function loadLayouts(currentLayoutId) {
   try {
-    const { layouts } = await roomObj.getLayoutList()
+    const { layouts } = await roomObj.getLayouts()
     const fillSelectElement = (id) => {
       const layoutEl = document.getElementById(id)
       layoutEl.innerHTML = ''
@@ -225,10 +225,13 @@ window.connect = () => {
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     rootElement: document.getElementById('rootElement'),
-    audio: true,
-    video: true,
+    video: document.getElementById('video').checked,
+    audio: document.getElementById('audio').checked,
     logLevel: 'debug',
     mirrorLocalVideoOverlay: false,
+    debug: {
+      logWsTraffic: true,
+    },
   })
 
   roomObj = roomSession
@@ -246,11 +249,12 @@ window.connect = () => {
     console.debug('>> media.disconnected')
   })
 
-  roomObj.on('room.started', (params) =>
-    console.debug('>> room.started', params)
-  )
   const handler = (params) => {
-    console.warn('Debug', params)
+    console.warn('>> Debug', params)
+    // Set or update the query parameter 'room' with value room.name
+    const url = new URL(window.location.href)
+    url.searchParams.set('room', params.room.name)
+    window.history.pushState({}, '', url)
   }
   roomObj.on('room.joined', handler)
   roomObj.on('room.joined', handler)
@@ -278,16 +282,27 @@ window.connect = () => {
     })
     loadLayouts()
   })
-  roomObj.on('destroy', () => {
-    console.debug('>> destroy')
-    restoreUI()
-  })
+  roomObj.on('room.started', (params) =>
+    console.debug('>> room.started', params)
+  )
   roomObj.on('room.left', (payload) => {
     console.debug('>> room.left', payload)
   })
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
   )
+  roomObj.on('room.ended', (params) => {
+    console.debug('>> room.ended', params)
+    hangup()
+  })
+  roomObj.on('room.subscribed', (room) => {
+    console.debug('>> room.subscribed', room)
+  })
+
+  roomObj.on('destroy', () => {
+    console.debug('>> destroy')
+    restoreUI()
+  })
 
   roomObj.on('recording.started', (params) => {
     console.debug('>> recording.started', params)
@@ -301,9 +316,9 @@ window.connect = () => {
     console.debug('>> recording.updated', params)
     document.getElementById('recordingState').innerText = params.state
   })
-  roomObj.on('room.ended', (params) => {
-    console.debug('>> room.ended', params)
-    hangup()
+
+  roomObj.on('memberList.updated', (payload) => {
+    console.log('>> members.changed', payload)
   })
   roomObj.on('member.joined', (params) =>
     console.debug('>> member.joined', params)
@@ -311,18 +326,17 @@ window.connect = () => {
   roomObj.on('member.updated', (params) =>
     console.debug('>> member.updated', params)
   )
-
-  roomObj.on('member.updated.audio_muted', (params) =>
-    console.debug('>> member.updated.audio_muted', params)
+  roomObj.on('member.updated.audioMuted', (params) =>
+    console.debug('>> member.updated.audioMuted', params)
   )
-  roomObj.on('member.updated.video_muted', (params) =>
-    console.debug('>> member.updated.video_muted', params)
+  roomObj.on('member.updated.videoMuted', (params) =>
+    console.debug('>> member.updated.videoMuted', params)
   )
-
   roomObj.on('member.left', (params) => console.debug('>> member.left', params))
   roomObj.on('member.talking', (params) =>
     console.debug('>> member.talking', params)
   )
+
   roomObj.on('layout.changed', (params) =>
     console.debug('>> layout.changed', params)
   )
@@ -330,34 +344,25 @@ window.connect = () => {
 
   roomObj.on('playback.started', (params) => {
     console.debug('>> playback.started', params)
-
     playbackStarted()
   })
   roomObj.on('playback.ended', (params) => {
     console.debug('>> playback.ended', params)
-
     playbackEnded()
   })
   roomObj.on('playback.updated', (params) => {
     console.debug('>> playback.updated', params)
-
     if (params.volume) {
       document.getElementById('playbackVolume').value = params.volume
     }
   })
 
-  roomObj.on('memberList.updated', (payload) => {
-    console.log('>> members.changed', payload)
-  })
-
   roomObj.on('microphone.updated', (payload) => {
     console.debug('>> microphone.updated', payload)
   })
-
   roomObj.on('camera.updated', (payload) => {
     console.debug('>> camera.updated', payload)
   })
-
   roomObj.on('speaker.updated', (payload) => {
     console.debug('>> speaker.updated', payload)
   })
@@ -365,11 +370,9 @@ window.connect = () => {
   roomObj.on('microphone.disconnected', (payload) => {
     console.debug('>> microphone.disconnected', payload)
   })
-
   roomObj.on('camera.disconnected', (payload) => {
     console.debug('>> camera.disconnected', payload)
   })
-
   roomObj.on('speaker.disconnected', (payload) => {
     console.debug('>> speaker.disconnected', payload)
   })
@@ -421,11 +424,20 @@ window.hangup = () => {
   }
 
   restoreUI()
+
+  // Remove the 'room' query parameter
+  const url = new URL(window.location.href)
+  url.searchParams.delete('room')
+  window.history.pushState({}, '', url)
 }
 
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('relay.example.' + key, e.target.value)
+  let value = e.target.value
+  if (e.target.type === 'checkbox') {
+    value = e.target.checked
+  }
+  localStorage.setItem('relay.example.' + key, value)
 }
 
 // jQuery document.ready equivalent
@@ -768,12 +780,22 @@ window.seekForwardPlayback = () => {
  * On document ready auto-fill the input values from the localStorage.
  */
 window.ready(async function () {
+  // Set the storage
   document.getElementById('host').value =
     localStorage.getItem('relay.example.host') || ''
   document.getElementById('token').value =
     localStorage.getItem('relay.example.token') || ''
   document.getElementById('audio').checked =
-    (localStorage.getItem('relay.example.audio') || '1') === '1'
+    localStorage.getItem('relay.example.audio') === 'true'
   document.getElementById('video').checked =
-    (localStorage.getItem('relay.example.video') || '1') === '1'
+    localStorage.getItem('relay.example.video') === 'true'
+
+  const urlParams = new URLSearchParams(window.location.search)
+  const room = urlParams.get('room')
+
+  if (room) {
+    connect()
+  } else {
+    console.log('Room parameter not found')
+  }
 })

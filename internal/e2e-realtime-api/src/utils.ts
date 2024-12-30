@@ -30,6 +30,139 @@ interface DomainApp {
   codecs: ('PCMU' | 'PCMA')[]
   ciphers: string[]
 }
+
+interface Resource {
+  id: string
+  project_id: string
+  type: string
+  display_name: string
+  created_at: string
+}
+
+const apiFetch = async (url: string, options: RequestInit) => {
+  const response = await fetch(url, options)
+  const responseBody = await response.text()
+  if (!response.ok) {
+    try {
+      const error = JSON.parse(responseBody)
+      console.log(`>> Error with fetch to ${url}:`, error)
+      throw error
+    } catch (parseError) {
+      console.log(`>> Error with fetch to ${url}:`, responseBody)
+      throw new Error(responseBody)
+    }
+  }
+
+  try {
+    return JSON.parse(responseBody)
+  } catch (parseError) {
+    return responseBody
+  }
+}
+
+interface CreateRelayAppResourceParams {
+  name: string
+  topic: string
+}
+export const createRelayAppResource = async (
+  params: CreateRelayAppResourceParams
+) => {
+  const url = `https://${process.env.API_HOST}/api/fabric/resources/relay_applications`
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+    body: JSON.stringify(params),
+  }
+  const data = (await apiFetch(url, options)) as Resource
+  console.log('>> Resource Relay App created:', data.id)
+  return data
+}
+
+interface CreateDomainAppParams {
+  name: string
+  identifier: string
+  call_handler?: 'relay_context'
+  call_relay_context: string
+}
+const createDomainApp = async (params: CreateDomainAppParams) => {
+  const url = `https://${process.env.API_HOST}/api/relay/rest/domain_applications`
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+    body: JSON.stringify(params),
+  }
+  const data = (await apiFetch(url, options)) as DomainApp
+  console.log('>> Domain App created:', data.id)
+  return data
+}
+
+const getDomainApp = async (id: string) => {
+  const url = `https://${process.env.API_HOST}/api/relay/rest/domain_applications/${id}`
+  const options = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+  }
+  const data = (await apiFetch(url, options)) as DomainApp
+  console.log('>> Domain App fetched:', data.id)
+  return data
+}
+
+const deleteDomainApp = async (id: string) => {
+  const url = `https://${process.env.API_HOST}/api/relay/rest/domain_applications/${id}`
+  const options = {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+  }
+  await apiFetch(url, options)
+  console.log('>> Domain App deleted:', id)
+}
+
+interface AssignResourceToDomainAppParams {
+  resourceId: string
+  domainAppId: string
+}
+const assignResourceToDomainApp = async (
+  params: AssignResourceToDomainAppParams
+) => {
+  const { resourceId, domainAppId } = params
+  const url = `https://${process.env.API_HOST}/api/fabric/resources/${resourceId}/domain_applications`
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+    body: JSON.stringify({ domain_application_id: domainAppId }),
+  }
+  await apiFetch(url, options)
+  console.log('>> Resource assigned to Domain App')
+}
+
+const deleteResource = async (id: string) => {
+  const url = `https://${process.env.API_HOST}/api/fabric/resources/${id}`
+  const options = {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: getAuthorization(),
+    },
+  }
+  await apiFetch(url, options)
+  console.log('>> Resource deleted:', id)
+}
+
 interface TestHandlerParams {
   domainApp?: DomainApp
 }
@@ -77,30 +210,48 @@ export const createTestRunner = ({
     run: async () => {
       start()
 
+      let exitCode = 0
+      let domainApp: DomainApp | null = null
+      let relayApp: Resource | null = null
+      const id = uuid
+      const domainAppName = `e2e-rt-domain-app-${id}`
+      const relayAppName = `e2e-rt-relay-app-${id}`
+      const context = `e2e-rt-ctx-${id}`
       const params: TestHandlerParams = {}
+
       try {
         if (useDomainApp) {
-          params.domainApp = await createDomainApp({
-            name: `d-app-${uuid}`,
-            identifier: uuid,
-            call_handler: 'relay_context',
-            call_relay_context: `d-app-ctx-${uuid}`,
+          // Create a domain application
+          domainApp = await createDomainApp({
+            name: domainAppName,
+            identifier: id,
+            call_relay_context: context,
           })
+
+          // Create a relay application resource
+          relayApp = await createRelayAppResource({
+            name: relayAppName,
+            topic: context,
+          })
+
+          // Assign a Relay App resource as a call handler on a Domain App
+          await assignResourceToDomainApp({
+            resourceId: relayApp.id,
+            domainAppId: domainApp.id,
+          })
+
+          // Fetch the updated Domain App and set it to params
+          params.domainApp = await getDomainApp(domainApp.id)
         }
-        const exitCode = await testHandler(params)
-        if (params.domainApp) {
-          console.log('Delete domain app..')
-          await deleteDomainApp({ id: params.domainApp.id })
-        }
-        done(exitCode)
+        exitCode = await testHandler(params)
       } catch (error) {
         clearTimeout(timer)
         console.error(`Test Runner ${name} Failed!`, error)
-        if (params.domainApp) {
-          console.log('Delete domain app..')
-          await deleteDomainApp({ id: params.domainApp.id })
-        }
-        done(1)
+        exitCode = 1
+      } finally {
+        if (domainApp) await deleteDomainApp(domainApp.id)
+        if (relayApp) await deleteResource(relayApp.id)
+        done(exitCode)
       }
     },
   }
@@ -177,84 +328,10 @@ export const sessionStorageMock = () => {
   }
 }
 
-export const sleep = (ms = 3000) => {
-  return new Promise((r) => {
-    setTimeout(r, ms)
-  })
-}
-
 export const makeSipDomainAppAddress = ({ name, domain }) => {
   return `sip:${name}-${randomBytes(16).toString('hex')}@${domain}.${
     process.env.DAPP_DOMAIN
   }`
-}
-
-type CreateDomainAppParams = {
-  name: string
-  identifier: string
-  call_handler: 'relay_context'
-  call_relay_context: string
-}
-const createDomainApp = (params: CreateDomainAppParams): Promise<DomainApp> => {
-  return new Promise((resolve, reject) => {
-    const data = JSON.stringify(params)
-    const options = {
-      host: process.env.API_HOST,
-      port: 443,
-      method: 'POST',
-      path: '/api/relay/rest/domain_applications',
-      headers: {
-        Authorization: getAuthorization(),
-        'Content-Type': 'application/json',
-        'Content-Length': data.length,
-      },
-    }
-    const req = request(options, (response) => {
-      let body = ''
-      response.on('data', (chunk) => {
-        body += chunk
-      })
-
-      response.on('end', () => {
-        resolve(JSON.parse(body))
-      })
-    })
-
-    req.on('error', reject)
-
-    req.write(data)
-    req.end()
-  })
-}
-
-type DeleteDomainAppParams = {
-  id: string
-}
-const deleteDomainApp = ({ id }: DeleteDomainAppParams): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
-    const options = {
-      host: process.env.API_HOST,
-      port: 443,
-      method: 'DELETE',
-      path: `/api/relay/rest/domain_applications/${id}`,
-      headers: {
-        Authorization: getAuthorization(),
-        'Content-Type': 'application/json',
-      },
-    }
-    const req = request(options, (response) => {
-      let body = ''
-      response.on('data', (chunk) => {
-        body += chunk
-      })
-
-      response.on('end', () => {
-        resolve()
-      })
-    })
-    req.on('error', reject)
-    req.end()
-  })
 }
 
 export const CALL_PROPS = [

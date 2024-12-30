@@ -56,7 +56,7 @@ const INTERCEPTED_METHODS: ClientMethods[] = [
  * Client object.
  */
 export const Client = function (pubSubOptions: ClientOptions) {
-  const client = createClient<Client>(pubSubOptions)
+  const client = createClient(pubSubOptions)
 
   const createInterceptor = <K extends keyof Client>(prop: K) => {
     return async (...params: Parameters<Client[K]>) => {

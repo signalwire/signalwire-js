@@ -301,15 +301,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.logger.info('[skipped] Already in "resume" state')
       return
     }
-    // @ts-expect-error
     this.call.emit('media.disconnected')
 
-    // @ts-expect-error
     this.call.emit('media.reconnecting')
     this.clearTimers()
     this._resumeTimer = setTimeout(() => {
       this.logger.warn('Disconnecting due to RECONNECTION_ATTEMPT_TIMEOUT')
-      // @ts-expect-error
       this.call.emit('media.disconnected')
       this.call.leaveReason = 'RECONNECTION_ATTEMPT_TIMEOUT'
       this.call.setState('hangup')
@@ -371,7 +368,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _getSenderByKind(kind: string) {
-    if (!this.instance.getSenders) {
+    if (!this.instance?.getSenders) {
       this.logger.warn('RTCPeerConnection.getSenders() not available.')
       return null
     }
@@ -381,7 +378,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _getReceiverByKind(kind: string) {
-    if (!this.instance.getReceivers) {
+    if (!this.instance?.getReceivers) {
       this.logger.warn('RTCPeerConnection.getReceivers() not available.')
       return null
     }
@@ -531,8 +528,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
         const audioTracks = this._localStream.getAudioTracks()
+
         this.logger.debug('Local audio tracks: ', audioTracks)
         const videoTracks = this._localStream.getVideoTracks()
+
         this.logger.debug('Local video tracks: ', videoTracks)
         hasLocalTracks = Boolean(audioTracks.length || videoTracks.length)
 
@@ -817,6 +816,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       '\n\n',
       remoteDescription.sdp
     )
+
     return this.instance.setRemoteDescription(sessionDescr)
   }
 
@@ -948,14 +948,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private emitMediaConnected() {
-    // @ts-expect-error
     this.call.emit('media.connected')
   }
 
   private _onEndedTrackHandler(event: Event) {
     const mediaTrack = event.target as MediaStreamTrack
     const evt = mediaTrack.kind === 'audio' ? 'microphone' : 'camera'
-    // @ts-expect-error
     this.call.emit(`${evt}.disconnected`, {
       deviceId: mediaTrack.id,
       label: mediaTrack.label,

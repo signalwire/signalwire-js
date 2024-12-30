@@ -60,7 +60,7 @@ export const supportsMediaOutput = () => {
  *
  * > 📘
  * > Some browsers do not support output device selection. You can check by
- * > calling [`supportsMediaOutput`](supportsmediaoutput).
+ * > calling [`supportsMediaOutput`](supportsMediaOutput).
  *
  * @param el target element
  * @param deviceId id of the audio output device

@@ -20,7 +20,7 @@ import type {
   VideoMeta,
 } from '../utils/interfaces'
 
-type RoomMethodParams = Record<string, unknown>
+export type RoomMethodParams = Record<string, unknown>
 
 interface RoomMethodPropertyDescriptor<OutputType, ParamsType>
   extends PropertyDescriptor {
@@ -69,7 +69,7 @@ const createRoomMethod = <
  * memberId or fallback to the instance memberId. Additional params
  * can be passed as `value` or `volume`.
  */
-interface RoomMemberMethodParams extends Record<string, unknown> {
+export interface RoomMemberMethodParams extends Record<string, unknown> {
   memberId?: string
 }
 
@@ -731,7 +731,7 @@ export const deleteMemberMeta = createRoomMemberMethod<BaseRPCResult, void>(
 )
 
 export interface SetRaisedHandRoomParams {
-  memberId: string
+  memberId?: string
   raised?: boolean
 }
 

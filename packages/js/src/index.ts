@@ -30,8 +30,6 @@ import type {
   VideoMemberEntity,
 } from '@signalwire/core'
 
-import { SWClient, SignalWire } from './fabric'
-
 /** @ignore @deprecated */
 export type RoomStartedEventName = RoomStarted
 /** @ignore @deprecated */
@@ -58,17 +56,22 @@ export * as Chat from './chat'
 export * as PubSub from './pubSub'
 
 /**
- * CallFabric namespace
- * @internal
+ * The Fabric namespace contains the classes and functions that you need to
+ * create a unified communication application that includes Audio/Video calling
+ * with Chat/Messaging capabilties.
  */
 export * as Fabric from './fabric'
-export { SWClient, SignalWire }
+export { SignalWire } from './fabric'
+export * from './fabric/types'
 
 /**
  * The Video namespace contains the classes and functions that you need to
  * create a video conferencing application.
  */
 export * as Video from './video'
+export { VideoRoomSession } from './video'
+export { RoomSessionScreenShare } from './RoomSessionScreenShare'
+export { RoomSessionDevice } from './RoomSessionDevice'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and
@@ -78,9 +81,6 @@ export * as Video from './video'
  */
 export * as WebRTC from './webrtc'
 
-export type { VideoPosition, VideoPositions } from '@signalwire/core'
-
-/** @ignore */
 export type {
   BaseComponentOptions,
   BaseConnectionState,
@@ -93,22 +93,48 @@ export type {
   VideoLayout,
   InternalVideoLayout,
   VideoLayoutEventNames,
+  VideoLayoutChangedEventParams,
   VideoRoomSessionEventNames,
   VideoRoomEventParams,
+  VideoRoomSubscribedEventParams,
   VideoMemberEntity,
   VideoMemberEventNames,
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   InternalVideoMemberEntity,
+  InternalVideoLayoutLayer,
+  VideoPosition,
+  VideoPositions,
+  /**
+   * Call Fabric types
+   */
+  CallJoinedEventParams,
+  CallUpdatedEventParams,
+  CallLeftEventParams,
+  CallStateEventParams,
+  CallPlayEventParams,
+  CallConnectEventParams,
+  CallRoomEventParams,
+  FabricRoomEventParams,
+  FabricLayoutChangedEventParams,
+  FabricMemberJoinedEventParams,
+  FabricMemberUpdatedEventParams,
+  FabricMemberLeftEventParams,
+  FabricMemberTalkingEventParams,
+  FabricMemberEventParams,
+  FabricMemberEntity,
+  InternalFabricMemberEntity,
+  ConversationMessageEventName,
+  ConversationMessageEvent,
+  ConversationEventParams,
+  ConversationEvent,
 } from '@signalwire/core'
 
-/** @ignore */
 export type {
   BaseConnectionOptions,
   ConnectionOptions,
 } from '@signalwire/webrtc'
 
-/** @ignore */
 export type {
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,
@@ -116,4 +142,11 @@ export type {
   RoomSessionObjectEventsHandlerMap as RoomObjectEventsHandlerMap,
   RoomSessionObjectEvents as RoomObjectEvents,
   RoomEventNames,
+  StartScreenShareOptions,
 } from './utils/interfaces'
+
+/**
+ * Build Video Element
+ */
+export { buildVideoElement } from './buildVideoElement'
+export { LocalVideoOverlay, OverlayMap, UserOverlay } from './VideoOverlays'

@@ -32,14 +32,14 @@ export class JWTSession extends BaseJWTSession {
 
     super({
       ...options,
-      host: options.host || decodedJwt?.ch,
+      host: decodedJwt?.ch || options.host,
     })
     this.tokenTyp = decodedJwt.typ ?? 'VRT'
   }
 
   get allowReattach() {
     // @ts-expect-error
-    return this.options?.reattach !== false && this.isVRT()
+    return this.options?.reattach !== false && (this.isVRT() || this.isSAT())
   }
 
   override async retrieveRelayProtocol() {
@@ -114,5 +114,9 @@ export class JWTSession extends BaseJWTSession {
 
   private isVRT() {
     return this.tokenTyp === 'VRT'
+  }
+
+  private isSAT() {
+    return this.tokenTyp === 'SAT'
   }
 }

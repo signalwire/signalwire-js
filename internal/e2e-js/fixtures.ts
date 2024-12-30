@@ -1,21 +1,43 @@
-import type { Video } from '@signalwire/js'
+import type { FabricRoomSession, Video } from '@signalwire/js'
+import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
-import { enablePageLogs } from './utils'
+import {
+  CreateRelayAppResourceParams,
+  CreateSWMLAppResourceParams,
+  Resource,
+  createRelayAppResource,
+  createSWMLAppResource,
+  createVideoRoomResource,
+  deleteResource,
+  enablePageLogs,
+} from './utils'
 
 type CustomPage = Page & {
   swNetworkDown: () => Promise<void>
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: { name: string }): Promise<CustomPage>,
-  createCustomVanillaPage(options: { name: string }): Promise<CustomPage>
+  createCustomPage(options: {
+    name: string
+  }): Promise<PageWithWsInspector<CustomPage>>
+  createCustomVanillaPage(options: { name: string }): Promise<Page>
+  resource: {
+    createVideoRoomResource: typeof createVideoRoomResource
+    createSWMLAppResource: typeof createSWMLAppResource
+    createRelayAppResource: typeof createRelayAppResource
+    resources: Resource[]
+  }
 }
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: { name: string }): Promise<CustomPage> => {
-      const page = await context.newPage()
+    const maker = async (options: {
+      name: string
+    }): Promise<PageWithWsInspector<CustomPage>> => {
+      let page = await context.newPage()
       enablePageLogs(page, options.name)
+      //@ts-ignore
+      page = await intercepWsTraffic(page)
 
       // @ts-expect-error
       page.swNetworkDown = () => {
@@ -44,7 +66,8 @@ const test = baseTest.extend<CustomFixture>({
       context.pages().map((page) => {
         return page.evaluate(async () => {
           // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
+          const roomObj: Video.RoomSession | FabricRoomSession = window._roomObj
+          console.log('Fixture roomObj', roomObj, roomObj?.roomSessionId)
           if (roomObj && roomObj.roomSessionId) {
             console.log('Fixture has room', roomObj.roomSessionId)
             await roomObj.leave()
@@ -64,28 +87,49 @@ const test = baseTest.extend<CustomFixture>({
       expect(row.rootEl).toBe(0)
     })
   },
-
   createCustomVanillaPage: async ({ context }, use) => {
-    const maker = async (options: { name: string }): Promise<CustomPage> => {
+    const maker = async (options: { name: string }): Promise<Page> => {
       const page = await context.newPage()
       enablePageLogs(page, options.name)
-
-      // @ts-expect-error
-      page.swNetworkDown = () => {
-        console.log('Simulate network down..')
-        return context.setOffline(true)
-      }
-      // @ts-expect-error
-      page.swNetworkUp = () => {
-        console.log('Simulate network up..')
-        return context.setOffline(false)
-      }
-      // @ts-expect-error
       return page
     }
     await use(maker)
 
     console.log('Cleaning up pages..')
+  },
+  resource: async ({}, use) => {
+    const resources: Resource[] = []
+
+    const resource = {
+      createVideoRoomResource: async (params?: string) => {
+        const data = await createVideoRoomResource(params)
+        resources.push(data)
+        return data
+      },
+      createSWMLAppResource: async (params: CreateSWMLAppResourceParams) => {
+        const data = await createSWMLAppResource(params)
+        resources.push(data)
+        return data
+      },
+      createRelayAppResource: async (params: CreateRelayAppResourceParams) => {
+        const data = await createRelayAppResource(params)
+        resources.push(data)
+        return data
+      },
+      resources,
+    }
+    await use(resource)
+
+    // Clean up resources after use
+    const deleteResources = resources.map(async (resource) => {
+      try {
+        await deleteResource(resource.id)
+        console.log('>> Resource deleted successfully:', resource.id)
+      } catch (error) {
+        console.error('>> Failed to delete resource:', resource.id, error)
+      }
+    })
+    await Promise.allSettled(deleteResources)
   },
 })
 

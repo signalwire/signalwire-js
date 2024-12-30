@@ -216,6 +216,8 @@
         client.on('signalwire.notification', handleNotification);
 
         connectStatus.innerHTML = 'Connecting...';
+        console.log("Connecting now...");
+
         client.connect();
       }
 
@@ -247,9 +249,13 @@
         window.__currentCall = currentCall;
         let ccallState = JSON.parse(JSON.stringify(call,getCircularReplacer()));
         console.log(currentCall.state,currentCall.cause,currentCall.causeCode);
-        console.log("Call State: " ,ccallState);
+
+        console.log("Call update - State: ", ccallState);
+
         let msg =  currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
         callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
+
+        console.log('State:', call.state)
 
         switch (call.state) {
         case 'new': // Setup the UI
@@ -269,8 +275,18 @@
           break;
         case 'ringing': // Someone is calling you
           //if (confirm('Pick up the call?')) {
+
+            answerParams = {}
+            itp = window.__iceTransportPolicy
+
+            if (itp === 'relay' || itp === 'all') {
+              answerParams.iceTransportPolicy = itp;
+            }
+
+            console.log("Answer params:", answerParams)
             console.log("Answering: ", ccallState)
-            currentCall.answer();
+            currentCall.answer(answerParams);
+            console.log("Answered.")
           //} else {
           //  currentCall.hangup();
           //}
@@ -298,14 +314,14 @@
     */
       function makeCall() {
         const params = {
-        destinationNumber: document.getElementById('number').value, // required!
-        callerNumber: document.getElementById('numberFrom').value, // required!
-        audio: document.getElementById('audio').checked,
-        video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
-      };
+          destinationNumber: document.getElementById('number').value, // required!
+          callerNumber: document.getElementById('numberFrom').value, // required!
+          audio: document.getElementById('audio').checked,
+          video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+        };
 
-      currentCall = client.newCall(params);
-    }
+        currentCall = client.newCall(params);
+      }
 
     /**
      * Send a DTMF to currentCall if present
