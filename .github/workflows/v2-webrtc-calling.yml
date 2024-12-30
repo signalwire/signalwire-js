@@ -76,7 +76,7 @@ jobs:
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.49.1' # TODO: Read from deps ?
+          PACKAGE_JSON_PATH: ./internal/e2e-js/package.json
       - name: Run test for ${{ matrix.region.name }}
         id: run-tests
         run: npm run -w=@sw-internal/e2e-js dev -- v2WebrtcFromRest.spec.ts webrtcCalling.spec.ts
