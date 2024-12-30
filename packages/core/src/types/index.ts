@@ -1,12 +1,12 @@
 import type { EventEmitter } from '../utils/EventEmitter'
-import type { VideoAPIEventParams, InternalVideoEventNames } from './video'
+import type { VideoAPIEvent, InternalVideoEventNames } from './video'
 import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
 import type { VideoManagerEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
-import { CallFabricEvent, ConversationEvent } from '..'
+import { FabricEvent, ConversationEvent } from '..'
 
 export interface SwEvent {
   event_channel: string
@@ -36,7 +36,10 @@ export interface EmitterContract<
   ): EmitterContract<EventTypes>
 
   /** @internal */
-  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]): void
+  emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): void
 }
 
 export interface BaseComponentContract {
@@ -50,6 +53,8 @@ export interface BaseComponentContract {
 export interface BaseConnectionContract<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends EmitterContract<EventTypes> {
+  /** Unique id for this room session */
+  readonly id: string
   /** @internal The BaseConnection options  */
   readonly options: Record<any, any>
 
@@ -229,7 +234,7 @@ export interface SwAuthorizationStateParams {
 
 // prettier-ignore
 export type SwEventParams =
-  | VideoAPIEventParams
+  | VideoAPIEvent
   | WebRTCMessageParams
   | VideoManagerEvent
   | ChatEvent
@@ -238,7 +243,7 @@ export type SwEventParams =
   | VoiceCallEvent
   | SwAuthorizationStateParams
   | ConversationEvent
-| CallFabricEvent
+  | FabricEvent
 
 // prettier-ignore
 export type PubSubChannelEvents =
@@ -254,5 +259,8 @@ export * from './pubSub'
 export * from './task'
 export * from './messaging'
 export * from './voice'
-export * from './callfabric'
+export * from './fabric'
+export * from './fabricRoomSession'
+export * from './fabricMember'
+export * from './fabricLayout'
 export * from './conversation'

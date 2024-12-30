@@ -1,9 +1,8 @@
-import type { SignalWireContract, Video } from '@signalwire/js'
-import type { MediaEvent } from '@signalwire/webrtc'
+import type { SignalWireClient, Video } from '@signalwire/js'
+import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { Page, expect } from '@playwright/test'
-import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
 
 type CreateTestServerOptions = {
@@ -325,8 +324,8 @@ export const expectSDPDirection = async (
     return roomObj.peer.localSdp
   })
 
-  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+  expect(peerSDP!.split('m=')[1].includes(direction)).toBe(value)
+  expect(peerSDP!.split('m=')[2].includes(direction)).toBe(value)
 }
 
 export const expectInteractivityMode = async (
@@ -423,7 +422,7 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
-export const expectMediaEvent = (page: Page, event: MediaEvent) => {
+export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
       return new Promise<void>((resolve) => {
@@ -659,7 +658,7 @@ export const getStats = async (page: Page) => {
 
     const inboundRTPHandler = (report: any) => {
       const media = report.mediaType as 'video' | 'audio'
-      const trackId = rtcPeer._getReceiverByKind(media).track.id
+      const trackId = rtcPeer._getReceiverByKind(media)!.track.id
       console.log(`getStats trackId "${trackId}" for media ${media}`)
       if (report.trackIdentifier !== trackId) {
         console.log(
@@ -1219,7 +1218,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
-        const client: SignalWireContract = window._client
+        const client: SignalWireClient = window._client
 
         const dialer = reattach ? client.reattach : client.dial
 

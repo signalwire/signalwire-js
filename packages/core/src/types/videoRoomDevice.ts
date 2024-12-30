@@ -8,13 +8,6 @@ export type SpeakerDisconnected = 'speaker.disconnected'
 /**
  * List of public event names
  */
-export type VideoRoomDeviceEventNames =
-  | CameraUpdated
-  | CameraDisconnected
-  | MicrophoneUpdated
-  | MicrophoneDisconnected
-  | SpeakerUpdated
-  | SpeakerDisconnected
 
 export type VideoRoomDeviceUpdatedEventNames =
   | CameraUpdated
@@ -25,6 +18,10 @@ export type VideoRoomDeviceDisconnectedEventNames =
   | CameraDisconnected
   | MicrophoneDisconnected
   | SpeakerDisconnected
+
+export type VideoRoomDeviceEventNames =
+  | VideoRoomDeviceUpdatedEventNames
+  | VideoRoomDeviceDisconnectedEventNames
 
 export interface VideoRoomMediaDeviceInfo {
   deviceId: MediaDeviceInfo['deviceId'] | undefined

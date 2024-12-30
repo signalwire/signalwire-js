@@ -79,7 +79,7 @@ window.playbackEnded = () => {
 
 async function loadLayouts(currentLayoutId) {
   try {
-    const { layouts } = await roomObj.getLayoutList()
+    const { layouts } = await roomObj.getLayouts()
     const fillSelectElement = (id) => {
       const layoutEl = document.getElementById(id)
       layoutEl.innerHTML = ''

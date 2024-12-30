@@ -1,4 +1,4 @@
-import type { Video } from '@signalwire/js'
+import type { FabricRoomSession, Video } from '@signalwire/js'
 import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
@@ -66,7 +66,7 @@ const test = baseTest.extend<CustomFixture>({
       context.pages().map((page) => {
         return page.evaluate(async () => {
           // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
+          const roomObj: Video.RoomSession | FabricRoomSession = window._roomObj
           console.log('Fixture roomObj', roomObj, roomObj?.roomSessionId)
           if (roomObj && roomObj.roomSessionId) {
             console.log('Fixture has room', roomObj.roomSessionId)

@@ -1,15 +1,15 @@
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
-import { SignalWireContract, SignalWireOptions } from './types'
+import { SignalWireContract, SignalWireClientParams } from './types'
 
 export const SignalWire = (
-  options: SignalWireOptions
+  params: SignalWireClientParams
 ): Promise<SignalWireContract> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const httpClient = new HTTPClient(options)
-      const wsClient = new WSClient(options)
+      const httpClient = new HTTPClient(params)
+      const wsClient = new WSClient(params)
 
       const conversation = new Conversation({ httpClient, wsClient })
 
@@ -23,7 +23,7 @@ export const SignalWire = (
         online: wsClient.online.bind(wsClient),
         offline: wsClient.offline.bind(wsClient),
         dial: wsClient.dial.bind(wsClient),
-        reattach: wsClient.reattach.bind(wsClient), 
+        reattach: wsClient.reattach.bind(wsClient),
         handlePushNotification: wsClient.handlePushNotification.bind(wsClient),
         updateToken: wsClient.updateToken.bind(wsClient),
         address: {
