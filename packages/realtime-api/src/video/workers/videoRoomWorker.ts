@@ -73,7 +73,7 @@ export const videoRoomWorker = function* (
       break
     }
     case 'video.room.subscribed': {
-      yield sagaEffects.spawn(MemberPosition.memberPositionWorker, {
+      yield sagaEffects.fork(MemberPosition.memberPositionWorker, {
         ...memberPositionWorkerParams,
         instance: roomSessionInstance,
         initialState: payload,

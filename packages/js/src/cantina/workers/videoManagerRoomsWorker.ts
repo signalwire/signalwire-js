@@ -26,6 +26,7 @@ export const videoManagerRoomsWorker = function* (
   }
   client.emit(
     stripNamespacePrefix(type) as VideoManagerRoomEventNames,
+    // @ts-expect-error
     modPayload
   )
 

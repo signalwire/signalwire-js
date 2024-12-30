@@ -1,7 +1,6 @@
 import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
 import { wsClientWorker } from './workers'
 import {
-  CallFabricRoomSession,
   CallParams,
   DialParams,
   InboundCallSource,
@@ -11,6 +10,7 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
+import { FabricRoomSession } from './FabricRoomSession'
 import { createClient } from './createClient'
 import { Client } from './Client'
 
@@ -70,7 +70,7 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+    return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
         const call = this.buildOutboundCall(params)
@@ -83,7 +83,7 @@ export class WSClient {
   }
 
   async reattach(params: DialParams) {
-    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+    return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
         const call = this.buildOutboundCall({ ...params, attach: true })
@@ -111,7 +111,7 @@ export class WSClient {
       negotiateVideo = true
     }
 
-    const call = this.wsClient.makeCallFabricObject({
+    const call = this.wsClient.makeFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -145,7 +145,7 @@ export class WSClient {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    const call = this.wsClient.makeCallFabricObject({
+    const call = this.wsClient.makeFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -173,6 +173,7 @@ export class WSClient {
       this.logger.debug('Session Disconnected')
     })
 
+    // TODO: This is for memberList.updated event and it is not yet supported in CF SDK
     // @ts-expect-error
     call.attachPreConnectWorkers()
     return call

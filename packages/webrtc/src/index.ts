@@ -40,9 +40,4 @@ export {
   requestPermissions,
 } from './utils'
 export * from './utils/interfaces'
-export {
-  BaseConnection,
-  BaseConnectionOptions,
-  BaseConnectionStateEventTypes,
-  MediaEvent,
-} from './BaseConnection'
+export { BaseConnection, BaseConnectionOptions } from './BaseConnection'

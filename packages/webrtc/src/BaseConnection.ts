@@ -27,6 +27,8 @@ import {
   ConnectionOptions,
   EmitDeviceUpdatedEventsParams,
   UpdateMediaOptionsParams,
+  BaseConnectionEvents,
+  OnVertoByeParams,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import {
@@ -34,76 +36,24 @@ import {
   sdpRemoveLocalCandidates,
 } from './utils/sdpHelpers'
 import * as workers from './workers'
+import {
+  AUDIO_CONSTRAINTS,
+  AUDIO_CONSTRAINTS_SCREENSHARE,
+  DEFAULT_CALL_OPTIONS,
+  INVITE_VERSION,
+  VIDEO_CONSTRAINTS,
+} from './utils/constants'
 import { validateUpdateMediaParams } from './utils/validators'
-
-interface OnVertoByeParams {
-  byeCause: string
-  byeCauseCode: string
-  rtcPeerId: string
-  redirectDestination?: string
-}
-
-const INVITE_VERSION = 1000
-const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
-  echoCancellation: true,
-  noiseSuppression: true,
-  autoGainControl: true,
-}
-const AUDIO_CONSTRAINTS_SCREENSHARE: MediaTrackConstraints = {
-  ...AUDIO_CONSTRAINTS,
-  noiseSuppression: false,
-  autoGainControl: false,
-  // @ts-expect-error
-  googAutoGainControl: false,
-}
-
-const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
-  width: { ideal: 1280, min: 320 },
-  height: { ideal: 720, min: 180 },
-  aspectRatio: { ideal: 16 / 9 },
-}
-
-const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
-  destinationNumber: 'room',
-  remoteCallerName: 'Outbound Call',
-  remoteCallerNumber: '',
-  callerName: '',
-  callerNumber: '',
-  audio: AUDIO_CONSTRAINTS,
-  video: VIDEO_CONSTRAINTS,
-  useStereo: false,
-  attach: false,
-  screenShare: false,
-  additionalDevice: false,
-  userVariables: {},
-  requestTimeout: 10 * 1000,
-  autoApplyMediaParams: true,
-  iceGatheringTimeout: 2 * 1000,
-  maxIceGatheringTimeout: 5 * 1000,
-  maxConnectionStateTimeout: 3 * 1000,
-  watchMediaPackets: true,
-  watchMediaPacketsTimeout: 2 * 1000,
-}
-
-export type MediaEvent =
-  | 'media.connected'
-  | 'media.reconnecting'
-  | 'media.disconnected'
-
-type EventsHandlerMapping = Record<BaseConnectionState, (params: any) => void> &
-  Record<MediaEvent, () => void>
-
-export type BaseConnectionStateEventTypes = {
-  [k in keyof EventsHandlerMapping]: EventsHandlerMapping[k]
-}
 
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
-export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
-  extends BaseComponent<EventTypes & BaseConnectionStateEventTypes>
+export class BaseConnection<
+    EventTypes extends EventEmitter.ValidEventTypes = BaseConnectionEvents
+  >
+  extends BaseComponent<EventTypes>
   implements
-    Rooms.BaseRoomInterface<EventTypes & BaseConnectionStateEventTypes>,
-    BaseConnectionContract<EventTypes & BaseConnectionStateEventTypes>
+    Rooms.BaseRoomInterface<EventTypes>,
+    BaseConnectionContract<EventTypes>
 {
   public direction: 'inbound' | 'outbound'
   public options: BaseConnectionOptions
@@ -206,40 +156,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     )
   }
 
-  /** @internal */
-  dialogParams(rtcPeerId: string) {
-    const {
-      destinationNumber,
-      attach,
-      callerName,
-      callerNumber,
-      remoteCallerName,
-      remoteCallerNumber,
-      userVariables,
-      screenShare,
-      additionalDevice,
-      pingSupported = true,
-    } = this.options
-
-    return {
-      dialogParams: {
-        id: rtcPeerId,
-        destinationNumber,
-        attach,
-        reattaching: attach,
-        callerName,
-        callerNumber,
-        remoteCallerName,
-        remoteCallerNumber,
-        userVariables,
-        screenShare,
-        additionalDevice,
-        pingSupported,
-        version: INVITE_VERSION,
-      },
-    }
-  }
-
   get cameraId() {
     return this.peer ? this.peer.getDeviceId('video') : null
   }
@@ -297,6 +213,60 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
 
     this.logger.debug('>>> Replace RTCPeer with', rtcPeer.uuid)
     this.activeRTCPeerId = rtcPeer.uuid
+  }
+
+  // Overload for BaseConnection events
+  override emit<E extends EventEmitter.EventNames<BaseConnectionEvents>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<BaseConnectionEvents, E>
+  ): boolean
+
+  // Overload for additional events
+  override emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): boolean
+
+  // Implementation for the overloaded emit
+  override emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ): boolean {
+    return super.emit(event, ...args)
+  }
+
+  /** @internal */
+  dialogParams(rtcPeerId: string) {
+    const {
+      destinationNumber,
+      attach,
+      callerName,
+      callerNumber,
+      remoteCallerName,
+      remoteCallerNumber,
+      userVariables,
+      screenShare,
+      additionalDevice,
+      pingSupported = true,
+    } = this.options
+
+    return {
+      dialogParams: {
+        id: rtcPeerId,
+        destinationNumber,
+        attach,
+        reattaching: attach,
+        callerName,
+        callerNumber,
+        remoteCallerName,
+        remoteCallerNumber,
+        userVariables,
+        screenShare,
+        additionalDevice,
+        pingSupported,
+        version: INVITE_VERSION,
+      },
+    }
   }
 
   getRTCPeerById(rtcPeerId: string) {
@@ -369,9 +339,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     message: JSONRPCRequest
     callID?: string
     node_id?: string
-    subscribe?: EventEmitter.EventNames<
-      EventTypes & BaseConnectionStateEventTypes
-    >[]
+    subscribe?: EventEmitter.EventNames<EventTypes>[]
   }) {
     return this.execute<InputType, OutputType>({
       method: this._getRPCMethod(),
@@ -728,7 +696,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
     prevVideoTrack,
   }: EmitDeviceUpdatedEventsParams) {
     if (newTrack.kind === 'audio') {
-      // @ts-expect-error
       this.emit('microphone.updated', {
         previous: {
           deviceId: prevAudioTrack?.id,
@@ -740,7 +707,6 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         },
       })
     } else if (newTrack.kind === 'video') {
-      // @ts-expect-error
       this.emit('camera.updated', {
         previous: {
           deviceId: prevVideoTrack?.id,
@@ -909,9 +875,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
         sdp,
       })
 
-      let subscribe: EventEmitter.EventNames<
-        EventTypes & BaseConnectionStateEventTypes
-      >[] = []
+      let subscribe: EventEmitter.EventNames<EventTypes>[] = []
       if (this.options.screenShare) {
         /** @ts-expect-error - Only being used for debugging purposes */
         subscribe = ['video.room.screenshare']
@@ -1114,8 +1078,7 @@ export class BaseConnection<EventTypes extends EventEmitter.ValidEventTypes>
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
-    // @ts-expect-error
-    this.emitter.emit(this.state, this)
+    this.emit(this.state, this)
 
     switch (state) {
       case 'purge': {

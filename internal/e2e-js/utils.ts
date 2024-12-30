@@ -1,9 +1,9 @@
 import type {
-  CallFabricRoomSession,
+  FabricRoomSession,
   SignalWireContract,
   Video,
 } from '@signalwire/js'
-import type { MediaEvent } from '@signalwire/webrtc'
+import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
@@ -400,7 +400,7 @@ export const deleteRoom = async (id: string) => {
 
 export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
-    const roomObj: Video.RoomSession | CallFabricRoomSession =
+    const roomObj: Video.RoomSession | FabricRoomSession =
       // @ts-expect-error
       window._roomObj
     console.log('Fixture roomObj', roomObj)
@@ -1372,7 +1372,7 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
-export const expectMediaEvent = (page: Page, event: MediaEvent) => {
+export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
       return new Promise<void>((resolve) => {

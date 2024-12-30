@@ -157,8 +157,10 @@ export class BaseComponent<
   }
 
   /** @internal */
-  emit(event: EventEmitter.EventNames<EventTypes>, ...args: any[]) {
-    // @ts-ignore
+  emit<E extends EventEmitter.EventNames<EventTypes>>(
+    event: E,
+    ...args: EventEmitter.EventArgs<EventTypes, E>
+  ) {
     return this.emitter.emit(event, ...args)
   }
 

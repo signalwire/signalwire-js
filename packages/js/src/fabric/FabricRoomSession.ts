@@ -1,70 +1,82 @@
 import {
-  BaseComponentOptions,
-  BaseRPCResult,
   connect,
+  BaseComponentContract,
+  BaseRPCResult,
+  CallCapabilities,
+  FabricLayoutChangedEventParams,
   ExecuteExtendedOptions,
-  JSONRPCMethod,
-  VideoMemberEntity,
   Rooms,
-  VideoRoomSubscribedEventParams,
-  RoomSessionMember,
-  getLogger,
+  VideoMemberEntity,
   VideoPosition,
+  BaseConnectionContract,
+  FabricRoomSessionMethods,
+  MemberCommandParams,
 } from '@signalwire/core'
-import type { CallCapabilities } from '@signalwire/core'
 import {
-  BaseRoomSession,
-  RoomSessionConnection,
-  RoomSessionObjectEventsHandlerMapping,
+  BaseRoomSessionConnection,
+  BaseRoomSessionOptions,
 } from '../BaseRoomSession'
-import { callFabricWorker } from './workers'
 import {
-  MemberCommandWithVolumeParams,
+  BaseRoomSessionContract,
+  ExecuteMemberActionParams,
+  FabricRoomSessionContract,
+  FabricRoomSessionEvents,
   MemberCommandWithValueParams,
-} from '../video'
+  MemberCommandWithVolumeParams,
+  RequestMemberParams,
+} from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallFabricRoomSessionContract } from '../utils/interfaces'
+import { fabricWorker } from './workers'
+import { FabricRoomSessionMember } from './FabricRoomSessionMember'
 
-interface ExecuteActionParams {
-  method: JSONRPCMethod
-  extraParams?: Record<string, any>
-}
+export interface FabricRoomSession
+  extends FabricRoomSessionContract,
+    FabricRoomSessionMethods,
+    BaseRoomSessionContract,
+    BaseConnectionContract<FabricRoomSessionEvents>,
+    BaseComponentContract {}
 
-interface ExecuteMemberActionParams extends ExecuteActionParams {
-  channel?: 'audio' | 'video'
-  memberId?: string
-}
+export interface FabricRoomSessionOptions extends BaseRoomSessionOptions {}
 
-interface RequestMemberParams {
-  node_id: string
-  member_id: string
-  call_id: string
-}
-
-type CallFabricBaseRoomSession = Omit<
-  BaseRoomSession<CallFabricRoomSession>,
-  'join'
->
-
-export interface CallFabricRoomSession
-  extends CallFabricRoomSessionContract,
-    CallFabricBaseRoomSession {}
-
-export class CallFabricRoomSessionConnection extends RoomSessionConnection {
+export class FabricRoomSessionConnection
+  extends BaseRoomSessionConnection<FabricRoomSessionEvents>
+  implements FabricRoomSessionContract
+{
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
-  private _self?: RoomSessionMember
+  private _self?: FabricRoomSessionMember
   // this is "the member" on the last/active call segment
-  private _member?: RoomSessionMember
-
+  private _member?: FabricRoomSessionMember
+  private _currentLayoutEvent: FabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities: CallCapabilities = {}
 
-  override async hangup(id?: string): Promise<void> {
-    this._self = undefined
-    this._member = undefined
-    const result = await super.hangup(id)
-    return result
+  constructor(options: FabricRoomSessionOptions) {
+    super(options)
+
+    this.initWorker()
+  }
+
+  override get memberId() {
+    return this._member?.memberId
+  }
+
+  set currentLayoutEvent(event: FabricLayoutChangedEventParams) {
+    this._currentLayoutEvent = event
+  }
+
+  get currentLayoutEvent() {
+    return this._currentLayoutEvent
+  }
+
+  get currentLayout() {
+    return this._currentLayoutEvent?.layout
+  }
+
+  get currentPosition() {
+    return this._currentLayoutEvent?.layout.layers.find(
+      (layer) => layer.member_id === this.memberId
+    )?.position
   }
 
   get capabilities(): CallCapabilities {
@@ -75,30 +87,45 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     this._capabilities = capabilities
   }
 
-  get selfMember(): RoomSessionMember | undefined {
+  get selfMember(): FabricRoomSessionMember | undefined {
     return this._self
   }
 
-  set selfMember(member: RoomSessionMember | undefined) {
+  set selfMember(member: FabricRoomSessionMember | undefined) {
     this._self = member
   }
 
-  set member(member: RoomSessionMember) {
+  set member(member: FabricRoomSessionMember) {
     this._member = member
   }
 
-  get member(): RoomSessionMember {
+  get member(): FabricRoomSessionMember {
     return this._member!
   }
 
-  override get memberId() {
-    return this._member?.memberId
+  private initWorker() {
+    this.runWorker('fabricWorker', {
+      worker: fabricWorker,
+    })
+  }
+
+  private async join() {
+    if (this.options.attach) {
+      this.options.prevCallId =
+        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    this.logger.debug(
+      `Tying to reattach to previuos call? ${!!this.options
+        .prevCallId} - prevCallId: ${this.options.prevCallId}`
+    )
+
+    return super.invite<FabricRoomSession>()
   }
 
   private executeAction<
     InputType,
     OutputType = InputType,
-    ParamsType extends Rooms.RoomMemberMethodParams = Rooms.RoomMemberMethodParams
+    ParamsType extends MemberCommandParams = MemberCommandParams
   >(
     params: ExecuteMemberActionParams,
     options: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {}
@@ -106,7 +133,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     const { method, channel, memberId, extraParams = {} } = params
 
     const targetMember = memberId
-      ? this.instanceMap.get<RoomSessionMember>(memberId)
+      ? this.instanceMap.get<FabricRoomSessionMember>(memberId)
       : this.member
     if (!targetMember) throw new Error('No target param found to execute')
 
@@ -132,53 +159,6 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )
   }
 
-  protected override initWorker() {
-    /**
-     * The unified eventing or CallFabric worker creates/stores member instances in the instance map
-     * For now, the member instances are only required in the CallFabric SDK.
-     */
-    this.runWorker('callFabricWorker', {
-      worker: callFabricWorker,
-    })
-  }
-
-  public async start() {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        this.once(
-          'room.subscribed',
-          ({ call_id }: VideoRoomSubscribedEventParams) => {
-            getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, call_id)
-            resolve()
-          }
-        )
-
-        this.once('destroy', () => {
-          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-        })
-
-        await this.join()
-      } catch (error) {
-        this.logger.error('WSClient call start', error)
-        reject(error)
-      }
-    })
-  }
-
-  /** @internal */
-  public override async join() {
-    if (this.options.attach) {
-      this.options.prevCallId =
-        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-    }
-    getLogger().debug(
-      `Tying to reattach to previuos call? ${!!this.options
-        .prevCallId} - prevCallId: ${this.options.prevCallId}`
-    )
-
-    return super.join()
-  }
-
   /** @internal */
   public override async resume() {
     this.logger.warn(`[resume] Call ${this.id}`)
@@ -194,7 +174,27 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     }
   }
 
-  public async audioMute(params: Rooms.RoomMemberMethodParams) {
+  public async start() {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        this.once('room.subscribed', (params) => {
+          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
+          resolve()
+        })
+
+        this.once('destroy', () => {
+          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+        })
+
+        await this.join()
+      } catch (error) {
+        this.logger.error('WSClient call start', error)
+        reject(error)
+      }
+    })
+  }
+
+  public async audioMute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteAudio?.off
@@ -209,7 +209,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public async audioUnmute(params: Rooms.RoomMemberMethodParams) {
+  public async audioUnmute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteAudio?.on
@@ -224,7 +224,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public async videoMute(params: Rooms.RoomMemberMethodParams) {
+  public async videoMute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteVideo?.off
@@ -239,7 +239,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public async videoUnmute(params: Rooms.RoomMemberMethodParams) {
+  public async videoUnmute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.muteVideo?.on
@@ -254,7 +254,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public async deaf(params: Rooms.RoomMemberMethodParams) {
+  public async deaf(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.deaf?.on
@@ -268,7 +268,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     })
   }
 
-  public async undeaf(params: Rooms.RoomMemberMethodParams) {
+  public async undeaf(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
         ? !this.capabilities.self?.deaf?.off
@@ -308,7 +308,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
     )
   }
 
-  public async removeMember(params: Required<Rooms.RoomMemberMethodParams>) {
+  public async removeMember(params: Required<MemberCommandParams>) {
     if (!this.capabilities.member?.remove) {
       throw Error('Missing setLayout capability')
     }
@@ -434,7 +434,7 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
       const targetMember =
         key === 'self'
           ? this.member
-          : this.instanceMap.get<RoomSessionMember>(key)
+          : this.instanceMap.get<FabricRoomSessionMember>(key)
 
       if (targetMember) {
         targets.push({
@@ -484,17 +484,24 @@ export class CallFabricRoomSessionConnection extends RoomSessionConnection {
   }
 }
 
-export const createCallFabricRoomSessionObject = (
-  params: BaseComponentOptions
-): CallFabricRoomSession => {
+export const isFabricRoomSession = (
+  room: unknown
+): room is FabricRoomSession => {
+  return room instanceof FabricRoomSessionConnection
+}
+
+/** @internal */
+export const createFabricRoomSessionObject = (
+  params: FabricRoomSessionOptions
+): FabricRoomSession => {
   const room = connect<
-    RoomSessionObjectEventsHandlerMapping,
-    CallFabricRoomSessionConnection,
-    CallFabricRoomSession
+    FabricRoomSessionEvents,
+    FabricRoomSessionConnection,
+    FabricRoomSession
   >({
     store: params.store,
     customSagas: params.customSagas,
-    Component: CallFabricRoomSessionConnection,
+    Component: FabricRoomSessionConnection,
   })(params)
 
   return room
