@@ -50,7 +50,6 @@ export class WSClient {
   }
 
   async connect() {
-    // @ts-ignore
     if (!this.sessionConnected) {
       await this.wsClient.connect()
 
