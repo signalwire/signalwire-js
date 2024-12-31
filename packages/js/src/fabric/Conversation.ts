@@ -16,14 +16,14 @@ import type {
   SendConversationMessageResult,
   GetConversationChatMessageParams,
   GetConversationsResult,
-  CoversationSubscribeCallback,
+  ConversationSubscribeCallback,
   ConversationChatMessagesSubscribeParams,
   ConversationChatMessagesSubscribeResult,
   GetConversationChatMessageResult,
   JoinConversationParams,
   JoinConversationResponse,
   JoinConversationResult,
-  CoversationSubscribeResult,
+  ConversationSubscribeResult,
 } from './types'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -40,9 +40,11 @@ interface ConversationOptions {
 export class Conversation {
   private httpClient: HTTPClient
   private wsClient: WSClient
-  private callbacks = new Set<CoversationSubscribeCallback>()
-  private chatSubscriptions: Record<string, Set<CoversationSubscribeCallback>> =
-    {}
+  private callbacks = new Set<ConversationSubscribeCallback>()
+  private chatSubscriptions: Record<
+    string,
+    Set<ConversationSubscribeCallback>
+  > = {}
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -253,8 +255,8 @@ export class Conversation {
   }
 
   public async subscribe(
-    callback: CoversationSubscribeCallback
-  ): Promise<CoversationSubscribeResult> {
+    callback: ConversationSubscribeCallback
+  ): Promise<ConversationSubscribeResult> {
     // Connect the websocket client first
     await this.wsClient.connect()
 
