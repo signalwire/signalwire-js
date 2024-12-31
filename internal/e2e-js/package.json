@@ -9,11 +9,11 @@
   },
   "dependencies": {
     "@sw-internal/playground-js": "0.0.15",
-    "node-fetch": "^2.6.7",
-    "vite": "^5.4.10"
+    "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.35.1",
-    "playwrigth-ws-inspector": "^1.0.0"
+    "playwrigth-ws-inspector": "^1.0.0",
+    "vite": "^6.0.6"
   }
 }
