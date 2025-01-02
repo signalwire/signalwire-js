@@ -1,6 +1,11 @@
 import type { EventEmitter } from '../utils/EventEmitter'
 import type { VideoAPIEvent, InternalVideoEventNames } from './video'
-import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
+import type {
+  SessionEvents,
+  JSONRPCRequest,
+  UpdateMediaParams,
+  UpdateMediaDirection,
+} from '../utils/interfaces'
 import type { VideoManagerEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
@@ -153,6 +158,36 @@ export interface BaseConnectionContract<
    * ```
    */
   sendDigits(dtmf: string): Promise<void>
+
+  /**
+   * Upgrade or downgrade the media in the WebRTC connection.
+   * It perform RTC Peer renegotiation.
+   *
+   * @param params - {@link UpdateMediaParams}
+   *
+   * @returns A Promise that resolves once the requested media is negotiated or failed.
+   */
+  updateMedia(params: UpdateMediaParams): Promise<void>
+
+  /**
+   * Add or update the audio with requested direction.
+   * It perform RTC Peer renegotiation.
+   *
+   * @param params - {@link UpdateMediaDirection}
+   *
+   * @returns A Promise that resolves once the requested audio is negotiated or failed.
+   */
+  setAudioDirection(direction: UpdateMediaDirection): Promise<void>
+
+  /**
+   * Add or update the video with requested direction.
+   * It perform RTC Peer renegotiation.
+   *
+   * @param params - {@link UpdateMediaDirection}
+   *
+   * @returns A Promise that resolves once the requested video is negotiated or failed.
+   */
+  setVideoDirection(direction: UpdateMediaDirection): Promise<void>
 
   /** @internal */
   stopOutboundAudio(): void
