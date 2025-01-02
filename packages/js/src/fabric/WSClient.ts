@@ -53,7 +53,6 @@ export class WSClient {
     if (!this.sessionConnected) {
       await this.wsClient.connect()
 
-      // FIXME: This is a workaround to avoid the worker to be created multiple times
       this.wsClient.runWorker('wsClientWorker', {
         worker: wsClientWorker,
         initialState: {
