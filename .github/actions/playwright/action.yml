@@ -3,20 +3,53 @@ description: Install playwright and required browsers
 
 inputs:
   PLAYWRIGHT_VERSION:
-    required: true
-    description: Playwright version to use
+    description: If provided, the action will use this version directly
+    required: false
+  PACKAGE_JSON_PATH:
+    description: Path to package.json where '@playwright/test' is defined
+    required: false
+    default: './internal/e2e-js/package.json'
 
 runs:
   using: composite
   steps:
+    - name: Validate input
+      shell: bash
+      run: |
+        # Ensure at least one of PLAYWRIGHT_VERSION or PACKAGE_JSON_PATH is passed
+        if [ -z "${{ inputs.PLAYWRIGHT_VERSION }}" ] && [ -z "${{ inputs.PACKAGE_JSON_PATH }}" ]; then
+          echo "Error: You must provide either PLAYWRIGHT_VERSION or PACKAGE_JSON_PATH."
+          exit 1
+        fi
+
+    - name: Get Playwright version
+      id: playwright-version
+      shell: bash
+      run: |
+        # If a version is explicitly provided, use that
+        if [ -n "${{ inputs.PLAYWRIGHT_VERSION }}" ]; then
+          DETECTED_VERSION="${{ inputs.PLAYWRIGHT_VERSION }}"
+          echo "Using explicit Playwright version: $DETECTED_VERSION"
+        else
+          # Otherwise, read it from package.json
+          echo "Reading Playwright version from ${{ inputs.PACKAGE_JSON_PATH }}"
+          DETECTED_VERSION=$(jq -r '.devDependencies["@playwright/test"]' "${{ inputs.PACKAGE_JSON_PATH }}")
+          DETECTED_VERSION=${DETECTED_VERSION#^}  # Remove ^
+          echo "Detected Playwright version: $DETECTED_VERSION"
+        fi
+
+        echo "PLAYWRIGHT_VERSION=$DETECTED_VERSION" >> $GITHUB_ENV
+
     - name: Cache playwright binaries
       uses: actions/cache@v4
       id: playwright-cache
       with:
         path: |
           ~/.cache/ms-playwright
-        key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}
+        key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
     - if: steps.playwright-cache.outputs.cache-hit != 'true'
       name: Install Playwright
       shell: bash
       run: npx playwright install --with-deps chromium
+

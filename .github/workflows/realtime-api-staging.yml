@@ -33,7 +33,7 @@ jobs:
         if: matrix.test_command == 'dev:playwright'
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.35.1'
+          PACKAGE_JSON_PATH: ./internal/e2e-realtime-api/package.json
       - name: Test
         run: 'npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}'
         env:
