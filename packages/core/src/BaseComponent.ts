@@ -134,6 +134,8 @@ export class BaseComponent<
       this.off(eventName)
     })
 
+    // FIXME: Session events should not be removed when the component is destroyed
+    // It should be removed when the Client is destroyed
     this.sessionEventNames().forEach((eventName) => {
       this.sessionEmitter.off(eventName)
     })
