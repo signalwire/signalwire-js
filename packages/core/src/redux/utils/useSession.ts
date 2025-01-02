@@ -31,7 +31,7 @@ export const useSession = (options: UseSessionOptions) => {
 
   const getSession = () => {
     if (!session) {
-      getLogger().warn('Custom worker started without the session')
+      getLogger().warn('Session does not exist!')
     }
     return session
   }

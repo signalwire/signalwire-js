@@ -16,6 +16,7 @@ export interface Client extends ClientContract<Client, ClientEvents> {
   execute: ClientAPI['execute']
   reauthenticate: ClientAPI['reauthenticate']
   runWorker: ClientAPI['runWorker']
+  session: ClientAPI['session']
 }
 
 export class ClientAPI extends BaseClient<ClientEvents> {
