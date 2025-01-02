@@ -4,7 +4,7 @@ description: Install dependencies for the monorepo
 inputs:
   NODE_VERSION:
     required: false
-    default: 18.x
+    default: 20.x
     description: Node version to use
 
 runs:

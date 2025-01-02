@@ -68,11 +68,11 @@ jobs:
       - name: Install deps
         uses: ./.github/actions/install
         with:
-          NODE_VERSION: 18.x
+          NODE_VERSION: 20.x
       - name: Build SDKs
         uses: ./.github/actions/build
         with:
-          NODE_VERSION: 18.x
+          NODE_VERSION: 20.x
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
