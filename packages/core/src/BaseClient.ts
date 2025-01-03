@@ -32,4 +32,14 @@ export class BaseClient<
   disconnect() {
     this.store.dispatch(destroyAction())
   }
+
+  override removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(
+    event?: T
+  ) {
+    this.sessionEventNames().forEach((eventName) => {
+      this.sessionEmitter.off(eventName)
+    })
+
+    return super.removeAllListeners(event)
+  }
 }
