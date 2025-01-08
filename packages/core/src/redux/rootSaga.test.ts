@@ -47,7 +47,7 @@ describe('sessionStatusWatcher', () => {
     userOptions,
   }
 
-  it('should fork startSaga on authSuccess action', () => {
+  it('should update the store and emit event on authSuccessAction', () => {
     const saga = testSaga(sessionStatusWatcher, options)
     saga.next().take(actions)
     saga
@@ -62,7 +62,7 @@ describe('sessionStatusWatcher', () => {
     saga.next(firstSagaTask).take(actions)
   })
 
-  it('should fork sessionAuthErrorSaga on authError action and emit destroyAction', () => {
+  it('should fork sessionAuthErrorSaga on authError action and emit event', () => {
     let runSaga = true
     const action = authErrorAction({
       error: { code: 123, message: 'Protocol Error' },
@@ -90,7 +90,7 @@ describe('sessionStatusWatcher', () => {
       })
   })
 
-  it('should emit session.expiring on session emitter', () => {
+  it('should emit session.expiring on authExpiringAction', () => {
     const saga = testSaga(sessionStatusWatcher, options)
 
     saga.next().take(actions)
@@ -102,7 +102,7 @@ describe('sessionStatusWatcher', () => {
     saga.next()
   })
 
-  it('should emit sessionReconnectingAction on the session emitter', () => {
+  it('should emit session.reconnecting on sessionReconnectingAction', () => {
     const saga = testSaga(sessionStatusWatcher, options)
 
     saga.next().take(actions)
@@ -133,11 +133,16 @@ describe('sessionSaga', () => {
     sessionEmitter.emit.mockClear()
   })
 
-  it('should create the session, the sessionChannel and fork watchers', () => {
+  it('should create the session, fork/cancel session watchers, and close channels', () => {
     const swEventChannel = createSwEventChannel()
     swEventChannel.close = jest.fn()
     const sessionChannel = createSessionChannel()
     sessionChannel.close = jest.fn()
+
+    const sessionChannelTask = createMockTask()
+    sessionChannelTask.cancel = jest.fn()
+    const sessionStatusTask = createMockTask()
+    sessionStatusTask.cancel = jest.fn()
 
     const saga = testSaga(sessionSaga, {
       initSession,
@@ -151,29 +156,38 @@ describe('sessionSaga', () => {
       sessionChannel,
       swEventChannel,
     })
+    saga.next(sessionChannelTask).fork(sessionStatusWatcher, {
+      session,
+      sessionEmitter,
+      sessionChannel,
+      userOptions,
+    })
 
-    const sessionStatusTask = createMockTask()
-    sessionStatusTask.cancel = jest.fn()
-    saga.next()
     saga.next(sessionStatusTask).take(destroyAction.type)
+    expect(session.connect).toHaveBeenCalledTimes(1)
+    expect(session.disconnect).toHaveBeenCalledTimes(0)
+
     saga.next().take(sessionDisconnectedAction.type)
+    expect(session.connect).toHaveBeenCalledTimes(1)
+    expect(session.disconnect).toHaveBeenCalledTimes(1)
+
     saga.next()
     expect(sessionEmitter.emit).toHaveBeenCalledWith('session.disconnected')
 
     saga.next().isDone()
     expect(sessionStatusTask.cancel).toHaveBeenCalledTimes(1)
-    expect(swEventChannel.close).not.toHaveBeenCalled()
-    expect(session.connect).toHaveBeenCalledTimes(1)
-    expect(session.disconnect).toHaveBeenCalledTimes(1)
+    expect(sessionChannelTask.cancel).toHaveBeenCalledTimes(1)
+    expect(swEventChannel.close).toHaveBeenCalled()
+    expect(sessionChannel.close).toHaveBeenCalled()
   })
 })
 
-describe('rootSaga as restartable', () => {
+describe('rootSaga', () => {
   const swEventChannel = createSwEventChannel()
   const sessionChannel = createSessionChannel()
-  const sessionEmitter = jest.fn()
+  const sessionEmitter = { emit: jest.fn() } as any
 
-  it('wait for initAction and fork sessionSaga', () => {
+  it('should wait for initAction and fork sessionSaga', () => {
     const session = {
       connect: jest.fn(),
     } as any
@@ -183,7 +197,6 @@ describe('rootSaga as restartable', () => {
     const saga = testSaga(
       rootSaga({
         initSession,
-        // @ts-expect-error
         sessionEmitter,
       }),
       {
@@ -192,7 +205,7 @@ describe('rootSaga as restartable', () => {
       }
     )
 
-    saga.next().take([initAction.type, reauthAction.type])
+    saga.next().take(initAction.type)
     saga.next().call(sessionSaga, {
       initSession,
       userOptions,
@@ -200,6 +213,50 @@ describe('rootSaga as restartable', () => {
       sessionEmitter,
     })
     saga.next().cancelled()
-    saga.next().take([initAction.type, reauthAction.type])
+  })
+
+  it('should reboot the saga after sessionSaga fails and react to initAction', () => {
+    const session = {
+      connect: jest.fn(),
+    } as any
+    const initSession = jest.fn().mockImplementation(() => session)
+
+    const userOptions = {
+      token: '',
+      emitter: jest.fn() as any,
+      logger: {
+        fatal: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        info: jest.fn(),
+        debug: jest.fn(),
+        trace: jest.fn(),
+      },
+    }
+    const channels = { swEventChannel, sessionChannel }
+
+    const saga = testSaga(rootSaga({ initSession, sessionEmitter }), {
+      userOptions,
+      channels,
+    })
+
+    const error = new Error('sessionSaga failed')
+
+    saga.next().take(initAction.type) // Wait for initAction
+    saga.next({ type: initAction.type }).call(sessionSaga, {
+      initSession,
+      sessionEmitter,
+      userOptions,
+      channels,
+    }) // Simulate call to sessionSaga
+    saga.throw(error) // Simulate sessionSaga throwing an error
+    saga.next() // Handle error and restart
+    expect(userOptions.logger.debug).toHaveBeenCalledWith('Reboot rootSaga') // Verify reboot logging
+    saga.next({ type: initAction.type }).call(sessionSaga, {
+      initSession,
+      sessionEmitter,
+      userOptions,
+      channels,
+    }) // Simulate the next initAction and restart sessionSaga
   })
 })

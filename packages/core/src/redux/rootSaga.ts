@@ -105,11 +105,10 @@ export function* sessionSaga({
   customTasks.forEach((task) => task.cancel())
 
   /**
-   * Do not close swEventChannel, and sessionChannel
-   * since we may need them again in case of reauth/reconnect
-   * swEventChannel.close()
-   * sessionChannel.close()
+   * Session disconnected: Close channels.
    */
+  swEventChannel.close()
+  sessionChannel.close()
 
   getLogger().debug('sessionSaga [ended]')
 }
@@ -244,15 +243,7 @@ export default (options: RootSagaOptions) => {
       /**
        * Wait for an initAction to start
        */
-      const action = yield take(initAction.type)
-
-      /**
-       * Update token only if the action contains a `token`
-       * (case of reauthAction with a new token)
-       */
-      if (action?.payload?.token) {
-        userOptions.token = action.payload.token
-      }
+      yield take(initAction.type)
 
       /**
        * Create Session and related sessionChannel to
@@ -276,7 +267,6 @@ export default (options: RootSagaOptions) => {
           getLogger().debug('rootSaga [cancelled]')
         }
         getLogger().debug('Reboot rootSaga')
-        // break
       }
     }
     getLogger().debug('rootSaga [finished]')
