@@ -38,6 +38,8 @@ export function* sessionChannelWatcher({
   swEventChannel,
   session,
 }: SessionSagaParams): SagaIterator {
+  getLogger().debug('sessionChannelWatcher [started]')
+
   function* swEventWorker(broadcastParams: SwEventParams) {
     yield put(swEventChannel, toInternalAction(broadcastParams))
 
@@ -78,6 +80,7 @@ export function* sessionChannelWatcher({
         return getLogger().debug(`Unknown message: ${method}`, action)
     }
   }
+
   const sessionChannelWorkerCatchable = createCatchableSaga<
     PayloadAction<JSONRPCRequest>
   >(sessionChannelWorker, (error) => {
@@ -96,7 +99,7 @@ export function* sessionChannelWatcher({
     } catch (error) {
       getLogger().error('sessionChannelWorker error:', error)
     } finally {
-      getLogger().debug('sessionChannelWorker finally')
+      getLogger().debug('sessionChannelWorker [finally]')
     }
   }
 }

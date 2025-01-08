@@ -11,7 +11,6 @@ export interface SignalWireContract {
   registerDevice: HTTPClient['registerDevice']
   unregisterDevice: HTTPClient['unregisterDevice']
   getSubscriberInfo: HTTPClient['getSubscriberInfo']
-  connect: WSClient['connect']
   disconnect: WSClient['disconnect']
   online: WSClient['online']
   offline: WSClient['offline']
@@ -101,10 +100,9 @@ export interface WSClientOptions extends FabricUserOptions {
  * Incoming Call Manager
  */
 
-export type InboundCallSource = 'websocket' | 'pushNotification'
+export type IncomingInviteSource = 'websocket' | 'pushNotification'
 
 export interface IncomingInvite {
-  source: InboundCallSource
   callID: string
   sdp: string
   caller_id_name: string
@@ -113,6 +111,10 @@ export interface IncomingInvite {
   callee_id_number: string
   display_direction: string
   nodeId: string
+}
+
+export interface IncomingInviteWithSource extends IncomingInvite {
+  source: IncomingInviteSource
 }
 
 export interface IncomingCallNotification {

@@ -36,7 +36,7 @@ export const configureJestStore = (
       emitter: new EventEmitter(),
     },
     SessionConstructor: BaseSession,
-    runSagaMiddleware: false,
+    runRootSaga: false,
     ...options,
   }) as SDKStore
 }

@@ -19,7 +19,7 @@ export const configureJestStore = () => {
       emitter: new EventEmitter(),
     },
     SessionConstructor: JWTSession,
-    runSagaMiddleware: false,
+    runRootSaga: false,
   })
 }
 

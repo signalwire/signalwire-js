@@ -453,8 +453,8 @@ export type InstanceMap = {
   get: <T extends unknown>(key: string) => T
   set: <T extends unknown>(key: string, value: T) => Map<string, T>
   remove: <T extends unknown>(key: string) => Map<string, T>
-  getAll: <T extends unknown>() => [string, T][]
-  deleteAll: <T extends unknown>() => Map<string, T>
+  getAll: () => [string, unknown][]
+  deleteAll: () => Map<string, unknown>
 }
 
 type SDKWorkerBaseParams<T> = {
@@ -468,7 +468,7 @@ type SDKWorkerBaseParams<T> = {
    */
   payload?: any
   initialState?: any
-  getSession: () => BaseSession | undefined
+  getSession: () => BaseSession | null
   instanceMap: InstanceMap
   dispatcher?: (
     type: any,

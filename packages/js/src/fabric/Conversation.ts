@@ -48,7 +48,7 @@ export class Conversation {
     this.httpClient = options.httpClient
     this.wsClient = options.wsClient
 
-    this.wsClient.clientApi.runWorker('conversationWorker', {
+    this.wsClient.runWorker('conversationWorker', {
       worker: conversationWorker,
       initialState: {
         conversation: this,
@@ -57,7 +57,7 @@ export class Conversation {
   }
 
   /** @internal */
-  public handleEvent(event: ConversationEventParams) {
+  handleEvent(event: ConversationEventParams) {
     if (event.subtype === 'chat') {
       const chatCallbacks = this.chatSubscriptions[event.conversation_id]
       if (chatCallbacks?.size) {

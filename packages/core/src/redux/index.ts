@@ -21,7 +21,7 @@ import { useInstanceMap } from './utils/useInstanceMap'
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
   SessionConstructor: SessionConstructor
-  runSagaMiddleware?: boolean
+  runRootSaga?: boolean
   preloadedState?: Partial<SDKState>
 }
 
@@ -36,7 +36,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     userOptions,
     SessionConstructor,
     preloadedState = {},
-    runSagaMiddleware = true,
+    runRootSaga = true,
   } = options
   const sagaMiddleware = createSagaMiddleware()
   const swEventChannel: SwEventChannel = multicastChannel()
@@ -85,7 +85,7 @@ const configureStore = (options: ConfigureStoreOptions) => {
     })
   }
 
-  if (runSagaMiddleware) {
+  if (runRootSaga) {
     const saga = rootSaga({
       initSession,
       sessionEmitter,

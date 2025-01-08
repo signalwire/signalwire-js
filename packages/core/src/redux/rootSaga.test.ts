@@ -3,7 +3,7 @@ import type { Task } from '@redux-saga/types'
 import { createMockTask } from '@redux-saga/testing-utils'
 import rootSaga, {
   sessionStatusWatcher,
-  initSessionSaga,
+  sessionSaga,
   sessionAuthErrorSaga,
 } from './rootSaga'
 import { sessionChannelWatcher } from './features/session/sessionSaga'
@@ -115,7 +115,7 @@ describe('sessionStatusWatcher', () => {
   })
 })
 
-describe('initSessionSaga', () => {
+describe('sessionSaga', () => {
   const session = {
     connect: jest.fn(),
     disconnect: jest.fn(),
@@ -139,7 +139,7 @@ describe('initSessionSaga', () => {
     const sessionChannel = createSessionChannel()
     sessionChannel.close = jest.fn()
 
-    const saga = testSaga(initSessionSaga, {
+    const saga = testSaga(sessionSaga, {
       initSession,
       userOptions,
       channels: { swEventChannel, sessionChannel },
@@ -173,7 +173,7 @@ describe('rootSaga as restartable', () => {
   const sessionChannel = createSessionChannel()
   const sessionEmitter = jest.fn()
 
-  it('wait for initAction and fork initSessionSaga', () => {
+  it('wait for initAction and fork sessionSaga', () => {
     const session = {
       connect: jest.fn(),
     } as any
@@ -193,7 +193,7 @@ describe('rootSaga as restartable', () => {
     )
 
     saga.next().take([initAction.type, reauthAction.type])
-    saga.next().call(initSessionSaga, {
+    saga.next().call(sessionSaga, {
       initSession,
       userOptions,
       channels,

@@ -1,7 +1,7 @@
 import { HTTPClient } from './HTTPClient'
-import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
 import { SignalWireContract, SignalWireClientParams } from './types'
+import { WSClient } from './WSClient'
 
 export const SignalWire = (
   params: SignalWireClientParams
@@ -10,15 +10,16 @@ export const SignalWire = (
     try {
       const httpClient = new HTTPClient(params)
       const wsClient = new WSClient(params)
-
       const conversation = new Conversation({ httpClient, wsClient })
+
+      // Connect the WebSocket and Authenticate the user
+      await wsClient.connect()
 
       resolve({
         httpHost: httpClient.httpHost,
         registerDevice: httpClient.registerDevice.bind(httpClient),
         unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
         getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
-        connect: wsClient.connect.bind(wsClient),
         disconnect: wsClient.disconnect.bind(wsClient),
         online: wsClient.online.bind(wsClient),
         offline: wsClient.offline.bind(wsClient),
