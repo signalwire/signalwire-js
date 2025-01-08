@@ -71,7 +71,7 @@ export class IncomingCallManager {
 
   handleIncomingInvite(incomingInvite: IncomingInviteWithSource) {
     if (incomingInvite.callID in this._pendingInvites) {
-      console.log(
+      this._client.logger.debug(
         `skiping nottification for pending invite to callID: ${incomingInvite.callID}`
       )
       return
