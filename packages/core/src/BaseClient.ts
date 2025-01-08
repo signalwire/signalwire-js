@@ -17,21 +17,13 @@ export class BaseClient<
    * @returns Promise that will resolve with the Client object.
    */
   connect(): Promise<this> {
-    return new Promise((resolve, _reject) => {
-      const authStatus = getAuthStatus(this.store.getState())
+    const authStatus = getAuthStatus(this.store.getState())
 
-      if (authStatus === 'authorized') {
-        resolve(this)
-      }
+    if (authStatus === 'unknown' || authStatus === 'unauthorized') {
+      this.store.dispatch(initAction())
+    }
 
-      this.session.once('session.connected', () => {
-        resolve(this)
-      })
-
-      if (authStatus === 'unknown' || authStatus === 'unauthorized') {
-        this.store.dispatch(initAction())
-      }
-    })
+    return this._waitUntilSessionAuthorized()
   }
 
   /**

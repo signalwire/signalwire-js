@@ -24,9 +24,7 @@ jest.mock('./WSClient', () => {
     WSClient: jest.fn().mockImplementation(() => {
       return {
         connect: jest.fn(),
-        clientApi: {
-          runWorker: jest.fn(),
-        },
+        runWorker: jest.fn(),
       }
     }),
   }
