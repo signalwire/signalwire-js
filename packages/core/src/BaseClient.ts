@@ -7,7 +7,7 @@ import { getAuthStatus } from './redux/features/session/sessionSelectors'
 export class BaseClient<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseComponent<EventTypes> {
-  constructor(public options: BaseClientOptions<EventTypes>) {
+  constructor(public options: BaseClientOptions) {
     super(options)
   }
 

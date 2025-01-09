@@ -1,5 +1,4 @@
 import type { SagaIterator } from '@redux-saga/types'
-import type { EventEmitter } from '../utils/EventEmitter'
 import { BaseSession } from '../BaseSession'
 import { SDKStore } from '../redux'
 import {
@@ -128,11 +127,6 @@ export interface UserOptions extends SessionOptions {
 }
 
 export interface InternalUserOptions extends UserOptions {
-  /**
-   * TODO: Create type containing all the possible types the
-   * emitter should be allowed to handle
-   */
-  emitter: EventEmitter<any>
   workers?: SDKWorker<any>[]
 }
 
@@ -141,12 +135,8 @@ export interface InternalUserOptions extends UserOptions {
  * the interface we use internally that extends the options provided.
  * @internal
  */
-export interface BaseClientOptions<
-  // TODO: review if having a default makes sense.
-  EventTypes extends EventEmitter.ValidEventTypes = any
-> extends UserOptions {
+export interface BaseClientOptions extends UserOptions {
   store: SDKStore
-  emitter: EventEmitter<EventTypes>
 }
 
 export interface BaseComponentOptions {
