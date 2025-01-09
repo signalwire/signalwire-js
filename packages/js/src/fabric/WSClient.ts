@@ -296,7 +296,6 @@ export class WSClient extends BaseClient<ClientEvents> {
   public async dial(params: DialParams) {
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
-        await this.connect()
         const call = this.buildOutboundCall(params)
         resolve(call)
       } catch (error) {
@@ -309,7 +308,6 @@ export class WSClient extends BaseClient<ClientEvents> {
   public async reattach(params: DialParams) {
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
-        await this.connect()
         const call = this.buildOutboundCall({ ...params, attach: true })
         resolve(call)
       } catch (error) {
@@ -330,9 +328,6 @@ export class WSClient extends BaseClient<ClientEvents> {
       const { params: jsonrpc, node_id: nodeId } = decrypted
       const { params } = jsonrpc
       try {
-        // Connect the client first
-        await this.connect()
-
         // Catch the error temporarly
         try {
           // Send verto.subscribe
@@ -374,7 +369,6 @@ export class WSClient extends BaseClient<ClientEvents> {
    */
   public async online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
-    await this.connect()
     return this.execute<unknown, void>({
       method: 'subscriber.online',
       params: {},

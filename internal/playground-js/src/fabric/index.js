@@ -257,6 +257,34 @@ window.connect = async () => {
   })
   window.__client = client
 
+  /**
+   * Following are the internal SDK session events
+   */
+  client.__wsClient.session.on('session.connected', () => {
+    console.debug('>> session.connected')
+  })
+  client.__wsClient.session.on('session.auth_error', () => {
+    console.debug('>> session.auth_error')
+  })
+  client.__wsClient.session.on('session.disconnecting', () => {
+    console.debug('>> session.disconnecting')
+  })
+  client.__wsClient.session.on('session.disconnected', () => {
+    console.debug('>> session.disconnected')
+  })
+  client.__wsClient.session.on('session.expiring', () => {
+    console.debug('>> session.expiring')
+  })
+  client.__wsClient.session.on('session.idle', () => {
+    console.debug('>> session.idle')
+  })
+  client.__wsClient.session.on('session.reconnecting', () => {
+    console.debug('>> session.reconnecting')
+  })
+  client.__wsClient.session.on('session.unknown', () => {
+    console.debug('>> session.unknown')
+  })
+
   connectStatus.innerHTML = 'Connected'
 
   btnConnect.classList.add('d-none')
