@@ -12,7 +12,7 @@ import type {
   GetAddressesResult,
   RegisterDeviceResult,
   GetSubscriberInfoResponse,
-} from './types'
+} from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'

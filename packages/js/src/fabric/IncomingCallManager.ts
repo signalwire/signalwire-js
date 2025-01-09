@@ -5,7 +5,7 @@ import {
   IncomingCallNotification,
   IncomingInvite,
   IncomingInviteWithSource,
-} from './types'
+} from './interfaces'
 import { WSClient } from './WSClient'
 
 interface IncomingCallManagerOptions {

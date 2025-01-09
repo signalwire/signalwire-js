@@ -16,15 +16,19 @@ import {
   FabricRoomSession,
   IncomingInvite,
   OnlineParams,
-  PushNotificationPayload,
+  HandlePushNotificationParams,
   WSClientOptions,
-} from './types'
+  HandlePushNotificationResult,
+} from './interfaces'
 import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
+import { WSClientContract } from './interfaces/wsClient'
 
-// TODO: Implement the class contract
-export class WSClient extends BaseClient<ClientEvents> {
+export class WSClient
+  extends BaseClient<ClientEvents>
+  implements WSClientContract
+{
   private _incomingCallManager: IncomingCallManager
 
   constructor(private wsClientOptions: WSClientOptions) {
@@ -317,41 +321,42 @@ export class WSClient extends BaseClient<ClientEvents> {
     })
   }
 
-  public handlePushNotification(payload: PushNotificationPayload) {
-    return new Promise(async (resolve, reject) => {
-      const { decrypted, type } = payload
-      if (type !== 'call_invite') {
-        this.logger.warn('Unknown notification type', payload)
-        return
-      }
-      this.logger.debug('handlePushNotification', payload)
-      const { params: jsonrpc, node_id: nodeId } = decrypted
-      const { params } = jsonrpc
-      try {
-        // Catch the error temporarly
-        try {
-          // Send verto.subscribe
-          await this.executeVertoSubscribe(params.callID, nodeId)
-        } catch (error) {
-          this.logger.warn('Verto Subscribe', error)
+  public handlePushNotification(params: HandlePushNotificationParams) {
+    return new Promise<HandlePushNotificationResult>(
+      async (resolve, reject) => {
+        const { decrypted, type } = params
+        if (type !== 'call_invite') {
+          this.logger.warn('Unknown notification type', params)
+          reject('Unknown notification type')
         }
+        this.logger.debug('handlePushNotification', params)
+        const {
+          params: { params: payload },
+          node_id: nodeId,
+        } = decrypted
+        try {
+          // Catch the error temporarly
+          try {
+            // Send verto.subscribe
+            await this.executeVertoSubscribe(payload.callID, nodeId)
+          } catch (error) {
+            this.logger.warn('Verto Subscribe', error)
+          }
 
-        this._incomingCallManager.handleIncomingInvite({
-          source: 'pushNotification',
-          nodeId,
-          ...params,
-        })
+          this._incomingCallManager.handleIncomingInvite({
+            source: 'pushNotification',
+            nodeId,
+            ...payload,
+          })
 
-        resolve({ resultType: 'inboundCall' })
-      } catch (error) {
-        reject(error)
+          resolve({ resultType: 'inboundCall' })
+        } catch (error) {
+          reject(error)
+        }
       }
-    })
+    )
   }
 
-  /**
-   * Allow user to update the auth token
-   */
   public updateToken(token: string) {
     return new Promise<void>((resolve, reject) => {
       this.once('session.auth_error', (error) => {

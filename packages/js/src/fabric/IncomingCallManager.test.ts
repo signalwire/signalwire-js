@@ -1,5 +1,9 @@
 import { IncomingCallManager } from './IncomingCallManager'
-import { CallParams, IncomingCallNotification, IncomingInvite } from './types'
+import {
+  CallParams,
+  IncomingCallNotification,
+  IncomingInvite,
+} from './interfaces'
 import { WSClient } from './WSClient'
 
 describe('IncomingCallManager', () => {

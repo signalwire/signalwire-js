@@ -1,6 +1,6 @@
 import { HTTPClient } from './HTTPClient'
 import { Conversation } from './Conversation'
-import { SignalWireContract, SignalWireClientParams } from './types'
+import { SignalWireContract, SignalWireClientParams } from './interfaces'
 import { WSClient } from './WSClient'
 
 export const SignalWire = (

@@ -4,7 +4,7 @@ import {
   GetAddressByIdParams,
   GetAddressResponse,
   GetAddressesResponse,
-} from '../types'
+} from '../interfaces'
 
 export const isGetAddressByNameParams = (
   obj: GetAddressParams
