@@ -234,6 +234,7 @@ const initializeMicAnalyzer = async (stream) => {
 function restoreUI() {
   connectStatus.innerHTML = 'Call Disconnected'
 
+  btnDial.classList.remove('d-none')
   btnDisconnect.classList.remove('d-none')
 
   inCallElements.forEach((button) => {
