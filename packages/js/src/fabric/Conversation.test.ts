@@ -35,13 +35,14 @@ describe('Conversation', () => {
   let httpClient: HTTPClient
   let wsClient: WSClient
 
-  beforeEach(() => {
+  beforeEach(async () => {
     httpClient = new HTTPClient({
       token: '....',
     })
     wsClient = new WSClient({
       token: '....',
     })
+    await wsClient.connect()
     conversation = new Conversation({ httpClient, wsClient })
   })
 
@@ -267,11 +268,10 @@ describe('Conversation', () => {
   })
 
   describe('subscribe', () => {
-    it('should connect the WS client and register the callback', async () => {
+    it('should register the callback', async () => {
       const callback = jest.fn()
       await conversation.subscribe(callback)
 
-      expect(wsClient.connect).toHaveBeenCalledTimes(1)
       expect(conversation['callbacks']).toContain(callback)
     })
 
@@ -287,7 +287,6 @@ describe('Conversation', () => {
       const callback3 = jest.fn()
       await conversation.subscribe(callback3)
 
-      expect(wsClient.connect).toHaveBeenCalledTimes(3)
       expect(conversation['callbacks']).toContain(callback1)
       expect(conversation['callbacks']).toContain(callback2)
       expect(conversation['callbacks']).toContain(callback3)
@@ -493,7 +492,7 @@ describe('Conversation', () => {
       expect(mockCallback).toHaveBeenCalledWith(valid)
     })
 
-    it('should connect the WS client and register the chat callback', async () => {
+    it('should register the chat callback', async () => {
       const addressId = 'abc'
       const mockCallback = jest.fn()
       await conversation.subscribeChatMessages({
@@ -501,7 +500,6 @@ describe('Conversation', () => {
         onMessage: mockCallback,
       })
 
-      expect(wsClient.connect).toHaveBeenCalledTimes(1)
       expect(conversation['chatSubscriptions'][addressId]).toContain(
         mockCallback
       )
