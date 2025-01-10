@@ -97,15 +97,29 @@
               <div class="d-grid gap-2">
                 <button
                   id="btnConnect"
-                  class="btn btn-success"
+                  class="btn btn-primary"
                   onclick="connect()"
                 >
                   Connect
                 </button>
                 <button
-                  id="btnDisconnect"
+                  id="btnDial"
+                  class="btn btn-success d-none"
+                  onclick="dial()"
+                >
+                  Dial Call
+                </button>
+                <button
+                  id="btnHangup"
                   class="btn btn-danger d-none"
                   onclick="hangup()"
+                >
+                  Hangup Call
+                </button>
+                <button
+                  id="btnDisconnect"
+                  class="btn btn-warning d-none"
+                  onclick="disconnect()"
                 >
                   Disconnect
                 </button>

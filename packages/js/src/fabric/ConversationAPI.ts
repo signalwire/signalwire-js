@@ -4,7 +4,7 @@ import {
   ConversationAPISendMessageParams,
   ConversationContract,
   ConversationResponse,
-} from './types'
+} from './interfaces'
 
 export class ConversationAPI implements ConversationContract {
   constructor(

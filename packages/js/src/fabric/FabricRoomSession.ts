@@ -29,6 +29,7 @@ import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { fabricWorker } from './workers'
 import { FabricRoomSessionMember } from './FabricRoomSessionMember'
+import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 
 export interface FabricRoomSession
   extends FabricRoomSessionContract,
@@ -37,7 +38,8 @@ export interface FabricRoomSession
     BaseConnectionContract<FabricRoomSessionEvents>,
     BaseComponentContract {}
 
-export interface FabricRoomSessionOptions extends BaseRoomSessionOptions {}
+export interface FabricRoomSessionOptions
+  extends Omit<BaseRoomSessionOptions, 'customSagas'> {}
 
 export class FabricRoomSessionConnection
   extends BaseRoomSessionConnection<FabricRoomSessionEvents>
@@ -106,6 +108,16 @@ export class FabricRoomSessionConnection
   private initWorker() {
     this.runWorker('fabricWorker', {
       worker: fabricWorker,
+    })
+
+    /**
+     * By default the SDK attaches the audio to
+     * an Audio element (regardless of "rootElement")
+     */
+    this.runWorker('makeAudioElement', {
+      worker: makeAudioElementSaga({
+        speakerId: this.options.speakerId,
+      }),
     })
   }
 
@@ -500,7 +512,6 @@ export const createFabricRoomSessionObject = (
     FabricRoomSession
   >({
     store: params.store,
-    customSagas: params.customSagas,
     Component: FabricRoomSessionConnection,
   })(params)
 

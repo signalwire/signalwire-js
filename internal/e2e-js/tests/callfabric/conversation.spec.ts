@@ -61,7 +61,6 @@ test.describe('Conversation Room', () => {
         return new Promise<ConversationMessageEventParams>(async (resolve) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
-          await client.connect()
           client.conversation.subscribe(resolve)
           const result = await client.conversation.getConversations()
           const convo = result.data.filter((c) => c.id == addressId)[0]

@@ -24,7 +24,7 @@ import type {
   JoinConversationResponse,
   JoinConversationResult,
   CoversationSubscribeResult,
-} from './types'
+} from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
@@ -48,7 +48,7 @@ export class Conversation {
     this.httpClient = options.httpClient
     this.wsClient = options.wsClient
 
-    this.wsClient.clientApi.runWorker('conversationWorker', {
+    this.wsClient.runWorker('conversationWorker', {
       worker: conversationWorker,
       initialState: {
         conversation: this,
@@ -57,7 +57,7 @@ export class Conversation {
   }
 
   /** @internal */
-  public handleEvent(event: ConversationEventParams) {
+  handleEvent(event: ConversationEventParams) {
     if (event.subtype === 'chat') {
       const chatCallbacks = this.chatSubscriptions[event.conversation_id]
       if (chatCallbacks?.size) {
@@ -255,9 +255,6 @@ export class Conversation {
   public async subscribe(
     callback: CoversationSubscribeCallback
   ): Promise<CoversationSubscribeResult> {
-    // Connect the websocket client first
-    await this.wsClient.connect()
-
     this.callbacks.add(callback)
 
     return {
@@ -269,9 +266,6 @@ export class Conversation {
     params: ConversationChatMessagesSubscribeParams
   ): Promise<ConversationChatMessagesSubscribeResult> {
     const { addressId, onMessage } = params
-
-    // Connect the websocket client first
-    await this.wsClient.connect()
 
     if (!(addressId in this.chatSubscriptions)) {
       this.chatSubscriptions[addressId] = new Set()

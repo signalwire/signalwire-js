@@ -1,3 +1,3 @@
 export * from './SignalWire'
-export * from './types'
+export * from './interfaces'
 export { isFabricRoomSession } from './FabricRoomSession'

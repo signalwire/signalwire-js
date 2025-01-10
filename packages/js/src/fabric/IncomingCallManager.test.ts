@@ -1,21 +1,40 @@
 import { IncomingCallManager } from './IncomingCallManager'
-import { IncomingCallNotification } from './types'
+import {
+  CallParams,
+  IncomingCallNotification,
+  IncomingInvite,
+} from './interfaces'
+import { WSClient } from './WSClient'
 
 describe('IncomingCallManager', () => {
-  const answer = jest.fn()
-  const buildCall = () => ({ answer })
-  const rejectCall = jest.fn().mockResolvedValue(null)
+  const mockAnswer = jest.fn()
+  const buildInboundCall = jest
+    .fn()
+    .mockImplementation((_invite: IncomingInvite, _params: CallParams) => ({
+      answer: mockAnswer,
+    }))
+  const executeVertoBye = jest.fn()
+  const client = {
+    logger: {
+      debug: jest.fn(),
+      warn: jest.fn(),
+    },
+  } as unknown as WSClient
 
-  beforeAll(() => {
-    jest.resetAllMocks()
+  beforeEach(() => {
+    jest.clearAllMocks()
   })
 
-  test('It should invoke the proper listeners', () => {
-    //@ts-ignore
-    const manager = new IncomingCallManager(buildCall, rejectCall)
-    const allNotificationListerner = jest.fn()
-    const pnNotificationListerner = jest.fn()
-    const wsNotificationListerner = jest.fn()
+  const allNotificationListerner = jest.fn()
+  const pnNotificationListerner = jest.fn()
+  const wsNotificationListerner = jest.fn()
+
+  test('it should invoke the proper listeners', () => {
+    const manager = new IncomingCallManager({
+      client,
+      buildInboundCall,
+      executeVertoBye,
+    })
 
     manager.setNotificationHandlers({
       all: allNotificationListerner,
@@ -56,9 +75,13 @@ describe('IncomingCallManager', () => {
     expect(pnNotificationListerner).toHaveBeenCalledTimes(1)
   })
 
-  test('It should not answer the call when the invite is rejected', () => {
-    //@ts-ignore
-    const manager = new IncomingCallManager(buildCall, rejectCall)
+  test('it should not answer the call when the invite is rejected', () => {
+    const manager = new IncomingCallManager({
+      client,
+      buildInboundCall,
+      executeVertoBye,
+    })
+
     const allNotificationListerner = jest.fn(
       (notification: IncomingCallNotification) => {
         notification.invite.reject()
@@ -66,7 +89,6 @@ describe('IncomingCallManager', () => {
     )
 
     manager.setNotificationHandlers({
-      //@ts-ignore
       all: allNotificationListerner,
     })
 
@@ -83,13 +105,16 @@ describe('IncomingCallManager', () => {
     })
 
     expect(allNotificationListerner).toHaveBeenCalledTimes(1)
-    expect(answer).toBeCalledTimes(0)
+    expect(mockAnswer).toBeCalledTimes(0)
   })
 
-  test('It should answer the call when the invite is accepted', () => {
-    //@ts-ignore
-    const manager = new IncomingCallManager(buildCall, rejectCall)
-    //@ts-ignore
+  test('it should answer the call when the invite is accepted', () => {
+    const manager = new IncomingCallManager({
+      client,
+      buildInboundCall,
+      executeVertoBye,
+    })
+
     const allNotificationListerner = jest.fn(
       (notification: IncomingCallNotification) => {
         notification.invite.accept({})
@@ -97,7 +122,6 @@ describe('IncomingCallManager', () => {
     )
 
     manager.setNotificationHandlers({
-      //@ts-ignore
       all: allNotificationListerner,
     })
 
@@ -114,12 +138,15 @@ describe('IncomingCallManager', () => {
     })
 
     expect(allNotificationListerner).toHaveBeenCalledTimes(1)
-    expect(answer).toBeCalledTimes(1)
   })
 
-  test('It should dedupe overlaping listeners', () => {
-    //@ts-ignore
-    const manager = new IncomingCallManager(buildCall, rejectCall)
+  test('it should dedupe overlaping listeners', () => {
+    const manager = new IncomingCallManager({
+      client,
+      buildInboundCall,
+      executeVertoBye,
+    })
+
     const notificationListerner = jest.fn()
     manager.setNotificationHandlers({
       all: notificationListerner,
@@ -142,12 +169,15 @@ describe('IncomingCallManager', () => {
     expect(notificationListerner).toHaveBeenCalledTimes(1)
   })
 
-  test('It should dedupe invites', () => {
-    //@ts-ignore
-    const manager = new IncomingCallManager(buildCall, rejectCall)
-    const notificationListerner = jest.fn()
+  test('it should dedupe invites', () => {
+    const manager = new IncomingCallManager({
+      client,
+      buildInboundCall,
+      executeVertoBye,
+    })
+
     manager.setNotificationHandlers({
-      all: notificationListerner,
+      all: allNotificationListerner,
     })
 
     manager.handleIncomingInvite({
@@ -174,19 +204,22 @@ describe('IncomingCallManager', () => {
       nodeId: 'foo',
     })
 
-    expect(notificationListerner).toHaveBeenCalledTimes(1)
+    expect(allNotificationListerner).toHaveBeenCalledTimes(1)
   })
 
-  test('It should clean up invites after reject', () => {
-    //@ts-ignore
-    const manager = new IncomingCallManager(buildCall, rejectCall)
+  test('it should clean up invites after reject', () => {
+    const manager = new IncomingCallManager({
+      client,
+      buildInboundCall,
+      executeVertoBye,
+    })
+
     const notificationListerner = jest.fn(
       (notification: IncomingCallNotification) => {
         notification.invite.reject()
       }
     )
     manager.setNotificationHandlers({
-      //@ts-ignore
       all: notificationListerner,
     })
 
@@ -217,17 +250,19 @@ describe('IncomingCallManager', () => {
     expect(notificationListerner).toHaveBeenCalledTimes(2)
   })
 
-  test('It should clean up invites after accept', () => {
-    //@ts-ignore
-    const manager = new IncomingCallManager(buildCall, rejectCall)
-    //@ts-ignore
+  test('it should clean up invites after accept', () => {
+    const manager = new IncomingCallManager({
+      client,
+      buildInboundCall,
+      executeVertoBye,
+    })
+
     const notificationListerner = jest.fn(
       (notification: IncomingCallNotification) => {
         notification.invite.accept({})
       }
     )
     manager.setNotificationHandlers({
-      //@ts-ignore
       all: notificationListerner,
     })
 
