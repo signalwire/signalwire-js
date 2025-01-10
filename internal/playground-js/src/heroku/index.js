@@ -250,7 +250,6 @@ window.connect = () => {
   })
 
   const handler = (params) => {
-    console.warn('>> Debug', params)
     // Set or update the query parameter 'room' with value room.name
     const url = new URL(window.location.href)
     url.searchParams.set('room', params.room.name)

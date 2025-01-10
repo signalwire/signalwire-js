@@ -228,7 +228,6 @@ export class BaseSession {
   protected destroySocket() {
     if (this._socket) {
       this._socket.close()
-      this._socket = null
     }
   }
 
@@ -413,6 +412,9 @@ export class BaseSession {
 
   protected _onSocketClose(event: SWCloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
+    this._removeSocketListeners()
+    this._socket = null
+
     if (this._status !== 'disconnected') {
       this._status = 'reconnecting'
       this.dispatch(sessionReconnectingAction())
@@ -422,7 +424,6 @@ export class BaseSession {
         this.connect()
       }, reconnectDelay())
     }
-    this._socket = null
   }
 
   private _clearTimers() {
@@ -617,7 +618,6 @@ export class BaseSession {
         status === 'disconnected' ? 'unauthorized' : 'unknown'
       )
     )
-    this._removeSocketListeners()
     this.destroySocket()
     this._checkCurrentStatus()
   }
