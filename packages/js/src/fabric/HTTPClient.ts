@@ -12,6 +12,7 @@ import type {
   GetAddressesResult,
   RegisterDeviceResult,
   GetSubscriberInfoResponse,
+  GetSubscriberInfoResult,
 } from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -21,11 +22,12 @@ import {
   isGetAddressByNameParams,
   isGetAddressesResponse,
 } from './utils/typeGuard'
+import { HTTPClientContract } from './interfaces/httpClient'
 
 type JWTHeader = { ch?: string; typ?: string }
 
 // TODO: extends from a Base class to share from core
-export class HTTPClient {
+export class HTTPClient implements HTTPClientContract {
   private httpClient: CreateHttpClient
 
   constructor(public options: UserOptions) {
@@ -52,7 +54,7 @@ export class HTTPClient {
         getLogger().debug('[JWTSession] error decoding the JWT')
       }
     }
-    const host = this.options.host || decodedJwt?.ch
+    const host = decodedJwt?.ch || this.options.host
     if (!host) {
       return 'fabric.signalwire.com'
     }
@@ -132,12 +134,12 @@ export class HTTPClient {
     const { id } = params
 
     const path = `/subscriber/devices/${id}` as const
-    return await this.httpClient<void>(path, {
+    await this.httpClient<void>(path, {
       method: 'DELETE',
     })
   }
 
-  public async getSubscriberInfo() {
+  public async getSubscriberInfo(): Promise<GetSubscriberInfoResult> {
     let path = '/api/fabric/subscriber/info'
 
     const { body } = await this.httpClient<GetSubscriberInfoResponse>(path)

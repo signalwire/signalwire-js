@@ -1,19 +1,14 @@
 import { Conversation } from '../Conversation'
-import { HTTPClient } from '../HTTPClient'
 import { Address } from './address'
+import { HTTPClientContract } from './httpClient'
 import { WSClientContract, WSClientOptions } from './wsClient'
 
 export interface SignalWireClientParams extends WSClientOptions {}
 
-export interface SignalWireContract extends WSClientContract {
-  httpHost: HTTPClient['httpHost']
-  registerDevice: HTTPClient['registerDevice']
-  unregisterDevice: HTTPClient['unregisterDevice']
-  getSubscriberInfo: HTTPClient['getSubscriberInfo']
-  address: {
-    getAddresses: HTTPClient['getAddresses']
-    getAddress: HTTPClient['getAddress']
-  }
+export interface SignalWireContract
+  extends WSClientContract,
+    Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
+  address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress'>
   conversation: {
     getConversations: Conversation['getConversations']
     getMessages: Conversation['getMessages']
@@ -84,6 +79,7 @@ export type GetSubscriberInfoResult = GetSubscriberInfoResponse
 export * from './address'
 export * from './conversation'
 export * from './device'
+export * from './httpClient'
 export * from './incomingCallManager'
 export * from './wsClient'
 

@@ -16,7 +16,6 @@ export const SignalWire = (
       await wsClient.connect()
 
       resolve({
-        httpHost: httpClient.httpHost,
         registerDevice: httpClient.registerDevice.bind(httpClient),
         unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
         getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),

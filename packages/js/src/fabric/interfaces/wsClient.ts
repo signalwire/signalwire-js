@@ -33,7 +33,7 @@ export interface WSClientContract {
   /**
    * Allow the user to update the authentication token.
    *
-   * @param token The new authentication token.
+   * @param token string: The new authentication token.
    * @returns A promise that resolves when the token is successfully updated.
    */
   updateToken(token: string): Promise<void>
