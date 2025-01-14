@@ -256,7 +256,7 @@ export class BaseSession {
    * Clear the Session and close the WS connection.
    * @return void
    */
-  async disconnect() {
+  disconnect() {
     /**
      * Return if there is not a _socket instance or
      * if it's already in closing state.
@@ -413,7 +413,6 @@ export class BaseSession {
   protected _onSocketClose(event: SWCloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
     this._removeSocketListeners()
-    this._socket = null
 
     if (this._status !== 'disconnected') {
       this._status = 'reconnecting'
@@ -424,6 +423,8 @@ export class BaseSession {
         this.connect()
       }, reconnectDelay())
     }
+
+    this._socket = null
   }
 
   private _clearTimers() {

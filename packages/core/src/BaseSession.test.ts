@@ -29,6 +29,7 @@ describe('BaseSession', () => {
 
   let ws: WS
   let session: BaseSession
+
   beforeEach(() => {
     ws = new WS(host)
     // Respond to RPCs
@@ -56,6 +57,7 @@ describe('BaseSession', () => {
     session.CloseEventConstructor = SWCloseEvent
     session.dispatch = jest.fn()
   })
+
   afterEach(() => {
     WS.clean()
   })
@@ -74,6 +76,9 @@ describe('BaseSession', () => {
 
     session.disconnect()
 
+    // Wait for the close event
+    await ws.closed
+
     expect(session.connected).toBe(false)
     expect(session.closed).toBe(true)
   })
@@ -83,6 +88,9 @@ describe('BaseSession', () => {
     await ws.connected
 
     await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
+
+    session.disconnect()
+    await ws.closed
   })
 
   it('should set idle mode on signalwire.disconnect', async () => {
@@ -102,6 +110,9 @@ describe('BaseSession', () => {
     const response = RPCDisconnectResponse(request.id)
     await expect(ws).toReceiveMessage(JSON.stringify(response))
     expect(session.status).toEqual('idle')
+
+    session.disconnect()
+    await ws.closed
   })
 
   describe('signalwire.event messages', () => {
@@ -124,6 +135,9 @@ describe('BaseSession', () => {
       expect(session.dispatch).toHaveBeenCalledWith(
         socketMessageAction(request)
       )
+
+      session.disconnect()
+      await ws.closed
     })
 
     it('should send acknowledge message on signalwire.event', async () => {
@@ -148,6 +162,9 @@ describe('BaseSession', () => {
           result: {},
         })
       )
+
+      session.disconnect()
+      await ws.closed
     })
   })
 
@@ -164,6 +181,9 @@ describe('BaseSession', () => {
 
       const response = RPCPingResponse(ping.id, ping.params.timestamp)
       await expect(ws).toReceiveMessage(JSON.stringify(response))
+
+      session.disconnect()
+      await ws.closed
     })
 
     it('should close the connection if no signalwire.ping comes within _checkPingDelay', async () => {
@@ -181,6 +201,9 @@ describe('BaseSession', () => {
       await wait(10)
       expect(session.connected).toBe(false)
       expect(session.closed).toBe(true)
+
+      session.disconnect()
+      await ws.closed
     })
   })
 })
