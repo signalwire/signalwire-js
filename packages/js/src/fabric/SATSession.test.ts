@@ -42,6 +42,7 @@ describe('SATSession', () => {
     session.CloseEventConstructor = SWCloseEvent
     session.dispatch = jest.fn()
   })
+
   afterEach(() => {
     WS.clean()
   })
@@ -57,7 +58,6 @@ describe('SATSession', () => {
     )
 
     session.disconnect()
-    await ws.closed
 
     expect(session.connected).toBe(false)
     expect(session.closed).toBe(true)

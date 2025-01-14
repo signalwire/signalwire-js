@@ -228,6 +228,18 @@ export class BaseSession {
   protected destroySocket() {
     if (this._socket) {
       this._socket.close()
+
+      /**
+       * Since the real `close` event can be delayed by OS/Browser,
+       * trigger it manually to to perform the cleanup.
+       */
+      this.wsCloseHandler(
+        new this.CloseEventConstructor('close', {
+          reason: 'Client-side closed',
+        })
+      )
+
+      this._socket = null
     }
   }
 
@@ -412,8 +424,6 @@ export class BaseSession {
 
   protected _onSocketClose(event: SWCloseEvent) {
     this.logger.debug('_onSocketClose', event.type, event.code, event.reason)
-    this._removeSocketListeners()
-
     if (this._status !== 'disconnected') {
       this._status = 'reconnecting'
       this.dispatch(sessionReconnectingAction())
@@ -423,7 +433,6 @@ export class BaseSession {
         this.connect()
       }, reconnectDelay())
     }
-
     this._socket = null
   }
 
@@ -619,6 +628,7 @@ export class BaseSession {
         status === 'disconnected' ? 'unauthorized' : 'unknown'
       )
     )
+    this._removeSocketListeners()
     this.destroySocket()
     this._checkCurrentStatus()
   }

@@ -76,9 +76,6 @@ describe('BaseSession', () => {
 
     session.disconnect()
 
-    // Wait for the close event
-    await ws.closed
-
     expect(session.connected).toBe(false)
     expect(session.closed).toBe(true)
   })
@@ -90,7 +87,6 @@ describe('BaseSession', () => {
     await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
 
     session.disconnect()
-    await ws.closed
   })
 
   it('should set idle mode on signalwire.disconnect', async () => {
@@ -112,7 +108,6 @@ describe('BaseSession', () => {
     expect(session.status).toEqual('idle')
 
     session.disconnect()
-    await ws.closed
   })
 
   describe('signalwire.event messages', () => {
@@ -137,7 +132,6 @@ describe('BaseSession', () => {
       )
 
       session.disconnect()
-      await ws.closed
     })
 
     it('should send acknowledge message on signalwire.event', async () => {
@@ -164,7 +158,6 @@ describe('BaseSession', () => {
       )
 
       session.disconnect()
-      await ws.closed
     })
   })
 
@@ -183,7 +176,6 @@ describe('BaseSession', () => {
       await expect(ws).toReceiveMessage(JSON.stringify(response))
 
       session.disconnect()
-      await ws.closed
     })
 
     it('should close the connection if no signalwire.ping comes within _checkPingDelay', async () => {
@@ -203,7 +195,6 @@ describe('BaseSession', () => {
       expect(session.closed).toBe(true)
 
       session.disconnect()
-      await ws.closed
     })
   })
 })
