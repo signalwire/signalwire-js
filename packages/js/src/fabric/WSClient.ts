@@ -30,6 +30,7 @@ export class WSClient
   implements WSClientContract
 {
   private _incomingCallManager: IncomingCallManager
+  private _disconnected: boolean = false
 
   constructor(private wsClientOptions: WSClientOptions) {
     const client = createWSClient(wsClientOptions)
@@ -288,9 +289,14 @@ export class WSClient
 
   public override disconnect() {
     return new Promise<void>((resolve, _reject) => {
+      if (this._disconnected) {
+        resolve()
+      }
+
       this.session.once('session.disconnected', () => {
         this.destroy()
         resolve()
+        this._disconnected = true
       })
 
       super.disconnect()

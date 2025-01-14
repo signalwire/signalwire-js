@@ -38,7 +38,11 @@ const configureStore = (options: ConfigureStoreOptions) => {
     preloadedState = {},
     runRootSaga = true,
   } = options
-  const sagaMiddleware = createSagaMiddleware()
+
+  const sagaMiddleware = createSagaMiddleware({
+    // @ts-expect-error For testing purposes only
+    sagaMonitor: userOptions.sagaMonitor,
+  })
   const swEventChannel: SwEventChannel = multicastChannel()
   const sessionChannel: SessionChannel = channel()
   /**

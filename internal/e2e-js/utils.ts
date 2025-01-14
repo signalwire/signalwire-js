@@ -420,21 +420,61 @@ export const leaveRoom = async (page: Page) => {
 
 // #region Utilities for Call Fabric client
 
-export const createCFClient = async (page: Page) => {
+interface CreateCFClientParams {
+  attachSagaMonitor?: boolean
+}
+
+export const createCFClient = async (
+  page: Page,
+  params?: CreateCFClientParams
+) => {
   const sat = await createTestSATToken()
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
     process.exit(4)
   }
 
+  const { attachSagaMonitor = false } = params || {}
+
   const swClient = await page.evaluate(
     async (options) => {
+      const _runningWorkers: any[] = []
+      // @ts-expect-error
+      window._runningWorkers = _runningWorkers
+
+      const addTask = (task: any) => {
+        if (!_runningWorkers.includes(task)) {
+          _runningWorkers.push(task)
+        }
+      }
+
+      const removeTask = (task: any) => {
+        const index = _runningWorkers.indexOf(task)
+        if (index > -1) {
+          _runningWorkers.splice(index, 1)
+        }
+      }
+
+      const sagaMonitor = {
+        effectResolved: (_effectId: number, result: any) => {
+          if (result?.toPromise) {
+            addTask(result)
+
+            // Remove the task when it completes or is cancelled
+            result.toPromise().finally(() => {
+              removeTask(result)
+            })
+          }
+        },
+      }
+
       // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         debug: { logWsTraffic: true },
+        ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
       // @ts-expect-error
@@ -444,6 +484,7 @@ export const createCFClient = async (page: Page) => {
     {
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
+      attachSagaMonitor,
     }
   )
 
@@ -519,27 +560,15 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
 
 export const disconnectClient = (page: Page) => {
   return page.evaluate(async () => {
-    return new Promise<void>((resolve, _reject) => {
-      // @ts-expect-error
-      const client: SignalWireContract = window._client
-      console.log('Fixture client', client)
-      // @ts-expect-error
-      if (!client || !client.__wsClient.sessionConnected) {
-        console.log('Client not connected')
-        resolve()
-      } else {
-        // @ts-expect-error
-        client.__wsClient.clientApi.sessionEmitter.on(
-          'session.disconnected',
-          () => {
-            console.log('Client has been disconnected')
-            resolve()
-          }
-        )
-        console.log('Disconnecting the client')
-        client.disconnect()
-      }
-    })
+    // @ts-expect-error
+    const client: SignalWireContract = window._client
+
+    if (!client) {
+      console.log('Client is not available')
+    } else {
+      await client.disconnect()
+      console.log('Client disconnected')
+    }
   })
 }
 
