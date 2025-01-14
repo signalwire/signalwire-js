@@ -25,12 +25,13 @@ export class SATSession extends JWTSession {
     return undefined
   }
 
-  /**
-   * The Call Fabric SDK does not attach any timer and
-   * does not emit any events to inform the user about the token expiry.
-   */
   override async _checkTokenExpiration() {
-    // no-op
+    /**
+     * noop
+     *
+     * The Call Fabric SDK does not attach any timer and
+     * does not emit any events to inform the user about the token expiry.
+     */
   }
 
   /**

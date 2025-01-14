@@ -50,6 +50,12 @@ export function* sessionChannelWatcher({
        */
       return
     }
+
+    /**
+     * After connecting to the SignalWire network, it sends the `authorization_state`
+     * through the `signalwire.authorization.state` event. We store this value in
+     * the storage since it is required for reconnect.
+     */
     if (isSwAuthorizationState(broadcastParams)) {
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
       return

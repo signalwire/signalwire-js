@@ -263,8 +263,8 @@ window.connect = async () => {
   client.__wsClient.session.on('session.connected', () => {
     console.debug('>> session.connected')
   })
-  client.__wsClient.session.on('session.auth_error', () => {
-    console.debug('>> session.auth_error')
+  client.__wsClient.session.on('session.auth_error', (error) => {
+    console.debug('>> session.auth_error', error)
   })
   client.__wsClient.session.on('session.disconnecting', () => {
     console.debug('>> session.disconnecting')
