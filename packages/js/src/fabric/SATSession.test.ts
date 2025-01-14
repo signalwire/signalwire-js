@@ -57,6 +57,7 @@ describe('SATSession', () => {
     )
 
     session.disconnect()
+    await ws.closed
 
     expect(session.connected).toBe(false)
     expect(session.closed).toBe(true)

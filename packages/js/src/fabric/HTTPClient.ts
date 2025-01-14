@@ -54,7 +54,8 @@ export class HTTPClient implements HTTPClientContract {
         getLogger().debug('[JWTSession] error decoding the JWT')
       }
     }
-    const host = decodedJwt?.ch || this.options.host
+    // Shouldn't this be other way around?
+    const host = this.options.host || decodedJwt?.ch
     if (!host) {
       return 'fabric.signalwire.com'
     }

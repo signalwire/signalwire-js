@@ -460,7 +460,7 @@ window.dial = async ({ reattach = false } = {}) => {
 
     btnConnect.classList.add('d-none')
     btnDial.classList.add('d-none')
-    btnDisconnect.classList.remove('d-none')
+    btnDisconnect.classList.add('d-none')
 
     inCallElements.forEach((button) => {
       button.classList.remove('d-none')
