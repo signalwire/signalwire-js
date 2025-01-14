@@ -177,6 +177,7 @@ export const createTestRoomSession = async (
     expectToJoin?: boolean
     roomSessionOptions?: Record<string, any>
     shouldPassRootElement?: boolean
+    attachSagaMonitor?: boolean
   }
 ) => {
   const vrt = await createTestVRTToken(options.vrt)
@@ -186,6 +187,33 @@ export const createTestRoomSession = async (
   }
   const roomSession: Video.RoomSession = await page.evaluate(
     (options) => {
+      const _runningWorkers: any[] = []
+      // @ts-expect-error
+      window._runningWorkers = _runningWorkers
+      const addTask = (task: any) => {
+        if (!_runningWorkers.includes(task)) {
+          _runningWorkers.push(task)
+        }
+      }
+      const removeTask = (task: any) => {
+        const index = _runningWorkers.indexOf(task)
+        if (index > -1) {
+          _runningWorkers.splice(index, 1)
+        }
+      }
+
+      const sagaMonitor = {
+        effectResolved: (_effectId: number, result: any) => {
+          if (result?.toPromise) {
+            addTask(result)
+            // Remove the task when it completes or is cancelled
+            result.toPromise().finally(() => {
+              removeTask(result)
+            })
+          }
+        },
+      }
+
       // @ts-expect-error
       const Video = window._SWJS.Video
       const roomSession = new Video.RoomSession({
@@ -198,6 +226,7 @@ export const createTestRoomSession = async (
         debug: {
           logWsTraffic: true, //Boolean(options.CI),
         },
+        ...(options.attachSagaMonitor && { sagaMonitor }),
         ...options.roomSessionOptions,
       })
 
@@ -223,6 +252,7 @@ export const createTestRoomSession = async (
       CI: process.env.CI,
       roomSessionOptions: options.roomSessionOptions,
       shouldPassRootElement: options.shouldPassRootElement ?? true,
+      attachSagaMonitor: options.attachSagaMonitor ?? false,
     }
   )
 
@@ -441,13 +471,11 @@ export const createCFClient = async (
       const _runningWorkers: any[] = []
       // @ts-expect-error
       window._runningWorkers = _runningWorkers
-
       const addTask = (task: any) => {
         if (!_runningWorkers.includes(task)) {
           _runningWorkers.push(task)
         }
       }
-
       const removeTask = (task: any) => {
         const index = _runningWorkers.indexOf(task)
         if (index > -1) {
@@ -459,7 +487,6 @@ export const createCFClient = async (
         effectResolved: (_effectId: number, result: any) => {
           if (result?.toPromise) {
             addTask(result)
-
             // Remove the task when it completes or is cancelled
             result.toPromise().finally(() => {
               removeTask(result)
