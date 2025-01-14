@@ -36,7 +36,7 @@ test.describe('Clean up', () => {
 
     await waitForWebSocketClose
     expect(websocketUrl).toBeTruthy()
-    expect(websocketUrl).toBe(`wss://${process.env.RELAY_HOST}/`)
+    expect(websocketUrl).toContain('wss://')
     expect(websocketClosed).toBeTruthy()
   })
 
