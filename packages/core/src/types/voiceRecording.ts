@@ -11,15 +11,10 @@ import {
   MapToPubSubShape,
 } from '..'
 
-/**
- * ==========
- * Server side Events
- * ==========
- */
+// ────────────────────────────────────────────────────────────
+//  Server side Events
+// ────────────────────────────────────────────────────────────
 
-/**
- * 'calling.call.record'
- */
 export type CallingCallRecordState =
   | 'recording'
   | 'paused'
@@ -42,20 +37,17 @@ export interface CallingCallRecordEventParams {
   record: any // FIXME:
 }
 
+/**
+ * 'calling.call.record'
+ */
 export interface CallingCallRecordEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallRecord>
   params: CallingCallRecordEventParams
 }
 
-export interface CallingCallRecordPauseMethodParams {
-  behavior?: 'silence' | 'skip'
-}
-
-/**
- * ==========
- * SDK side Events
- * ==========
- */
+// ────────────────────────────────────────────────────────────
+//  SDK side Events
+// ────────────────────────────────────────────────────────────
 
 /**
  * List of public event names
@@ -95,15 +87,19 @@ export interface VoiceCallRecordingFailedEvent extends SwEvent {
   params: CallingCallRecordEventParams & { tag: string }
 }
 
-/**
- * Voice call record methods and params
- */
+// ────────────────────────────────────────────────────────────
+//  Voice Recording Methods & Param Interfaces
+// ────────────────────────────────────────────────────────────
 
 export type VoiceCallRecordMethod =
   | 'calling.record'
   | 'calling.record.pause'
   | 'calling.record.resume'
   | 'calling.record.stop'
+
+export interface CallingCallRecordPauseMethodParams {
+  behavior?: 'silence' | 'skip'
+}
 
 export interface VoiceCallRecordMethodParams {
   audio: {
@@ -118,9 +114,10 @@ export interface VoiceCallRecordMethodParams {
   }
 }
 
-/**
- * Public Contract for a VoiceCallRecording
- */
+// ────────────────────────────────────────────────────────────
+//  Voice CallRecording Contract, Entity, Methods
+// ────────────────────────────────────────────────────────────
+
 export interface VoiceCallRecordingContract {
   /** Unique id for this recording */
   readonly id: string
@@ -156,6 +153,10 @@ export type VoiceCallRecordingEntity =
  */
 export type VoiceCallRecordingMethods =
   OnlyFunctionProperties<VoiceCallRecordingContract>
+
+// ────────────────────────────────────────────────────────────
+//  Final “Event” Exports
+// ────────────────────────────────────────────────────────────
 
 export type VoiceCallRecordingEvent =
   // Server Events

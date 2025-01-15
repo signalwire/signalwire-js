@@ -13,15 +13,10 @@ import {
 } from '.'
 import { MapToPubSubShape } from '../redux/interfaces'
 
-/**
- * ==========
- * Server side Events
- * ==========
- */
+// ────────────────────────────────────────────────────────────
+//  Server side Events
+// ────────────────────────────────────────────────────────────
 
-/**
- * 'calling.call.play' event
- */
 export type CallingCallPlayState = 'playing' | 'paused' | 'error' | 'finished'
 
 export type CallingCallPlayEndState = Exclude<
@@ -36,16 +31,17 @@ export interface CallingCallPlayEventParams {
   state: CallingCallPlayState
 }
 
+/**
+ * 'calling.call.play'
+ */
 export interface CallingCallPlayEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallPlay>
   params: CallingCallPlayEventParams
 }
 
-/**
- * ==========
- * SDK side Events
- * ==========
- */
+// ────────────────────────────────────────────────────────────
+//  SDK side Events
+// ────────────────────────────────────────────────────────────
 
 /**
  * List of public event names
@@ -85,9 +81,9 @@ export interface VoiceCallPlaybackFailedEvent extends SwEvent {
   params: CallingCallPlayEventParams & { tag: string }
 }
 
-/**
- * Voice call play methods and params
- */
+// ────────────────────────────────────────────────────────────
+//  Voice Playback Methods & Param Interfaces
+// ────────────────────────────────────────────────────────────
 
 export type VoiceCallPlayMethod =
   | 'calling.play'
@@ -210,9 +206,10 @@ export interface VoicePlaylist extends CreateVoicePlaylistParams {
   add(params: VoiceCallPlayParams): this
 }
 
-/**
- * Public Contract for a VoiceCallPlayback
- */
+// ────────────────────────────────────────────────────────────
+//  Voice CallPlayback Contract, Entity, Methods
+// ────────────────────────────────────────────────────────────
+
 export interface VoiceCallPlaybackContract {
   /** Unique id for this playback */
   readonly id: string
@@ -247,6 +244,10 @@ export type VoiceCallPlaybackEntity =
  */
 export type VoiceCallPlaybackMethods =
   OnlyFunctionProperties<VoiceCallPlaybackContract>
+
+// ────────────────────────────────────────────────────────────
+//  Final “Event” Exports
+// ────────────────────────────────────────────────────────────
 
 export type VoiceCallPlaybackEvent =
   // Server Events

@@ -1,37 +1,36 @@
 import { MapToPubSubShape, SwEvent, ToInternalVoiceEvent } from '..'
 import { OnlyFunctionProperties, OnlyStateProperties } from './utils'
 
-/**
- * Private event types
- */
+// ────────────────────────────────────────────────────────────
+//  Private Event Types
+// ────────────────────────────────────────────────────────────
+
 export type CallDetect = 'call.detect'
 
-/**
- * Public event types
- */
-// Not exposed yet to the public-side
+// ────────────────────────────────────────────────────────────
+//  Public Event Types (not yet exposed publicly)
+// ────────────────────────────────────────────────────────────
+
 export type CallDetectStarted = 'detect.started'
 export type CallDetectUpdated = 'detect.updated'
 export type CallDetectEnded = 'detect.ended'
 
-/**
- * ==========
- * Server side Events
- * ==========
- */
+// ────────────────────────────────────────────────────────────
+//  Server side Events
+// ────────────────────────────────────────────────────────────
 
-/**
- * 'calling.call.detect'
- */
 type CallingCallDetectState = 'finished' | 'error'
+
 /** @deprecated */
 export type CallingCallDetectEndState = CallingCallDetectState
+
 interface CallingCallDetectFax {
   type: 'fax'
   params: {
     event: 'CED' | 'CNG' | CallingCallDetectState
   }
 }
+
 interface CallingCallDetectMachine {
   type: 'machine'
   params: {
@@ -45,6 +44,7 @@ interface CallingCallDetectMachine {
       | CallingCallDetectState
   }
 }
+
 interface CallingCallDetectDigit {
   type: 'digit'
   params: {
@@ -64,6 +64,7 @@ interface CallingCallDetectDigit {
       | CallingCallDetectState
   }
 }
+
 export type Detector =
   | CallingCallDetectFax
   | CallingCallDetectMachine
@@ -72,6 +73,7 @@ export type Detector =
 export type DetectorResult = Detector['params']['event']
 
 export type CallingCallDetectType = Detector['type']
+
 export interface CallingCallDetectEventParams {
   node_id: string
   call_id: string
@@ -80,16 +82,17 @@ export interface CallingCallDetectEventParams {
   waitForBeep?: any
 }
 
+/**
+ * 'calling.call.detect'
+ */
 export interface CallingCallDetectEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<CallDetect>
   params: CallingCallDetectEventParams
 }
 
-/**
- * ==========
- * SDK side Events
- * ==========
- */
+// ────────────────────────────────────────────────────────────
+//  SDK side Events
+// ────────────────────────────────────────────────────────────
 
 /**
  * List of public event names
@@ -121,9 +124,9 @@ export interface VoiceCallDetectEndedEvent extends SwEvent {
   params: CallingCallDetectEventParams & { tag: string }
 }
 
-/**
- * Voice call detect methods and params
- */
+// ────────────────────────────────────────────────────────────
+//  Voice Detect Methods & Param Interfaces
+// ────────────────────────────────────────────────────────────
 
 export type VoiceCallDetectMethod = 'calling.detect' | 'calling.detect.stop'
 
@@ -158,9 +161,10 @@ export type VoiceCallDetectMethodParams =
   | VoiceCallDetectFaxParams
   | VoiceCallDetectDigitParams
 
-/**
- * Public Contract for a VoiceCallDetect
- */
+// ────────────────────────────────────────────────────────────
+//  Voice CallDetect Contract, Entity, Methods
+// ────────────────────────────────────────────────────────────
+
 export interface VoiceCallDetectContract {
   /** Unique id for this detection */
   readonly id: string
@@ -191,6 +195,10 @@ export type VoiceCallDetectEntity = OnlyStateProperties<VoiceCallDetectContract>
  */
 export type VoiceCallDetectMethods =
   OnlyFunctionProperties<VoiceCallDetectContract>
+
+// ────────────────────────────────────────────────────────────
+//  Final “Event” Exports
+// ────────────────────────────────────────────────────────────
 
 export type VoiceCallDetectEvent =
   // Server Events
