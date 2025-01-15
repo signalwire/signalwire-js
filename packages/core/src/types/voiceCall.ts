@@ -13,6 +13,12 @@ import type {
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayTTSMethodParams,
   VoiceCallPlayTTSParams,
+  VoiceCallRecordingEventNames,
+  VoiceCallRecordMethodParams,
+  VoiceCallRecordingContract,
+  VoiceCallRecordingEvent,
+  VoiceCallRecordingParams,
+  VoiceCallRecordMethod,
 } from '.'
 import { MapToPubSubShape } from '..'
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
@@ -31,7 +37,6 @@ export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
 export type CallDial = 'call.dial'
 export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
-export type CallRecord = 'call.record'
 export type CallCollect = 'call.collect'
 export type CallTap = 'call.tap'
 export type CallConnect = 'call.connect'
@@ -44,10 +49,6 @@ export type CallDetect = 'call.detect'
 export type CallCreated = 'call.created'
 export type CallEnded = 'call.ended'
 export type CallReceived = 'call.received'
-export type CallRecordingStarted = 'recording.started'
-export type CallRecordingUpdated = 'recording.updated'
-export type CallRecordingEnded = 'recording.ended'
-export type CallRecordingFailed = 'recording.failed'
 export type CallPromptStarted = 'prompt.started'
 export type CallPromptStartOfInput = 'prompt.startOfInput'
 export type CallPromptUpdated = 'prompt.updated'
@@ -76,10 +77,7 @@ export type VoiceCallEventNames =
   | CallCreated
   | CallEnded
   | VoiceCallPlaybackEventNames
-  | CallRecordingStarted
-  | CallRecordingUpdated
-  | CallRecordingEnded
-  | CallRecordingFailed
+  | VoiceCallRecordingEventNames
   | CallPromptStarted
   | CallPromptUpdated
   | CallPromptEnded
@@ -150,19 +148,6 @@ export type VoiceCallDeviceParams = VoiceCallPhoneParams | VoiceCallSipParams
 export interface VoiceCallDialMethodParams {
   region?: string
   devices: NestedArray<VoiceCallDeviceParams>
-}
-
-export interface VoiceCallRecordMethodParams {
-  audio: {
-    beep?: boolean
-    format?: 'mp3' | 'wav'
-    stereo?: boolean
-    direction?: 'listen' | 'speak' | 'both'
-    initialTimeout?: number
-    endSilenceTimeout?: number
-    terminators?: string
-    inputSensitivity?: number
-  }
 }
 
 export type CollectDigitsConfig = {
@@ -387,45 +372,6 @@ export interface VoiceDeviceBuilder {
 }
 
 /**
- * Public Contract for a VoiceCallRecording
- */
-export interface VoiceCallRecordingContract {
-  /** Unique id for this recording */
-  readonly id: string
-  /** @ignore */
-  readonly callId: string
-  /** @ignore */
-  readonly controlId: string
-  /** @ignore */
-  readonly state: CallingCallRecordState | undefined
-  /** @ignore */
-  readonly url: string | undefined
-  /** @ignore */
-  readonly size: number | undefined
-  /** @ignore */
-  readonly duration: number | undefined
-  /** @ignore */
-  readonly record: CallingCallRecordEventParams['record'] | undefined
-
-  pause(params?: CallingCallRecordPauseMethodParams): Promise<this>
-  resume(): Promise<this>
-  stop(): Promise<this>
-  ended(): Promise<this>
-}
-
-/**
- * VoiceCallRecording properties
- */
-export type VoiceCallRecordingEntity =
-  OnlyStateProperties<VoiceCallRecordingContract>
-
-/**
- * VoiceCallRecording methods
- */
-export type VoiceCallRecordingMethods =
-  OnlyFunctionProperties<VoiceCallRecordingContract>
-
-/**
  * Public Contract for a VoiceCallDetect
  */
 export interface VoiceCallDetectContract {
@@ -463,7 +409,7 @@ export type VoiceCallDetectMethods =
  * Public Contract for a VoiceCallPrompt
  */
 export interface VoiceCallPromptContract {
-  /** Unique id for this recording */
+  /** Unique id for this prompt */
   readonly id: string
   /** @ignore */
   readonly callId: string
@@ -503,7 +449,7 @@ export type VoiceCallPromptMethods =
  * Public Contract for a VoiceCallCollect
  */
 export interface VoiceCallCollectContract {
-  /** Unique id for this recording */
+  /** Unique id for this collect */
   readonly id: string
   /** @ignore */
   readonly callId: string
@@ -540,7 +486,7 @@ export type VoiceCallCollectMethods =
  * Public Contract for a VoiceCallTap
  */
 export interface VoiceCallTapContract {
-  /** Unique id for this recording */
+  /** Unique id for this tap */
   readonly id: string
   /** @ignore */
   readonly callId: string
@@ -821,40 +767,6 @@ export interface CallingCallReceiveEvent extends SwEvent {
 }
 
 /**
- * 'calling.call.record'
- */
-export type CallingCallRecordState =
-  | 'recording'
-  | 'paused'
-  | 'no_input'
-  | 'finished'
-
-export type CallingCallRecordEndState = Exclude<
-  CallingCallRecordState,
-  'recording' | 'paused'
->
-
-export interface CallingCallRecordEventParams {
-  node_id: string
-  call_id: string
-  control_id: string
-  state: CallingCallRecordState
-  url?: string
-  duration?: number
-  size?: number
-  record: any // FIXME:
-}
-
-export interface CallingCallRecordEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallRecord>
-  params: CallingCallRecordEventParams
-}
-
-export interface CallingCallRecordPauseMethodParams {
-  behavior?: 'silence' | 'skip'
-}
-
-/**
  * 'calling.call.collect'
  */
 interface CallingCallCollectResultError {
@@ -1093,35 +1005,6 @@ export interface CallReceivedEvent extends SwEvent {
 }
 
 /**
- * 'calling.recording.started'
- */
-export interface CallRecordingStartedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallRecordingStarted>
-  params: CallingCallRecordEventParams & { tag: string }
-}
-/**
- * 'calling.recording.updated'
- */
-export interface CallRecordingUpdatedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallRecordingUpdated>
-  params: CallingCallRecordEventParams & { tag: string }
-}
-/**
- * 'calling.recording.ended'
- */
-export interface CallRecordingEndedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallRecordingEnded>
-  params: CallingCallRecordEventParams & { tag: string }
-}
-/**
- * 'calling.recording.failed'
- */
-export interface CallRecordingFailedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallRecordingFailed>
-  params: CallingCallRecordEventParams & { tag: string }
-}
-
-/**
  * 'calling.prompt.started'
  */
 export interface CallPromptStartedEvent extends SwEvent {
@@ -1289,11 +1172,11 @@ export interface CallCollectFailedEvent extends SwEvent {
 
 export type VoiceCallEvent =
   | VoiceCallPlaybackEvent
+  | VoiceCallRecordingEvent
   // Server Events
   | CallingCallDialEvent
   | CallingCallStateEvent
   | CallingCallReceiveEvent
-  | CallingCallRecordEvent
   | CallingCallCollectEvent
   | CallingCallTapEvent
   | CallingCallConnectEvent
@@ -1301,10 +1184,6 @@ export type VoiceCallEvent =
   | CallingCallDetectEvent
   // SDK Events
   | CallReceivedEvent
-  | CallRecordingStartedEvent
-  | CallRecordingUpdatedEvent
-  | CallRecordingEndedEvent
-  | CallRecordingFailedEvent
   | CallPromptStartedEvent
   | CallPromptStartOfInputEvent
   | CallPromptUpdatedEvent
@@ -1327,11 +1206,11 @@ export type VoiceCallEvent =
 
 export type VoiceCallEventParams =
   | VoiceCallPlaybackParams
+  | VoiceCallRecordingParams
   // Server Event Params
   | CallingCallDialEventParams
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
-  | CallingCallRecordEventParams
   | CallingCallCollectEventParams
   | CallingCallTapEventParams
   | CallingCallConnectEventParams
@@ -1339,10 +1218,6 @@ export type VoiceCallEventParams =
   | CallingCallDetectEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
-  | CallRecordingStartedEvent['params']
-  | CallRecordingUpdatedEvent['params']
-  | CallRecordingEndedEvent['params']
-  | CallRecordingFailedEvent['params']
   | CallPromptStartedEvent['params']
   | CallPromptStartOfInputEvent['params']
   | CallPromptUpdatedEvent['params']
@@ -1371,8 +1246,6 @@ export type VoiceCallStateAction = MapToPubSubShape<CallingCallStateEvent>
 
 export type VoiceCallDialAction = MapToPubSubShape<CallingCallDialEvent>
 
-export type VoiceCallRecordAction = MapToPubSubShape<CallingCallRecordEvent>
-
 export type VoiceCallCollectAction = MapToPubSubShape<CallingCallCollectEvent>
 
 export type VoiceCallSendDigitsAction =
@@ -1390,10 +1263,7 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.pass'
   | 'calling.answer'
   | VoiceCallPlayMethod
-  | 'calling.record'
-  | 'calling.record.pause'
-  | 'calling.record.resume'
-  | 'calling.record.stop'
+  | VoiceCallRecordMethod
   | 'calling.play_and_collect'
   | 'calling.play_and_collect.stop'
   | 'calling.play_and_collect.volume'

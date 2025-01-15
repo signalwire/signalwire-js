@@ -10,8 +10,20 @@ export type PaginationCursor =
 
 export type ClientContextMethod = 'signalwire.receive' | 'signalwire.unreceive'
 
+/**
+ * Private common event types
+ */
 export type CallPlay = 'call.play'
+export type CallRecord = 'call.record'
+
+/**
+ * Public common event types
+ */
 export type PlaybackStarted = 'playback.started'
 export type PlaybackUpdated = 'playback.updated'
 export type PlaybackEnded = 'playback.ended'
 export type PlaybackFailed = 'playback.failed'
+export type RecordingStarted = 'recording.started'
+export type RecordingUpdated = 'recording.updated'
+export type RecordingEnded = 'recording.ended'
+export type RecordingFailed = 'recording.failed'

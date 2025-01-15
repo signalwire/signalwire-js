@@ -390,30 +390,3 @@ export interface CallDetectDigitParams
   extends Omit<VoiceCallDetectDigitParams, 'type'> {
   listen?: CallDetectListeners
 }
-
-/**
- * Call Pay
- */
-// export type CallPayEvents = Record<
-//   CallPayStarted | CallPayUpdated | CallPayEnded | CallPayFailed,
-//   (pay: CallPay) => void
-// >
-
-// export interface CallPayListeners {
-//   onStarted?: (pay: CallPay) => unknown
-//   onUpdated?: (pay: CallPay) => unknown
-//   onFailed?: (pay: CallPay) => unknown
-//   onEnded?: (pay: CallPay) => unknown
-// }
-
-// export type CallPayListenersEventsMapping = Record<
-//   'onStarted',
-//   CallPayStarted
-// > &
-//   Record<'onUpdated', CallPayUpdated> &
-//   Record<'onFailed', CallPayFailed> &
-//   Record<'onEnded', CallPayEnded>
-
-export interface CallPayMethodParams extends VoiceCallRecordMethodParams {
-  // listen?: CallPayListeners
-}

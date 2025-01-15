@@ -56,11 +56,9 @@ export type VoiceCallPlaybackEventNames =
   | PlaybackEnded
   | PlaybackFailed
 
-export interface VoiceCallPlaybackEventParams {
-  node_id: string
-  call_id: string
-  control_id: string
-  state: CallingCallPlayState
+export interface VoiceCallPlaybackEventParams
+  extends CallingCallPlayEventParams {
+  tag: string
 }
 
 /**
@@ -85,7 +83,7 @@ export interface VoiceCallPlaybackEndedEvent extends SwEvent {
   params: VoiceCallPlaybackEventParams
 }
 /**
- * 'calling.playback.failed'
+ * 'playback.failed'
  */
 export interface VoiceCallPlaybackFailedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackFailed>
