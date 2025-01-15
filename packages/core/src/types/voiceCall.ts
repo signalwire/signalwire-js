@@ -1,4 +1,19 @@
-import type { SwEvent } from '.'
+import type {
+  SwEvent,
+  VoicePlayAudioMethodParams,
+  VoicePlayAudioParams,
+  VoicePlaybackContract,
+  VoicePlaybackEvent,
+  VoicePlaybackEventNames,
+  VoicePlaybackParams,
+  VoicePlaylist,
+  VoicePlayMethod,
+  VoicePlayRingtoneMethodParams,
+  VoicePlayRingtoneParams,
+  VoicePlaySilenceMethodParams,
+  VoicePlayTTSMethodParams,
+  VoicePlayTTSParams,
+} from '.'
 import { MapToPubSubShape } from '..'
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
 import type {
@@ -9,53 +24,13 @@ import type {
 
 type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
 export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
-export type RingtoneName =
-  | 'at'
-  | 'au'
-  | 'bg'
-  | 'br'
-  | 'be'
-  | 'ch'
-  | 'cl'
-  | 'cn'
-  | 'cz'
-  | 'de'
-  | 'dk'
-  | 'ee'
-  | 'es'
-  | 'fi'
-  | 'fr'
-  | 'gr'
-  | 'hu'
-  | 'il'
-  | 'in'
-  | 'it'
-  | 'lt'
-  | 'jp'
-  | 'mx'
-  | 'my'
-  | 'nl'
-  | 'no'
-  | 'nz'
-  | 'ph'
-  | 'pl'
-  | 'pt'
-  | 'ru'
-  | 'se'
-  | 'sg'
-  | 'th'
-  | 'uk'
-  | 'us'
-  | 'tw'
-  | 've'
-  | 'za'
+
 /**
  * Private event types
  */
 export type CallDial = 'call.dial'
 export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
-export type CallPlay = 'call.play'
 export type CallRecord = 'call.record'
 export type CallCollect = 'call.collect'
 export type CallTap = 'call.tap'
@@ -69,10 +44,6 @@ export type CallDetect = 'call.detect'
 export type CallCreated = 'call.created'
 export type CallEnded = 'call.ended'
 export type CallReceived = 'call.received'
-export type CallPlaybackStarted = 'playback.started'
-export type CallPlaybackUpdated = 'playback.updated'
-export type CallPlaybackEnded = 'playback.ended'
-export type CallPlaybackFailed = 'playback.failed'
 export type CallRecordingStarted = 'recording.started'
 export type CallRecordingUpdated = 'recording.updated'
 export type CallRecordingEnded = 'recording.ended'
@@ -104,10 +75,7 @@ export type CallDetectEnded = 'detect.ended'
 export type VoiceCallEventNames =
   | CallCreated
   | CallEnded
-  | CallPlaybackStarted
-  | CallPlaybackUpdated
-  | CallPlaybackEnded
-  | CallPlaybackFailed
+  | VoicePlaybackEventNames
   | CallRecordingStarted
   | CallRecordingUpdated
   | CallRecordingEnded
@@ -184,69 +152,6 @@ export interface VoiceCallDialMethodParams {
   devices: NestedArray<VoiceCallDeviceParams>
 }
 
-export interface VoiceCallPlayAudioParams {
-  type: 'audio'
-  url: string
-}
-
-export interface VoiceCallPlayTTSParams {
-  type: 'tts'
-  text: string
-  language?: string
-  gender?: 'male' | 'female'
-  voice?: string
-}
-
-export interface VoiceCallPlaySilenceParams {
-  type: 'silence'
-  duration: number
-}
-
-export interface VoiceCallPlayRingtoneParams {
-  type: 'ringtone'
-  name: RingtoneName
-  duration?: number
-}
-
-export type VoiceCallPlayParams =
-  | VoiceCallPlayAudioParams
-  | VoiceCallPlayTTSParams
-  | VoiceCallPlaySilenceParams
-  | VoiceCallPlayRingtoneParams
-
-export interface VoiceCallPlayMethodParams {
-  media: NestedArray<VoiceCallPlayParams>
-  volume?: number
-}
-
-export interface VoiceCallPlayAudioMethodParams
-  extends OmitType<VoiceCallPlayAudioParams> {
-  volume?: number
-}
-
-export interface VoicePlaylistAudioParams
-  extends OmitType<VoiceCallPlayAudioParams> {}
-
-export interface VoiceCallPlaySilenceMethodParams
-  extends OmitType<VoiceCallPlaySilenceParams> {}
-
-export interface VoicePlaylistSilenceParams
-  extends OmitType<VoiceCallPlaySilenceParams> {}
-
-export interface VoiceCallPlayRingtoneMethodParams
-  extends OmitType<VoiceCallPlayRingtoneParams> {
-  volume?: number
-}
-export interface VoicePlaylistRingtoneParams
-  extends OmitType<VoiceCallPlayRingtoneParams> {}
-
-export interface VoiceCallPlayTTSMethodParams
-  extends OmitType<VoiceCallPlayTTSParams> {
-  volume?: number
-}
-export interface VoicePlaylistTTSParams
-  extends OmitType<VoiceCallPlayTTSParams> {}
-
 export interface VoiceCallRecordMethodParams {
   audio: {
     beep?: boolean
@@ -296,21 +201,23 @@ export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   initialTimeout?: number
 }
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
-  OmitType<VoiceCallPlayAudioParams> & {
+  OmitType<VoicePlayAudioParams> & {
     volume?: number
     initialTimeout?: number
   }
 export type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits &
-  OmitType<VoiceCallPlayRingtoneParams> & {
+  OmitType<VoicePlayRingtoneParams> & {
     volume?: number
     initialTimeout?: number
   }
 export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
-  OmitType<VoiceCallPlayTTSParams> & {
+  OmitType<VoicePlayTTSParams> & {
     volume?: number
     initialTimeout?: number
   }
+
 type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
+
 export interface TapDeviceWS {
   type: 'ws'
   uri: string
@@ -395,6 +302,60 @@ export type VoiceCallDetectMethodParams =
   | VoiceCallDetectFaxParams
   | VoiceCallDetectDigitParams
 
+interface VoiceCallPayMethodParameter {
+  name: any
+  value: any
+}
+
+interface VoiceCallPayMethodPromptAction {
+  type: 'Say' | 'Play'
+  phrase: string
+}
+
+interface VoiceCallPayMethodPrompts {
+  for:
+    | 'payment-card-number'
+    | 'expiration-date'
+    | 'security-code'
+    | 'postal-code'
+    | 'payment-processing'
+    | 'payment-completed'
+    | 'payment-failed'
+    | 'payment-canceled'
+  cardType?: string
+  errorType?:
+    | 'timeout'
+    | 'invalid-card-number'
+    | 'invalid-card-type'
+    | 'invalid-date'
+    | 'invalid-security-code'
+    | 'invalid-postal-code'
+    | 'session-in-progress'
+    | 'card-declined'
+  actions: VoiceCallPayMethodPromptAction[]
+}
+
+export interface VoiceCallPayMethodParams {
+  input?: 'dtmf' | 'voice'
+  statusUrl?: string
+  paymentMehod?: 'credit-card'
+  timeout?: number
+  maxAttempts?: number
+  securityCode?: boolean
+  postalCode?: boolean | number
+  minPostalCodeLength?: number
+  paymentConnectorUrl: string
+  tokenType?: 'one-time' | 'reusable'
+  chargeAmount?: number
+  currency?: string
+  language?: string
+  voice?: string
+  description?: string
+  validCardTypes?: string
+  paremeters?: VoiceCallPayMethodParameter[]
+  prompts?: VoiceCallPayMethodPrompts[]
+}
+
 export type VoiceCallDisconnectReason =
   | 'hangup'
   | 'cancel'
@@ -424,54 +385,6 @@ export interface VoiceDeviceBuilder {
   devices: VoiceCallDialMethodParams['devices']
   add(params: VoiceCallDeviceParams | VoiceCallDeviceParams[]): this
 }
-
-export interface CreateVoicePlaylistParams {
-  /** Default volume for the audio in the playlist. */
-  volume?: number
-}
-
-export interface VoicePlaylist extends CreateVoicePlaylistParams {
-  media: VoiceCallPlayMethodParams['media']
-  add(params: VoiceCallPlayParams): this
-}
-
-/**
- * Public Contract for a VoiceCall
- */
-export interface VoiceCallPlaybackContract {
-  /** Unique id for this playback */
-  readonly id: string
-  /** @ignore */
-  readonly callId: string
-  /** @ignore */
-  readonly controlId: string
-  /** @ignore */
-  readonly volume: number
-  /** @ignore */
-  readonly state: CallingCallPlayState
-
-  pause(): Promise<this>
-  resume(): Promise<this>
-  stop(): Promise<this>
-  setVolume(volume: number): Promise<this>
-  /**
-   * @deprecated use {@link ended} instead.
-   */
-  waitForEnded(): Promise<this>
-  ended(): Promise<this>
-}
-
-/**
- * VoiceCallPlayback properties
- */
-export type VoiceCallPlaybackEntity =
-  OnlyStateProperties<VoiceCallPlaybackContract>
-
-/**
- * VoiceCallPlayback methods
- */
-export type VoiceCallPlaybackMethods =
-  OnlyFunctionProperties<VoiceCallPlaybackContract>
 
 /**
  * Public Contract for a VoiceCallRecording
@@ -687,19 +600,15 @@ export interface VoiceCallContract<T = any> {
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   pass(): Promise<void>
   answer(): Promise<T>
-  play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>
-  playAudio(
-    params: VoiceCallPlayAudioMethodParams
-  ): Promise<VoiceCallPlaybackContract>
+  play(params: VoicePlaylist): Promise<VoicePlaybackContract>
+  playAudio(params: VoicePlayAudioMethodParams): Promise<VoicePlaybackContract>
   playSilence(
-    params: VoiceCallPlaySilenceMethodParams
-  ): Promise<VoiceCallPlaybackContract>
+    params: VoicePlaySilenceMethodParams
+  ): Promise<VoicePlaybackContract>
   playRingtone(
-    params: VoiceCallPlayRingtoneMethodParams
-  ): Promise<VoiceCallPlaybackContract>
-  playTTS(
-    params: VoiceCallPlayTTSMethodParams
-  ): Promise<VoiceCallPlaybackContract>
+    params: VoicePlayRingtoneMethodParams
+  ): Promise<VoicePlaybackContract>
+  playTTS(params: VoicePlayTTSMethodParams): Promise<VoicePlaybackContract>
   record(
     params: VoiceCallRecordMethodParams
   ): Promise<VoiceCallRecordingContract>
@@ -908,28 +817,6 @@ export interface CallingCallReceiveEvent extends SwEvent {
 }
 
 /**
- * 'calling.call.play'
- */
-export type CallingCallPlayState = 'playing' | 'paused' | 'error' | 'finished'
-
-export type CallingCallPlayEndState = Exclude<
-  CallingCallPlayState,
-  'playing' | 'paused'
->
-
-export interface CallingCallPlayEventParams {
-  node_id: string
-  call_id: string
-  control_id: string
-  state: CallingCallPlayState
-}
-
-export interface CallingCallPlayEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallPlay>
-  params: CallingCallPlayEventParams
-}
-
-/**
  * 'calling.call.record'
  */
 export type CallingCallRecordState =
@@ -1005,7 +892,7 @@ export type CallingCallCollectEndState = Exclude<
   'start_of_input'
 >
 
-export type CallingCallCollectState = 'error' | 'collecting' | 'finished';
+export type CallingCallCollectState = 'error' | 'collecting' | 'finished'
 export interface CallingCallCollectEventParams {
   node_id: string
   call_id: string
@@ -1192,35 +1079,6 @@ export interface CallingCallDetectEvent extends SwEvent {
  * ==========
  * ==========
  */
-
-/**
- * 'calling.playback.started'
- */
-export interface CallPlaybackStartedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallPlaybackStarted>
-  params: CallingCallPlayEventParams & { tag: string }
-}
-/**
- * 'calling.playback.updated'
- */
-export interface CallPlaybackUpdatedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallPlaybackUpdated>
-  params: CallingCallPlayEventParams & { tag: string }
-}
-/**
- * 'calling.playback.ended'
- */
-export interface CallPlaybackEndedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallPlaybackEnded>
-  params: CallingCallPlayEventParams & { tag: string }
-}
-/**
- * 'calling.playback.failed'
- */
-export interface CallPlaybackFailedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallPlaybackFailed>
-  params: CallingCallPlayEventParams & { tag: string }
-}
 
 /**
  * 'calling.call.received'
@@ -1426,11 +1284,11 @@ export interface CallCollectFailedEvent extends SwEvent {
 // }
 
 export type VoiceCallEvent =
+  | VoicePlaybackEvent
   // Server Events
   | CallingCallDialEvent
   | CallingCallStateEvent
   | CallingCallReceiveEvent
-  | CallingCallPlayEvent
   | CallingCallRecordEvent
   | CallingCallCollectEvent
   | CallingCallTapEvent
@@ -1439,10 +1297,6 @@ export type VoiceCallEvent =
   | CallingCallDetectEvent
   // SDK Events
   | CallReceivedEvent
-  | CallPlaybackStartedEvent
-  | CallPlaybackUpdatedEvent
-  | CallPlaybackEndedEvent
-  | CallPlaybackFailedEvent
   | CallRecordingStartedEvent
   | CallRecordingUpdatedEvent
   | CallRecordingEndedEvent
@@ -1468,11 +1322,11 @@ export type VoiceCallEvent =
   | CallCollectFailedEvent
 
 export type VoiceCallEventParams =
+  | VoicePlaybackParams
   // Server Event Params
   | CallingCallDialEventParams
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
-  | CallingCallPlayEventParams
   | CallingCallRecordEventParams
   | CallingCallCollectEventParams
   | CallingCallTapEventParams
@@ -1481,10 +1335,6 @@ export type VoiceCallEventParams =
   | CallingCallDetectEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
-  | CallPlaybackStartedEvent['params']
-  | CallPlaybackUpdatedEvent['params']
-  | CallPlaybackEndedEvent['params']
-  | CallPlaybackFailedEvent['params']
   | CallRecordingStartedEvent['params']
   | CallRecordingUpdatedEvent['params']
   | CallRecordingEndedEvent['params']
@@ -1517,8 +1367,6 @@ export type VoiceCallStateAction = MapToPubSubShape<CallingCallStateEvent>
 
 export type VoiceCallDialAction = MapToPubSubShape<CallingCallDialEvent>
 
-export type VoiceCallPlayAction = MapToPubSubShape<CallingCallPlayEvent>
-
 export type VoiceCallRecordAction = MapToPubSubShape<CallingCallRecordEvent>
 
 export type VoiceCallCollectAction = MapToPubSubShape<CallingCallCollectEvent>
@@ -1537,11 +1385,7 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.end'
   | 'calling.pass'
   | 'calling.answer'
-  | 'calling.play'
-  | 'calling.play.pause'
-  | 'calling.play.resume'
-  | 'calling.play.volume'
-  | 'calling.play.stop'
+  | VoicePlayMethod
   | 'calling.record'
   | 'calling.record.pause'
   | 'calling.record.resume'
@@ -1559,3 +1403,4 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.collect'
   | 'calling.collect.stop'
   | 'calling.collect.start_input_timers'
+  | 'calling.pay'

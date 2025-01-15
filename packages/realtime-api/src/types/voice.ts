@@ -1,10 +1,10 @@
 import type {
   CallReceived,
   CallState,
-  CallPlaybackStarted,
-  CallPlaybackUpdated,
-  CallPlaybackEnded,
-  CallPlaybackFailed,
+  PlaybackStarted,
+  PlaybackUpdated,
+  PlaybackEnded,
+  PlaybackFailed,
   CallRecordingStarted,
   CallRecordingUpdated,
   CallRecordingEnded,
@@ -20,10 +20,10 @@ import type {
   CallCollectUpdated,
   CallCollectEnded,
   CallCollectFailed,
-  VoiceCallPlayAudioMethodParams,
-  VoiceCallPlaySilenceMethodParams,
-  VoiceCallPlayRingtoneMethodParams,
-  VoiceCallPlayTTSMethodParams,
+  VoicePlayAudioMethodParams,
+  VoicePlaySilenceMethodParams,
+  VoicePlayRingtoneMethodParams,
+  VoicePlayTTSMethodParams,
   VoicePlaylist,
   VoiceCallRecordMethodParams,
   VoiceCallPromptTTSMethodParams,
@@ -110,10 +110,7 @@ export type RealTimeCallEventsHandlerMapping = Record<
   (call: Call) => void
 > &
   Record<
-    | CallPlaybackStarted
-    | CallPlaybackUpdated
-    | CallPlaybackEnded
-    | CallPlaybackFailed,
+    PlaybackStarted | PlaybackUpdated | PlaybackEnded | PlaybackFailed,
     (playback: CallPlayback) => void
   > &
   Record<
@@ -149,10 +146,10 @@ export type RealtimeCallListenersEventsMapping = Record<
   'onStateChanged',
   CallState
 > &
-  Record<'onPlaybackStarted', CallPlaybackStarted> &
-  Record<'onPlaybackUpdated', CallPlaybackUpdated> &
-  Record<'onPlaybackFailed', CallPlaybackFailed> &
-  Record<'onPlaybackEnded', CallPlaybackEnded> &
+  Record<'onPlaybackStarted', PlaybackStarted> &
+  Record<'onPlaybackUpdated', PlaybackUpdated> &
+  Record<'onPlaybackFailed', PlaybackFailed> &
+  Record<'onPlaybackEnded', PlaybackEnded> &
   Record<'onRecordingStarted', CallRecordingStarted> &
   Record<'onRecordingUpdated', CallRecordingUpdated> &
   Record<'onRecordingFailed', CallRecordingFailed> &
@@ -176,10 +173,7 @@ export type RealtimeCallListenersEventsMapping = Record<
  * Call Playback
  */
 export type CallPlaybackEvents = Record<
-  | CallPlaybackStarted
-  | CallPlaybackUpdated
-  | CallPlaybackEnded
-  | CallPlaybackFailed,
+  PlaybackStarted | PlaybackUpdated | PlaybackEnded | PlaybackFailed,
   (playback: CallPlayback) => void
 >
 
@@ -192,33 +186,32 @@ export interface CallPlaybackListeners {
 
 export type CallPlaybackListenersEventsMapping = Record<
   'onStarted',
-  CallPlaybackStarted
+  PlaybackStarted
 > &
-  Record<'onUpdated', CallPlaybackUpdated> &
-  Record<'onFailed', CallPlaybackFailed> &
-  Record<'onEnded', CallPlaybackEnded>
+  Record<'onUpdated', PlaybackUpdated> &
+  Record<'onFailed', PlaybackFailed> &
+  Record<'onEnded', PlaybackEnded>
 
 export interface CallPlayMethodParams {
   playlist: VoicePlaylist
   listen?: CallPlaybackListeners
 }
 
-export interface CallPlayAudioMethodarams
-  extends VoiceCallPlayAudioMethodParams {
+export interface CallPlayAudioMethodarams extends VoicePlayAudioMethodParams {
   listen?: CallPlaybackListeners
 }
 
 export interface CallPlaySilenceMethodParams
-  extends VoiceCallPlaySilenceMethodParams {
+  extends VoicePlaySilenceMethodParams {
   listen?: CallPlaybackListeners
 }
 
 export interface CallPlayRingtoneMethodParams
-  extends VoiceCallPlayRingtoneMethodParams {
+  extends VoicePlayRingtoneMethodParams {
   listen?: CallPlaybackListeners
 }
 
-export interface CallPlayTTSMethodParams extends VoiceCallPlayTTSMethodParams {
+export interface CallPlayTTSMethodParams extends VoicePlayTTSMethodParams {
   listen?: CallPlaybackListeners
 }
 
@@ -395,4 +388,31 @@ export interface CallDetectFaxParams
 export interface CallDetectDigitParams
   extends Omit<VoiceCallDetectDigitParams, 'type'> {
   listen?: CallDetectListeners
+}
+
+/**
+ * Call Pay
+ */
+// export type CallPayEvents = Record<
+//   CallPayStarted | CallPayUpdated | CallPayEnded | CallPayFailed,
+//   (pay: CallPay) => void
+// >
+
+// export interface CallPayListeners {
+//   onStarted?: (pay: CallPay) => unknown
+//   onUpdated?: (pay: CallPay) => unknown
+//   onFailed?: (pay: CallPay) => unknown
+//   onEnded?: (pay: CallPay) => unknown
+// }
+
+// export type CallPayListenersEventsMapping = Record<
+//   'onStarted',
+//   CallPayStarted
+// > &
+//   Record<'onUpdated', CallPayUpdated> &
+//   Record<'onFailed', CallPayFailed> &
+//   Record<'onEnded', CallPayEnded>
+
+export interface CallPayMethodParams extends VoiceCallRecordMethodParams {
+  // listen?: CallPayListeners
 }
