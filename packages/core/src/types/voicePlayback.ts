@@ -184,35 +184,35 @@ export interface VoiceCallPlayAudioMethodParams
   volume?: number
 }
 
-export interface VoiceCallPlaylistAudioParams
+export interface VoicePlaylistAudioParams
   extends OmitType<VoiceCallPlayAudioParams> {}
 
 export interface VoiceCallPlaySilenceMethodParams
   extends OmitType<VoiceCallPlaySilenceParams> {}
 
-export interface VoiceCallPlaylistSilenceParams
+export interface VoicePlaylistSilenceParams
   extends OmitType<VoiceCallPlaySilenceParams> {}
 
 export interface VoiceCallPlayRingtoneMethodParams
   extends OmitType<VoiceCallPlayRingtoneParams> {
   volume?: number
 }
-export interface VoiceCallPlaylistRingtoneParams
+export interface VoicePlaylistRingtoneParams
   extends OmitType<VoiceCallPlayRingtoneParams> {}
 
 export interface VoiceCallPlayTTSMethodParams
   extends OmitType<VoiceCallPlayTTSParams> {
   volume?: number
 }
-export interface VoiceCallPlaylistTTSParams
+export interface VoicePlaylistTTSParams
   extends OmitType<VoiceCallPlayTTSParams> {}
 
-export interface CreateVoiceCallPlaylistParams {
+export interface CreateVoicePlaylistParams {
   /** Default volume for the audio in the playlist. */
   volume?: number
 }
 
-export interface VoiceCallPlaylist extends CreateVoiceCallPlaylistParams {
+export interface VoicePlaylist extends CreateVoicePlaylistParams {
   media: VoiceCallPlayMethodParams['media']
   add(params: VoiceCallPlayParams): this
 }

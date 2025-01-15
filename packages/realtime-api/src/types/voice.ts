@@ -24,7 +24,7 @@ import type {
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayTTSMethodParams,
-  VoiceCallPlaylist,
+  VoicePlaylist,
   VoiceCallRecordMethodParams,
   VoiceCallPromptTTSMethodParams,
   VoiceCallPromptRingtoneMethodParams,
@@ -193,7 +193,7 @@ export type CallPlaybackListenersEventsMapping = Record<
   Record<'onEnded', PlaybackEnded>
 
 export interface CallPlayMethodParams {
-  playlist: VoiceCallPlaylist
+  playlist: VoicePlaylist
   listen?: CallPlaybackListeners
 }
 

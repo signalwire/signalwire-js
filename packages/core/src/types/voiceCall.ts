@@ -6,7 +6,7 @@ import type {
   VoiceCallPlaybackEvent,
   VoiceCallPlaybackEventNames,
   VoiceCallPlaybackParams,
-  VoiceCallPlaylist,
+  VoicePlaylist,
   VoiceCallPlayMethod,
   VoiceCallPlayRingtoneMethodParams,
   VoiceCallPlayRingtoneParams,
@@ -197,7 +197,7 @@ export type SpeechOrDigits =
       speech: CollectSpeechConfig
     }
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
-  playlist: VoiceCallPlaylist
+  playlist: VoicePlaylist
   initialTimeout?: number
 }
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
@@ -256,7 +256,7 @@ export type VoiceCallCollectMethodParams = SpeechOrDigits & {
 }
 
 export interface VoiceCallConnectAdditionalParams {
-  ringback?: VoiceCallPlaylist
+  ringback?: VoicePlaylist
   maxPricePerMinute?: number
 }
 
@@ -600,7 +600,7 @@ export interface VoiceCallContract<T = any> {
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   pass(): Promise<void>
   answer(): Promise<T>
-  play(params: VoiceCallPlaylist): Promise<VoiceCallPlaybackContract>
+  play(params: VoicePlaylist): Promise<VoiceCallPlaybackContract>
   playAudio(
     params: VoiceCallPlayAudioMethodParams
   ): Promise<VoiceCallPlaybackContract>

@@ -149,7 +149,7 @@ export type {
   ClientEvents,
   CollectDigitsConfig,
   CollectSpeechConfig,
-  CreateVoiceCallPlaylistParams,
+  CreateVoicePlaylistParams,
   NestedArray,
   RingtoneName,
   SipCodec,
@@ -199,7 +199,7 @@ export type {
   VoiceCallTapMethodParams,
   VoiceDeviceBuilder,
   VoiceDialerParams,
-  VoiceCallPlaylist,
+  VoicePlaylist,
 } from '@signalwire/core'
 export type {
   CallPlayMethodParams,
