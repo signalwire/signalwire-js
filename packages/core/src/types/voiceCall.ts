@@ -1,18 +1,18 @@
 import type {
   SwEvent,
-  VoicePlayAudioMethodParams,
-  VoicePlayAudioParams,
-  VoicePlaybackContract,
-  VoicePlaybackEvent,
-  VoicePlaybackEventNames,
-  VoicePlaybackParams,
-  VoicePlaylist,
-  VoicePlayMethod,
-  VoicePlayRingtoneMethodParams,
-  VoicePlayRingtoneParams,
-  VoicePlaySilenceMethodParams,
-  VoicePlayTTSMethodParams,
-  VoicePlayTTSParams,
+  VoiceCallPlayAudioMethodParams,
+  VoiceCallPlayAudioParams,
+  VoiceCallPlaybackContract,
+  VoiceCallPlaybackEvent,
+  VoiceCallPlaybackEventNames,
+  VoiceCallPlaybackParams,
+  VoiceCallPlaylist,
+  VoiceCallPlayMethod,
+  VoiceCallPlayRingtoneMethodParams,
+  VoiceCallPlayRingtoneParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayTTSMethodParams,
+  VoiceCallPlayTTSParams,
 } from '.'
 import { MapToPubSubShape } from '..'
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
@@ -75,7 +75,7 @@ export type CallDetectEnded = 'detect.ended'
 export type VoiceCallEventNames =
   | CallCreated
   | CallEnded
-  | VoicePlaybackEventNames
+  | VoiceCallPlaybackEventNames
   | CallRecordingStarted
   | CallRecordingUpdated
   | CallRecordingEnded
@@ -197,21 +197,21 @@ export type SpeechOrDigits =
       speech: CollectSpeechConfig
     }
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
-  playlist: VoicePlaylist
+  playlist: VoiceCallPlaylist
   initialTimeout?: number
 }
 export type VoiceCallPromptAudioMethodParams = SpeechOrDigits &
-  OmitType<VoicePlayAudioParams> & {
+  OmitType<VoiceCallPlayAudioParams> & {
     volume?: number
     initialTimeout?: number
   }
 export type VoiceCallPromptRingtoneMethodParams = SpeechOrDigits &
-  OmitType<VoicePlayRingtoneParams> & {
+  OmitType<VoiceCallPlayRingtoneParams> & {
     volume?: number
     initialTimeout?: number
   }
 export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
-  OmitType<VoicePlayTTSParams> & {
+  OmitType<VoiceCallPlayTTSParams> & {
     volume?: number
     initialTimeout?: number
   }
@@ -256,7 +256,7 @@ export type VoiceCallCollectMethodParams = SpeechOrDigits & {
 }
 
 export interface VoiceCallConnectAdditionalParams {
-  ringback?: VoicePlaylist
+  ringback?: VoiceCallPlaylist
   maxPricePerMinute?: number
 }
 
@@ -600,15 +600,19 @@ export interface VoiceCallContract<T = any> {
   hangup(reason?: VoiceCallDisconnectReason): Promise<void>
   pass(): Promise<void>
   answer(): Promise<T>
-  play(params: VoicePlaylist): Promise<VoicePlaybackContract>
-  playAudio(params: VoicePlayAudioMethodParams): Promise<VoicePlaybackContract>
+  play(params: VoiceCallPlaylist): Promise<VoiceCallPlaybackContract>
+  playAudio(
+    params: VoiceCallPlayAudioMethodParams
+  ): Promise<VoiceCallPlaybackContract>
   playSilence(
-    params: VoicePlaySilenceMethodParams
-  ): Promise<VoicePlaybackContract>
+    params: VoiceCallPlaySilenceMethodParams
+  ): Promise<VoiceCallPlaybackContract>
   playRingtone(
-    params: VoicePlayRingtoneMethodParams
-  ): Promise<VoicePlaybackContract>
-  playTTS(params: VoicePlayTTSMethodParams): Promise<VoicePlaybackContract>
+    params: VoiceCallPlayRingtoneMethodParams
+  ): Promise<VoiceCallPlaybackContract>
+  playTTS(
+    params: VoiceCallPlayTTSMethodParams
+  ): Promise<VoiceCallPlaybackContract>
   record(
     params: VoiceCallRecordMethodParams
   ): Promise<VoiceCallRecordingContract>
@@ -1284,7 +1288,7 @@ export interface CallCollectFailedEvent extends SwEvent {
 // }
 
 export type VoiceCallEvent =
-  | VoicePlaybackEvent
+  | VoiceCallPlaybackEvent
   // Server Events
   | CallingCallDialEvent
   | CallingCallStateEvent
@@ -1322,7 +1326,7 @@ export type VoiceCallEvent =
   | CallCollectFailedEvent
 
 export type VoiceCallEventParams =
-  | VoicePlaybackParams
+  | VoiceCallPlaybackParams
   // Server Event Params
   | CallingCallDialEventParams
   | CallingCallStateEventParams
@@ -1385,7 +1389,7 @@ export type VoiceCallJSONRPCMethod =
   | 'calling.end'
   | 'calling.pass'
   | 'calling.answer'
-  | VoicePlayMethod
+  | VoiceCallPlayMethod
   | 'calling.record'
   | 'calling.record.pause'
   | 'calling.record.resume'

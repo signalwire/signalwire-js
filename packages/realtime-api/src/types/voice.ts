@@ -20,11 +20,11 @@ import type {
   CallCollectUpdated,
   CallCollectEnded,
   CallCollectFailed,
-  VoicePlayAudioMethodParams,
-  VoicePlaySilenceMethodParams,
-  VoicePlayRingtoneMethodParams,
-  VoicePlayTTSMethodParams,
-  VoicePlaylist,
+  VoiceCallPlayAudioMethodParams,
+  VoiceCallPlaySilenceMethodParams,
+  VoiceCallPlayRingtoneMethodParams,
+  VoiceCallPlayTTSMethodParams,
+  VoiceCallPlaylist,
   VoiceCallRecordMethodParams,
   VoiceCallPromptTTSMethodParams,
   VoiceCallPromptRingtoneMethodParams,
@@ -193,25 +193,26 @@ export type CallPlaybackListenersEventsMapping = Record<
   Record<'onEnded', PlaybackEnded>
 
 export interface CallPlayMethodParams {
-  playlist: VoicePlaylist
+  playlist: VoiceCallPlaylist
   listen?: CallPlaybackListeners
 }
 
-export interface CallPlayAudioMethodarams extends VoicePlayAudioMethodParams {
+export interface CallPlayAudioMethodarams
+  extends VoiceCallPlayAudioMethodParams {
   listen?: CallPlaybackListeners
 }
 
 export interface CallPlaySilenceMethodParams
-  extends VoicePlaySilenceMethodParams {
+  extends VoiceCallPlaySilenceMethodParams {
   listen?: CallPlaybackListeners
 }
 
 export interface CallPlayRingtoneMethodParams
-  extends VoicePlayRingtoneMethodParams {
+  extends VoiceCallPlayRingtoneMethodParams {
   listen?: CallPlaybackListeners
 }
 
-export interface CallPlayTTSMethodParams extends VoicePlayTTSMethodParams {
+export interface CallPlayTTSMethodParams extends VoiceCallPlayTTSMethodParams {
   listen?: CallPlaybackListeners
 }
 

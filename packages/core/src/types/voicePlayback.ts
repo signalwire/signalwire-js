@@ -50,13 +50,13 @@ export interface CallingCallPlayEvent extends SwEvent {
 /**
  * List of public event names
  */
-export type VoicePlaybackEventNames =
+export type VoiceCallPlaybackEventNames =
   | PlaybackStarted
   | PlaybackUpdated
   | PlaybackEnded
   | PlaybackFailed
 
-export interface VoicePlaybackEventParams {
+export interface VoiceCallPlaybackEventParams {
   node_id: string
   call_id: string
   control_id: string
@@ -66,49 +66,49 @@ export interface VoicePlaybackEventParams {
 /**
  * 'playback.started'
  */
-export interface VoicePlaybackStartedEvent extends SwEvent {
+export interface VoiceCallPlaybackStartedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackStarted>
-  params: VoicePlaybackEventParams
+  params: VoiceCallPlaybackEventParams
 }
 /**
  * 'playback.updated'
  */
-export interface VoicePlaybackUpdatedEvent extends SwEvent {
+export interface VoiceCallPlaybackUpdatedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackUpdated>
-  params: VoicePlaybackEventParams
+  params: VoiceCallPlaybackEventParams
 }
 /**
  * 'playback.ended'
  */
-export interface VoicePlaybackEndedEvent extends SwEvent {
+export interface VoiceCallPlaybackEndedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackEnded>
-  params: VoicePlaybackEventParams
+  params: VoiceCallPlaybackEventParams
 }
 /**
  * 'calling.playback.failed'
  */
-export interface VoicePlaybackFailedEvent extends SwEvent {
+export interface VoiceCallPlaybackFailedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackFailed>
-  params: VoicePlaybackEventParams
+  params: VoiceCallPlaybackEventParams
 }
 
 /**
- * Voice play methods and params
+ * Voice call play methods and params
  */
 
-export type VoicePlayMethod =
+export type VoiceCallPlayMethod =
   | 'calling.play'
   | 'calling.play.pause'
   | 'calling.play.resume'
   | 'calling.play.volume'
   | 'calling.play.stop'
 
-export interface VoicePlayAudioParams {
+export interface VoiceCallPlayAudioParams {
   type: 'audio'
   url: string
 }
 
-export interface VoicePlayTTSParams {
+export interface VoiceCallPlayTTSParams {
   type: 'tts'
   text: string
   language?: string
@@ -116,7 +116,7 @@ export interface VoicePlayTTSParams {
   voice?: string
 }
 
-export interface VoicePlaySilenceParams {
+export interface VoiceCallPlaySilenceParams {
   type: 'silence'
   duration: number
 }
@@ -162,63 +162,65 @@ export type RingtoneName =
   | 've'
   | 'za'
 
-export interface VoicePlayRingtoneParams {
+export interface VoiceCallPlayRingtoneParams {
   type: 'ringtone'
   name: RingtoneName
   duration?: number
 }
 
-export type VoicePlayParams =
-  | VoicePlayAudioParams
-  | VoicePlayTTSParams
-  | VoicePlaySilenceParams
-  | VoicePlayRingtoneParams
+export type VoiceCallPlayParams =
+  | VoiceCallPlayAudioParams
+  | VoiceCallPlayTTSParams
+  | VoiceCallPlaySilenceParams
+  | VoiceCallPlayRingtoneParams
 
-export interface VoicePlayMethodParams {
-  media: NestedArray<VoicePlayParams>
+export interface VoiceCallPlayMethodParams {
+  media: NestedArray<VoiceCallPlayParams>
   volume?: number
 }
 
-export interface VoicePlayAudioMethodParams
-  extends OmitType<VoicePlayAudioParams> {
+export interface VoiceCallPlayAudioMethodParams
+  extends OmitType<VoiceCallPlayAudioParams> {
   volume?: number
 }
 
-export interface VoicePlaylistAudioParams
-  extends OmitType<VoicePlayAudioParams> {}
+export interface VoiceCallPlaylistAudioParams
+  extends OmitType<VoiceCallPlayAudioParams> {}
 
-export interface VoicePlaySilenceMethodParams
-  extends OmitType<VoicePlaySilenceParams> {}
+export interface VoiceCallPlaySilenceMethodParams
+  extends OmitType<VoiceCallPlaySilenceParams> {}
 
-export interface VoicePlaylistSilenceParams
-  extends OmitType<VoicePlaySilenceParams> {}
+export interface VoiceCallPlaylistSilenceParams
+  extends OmitType<VoiceCallPlaySilenceParams> {}
 
-export interface VoicePlayRingtoneMethodParams
-  extends OmitType<VoicePlayRingtoneParams> {
+export interface VoiceCallPlayRingtoneMethodParams
+  extends OmitType<VoiceCallPlayRingtoneParams> {
   volume?: number
 }
-export interface VoicePlaylistRingtoneParams
-  extends OmitType<VoicePlayRingtoneParams> {}
+export interface VoiceCallPlaylistRingtoneParams
+  extends OmitType<VoiceCallPlayRingtoneParams> {}
 
-export interface VoicePlayTTSMethodParams extends OmitType<VoicePlayTTSParams> {
+export interface VoiceCallPlayTTSMethodParams
+  extends OmitType<VoiceCallPlayTTSParams> {
   volume?: number
 }
-export interface VoicePlaylistTTSParams extends OmitType<VoicePlayTTSParams> {}
+export interface VoiceCallPlaylistTTSParams
+  extends OmitType<VoiceCallPlayTTSParams> {}
 
-export interface CreateVoicePlaylistParams {
+export interface CreateVoiceCallPlaylistParams {
   /** Default volume for the audio in the playlist. */
   volume?: number
 }
 
-export interface VoicePlaylist extends CreateVoicePlaylistParams {
-  media: VoicePlayMethodParams['media']
-  add(params: VoicePlayParams): this
+export interface VoiceCallPlaylist extends CreateVoiceCallPlaylistParams {
+  media: VoiceCallPlayMethodParams['media']
+  add(params: VoiceCallPlayParams): this
 }
 
 /**
- * Public Contract for a VoicePlayback
+ * Public Contract for a VoiceCallPlayback
  */
-export interface VoicePlaybackContract {
+export interface VoiceCallPlaybackContract {
   /** Unique id for this playback */
   readonly id: string
   /** @ignore */
@@ -242,28 +244,30 @@ export interface VoicePlaybackContract {
 }
 
 /**
- * VoicePlayback properties
+ * VoiceCallPlayback properties
  */
-export type VoicePlaybackEntity = OnlyStateProperties<VoicePlaybackContract>
+export type VoiceCallPlaybackEntity =
+  OnlyStateProperties<VoiceCallPlaybackContract>
 
 /**
- * VoicePlayback methods
+ * VoiceCallPlayback methods
  */
-export type VoicePlaybackMethods = OnlyFunctionProperties<VoicePlaybackContract>
+export type VoiceCallPlaybackMethods =
+  OnlyFunctionProperties<VoiceCallPlaybackContract>
 
-export type VoicePlaybackEvent =
+export type VoiceCallPlaybackEvent =
   // Server Events
   | CallingCallPlayEvent
   // SDK Events
-  | VoicePlaybackStartedEvent
-  | VoicePlaybackUpdatedEvent
-  | VoicePlaybackEndedEvent
-  | VoicePlaybackFailedEvent
+  | VoiceCallPlaybackStartedEvent
+  | VoiceCallPlaybackUpdatedEvent
+  | VoiceCallPlaybackEndedEvent
+  | VoiceCallPlaybackFailedEvent
 
-export type VoicePlaybackParams =
+export type VoiceCallPlaybackParams =
   // Server Event Params
   | CallingCallPlayEventParams
   // SDK Events
-  | VoicePlaybackEventParams
+  | VoiceCallPlaybackEventParams
 
-export type VoicePlayAction = MapToPubSubShape<CallingCallPlayEvent>
+export type VoiceCallPlayAction = MapToPubSubShape<CallingCallPlayEvent>

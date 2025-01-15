@@ -1,15 +1,15 @@
 import type {
-  CreateVoicePlaylistParams,
-  VoicePlaylist,
+  CreateVoiceCallPlaylistParams,
+  VoiceCallPlaylist,
   VoiceCallPlayParams,
   VoiceCallPlayAudioParams,
   VoiceCallPlayTTSParams,
   VoiceCallPlaySilenceParams,
   VoiceCallPlayRingtoneParams,
-  VoicePlaylistAudioParams,
-  VoicePlaylistTTSParams,
-  VoicePlaylistSilenceParams,
-  VoicePlaylistRingtoneParams,
+  VoiceCallPlaylistAudioParams,
+  VoiceCallPlaylistTTSParams,
+  VoiceCallPlaylistSilenceParams,
+  VoiceCallPlaylistRingtoneParams,
 } from '@signalwire/core'
 
 /**
@@ -33,10 +33,10 @@ import type {
  *   }))
  * ```
  */
-export class Playlist implements VoicePlaylist {
-  private _media: VoicePlaylist['media'] = []
+export class Playlist implements VoiceCallPlaylist {
+  private _media: VoiceCallPlaylist['media'] = []
 
-  constructor(private params: CreateVoicePlaylistParams = {}) {}
+  constructor(private params: CreateVoiceCallPlaylistParams = {}) {}
 
   /** Default volume for the audio in the playlist. */
   get volume() {
@@ -56,40 +56,40 @@ export class Playlist implements VoicePlaylist {
 
   /**
    * An audio media.
-   * @params params - {@link VoicePlaylistAudioParams}
+   * @params params - {@link VoiceCallPlaylistAudioParams}
    * @returns - {@link VoiceCallPlayAudioParams}
    **/
-  static Audio(params: VoicePlaylistAudioParams): VoiceCallPlayAudioParams {
+  static Audio(params: VoiceCallPlaylistAudioParams): VoiceCallPlayAudioParams {
     return { type: 'audio', ...params }
   }
 
   /**
    * A TTS media.
-   * @params params - {@link VoicePlaylistTTSParams}
+   * @params params - {@link VoiceCallPlaylistTTSParams}
    * @returns - {@link VoiceCallPlayTTSParams}
    **/
-  static TTS(params: VoicePlaylistTTSParams): VoiceCallPlayTTSParams {
+  static TTS(params: VoiceCallPlaylistTTSParams): VoiceCallPlayTTSParams {
     return { type: 'tts', ...params }
   }
 
   /**
    * A silence interval.
-   * @params params - {@link VoicePlaylistSilenceParams}
+   * @params params - {@link VoiceCallPlaylistSilenceParams}
    * @returns - {@link VoiceCallPlaySilenceParams}
    **/
   static Silence(
-    params: VoicePlaylistSilenceParams
+    params: VoiceCallPlaylistSilenceParams
   ): VoiceCallPlaySilenceParams {
     return { type: 'silence', ...params }
   }
 
   /**
    * A ringtone media.
-   * @params param - {@link VoicePlaylistRingtoneParams}
+   * @params param - {@link VoiceCallPlaylistRingtoneParams}
    * @returns - {@link VoiceCallPlayRingtoneParams}
    **/
   static Ringtone(
-    params: VoicePlaylistRingtoneParams
+    params: VoiceCallPlaylistRingtoneParams
   ): VoiceCallPlayRingtoneParams {
     return { type: 'ringtone', ...params }
   }
