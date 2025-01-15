@@ -5,10 +5,10 @@ import type {
   PlaybackUpdated,
   PlaybackEnded,
   PlaybackFailed,
-  CallRecordingStarted,
-  CallRecordingUpdated,
-  CallRecordingEnded,
-  CallRecordingFailed,
+  RecordingStarted,
+  RecordingUpdated,
+  RecordingEnded,
+  RecordingFailed,
   CallPromptStarted,
   CallPromptUpdated,
   CallPromptEnded,
@@ -114,10 +114,7 @@ export type RealTimeCallEventsHandlerMapping = Record<
     (playback: CallPlayback) => void
   > &
   Record<
-    | CallRecordingStarted
-    | CallRecordingUpdated
-    | CallRecordingEnded
-    | CallRecordingFailed,
+    RecordingStarted | RecordingUpdated | RecordingEnded | RecordingFailed,
     (recording: CallRecording) => void
   > &
   Record<
@@ -150,10 +147,10 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onPlaybackUpdated', PlaybackUpdated> &
   Record<'onPlaybackFailed', PlaybackFailed> &
   Record<'onPlaybackEnded', PlaybackEnded> &
-  Record<'onRecordingStarted', CallRecordingStarted> &
-  Record<'onRecordingUpdated', CallRecordingUpdated> &
-  Record<'onRecordingFailed', CallRecordingFailed> &
-  Record<'onRecordingEnded', CallRecordingEnded> &
+  Record<'onRecordingStarted', RecordingStarted> &
+  Record<'onRecordingUpdated', RecordingUpdated> &
+  Record<'onRecordingFailed', RecordingFailed> &
+  Record<'onRecordingEnded', RecordingEnded> &
   Record<'onPromptStarted', CallPromptStarted> &
   Record<'onPromptUpdated', CallPromptUpdated> &
   Record<'onPromptFailed', CallPromptFailed> &
@@ -220,10 +217,7 @@ export interface CallPlayTTSMethodParams extends VoiceCallPlayTTSMethodParams {
  * Call Recording
  */
 export type CallRecordingEvents = Record<
-  | CallRecordingStarted
-  | CallRecordingUpdated
-  | CallRecordingEnded
-  | CallRecordingFailed,
+  RecordingStarted | RecordingUpdated | RecordingEnded | RecordingFailed,
   (recording: CallRecording) => void
 >
 
@@ -236,11 +230,11 @@ export interface CallRecordingListeners {
 
 export type CallRecordingListenersEventsMapping = Record<
   'onStarted',
-  CallRecordingStarted
+  RecordingStarted
 > &
-  Record<'onUpdated', CallRecordingUpdated> &
-  Record<'onFailed', CallRecordingFailed> &
-  Record<'onEnded', CallRecordingEnded>
+  Record<'onUpdated', RecordingUpdated> &
+  Record<'onFailed', RecordingFailed> &
+  Record<'onEnded', RecordingEnded>
 
 export interface CallRecordMethodParams extends VoiceCallRecordMethodParams {
   listen?: CallRecordingListeners
