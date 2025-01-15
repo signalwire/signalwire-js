@@ -9,4 +9,6 @@ export interface NestedArray<T> extends Array<T | NestedArray<T>> {}
 export * from './voiceCall'
 export * from './voicePlayback'
 export * from './voiceRecording'
+export * from './voiceDetect'
+
 export type VoiceJSONRPCMethod = VoiceCallJSONRPCMethod

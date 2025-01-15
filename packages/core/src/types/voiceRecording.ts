@@ -66,38 +66,33 @@ export type VoiceCallRecordingEventNames =
   | RecordingEnded
   | RecordingFailed
 
-export interface VoiceCallRecordingEventParams
-  extends CallingCallRecordEventParams {
-  tag: string
-}
-
 /**
- * 'recording.started'
+ * 'calling.recording.started'
  */
 export interface VoiceCallRecordingStartedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<RecordingStarted>
-  params: VoiceCallRecordingEventParams
+  params: CallingCallRecordEventParams & { tag: string }
 }
 /**
- * 'recording.updated'
+ * 'calling.recording.updated'
  */
 export interface VoiceCallRecordingUpdatedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<RecordingUpdated>
-  params: VoiceCallRecordingEventParams
+  params: CallingCallRecordEventParams & { tag: string }
 }
 /**
- * 'recording.ended'
+ * 'calling.recording.ended'
  */
 export interface VoiceCallRecordingEndedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<RecordingEnded>
-  params: VoiceCallRecordingEventParams
+  params: CallingCallRecordEventParams & { tag: string }
 }
 /**
- * 'recording.failed'
+ * 'calling.recording.failed'
  */
 export interface VoiceCallRecordingFailedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<RecordingFailed>
-  params: VoiceCallRecordingEventParams
+  params: CallingCallRecordEventParams & { tag: string }
 }
 
 /**
@@ -171,10 +166,13 @@ export type VoiceCallRecordingEvent =
   | VoiceCallRecordingEndedEvent
   | VoiceCallRecordingFailedEvent
 
-export type VoiceCallRecordingParams =
+export type VoiceCallRecordingEventParams =
   // Server Event Params
   | CallingCallRecordEventParams
   // SDK Events
-  | VoiceCallRecordingEventParams
+  | VoiceCallRecordingStartedEvent['params']
+  | VoiceCallRecordingUpdatedEvent['params']
+  | VoiceCallRecordingEndedEvent['params']
+  | VoiceCallRecordingFailedEvent['params']
 
 export type VoiceCallRecordAction = MapToPubSubShape<CallingCallRecordEvent>

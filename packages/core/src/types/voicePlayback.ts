@@ -56,38 +56,33 @@ export type VoiceCallPlaybackEventNames =
   | PlaybackEnded
   | PlaybackFailed
 
-export interface VoiceCallPlaybackEventParams
-  extends CallingCallPlayEventParams {
-  tag: string
-}
-
 /**
- * 'playback.started'
+ * 'calling.playback.started'
  */
 export interface VoiceCallPlaybackStartedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackStarted>
-  params: VoiceCallPlaybackEventParams
+  params: CallingCallPlayEventParams & { tag: string }
 }
 /**
- * 'playback.updated'
+ * 'calling.playback.updated'
  */
 export interface VoiceCallPlaybackUpdatedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackUpdated>
-  params: VoiceCallPlaybackEventParams
+  params: CallingCallPlayEventParams & { tag: string }
 }
 /**
- * 'playback.ended'
+ * 'calling.playback.ended'
  */
 export interface VoiceCallPlaybackEndedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackEnded>
-  params: VoiceCallPlaybackEventParams
+  params: CallingCallPlayEventParams & { tag: string }
 }
 /**
- * 'playback.failed'
+ * 'calling.playback.failed'
  */
 export interface VoiceCallPlaybackFailedEvent extends SwEvent {
   event_type: ToInternalVoiceEvent<PlaybackFailed>
-  params: VoiceCallPlaybackEventParams
+  params: CallingCallPlayEventParams & { tag: string }
 }
 
 /**
@@ -262,10 +257,13 @@ export type VoiceCallPlaybackEvent =
   | VoiceCallPlaybackEndedEvent
   | VoiceCallPlaybackFailedEvent
 
-export type VoiceCallPlaybackParams =
+export type VoiceCallPlaybackEventParams =
   // Server Event Params
   | CallingCallPlayEventParams
   // SDK Events
-  | VoiceCallPlaybackEventParams
+  | VoiceCallPlaybackStartedEvent['params']
+  | VoiceCallPlaybackUpdatedEvent['params']
+  | VoiceCallPlaybackEndedEvent['params']
+  | VoiceCallPlaybackFailedEvent['params']
 
 export type VoiceCallPlayAction = MapToPubSubShape<CallingCallPlayEvent>
