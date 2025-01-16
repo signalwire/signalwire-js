@@ -13,5 +13,6 @@ export * from './voiceDetect'
 export * from './voiceTap'
 export * from './voiceCollect'
 export * from './voicePrompt'
+export * from './voiceSendDigits'
 
 export type VoiceJSONRPCMethod = VoiceCallJSONRPCMethod

@@ -47,6 +47,9 @@ import type {
   VoiceCallPromptEvent,
   VoiceCallPromptEventParams,
   VoiceCallPromptMethod,
+  VoiceCallSendDigitsEvent,
+  VoiceCallSendDigitsEventParams,
+  VoiceCallSendDigitsMethod,
 } from '.'
 import { MapToPubSubShape } from '..'
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
@@ -66,7 +69,6 @@ export type CallDial = 'call.dial'
 export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
 export type CallConnect = 'call.connect'
-export type CallSendDigits = 'call.send_digits'
 
 /**
  * Public event types
@@ -545,23 +547,6 @@ export interface CallingCallConnectEvent extends SwEvent {
 }
 
 /**
- * 'calling.call.send_digits
- */
-
-export type CallingCallSendDigitsState = 'finished'
-export interface CallingCallSendDigitsEventParams {
-  node_id: string
-  call_id: string
-  control_id: string
-  state: CallingCallSendDigitsState
-}
-
-export interface CallingCallSendDigitsEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallSendDigits>
-  params: CallingCallSendDigitsEventParams
-}
-
-/**
  * ==========
  * ==========
  * SDK-Side Events
@@ -639,12 +624,12 @@ export type VoiceCallEvent =
   | VoiceCallTapEvent
   | VoiceCallCollectEvent
   | VoiceCallPromptEvent
+  | VoiceCallSendDigitsEvent
   // Server Events
   | CallingCallDialEvent
   | CallingCallStateEvent
   | CallingCallReceiveEvent
   | CallingCallConnectEvent
-  | CallingCallSendDigitsEvent
   // SDK Events
   | CallReceivedEvent
   | CallConnectConnectingEvent
@@ -659,12 +644,12 @@ export type VoiceCallEventParams =
   | VoiceCallTapEventParams
   | VoiceCallCollectEventParams
   | VoiceCallPromptEventParams
+  | VoiceCallSendDigitsEventParams
   // Server Event Params
   | CallingCallDialEventParams
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
   | CallingCallConnectEventParams
-  | CallingCallSendDigitsEventParams
   // SDK Event Params
   | CallReceivedEvent['params']
   | CallConnectConnectingEvent['params']
@@ -680,9 +665,6 @@ export type VoiceCallStateAction = MapToPubSubShape<CallingCallStateEvent>
 
 export type VoiceCallDialAction = MapToPubSubShape<CallingCallDialEvent>
 
-export type VoiceCallSendDigitsAction =
-  MapToPubSubShape<CallingCallSendDigitsEvent>
-
 export type VoiceCallConnectAction = MapToPubSubShape<CallingCallConnectEvent>
 
 export type VoiceCallJSONRPCMethod =
@@ -696,7 +678,7 @@ export type VoiceCallJSONRPCMethod =
   | VoiceCallTapMethod
   | VoiceCallCollectMethod
   | VoiceCallPromptMethod
+  | VoiceCallSendDigitsMethod
   | 'calling.connect'
   | 'calling.disconnect'
-  | 'calling.send_digits'
   | 'calling.pay'
