@@ -59,6 +59,7 @@ import type {
   VoiceCallConnectEventParams,
   VoiceCallConnectMethod,
   CallingCallConnectState,
+  NestedArray,
 } from '.'
 import { MapToPubSubShape } from '..'
 import type {
@@ -140,67 +141,11 @@ export interface VoiceCallSipParams extends VoiceCallParams {
   sessionTimeout?: number
 }
 
-export interface NestedArray<T> extends Array<T | NestedArray<T>> {}
-
 export type VoiceCallDeviceParams = VoiceCallPhoneParams | VoiceCallSipParams
 
 export interface VoiceCallDialMethodParams {
   region?: string
   devices: NestedArray<VoiceCallDeviceParams>
-}
-
-interface VoiceCallPayMethodParameter {
-  name: any
-  value: any
-}
-
-interface VoiceCallPayMethodPromptAction {
-  type: 'Say' | 'Play'
-  phrase: string
-}
-
-interface VoiceCallPayMethodPrompts {
-  for:
-    | 'payment-card-number'
-    | 'expiration-date'
-    | 'security-code'
-    | 'postal-code'
-    | 'payment-processing'
-    | 'payment-completed'
-    | 'payment-failed'
-    | 'payment-canceled'
-  cardType?: string
-  errorType?:
-    | 'timeout'
-    | 'invalid-card-number'
-    | 'invalid-card-type'
-    | 'invalid-date'
-    | 'invalid-security-code'
-    | 'invalid-postal-code'
-    | 'session-in-progress'
-    | 'card-declined'
-  actions: VoiceCallPayMethodPromptAction[]
-}
-
-export interface VoiceCallPayMethodParams {
-  input?: 'dtmf' | 'voice'
-  statusUrl?: string
-  paymentMehod?: 'credit-card'
-  timeout?: number
-  maxAttempts?: number
-  securityCode?: boolean
-  postalCode?: boolean | number
-  minPostalCodeLength?: number
-  paymentConnectorUrl: string
-  tokenType?: 'one-time' | 'reusable'
-  chargeAmount?: number
-  currency?: string
-  language?: string
-  voice?: string
-  description?: string
-  validCardTypes?: string
-  paremeters?: VoiceCallPayMethodParameter[]
-  prompts?: VoiceCallPayMethodPrompts[]
 }
 
 export type VoiceCallDisconnectReason =
@@ -585,4 +530,3 @@ export type VoiceCallJSONRPCMethod =
   | VoiceCallPromptMethod
   | VoiceCallSendDigitsMethod
   | VoiceCallConnectMethod
-  | 'calling.pay'
