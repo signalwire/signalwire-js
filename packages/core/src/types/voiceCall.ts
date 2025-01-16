@@ -34,6 +34,16 @@ import type {
   VoiceCallTapAudioMethodParams,
   VoiceCallTapEvent,
   VoiceCallTapMethod,
+  VoiceCallCollectEventNames,
+  SpeechOrDigits,
+  VoiceCallCollectMethodParams,
+  VoiceCallCollectContract,
+  CallingCallCollectEventParams,
+  VoiceCallCollectEvent,
+  VoiceCallTapEventParams,
+  VoiceCallCollectEventParams,
+  VoiceCallCollectMethod,
+  CallingCallCollectResult,
 } from '.'
 import { MapToPubSubShape } from '..'
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
@@ -52,7 +62,6 @@ export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
 export type CallDial = 'call.dial'
 export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
-export type CallCollect = 'call.collect'
 export type CallConnect = 'call.connect'
 export type CallSendDigits = 'call.send_digits'
 
@@ -67,11 +76,6 @@ export type CallPromptStartOfInput = 'prompt.startOfInput'
 export type CallPromptUpdated = 'prompt.updated'
 export type CallPromptEnded = 'prompt.ended'
 export type CallPromptFailed = 'prompt.failed'
-export type CallCollectStarted = 'collect.started'
-export type CallCollectStartOfInput = 'collect.startOfInput'
-export type CallCollectUpdated = 'collect.updated'
-export type CallCollectEnded = 'collect.ended'
-export type CallCollectFailed = 'collect.failed'
 // Not exposed yet to the public-side
 export type CallConnectConnecting = 'connect.connecting'
 export type CallConnectConnected = 'connect.connected'
@@ -88,6 +92,7 @@ export type VoiceCallEventNames =
   | VoiceCallRecordingEventNames
   | VoiceCallDetectEventNames
   | VoiceCallTapEventNames
+  | VoiceCallCollectEventNames
   | CallPromptStarted
   | CallPromptUpdated
   | CallPromptEnded
@@ -96,10 +101,6 @@ export type VoiceCallEventNames =
   | CallConnectConnected
   | CallConnectDisconnected
   | CallConnectFailed
-  | CallCollectStarted
-  | CallCollectUpdated
-  | CallCollectEnded
-  | CallCollectFailed
 
 /**
  * List of internal events
@@ -155,37 +156,6 @@ export interface VoiceCallDialMethodParams {
   devices: NestedArray<VoiceCallDeviceParams>
 }
 
-export type CollectDigitsConfig = {
-  /** Max number of digits to collect. */
-  max: number
-  /** Timeout in seconds between each digit. */
-  digitTimeout?: number
-  /** DTMF digits that will end the collection. Default not set. */
-  terminators?: string
-}
-
-export type CollectSpeechConfig = {
-  /** How much silence to wait for end of speech. Default to 1 second. */
-  endSilenceTimeout?: number
-  /** Maximum time to collect speech. Default to 60 seconds. */
-  speechTimeout?: number
-  /** Language to detect. Default to `en-US`. */
-  language?: string
-  /** Array of expected phrases to detect. */
-  hints?: string[]
-  /** Model use for enhance speech recognition */
-  model?: 'default' | 'enhanced' | 'enhanced.phone_call' | 'enhanced.video'
-}
-
-export type SpeechOrDigits =
-  | {
-      digits: CollectDigitsConfig
-      speech?: never
-    }
-  | {
-      digits?: never
-      speech: CollectSpeechConfig
-    }
 export type VoiceCallPromptMethodParams = SpeechOrDigits & {
   playlist: VoicePlaylist
   initialTimeout?: number
@@ -205,14 +175,6 @@ export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
     volume?: number
     initialTimeout?: number
   }
-
-export type VoiceCallCollectMethodParams = SpeechOrDigits & {
-  initialTimeout?: number
-  partialResults?: boolean
-  continuous?: boolean
-  sendStartOfInput?: boolean
-  startInputTimers?: boolean
-}
 
 export interface VoiceCallConnectAdditionalParams {
   ringback?: VoicePlaylist
@@ -353,43 +315,6 @@ export type VoiceCallPromptEntity = OnlyStateProperties<VoiceCallPromptContract>
  */
 export type VoiceCallPromptMethods =
   OnlyFunctionProperties<VoiceCallPromptContract>
-
-/**
- * Public Contract for a VoiceCallCollect
- */
-export interface VoiceCallCollectContract {
-  /** Unique id for this collect */
-  readonly id: string
-  /** @ignore */
-  readonly callId: string
-  /** @ignore */
-  readonly controlId: string
-
-  readonly type?: CallingCallCollectResult['type']
-  /** Alias for type in case of errors */
-  readonly reason: string | undefined
-  readonly digits: string | undefined
-  readonly speech: string | undefined
-  readonly terminator: string | undefined
-  readonly text: string | undefined
-  readonly confidence: number | undefined
-
-  stop(): Promise<this>
-  startInputTimers(): Promise<this>
-  ended(): Promise<this>
-}
-
-/**
- * VoiceCallCollect properties
- */
-export type VoiceCallCollectEntity =
-  OnlyStateProperties<VoiceCallCollectContract>
-
-/**
- * VoiceCallCollect methods
- */
-export type VoiceCallCollectMethods =
-  OnlyFunctionProperties<VoiceCallCollectContract>
 
 export type CallingCallWaitForState = Extract<
   CallingCallState,
@@ -649,63 +574,6 @@ export interface CallingCallReceiveEvent extends SwEvent {
 }
 
 /**
- * 'calling.call.collect'
- */
-interface CallingCallCollectResultError {
-  type: 'error'
-}
-interface CallingCallCollectResultNoInput {
-  type: 'no_input'
-}
-interface CallingCallCollectResultNoMatch {
-  type: 'no_match'
-}
-interface CallingCallCollectResultStartOfInput {
-  type: 'start_of_input'
-}
-interface CallingCallCollectResultDigit {
-  type: 'digit'
-  params: {
-    digits: string
-    terminator: string
-  }
-}
-interface CallingCallCollectResultSpeech {
-  type: 'speech'
-  params: {
-    text: string
-    confidence: number
-  }
-}
-export type CallingCallCollectResult =
-  | CallingCallCollectResultError
-  | CallingCallCollectResultNoInput
-  | CallingCallCollectResultNoMatch
-  | CallingCallCollectResultStartOfInput
-  | CallingCallCollectResultDigit
-  | CallingCallCollectResultSpeech
-
-export type CallingCallCollectEndState = Exclude<
-  CallingCallCollectResult['type'],
-  'start_of_input'
->
-
-export type CallingCallCollectState = 'error' | 'collecting' | 'finished'
-export interface CallingCallCollectEventParams {
-  node_id: string
-  call_id: string
-  control_id: string
-  result: CallingCallCollectResult
-  final?: boolean
-  state?: CallingCallCollectState
-}
-
-export interface CallingCallCollectEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallCollect>
-  params: CallingCallCollectEventParams
-}
-
-/**
  * 'calling.call.connect'
  */
 export type CallingCallConnectState =
@@ -840,43 +708,6 @@ export interface CallConnectFailedEvent extends SwEvent {
   params: CallingCallConnectEventParams
 }
 
-/**
- * 'calling.collect.started'
- */
-export interface CallCollectStartedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallCollectStarted>
-  params: CallingCallCollectEventParams & { tag: string }
-}
-/**
- * 'calling.collect.startOfInput'
- * Different from `started` because it's from the server
- */
-export interface CallCollectStartOfInputEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallCollectStartOfInput>
-  params: CallingCallCollectEventParams & { tag: string }
-}
-/**
- * 'calling.collect.updated'
- */
-export interface CallCollectUpdatedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallCollectUpdated>
-  params: CallingCallCollectEventParams & { tag: string }
-}
-/**
- * 'calling.collect.ended'
- */
-export interface CallCollectEndedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallCollectEnded>
-  params: CallingCallCollectEventParams & { tag: string }
-}
-/**
- * 'calling.collect.failed'
- */
-export interface CallCollectFailedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallCollectFailed>
-  params: CallingCallCollectEventParams & { tag: string }
-}
-
 // interface VoiceCallStateEvent {
 //   call_id: string
 //   node_id: string
@@ -908,11 +739,11 @@ export type VoiceCallEvent =
   | VoiceCallRecordingEvent
   | VoiceCallDetectEvent
   | VoiceCallTapEvent
+  | VoiceCallCollectEvent
   // Server Events
   | CallingCallDialEvent
   | CallingCallStateEvent
   | CallingCallReceiveEvent
-  | CallingCallCollectEvent
   | CallingCallConnectEvent
   | CallingCallSendDigitsEvent
   // SDK Events
@@ -926,21 +757,17 @@ export type VoiceCallEvent =
   | CallConnectConnectedEvent
   | CallConnectDisconnectedEvent
   | CallConnectFailedEvent
-  | CallCollectStartedEvent
-  | CallCollectStartOfInputEvent
-  | CallCollectUpdatedEvent
-  | CallCollectEndedEvent
-  | CallCollectFailedEvent
 
 export type VoiceCallEventParams =
   | VoiceCallPlaybackEventParams
   | VoiceCallRecordingEventParams
   | VoiceCallDetectEventParams
+  | VoiceCallTapEventParams
+  | VoiceCallCollectEventParams
   // Server Event Params
   | CallingCallDialEventParams
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
-  | CallingCallCollectEventParams
   | CallingCallConnectEventParams
   | CallingCallSendDigitsEventParams
   // SDK Event Params
@@ -954,11 +781,6 @@ export type VoiceCallEventParams =
   | CallConnectConnectedEvent['params']
   | CallConnectDisconnectedEvent['params']
   | CallConnectFailedEvent['params']
-  | CallCollectStartedEvent['params']
-  | CallCollectStartOfInputEvent['params']
-  | CallCollectUpdatedEvent['params']
-  | CallCollectEndedEvent['params']
-  | CallCollectFailedEvent['params']
 
 export type VoiceCallAction = MapToPubSubShape<VoiceCallEvent>
 
@@ -967,8 +789,6 @@ export type VoiceCallReceiveAction = MapToPubSubShape<CallingCallReceiveEvent>
 export type VoiceCallStateAction = MapToPubSubShape<CallingCallStateEvent>
 
 export type VoiceCallDialAction = MapToPubSubShape<CallingCallDialEvent>
-
-export type VoiceCallCollectAction = MapToPubSubShape<CallingCallCollectEvent>
 
 export type VoiceCallSendDigitsAction =
   MapToPubSubShape<CallingCallSendDigitsEvent>
@@ -984,13 +804,11 @@ export type VoiceCallJSONRPCMethod =
   | VoiceCallRecordMethod
   | VoiceCallDetectMethod
   | VoiceCallTapMethod
+  | VoiceCallCollectMethod
   | 'calling.play_and_collect'
   | 'calling.play_and_collect.stop'
   | 'calling.play_and_collect.volume'
   | 'calling.connect'
   | 'calling.disconnect'
   | 'calling.send_digits'
-  | 'calling.collect'
-  | 'calling.collect.stop'
-  | 'calling.collect.start_input_timers'
   | 'calling.pay'
