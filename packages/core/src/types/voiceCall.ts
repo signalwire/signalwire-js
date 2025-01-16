@@ -28,6 +28,12 @@ import type {
   VoiceCallDetectFaxParams,
   VoiceCallDetectDigitParams,
   VoiceCallDetectEvent,
+  VoiceCallTapEventNames,
+  VoiceCallTapMethodParams,
+  VoiceCallTapContract,
+  VoiceCallTapAudioMethodParams,
+  VoiceCallTapEvent,
+  VoiceCallTapMethod,
 } from '.'
 import { MapToPubSubShape } from '..'
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
@@ -47,7 +53,6 @@ export type CallDial = 'call.dial'
 export type CallState = 'call.state'
 export type CallReceive = 'call.receive'
 export type CallCollect = 'call.collect'
-export type CallTap = 'call.tap'
 export type CallConnect = 'call.connect'
 export type CallSendDigits = 'call.send_digits'
 
@@ -67,8 +72,6 @@ export type CallCollectStartOfInput = 'collect.startOfInput'
 export type CallCollectUpdated = 'collect.updated'
 export type CallCollectEnded = 'collect.ended'
 export type CallCollectFailed = 'collect.failed'
-export type CallTapStarted = 'tap.started'
-export type CallTapEnded = 'tap.ended'
 // Not exposed yet to the public-side
 export type CallConnectConnecting = 'connect.connecting'
 export type CallConnectConnected = 'connect.connected'
@@ -84,12 +87,11 @@ export type VoiceCallEventNames =
   | VoiceCallPlaybackEventNames
   | VoiceCallRecordingEventNames
   | VoiceCallDetectEventNames
+  | VoiceCallTapEventNames
   | CallPromptStarted
   | CallPromptUpdated
   | CallPromptEnded
   | CallPromptFailed
-  | CallTapStarted
-  | CallTapEnded
   | CallConnectConnecting
   | CallConnectConnected
   | CallConnectDisconnected
@@ -203,37 +205,6 @@ export type VoiceCallPromptTTSMethodParams = SpeechOrDigits &
     volume?: number
     initialTimeout?: number
   }
-
-type TapCodec = 'OPUS' | 'PCMA' | 'PCMU'
-
-export interface TapDeviceWS {
-  type: 'ws'
-  uri: string
-  codec?: TapCodec
-  rate?: number
-}
-
-export interface TapDeviceRTP {
-  type: 'rtp'
-  addr: string
-  port: string
-  codec?: TapCodec
-  ptime?: number
-}
-
-export type TapDevice = TapDeviceWS | TapDeviceRTP
-export type TapDirection = 'listen' | 'speak' | 'both'
-export interface VoiceCallTapMethodParams {
-  device: TapDevice
-  audio: {
-    direction: TapDirection
-  }
-}
-
-export interface VoiceCallTapAudioMethodParams {
-  device: TapDevice
-  direction: TapDirection
-}
 
 export type VoiceCallCollectMethodParams = SpeechOrDigits & {
   initialTimeout?: number
@@ -419,33 +390,6 @@ export type VoiceCallCollectEntity =
  */
 export type VoiceCallCollectMethods =
   OnlyFunctionProperties<VoiceCallCollectContract>
-
-/**
- * Public Contract for a VoiceCallTap
- */
-export interface VoiceCallTapContract {
-  /** Unique id for this tap */
-  readonly id: string
-  /** @ignore */
-  readonly callId: string
-  /** @ignore */
-  readonly controlId: string
-  /** @ignore */
-  readonly state: CallingCallTapState
-
-  stop(): Promise<this>
-  ended(): Promise<this>
-}
-
-/**
- * VoiceCallTap properties
- */
-export type VoiceCallTapEntity = OnlyStateProperties<VoiceCallTapContract>
-
-/**
- * VoiceCallTap methods
- */
-export type VoiceCallTapMethods = OnlyFunctionProperties<VoiceCallTapContract>
 
 export type CallingCallWaitForState = Extract<
   CallingCallState,
@@ -762,53 +706,6 @@ export interface CallingCallCollectEvent extends SwEvent {
 }
 
 /**
- * 'calling.call.tap'
- */
-export type CallingCallTapState = 'tapping' | 'finished'
-
-export type CallingCallTapEndState = Exclude<CallingCallTapState, 'tapping'>
-
-interface CallingCallTapDeviceRTP {
-  type: 'rtp'
-  params: {
-    addr: string
-    port: number
-    codec?: TapCodec
-    ptime?: number
-  }
-}
-
-interface CallingCallTapDeviceWS {
-  type: 'ws'
-  params: {
-    uri: string
-    codec?: TapCodec
-    rate?: number
-  }
-}
-
-interface CallingCallTapAudio {
-  type: 'audio'
-  params: {
-    direction?: TapDirection
-  }
-}
-
-export interface CallingCallTapEventParams {
-  node_id: string
-  call_id: string
-  control_id: string
-  state: CallingCallTapState
-  tap: CallingCallTapAudio
-  device: CallingCallTapDeviceRTP | CallingCallTapDeviceWS
-}
-
-export interface CallingCallTapEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallTap>
-  params: CallingCallTapEventParams
-}
-
-/**
  * 'calling.call.connect'
  */
 export type CallingCallConnectState =
@@ -915,21 +812,6 @@ export interface CallPromptFailedEvent extends SwEvent {
 }
 
 /**
- * 'calling.tap.started'
- */
-export interface CallTapStartedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallTapStarted>
-  params: CallingCallTapEventParams & { tag: string }
-}
-/**
- * 'calling.tap.ended'
- */
-export interface CallTapEndedEvent extends SwEvent {
-  event_type: ToInternalVoiceEvent<CallTapEnded>
-  params: CallingCallTapEventParams & { tag: string }
-}
-
-/**
  * 'calling.connect.connecting'
  */
 export interface CallConnectConnectingEvent extends SwEvent {
@@ -1025,12 +907,12 @@ export type VoiceCallEvent =
   | VoiceCallPlaybackEvent
   | VoiceCallRecordingEvent
   | VoiceCallDetectEvent
+  | VoiceCallTapEvent
   // Server Events
   | CallingCallDialEvent
   | CallingCallStateEvent
   | CallingCallReceiveEvent
   | CallingCallCollectEvent
-  | CallingCallTapEvent
   | CallingCallConnectEvent
   | CallingCallSendDigitsEvent
   // SDK Events
@@ -1040,8 +922,6 @@ export type VoiceCallEvent =
   | CallPromptUpdatedEvent
   | CallPromptEndedEvent
   | CallPromptFailedEvent
-  | CallTapStartedEvent
-  | CallTapEndedEvent
   | CallConnectConnectingEvent
   | CallConnectConnectedEvent
   | CallConnectDisconnectedEvent
@@ -1061,7 +941,6 @@ export type VoiceCallEventParams =
   | CallingCallStateEventParams
   | CallingCallReceiveEventParams
   | CallingCallCollectEventParams
-  | CallingCallTapEventParams
   | CallingCallConnectEventParams
   | CallingCallSendDigitsEventParams
   // SDK Event Params
@@ -1071,8 +950,6 @@ export type VoiceCallEventParams =
   | CallPromptUpdatedEvent['params']
   | CallPromptEndedEvent['params']
   | CallPromptFailedEvent['params']
-  | CallTapStartedEvent['params']
-  | CallTapEndedEvent['params']
   | CallConnectConnectingEvent['params']
   | CallConnectConnectedEvent['params']
   | CallConnectDisconnectedEvent['params']
@@ -1096,8 +973,6 @@ export type VoiceCallCollectAction = MapToPubSubShape<CallingCallCollectEvent>
 export type VoiceCallSendDigitsAction =
   MapToPubSubShape<CallingCallSendDigitsEvent>
 
-export type VoiceCallTapAction = MapToPubSubShape<CallingCallTapEvent>
-
 export type VoiceCallConnectAction = MapToPubSubShape<CallingCallConnectEvent>
 
 export type VoiceCallJSONRPCMethod =
@@ -1108,11 +983,10 @@ export type VoiceCallJSONRPCMethod =
   | VoiceCallPlayMethod
   | VoiceCallRecordMethod
   | VoiceCallDetectMethod
+  | VoiceCallTapMethod
   | 'calling.play_and_collect'
   | 'calling.play_and_collect.stop'
   | 'calling.play_and_collect.volume'
-  | 'calling.tap'
-  | 'calling.tap.stop'
   | 'calling.connect'
   | 'calling.disconnect'
   | 'calling.send_digits'

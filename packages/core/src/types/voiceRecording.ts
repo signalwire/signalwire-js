@@ -50,15 +50,6 @@ export interface CallingCallRecordEvent extends SwEvent {
 // ────────────────────────────────────────────────────────────
 
 /**
- * List of public event names
- */
-export type VoiceCallRecordingEventNames =
-  | RecordingStarted
-  | RecordingUpdated
-  | RecordingEnded
-  | RecordingFailed
-
-/**
  * 'calling.recording.started'
  */
 export interface VoiceCallRecordingStartedEvent extends SwEvent {
@@ -157,6 +148,15 @@ export type VoiceCallRecordingMethods =
 // ────────────────────────────────────────────────────────────
 //  Final “Event” Exports
 // ────────────────────────────────────────────────────────────
+
+/**
+ * List of public event names
+ */
+export type VoiceCallRecordingEventNames =
+  | RecordingStarted
+  | RecordingUpdated
+  | RecordingEnded
+  | RecordingFailed
 
 export type VoiceCallRecordingEvent =
   // Server Events

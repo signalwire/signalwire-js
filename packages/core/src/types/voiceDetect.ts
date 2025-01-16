@@ -95,14 +95,6 @@ export interface CallingCallDetectEvent extends SwEvent {
 // ────────────────────────────────────────────────────────────
 
 /**
- * List of public event names
- */
-export type VoiceCallDetectEventNames =
-  | CallDetectStarted
-  | CallDetectUpdated
-  | CallDetectEnded
-
-/**
  * 'calling.detect.started'
  */
 export interface VoiceCallDetectStartedEvent extends SwEvent {
@@ -199,6 +191,14 @@ export type VoiceCallDetectMethods =
 // ────────────────────────────────────────────────────────────
 //  Final “Event” Exports
 // ────────────────────────────────────────────────────────────
+
+/**
+ * List of public event names
+ */
+export type VoiceCallDetectEventNames =
+  | CallDetectStarted
+  | CallDetectUpdated
+  | CallDetectEnded
 
 export type VoiceCallDetectEvent =
   // Server Events

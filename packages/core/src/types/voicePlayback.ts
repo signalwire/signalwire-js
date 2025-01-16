@@ -44,15 +44,6 @@ export interface CallingCallPlayEvent extends SwEvent {
 // ────────────────────────────────────────────────────────────
 
 /**
- * List of public event names
- */
-export type VoiceCallPlaybackEventNames =
-  | PlaybackStarted
-  | PlaybackUpdated
-  | PlaybackEnded
-  | PlaybackFailed
-
-/**
  * 'calling.playback.started'
  */
 export interface VoiceCallPlaybackStartedEvent extends SwEvent {
@@ -248,6 +239,15 @@ export type VoiceCallPlaybackMethods =
 // ────────────────────────────────────────────────────────────
 //  Final “Event” Exports
 // ────────────────────────────────────────────────────────────
+
+/**
+ * List of public event names
+ */
+export type VoiceCallPlaybackEventNames =
+  | PlaybackStarted
+  | PlaybackUpdated
+  | PlaybackEnded
+  | PlaybackFailed
 
 export type VoiceCallPlaybackEvent =
   // Server Events
