@@ -14,6 +14,8 @@ export type CallTap = 'call.tap'
 export type CallTapStarted = 'tap.started'
 export type CallTapEnded = 'tap.ended'
 
+export type VoiceCallTapEventNames = CallTapStarted | CallTapEnded
+
 // ────────────────────────────────────────────────────────────
 //  Server side Events
 // ────────────────────────────────────────────────────────────
@@ -154,11 +156,6 @@ export type VoiceCallTapMethods = OnlyFunctionProperties<VoiceCallTapContract>
 // ────────────────────────────────────────────────────────────
 //  Final “Event” Exports
 // ────────────────────────────────────────────────────────────
-
-/**
- * List of public event names
- */
-export type VoiceCallTapEventNames = CallTapStarted | CallTapEnded
 
 export type VoiceCallTapEvent =
   // Server Events

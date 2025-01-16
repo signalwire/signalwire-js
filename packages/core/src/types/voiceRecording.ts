@@ -12,6 +12,24 @@ import {
 } from '..'
 
 // ────────────────────────────────────────────────────────────
+//  Private Event Types
+// ────────────────────────────────────────────────────────────
+
+// Defined in common.ts since other SDKs also use these types
+
+// ────────────────────────────────────────────────────────────
+//  Public Event Types
+// ────────────────────────────────────────────────────────────
+
+// Defined in common.ts since other SDKs also use these types
+
+export type VoiceCallRecordingEventNames =
+  | RecordingStarted
+  | RecordingUpdated
+  | RecordingEnded
+  | RecordingFailed
+
+// ────────────────────────────────────────────────────────────
 //  Server side Events
 // ────────────────────────────────────────────────────────────
 
@@ -148,15 +166,6 @@ export type VoiceCallRecordingMethods =
 // ────────────────────────────────────────────────────────────
 //  Final “Event” Exports
 // ────────────────────────────────────────────────────────────
-
-/**
- * List of public event names
- */
-export type VoiceCallRecordingEventNames =
-  | RecordingStarted
-  | RecordingUpdated
-  | RecordingEnded
-  | RecordingFailed
 
 export type VoiceCallRecordingEvent =
   // Server Events

@@ -15,6 +15,11 @@ export type CallDetectStarted = 'detect.started'
 export type CallDetectUpdated = 'detect.updated'
 export type CallDetectEnded = 'detect.ended'
 
+export type VoiceCallDetectEventNames =
+  | CallDetectStarted
+  | CallDetectUpdated
+  | CallDetectEnded
+
 // ────────────────────────────────────────────────────────────
 //  Server side Events
 // ────────────────────────────────────────────────────────────
@@ -191,14 +196,6 @@ export type VoiceCallDetectMethods =
 // ────────────────────────────────────────────────────────────
 //  Final “Event” Exports
 // ────────────────────────────────────────────────────────────
-
-/**
- * List of public event names
- */
-export type VoiceCallDetectEventNames =
-  | CallDetectStarted
-  | CallDetectUpdated
-  | CallDetectEnded
 
 export type VoiceCallDetectEvent =
   // Server Events

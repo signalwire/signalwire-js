@@ -14,6 +14,24 @@ import {
 import { MapToPubSubShape } from '../redux/interfaces'
 
 // ────────────────────────────────────────────────────────────
+//  Private Event Types
+// ────────────────────────────────────────────────────────────
+
+// Defined in common.ts since other SDKs also use these types
+
+// ────────────────────────────────────────────────────────────
+//  Public Event Types
+// ────────────────────────────────────────────────────────────
+
+// Defined in common.ts since other SDKs also use these types
+
+export type VoiceCallPlaybackEventNames =
+  | PlaybackStarted
+  | PlaybackUpdated
+  | PlaybackEnded
+  | PlaybackFailed
+
+// ────────────────────────────────────────────────────────────
 //  Server side Events
 // ────────────────────────────────────────────────────────────
 
@@ -239,15 +257,6 @@ export type VoiceCallPlaybackMethods =
 // ────────────────────────────────────────────────────────────
 //  Final “Event” Exports
 // ────────────────────────────────────────────────────────────
-
-/**
- * List of public event names
- */
-export type VoiceCallPlaybackEventNames =
-  | PlaybackStarted
-  | PlaybackUpdated
-  | PlaybackEnded
-  | PlaybackFailed
 
 export type VoiceCallPlaybackEvent =
   // Server Events
