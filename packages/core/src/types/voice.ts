@@ -1,5 +1,4 @@
 import { PRODUCT_PREFIX_VOICE_CALL } from '../utils/constants'
-import { VoiceCallJSONRPCMethod } from './voiceCall'
 
 export type VoiceNamespace = typeof PRODUCT_PREFIX_VOICE_CALL
 export type ToInternalVoiceEvent<T extends string> = `${VoiceNamespace}.${T}`
@@ -15,5 +14,3 @@ export * from './voiceCollect'
 export * from './voicePrompt'
 export * from './voiceSendDigits'
 export * from './voiceConnect'
-
-export type VoiceJSONRPCMethod = VoiceCallJSONRPCMethod

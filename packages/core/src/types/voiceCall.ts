@@ -221,6 +221,20 @@ export interface VoiceCallReceivedEvent extends SwEvent {
 //  Voice Call Methods & Param Interfaces
 // ────────────────────────────────────────────────────────────
 
+export type VoiceCallMethod =
+  | 'calling.dial'
+  | 'calling.end'
+  | 'calling.pass'
+  | 'calling.answer'
+  | VoiceCallPlayMethod
+  | VoiceCallRecordMethod
+  | VoiceCallDetectMethod
+  | VoiceCallTapMethod
+  | VoiceCallCollectMethod
+  | VoiceCallPromptMethod
+  | VoiceCallSendDigitsMethod
+  | VoiceCallConnectMethod
+
 export type SipCodec =
   | 'PCMU'
   | 'PCMA'
@@ -483,17 +497,3 @@ export type VoiceCallReceiveAction = MapToPubSubShape<CallingCallReceiveEvent>
 export type VoiceCallStateAction = MapToPubSubShape<CallingCallStateEvent>
 
 export type VoiceCallDialAction = MapToPubSubShape<CallingCallDialEvent>
-
-export type VoiceCallJSONRPCMethod =
-  | 'calling.dial'
-  | 'calling.end'
-  | 'calling.pass'
-  | 'calling.answer'
-  | VoiceCallPlayMethod
-  | VoiceCallRecordMethod
-  | VoiceCallDetectMethod
-  | VoiceCallTapMethod
-  | VoiceCallCollectMethod
-  | VoiceCallPromptMethod
-  | VoiceCallSendDigitsMethod
-  | VoiceCallConnectMethod
