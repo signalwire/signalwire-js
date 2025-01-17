@@ -195,19 +195,34 @@ export class BaseConnection<
     this.logger.debug('Set RTCPeer', rtcPeer.uuid, rtcPeer)
     this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
 
+    const setActivePeer = (peerId: string) => {
+      this.logger.debug('>>> Replace active RTCPeer with', peerId)
+      this.activeRTCPeerId = peerId
+    }
+
+    /**
+     * In case of the promote/demote, a new peer is created.
+     * Hence, we hangup the old peer.
+     */
     if (this.peer && this.peer.instance && this.callId !== rtcPeer.uuid) {
       const oldPeerId = this.peer.uuid
       this.logger.debug('>>> Stop old RTCPeer', oldPeerId)
-      // Hangup the previous RTCPeer
-      this.hangup(oldPeerId)
+
+      // Stop transceivers and then the Peer
       this.peer.detachAndStop()
 
-      // Remove RTCPeer from local cache to stop answering to ping/pong
-      // this.rtcPeerMap.delete(oldPeerId)
-    }
+      // Set the new peer as active peer
+      setActivePeer(rtcPeer.uuid)
 
-    this.logger.debug('>>> Replace RTCPeer with', rtcPeer.uuid)
-    this.activeRTCPeerId = rtcPeer.uuid
+      // Send "verto.bye" to the server
+      this.hangup(oldPeerId)
+
+      // Remove RTCPeer from local cache to stop answering to ping/pong
+      this.rtcPeerMap.delete(oldPeerId)
+    } else {
+      // Set the new peer as active peer
+      setActivePeer(rtcPeer.uuid)
+    }
   }
 
   // Overload for BaseConnection events
