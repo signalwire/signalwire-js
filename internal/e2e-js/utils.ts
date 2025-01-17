@@ -1,10 +1,16 @@
-import type { SignalWireContract, Video } from '@signalwire/js'
-import type { MediaEvent } from '@signalwire/webrtc'
+import type {
+  FabricRoomSession,
+  SignalWireContract,
+  Video,
+} from '@signalwire/js'
+import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
-import { Page, expect } from '@playwright/test'
-import fetch from 'node-fetch'
+import { expect } from './fixtures'
+import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
+
+// #region Utilities for Playwright test server & fixture
 
 type CreateTestServerOptions = {
   target: 'heroku' | 'blank'
@@ -54,6 +60,113 @@ export const createTestServer = async (
     url: `http://localhost:${targetOptions.port}`,
   }
 }
+
+export const enablePageLogs = (page: Page, customMsg: string = '[page]') => {
+  page.on('console', (log) => console.log(customMsg, log))
+}
+
+// #endregion
+
+// #region Utilities for Token Creation
+
+interface CreateTestVRTOptions {
+  room_name: string
+  user_name: string
+  room_display_name?: string
+  permissions?: string[]
+  join_from?: number | string
+  join_until?: number | string
+  remove_at?: number | string
+  remove_after_seconds_elapsed?: number
+  auto_create_room?: boolean
+  join_as?: 'member' | 'audience'
+  media_allowed?: 'audio-only' | 'video-only' | 'all'
+  join_audio_muted?: boolean
+  join_video_muted?: boolean
+  end_room_session_on_leave?: boolean
+}
+
+export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/video/room_tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  const data = await response.json()
+  return data.token
+}
+
+interface CreateTestJWTOptions {
+  resource?: string
+  refresh_token?: string
+}
+
+export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/relay/rest/jwt`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  const data = await response.json()
+  return data.jwt_token
+}
+
+export const createTestSATToken = async () => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        reference: process.env.SAT_REFERENCE,
+      }),
+    }
+  )
+  const data = await response.json()
+  return data.token
+}
+
+interface CreateTestCRTOptions {
+  ttl: number
+  member_id: string
+  state: Record<string, any>
+  channels: Record<string, { read?: boolean; write?: boolean }>
+}
+
+export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/chat/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(body),
+    }
+  )
+  const data = await response.json()
+  return data.token
+}
+
+// #endregion
+
+// #region Utilities for RoomSession
 
 export const createTestRoomSession = async (
   page: Page,
@@ -184,324 +297,6 @@ export const createTestRoomSessionWithJWT = async (
   )
 }
 
-export const createCFClient = async (page: Page) => {
-  const sat = await createTestSATToken()
-  if (!sat) {
-    console.error('Invalid SAT. Exiting..')
-    process.exit(4)
-  }
-
-  const swClient = await page.evaluate(
-    async (options) => {
-      // @ts-expect-error
-      const SignalWire = window._SWJS.SignalWire
-      const client = await SignalWire({
-        host: options.RELAY_HOST,
-        token: options.API_TOKEN,
-        debug: { logWsTraffic: true },
-      })
-
-      // @ts-expect-error
-      window._client = client
-      return client
-    },
-    {
-      RELAY_HOST: process.env.RELAY_HOST,
-      API_TOKEN: sat,
-    }
-  )
-
-  return swClient
-}
-
-interface CreateTestVRTOptions {
-  room_name: string
-  user_name: string
-  room_display_name?: string
-  permissions?: string[]
-  join_from?: number | string
-  join_until?: number | string
-  remove_at?: number | string
-  remove_after_seconds_elapsed?: number
-  auto_create_room?: boolean
-  join_as?: 'member' | 'audience'
-  media_allowed?: 'audio-only' | 'video-only' | 'all'
-  join_audio_muted?: boolean
-  join_video_muted?: boolean
-  end_room_session_on_leave?: boolean
-}
-
-export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/video/room_tokens`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${BASIC_TOKEN}`,
-      },
-      body: JSON.stringify(body),
-    }
-  )
-  const data = await response.json()
-  return data.token
-}
-
-interface CreateTestJWTOptions {
-  resource?: string
-  refresh_token?: string
-}
-
-export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/relay/rest/jwt`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${BASIC_TOKEN}`,
-      },
-      body: JSON.stringify(body),
-    }
-  )
-  const data = await response.json()
-  return data.jwt_token
-}
-
-export const createTestSATToken = async () => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${BASIC_TOKEN}`,
-      },
-      body: JSON.stringify({
-        reference: process.env.SAT_REFERENCE,
-      }),
-    }
-  )
-  const data = await response.json()
-  return data.token
-}
-
-interface CreateTestCRTOptions {
-  ttl: number
-  member_id: string
-  state: Record<string, any>
-  channels: Record<string, { read?: boolean; write?: boolean }>
-}
-
-export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
-  const response = await fetch(
-    `https://${process.env.API_HOST}/api/chat/tokens`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${BASIC_TOKEN}`,
-      },
-      body: JSON.stringify(body),
-    }
-  )
-  const data = await response.json()
-  return data.token
-}
-
-export const enablePageLogs = (page: Page, customMsg: string = '[page]') => {
-  page.on('console', (log) => console.log(customMsg, log))
-}
-
-export const expectSDPDirection = async (
-  page: Page,
-  direction: string,
-  value: boolean
-) => {
-  const peerSDP = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    // @ts-expect-error
-    return roomObj.peer.localSdp
-  })
-
-  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
-}
-
-export const expectInteractivityMode = async (
-  page: Page,
-  mode: 'member' | 'audience'
-) => {
-  const interactivityMode = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.interactivityMode
-  })
-
-  expect(interactivityMode).toEqual(mode)
-}
-
-export const expectLayoutChanged = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    (options) => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('layout.changed', ({ layout }: any) => {
-          if (layout.name === options.layoutName) {
-            resolve(true)
-          }
-        })
-      })
-    },
-    { layoutName }
-  )
-}
-
-export const setLayoutOnPage = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    async (options) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return await roomObj.setLayout({ name: options.layoutName })
-    },
-    { layoutName }
-  )
-}
-
-export const expectRoomJoined = (
-  page: Page,
-  options: { invokeJoin: boolean } = { invokeJoin: true }
-) => {
-  return page.evaluate(({ invokeJoin }) => {
-    return new Promise<any>(async (resolve, reject) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-
-      roomObj.once('room.joined', (room) => {
-        console.log('Room joined!')
-        resolve(room)
-      })
-
-      if (invokeJoin) {
-        await roomObj.join().catch(reject)
-      }
-    })
-  }, options)
-}
-
-export const expectMCUVisible = async (page: Page) => {
-  await page.waitForSelector('div[id^="sw-sdk-"] > video')
-}
-
-export const expectMCUVisibleForAudience = async (page: Page) => {
-  await page.waitForSelector('#rootElement video')
-}
-
-export const randomizeRoomName = (prefix: string = 'e2e') => {
-  return `${prefix}${uuid()}`
-}
-
-export const expectMemberId = async (page: Page, memberId: string) => {
-  const roomMemberId = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.memberId
-  })
-
-  expect(roomMemberId).toEqual(memberId)
-}
-
-export const expectMemberTalkingEvent = (page: Page) => {
-  return page.evaluate(async () => {
-    return new Promise((resolve) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      roomObj.on('member.talking', resolve)
-    })
-  })
-}
-
-export const expectMediaEvent = (page: Page, event: MediaEvent) => {
-  return page.evaluate(
-    ({ event }) => {
-      return new Promise<void>((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on(event, resolve)
-      })
-    },
-    { event }
-  )
-}
-
-export const getAudioStats = async (page: Page) => {
-  const audioStats = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-
-    // @ts-expect-error
-    const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
-
-    // @ts-expect-error
-    const stats = await roomObj.peer.instance.getStats(null)
-    const filter = {
-      'inbound-rtp': [
-        'audioLevel',
-        'totalAudioEnergy',
-        'totalSamplesDuration',
-        'totalSamplesReceived',
-        'packetsDiscarded',
-        'lastPacketReceivedTimestamp',
-        'bytesReceived',
-        'packetsReceived',
-        'packetsLost',
-        'packetsRetransmitted',
-      ],
-    }
-    const result: any = {}
-    Object.keys(filter).forEach((entry) => {
-      result[entry] = {}
-    })
-
-    stats.forEach((report: any) => {
-      for (const [key, value] of Object.entries(filter)) {
-        if (
-          report.type == key &&
-          report['mediaType'] === 'audio' &&
-          report['trackIdentifier'] === audioTrackId
-        ) {
-          value.forEach((entry) => {
-            if (report[entry]) {
-              result[key][entry] = report[entry]
-            }
-          })
-        }
-      }
-    }, {})
-
-    return result
-  })
-  console.log('audioStats', audioStats)
-
-  return audioStats
-}
-
-export const expectTotalAudioEnergyToBeGreaterThan = async (
-  page: Page,
-  value: number
-) => {
-  const audioStats = await getAudioStats(page)
-
-  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
-  if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeGreaterThan(value)
-  } else {
-    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
-  }
-}
-
 const getRoomByName = async (roomName: string) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/video/rooms/${roomName}`,
@@ -590,7 +385,6 @@ export const createStreamForRoom = async (name: string, url: string) => {
     throw data
   }
 
-  // console.log('Room Data', data)
   return data
 }
 
@@ -604,41 +398,171 @@ export const deleteRoom = async (id: string) => {
   })
 }
 
-export const expectPageReceiveAudio = async (page: Page) => {
-  await page.waitForTimeout(10000)
-  await expectTotalAudioEnergyToBeGreaterThan(page, 0.5)
-}
-
-export const getRemoteMediaIP = async (page: Page) => {
-  const remoteIP: string = await page.evaluate(() => {
-    // @ts-expect-error
-    const peer: Video.RoomSessionPeer = window._roomObj.peer
-    const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
-    const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
-    return ipLine?.split(' ')[2]
-  })
-  return remoteIP
-}
-
-export const expectScreenShareJoined = async (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<any>(async (resolve) => {
+export const leaveRoom = async (page: Page) => {
+  return page.evaluate(async () => {
+    const roomObj: Video.RoomSession | FabricRoomSession =
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      window._roomObj
+    console.log('Fixture roomObj', roomObj)
+    if (roomObj && roomObj?.roomSessionId) {
+      console.log('Fixture has room', roomObj.roomSessionId)
+      await roomObj.leave()
+    }
 
-      roomObj.on('member.joined', (params: any) => {
-        if (params.member.type === 'screen') {
-          resolve(true)
+    return {
+      videos: Array.from(document.querySelectorAll('video')).length,
+      rootEl: document.getElementById('rootElement')?.childElementCount ?? 0,
+    }
+  })
+}
+
+// #endregion
+
+// #region Utilities for Call Fabric client
+
+export const createCFClient = async (page: Page) => {
+  const sat = await createTestSATToken()
+  if (!sat) {
+    console.error('Invalid SAT. Exiting..')
+    process.exit(4)
+  }
+
+  const swClient = await page.evaluate(
+    async (options) => {
+      // @ts-expect-error
+      const SignalWire = window._SWJS.SignalWire
+      const client: SignalWireContract = await SignalWire({
+        host: options.RELAY_HOST,
+        token: options.API_TOKEN,
+        debug: { logWsTraffic: true },
+      })
+
+      // @ts-expect-error
+      window._client = client
+      return client
+    },
+    {
+      RELAY_HOST: process.env.RELAY_HOST,
+      API_TOKEN: sat,
+    }
+  )
+
+  return swClient
+}
+
+interface DialAddressParams {
+  address: string
+  dialOptions?: Record<string, any>
+  reattach?: boolean
+  shouldWaitForJoin?: boolean
+  shouldStartCall?: boolean
+  shouldPassRootElement?: boolean
+}
+export const dialAddress = (page: Page, params: DialAddressParams) => {
+  const {
+    address,
+    dialOptions = {},
+    reattach = false,
+    shouldPassRootElement = true,
+    shouldStartCall = true,
+    shouldWaitForJoin = true,
+  } = params
+  return page.evaluate(
+    async ({
+      address,
+      dialOptions,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }) => {
+      return new Promise<any>(async (resolve, _reject) => {
+        // @ts-expect-error
+        const client: SignalWireContract = window._client
+
+        const dialer = reattach ? client.reattach : client.dial
+
+        const call = await dialer({
+          to: address,
+          ...(shouldPassRootElement && {
+            rootElement: document.getElementById('rootElement')!,
+          }),
+          ...dialOptions,
+        })
+
+        if (shouldWaitForJoin) {
+          call.on('room.joined', resolve)
+        }
+
+        // @ts-expect-error
+        window._roomObj = call
+
+        if (shouldStartCall) {
+          await call.start()
+        }
+
+        if (!shouldWaitForJoin) {
+          resolve(call)
         }
       })
+    },
+    {
+      address,
+      dialOptions,
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    }
+  )
+}
 
-      await roomObj.startScreenShare({
-        audio: true,
-        video: true,
-      })
+export const disconnectClient = (page: Page) => {
+  return page.evaluate(async () => {
+    return new Promise<void>((resolve, _reject) => {
+      // @ts-expect-error
+      const client: SignalWireContract = window._client
+      console.log('Fixture client', client)
+      // @ts-expect-error
+      if (!client || !client.__wsClient.sessionConnected) {
+        console.log('Client not connected')
+        resolve()
+      } else {
+        // @ts-expect-error
+        client.__wsClient.clientApi.sessionEmitter.on(
+          'session.disconnected',
+          () => {
+            console.log('Client has been disconnected')
+            resolve()
+          }
+        )
+        console.log('Disconnecting the client')
+        client.disconnect()
+      }
     })
   })
 }
+
+// #endregion
+
+// #region Utilities for the MCU
+
+export const expectMCUVisible = async (page: Page) => {
+  await page.waitForSelector('div[id^="sw-sdk-"] > video')
+}
+
+export const expectMCUNotVisible = async (page: Page) => {
+  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+  expect(mcuVideo).toBeNull()
+}
+
+export const expectMCUVisibleForAudience = async (page: Page) => {
+  await page.waitForSelector('#rootElement video')
+}
+
+// #endregion
+
+// #region Utilities for RTP Media stats and SDP
 
 export const getStats = async (page: Page) => {
   const stats = await page.evaluate(async () => {
@@ -659,7 +583,7 @@ export const getStats = async (page: Page) => {
 
     const inboundRTPHandler = (report: any) => {
       const media = report.mediaType as 'video' | 'audio'
-      const trackId = rtcPeer._getReceiverByKind(media).track.id
+      const trackId = rtcPeer._getReceiverByKind(media)!.track.id
       console.log(`getStats trackId "${trackId}" for media ${media}`)
       if (report.trackIdentifier !== trackId) {
         console.log(
@@ -713,13 +637,115 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const minAudioPacketsExpected = 40 * seconds
   const minVideoPacketsExpected = 25 * seconds
 
-  expect(last.inboundRTP.video.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.video.packetsReceived + minVideoPacketsExpected
+  expect(last.inboundRTP.video?.packetsReceived).toBeGreaterThan(
+    (first.inboundRTP.video?.packetsReceived || 0) + minVideoPacketsExpected
   )
-  expect(last.inboundRTP.audio.packetsReceived).toBeGreaterThan(
-    first.inboundRTP.audio.packetsReceived + minAudioPacketsExpected
+  expect(last.inboundRTP.audio?.packetsReceived).toBeGreaterThan(
+    (first.inboundRTP.audio?.packetsReceived || 0) + minAudioPacketsExpected
   )
 }
+
+export const getAudioStats = async (page: Page) => {
+  const audioStats = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    // @ts-expect-error
+    const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
+
+    // @ts-expect-error
+    const stats = await roomObj.peer.instance.getStats(null)
+    const filter = {
+      'inbound-rtp': [
+        'audioLevel',
+        'totalAudioEnergy',
+        'totalSamplesDuration',
+        'totalSamplesReceived',
+        'packetsDiscarded',
+        'lastPacketReceivedTimestamp',
+        'bytesReceived',
+        'packetsReceived',
+        'packetsLost',
+        'packetsRetransmitted',
+      ],
+    }
+    const result: any = {}
+    Object.keys(filter).forEach((entry) => {
+      result[entry] = {}
+    })
+
+    stats.forEach((report: any) => {
+      for (const [key, value] of Object.entries(filter)) {
+        if (
+          report.type == key &&
+          report['mediaType'] === 'audio' &&
+          report['trackIdentifier'] === audioTrackId
+        ) {
+          value.forEach((entry) => {
+            if (report[entry]) {
+              result[key][entry] = report[entry]
+            }
+          })
+        }
+      }
+    }, {})
+
+    return result
+  })
+  console.log('audioStats', audioStats)
+
+  return audioStats
+}
+
+export const expectTotalAudioEnergyToBeGreaterThan = async (
+  page: Page,
+  value: number
+) => {
+  const audioStats = await getAudioStats(page)
+
+  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
+  if (totalAudioEnergy) {
+    expect(totalAudioEnergy).toBeGreaterThan(value)
+  } else {
+    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
+  }
+}
+
+export const expectPageReceiveAudio = async (page: Page) => {
+  await page.waitForTimeout(10000)
+  await expectTotalAudioEnergyToBeGreaterThan(page, 0.5)
+}
+
+export const expectSDPDirection = async (
+  page: Page,
+  direction: string,
+  value: boolean
+) => {
+  const peerSDP = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
+    return roomObj.peer.localSdp
+  })
+
+  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
+  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+}
+
+export const getRemoteMediaIP = async (page: Page) => {
+  const remoteIP: string = await page.evaluate(() => {
+    // @ts-expect-error
+    const peer: Video.RoomSessionPeer = window._roomObj.peer
+    const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
+    const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
+    return ipLine?.split(' ')[2]
+  })
+  return remoteIP
+}
+
+// #endregion
+
+// #region Utilities for v2 WebRTC testing
 
 export const createCallWithCompatibilityApi = async (
   resource: string,
@@ -1046,57 +1072,9 @@ export const expectRelayConnected = async (
   await expect(startCall).toBeEnabled()
 }
 
-export const expectCFInitialEvents = (
-  page: Page,
-  extraEvents: Promise<boolean>[] = []
-) => {
-  const initialEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+// #endregion
 
-    const callCreated = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'created') {
-          resolve(true)
-        }
-      })
-    })
-    const callAnswered = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'answered') {
-          resolve(true)
-        }
-      })
-    })
-    const callJoined = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.joined', () => resolve(true))
-    })
-
-    return Promise.all([callJoined, callCreated, callAnswered])
-  })
-  return Promise.all([initialEvents, ...extraEvents])
-}
-
-export const expectCFFinalEvents = (
-  page: Page,
-  extraEvents: Promise<unknown>[] = []
-) => {
-  const finalEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-
-    const callLeft = new Promise((resolve) => {
-      roomObj.on('destroy', () => resolve(true))
-    })
-
-    return callLeft
-  })
-
-  return Promise.all([finalEvents, ...extraEvents])
-}
+// #region Utilities for Resources CRUD operations
 
 export interface Resource {
   id: string
@@ -1194,64 +1172,179 @@ export const deleteResource = async (id: string) => {
   return response
 }
 
-interface DialAddressParams {
-  address: string
-  shouldWaitForJoin?: boolean
-  shouldStartCall?: boolean
-  shouldPassRootElement?: boolean
-  reattach?: boolean
+// #endregion
+
+// #region Utilities for Events assertion
+
+export const expectMemberTalkingEvent = (page: Page) => {
+  return page.evaluate(async () => {
+    return new Promise((resolve) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      roomObj.on('member.talking', resolve)
+    })
+  })
 }
-export const dialAddress = (page: Page, params: DialAddressParams) => {
-  const {
-    address,
-    reattach = false,
-    shouldPassRootElement = true,
-    shouldStartCall = true,
-    shouldWaitForJoin = true,
-  } = params
+
+export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
-    async ({
-      address,
-      reattach,
-      shouldPassRootElement,
-      shouldStartCall,
-      shouldWaitForJoin,
-    }) => {
-      return new Promise<any>(async (resolve, _reject) => {
+    ({ event }) => {
+      return new Promise<void>((resolve) => {
         // @ts-expect-error
-        const client: SignalWireContract = window._client
-
-        const dialer = reattach ? client.reattach : client.dial
-
-        const call = await dialer({
-          to: address,
-          ...(shouldPassRootElement && {
-            rootElement: document.getElementById('rootElement')!,
-          }),
-        })
-
-        if (shouldWaitForJoin) {
-          call.on('room.joined', resolve)
-        }
-
-        // @ts-expect-error
-        window._roomObj = call
-
-        if (shouldStartCall) {
-          await call.start()
-        }
-
-        if (!shouldWaitForJoin) {
-          resolve(call)
-        }
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on(event, resolve)
       })
     },
-    {
-      address,
-      reattach,
-      shouldPassRootElement,
-      shouldStartCall,
-      shouldWaitForJoin,
-    }
+    { event }
   )
+}
+
+export const expectCFInitialEvents = (
+  page: Page,
+  extraEvents: Promise<boolean>[] = []
+) => {
+  const initialEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callCreated = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'created') {
+          resolve(true)
+        }
+      })
+    })
+    const callAnswered = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.state', (params: any) => {
+        if (params.call_state === 'answered') {
+          resolve(true)
+        }
+      })
+    })
+    const callJoined = new Promise<boolean>((resolve) => {
+      // @ts-expect-error
+      roomObj.on('call.joined', () => resolve(true))
+    })
+
+    return Promise.all([callJoined, callCreated, callAnswered])
+  })
+  return Promise.all([initialEvents, ...extraEvents])
+}
+
+export const expectCFFinalEvents = (
+  page: Page,
+  extraEvents: Promise<unknown>[] = []
+) => {
+  const finalEvents = page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+
+    const callLeft = new Promise((resolve) => {
+      roomObj.on('destroy', () => resolve(true))
+    })
+
+    return callLeft
+  })
+
+  return Promise.all([finalEvents, ...extraEvents])
+}
+
+export const expectLayoutChanged = (page: Page, layoutName: string) => {
+  return page.evaluate(
+    (options) => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('layout.changed', ({ layout }: any) => {
+          if (layout.name === options.layoutName) {
+            resolve(true)
+          }
+        })
+      })
+    },
+    { layoutName }
+  )
+}
+
+export const expectRoomJoined = (
+  page: Page,
+  options: { invokeJoin: boolean } = { invokeJoin: true }
+) => {
+  return page.evaluate(({ invokeJoin }) => {
+    return new Promise<any>(async (resolve, reject) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+
+      roomObj.once('room.joined', (room) => {
+        console.log('Room joined!')
+        resolve(room)
+      })
+
+      if (invokeJoin) {
+        await roomObj.join().catch(reject)
+      }
+    })
+  }, options)
+}
+
+export const expectScreenShareJoined = async (page: Page) => {
+  return page.evaluate(() => {
+    return new Promise<any>(async (resolve) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+
+      roomObj.on('member.joined', (params: any) => {
+        if (params.member.type === 'screen') {
+          resolve(true)
+        }
+      })
+
+      await roomObj.startScreenShare({
+        audio: true,
+        video: true,
+      })
+    })
+  })
+}
+
+// #endregion
+
+export const expectInteractivityMode = async (
+  page: Page,
+  mode: 'member' | 'audience'
+) => {
+  const interactivityMode = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.interactivityMode
+  })
+
+  expect(interactivityMode).toEqual(mode)
+}
+
+export const setLayoutOnPage = (page: Page, layoutName: string) => {
+  return page.evaluate(
+    async (options) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return await roomObj.setLayout({ name: options.layoutName })
+    },
+    { layoutName }
+  )
+}
+
+export const randomizeRoomName = (prefix: string = 'e2e') => {
+  return `${prefix}${uuid()}`
+}
+
+export const expectMemberId = async (page: Page, memberId: string) => {
+  const roomMemberId = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.memberId
+  })
+
+  expect(roomMemberId).toEqual(memberId)
 }

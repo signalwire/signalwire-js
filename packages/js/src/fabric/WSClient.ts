@@ -1,7 +1,6 @@
 import { getLogger, VertoSubscribe, VertoBye } from '@signalwire/core'
 import { wsClientWorker } from './workers'
 import {
-  CallFabricRoomSession,
   CallParams,
   DialParams,
   InboundCallSource,
@@ -11,12 +10,14 @@ import {
   WSClientOptions,
 } from './types'
 import { IncomingCallManager } from './IncomingCallManager'
+import { FabricRoomSession } from './FabricRoomSession'
 import { createClient } from './createClient'
 import { Client } from './Client'
 
 export class WSClient {
   private wsClient: Client
   private logger = getLogger()
+  private _sessionConnected = false
   private _incomingCallManager: IncomingCallManager
 
   constructor(public options: WSClientOptions) {
@@ -26,6 +27,7 @@ export class WSClient {
         this.buildInboundCall(payload, params),
       (callId: string, nodeId: string) => this.executeVertoBye(callId, nodeId)
     )
+    this.listenForSessionEvents()
   }
 
   /** @internal */
@@ -33,9 +35,24 @@ export class WSClient {
     return this.wsClient
   }
 
+  get sessionConnected() {
+    return this._sessionConnected
+  }
+
+  private listenForSessionEvents() {
+    this.wsClient.session.on('session.connected', () => {
+      this._sessionConnected = true
+    })
+
+    this.wsClient.session.on('session.disconnected', () => {
+      this._sessionConnected = false
+    })
+  }
+
   async connect() {
-    // @ts-ignore
-    if (!this.wsClient.connected) {
+    if (!this.sessionConnected) {
+      await this.wsClient.connect()
+
       this.wsClient.runWorker('wsClientWorker', {
         worker: wsClientWorker,
         initialState: {
@@ -43,7 +60,6 @@ export class WSClient {
             this.notifyIncomingInvite('websocket', incomingInvite),
         },
       })
-      await this.wsClient.connect()
     }
   }
 
@@ -52,7 +68,7 @@ export class WSClient {
   }
 
   async dial(params: DialParams) {
-    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+    return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
         const call = this.buildOutboundCall(params)
@@ -65,7 +81,7 @@ export class WSClient {
   }
 
   async reattach(params: DialParams) {
-    return new Promise<CallFabricRoomSession>(async (resolve, reject) => {
+    return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         await this.connect()
         const call = this.buildOutboundCall({ ...params, attach: true })
@@ -93,7 +109,7 @@ export class WSClient {
       negotiateVideo = true
     }
 
-    const call = this.wsClient.makeCallFabricObject({
+    const call = this.wsClient.makeFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -127,7 +143,7 @@ export class WSClient {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    const call = this.wsClient.makeCallFabricObject({
+    const call = this.wsClient.makeFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -155,6 +171,7 @@ export class WSClient {
       this.logger.debug('Session Disconnected')
     })
 
+    // TODO: This is for memberList.updated event and it is not yet supported in CF SDK
     // @ts-expect-error
     call.attachPreConnectWorkers()
     return call

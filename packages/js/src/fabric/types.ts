@@ -2,9 +2,9 @@ import type { ConversationEventParams, UserOptions } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
-import type { CallFabricRoomSession } from './CallFabricRoomSession'
+import type { FabricRoomSession } from './FabricRoomSession'
 
-export interface SignalWireOptions extends WSClientOptions {}
+export interface SignalWireClientParams extends WSClientOptions {}
 
 export interface SignalWireContract {
   httpHost: HTTPClient['httpHost']
@@ -39,6 +39,8 @@ export interface SignalWireContract {
   }
 }
 
+export type SignalWireClient = SignalWireContract
+
 /**
  * WSClient
  */
@@ -64,7 +66,7 @@ export interface PushNotificationPayload {
 
 export interface CallParams {
   /** HTML element in which to display the video stream */
-  rootElement?: HTMLElement
+  rootElement?: HTMLElement | null
   /** Disable ICE UDP transport policy */
   disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */
@@ -84,9 +86,9 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type CFUserOptions = Omit<UserOptions, 'onRefreshToken'>
+export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'>
 
-export interface WSClientOptions extends CFUserOptions {
+export interface WSClientOptions extends FabricUserOptions {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Call back function to receive the incoming call */
@@ -116,7 +118,7 @@ export interface IncomingInvite {
 export interface IncomingCallNotification {
   invite: {
     details: IncomingInvite
-    accept: (param: CallParams) => Promise<CallFabricRoomSession>
+    accept: (param: CallParams) => Promise<FabricRoomSession>
     reject: () => Promise<void>
   }
 }
@@ -177,7 +179,7 @@ export interface GetAddressResponse {
   created_at: string
 }
 
-export type Address = GetAddressResponse 
+export type Address = GetAddressResponse
 
 export interface GetAddressesParams {
   type?: string
@@ -388,4 +390,11 @@ export interface RegisterDeviceResponse {
 
 export type RegisterDeviceResult = RegisterDeviceResponse
 
-export { CallFabricRoomSession }
+export { FabricRoomSession }
+export type {
+  ConversationMessageEventName,
+  ConversationMessageEventParams,
+  ConversationMessageEvent,
+  ConversationEvent,
+  ConversationEventParams,
+} from '@signalwire/core'

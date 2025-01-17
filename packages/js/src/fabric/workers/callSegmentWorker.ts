@@ -1,122 +1,154 @@
 import {
-  CallFabricAction,
-  SDKWorker,
+  FabricAction,
+  CallJoinedEvent,
+  SDKActions,
   SagaIterator,
-  VideoMemberEventNames,
-  VideoRoomSessionEventNames,
   getLogger,
   sagaEffects,
 } from '@signalwire/core'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
-import { CallFabricRoomSessionConnection } from '../CallFabricRoomSession'
-import { videoMemberWorker } from '../../video/videoMemberWorker'
+import { FabricWorkerParams } from './fabricWorker'
+import {
+  mapFabricLayoutActionToVideoLayoutAction,
+  mapFabricMemberActionToVideoMemberJoinAndLeftAction,
+  mapFabricMemberActionToVideoMemberUpdatedAction,
+} from '../utils/helpers'
+import { fabricMemberWorker } from './fabricMemberWorker'
 
-export const callSegmentWorker: SDKWorker<CallFabricRoomSessionConnection> =
-  function* (options): SagaIterator {
-    const {
-      initialState: bootstrapAction,
-      channels: { swEventChannel },
-      instance: cfRoomSession,
-    } = options
+export const callSegmentWorker = function* (
+  options: FabricWorkerParams<CallJoinedEvent>
+): SagaIterator {
+  const {
+    action,
+    channels: { swEventChannel },
+    instance: cfRoomSession,
+  } = options
+  const segmentCallId = action.payload.call_id
+  const segmentRooSessionId = action.payload.room_session_id
 
-    const segmentRoutingRoomSessionId = bootstrapAction.payload.room_session_id
-    const segmentRoutingCallId = bootstrapAction.payload.call_id
+  getLogger().debug(
+    `callSegmentWorker started for: callId ${segmentCallId}, roomSessionId ${segmentRooSessionId}`
+  )
 
-    getLogger().debug(
-      `callSegmentWorker started for: callId ${segmentRoutingCallId} roomSessionId segmentRoutingRoomSessionId`
-    )
+  // Handles the `call.joined` event before the worker loop
+  yield sagaEffects.fork(callJoinWorker, {
+    ...options,
+    action,
+  })
 
-    //handles the `call.joined` event before the worker loop
-    yield sagaEffects.fork(callJoinWorker, {
-      ...options,
-      action: bootstrapAction,
-    })
+  function* worker(action: FabricAction) {
+    const { type, payload } = action
 
-    const isSegmentEvent = (action: CallFabricAction) => {
-      const shouldWatch = () =>
-        action.type.startsWith('call.') ||
-        action.type.startsWith('member.') ||
-        action.type.startsWith('layout.')
+    switch (type) {
+      case 'call.joined':
+        /** NOOP since this event is handled by the {@link fabricWorker} */
+        break
+      case 'call.left':
+        // Wait for the `callLeftWorker` to finish and then stop this particular segment worker
+        yield sagaEffects.call(callLeftWorker, {
+          ...options,
+          action,
+        })
+        return true
+      case 'call.updated':
+        cfRoomSession.emit(type, payload)
+        cfRoomSession.emit('room.updated', payload)
+        break
+      case 'call.play':
+        cfRoomSession.emit(type, payload)
+        break
+      case 'call.connect':
+        cfRoomSession.emit(type, payload)
+        break
+      case 'call.room':
+        cfRoomSession.emit(type, payload)
+        break
 
-      return (
-        shouldWatch() &&
-        (segmentRoutingRoomSessionId === action.payload.room_session_id ||
-          segmentRoutingCallId === action.payload.call_id)
-      )
-    }
-
-    while (true) {
-      // @ts-expect-error swEventChannel created in core is unware CallFabric types
-      const action = yield sagaEffects.take(swEventChannel, isSegmentEvent)
-
-      const { type, payload } = action
-
-      switch (type) {
-        case 'call.joined':
-          getLogger().warn('got a repeated call.joined event', action)
-          break
-        case 'call.left':
-          yield sagaEffects.fork(callLeftWorker, {
-            ...options,
-            action,
-          })
-          break
-        case 'call.started':
-        case 'call.updated':
-        case 'call.ended':
-          const suffix = type.split('.')[1]
-          const newEventName = `room.${suffix}` as VideoRoomSessionEventNames
-          cfRoomSession.emit(newEventName, payload)
-          cfRoomSession.emit(type, payload)
-          break
-
-        case 'member.joined':
-        case 'member.left':
-        case 'member.updated':
-        case 'member.talking': {
-          const updatedAction = {
-            ...action,
-            payload: {
-              ...action.payload,
-              member: {
-                ...action.payload.member,
-                id: action.payload.member.member_id,
-              },
-            },
-            type: `video.${type}` as VideoMemberEventNames,
-          }
-
-          // The "member.updated" event is handled by the @memberPositionWorker
-          if (type !== 'member.updated') {
-            yield sagaEffects.fork(videoMemberWorker, {
-              action: updatedAction,
-              ...options,
-            })
-          }
-
-          yield sagaEffects.put(swEventChannel, updatedAction)
-          break
-        }
-        case 'layout.changed': {
-          // Upsert the layout event which is needed for buildVideoElement
-          cfRoomSession.lastLayoutEvent = action.payload
-          const updatedAction = {
-            ...action,
-            type: `video.${type}` as 'video.layout.changed',
-          }
-          // TODO stop send layout events to legacy workers
-          yield sagaEffects.put(swEventChannel, updatedAction)
-          cfRoomSession.emit(type, payload)
-          break
-        }
-        case 'member.demoted':
-        case 'member.promoted':
-          getLogger().warn('promoted/demoted events not supported')
-          cfRoomSession.emit(type, payload)
-          break
-        default:
-          cfRoomSession.emit(type, payload)
+      /**
+       * The Core module includes a generic worker, {@link memberPositionWorker},
+       * which listens for member & layout events to add a "current_position" parameter
+       * and handle member "updated" parameter.
+       * This worker in CF SDK is initialized by the {@link callJoinWorker} worker.
+       *
+       * To ensure compatibility, we map these events to Video SDK events and
+       * re-publish them on the channel so that they can be processed by the
+       * generic worker. Note that the generic worker only dispatches "member.updated"
+       * and "member.updated.*" events.
+       *
+       * Additionally, the "member.joined" event is monitored by another worker,
+       * {@link childMemberJoinedWorker}, specifically for the screen share API.
+       */
+      case 'member.joined':
+      case 'member.left': {
+        yield sagaEffects.fork(fabricMemberWorker, {
+          ...options,
+          action,
+        })
+        const videoAction =
+          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
+        yield sagaEffects.put(swEventChannel, videoAction)
+        break
+      }
+      case 'member.updated': {
+        const videoAction =
+          mapFabricMemberActionToVideoMemberUpdatedAction(action)
+        yield sagaEffects.put(swEventChannel, videoAction)
+        break
+      }
+      case 'layout.changed': {
+        // We need to update the layout event which is needed for rootElement.
+        cfRoomSession.currentLayoutEvent = action.payload
+        cfRoomSession.emit(type, payload)
+        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
+        yield sagaEffects.put(swEventChannel, videoAction)
+        break
+      }
+      case 'member.talking': {
+        yield sagaEffects.fork(fabricMemberWorker, {
+          ...options,
+          action,
+        })
+        break
+      }
+      default: {
+        getLogger().warn('Got an unknown fabric event', action)
       }
     }
+
+    return false
   }
+
+  const isSegmentEvent = (action: SDKActions) => {
+    const { type, payload } = action as FabricAction
+    const shouldWatch =
+      type.startsWith('call.') ||
+      type.startsWith('member.') ||
+      type.startsWith('layout.')
+    const hasSegmentCallId =
+      'call_id' in payload && segmentCallId === payload.call_id
+    const hasSegmentRoomSessionId =
+      segmentRooSessionId === payload.room_session_id
+
+    if (shouldWatch && (hasSegmentCallId || hasSegmentRoomSessionId)) {
+      return true
+    }
+
+    return false
+  }
+
+  while (true) {
+    const action: FabricAction = yield sagaEffects.take(
+      swEventChannel,
+      isSegmentEvent
+    )
+    const task = yield sagaEffects.fork(worker, action)
+
+    /**
+     * Wait for `worker` to finish and get its return value
+     * Stop the `callSegmentWorker' if the returned value is true
+     */
+    const shouldStop = yield sagaEffects.join(task)
+    if (shouldStop) return
+  }
+}

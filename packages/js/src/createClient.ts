@@ -39,11 +39,7 @@ export const createClient = <RoomSessionType>(userOptions: UserOptions) => {
     userOptions: baseUserOptions,
     SessionConstructor: JWTSession,
   })
-  const client = connect<
-    ClientEvents,
-    ClientAPI<RoomSessionType>,
-    Client<RoomSessionType>
-  >({
+  const client = connect<ClientEvents, ClientAPI, Client<RoomSessionType>>({
     store,
     Component: ClientAPI,
   })(baseUserOptions)

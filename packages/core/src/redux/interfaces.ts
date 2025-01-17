@@ -20,6 +20,7 @@ import type {
   VoiceCallAction,
   VideoManagerAction,
   PubSubEventAction,
+  FabricAction,
 } from '../types'
 import { SDKRunSaga } from '.'
 
@@ -89,11 +90,11 @@ export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
 
 /**
  * Converts from:
- * 
+ *
  * `{ event_type: <value>, params: <value> }`
- * 
+ *
  * into
- * 
+ *
  * `{ type: <value>, payload: <value> }`
  */
 export type MapToPubSubShape<T> = {
@@ -116,6 +117,7 @@ export type PubSubAction =
   | TaskAction
   | MessagingAction
   | VoiceCallAction
+  | FabricAction
 
 export type SessionChannelAction =
   | PayloadAction<void, SessionEvents>

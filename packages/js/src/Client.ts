@@ -9,21 +9,21 @@ import {
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeAudioElementSaga } from './features/mediaElements/mediaElementsSagas'
-import {
-  createBaseRoomSessionObject,
-  RoomSessionConnection,
-} from './BaseRoomSession'
 import { VideoManager, createVideoManagerObject } from './cantina'
 import type { Client as ChatClient } from './chat/Client'
 import type { Client as PubSubClient } from './pubSub/Client'
-import type { RoomSession } from './RoomSession'
+import type { RoomSession } from './video/RoomSession'
 import { buildVideoElement } from './buildVideoElement'
+import {
+  createVideoRoomSessionObject,
+  VideoRoomSessionConnection,
+} from './video/VideoRoomSession'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
-  rooms: ClientAPI<RoomSessionType>['rooms']
-  chat: ClientAPI<RoomSessionType>['chat']
-  pubSub: ClientAPI<RoomSessionType>['pubSub']
+  rooms: ClientAPI['rooms']
+  chat: ClientAPI['chat']
+  pubSub: ClientAPI['pubSub']
 }
 
 export interface MakeRoomOptions extends ConnectionOptions {
@@ -43,9 +43,7 @@ export interface MakeRoomOptions extends ConnectionOptions {
   localStream?: MediaStream
 }
 
-export class ClientAPI<
-  RoomSessionType = RoomSession
-> extends BaseClient<ClientEvents> {
+export class ClientAPI extends BaseClient<ClientEvents> {
   private _videoManager: VideoManager
   private _chat: ChatClient
   private _pubSub: PubSubClient
@@ -64,7 +62,7 @@ export class ClientAPI<
         } = makeRoomOptions
 
         // TODO: This might not be needed here. We can initiate these sagas in the BaseRoomSession constructor.
-        const customSagas: Array<CustomSaga<RoomSessionConnection>> = []
+        const customSagas: Array<CustomSaga<VideoRoomSessionConnection>> = []
 
         /**
          * By default the SDK will attach the audio to
@@ -76,7 +74,7 @@ export class ClientAPI<
           })
         )
 
-        const room = createBaseRoomSessionObject<RoomSessionType>({
+        const room = createVideoRoomSessionObject({
           ...options,
           store: this.store,
           customSagas,
@@ -92,7 +90,6 @@ export class ClientAPI<
               applyLocalVideoOverlay,
               applyMemberOverlay,
               mirrorLocalVideoOverlay,
-              // @ts-expect-error
               room,
               rootElement,
             })

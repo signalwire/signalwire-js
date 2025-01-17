@@ -77,6 +77,9 @@ export type InternalVideoRoomSessionEventNames =
 
 /**
  * Public Contract for a VideoRoomSession
+ * List of all the properties we receive from the server for the room session
+ * Plus the video room methods
+ * We do not use this contract anywhere directly.
  */
 export interface VideoRoomSessionContract {
   /** Unique id for this room session */
@@ -86,7 +89,7 @@ export interface VideoRoomSessionContract {
   /** Id of the room associated to this room session */
   roomId: string
   /** Id of the room associated to this room session */
-  roomSessionId?: string
+  roomSessionId: string
   /** @internal */
   eventChannel: string
   /** Name of this room */
@@ -124,7 +127,7 @@ export interface VideoRoomSessionContract {
   /** List of active streams in the room session. */
   streams?: Rooms.RoomSessionStream[]
   /** Prioritize the hand raise for the layout */
-  prioritizeHandraise: Boolean
+  prioritizeHandraise: boolean
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -757,7 +760,37 @@ export interface VideoRoomSessionContract {
    * ```
    */
   startStream(params: Rooms.StartStreamParams): Promise<Rooms.RoomSessionStream>
+  /**
+   * Lock the room
+   *
+   * @permissions
+   *  - `room.lock`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.lock()
+   * ```
+   */
   lock(): Rooms.Lock
+  /**
+   * Unlock the room
+   *
+   * @permissions
+   *  - `room.unlock`
+   *
+   * You need to specify the permissions when [creating the Video Room
+   * Token](https://developer.signalwire.com/apis/reference/create_room_token)
+   * on the server side.
+   *
+   * @example
+   * ```typescript
+   * await room.lock()
+   * ```
+   */
   unlock(): Rooms.Unlock
   /**
    * Set the priority of members hand raise
@@ -831,7 +864,7 @@ export type InternalVideoRoomSessionEntity = {
  * @internal
  * @deprecated
  */
-type InternalVideoRoomEntity = {
+export type InternalVideoRoomEntity = {
   room_id: string
   room_session_id: string
   event_channel: string
@@ -907,7 +940,6 @@ export interface VideoRoomSubscribedEventParams {
   // FIXME: only for webrtc
   call_id: string
   member_id: string
-  node_id?: string
 }
 
 export interface VideoRoomSubscribedEvent extends SwEvent {

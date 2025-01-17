@@ -2,11 +2,11 @@ import {
   Rooms,
   extendComponent,
   BaseConnectionContract,
-  BaseConnectionState,
   RoomLeft,
   RoomLeftEventParams,
+  BaseConnectionState,
 } from '@signalwire/core'
-import { BaseConnection, MediaEvent } from '@signalwire/webrtc'
+import { BaseConnection, MediaEventNames } from '@signalwire/webrtc'
 import { RoomScreenShareMethods } from './utils/interfaces'
 
 type RoomSessionScreenShareEventsHandlerMap = Record<
@@ -14,7 +14,7 @@ type RoomSessionScreenShareEventsHandlerMap = Record<
   (params: RoomSessionScreenShare) => void
 > &
   Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
-  Record<MediaEvent, () => void>
+  Record<MediaEventNames, () => void>
 
 export type RoomSessionScreenShareEvents = {
   [k in keyof RoomSessionScreenShareEventsHandlerMap]: RoomSessionScreenShareEventsHandlerMap[k]

@@ -14,171 +14,184 @@ test.describe('Video', () => {
   test('should join the room and listen for events', async ({ browser }) => {
     console.log('===START===', 'should join the room and listen for events')
 
-    const client = await SignalWire({
-      host: process.env.RELAY_HOST,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      debug: { logWsTraffic: true },
-    })
-
     const prefix = uuid()
     const roomCount = 3
-
     const roomSessionCreated = new Map<string, any>()
+
     const findRoomSessionsByPrefix = async () => {
-      console.log('GET rooms with prefix id', prefix)
       const { roomSessions } = await client.video.getRoomSessions()
       return roomSessions.filter((r) => r.name.startsWith(prefix))
     }
 
-    // Expect {roomCount} room.started event on the Node SDK
-    const roomSessionStartedNode = new Promise<void>(
-      async (resolve, _reject) => {
-        let count = 0
-        await client.video.listen({
-          onRoomStarted: (roomSession) => {
-            console.log('>> onRoomStarted', roomSession.name, prefix)
-            if (roomSession.name.startsWith(prefix)) {
-              count++
-              roomSessionCreated.set(roomSession.id, roomSession)
-              console.log('roomSessionCreated count', count)
-              if (count === roomCount) {
-                resolve()
-              }
-            }
-          },
+    const client =
+      await test.step('[Realtime-API] should create a client', async () => {
+        return await SignalWire({
+          host: process.env.RELAY_HOST,
+          project: process.env.RELAY_PROJECT as string,
+          token: process.env.RELAY_TOKEN as string,
+          debug: { logWsTraffic: true },
         })
-      }
-    )
+      })
 
-    const roomSessionsAtStart = await findRoomSessionsByPrefix()
-    console.log('roomSessionsAtStart', roomSessionsAtStart)
-    expect(
-      roomSessionsAtStart,
-      'Initial room session should be 0'
-    ).toHaveLength(0)
+    const roomSessionStartedNode =
+      test.step('[Realtime-API] should expect 3 "room.started" event', () => {
+        return new Promise<void>(async (resolve, _reject) => {
+          let count = 0
+          await client.video.listen({
+            onRoomStarted: (roomSession) => {
+              console.log('>> onRoomStarted', roomSession.name, prefix)
+              if (roomSession.name.startsWith(prefix)) {
+                count++
+                roomSessionCreated.set(roomSession.id, roomSession)
+                console.log('roomSessionCreated count', count)
+                if (count === roomCount) {
+                  resolve()
+                }
+              }
+            },
+          })
+        })
+      })
+
+    await test.step('[Realtime-API] should expect 0 room sessions initially', async () => {
+      const roomSessionsAtStart = await findRoomSessionsByPrefix()
+      expect(roomSessionsAtStart).toHaveLength(0)
+    })
 
     const roomSessionsWeb: CreateRoomAndRecordPlayReturn[] = []
 
     // Join room from page 1
-    console.log('[page-1] Join room and start playback and recording')
-    const pageOneRoomSession = await createRoomAndRecordPlay({
-      browser,
-      pageName: '[page-1]',
-      room_name: `${prefix}-1`,
-      user_name: `${prefix}-member-1`,
+    await test.step('[Browser-SDK-1] should join a room and start playback/recording', async () => {
+      const pageOneRoomSession = await createRoomAndRecordPlay({
+        browser,
+        pageName: '[page-1]',
+        room_name: `${prefix}-1`,
+        user_name: `${prefix}-member-1`,
+      })
+      roomSessionsWeb.push(pageOneRoomSession!)
     })
-    roomSessionsWeb.push(pageOneRoomSession!)
-    console.log('[page-1] room joined')
 
     // Join room from page 2
-    console.log('[page-2] Join room and start playback and recording')
-    const pageTwoRoomSession = await createRoomAndRecordPlay({
-      browser,
-      pageName: '[page-2]',
-      room_name: `${prefix}-2`,
-      user_name: `${prefix}-member-2`,
+    await test.step('[Browser-SDK-2] should join a room and start playback/recording', async () => {
+      const pageTwoRoomSession = await createRoomAndRecordPlay({
+        browser,
+        pageName: '[page-2]',
+        room_name: `${prefix}-2`,
+        user_name: `${prefix}-member-2`,
+      })
+      roomSessionsWeb.push(pageTwoRoomSession!)
     })
-    roomSessionsWeb.push(pageTwoRoomSession!)
-    console.log('[page-2] room joined')
 
     // Join room from page 3
-    console.log('[page-3] Join room and start playback and recording')
-    const pageThreeRoomSession = await createRoomAndRecordPlay({
-      browser,
-      pageName: '[page-3]',
-      room_name: `${prefix}-3`,
-      user_name: `${prefix}-member-3`,
+    await test.step('[Browser-SDK-3] should join a room and start playback/recording', async () => {
+      const pageThreeRoomSession = await createRoomAndRecordPlay({
+        browser,
+        pageName: '[page-3]',
+        room_name: `${prefix}-3`,
+        user_name: `${prefix}-member-3`,
+      })
+      roomSessionsWeb.push(pageThreeRoomSession!)
     })
-    roomSessionsWeb.push(pageThreeRoomSession!)
-    console.log('[page-3] room joined')
 
     // Wait till Node SDK receive room.started events {roomCount} times
-    await roomSessionStartedNode
-    expect(roomSessionCreated.size).toBe(roomCount)
+    await test.step('[Realtime-API] should wait for 3 "room.started" events', async () => {
+      await roomSessionStartedNode
+      expect(roomSessionCreated.size).toBe(roomCount)
+    })
 
-    // Fetch room sessions using Node SDK and expect {roomCount} rooms
-    const roomSessionsRunning = await findRoomSessionsByPrefix()
-    expect(
-      roomSessionsRunning,
-      'Running room session should be 3'
-    ).toHaveLength(roomCount)
-
-    // Expect all rooms running a recording
-    expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
-      roomCount
-    )
-
-    // Expect all rooms to have play function
-    expect(
-      roomSessionsRunning.filter((r) => typeof r.play === 'function')
-    ).toHaveLength(roomCount)
-
-    // Run for all the rooms
-    for (let index = 0; index < roomSessionsRunning.length; index++) {
-      const rs = roomSessionsRunning[index]
-
-      // Stop the recording and expect onRecordingEnded event
-      await new Promise<void>(async (resolve) => {
-        await rs.listen({
-          onRecordingEnded: () => resolve(),
-        })
-        const { recordings } = await rs.getRecordings()
-        await Promise.all(recordings.map((r) => r.stop()))
+    const roomSessionsRunning =
+      await test.step('[Realtime-API] should expect 3 room sessions', async () => {
+        const roomSessionsRunning = await findRoomSessionsByPrefix()
+        expect(roomSessionsRunning).toHaveLength(roomCount)
+        return roomSessionsRunning
       })
 
-      // Stop the playback and expect onPlaybackEnded event
-      await new Promise<void>(async (resolve) => {
-        await rs.listen({
-          onPlaybackEnded: () => resolve(),
+    await test.step('[Realtime-API] should expect all 3 rooms running a recording', () => {
+      expect(roomSessionsRunning.filter((r) => r.recording)).toHaveLength(
+        roomCount
+      )
+    })
+
+    await test.step('[Realtime-API] should expect all 3 rooms to have play function', () => {
+      expect(
+        roomSessionsRunning.filter((r) => typeof r.play === 'function')
+      ).toHaveLength(roomCount)
+    })
+
+    await test.step('[Realtime-API] should stop the recording and expect "recording.ended" event for all 3 rooms', async () => {
+      for (let index = 0; index < roomSessionsRunning.length; index++) {
+        const rs = roomSessionsRunning[index]
+        await new Promise<void>(async (resolve) => {
+          await rs.listen({
+            onRecordingEnded: () => resolve(),
+          })
+          const { recordings } = await rs.getRecordings()
+          await Promise.all(recordings.map((r) => r.stop()))
         })
-        const { playbacks } = await rs.getPlaybacks()
-        await Promise.all(playbacks.map((p) => p.stop()))
-      })
+      }
+    })
 
-      await new Promise<void>(async (resolve, reject) => {
-        const unsub = await rs.listen({
-          onRoomUpdated: async (roomSession) => {
-            if (roomSession.locked === true) {
-              resolve()
-              await unsub()
-            } else {
-              reject(new Error('Not locked'))
-            }
-          },
+    await test.step('[Realtime-API] should stop the playback and expect "playback.ended" event for all 3 rooms', async () => {
+      for (let index = 0; index < roomSessionsRunning.length; index++) {
+        const rs = roomSessionsRunning[index]
+        await new Promise<void>(async (resolve) => {
+          await rs.listen({
+            onPlaybackEnded: () => resolve(),
+          })
+          const { playbacks } = await rs.getPlaybacks()
+          await Promise.all(playbacks.map((p) => p.stop()))
         })
-        await rs.lock()
-      })
+      }
+    })
 
-      await new Promise<void>(async (resolve, reject) => {
-        const unsub = await rs.listen({
-          onRoomUpdated: async (roomSession) => {
-            if (roomSession.locked === false) {
-              resolve()
-              await unsub()
-            } else {
-              reject(new Error('Not locked'))
-            }
-          },
+    await test.step('[Realtime-API] should lock all 3 rooms and expect "room.updated" event', async () => {
+      for (let index = 0; index < roomSessionsRunning.length; index++) {
+        const rs = roomSessionsRunning[index]
+        await new Promise<void>(async (resolve, reject) => {
+          const unsub = await rs.listen({
+            onRoomUpdated: async (roomSession) => {
+              if (roomSession.locked === true) {
+                resolve()
+                await unsub()
+              } else {
+                reject(new Error('Room is not locked!'))
+              }
+            },
+          })
+          await rs.lock()
         })
-        await rs.unlock()
-      })
-    }
+      }
+    })
 
-    const roomSessionsAtEnd = await findRoomSessionsByPrefix()
-    console.log('roomSessionsAtEnd', roomSessionsAtEnd)
-    expect(roomSessionsAtEnd.filter((r) => r.recording)).toHaveLength(0)
-    expect(roomSessionCreated.size).toBe(roomCount)
-    expect(roomSessionsAtEnd).toHaveLength(roomCount)
+    await test.step('[Realtime-API] should unlock all 3 rooms and expect "room.updated" event', async () => {
+      for (let index = 0; index < roomSessionsRunning.length; index++) {
+        const rs = roomSessionsRunning[index]
+        await new Promise<void>(async (resolve, reject) => {
+          const unsub = await rs.listen({
+            onRoomUpdated: async (roomSession) => {
+              if (roomSession.locked === false) {
+                resolve()
+                await unsub()
+              } else {
+                reject(new Error('Room is not unlocked!'))
+              }
+            },
+          })
+          await rs.unlock()
+        })
+      }
+    })
 
-    // Leave room on all pages
-    for (let index = 0; index < roomSessionsWeb.length; index++) {
-      const rs = roomSessionsWeb[index]
-      await rs?.leaveRoom()
-    }
+    await test.step('[Realtime-API] should leave all 3 rooms', async () => {
+      for (let index = 0; index < roomSessionsWeb.length; index++) {
+        const rs = roomSessionsWeb[index]
+        await rs?.leaveRoom()
+      }
+    })
 
-    // Disconnect the client
-    await client.disconnect()
+    await test.step('[Realtime-API] should disconnect the client', async () => {
+      await client.disconnect()
+    })
 
     console.log('===END===', 'should join the room and listen for events')
   })
