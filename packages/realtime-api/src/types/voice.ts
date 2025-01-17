@@ -43,6 +43,7 @@ import type {
   VoiceDialerParams,
   VoiceCallDialPhoneMethodParams,
   VoiceCallDialSipMethodParams,
+  VoiceCallPayMethodParams,
 } from '@signalwire/core'
 import type { Call } from '../voice/Call'
 import type { CallPlayback } from '../voice/CallPlayback'
@@ -383,4 +384,31 @@ export interface CallDetectFaxParams
 export interface CallDetectDigitParams
   extends Omit<VoiceCallDetectDigitParams, 'type'> {
   listen?: CallDetectListeners
+}
+
+/**
+ * Call Pay
+ */
+// export type CallPayEvents = Record<
+//   CallPayStarted | CallPayUpdated | CallPayEnded | CallPayFailed,
+//   (Pay: CallPay) => void
+// >
+
+// export interface CallPayListeners {
+//   onStarted?: (pay: CallPay) => unknown
+//   onUpdated?: (pay: CallPay) => unknown
+//   onFailed?: (pay: CallPay) => unknown
+//   onEnded?: (pay: CallPay) => unknown
+// }
+
+// export type CallPayListenersEventsMapping = Record<
+//   'onStarted',
+//   CallPayStarted
+// > &
+//   Record<'onUpdated', CallPayUpdated> &
+//   Record<'onFailed', CallPayFailed> &
+//   Record<'onEnded', CallPayEnded>
+
+export interface CallPayMethodParams extends VoiceCallPayMethodParams {
+  // listen?: CallPayListeners
 }
