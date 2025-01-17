@@ -199,7 +199,7 @@ export class BaseConnection<
       const oldPeerId = this.peer.uuid
       this.logger.debug('>>> Stop old RTCPeer', oldPeerId)
       // Hangup the previous RTCPeer
-      this.hangup(oldPeerId).catch(console.error)
+      this.hangup(oldPeerId)
       this.peer.detachAndStop()
 
       // Remove RTCPeer from local cache to stop answering to ping/pong
@@ -825,7 +825,7 @@ export class BaseConnection<
     }
   }
 
-  async hangup(id?: string) {
+  hangup(id?: string) {
     const rtcPeerId = id ?? this.callId
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to hangup')
@@ -833,7 +833,11 @@ export class BaseConnection<
 
     try {
       const message = VertoBye(this.dialogParams(rtcPeerId))
-      await this.vertoExecute({
+      /**
+       * Fire-and-Forget
+       * For privacy reasons, the user should be allowed to leave the call immediately.
+       */
+      this.vertoExecute({
         message,
         callID: rtcPeerId,
         node_id: this.nodeId,
