@@ -218,7 +218,7 @@ export class BaseConnection<
       this.hangup(oldPeerId)
 
       // Remove RTCPeer from local cache to stop answering to ping/pong
-      this.rtcPeerMap.delete(oldPeerId)
+      // this.rtcPeerMap.delete(oldPeerId)
     } else {
       // Set the new peer as active peer
       setActivePeer(rtcPeer.uuid)
