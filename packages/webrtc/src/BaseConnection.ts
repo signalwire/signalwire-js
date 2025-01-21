@@ -43,7 +43,6 @@ import {
   INVITE_VERSION,
   VIDEO_CONSTRAINTS,
 } from './utils/constants'
-import { validateUpdateMediaParams } from './utils/validators'
 
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
@@ -1260,12 +1259,6 @@ export class BaseConnection<
         throw new Error('The peer is already negotiating the media!')
       }
 
-      // Validate the incoming request
-      const error = validateUpdateMediaParams(params)
-      if (error) {
-        throw error
-      }
-
       /**
        * Create a new renegotiation promise that would be resolved by the {@link executeUpdateMedia}
        */
@@ -1277,15 +1270,25 @@ export class BaseConnection<
         }
       })
 
+      const shouldEnableAudio = ['sendonly', 'sendrecv'].includes(
+        audio?.direction || ''
+      )
+      const shouldEnableVideo = ['sendonly', 'sendrecv'].includes(
+        video?.direction || ''
+      )
+
+      const shouldNegotiateAudio = ['sendrecv', 'receive'].includes(
+        audio?.direction || ''
+      )
+      const shouldNegotiateVideo = ['sendrecv', 'receive'].includes(
+        video?.direction || ''
+      )
+
       this.updateMediaOptions({
-        ...(audio && { audio: audio.constraints ?? audio.enable }),
-        ...(video && { video: video.constraints ?? video.enable }),
-        ...(audio && {
-          negotiateAudio: ['sendrecv', 'receive'].includes(audio.direction),
-        }),
-        ...(video && {
-          negotiateVideo: ['sendrecv', 'receive'].includes(video.direction),
-        }),
+        ...(audio && { audio: audio?.constraints ?? shouldEnableAudio }),
+        ...(video && { video: video?.constraints ?? shouldEnableVideo }),
+        ...(audio && { negotiateAudio: shouldNegotiateAudio }),
+        ...(video && { negotiateVideo: shouldNegotiateVideo }),
       })
 
       /**
@@ -1295,27 +1298,24 @@ export class BaseConnection<
        * If the media is being disabled, we need to handle that below.
        */
       await this.applyConstraintsAndRefreshStream({
-        ...(audio && { audio: audio.constraints ?? audio.enable }),
-        ...(video && { video: video.constraints ?? video.enable }),
+        ...(audio && { audio: audio?.constraints ?? shouldEnableAudio }),
+        ...(video && { video: video?.constraints ?? shouldEnableVideo }),
       })
 
       // When disabling audio
-      if (audio && !audio.enable) {
-        const newDirection =
-          audio.direction === 'receive' ? 'recvonly' : 'inactive'
-        this._upsertTransceiverByKind(newDirection, 'audio')
+      if (audio && !shouldEnableAudio) {
+        this._upsertTransceiverByKind(audio.direction, 'audio')
       }
 
       // When disabling video
-      if (video && !video.enable) {
-        const newDirection =
-          video.direction === 'receive' ? 'recvonly' : 'inactive'
-        this._upsertTransceiverByKind(newDirection, 'video')
+      if (video && !shouldEnableVideo) {
+        this._upsertTransceiverByKind(video.direction, 'video')
       }
 
       // Manually trigger the negotiation (just to be sure) - we skip twice negotiation
       await this.peer.startNegotiation()
 
+      // Wait for the Renegotiation to complete
       await negotiationPromise
 
       // Throw error if the remote SDP does not include the expected audio direction
@@ -1353,17 +1353,15 @@ export class BaseConnection<
    * @param direction {@link UpdateMediaDirection}
    */
   public async setAudioDirection(direction: UpdateMediaDirection) {
-    if (direction === 'send' || direction === 'sendrecv') {
+    if (direction === 'sendonly' || direction === 'sendrecv') {
       return this.updateMedia({
         audio: {
-          enable: true,
           direction,
         },
       })
-    } else if (direction === 'receive' || direction === 'none') {
+    } else if (direction === 'recvonly' || direction === 'inactive') {
       return this.updateMedia({
         audio: {
-          enable: false,
           direction,
         },
       })
@@ -1379,17 +1377,15 @@ export class BaseConnection<
    * @param direction {@link UpdateMediaDirection}
    */
   public async setVideoDirection(direction: UpdateMediaDirection) {
-    if (direction === 'send' || direction === 'sendrecv') {
+    if (direction === 'sendonly' || direction === 'sendrecv') {
       return this.updateMedia({
         video: {
-          enable: true,
           direction,
         },
       })
-    } else if (direction === 'receive' || direction === 'none') {
+    } else if (direction === 'recvonly' || direction === 'inactive') {
       return this.updateMedia({
         video: {
-          enable: false,
           direction,
         },
       })

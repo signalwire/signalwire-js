@@ -1,4 +1,5 @@
 import { uuid } from '@signalwire/core'
+import { FabricRoomSession } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -10,7 +11,6 @@ import {
   expectStatWithPolling,
   getStats,
 } from '../../utils'
-import { CallFabricRoomSession } from '@signalwire/js'
 
 test.describe('CallFabric Video Renegotiation', () => {
   test('it should enable video with "sendrecv" and then disable with "inactive"', async ({
@@ -38,7 +38,7 @@ test.describe('CallFabric Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallFabricRoomSession = window._roomObj
+      const cfRoomSession: FabricRoomSession = window._roomObj
       await cfRoomSession.setVideoDirection('sendrecv')
     })
 
@@ -54,9 +54,9 @@ test.describe('CallFabric Video Renegotiation', () => {
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        const cfRoomSession: FabricRoomSession = window._roomObj
         await cfRoomSession.updateMedia({
-          video: { enable: false, direction: 'none' },
+          video: { direction: 'inactive' },
         })
       })
 
@@ -101,8 +101,8 @@ test.describe('CallFabric Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.setVideoDirection('send')
+      const cfRoomSession: FabricRoomSession = window._roomObj
+      await cfRoomSession.setVideoDirection('sendonly')
     })
 
     // Expect MCU is not visible
@@ -125,9 +125,9 @@ test.describe('CallFabric Video Renegotiation', () => {
     await test.step('it should disable the video with "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        const cfRoomSession: FabricRoomSession = window._roomObj
         await cfRoomSession.updateMedia({
-          video: { enable: false, direction: 'receive' },
+          video: { direction: 'recvonly' },
         })
       })
 
@@ -172,8 +172,8 @@ test.describe('CallFabric Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.setVideoDirection('receive')
+      const cfRoomSession: FabricRoomSession = window._roomObj
+      await cfRoomSession.setVideoDirection('recvonly')
     })
 
     // Expect incoming video stream is visible
@@ -192,9 +192,9 @@ test.describe('CallFabric Video Renegotiation', () => {
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        const cfRoomSession: FabricRoomSession = window._roomObj
         await cfRoomSession.updateMedia({
-          video: { enable: false, direction: 'none' },
+          video: { direction: 'inactive' },
         })
       })
 

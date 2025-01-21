@@ -1,4 +1,5 @@
 import { uuid } from '@signalwire/core'
+import { FabricRoomSession } from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -9,7 +10,6 @@ import {
   getStats,
   waitForStabilizedStats,
 } from '../../utils'
-import { CallFabricRoomSession } from '@signalwire/js'
 
 test.describe('CallFabric Audio Renegotiation', () => {
   test('it should enable audio with "sendrecv" and then disable with "inactive"', async ({
@@ -44,7 +44,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallFabricRoomSession = window._roomObj
+      const cfRoomSession: FabricRoomSession = window._roomObj
       await cfRoomSession.setAudioDirection('sendrecv')
     })
 
@@ -72,9 +72,9 @@ test.describe('CallFabric Audio Renegotiation', () => {
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        const cfRoomSession: FabricRoomSession = window._roomObj
         await cfRoomSession.updateMedia({
-          audio: { enable: false, direction: 'none' },
+          audio: { direction: 'inactive' },
         })
       })
 
@@ -129,8 +129,8 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.setAudioDirection('send')
+      const cfRoomSession: FabricRoomSession = window._roomObj
+      await cfRoomSession.setAudioDirection('sendonly')
     })
 
     const stats2 = await getStats(page)
@@ -146,9 +146,9 @@ test.describe('CallFabric Audio Renegotiation', () => {
     await test.step('it should disable the audio with "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        const cfRoomSession: FabricRoomSession = window._roomObj
         await cfRoomSession.updateMedia({
-          audio: { enable: false, direction: 'receive' },
+          audio: { direction: 'recvonly' },
         })
       })
 
@@ -198,8 +198,8 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallFabricRoomSession = window._roomObj
-      await cfRoomSession.setAudioDirection('receive')
+      const cfRoomSession: FabricRoomSession = window._roomObj
+      await cfRoomSession.setAudioDirection('recvonly')
     })
 
     const stats2 = await getStats(page)
@@ -223,9 +223,9 @@ test.describe('CallFabric Audio Renegotiation', () => {
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallFabricRoomSession = window._roomObj
+        const cfRoomSession: FabricRoomSession = window._roomObj
         await cfRoomSession.updateMedia({
-          audio: { enable: false, direction: 'none' },
+          audio: { direction: 'inactive' },
         })
       })
 

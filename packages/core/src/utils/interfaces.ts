@@ -515,17 +515,19 @@ export interface InternalSDKLogger extends SDKLogger {
   wsTraffic: (options: WsTrafficOptions) => void
 }
 
-export type UpdateMediaDirection = 'send' | 'receive' | 'sendrecv' | 'none'
+export type UpdateMediaDirection =
+  | 'sendonly'
+  | 'recvonly'
+  | 'sendrecv'
+  | 'inactive'
 
 type EnabledUpdateMedia = {
-  enable: true
-  direction: Extract<UpdateMediaDirection, 'send' | 'sendrecv'>
+  direction: Extract<UpdateMediaDirection, 'sendonly' | 'sendrecv'>
   constraints?: MediaTrackConstraints
 }
 
 type DisabledUpdateMedia = {
-  enable: false
-  direction: Extract<UpdateMediaDirection, 'none' | 'receive'>
+  direction: Extract<UpdateMediaDirection, 'recvonly' | 'inactive'>
   constraints?: never
 }
 
