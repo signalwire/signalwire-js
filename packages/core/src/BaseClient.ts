@@ -7,7 +7,7 @@ import { getAuthStatus } from './redux/features/session/sessionSelectors'
 export class BaseClient<
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseComponent<EventTypes> {
-  constructor(public options: BaseClientOptions<EventTypes>) {
+  constructor(public options: BaseClientOptions) {
     super(options)
   }
 
@@ -31,5 +31,15 @@ export class BaseClient<
    */
   disconnect() {
     this.store.dispatch(destroyAction())
+  }
+
+  override removeAllListeners<T extends EventEmitter.EventNames<EventTypes>>(
+    event?: T
+  ) {
+    this.sessionEventNames().forEach((eventName) => {
+      this.sessionEmitter.off(eventName)
+    })
+
+    return super.removeAllListeners(event)
   }
 }

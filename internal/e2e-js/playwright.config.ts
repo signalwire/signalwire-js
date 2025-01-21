@@ -37,6 +37,7 @@ const reattachTests = [
 ]
 const callfabricTests = [
   'address.spec.ts',
+  'cleanup.spec.ts',
   'conversation.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
