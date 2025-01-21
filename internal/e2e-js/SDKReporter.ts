@@ -10,8 +10,7 @@ import type {
 } from '@playwright/test/reporter'
 
 /**
- * A fully custom reporter that implements Playwright Reporter interface methods.
- * It prints logs similar to "normal" test events without delegating to any built-in reporter.
+ * A custom SDK reporter that implements Playwright Reporter interface methods.
  */
 export default class SDKReporter implements Reporter {
   private totalTests = 0
@@ -22,8 +21,7 @@ export default class SDKReporter implements Reporter {
   private timedOutTests = 0
 
   /**
-   * Called once before running tests. All tests have been already discovered
-   * and put into a hierarchy of `Suite`s.
+   * Called once before running tests.
    */
   onBegin(_config: FullConfig, suite: Suite): void {
     this.totalTests = suite.allTests().length
@@ -33,10 +31,10 @@ export default class SDKReporter implements Reporter {
   }
 
   /**
-   * Called after all tests have run, or the run was interrupted. (Can be async.)
+   * Called after all tests have run, or the run was interrupted.
    */
   async onEnd(result: FullResult): Promise<void> {
-    console.log('\n')
+    console.log('\n\n')
     console.log('============================================')
     console.log(`Test run finished with status: ${result.status.toUpperCase()}`)
     console.log('--------------------------------------------')
@@ -46,11 +44,11 @@ export default class SDKReporter implements Reporter {
     console.log(`Skipped:        ${this.skippedTests}`)
     console.log(`Timed Out:      ${this.timedOutTests}`)
     console.log('============================================')
-    console.log('\n')
+    console.log('\n\n')
   }
 
   /**
-   * Called on a global error, for example an unhandled exception in the worker.
+   * Called on a global error, for example an unhandled exception in the test.
    */
   onError(error: TestError): void {
     console.log('============================================')
@@ -62,9 +60,9 @@ export default class SDKReporter implements Reporter {
   /**
    * Called immediately before the test runner exits, after onEnd() and all
    * reporters have finished.
+   * If required: upload logs to a server here.
    */
   async onExit(): Promise<void> {
-    // If required: upload logs to a server here.
     console.log('[SDKReporter] Exit')
   }
 
