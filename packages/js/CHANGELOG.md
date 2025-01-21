@@ -1,5 +1,92 @@
 # @signalwire/js
 
+## 3.28.0 - 2025-01-21
+
+### Added
+
+- [#1089](https://github.com/signalwire/signalwire-js/pull/1089) [`d34f3360163292aedb3474ffc9f7e2017b9d0002`](https://github.com/signalwire/signalwire-js/commit/d34f3360163292aedb3474ffc9f7e2017b9d0002) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - ADD lock and unlock methods to CallFabricRoomSession
+
+- [#1130](https://github.com/signalwire/signalwire-js/pull/1130) [`fca4c09ac531ab88dec9d94f3a73d5cd06060d36`](https://github.com/signalwire/signalwire-js/commit/fca4c09ac531ab88dec9d94f3a73d5cd06060d36) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Introduce the set member position API
+
+- [#1069](https://github.com/signalwire/signalwire-js/pull/1069) [`fe5c4cca5c3dd14f0dc3af0579231973e57717f6`](https://github.com/signalwire/signalwire-js/commit/fe5c4cca5c3dd14f0dc3af0579231973e57717f6) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Remove implicit reauthentication
+
+- [#1133](https://github.com/signalwire/signalwire-js/pull/1133) [`b3b17aa944212ee744f7ec518ab8663dae2380c2`](https://github.com/signalwire/signalwire-js/commit/b3b17aa944212ee744f7ec518ab8663dae2380c2) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Create and expose member overlays on top of Video element
+
+- [#1121](https://github.com/signalwire/signalwire-js/pull/1121) [`ed8d713ab9c399bcc335a147d499248d44c72468`](https://github.com/signalwire/signalwire-js/commit/ed8d713ab9c399bcc335a147d499248d44c72468) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Allow user to raise/lower thier hand
+
+- [#1082](https://github.com/signalwire/signalwire-js/pull/1082) [`fcb722a9f831359d3a05f9d53282c825dc749fa2`](https://github.com/signalwire/signalwire-js/commit/fcb722a9f831359d3a05f9d53282c825dc749fa2) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Added chat namespace with convenience methods to to handle chat messages
+
+- [#1059](https://github.com/signalwire/signalwire-js/pull/1059) [`616f84048c52e1f5e9f38e6f2d2f8d90196a1b4a`](https://github.com/signalwire/signalwire-js/commit/616f84048c52e1f5e9f38e6f2d2f8d90196a1b4a) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - ADDED reattach method to Call Fabric client
+
+- [#1123](https://github.com/signalwire/signalwire-js/pull/1123) [`76e573f46553337990c397693985e5004eeecae1`](https://github.com/signalwire/signalwire-js/commit/76e573f46553337990c397693985e5004eeecae1) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose room layout on the `CallFabriRoomSession` object
+
+- [#1116](https://github.com/signalwire/signalwire-js/pull/1116) [`00a94f1aa70be61732b3673893903f4066880e44`](https://github.com/signalwire/signalwire-js/commit/00a94f1aa70be61732b3673893903f4066880e44) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Add sort parameters to GetAddressesParams allowing developers to benefit from server-side sorting.
+
+- [#1061](https://github.com/signalwire/signalwire-js/pull/1061) [`beb8f52012ad5f717ee8bfcb1c5a92b115f66d93`](https://github.com/signalwire/signalwire-js/commit/beb8f52012ad5f717ee8bfcb1c5a92b115f66d93) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - ADDED userVariables param to DialOption and WSClientOtions
+
+- [#1087](https://github.com/signalwire/signalwire-js/pull/1087) [`06f35804752f615f4e0aaeda9631d63770301977`](https://github.com/signalwire/signalwire-js/commit/06f35804752f615f4e0aaeda9631d63770301977) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Include the screen share feature inside the CF room
+
+- [#1097](https://github.com/signalwire/signalwire-js/pull/1097) [`b5007832098cdc0505326a8aa306e9671fb96674`](https://github.com/signalwire/signalwire-js/commit/b5007832098cdc0505326a8aa306e9671fb96674) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Add Conversations Join API
+
+- [#1103](https://github.com/signalwire/signalwire-js/pull/1103) [`fe44c5d48782e569f942a63afe627cd503da2c87`](https://github.com/signalwire/signalwire-js/commit/fe44c5d48782e569f942a63afe627cd503da2c87) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Add a new `name` parameter to `client.address.getAddress`, allowing you to fetch an address by name.
+
+### Modified
+
+- [#1096](https://github.com/signalwire/signalwire-js/pull/1096) [`7130138f9dcd750bc2d9f9bee0d644a2e02425c6`](https://github.com/signalwire/signalwire-js/commit/7130138f9dcd750bc2d9f9bee0d644a2e02425c6) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix type interface in Message event
+
+- [#1094](https://github.com/signalwire/signalwire-js/pull/1094) [`449f1fc151881c23f472104c3bf7361d19aa2bf0`](https://github.com/signalwire/signalwire-js/commit/449f1fc151881c23f472104c3bf7361d19aa2bf0) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix resource types
+
+- [#1129](https://github.com/signalwire/signalwire-js/pull/1129) [`df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4`](https://github.com/signalwire/signalwire-js/commit/df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF & Video SDKs: Fix layout event parameter type
+
+- [#1159](https://github.com/signalwire/signalwire-js/pull/1159) [`461943a395d9a40a10658c906447398bff7ec160`](https://github.com/signalwire/signalwire-js/commit/461943a395d9a40a10658c906447398bff7ec160) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Maintain the session connection state
+
+- [#1136](https://github.com/signalwire/signalwire-js/pull/1136) [`209f47f30987989c5a642c2733066026940c5569`](https://github.com/signalwire/signalwire-js/commit/209f47f30987989c5a642c2733066026940c5569) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - - fix the get chat messages filter for the next and previous pages
+
+  - normalize the getAddress return
+
+- [#1150](https://github.com/signalwire/signalwire-js/pull/1150) [`ee3728e338979c59bae876d806a5506237ceb062`](https://github.com/signalwire/signalwire-js/commit/ee3728e338979c59bae876d806a5506237ceb062) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Dial the audio-only call by default
+
+- [#1107](https://github.com/signalwire/signalwire-js/pull/1107) [`4d7f9728619a29b502e27655b856ce341ad0aadd`](https://github.com/signalwire/signalwire-js/commit/4d7f9728619a29b502e27655b856ce341ad0aadd) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Give high priority to user params
+
+- [#1146](https://github.com/signalwire/signalwire-js/pull/1146) [`75f81c204c30b18bce6f03d4778c90cbe8d3c38a`](https://github.com/signalwire/signalwire-js/commit/75f81c204c30b18bce6f03d4778c90cbe8d3c38a) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Allow user to subscribe to all conversation events
+
+- [#1093](https://github.com/signalwire/signalwire-js/pull/1093) [`bcc83b9314309dd39c1e64d958b193b1c7476542`](https://github.com/signalwire/signalwire-js/commit/bcc83b9314309dd39c1e64d958b193b1c7476542) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix CallFabric types
+
+- [#1120](https://github.com/signalwire/signalwire-js/pull/1120) [`30fae885d5132be6ac697b725b5d630daf69a391`](https://github.com/signalwire/signalwire-js/commit/30fae885d5132be6ac697b725b5d630daf69a391) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Throw error from `startScreenShare` method if permission is denied
+
+- [#1095](https://github.com/signalwire/signalwire-js/pull/1095) [`db072e479d9b30ae7aa952c819220eda60f329bb`](https://github.com/signalwire/signalwire-js/commit/db072e479d9b30ae7aa952c819220eda60f329bb) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix message event type
+
+- [#1134](https://github.com/signalwire/signalwire-js/pull/1134) [`736ec0e18cef1cd4a73aa2d9b6793041900e21b4`](https://github.com/signalwire/signalwire-js/commit/736ec0e18cef1cd4a73aa2d9b6793041900e21b4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Expose the `InternalVideoLayoutLayer`
+
+- [#1101](https://github.com/signalwire/signalwire-js/pull/1101) [`62ba0f61c670837356b4d76be615e2f7afe39a56`](https://github.com/signalwire/signalwire-js/commit/62ba0f61c670837356b4d76be615e2f7afe39a56) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - FIX Call Fabric local muted/unmute
+
+- [#1091](https://github.com/signalwire/signalwire-js/pull/1091) [`632ec5b53ad232c99368c3c59beb5d9cd7d14f61`](https://github.com/signalwire/signalwire-js/commit/632ec5b53ad232c99368c3c59beb5d9cd7d14f61) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Browser SDKs: Expose `enumerateDevicesByKind`
+
+- [#1083](https://github.com/signalwire/signalwire-js/pull/1083) [`2ef7d5eb845fa033c3c816ffc5e0c29a69a59335`](https://github.com/signalwire/signalwire-js/commit/2ef7d5eb845fa033c3c816ffc5e0c29a69a59335) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose CallFabricRoomSession type
+
+- [#1100](https://github.com/signalwire/signalwire-js/pull/1100) [`96066d60caf9512e1d5658b09c441d9c55b06c23`](https://github.com/signalwire/signalwire-js/commit/96066d60caf9512e1d5658b09c441d9c55b06c23) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix types name typo
+
+- [#1104](https://github.com/signalwire/signalwire-js/pull/1104) [`d257907065d529c38a81f5484e33c01a9cfabea5`](https://github.com/signalwire/signalwire-js/commit/d257907065d529c38a81f5484e33c01a9cfabea5) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose the `addressId` from the Conversation contract
+
+- [#1106](https://github.com/signalwire/signalwire-js/pull/1106) [`c2b754e54fbbefcb38606015bec8709554265e04`](https://github.com/signalwire/signalwire-js/commit/c2b754e54fbbefcb38606015bec8709554265e04) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Allow user to set the negotiate audio/video param
+
+- [#1092](https://github.com/signalwire/signalwire-js/pull/1092) [`a2682371fc53c2526f40530b9c9e706397da1a8d`](https://github.com/signalwire/signalwire-js/commit/a2682371fc53c2526f40530b9c9e706397da1a8d) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix Conversation API types
+
+- [#1160](https://github.com/signalwire/signalwire-js/pull/1160) [`fd39f12ca49f9257933b59490c64563e3391a93a`](https://github.com/signalwire/signalwire-js/commit/fd39f12ca49f9257933b59490c64563e3391a93a) Thanks [@iAmmar7](https://github.com/iAmmar7)! - - Fix session emitter
+
+  - Make SignalWire a singelton for Call Fabric SDK
+  - Fix memory leak
+
+- [#1143](https://github.com/signalwire/signalwire-js/pull/1143) [`f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc`](https://github.com/signalwire/signalwire-js/commit/f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Updated ConversationMessage GetAddressResponse ConversationMessage GetSubscriberInfoResponse with new properties
+
+- [#1108](https://github.com/signalwire/signalwire-js/pull/1108) [`4499da9532ae8486b8fc8959c8cc8c9a16756283`](https://github.com/signalwire/signalwire-js/commit/4499da9532ae8486b8fc8959c8cc8c9a16756283) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Allow user unsubscribe from the conversation subscribe API
+
+- [#1124](https://github.com/signalwire/signalwire-js/pull/1124) [`ada6c49538862f466dea659286ea8eb405f4f636`](https://github.com/signalwire/signalwire-js/commit/ada6c49538862f466dea659286ea8eb405f4f636) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce dedicated types for Video and Fabric SDKs
+
+- Updated dependencies [[`7130138f9dcd750bc2d9f9bee0d644a2e02425c6`](https://github.com/signalwire/signalwire-js/commit/7130138f9dcd750bc2d9f9bee0d644a2e02425c6), [`df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4`](https://github.com/signalwire/signalwire-js/commit/df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4), [`461943a395d9a40a10658c906447398bff7ec160`](https://github.com/signalwire/signalwire-js/commit/461943a395d9a40a10658c906447398bff7ec160), [`d34f3360163292aedb3474ffc9f7e2017b9d0002`](https://github.com/signalwire/signalwire-js/commit/d34f3360163292aedb3474ffc9f7e2017b9d0002), [`fca4c09ac531ab88dec9d94f3a73d5cd06060d36`](https://github.com/signalwire/signalwire-js/commit/fca4c09ac531ab88dec9d94f3a73d5cd06060d36), [`5e4539144f31ff154e3e295e57d939e86dee0840`](https://github.com/signalwire/signalwire-js/commit/5e4539144f31ff154e3e295e57d939e86dee0840), [`fe5c4cca5c3dd14f0dc3af0579231973e57717f6`](https://github.com/signalwire/signalwire-js/commit/fe5c4cca5c3dd14f0dc3af0579231973e57717f6), [`d88cb49838b3dfd90046afdeb6900b8be0c2bd36`](https://github.com/signalwire/signalwire-js/commit/d88cb49838b3dfd90046afdeb6900b8be0c2bd36), [`ed8d713ab9c399bcc335a147d499248d44c72468`](https://github.com/signalwire/signalwire-js/commit/ed8d713ab9c399bcc335a147d499248d44c72468), [`fcb722a9f831359d3a05f9d53282c825dc749fa2`](https://github.com/signalwire/signalwire-js/commit/fcb722a9f831359d3a05f9d53282c825dc749fa2), [`84aaad9b4837739f87b3dd1de99a14eb1123653f`](https://github.com/signalwire/signalwire-js/commit/84aaad9b4837739f87b3dd1de99a14eb1123653f), [`616f84048c52e1f5e9f38e6f2d2f8d90196a1b4a`](https://github.com/signalwire/signalwire-js/commit/616f84048c52e1f5e9f38e6f2d2f8d90196a1b4a), [`76e573f46553337990c397693985e5004eeecae1`](https://github.com/signalwire/signalwire-js/commit/76e573f46553337990c397693985e5004eeecae1), [`db072e479d9b30ae7aa952c819220eda60f329bb`](https://github.com/signalwire/signalwire-js/commit/db072e479d9b30ae7aa952c819220eda60f329bb), [`aca483d46cfdc4e7bcef288c804a6bbe86b02611`](https://github.com/signalwire/signalwire-js/commit/aca483d46cfdc4e7bcef288c804a6bbe86b02611), [`a2682371fc53c2526f40530b9c9e706397da1a8d`](https://github.com/signalwire/signalwire-js/commit/a2682371fc53c2526f40530b9c9e706397da1a8d), [`fd39f12ca49f9257933b59490c64563e3391a93a`](https://github.com/signalwire/signalwire-js/commit/fd39f12ca49f9257933b59490c64563e3391a93a), [`f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc`](https://github.com/signalwire/signalwire-js/commit/f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc), [`ada6c49538862f466dea659286ea8eb405f4f636`](https://github.com/signalwire/signalwire-js/commit/ada6c49538862f466dea659286ea8eb405f4f636)]:
+  - @signalwire/core@4.2.0
+  - @signalwire/webrtc@3.13.0
+
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
