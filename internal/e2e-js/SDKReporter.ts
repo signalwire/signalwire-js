@@ -141,4 +141,12 @@ export default class SDKReporter implements Reporter {
     console.log('--------------------------------------------')
     console.log('\n\n')
   }
+
+  /**
+   * Indicates this reporter does not handle stdout and stderr printing.
+   * So that Playwright print those logs.
+   */
+  printsToStdio(): boolean {
+    return false
+  }
 }
