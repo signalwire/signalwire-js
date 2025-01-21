@@ -166,7 +166,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     })
   })
 
-  test('it should enable video with "recvonly" and then disable with "inactive"', async ({
+  test('it should enable audio with "recvonly" and then disable with "inactive"', async ({
     createCustomPage,
     resource,
   }) => {
