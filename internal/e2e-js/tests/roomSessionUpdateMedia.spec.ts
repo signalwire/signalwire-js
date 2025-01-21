@@ -55,13 +55,13 @@ test.describe('RoomSession Update Media', () => {
     let lastAudioPacketsSent = 0,
       lastAudioPacketsReceived = 0
 
-    await test.step('it should update media with video "sendonly" and audio "none"', async () => {
+    await test.step('it should update media with audio "inactive" and video "sendonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const roomSession: Video.RoomSession = window._roomObj
         await roomSession.updateMedia({
-          audio: { enable: false, direction: 'none' },
-          video: { enable: true, direction: 'send' },
+          audio: { direction: 'inactive' },
+          video: { direction: 'sendonly' },
         })
       })
 
@@ -107,13 +107,13 @@ test.describe('RoomSession Update Media', () => {
       })
     })
 
-    await test.step('it should update media with video "recvonly" and audio "sendrecv"', async () => {
+    await test.step('it should update media with audio "sendrecv" and video "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const roomSession: Video.RoomSession = window._roomObj
         await roomSession.updateMedia({
-          audio: { enable: true, direction: 'sendrecv' },
-          video: { enable: false, direction: 'receive' },
+          audio: { direction: 'sendrecv' },
+          video: { direction: 'recvonly' },
         })
       })
 
@@ -160,13 +160,13 @@ test.describe('RoomSession Update Media', () => {
     let lastVideoPacketsSent = 0,
       lastVideoPacketsReceived = 0
 
-    await test.step('it should update media with audio "sendonly" and video "none"', async () => {
+    await test.step('it should update media with audio "sendonly" and video "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
         const roomSession: Video.RoomSession = window._roomObj
         await roomSession.updateMedia({
-          audio: { enable: true, direction: 'send' },
-          video: { enable: false, direction: 'none' },
+          audio: { direction: 'sendonly' },
+          video: { direction: 'inactive' },
         })
       })
 
@@ -219,8 +219,8 @@ test.describe('RoomSession Update Media', () => {
         // @ts-expect-error
         const roomSession: Video.RoomSession = window._roomObj
         await roomSession.updateMedia({
-          audio: { enable: false, direction: 'receive' },
-          video: { enable: true, direction: 'sendrecv' },
+          audio: { direction: 'recvonly' },
+          video: { direction: 'sendrecv' },
         })
       })
 
