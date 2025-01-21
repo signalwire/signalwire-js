@@ -4,27 +4,26 @@
 '@signalwire/js': minor
 ---
 
-Fabric and Video SDK: Introduce an update media APIs with renegotiation
+Call Fabric and Video SDK: Introduce update media APIs with renegotiation
 
 ```text
 
 await updateMedia({
   audio: {
-    enable: true,
-    direction: 'send' | 'sendrecv',
+    direction: 'sendonly' | 'sendrecv',
     constraints?: MediaTrackConstraints
   },
   video: {
-    enable: false
-    direction: 'none' | 'receive'
+    direction: 'recvonly' | 'inactive'
+    constraints?: MediaTrackConstraints
   }
 })
 
-Either "audio" or "video" is required with "enable" and "direction" properties.
-The "constraints" can only be passed if the "enable" is "true".
+Either "audio" or "video" is required with "direction" property.
+The "constraints" can only be passed if the "direction" is either "sendrecv" or "sendonly".
 
-await setVideoDirection('send' | 'sendrecv' | 'none' | 'receive')
+await setVideoDirection('sendonly' | 'sendrecv' | 'recvonly' | 'inactive')
 
-await setAudioDirection('send' | 'sendrecv' | 'none' | 'receive')
+await setAudioDirection('sendonly' | 'sendrecv' | 'recvonly' | 'inactive')
 
 ```

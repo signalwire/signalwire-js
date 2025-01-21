@@ -20,7 +20,7 @@ test.describe('CallFabric Video Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room_${uuid()}`
+    const roomName = `e2e-room-video-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -42,7 +42,7 @@ test.describe('CallFabric Video Renegotiation', () => {
       await cfRoomSession.setVideoDirection('sendrecv')
     })
 
-    // Expect MCU is visible
+    // Wait for the MCU to be visible
     await expectMCUVisible(page)
 
     const stats2 = await getStats(page)
@@ -83,7 +83,7 @@ test.describe('CallFabric Video Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room_${uuid()}`
+    const roomName = `e2e-room-video-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -105,7 +105,7 @@ test.describe('CallFabric Video Renegotiation', () => {
       await cfRoomSession.setVideoDirection('sendonly')
     })
 
-    // Expect MCU is not visible
+    // Verify the MCU is not visible
     await expectMCUNotVisible(page)
 
     const stats2 = await getStats(page)
@@ -154,7 +154,7 @@ test.describe('CallFabric Video Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room_${uuid()}`
+    const roomName = `e2e-room-video-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)

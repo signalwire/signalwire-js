@@ -13,7 +13,7 @@ import {
 
 test.describe('RoomSession Update Media', () => {
   const setupAndJoinRoom = async (page: Page) => {
-    const roomName = randomizeRoomName('update-media-e2e')
+    const roomName = randomizeRoomName('e2e-room-update-media')
     const memberSettings = {
       vrt: {
         room_name: roomName,
@@ -29,7 +29,7 @@ test.describe('RoomSession Update Media', () => {
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
 
-    // Checks that the video is visible
+    // Wait for the video to be visible
     await expectMCUVisible(page)
   }
 

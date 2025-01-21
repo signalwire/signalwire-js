@@ -19,7 +19,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room_${uuid()}`
+    const roomName = `e2e-room-audio-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -33,7 +33,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
       },
     })
 
-    // Expect MCU is visible
+    // Wait for the MCU to be visible
     await expectMCUVisible(page)
 
     const stats1 = await getStats(page)
@@ -104,7 +104,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room_${uuid()}`
+    const roomName = `e2e-room-audio-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -118,7 +118,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
       },
     })
 
-    // Expect MCU is visible
+    // Wait for the MCU to be visible
     await expectMCUVisible(page)
 
     const stats1 = await getStats(page)
@@ -173,7 +173,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room_${uuid()}`
+    const roomName = `e2e-room-audio-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -187,7 +187,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
       },
     })
 
-    // Expect MCU is visible
+    // Wait for the MCU to be visible
     await expectMCUVisible(page)
 
     const stats1 = await getStats(page)
