@@ -1353,21 +1353,15 @@ export class BaseConnection<
    * @param direction {@link UpdateMediaDirection}
    */
   public async setAudioDirection(direction: UpdateMediaDirection) {
-    if (direction === 'sendonly' || direction === 'sendrecv') {
-      return this.updateMedia({
-        audio: {
-          direction,
-        },
-      })
-    } else if (direction === 'recvonly' || direction === 'inactive') {
-      return this.updateMedia({
-        audio: {
-          direction,
-        },
-      })
-    } else {
-      throw new Error('Invalid params')
+    if (!['sendonly', 'sendrecv', 'recvonly', 'inactive'].includes(direction)) {
+      throw new Error('Invalid direction specified')
     }
+
+    return this.updateMedia({
+      audio: {
+        direction,
+      },
+    })
   }
 
   /**
@@ -1377,20 +1371,14 @@ export class BaseConnection<
    * @param direction {@link UpdateMediaDirection}
    */
   public async setVideoDirection(direction: UpdateMediaDirection) {
-    if (direction === 'sendonly' || direction === 'sendrecv') {
-      return this.updateMedia({
-        video: {
-          direction,
-        },
-      })
-    } else if (direction === 'recvonly' || direction === 'inactive') {
-      return this.updateMedia({
-        video: {
-          direction,
-        },
-      })
-    } else {
-      throw new Error('Invalid params')
+    if (!['sendonly', 'sendrecv', 'recvonly', 'inactive'].includes(direction)) {
+      throw new Error('Invalid direction specified')
     }
+
+    return this.updateMedia({
+      video: {
+        direction,
+      },
+    })
   }
 }
