@@ -85,11 +85,11 @@ export interface CallParams {
   disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */
   audio?: MediaStreamConstraints['audio']
-  /** Video constraints to use when joining the room. Default: `true`. */
+  /** Video constraints to use when joining the room. Default: `true` for "video" channel. */
   video?: MediaStreamConstraints['video']
   /** Negotiate the incoming audio from the RTC. Default: `true`. */
   negotiateAudio?: boolean
-  /** Negotiate the incoming video from the RTC. Default: `true`. */
+  /** Negotiate the incoming video from the RTC. Default: `true` for "video" channel. */
   negotiateVideo?: boolean
   /** User & UserAgent metadata */
   userVariables?: WSClientOptions['userVariables']

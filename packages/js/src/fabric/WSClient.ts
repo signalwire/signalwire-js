@@ -2,7 +2,6 @@ import {
   actions,
   BaseClient,
   CallJoinedEventParams,
-  ClientEvents,
   VertoBye,
   VertoSubscribe,
   VideoRoomSubscribedEventParams,
@@ -25,10 +24,7 @@ import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
 
-export class WSClient
-  extends BaseClient<ClientEvents>
-  implements WSClientContract
-{
+export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
   private _disconnected: boolean = false
 
@@ -365,10 +361,10 @@ export class WSClient
 
   public updateToken(token: string) {
     return new Promise<void>((resolve, reject) => {
-      this.once('session.auth_error', (error) => {
+      this.session.once('session.auth_error', (error) => {
         reject(error)
       })
-      this.once('session.connected', () => {
+      this.session.once('session.connected', () => {
         resolve()
       })
       this.store.dispatch(actions.reauthAction({ token }))

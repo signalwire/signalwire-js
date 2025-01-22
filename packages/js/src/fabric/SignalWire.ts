@@ -53,6 +53,8 @@ export const SignalWire = (() => {
               join: conversation.joinConversation.bind(conversation),
             },
             // @ts-expect-error For debugging purposes
+            on: wsClient.on.bind(wsClient),
+            off: wsClient.off.bind(wsClient),
             __httpClient: httpClient,
             __wsClient: wsClient,
           })
