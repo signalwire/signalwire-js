@@ -372,7 +372,7 @@ export class BaseConnection<
     try {
       this.logger.debug('Build a new RTCPeer')
       const rtcPeer = this._buildPeer('offer')
-      this.logger.debug('Trigger start for the new RTCPeer!')
+      this.logger.debug('Trigger start for the new RTCPeer!', rtcPeer.uuid)
       await rtcPeer.start()
     } catch (error) {
       this.logger.error('Error building new RTCPeer to promote/demote', error)
@@ -828,11 +828,25 @@ export class BaseConnection<
         this.logger.error('UpdateMedia invalid SDP answer', response)
       }
 
-      this.logger.debug('UpdateMedia response', response)
-      if (!this.peer) {
+      this.logger.debug(
+        'UpdateMedia response',
+        response,
+        this.peer?.uuid,
+        rtcPeerId
+      )
+
+      /**
+       * At a time, there can be multiple RTC Peers.
+       * The {@link executeUpdateMedia} is called with a Peer ID
+       * We need to make sure we set the remote SDP coming from the server
+       * on the appropriate Peer.
+       * The appropriate Peer may or may not be the current/active (this.peer) one.
+       */
+      const peer = this.getRTCPeerById(rtcPeerId)
+      if (!peer) {
         return this.logger.error('Invalid RTCPeer to updateMedia')
       }
-      await this.peer.onRemoteSdp(response.sdp)
+      await peer.onRemoteSdp(response.sdp)
     } catch (error) {
       this.logger.error('UpdateMedia error', error)
       // this.setState('hangup')
