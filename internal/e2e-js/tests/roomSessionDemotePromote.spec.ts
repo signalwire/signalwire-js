@@ -138,10 +138,6 @@ test.describe('RoomSession demote participant and then promote again', () => {
     await pageTwo.waitForTimeout(1000)
 
     // --------------- Promote audience from pageOne and resolve on `member.joined` and `room.joined` ---------------
-    const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
-      invokeJoin: false,
-    })
-
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
         // @ts-expect-error
@@ -173,6 +169,10 @@ test.describe('RoomSession demote participant and then promote again', () => {
       },
       { promoteMemberId: participant2Id }
     )
+
+    const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
+      invokeJoin: false,
+    })
 
     await Promise.all([
       promiseMemberWaitingForMemberJoin,
