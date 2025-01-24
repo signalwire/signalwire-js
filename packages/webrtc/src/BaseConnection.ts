@@ -374,6 +374,16 @@ export class BaseConnection<
       const rtcPeer = this._buildPeer('offer')
       this.logger.debug('Trigger start for the new RTCPeer!', rtcPeer.uuid)
       await rtcPeer.start()
+
+      /**
+       * Ideally, the SDK set the active peer when the `room.subscribed` or
+       * `verto.display` event is received. However, in some cases, while
+       * promoting/demoting, the RTC Peer negotiates successfully but then
+       * starts the negotiation again.
+       * So, without waiting for the events, we can safely set the active
+       * Peer once the initial negotiation succeeds.
+       */
+      this.setActiveRTCPeer(rtcPeer.uuid)
     } catch (error) {
       this.logger.error('Error building new RTCPeer to promote/demote', error)
     }
@@ -828,12 +838,7 @@ export class BaseConnection<
         this.logger.error('UpdateMedia invalid SDP answer', response)
       }
 
-      this.logger.debug(
-        'UpdateMedia response',
-        response,
-        this.peer?.uuid,
-        rtcPeerId
-      )
+      this.logger.debug('UpdateMedia response', response)
 
       /**
        * At a time, there can be multiple RTC Peers.
