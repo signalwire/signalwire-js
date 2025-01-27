@@ -11,6 +11,9 @@ test.describe('Conversation Room', () => {
     createCustomPage,
     resource,
   }) => {
+    const desc = 'Conversation Room'
+    console.log(desc, ' - START')
+
     const page = await createCustomPage({ name: '[page]' })
     const page2 = await createCustomPage({
       name: '[page2]',
@@ -21,8 +24,12 @@ test.describe('Conversation Room', () => {
     await createCFClient(page)
     await createCFClient(page2)
 
+    console.log(desc, ' - clients created')
+
     const roomName = `e2e-js-convo-room_${uuid()}`
     await resource.createVideoRoomResource(roomName)
+
+    console.log(desc, ' - room created')
 
     const firstMsgEvent = await page.evaluate(
       ({ roomName }) => {
@@ -35,6 +42,7 @@ test.describe('Conversation Room', () => {
           const roomAddress = addresses.data[0]
           const addressId = roomAddress.id
           client.conversation.subscribe(resolve)
+          console.log('Conversation Room - Sending 1st msg 1st sub')
           client.conversation.sendMessage({
             text: '1st message from 1st subscriber',
             addressId,
@@ -47,6 +55,8 @@ test.describe('Conversation Room', () => {
     expect(firstMsgEvent.type).toBe('message')
 
     const addressId = firstMsgEvent.address_id
+
+    console.log(desc, ' - address ID retrieved: ', addressId)
 
     const secondMsgEventPromiseFromPage1 = page.evaluate(() => {
       return new Promise<ConversationMessageEventParams>((resolve) => {
@@ -64,6 +74,7 @@ test.describe('Conversation Room', () => {
           client.conversation.subscribe(resolve)
           const result = await client.conversation.getConversations()
           const convo = result.data.filter((c) => c.id == addressId)[0]
+          console.log('Conversation Room - Sending 1st msg 2nd sub')
           convo.sendMessage({
             text: '1st message from 2nd subscriber',
           })
@@ -118,5 +129,6 @@ test.describe('Conversation Room', () => {
       type: 'message',
       user_id: expect.anything(),
     })
+    console.log(desc, ' - END')
   })
 })
