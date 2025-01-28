@@ -37,6 +37,7 @@ const reattachTests = [
 ]
 const callfabricTests = [
   'address.spec.ts',
+  'cleanup.spec.ts',
   'conversation.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
@@ -47,7 +48,7 @@ const callfabricTests = [
 ]
 const videoElementTests = [
   'buildVideoWithVideoSdk.spec.ts',
-  'buildVideoWithCFSdk.spec.ts',
+  'buildVideoWithFabricSdk.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 

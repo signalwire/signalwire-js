@@ -62,7 +62,7 @@ export * as PubSub from './pubSub'
  */
 export * as Fabric from './fabric'
 export { SignalWire } from './fabric'
-export * from './fabric/types'
+export * from './fabric/interfaces'
 
 /**
  * The Video namespace contains the classes and functions that you need to

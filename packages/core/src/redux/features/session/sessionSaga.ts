@@ -38,6 +38,8 @@ export function* sessionChannelWatcher({
   swEventChannel,
   session,
 }: SessionSagaParams): SagaIterator {
+  getLogger().debug('sessionChannelWatcher [started]')
+
   function* swEventWorker(broadcastParams: SwEventParams) {
     yield put(swEventChannel, toInternalAction(broadcastParams))
 
@@ -48,6 +50,12 @@ export function* sessionChannelWatcher({
        */
       return
     }
+
+    /**
+     * After connecting to the SignalWire network, it sends the `authorization_state`
+     * through the `signalwire.authorization.state` event. We store this value in
+     * the storage since it is required for reconnect.
+     */
     if (isSwAuthorizationState(broadcastParams)) {
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
       return
@@ -78,6 +86,7 @@ export function* sessionChannelWatcher({
         return getLogger().debug(`Unknown message: ${method}`, action)
     }
   }
+
   const sessionChannelWorkerCatchable = createCatchableSaga<
     PayloadAction<JSONRPCRequest>
   >(sessionChannelWorker, (error) => {
@@ -96,7 +105,7 @@ export function* sessionChannelWatcher({
     } catch (error) {
       getLogger().error('sessionChannelWorker error:', error)
     } finally {
-      getLogger().debug('sessionChannelWorker finally')
+      getLogger().debug('sessionChannelWorker [finally]')
     }
   }
 }

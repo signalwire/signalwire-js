@@ -134,10 +134,6 @@ export class BaseComponent<
       this.off(eventName)
     })
 
-    this.sessionEventNames().forEach((eventName) => {
-      this.sessionEmitter.off(eventName)
-    })
-
     return this.emitter as EventEmitter<EventTypes>
   }
 

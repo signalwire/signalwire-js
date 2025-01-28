@@ -16,10 +16,9 @@ export const configureJestStore = () => {
       project: PROJECT_ID,
       token: TOKEN,
       devTools: false,
-      emitter: new EventEmitter(),
     },
     SessionConstructor: JWTSession,
-    runSagaMiddleware: false,
+    runRootSaga: false,
   })
 }
 
@@ -43,7 +42,6 @@ export const configureFullStack = () => {
       project: PROJECT_ID,
       token: TOKEN,
       devTools: false,
-      emitter,
     },
     SessionConstructor: jest.fn().mockImplementation(() => {
       return session
