@@ -20,6 +20,10 @@ import type {
   CallCollectUpdated,
   CallCollectEnded,
   CallCollectFailed,
+  CallPayStarted,
+  CallPayUpdated,
+  CallPayFailed,
+  CallPayEnded,
   VoiceCallPlayAudioMethodParams,
   VoiceCallPlaySilenceMethodParams,
   VoiceCallPlayRingtoneMethodParams,
@@ -52,10 +56,12 @@ import type { CallPrompt } from '../voice/CallPrompt'
 import type { CallTap } from '../voice/CallTap'
 import type { CallCollect } from '../voice/CallCollect'
 import type { CallDetect } from '../voice/CallDetect'
+import type { CallPay } from '../voice/CallPay'
 
-/**
- * Voice API
- */
+// ────────────────────────────────────────────────────────────
+// Voice API
+// ────────────────────────────────────────────────────────────
+
 export interface VoiceListeners {
   onCallReceived?: (call: Call) => unknown
 }
@@ -76,9 +82,10 @@ export type VoiceDialPhonelMethodParams = VoiceCallDialPhoneMethodParams &
 export type VoiceDialSipMethodParams = VoiceCallDialSipMethodParams &
   VoiceMethodsListeners
 
-/**
- * Call API
- */
+// ────────────────────────────────────────────────────────────
+// Call API
+// ────────────────────────────────────────────────────────────
+
 export interface RealTimeCallListeners {
   onStateChanged?: (call: Call) => unknown
   onPlaybackStarted?: (playback: CallPlayback) => unknown
@@ -102,6 +109,10 @@ export interface RealTimeCallListeners {
   onDetectStarted?: (collect: CallDetect) => unknown
   onDetectUpdated?: (collect: CallDetect) => unknown
   onDetectEnded?: (collect: CallDetect) => unknown
+  onPayStarted?: (pay: CallPay) => unknown
+  onPayUpdated?: (pay: CallPay) => unknown
+  onPayFailed?: (pay: CallPay) => unknown
+  onPayEnded?: (pay: CallPay) => unknown
 }
 
 export type RealTimeCallListenersKeys = keyof RealTimeCallListeners
@@ -134,6 +145,10 @@ export type RealTimeCallEventsHandlerMapping = Record<
   Record<
     CallDetectStarted | CallDetectUpdated | CallDetectEnded,
     (detect: CallDetect) => void
+  > &
+  Record<
+    CallPayStarted | CallPayUpdated | CallPayEnded | CallPayFailed,
+    (pay: CallPay) => void
   >
 
 export type RealTimeCallEvents = {
@@ -165,11 +180,16 @@ export type RealtimeCallListenersEventsMapping = Record<
   Record<'onTapEnded', CallTapEnded> &
   Record<'onDetectStarted', CallDetectStarted> &
   Record<'onDetectUpdated', CallDetectUpdated> &
-  Record<'onDetectEnded', CallDetectEnded>
+  Record<'onDetectEnded', CallDetectEnded> &
+  Record<'onPayStarted', CallPayStarted> &
+  Record<'onPayUpdated', CallPayUpdated> &
+  Record<'onPayFailed', CallPayFailed> &
+  Record<'onPayEnded', CallPayEnded>
 
-/**
- * Call Playback
- */
+// ────────────────────────────────────────────────────────────
+// Call Playback
+// ────────────────────────────────────────────────────────────
+
 export type CallPlaybackEvents = Record<
   PlaybackStarted | PlaybackUpdated | PlaybackEnded | PlaybackFailed,
   (playback: CallPlayback) => void
@@ -214,9 +234,10 @@ export interface CallPlayTTSMethodParams extends VoiceCallPlayTTSMethodParams {
   listen?: CallPlaybackListeners
 }
 
-/**
- * Call Recording
- */
+// ────────────────────────────────────────────────────────────
+// Call Recording
+// ────────────────────────────────────────────────────────────
+
 export type CallRecordingEvents = Record<
   RecordingStarted | RecordingUpdated | RecordingEnded | RecordingFailed,
   (recording: CallRecording) => void
@@ -246,9 +267,10 @@ export type CallRecordAudioMethodParams =
     listen?: CallRecordingListeners
   }
 
-/**
- * Call Prompt
- */
+// ────────────────────────────────────────────────────────────
+// Call Prompt
+// ────────────────────────────────────────────────────────────
+
 export type CallPromptEvents = Record<
   CallPromptStarted | CallPromptUpdated | CallPromptEnded | CallPromptFailed,
   (prompt: CallPrompt) => void
@@ -286,9 +308,10 @@ export type CallPromptTTSMethodParams = VoiceCallPromptTTSMethodParams & {
   listen?: CallPromptListeners
 }
 
-/**
- * Call Collect
- */
+// ────────────────────────────────────────────────────────────
+// Call Collect
+// ────────────────────────────────────────────────────────────
+
 export type CallCollectEvents = Record<
   | CallCollectStarted
   | CallCollectStartOfInput
@@ -319,9 +342,10 @@ export type CallCollectMethodParams = VoiceCallCollectMethodParams & {
   listen?: CallCollectListeners
 }
 
-/**
- * Call Tap
- */
+// ────────────────────────────────────────────────────────────
+// Call Tap
+// ────────────────────────────────────────────────────────────
+
 export type CallTapEvents = Record<
   CallTapStarted | CallTapEnded,
   (tap: CallTap) => void
@@ -346,9 +370,10 @@ export type CallTapAudioMethodParams = VoiceCallTapAudioMethodParams & {
   listen?: CallTapListeners
 }
 
-/**
- * Call Detect
- */
+// ────────────────────────────────────────────────────────────
+// Call Detect
+// ────────────────────────────────────────────────────────────
+
 export type CallDetectEvents = Record<
   CallDetectStarted | CallDetectUpdated | CallDetectEnded,
   (tap: CallDetect) => void
@@ -386,29 +411,30 @@ export interface CallDetectDigitParams
   listen?: CallDetectListeners
 }
 
-/**
- * Call Pay
- */
-// export type CallPayEvents = Record<
-//   CallPayStarted | CallPayUpdated | CallPayEnded | CallPayFailed,
-//   (Pay: CallPay) => void
-// >
+// ────────────────────────────────────────────────────────────
+// Call Pay
+// ────────────────────────────────────────────────────────────
 
-// export interface CallPayListeners {
-//   onStarted?: (pay: CallPay) => unknown
-//   onUpdated?: (pay: CallPay) => unknown
-//   onFailed?: (pay: CallPay) => unknown
-//   onEnded?: (pay: CallPay) => unknown
-// }
+export type CallPayEvents = Record<
+  CallPayStarted | CallPayUpdated | CallPayEnded | CallPayFailed,
+  (Pay: CallPay) => void
+>
 
-// export type CallPayListenersEventsMapping = Record<
-//   'onStarted',
-//   CallPayStarted
-// > &
-//   Record<'onUpdated', CallPayUpdated> &
-//   Record<'onFailed', CallPayFailed> &
-//   Record<'onEnded', CallPayEnded>
+export interface CallPayListeners {
+  onStarted?: (pay: CallPay) => unknown
+  onUpdated?: (pay: CallPay) => unknown
+  onFailed?: (pay: CallPay) => unknown
+  onEnded?: (pay: CallPay) => unknown
+}
+
+export type CallPayListenersEventsMapping = Record<
+  'onStarted',
+  CallPayStarted
+> &
+  Record<'onUpdated', CallPayUpdated> &
+  Record<'onFailed', CallPayFailed> &
+  Record<'onEnded', CallPayEnded>
 
 export interface CallPayMethodParams extends VoiceCallPayMethodParams {
-  // listen?: CallPayListeners
+  listen?: CallPayListeners
 }

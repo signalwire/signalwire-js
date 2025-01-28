@@ -128,7 +128,9 @@ export type SessionChannelAction =
   | PayloadAction<{ token: string }>
   | PayloadAction<SessionAuthStatus>
 
-export type SwEventChannel = MulticastChannel<MapToPubSubShape<SwEventParams>>
+type SwEventChannelActions = MapToPubSubShape<SwEventParams>
+
+export type SwEventChannel = MulticastChannel<SwEventChannelActions>
 export type SessionChannel = Channel<SessionChannelAction>
 
-export type SDKActions = MapToPubSubShape<SwEventParams> | END
+export type SDKActions = SwEventChannelActions | END

@@ -4,12 +4,12 @@ import {
   SDKWorker,
   sagaEffects,
   VoiceCallPlayAction,
+  SDKActions,
 } from '@signalwire/core'
 import type { Client } from '../../client/index'
 import { CallPlaybackListeners } from '../../types'
 import { CallPlayback } from '../CallPlayback'
 import { Call } from '../Call'
-import { SDKActions } from 'packages/core/dist/core/src'
 
 interface VoiceCallPlayWorkerInitialState {
   controlId: string
