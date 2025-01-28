@@ -60,6 +60,7 @@ import type {
   VoiceCallConnectMethod,
   CallingCallConnectState,
   NestedArray,
+  VoiceCallPayMethod,
 } from '.'
 import { MapToPubSubShape } from '..'
 import type {
@@ -234,6 +235,7 @@ export type VoiceCallMethod =
   | VoiceCallPromptMethod
   | VoiceCallSendDigitsMethod
   | VoiceCallConnectMethod
+  | VoiceCallPayMethod
 
 export type SipCodec =
   | 'PCMU'

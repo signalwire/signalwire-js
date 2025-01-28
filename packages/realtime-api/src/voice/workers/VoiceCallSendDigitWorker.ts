@@ -4,10 +4,10 @@ import {
   SagaIterator,
   SDKWorker,
   VoiceCallSendDigitsAction,
+  SDKActions,
 } from '@signalwire/core'
 import type { Call } from '../Call'
 import type { Client } from '../../client/index'
-import { SDKActions } from 'packages/core/dist/core/src'
 
 interface VoiceCallSendDigitsWorkerInitialState {
   controlId: string

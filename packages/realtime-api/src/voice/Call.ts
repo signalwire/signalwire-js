@@ -19,6 +19,7 @@ import {
   CallDetectFaxParams,
   CallDetectMachineParams,
   CallDetectMethodParams,
+  CallPayMethodParams,
   CallPlayAudioMethodarams,
   CallPlayMethodParams,
   CallPlayRingtoneMethodParams,
@@ -1303,6 +1304,74 @@ export class Call extends ListenSubscriber<
     })
 
     return decorateCollectPromise.call(this, promise)
+  }
+
+  /**
+   * Start the payment processing.
+   *
+   * @param params payment options. See {@link CallPayMethodParams}.
+   *
+   * @example
+   *
+   * ```js
+   * await call.pay({ paymentConnectorUrl: 'https://www.example.com/pay' })
+   * ```
+   */
+  pay(params: CallPayMethodParams) {
+    const promise = new Promise<unknown>((resolve, reject) => {
+      if (!this.callId || !this.nodeId) {
+        reject(new Error(`Can't call play() on a call not established yet.`))
+      }
+
+      // const resolveHandler = (callPay: CallPay) => {
+      //   this.off('playback.failed', rejectHandler)
+      //   resolve(callPay)
+      // }
+
+      // const rejectHandler = (callPay: CallPay) => {
+      //   this.off('playback.started', resolveHandler)
+      //   reject(callPay)
+      // }
+
+      // this.once('playback.started', resolveHandler)
+      // this.once('playback.failed', rejectHandler)
+
+      const controlId = uuid()
+      const pay = toSnakeCaseKeys(params)
+
+      console.log('>> pay', pay)
+
+      // this._client.runWorker('voiceCallPlayWorker', {
+      //   worker: voiceCallPlayWorker,
+      //   initialState: {
+      //     controlId,
+      //     listeners: listen,
+      //   },
+      // })
+
+      this._client
+        .execute({
+          method: 'calling.pay',
+          params: {
+            node_id: this.nodeId,
+            call_id: this.callId,
+            control_id: controlId,
+            ...pay,
+          },
+        })
+        .then((res) => {
+          // TODO: handle then?
+          resolve(res)
+        })
+        .catch((e) => {
+          // this.off('playback.started', resolveHandler)
+          // this.off('playback.failed', rejectHandler)
+          reject(e)
+        })
+    })
+
+    // return decoratePlaybackPromise.call(this, promise)
+    return promise
   }
 
   /**
