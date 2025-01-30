@@ -1311,8 +1311,9 @@ export class BaseConnection<
       }
 
       /**
-       * Manually trigger the negotiation with the new settings (just to be sure)
-       * We skip twice negotiation
+       * Trigger the negotiation with the new settings (without waiting
+       * for the browser "negotiationneeded" event)
+       * We skip twice negotiation.
        */
       await this.peer.startNegotiation()
 
