@@ -46,9 +46,14 @@ const callfabricTests = [
   'videoRoom.spec.ts',
   'videoRoomLayout.spec.ts',
 ]
+const renegotiationTests = [
+  'roomSessionUpdateMedia.spec.ts',
+  'renegotiateAudio.spec.ts',
+  'renegotiateVideo.spec.ts',
+]
 const videoElementTests = [
-  'buildVideoWithVideoSdk.spec.ts',
-  'buildVideoWithFabricSdk.spec.ts',
+  'buildVideoWithVideoSDK.spec.ts',
+  'buildVideoWithFabricSDK.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
@@ -90,6 +95,7 @@ const config: PlaywrightTestConfig = {
         ...audienceTests,
         ...reattachTests,
         ...callfabricTests,
+        ...renegotiationTests,
         ...videoElementTests,
         ...v2WebRTC,
       ],
@@ -128,6 +134,11 @@ const config: PlaywrightTestConfig = {
       name: 'callfabric',
       use: useDesktopChrome,
       testMatch: callfabricTests,
+    },
+    {
+      name: 'renegotiation',
+      use: useDesktopChrome,
+      testMatch: renegotiationTests,
     },
     {
       name: 'videoElement',

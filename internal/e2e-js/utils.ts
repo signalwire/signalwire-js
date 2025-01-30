@@ -620,68 +620,154 @@ export const expectMCUVisibleForAudience = async (page: Page) => {
 
 // #region Utilities for RTP Media stats and SDP
 
-export const getStats = async (page: Page) => {
-  const stats = await page.evaluate(async () => {
+interface RTPInboundMediaStats {
+  packetsReceived: number
+  packetsLost: number
+  packetsDiscarded?: number
+}
+
+interface RTPOutboundMediaStats {
+  active: boolean
+  packetsSent: number
+  targetBitrate: number
+  totalPacketSendDelay: number
+}
+
+interface GetStatsResult {
+  inboundRTP: {
+    audio: RTPInboundMediaStats
+    video: RTPInboundMediaStats
+  }
+  outboundRTP: {
+    audio: RTPOutboundMediaStats
+    video: RTPOutboundMediaStats
+  }
+}
+
+export const getStats = async (page: Page): Promise<GetStatsResult> => {
+  return await page.evaluate<GetStatsResult>(async () => {
     // @ts-expect-error
     const roomObj: Video.RoomSession = window._roomObj
     // @ts-expect-error
     const rtcPeer = roomObj.peer
-    const stats = await rtcPeer.instance.getStats(null)
-    const result: {
-      inboundRTP: Record<any, any>
-      outboundRTP: Record<any, any>
-    } = { inboundRTP: {}, outboundRTP: {} }
+
+    // Get the currently active inbound and outbound tracks.
+    const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
+    const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
+    const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
+    const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
+
+    // Default return value
+    const result: GetStatsResult = {
+      inboundRTP: {
+        audio: {
+          packetsReceived: 0,
+          packetsLost: 0,
+          packetsDiscarded: 0,
+        },
+        video: {
+          packetsReceived: 0,
+          packetsLost: 0,
+          packetsDiscarded: 0,
+        },
+      },
+      outboundRTP: {
+        audio: {
+          active: false,
+          packetsSent: 0,
+          targetBitrate: 0,
+          totalPacketSendDelay: 0,
+        },
+        video: {
+          active: false,
+          packetsSent: 0,
+          targetBitrate: 0,
+          totalPacketSendDelay: 0,
+        },
+      },
+    }
 
     const inboundRTPFilters = {
-      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
-      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'],
-    } as const
+      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+    }
 
-    const inboundRTPHandler = (report: any) => {
-      const media = report.mediaType as 'video' | 'audio'
-      const trackId = rtcPeer._getReceiverByKind(media)!.track.id
-      console.log(`getStats trackId "${trackId}" for media ${media}`)
-      if (report.trackIdentifier !== trackId) {
+    const outboundRTPFilters = {
+      audio: [
+        'active',
+        'packetsSent',
+        'targetBitrate',
+        'totalPacketSendDelay',
+      ] as const,
+      video: [
+        'active',
+        'packetsSent',
+        'targetBitrate',
+        'totalPacketSendDelay',
+      ] as const,
+    }
+
+    const handleInboundRTP = (report: any) => {
+      const media = report.mediaType as 'audio' | 'video'
+      if (!media) return
+
+      // Check if trackIdentifier matches the currently active inbound track
+      const expectedTrackId =
+        media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
+
+      if (
+        report.trackIdentifier &&
+        report.trackIdentifier !== expectedTrackId
+      ) {
         console.log(
-          `trackIdentifier "${report.trackIdentifier}" and trackId "${trackId}" are different`
+          `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
         )
         return
       }
-      result.inboundRTP[media] = result.inboundRTP[media] || {}
+
       inboundRTPFilters[media].forEach((key) => {
         result.inboundRTP[media][key] = report[key]
       })
     }
 
-    const outboundRTPFilters = {
-      audio: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
-      video: ['active', 'packetsSent', 'targetBitrate', 'totalPacketSendDelay'],
-    } as const
+    const handleOutboundRTP = (report: any) => {
+      const media = report.mediaType as 'audio' | 'video'
+      if (!media) return
 
-    const outboundRTPHandler = (report: any) => {
-      const media = report.mediaType as 'video' | 'audio'
-      result.outboundRTP[media] = result.outboundRTP[media] || {}
+      // Check if trackIdentifier matches the currently active outbound track
+      const expectedTrackId =
+        media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
+      if (
+        report.trackIdentifier &&
+        report.trackIdentifier !== expectedTrackId
+      ) {
+        console.log(
+          `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+        )
+        return
+      }
+
       outboundRTPFilters[media].forEach((key) => {
-        result.outboundRTP[media][key] = report[key]
+        ;(result.outboundRTP[media] as any)[key] = report[key]
       })
     }
 
-    stats.forEach((report: any) => {
+    // Iterate over all RTCStats entries
+    const pc: RTCPeerConnection = rtcPeer.instance
+    const stats = await pc.getStats()
+    stats.forEach((report) => {
       switch (report.type) {
         case 'inbound-rtp':
-          inboundRTPHandler(report)
+          handleInboundRTP(report)
           break
         case 'outbound-rtp':
-          outboundRTPHandler(report)
+          handleOutboundRTP(report)
           break
       }
     })
 
     return result
   })
-  console.log('RTC Stats', stats)
-
-  return stats
 }
 
 export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
@@ -797,6 +883,106 @@ export const getRemoteMediaIP = async (page: Page) => {
     return ipLine?.split(' ')[2]
   })
   return remoteIP
+}
+
+interface WaitForStabilizedStatsParams {
+  propertyPath: string
+  maxAttempts?: number
+  stabilityCount?: number
+  intervalMs?: number
+}
+/**
+ * Waits for a given RTP stats property to stabilize.
+ * A stat is considered stable if the last `stabilityCount` readings are constant.
+ * Returns the stabled value.
+ */
+export const waitForStabilizedStats = async (
+  page: Page,
+  params: WaitForStabilizedStatsParams
+) => {
+  const {
+    propertyPath,
+    maxAttempts = 50,
+    stabilityCount = 10,
+    intervalMs = 1000,
+  } = params
+
+  const recentValues: number[] = []
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const stats = await getStats(page)
+    const currentValue = getValueFromPath(stats, propertyPath) as number
+
+    recentValues.push(currentValue)
+
+    if (recentValues.length >= stabilityCount) {
+      const lastNValues = recentValues.slice(-stabilityCount)
+      const allEqual = lastNValues.every((val) => val === lastNValues[0])
+      if (allEqual) {
+        // The stat is stable now
+        return lastNValues[0]
+      }
+    }
+
+    if (attempt < maxAttempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs))
+    }
+  }
+
+  // If we get here, the value never stabilized.
+  throw new Error(
+    `The value at "${propertyPath}" did not stabilize after ${maxAttempts} attempts.`
+  )
+}
+
+/**
+ * Retrieves a value from an object at a given path.
+ *
+ * @example
+ * const obj = { a: { b: { c: 42 } } };
+ * const result = getValueFromPath(obj, "a.b.c"); // 42
+ */
+export const getValueFromPath = <T>(obj: T, path: string) => {
+  let current: unknown = obj
+  for (const part of path.split('.')) {
+    if (current == null || typeof current !== 'object') {
+      return undefined
+    }
+    current = (current as Record<string, unknown>)[part]
+  }
+  return current
+}
+
+interface ExpectStatWithPollingParams {
+  propertyPath: string
+  matcher:
+    | 'toBe'
+    | 'toBeGreaterThan'
+    | 'toBeLessThan'
+    | 'toBeGreaterThanOrEqual'
+    | 'toBeLessThanOrEqual'
+  expected: number
+  message?: string
+  timeout?: number
+}
+
+export async function expectStatWithPolling(
+  page: Page,
+  params: ExpectStatWithPollingParams
+) {
+  const { propertyPath, matcher, expected, message, timeout = 10000 } = params
+
+  const defaultMessage = `Expected \`${propertyPath}\` ${matcher} ${expected}`
+  await expect
+    .poll(
+      async () => {
+        const stats = await getStats(page)
+        const value = getValueFromPath(stats, propertyPath) as number
+        return value
+      },
+      { message: message ?? defaultMessage, timeout }
+    )
+    [matcher](expected)
 }
 
 // #endregion
