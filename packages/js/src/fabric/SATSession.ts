@@ -7,6 +7,9 @@ import {
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 
+/**
+ * SAT Session is for the Call Fabric SDK
+ */
 export class SATSession extends JWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
 
@@ -23,13 +26,17 @@ export class SATSession extends JWTSession {
   }
 
   override async _checkTokenExpiration() {
-    // no-op
+    /**
+     * noop
+     *
+     * The Call Fabric SDK does not attach any timer and
+     * does not emit any events to inform the user about the token expiry.
+     */
   }
 
   /**
-   * Reauthenticate with the SignalWire Network
-   * using a newer SAT. If the session has expired
-   * will reconnect it.
+   * Reauthenticate with the SignalWire Network using a newer SAT.
+   * If the session has expired, this will reconnect it.
    * @return Promise<void>
    */
   override async reauthenticate() {

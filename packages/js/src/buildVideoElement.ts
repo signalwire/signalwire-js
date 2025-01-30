@@ -158,12 +158,12 @@ export const buildVideoElement = async (
      * events and update the videoEl with the new track.
      */
     if (isFabricRoomSession(room)) {
-      room.on('layout.changed', layoutChangedHandler)
       room.on('track', trackHandler)
+      room.on('layout.changed', layoutChangedHandler)
       room.once('destroy', unsubscribe)
     } else if (isVideoRoomSession(room)) {
-      room.on('layout.changed', layoutChangedHandler)
       room.on('track', trackHandler)
+      room.on('layout.changed', layoutChangedHandler)
       room.once('destroy', unsubscribe)
     }
 
