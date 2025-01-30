@@ -1235,8 +1235,6 @@ export class BaseConnection<
       this.peer.stopTrackReceiver(kind)
     } else if (direction === 'recvonly') {
       this.peer.stopTrackSender(kind)
-      // TBD: Should we replace the sender track with null?
-      // await transceiver?.sender.replaceTrack(null)
     }
   }
 
@@ -1312,7 +1310,10 @@ export class BaseConnection<
         this._upsertTransceiverByKind(video.direction, 'video')
       }
 
-      // Manually trigger the negotiation (just to be sure) - we skip twice negotiation
+      /**
+       * Manually trigger the negotiation with the new settings (just to be sure)
+       * We skip twice negotiation
+       */
       await this.peer.startNegotiation()
 
       // Wait for the Renegotiation to complete
@@ -1329,7 +1330,7 @@ export class BaseConnection<
         throw new Error('The server did not set the audio direction correctly')
       }
 
-      // Throw error if the remote SDP does not include the expected audio direction
+      // Throw error if the remote SDP does not include the expected video direction
       if (
         !hasMatchingSdpDirection({
           localSdp: this.peer.localSdp!,
@@ -1340,7 +1341,7 @@ export class BaseConnection<
         throw new Error('The server did not set the video direction correctly')
       }
     } catch (error) {
-      // Reject the promise if an error occurs
+      // Reject the negotiation promise if an error occurs
       this.peer?._pendingNegotiationPromise?.reject(error)
       throw error
     }
