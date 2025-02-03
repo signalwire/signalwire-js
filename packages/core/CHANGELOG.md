@@ -1,6 +1,10 @@
 # @signalwire/core
 
-## 4.2.0 - 2025-01-21
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [4.2.0] - 2025-01-21
 
 ### Added
 
@@ -40,10 +44,6 @@
 - [#1143](https://github.com/signalwire/signalwire-js/pull/1143) [`f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc`](https://github.com/signalwire/signalwire-js/commit/f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Updated ConversationMessage GetAddressResponse ConversationMessage GetSubscriberInfoResponse with new properties
 
 - [#1124](https://github.com/signalwire/signalwire-js/pull/1124) [`ada6c49538862f466dea659286ea8eb405f4f636`](https://github.com/signalwire/signalwire-js/commit/ada6c49538862f466dea659286ea8eb405f4f636) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce dedicated types for Video and Fabric SDKs
-
-All notable changes to this project will be documented in this file.
-
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [4.1.0] - 2024-06-03
 
