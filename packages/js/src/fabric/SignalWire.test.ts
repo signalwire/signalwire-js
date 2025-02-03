@@ -33,6 +33,8 @@ describe('SignalWire', () => {
       reattach: jest.fn(),
       handlePushNotification: jest.fn(),
       updateToken: jest.fn(),
+      on: jest.fn(),
+      off: jest.fn(),
     }))
 
     // Mock HTTPClient behavior
