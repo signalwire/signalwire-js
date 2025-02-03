@@ -16,7 +16,7 @@ import {
   AllOrNone,
   ChatJSONRPCMethod,
   MessagingJSONRPCMethod,
-  VoiceJSONRPCMethod,
+  VoiceCallMethod,
   ClientContextMethod,
 } from '..'
 
@@ -64,7 +64,7 @@ export type JSONRPCMethod =
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
-  | VoiceJSONRPCMethod
+  | VoiceCallMethod
   | ClientContextMethod
 
 export type JSONRPCSubscribeMethod = Extract<

@@ -10,7 +10,20 @@ export type PaginationCursor =
 
 export type ClientContextMethod = 'signalwire.receive' | 'signalwire.unreceive'
 
-export interface ClientContextContract {
-  addContexts(contexts: string[]): Promise<{ message: string; code: number }>
-  removeContexts(contexts: string[]): Promise<{ message: string; code: number }>
-}
+/**
+ * Private common event types
+ */
+export type CallPlay = 'call.play'
+export type CallRecord = 'call.record'
+
+/**
+ * Public common event types
+ */
+export type PlaybackStarted = 'playback.started'
+export type PlaybackUpdated = 'playback.updated'
+export type PlaybackEnded = 'playback.ended'
+export type PlaybackFailed = 'playback.failed'
+export type RecordingStarted = 'recording.started'
+export type RecordingUpdated = 'recording.updated'
+export type RecordingEnded = 'recording.ended'
+export type RecordingFailed = 'recording.failed'
