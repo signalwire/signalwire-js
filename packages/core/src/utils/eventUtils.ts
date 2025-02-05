@@ -1,4 +1,4 @@
-import { CallCapabilities } from '@signalwire/core'
+import { CallCapabilities, CapabilityOnOffState, MemberCapability } from '@signalwire/core'
 
 export const stripNamespacePrefix = (
   event: string,
@@ -16,109 +16,136 @@ export const stripNamespacePrefix = (
   return event
 }
 
-const capabilityStringToObjectMap = {
-  device: { device: true } as CallCapabilities,
-  'digit.send': { sendDigit: true } as CallCapabilities,
-  end: { end: true } as CallCapabilities,
-  'layout.set': { setLayout: true } as CallCapabilities,
-  screenshare: { screenshare: true } as CallCapabilities,
-  'vmuted.hide.on': { vmutedHide: { on: true } } as CallCapabilities,
-  'vmuted.hide.off': { vmutedHide: { off: true } } as CallCapabilities,
-  'lock.on': { lock: { on: true } } as CallCapabilities,
-  'lock.off': { lock: { off: true } } as CallCapabilities,
-  'member.position.set': { member: { position: true } } as CallCapabilities,
-  'member.meta': { member: { meta: true } } as CallCapabilities,
-  'member.remove': { member: { remove: true } } as CallCapabilities,
-  'member.microphone.volume.set': {
-    member: { microphoneVolume: true },
-  } as CallCapabilities,
-  'member.microphone.sensitivity.set': {
-    member: { microphoneSensitivity: true },
-  } as CallCapabilities,
-  'member.speaker.volume.set': {
-    member: { speakerVolume: true },
-  } as CallCapabilities,
-  'member.deaf.on': { member: { deaf: { on: true } } } as CallCapabilities,
-  'member.deaf.off': { member: { deaf: { off: true } } } as CallCapabilities,
-  'member.mute.audio.on': {
-    member: { muteAudio: { on: true } },
-  } as CallCapabilities,
-  'member.mute.audio.off': {
-    member: { muteAudio: { off: true } },
-  } as CallCapabilities,
-  'member.mute.video.on': {
-    member: { muteVideo: { on: true } },
-  } as CallCapabilities,
-  'member.mute.video.off': {
-    member: { muteVideo: { off: true } },
-  } as CallCapabilities,
-  'member.raisehand.on': {
-    member: { raisehand: { on: true } },
-  } as CallCapabilities,
-  'member.raisehand.off': {
-    member: { raisehand: { off: true } },
-  } as CallCapabilities,
-  'self.position.set': { self: { position: true } } as CallCapabilities,
-  'self.meta': { self: { meta: true } } as CallCapabilities,
-  'self.remove': { self: { remove: true } } as CallCapabilities,
-  'self.microphone': {
-    self: { microphoneVolume: true, microphoneSensitivity: true },
-  } as CallCapabilities,
-  'self.microphone.volume.set': {
-    self: { microphoneVolume: true },
-  } as CallCapabilities,
-  'self.microphone.sensitivity.set': {
-    self: { microphoneSensitivity: true },
-  } as CallCapabilities,
-  'self.speaker.volume.set': {
-    self: { speakerVolume: true },
-  } as CallCapabilities,
-  'self.deaf.on': { self: { deaf: { on: true } } } as CallCapabilities,
-  'self.deaf.off': { self: { deaf: { off: true } } } as CallCapabilities,
-  'self.mute.audio.on': {
-    self: { muteAudio: { on: true } },
-  } as CallCapabilities,
-  'self.mute.audio.off': {
-    self: { muteAudio: { off: true } },
-  } as CallCapabilities,
-  'self.mute.video.on': {
-    self: { muteVideo: { on: true } },
-  } as CallCapabilities,
-  'self.mute.video.off': {
-    self: { muteVideo: { off: true } },
-  } as CallCapabilities,
-  'self.raisehand.on': {
-    self: { raisehand: { on: true } },
-  } as CallCapabilities,
-  'self.raisehand.off': {
-    self: { raisehand: { off: true } },
-  } as CallCapabilities,
-}
+class CapabilityOnOffStateImpl implements CapabilityOnOffState {
+  constructor(private _flags: string[]) {}
 
-const isObjectGuard = (o: unknown): o is Object => o instanceof Object
-
-const capabilityStringToObjects = (capability: string) =>
-  Object.entries(capabilityStringToObjectMap)
-    .filter(([key]) => key.startsWith(capability))
-    .map(([_, value]) => value)
-
-const mergeCapabilityObjects = <T extends Object>(target: T, source: T): T => {
-  const result = { ...target }
-  for (const key in source) {
-    if (
-      result[key] &&
-      isObjectGuard(target[key]) &&
-      isObjectGuard(source[key])
-    ) {
-      result[key] = mergeCapabilityObjects(target[key], source[key])
-    } else {
-      result[key] = source[key]
-    }
+  get on(): boolean {
+    return this._flags.some(flag => /^(.*\.on|(?:(?!.*\.off$).*))$/.test(flag))
   }
-  return result
+
+  get off(): boolean {
+    return this._flags.some(flag => /^(.*\.off|(?:(?!.*\.on$).*))$/.test(flag))
+  }
 }
 
-export const mapCapabilityPayload = (capabilities: string[]) =>
-  capabilities
-    .flatMap(capabilityStringToObjects)
-    .reduce<CallCapabilities>(mergeCapabilityObjects, {} as CallCapabilities)
+class MemberCapabilityImpl implements MemberCapability {
+
+  private _muteAudio?: CapabilityOnOffStateImpl;
+  private _muteVideo?: CapabilityOnOffStateImpl;
+  private _deaf?: CapabilityOnOffStateImpl;
+  private _raisehand?: CapabilityOnOffStateImpl;
+
+
+  constructor(private _flags: string[], private _memberType: 'self'|'member') {}
+  
+  get muteAudio(): CapabilityOnOffState {
+    this._muteAudio = this._muteAudio 
+    ?? new CapabilityOnOffStateImpl(this._flags.filter(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.mute_audio`)))
+    return this._muteAudio!
+  }
+  
+  get muteVideo(): CapabilityOnOffState {
+    this._muteVideo = this._muteVideo 
+    ?? new CapabilityOnOffStateImpl(this._flags.filter(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.mute_video`)))
+    return this._muteVideo!
+  }
+
+  get microphoneVolume(): boolean {
+    return this._flags.some(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.microphone.volume`))
+  }
+
+  get microphoneSensitivity(): boolean {
+    return this._flags.some(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.microphone.sensitivity`))
+  }
+
+  get speakerVolume(): boolean {
+    return this._flags.some(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.speaker.volume`))
+  }
+
+  get deaf(): CapabilityOnOffState {
+    this._deaf = this._deaf 
+    ?? new CapabilityOnOffStateImpl(this._flags.filter(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.deaf`)))
+    return this._deaf!
+  }
+
+  get raisehand(): CapabilityOnOffState {
+    this._raisehand = this._raisehand 
+    ?? new CapabilityOnOffStateImpl(this._flags.filter(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.raisehand`)))
+    return this._raisehand!
+  }
+
+  get position(): boolean {
+    return this._flags.some(flag => flag === this._memberType || flag.startsWith(`${this._memberType}..position`))
+  }
+
+  get meta(): boolean {
+    return this._flags.some(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.meta`))
+  }
+
+  get remove(): boolean {
+    return this._flags.some(flag => flag === this._memberType || flag.startsWith(`${this._memberType}.remove`))
+  }
+}
+
+class CallCapabilitiesImpl implements CallCapabilities {
+  
+  private _self?: MemberCapability
+  private _member?: MemberCapability
+  private _vmutedHide?: CapabilityOnOffStateImpl;
+  private _lock?: CapabilityOnOffStateImpl;
+
+  constructor(private _flags: string[]) {
+
+  }
+
+  private _buildMemberCapacity(memberType: 'self' | 'member') {
+    return new MemberCapabilityImpl(this._flags.filter(flag => flag.startsWith(memberType)), memberType)
+    
+  }
+
+  get self(): MemberCapability {
+    this._self = this._self ?? this._buildMemberCapacity('self')
+    return this._self!
+  }
+
+  get member(): MemberCapability {
+    this._member = this._member ?? this._buildMemberCapacity('member')
+    return this._member!
+  }
+  
+  get end():boolean {
+    return this._flags.some(capability => capability ==='end')
+  }
+
+  get setLayout():boolean {
+    return this._flags.some(capability => capability.startsWith('layout'))
+  }
+
+  get sendDigit():boolean {
+    return this._flags.some(capability => capability.startsWith('digit'))
+  }
+
+  get vmutedHide(): CapabilityOnOffState {
+    this._vmutedHide = this._vmutedHide 
+    ?? new CapabilityOnOffStateImpl(this._flags.filter(flag => flag.startsWith('vmuted.hide')))
+    return this._vmutedHide!
+  }
+  
+  get lock(): CapabilityOnOffState {
+    this._lock = this._lock 
+    ?? new CapabilityOnOffStateImpl(this._flags.filter(flag => flag.startsWith('lock')))
+    return this._lock!
+  }
+  
+  get device():boolean {
+    return this._flags.some(capability => capability === 'device')
+  }
+
+  get screenshare():boolean {
+    return this._flags.some(capability => capability === 'screenshare')
+  }
+
+}
+
+
+export const mapCapabilityPayload = (capabilities: string[]) => new CallCapabilitiesImpl(capabilities)
