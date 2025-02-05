@@ -74,10 +74,10 @@ export const callJoinWorker = function* (
   })
 
   cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
-  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities || [])
+  // the server send the capabilities payload as an array of string 
+  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities as unknown as string[] || [])
 
-  // FIXME: Capabilities type is incompatible.
-  // @ts-expect-error
+  
   cfRoomSession.emit('call.joined', {
     ...payload,
     capabilities: cfRoomSession.capabilities,
