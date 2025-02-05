@@ -54,7 +54,8 @@ class MemberCapabilityImpl implements MemberCapability {
         this._flags.filter(
           (flag) =>
             flag === this._memberType ||
-            flag.startsWith(`${this._memberType}.mute_audio`)
+            flag === `${this._memberType}.mute` ||
+            flag.startsWith(`${this._memberType}.mute.audio`)
         )
       )
     return this._muteAudio!
@@ -67,7 +68,8 @@ class MemberCapabilityImpl implements MemberCapability {
         this._flags.filter(
           (flag) =>
             flag === this._memberType ||
-            flag.startsWith(`${this._memberType}.mute_video`)
+            flag === `${this._memberType}.mute` ||
+            flag.startsWith(`${this._memberType}.mute.video`)
         )
       )
     return this._muteVideo!
@@ -77,6 +79,7 @@ class MemberCapabilityImpl implements MemberCapability {
     return this._flags.some(
       (flag) =>
         flag === this._memberType ||
+        flag === `${this._memberType}.microphone` ||
         flag.startsWith(`${this._memberType}.microphone.volume`)
     )
   }
@@ -85,6 +88,7 @@ class MemberCapabilityImpl implements MemberCapability {
     return this._flags.some(
       (flag) =>
         flag === this._memberType ||
+        flag === `${this._memberType}.microphone` ||
         flag.startsWith(`${this._memberType}.microphone.sensitivity`)
     )
   }
@@ -93,6 +97,7 @@ class MemberCapabilityImpl implements MemberCapability {
     return this._flags.some(
       (flag) =>
         flag === this._memberType ||
+      flag === `${this._memberType}.speaker` ||
         flag.startsWith(`${this._memberType}.speaker.volume`)
     )
   }
@@ -127,7 +132,7 @@ class MemberCapabilityImpl implements MemberCapability {
     return this._flags.some(
       (flag) =>
         flag === this._memberType ||
-        flag.startsWith(`${this._memberType}..position`)
+        flag.startsWith(`${this._memberType}.position`)
     )
   }
 
@@ -188,7 +193,7 @@ class CallCapabilitiesImpl implements CallCapabilities {
     this._vmutedHide =
       this._vmutedHide ??
       new CapabilityOnOffStateImpl(
-        this._flags.filter((flag) => flag.startsWith('vmuted.hide'))
+        this._flags.filter((flag) => flag.startsWith('vmuted'))
       )
     return this._vmutedHide!
   }
