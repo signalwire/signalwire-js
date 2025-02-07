@@ -38,7 +38,7 @@ test.describe('Reattach Tests', () => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
 
-          const call = await client.reattach({
+          const call = client.reattach({
             to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
@@ -75,9 +75,9 @@ test.describe('Reattach Tests', () => {
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
-          const client = window._client
+          const client: SignalWireClient = window._client
 
-          const call = await client.dial({
+          const call = client.dial({
             to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
@@ -148,9 +148,9 @@ test.describe('Reattach Tests', () => {
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
-          const client = window._client
+          const client: SignalWireClient = window._client
 
-          const call = await client.reattach({
+          const call = client.reattach({
             to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
