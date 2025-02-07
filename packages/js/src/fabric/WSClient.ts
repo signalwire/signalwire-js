@@ -12,7 +12,6 @@ import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
   DialParams,
-  FabricRoomSession,
   IncomingInvite,
   OnlineParams,
   HandlePushNotificationParams,
@@ -299,28 +298,12 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public async dial(params: DialParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
-      try {
-        const call = this.buildOutboundCall(params)
-        resolve(call)
-      } catch (error) {
-        this.logger.error('Unable to connect and dial a call', error)
-        reject(error)
-      }
-    })
+  public dial(params: DialParams) {
+    return this.buildOutboundCall(params)
   }
 
-  public async reattach(params: DialParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
-      try {
-        const call = this.buildOutboundCall({ ...params, attach: true })
-        resolve(call)
-      } catch (error) {
-        this.logger.error('Unable to connect and reattach a call', error)
-        reject(error)
-      }
-    })
+  public reattach(params: DialParams) {
+    return this.buildOutboundCall({ ...params, attach: true })
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {
