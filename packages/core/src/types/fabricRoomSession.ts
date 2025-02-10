@@ -11,8 +11,7 @@ import {
   SwEvent,
   CallState,
   CallPlay,
-  CallConnect,
-  CallCapabilities,
+  CallConnect
 } from '..'
 
 /**
@@ -507,7 +506,7 @@ export interface CallJoinedEventParams {
   member_id: string
   node_id?: string
   origin_call_id: string
-  capabilities: CallCapabilities
+  capabilities: string[]
 }
 
 export interface CallJoinedEvent extends SwEvent {

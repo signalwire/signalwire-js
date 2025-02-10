@@ -6,6 +6,7 @@ import {
   MemberPosition,
   mapCapabilityPayload,
   stripNamespacePrefix,
+  CallCapabilities,
 } from '@signalwire/core'
 import {
   createFabricRoomSessionMemberObject,
@@ -14,6 +15,7 @@ import {
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
 import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/helpers'
+import { FabricCallJoinedEventParams } from 'packages/js/src/utils/interfaces'
 
 export const callJoinWorker = function* (
   options: FabricWorkerParams<CallJoinedEvent>
@@ -75,13 +77,14 @@ export const callJoinWorker = function* (
 
   cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
   // the server send the capabilities payload as an array of string 
-  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities as unknown as string[] || [])
+  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities || []) as CallCapabilities
 
-  
-  cfRoomSession.emit('call.joined', {
+  const fabricEvent: FabricCallJoinedEventParams = {
     ...payload,
-    capabilities: cfRoomSession.capabilities,
-  })
+    capabilities: cfRoomSession.capabilities
+  } as FabricCallJoinedEventParams
+  
+  cfRoomSession.emit('call.joined', fabricEvent)
 
   getLogger().trace('callJoinWorker ended')
 }
