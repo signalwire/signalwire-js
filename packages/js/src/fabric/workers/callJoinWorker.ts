@@ -15,7 +15,7 @@ import {
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
 import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/helpers'
-import { FabricCallJoinedEventParams } from 'packages/js/src/utils/interfaces'
+import { FabricCallJoinedEventParams } from '../../utils/interfaces'
 
 export const callJoinWorker = function* (
   options: FabricWorkerParams<CallJoinedEvent>
