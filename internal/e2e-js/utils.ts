@@ -141,6 +141,43 @@ export const createTestSATToken = async () => {
   return data.token
 }
 
+interface GuestSATTokenRequest {
+  allowed_addresses: string[];
+}
+export const createGuestSATToken = async (bodyData: GuestSATTokenRequest) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/guests/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(bodyData),
+    }
+  )
+  const data = await response.json()
+  console.log("---- guest token, data: ", data, " <--------------------")
+  return data.token
+}
+
+export const getResourceAddresses = async (resource_id: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/${resource_id}/addresses`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+    }
+  )
+  const data = await response.json()
+  console.log("---- get resource addresses for resource ID [", resource_id, "], response: ", data, " <--------------------")
+  return data
+}
+
+
 interface CreateTestCRTOptions {
   ttl: number
   member_id: string
@@ -461,6 +498,71 @@ export const createCFClient = async (
   const sat = await createTestSATToken()
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
+    process.exit(4)
+  }
+
+  const { attachSagaMonitor = false } = params || {}
+
+  const swClient = await page.evaluate(
+    async (options) => {
+      const _runningWorkers: any[] = []
+      // @ts-expect-error
+      window._runningWorkers = _runningWorkers
+      const addTask = (task: any) => {
+        if (!_runningWorkers.includes(task)) {
+          _runningWorkers.push(task)
+        }
+      }
+      const removeTask = (task: any) => {
+        const index = _runningWorkers.indexOf(task)
+        if (index > -1) {
+          _runningWorkers.splice(index, 1)
+        }
+      }
+
+      const sagaMonitor = {
+        effectResolved: (_effectId: number, result: any) => {
+          if (result?.toPromise) {
+            addTask(result)
+            // Remove the task when it completes or is cancelled
+            result.toPromise().finally(() => {
+              removeTask(result)
+            })
+          }
+        },
+      }
+
+      // @ts-expect-error
+      const SignalWire = window._SWJS.SignalWire
+      const client: SignalWireContract = await SignalWire({
+        host: options.RELAY_HOST,
+        token: options.API_TOKEN,
+        debug: { logWsTraffic: true },
+        ...(options.attachSagaMonitor && { sagaMonitor }),
+      })
+
+      // @ts-expect-error
+      window._client = client
+      return client
+    },
+    {
+      RELAY_HOST: process.env.RELAY_HOST,
+      API_TOKEN: sat,
+      attachSagaMonitor,
+    }
+  )
+
+  return swClient
+}
+
+export const createGuestCFClient = async (
+  page: Page,
+  bodyData: GuestSATTokenRequest,
+  params?: CreateCFClientParams,
+) => {
+  const sat = await createGuestSATToken(bodyData)
+  if (!sat) {
+    console.error('Invalid Guest SAT. Exiting...')
     process.exit(4)
   }
 
@@ -1326,6 +1428,15 @@ export interface Resource {
   created_at: string
 }
 
+export interface CXMLApplication {
+  id: string
+  // and other things
+}
+
+export interface ApplicationResource extends Resource {
+  cxml_application?: CXMLApplication
+}
+
 export const createVideoRoomResource = async (name?: string) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
@@ -1370,6 +1481,36 @@ export const createSWMLAppResource = async ({
   )
   const data = (await response.json()) as Resource
   console.log('>> Resource SWML App created:', data.id)
+  return data
+}
+
+export interface CreatecXMLScriptParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createcXMLScriptResource = async ({
+  name,
+  contents,
+}: CreatecXMLScriptParams) => {
+  const response = await fetch(
+//    `https://${process.env.API_HOST}/api/fabric/resources/cxml_scripts`,
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-cxml-script_${uuid()}`,
+        handle_calls_using: 'script',
+        call_handler_script: contents.call_handler_script,
+      }),
+    }
+  )
+  const data = (await response.json()) as ApplicationResource
+  console.log('----> data:', data)
+  console.log('>> Resource cXML Script created:', data.id)
   return data
 }
 
