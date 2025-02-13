@@ -16,7 +16,8 @@
     "release:dev": "sw-release --development",
     "release:beta": "sw-release --beta",
     "prepare:prod": "sw-release --prepare-prod",
-    "release:prod": "sw-release --production"
+    "release:prod": "sw-release --production",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@babel/core": "^7.26.0",
