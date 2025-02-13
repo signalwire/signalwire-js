@@ -1,9 +1,12 @@
 import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
+  CreatecXMLScriptParams,
   CreateRelayAppResourceParams,
   CreateSWMLAppResourceParams,
+  ApplicationResource,
   Resource,
+  createcXMLScriptResource,
   createRelayAppResource,
   createSWMLAppResource,
   createVideoRoomResource,
@@ -23,10 +26,11 @@ type CustomFixture = {
   }): Promise<PageWithWsInspector<CustomPage>>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
+    createcXMLScriptResource: typeof createcXMLScriptResource
     createVideoRoomResource: typeof createVideoRoomResource
     createSWMLAppResource: typeof createSWMLAppResource
     createRelayAppResource: typeof createRelayAppResource
-    resources: Resource[]
+    resources: ApplicationResource[]
   }
 }
 
@@ -88,11 +92,16 @@ const test = baseTest.extend<CustomFixture>({
     console.log('Cleaning up pages..')
   },
   resource: async ({}, use) => {
-    const resources: Resource[] = []
+    const resources: ApplicationResource[] = []
 
     const resource = {
       createVideoRoomResource: async (params?: string) => {
         const data = await createVideoRoomResource(params)
+        resources.push(data)
+        return data
+      },
+      createcXMLScriptResource: async (params: CreatecXMLScriptParams) => {
+        const data = await createcXMLScriptResource(params)
         resources.push(data)
         return data
       },
