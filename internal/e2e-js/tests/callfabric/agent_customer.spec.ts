@@ -112,6 +112,10 @@ test.describe('CallFabric Agent/Customer interaction, static cXML scripts', () =
     await expectTotalAudioEnergyToBeGreaterThan(agent_page, 0.15)
     await expectTotalAudioEnergyToBeGreaterThan(customer_page, 0.15)
 
+    // Attach final listeners
+    const customerFinalEvents = expectCFFinalEvents(customer_page)
+    const agentFinalEvents = expectCFFinalEvents(customer_page)
+
     console.log("Test done - hanging up customer")
 
     await customer_page.evaluate(async () => {
@@ -130,9 +134,7 @@ test.describe('CallFabric Agent/Customer interaction, static cXML scripts', () =
       await call.hangup()
     })
 
-    // console.log("Expect final events for customer...")
-    // await expectCFFinalEvents(customer_page)
-    // console.log("Expect final events for agent...")
-    // await expectCFFinalEvents(agent_page)
+    await customerFinalEvents
+    await agentFinalEvents
   })
 })
