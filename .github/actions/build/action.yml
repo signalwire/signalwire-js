@@ -10,13 +10,13 @@ inputs:
 runs:
   using: composite
   steps:
-    # - name: Cache dist folders
-    #   id: cache
-    #   uses: actions/cache@v4
-    #   with:
-    #     key: ${{ github.ref }}-${{ github.sha }}
-    #     path: packages/*/dist
-    # - if: steps.cache.outputs.cache-hit != 'true'
-    - name: Build
+    - name: Cache dist folders
+      id: cache
+      uses: actions/cache@v4
+      with:
+        key: ${{ github.ref }}-${{ github.sha }}
+        path: packages/*/dist
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build
       shell: bash
       run: npm run build
