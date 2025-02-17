@@ -8,20 +8,27 @@ import {
   dialAddress,
   expectCFFinalEvents,
   expectCFInitialEvents,
-  expectPageReceiveAudio,
+  expectTotalAudioEnergyToBeGreaterThan,
   getResourceAddresses,
 } from '../../utils'
 
-test.describe('CallFabric Agent/Customer interaction, cXML scripts', () => {
 
+  // TODO: external URL approach
+
+
+test.describe('CallFabric Agent/Customer interaction, static cXML scripts', () => {
+
+  const conference_name = `e2e-cxml-script-conference_${uuid()}`
+
+  // TODO: Dedicated callbacks
   const cXMLScriptAgentContent = {
-    call_handler_script: '<?xml version="1.0" encoding="UTF-8"?><Response><Dial><Conference>4567486</Conference></Dial></Response>'
+    call_handler_script: `<?xml version="1.0" encoding="UTF-8"?><Response><Dial><Conference>${conference_name}</Conference></Dial></Response>`
   }
   const cXMLScriptCustomerContent = {
-    call_handler_script: '<?xml version="1.0" encoding="UTF-8"?><Response><Dial><Conference>4567486</Conference></Dial></Response>'
+    call_handler_script: `<?xml version="1.0" encoding="UTF-8"?><Response><Dial><Conference>${conference_name}</Conference></Dial></Response>`
   }
 
-  test('agent and customer should dial an address linked to a cXML script and expect to join a Conference', async ({
+  test('agent and customer should dial an address linked to a static cXML script and expect to join a Conference', async ({
     createCustomPage,
     resource,
   }) => {
@@ -46,19 +53,17 @@ test.describe('CallFabric Agent/Customer interaction, cXML scripts', () => {
       dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
     })
 
+    const expectInitialEventsForAgent = expectCFInitialEvents(agent_page, [])
     await agent_page.evaluate(async () => {
       // @ts-expect-error
       const call = window._roomObj
 
-//      await call.start()
-      call.start()
+      await call.start()
     })
   
     console.log("Address dialled by Agent...")
-    // const expectInitialEventsForAgent = expectCFInitialEvents(agent_page, [])
-    // console.log("After CF Initial events for agent...")
-
-
+    expectInitialEventsForAgent
+    console.log("After CF Initial events for agent...")
 
     console.log('--------- creating customer ------------------')
     // Customer
@@ -72,8 +77,6 @@ test.describe('CallFabric Agent/Customer interaction, cXML scripts', () => {
     })
 
     expect(customer_resource_data.id).toBeDefined()
-
-    // Time to retrieve the cXML script address(es)
     const resource_addresses = await getResourceAddresses(customer_resource_data.id)
     const allowed_addresses: string[] = resource_addresses.data.map((address: { id: any }) => address.id ?? '')
 
@@ -81,7 +84,6 @@ test.describe('CallFabric Agent/Customer interaction, cXML scripts', () => {
 
     await createGuestCFClient(customer_page, { allowed_addresses: allowed_addresses})
 
-    // Dial the resource address
     await dialAddress(customer_page, {
       address: `/private/${customerResourceName}`, // or /public/?
       shouldWaitForJoin: false,
@@ -89,36 +91,48 @@ test.describe('CallFabric Agent/Customer interaction, cXML scripts', () => {
       dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
     })
 
+    // Let the Agent wait a little before the Customer joins
+    await new Promise((r) => setTimeout(r, 2000))
+
+    const expectInitialEventsForCustomer = expectCFInitialEvents(customer_page, [])
     await customer_page.evaluate(async () => {
       // @ts-expect-error
       const call = window._roomObj
 
       await call.start()
     })
+    await expectInitialEventsForCustomer
 
-    console.log("Address dialled by Customer...")
-    // const expectInitialEventsForCustomer = expectCFInitialEvents(customer_page, [])
-    // console.log("After CF Initial events for customer...")
+    console.log("________ CALL IS IN PROGRESS ________________")
 
+    // 5 seconds' call
+    await new Promise((r) => setTimeout(r, 5000))
 
+    console.log("Expect to have received audio...")
+    await expectTotalAudioEnergyToBeGreaterThan(agent_page, 0.15)
+    await expectTotalAudioEnergyToBeGreaterThan(customer_page, 0.15)
 
+    console.log("Test done - hanging up customer")
 
-    //    await expectInitialEventsForAgent
-//    await expectInitialEventsForCustomer
+    await customer_page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
 
+      await call.hangup()
+    })
 
+    console.log("Test done - hanging up agent")
 
+    await agent_page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
 
+      await call.hangup()
+    })
 
-    console.log("Expect to receive audio...")
-    await expectPageReceiveAudio(agent_page)
-    await expectPageReceiveAudio(customer_page)
-
-    console.log("Expect final events...")
-    await expectCFFinalEvents(agent_page)
-    await expectCFFinalEvents(customer_page)
-
-    console.log("Should do something or hang up...")
-    // hangup???
+    // console.log("Expect final events for customer...")
+    // await expectCFFinalEvents(customer_page)
+    // console.log("Expect final events for agent...")
+    // await expectCFFinalEvents(agent_page)
   })
 })
