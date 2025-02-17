@@ -4,7 +4,7 @@ description: Build all the SDKs in the monorepo
 inputs:
   NODE_VERSION:
     required: false
-    default: 22.x
+    default: 20.x
     description: Node version to use
 
 runs:
