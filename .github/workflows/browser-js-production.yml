@@ -53,7 +53,7 @@ jobs:
 
   report-result:
     needs: e2e-tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: success() || failure()
     steps:
       - uses: actions/checkout@v4
