@@ -19,34 +19,34 @@ export * from './fabricRoomSession'
 export * from './fabricMember'
 export * from './fabricLayout'
 
-interface CapabilityOnOffState {
-  on?: true
-  off?: true
+export interface CapabilityOnOffState {
+  on: boolean
+  off: boolean
 }
 
-interface MemberCapability {
-  muteAudio?: CapabilityOnOffState
-  muteVideo?: CapabilityOnOffState
-  microphoneVolume?: true
-  microphoneSensitivity?: true
-  speakerVolume?: true
-  deaf?: CapabilityOnOffState
-  raisehand?: CapabilityOnOffState
-  position?: true
-  meta?: true
-  remove?: true
+export interface MemberCapability {
+  muteAudio: CapabilityOnOffState
+  muteVideo: CapabilityOnOffState
+  microphoneVolume: boolean
+  microphoneSensitivity: boolean
+  speakerVolume: boolean
+  deaf: CapabilityOnOffState
+  raisehand: CapabilityOnOffState
+  position: boolean
+  meta: boolean
+  remove: boolean
 }
 
 export interface CallCapabilities {
-  self?: MemberCapability
-  member?: MemberCapability
-  end?: true
-  setLayout?: true
-  sendDigit?: true
-  vmutedHide?: CapabilityOnOffState
-  lock?: CapabilityOnOffState
-  device?: true
-  screenshare?: true
+  self: MemberCapability
+  member: MemberCapability
+  end: boolean
+  setLayout: boolean
+  sendDigit: boolean
+  vmutedHide: CapabilityOnOffState
+  lock: CapabilityOnOffState
+  device: boolean
+  screenshare: boolean
 }
 
 /**
