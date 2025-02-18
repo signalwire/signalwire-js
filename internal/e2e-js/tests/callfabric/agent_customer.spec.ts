@@ -138,12 +138,11 @@ test.describe(agent_customer_static_scripts_desc, () => {
 
 const agent_customer_external_url_desc = 'CallFabric Agent/Customer interaction, cXML with external URL'
 test.describe(agent_customer_external_url_desc, () => {
-  // TODO: point to server that generates the response on the fly
   const cXMLExternalURLAgent = {
-    call_handler_url: "https://dev.swire.io/laml-bins/07be593f-8e98-49e5-abce-075ad795f302"
+    call_handler_url: `${process.env.EXTERNAL_URL_FOR_CXML}`
   }
   const cXMLExternalURLCustomer = {
-    call_handler_url: "https://dev.swire.io/laml-bins/07be593f-8e98-49e5-abce-075ad795f302"
+    call_handler_url: `${process.env.EXTERNAL_URL_FOR_CXML}`
   }
 
   test('agent and customer should dial an address linked to a cXML script with external URL and expect to join a Conference', async ({
