@@ -5,7 +5,7 @@ import {
   CreateRelayAppResourceParams,
   CreateSWMLAppResourceParams,
   ApplicationResource,
-  Resource,
+  createcXMLExternalURLResource,
   createcXMLScriptResource,
   createRelayAppResource,
   createSWMLAppResource,
@@ -14,6 +14,7 @@ import {
   disconnectClient,
   enablePageLogs,
   leaveRoom,
+  CreatecXMLExternalURLParams,
 } from './utils'
 
 type CustomPage = Page & {
@@ -26,6 +27,7 @@ type CustomFixture = {
   }): Promise<PageWithWsInspector<CustomPage>>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
+    createcXMLExternalURLResource: typeof createcXMLExternalURLResource
     createcXMLScriptResource: typeof createcXMLScriptResource
     createVideoRoomResource: typeof createVideoRoomResource
     createSWMLAppResource: typeof createSWMLAppResource
@@ -97,6 +99,11 @@ const test = baseTest.extend<CustomFixture>({
     const resource = {
       createVideoRoomResource: async (params?: string) => {
         const data = await createVideoRoomResource(params)
+        resources.push(data)
+        return data
+      },
+      createcXMLExternalURLResource: async (params: CreatecXMLExternalURLParams) => {
+        const data = await createcXMLExternalURLResource(params)
         resources.push(data)
         return data
       },
