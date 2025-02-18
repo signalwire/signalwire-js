@@ -57,7 +57,10 @@ const test = baseTest.extend<CustomFixture>({
     try {
       await use(maker)
     } finally {
+      console.log('====================================')
       console.log('Cleaning up pages..')
+      console.log('====================================')
+
       /**
        * If we have a __roomObj in the page means we tested the Video/Fabric APIs
        * so we must leave the room.
@@ -75,6 +78,8 @@ const test = baseTest.extend<CustomFixture>({
        * Make sure we cleanup the client as well.
        */
       await Promise.all(context.pages().map(disconnectClient))
+
+      await context.close()
     }
   },
   createCustomVanillaPage: async ({ context }, use) => {
@@ -112,7 +117,10 @@ const test = baseTest.extend<CustomFixture>({
     try {
       await use(resource)
     } finally {
+      console.log('====================================')
       console.log('Cleaning up resources..')
+      console.log('====================================')
+
       // Clean up resources after use
       const deleteResources = resources.map(async (resource) => {
         try {
