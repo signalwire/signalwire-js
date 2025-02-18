@@ -1,73 +1,53 @@
-import { defineConfig } from 'vite'
+import { defineConfig, ViteDevServer } from 'vite'
 import path from 'node:path'
 import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { IncomingMessage, ServerResponse } from 'node:http'
 
-const getHtmlList = (list: any) => {
+// ESM-friendly approach as compared to the Node's __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+function createFolderList() {
+  const pwd = path.join(__dirname, 'src')
+  const folders = fs.readdirSync(pwd, { withFileTypes: true })
+
+  // Filter directories only
+  const folderNames: string[] = folders
+    .map((file) => (file.isDirectory() ? file.name + '/' : ''))
+    .filter((name) => !!name)
+
+  // Build an <ul> with links
   return `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://signalwire.com/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SignalWire Playground</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-
-  <body>
-    <div id="root">
-      <div class="flex flex-col max-w-4xl mx-auto mt-10">
-        <h1 class="text-3xl font-bold text-indigo-900 mb-3">Playgrounds</h1>
-        <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-            <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-              <ul>
-                ${list
-                  .map(
-                    (vv: any) =>
-                      `<li><a href="src/${vv}" class="block mx-3 my-4 font-bold text-indigo-600">☞ ${vv}</a></li>`
-                  )
-                  .join('')}
-                </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>
-</html>
-  `
+    <ul>
+      ${folderNames
+        .map(
+          (name) =>
+            `<li><a href="src/${name}" class="block mx-3 my-4 font-bold text-indigo-600">☞ ${name}</a></li>`
+        )
+        .join('')}
+    </ul>`
 }
 
 /**
- * Plugin for automatically listing the folders as HTML
- * items.
+ * Custom plugin that lists subfolders of /src at the root URL.
  */
 function listPlugin() {
   return {
     name: 'sw-list-folders',
-    configureServer(server: any) {
-      server.middlewares.use((req: any, res: any, next: any) => {
-        const { url } = req
+    // Inject the list into the HTML template
+    transformIndexHtml(html: string) {
+      const folderListMarkup = createFolderList()
 
-        if (url === '/') {
-          const pwd = path.join(__dirname, 'src')
-          const folders = fs.readdirSync(pwd, {
-            withFileTypes: true,
-          })
-          const list2 = folders
-            .map((file) => {
-              if (file.isDirectory()) {
-                return file.name + '/'
-              }
-              return false
-            })
-            .filter((l) => l)
-          res.end(getHtmlList(list2))
-        } else {
-          next()
-        }
-      })
+      const target = '<div id="folder-list"></div>'
+      if (html.includes(target)) {
+        return html.replace(
+          target,
+          `<div id="folder-list">${folderListMarkup}</div>`
+        )
+      }
+
+      return html
     },
   }
 }
@@ -80,7 +60,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
-        heroku: path.resolve(__dirname, 'src/heroku/index.html'),
+        video: path.resolve(__dirname, 'src/video/index.html'),
         chat: path.resolve(__dirname, 'src/chat/index.html'),
         fabric: path.resolve(__dirname, 'src/fabric/index.html'),
         pubSub: path.resolve(__dirname, 'src/pubSub/index.html'),
