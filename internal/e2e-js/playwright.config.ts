@@ -61,7 +61,7 @@ const useDesktopChrome = {
   ...devices['Desktop Chrome'],
   launchOptions: {
     // devtools: true,
-    headless: false,
+    // headless: false,
     args: [
       '--use-fake-ui-for-media-stream',
       '--use-fake-device-for-media-stream',
