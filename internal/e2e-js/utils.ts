@@ -1524,6 +1524,38 @@ export const createcXMLScriptResource = async ({
   return data
 }
 
+export interface CreatecXMLExternalURLParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createcXMLExternalURLResource = async ({
+  name,
+  contents,
+}: CreatecXMLExternalURLParams) => {
+  const response = await fetch(
+//    `https://${process.env.API_HOST}/api/fabric/resources/cxml_scripts`,
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-cxml-external-url_${uuid()}`,
+        handle_calls_using: 'external_url',
+        call_handler_url: contents.call_handler_url,
+      }),
+    }
+  )
+  const data = (await response.json()) as ApplicationResource
+  console.log('----> data:', data)
+  console.log('>> Resource cXML External URL created:', data.id)
+  return data
+}
+
+
+
 export interface CreateRelayAppResourceParams {
   name?: string
   topic: string
