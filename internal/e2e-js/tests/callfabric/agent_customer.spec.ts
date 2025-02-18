@@ -256,3 +256,77 @@ test.describe(agent_customer_external_url_desc, () => {
     console.log("Test done -", agent_customer_external_url_desc)
   })
 })
+
+const customer_stream_desc = 'CallFabric Customer connecting to stream'
+test.describe(customer_stream_desc, () => {
+  test('customer should dial an address linked to a cXML script connecting to a conference with stream', async ({
+    createCustomPage,
+    resource,
+  }) => {
+
+    const conference_name = `e2e-cxml-customer-stream_${uuid()}`
+    const stream_url = `${process.env.CXML_STREAM_URL}`
+
+    const cXMLScriptCustomerContent = {
+     call_handler_script: `<?xml version="1.0" encoding="UTF-8"?><Response><Dial><Conference addStream="true" streamUrl="${stream_url}">${conference_name}</Conference></Dial></Response>`
+   }
+
+    console.log('--------- creating customer ------------------')
+    // Customer
+    const customer_page = await createCustomPage({ name: '[customer_page]' })
+    await customer_page.goto(SERVER_URL)
+
+    const customerResourceName = `e2e-cxml-customer-stream_${uuid()}`
+    const customer_resource_data = await resource.createcXMLScriptResource({
+      name: customerResourceName,
+      contents: cXMLScriptCustomerContent,
+    })
+
+    expect(customer_resource_data.id).toBeDefined()
+    const resource_addresses = await getResourceAddresses(customer_resource_data.id)
+    const allowed_addresses: string[] = resource_addresses.data.map((address: { id: any }) => address.id ?? '')
+
+    console.log("Allowed addresses: ", allowed_addresses, " <---------------")
+
+    await createGuestCFClient(customer_page, { allowed_addresses: allowed_addresses})
+
+    await dialAddress(customer_page, {
+      address: `/private/${customerResourceName}`, // or /public/?
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+      dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
+    })
+
+    const expectInitialEventsForCustomer = expectCFInitialEvents(customer_page, [])
+    await customer_page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      await call.start()
+    })
+    await expectInitialEventsForCustomer
+
+    console.log("________ CALL IS IN PROGRESS ________________")
+
+    // 10 seconds' call
+    await new Promise((r) => setTimeout(r, 10000))
+
+    console.log("Expect to have received some audio...")
+    await expectTotalAudioEnergyToBeGreaterThan(customer_page, 0.01)
+
+    // Attach final listeners
+    const customerFinalEvents = expectCFFinalEvents(customer_page)
+
+    console.log("Test done - hanging up customer")
+
+    await customer_page.evaluate(async () => {
+      // @ts-expect-error
+      const call = window._roomObj
+
+      await call.hangup()
+    })
+
+    await customerFinalEvents
+    console.log("Test done -", customer_stream_desc)
+  })
+})
