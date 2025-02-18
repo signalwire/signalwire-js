@@ -883,7 +883,7 @@ window.ready(async function () {
   const room = urlParams.get('room')
   if (room) {
     await connect()
-    await dial({ reattach: true })
+    dial({ reattach: true })
   } else {
     console.log('Room parameter not found')
   }

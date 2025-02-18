@@ -1,3 +1,4 @@
+import { SignalWireClient } from '@signalwire/js'
 import { test } from '../../fixtures'
 import { SERVER_URL, createCFClient, expectMCUVisible } from '../../utils'
 
@@ -19,9 +20,9 @@ test.describe('CallFabric Reconnections', () => {
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
-          const client = window._client
+          const client: SignalWireClient = window._client
 
-          const call = await client.dial({
+          const call = client.dial({
             to: `/public/${roomName}`,
             rootElement: document.getElementById('rootElement'),
           })
@@ -186,9 +187,9 @@ test.describe('CallFabric Reconnections', () => {
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
-          const client = window._client
+          const client: SignalWireClient = window._client
 
-          const call = await client.dial({
+          const call = client.dial({
             to: `/public/${roomName}`,
             rootElement: document.getElementById('rootElement'),
           })
@@ -333,5 +334,4 @@ test.describe('CallFabric Reconnections', () => {
       ],
     })
   })
-
 })
