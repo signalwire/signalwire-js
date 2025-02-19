@@ -44,7 +44,7 @@ jobs:
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+          PACKAGE_JSON_PATH: ./internal/e2e-js/package.json
       - name: Test
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
