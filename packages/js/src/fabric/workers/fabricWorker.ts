@@ -56,15 +56,21 @@ export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
         })
         break
       }
-      case 'call.state':
+      case 'call.state': {
         cfRoomSession.emit(type, payload)
         break
+      }
+      default: {
+        // @ts-expect-error FIXME: This is temporary due to "ai.*" events.
+        cfRoomSession.emit(type, payload)
+        break
+      }
     }
   }
 
   let firstCallJoinedReceived = false
   const isFirstCallJoinedorCallStateEvent = (action: SDKActions) => {
-    if (action.type === 'call.state') {
+    if (action.type === 'call.state' || action.type.startsWith('ai')) {
       return true
     }
 
@@ -76,11 +82,14 @@ export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
     if (!firstCallJoinedReceived) {
       const callId = action.payload.call_id
       const originCallId = action.payload.origin_call_id
+
       if (callId === originCallId) {
         firstCallJoinedReceived = true
         return true
       }
-      return false // Discard all the call.joined event until the first call.joined is received
+
+      // Discard all the call.joined event until the first call.joined is received
+      return false
     }
 
     // If first call.joined event already received, only check the action type
