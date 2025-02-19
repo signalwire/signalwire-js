@@ -51,7 +51,7 @@ export class FabricRoomSessionConnection
   private _member?: FabricRoomSessionMember
   private _currentLayoutEvent: FabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
-  private _capabilities: CallCapabilities = {}
+  private _capabilities?: CallCapabilities
 
   constructor(options: FabricRoomSessionOptions) {
     super(options)
@@ -81,11 +81,11 @@ export class FabricRoomSessionConnection
     )?.position
   }
 
-  get capabilities(): CallCapabilities {
+  get capabilities(): CallCapabilities | undefined {
     return this._capabilities
   }
 
-  set capabilities(capabilities: CallCapabilities) {
+  set capabilities(capabilities: CallCapabilities | undefined) {
     this._capabilities = capabilities
   }
 
@@ -209,8 +209,8 @@ export class FabricRoomSessionConnection
   public async audioMute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.muteAudio?.off
-        : !this.capabilities.member?.muteAudio?.off
+        ? !this.capabilities?.self?.muteAudio?.off
+        : !this.capabilities?.member?.muteAudio?.off
     ) {
       throw Error('Missing audio mute capability')
     }
@@ -224,8 +224,8 @@ export class FabricRoomSessionConnection
   public async audioUnmute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.muteAudio?.on
-        : !this.capabilities.member?.muteAudio?.on
+        ? !this.capabilities?.self?.muteAudio?.on
+        : !this.capabilities?.member?.muteAudio?.on
     ) {
       throw Error('Missing audio unmute capability')
     }
@@ -239,8 +239,8 @@ export class FabricRoomSessionConnection
   public async videoMute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.muteVideo?.off
-        : !this.capabilities.member?.muteVideo?.on
+        ? !this.capabilities?.self?.muteVideo?.off
+        : !this.capabilities?.member?.muteVideo?.on
     ) {
       throw Error('Missing video mute capability')
     }
@@ -254,8 +254,8 @@ export class FabricRoomSessionConnection
   public async videoUnmute(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.muteVideo?.on
-        : !this.capabilities.member?.muteVideo?.on
+        ? !this.capabilities?.self?.muteVideo?.on
+        : !this.capabilities?.member?.muteVideo?.on
     ) {
       throw Error('Missing video unmute capability')
     }
@@ -269,8 +269,8 @@ export class FabricRoomSessionConnection
   public async deaf(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.deaf?.on
-        : !this.capabilities.member?.deaf?.on
+        ? !this.capabilities?.self?.deaf?.on
+        : !this.capabilities?.member?.deaf?.on
     ) {
       throw Error('Missing deaf capability')
     }
@@ -283,8 +283,8 @@ export class FabricRoomSessionConnection
   public async undeaf(params: MemberCommandParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.deaf?.off
-        : !this.capabilities.member?.deaf?.off
+        ? !this.capabilities?.self?.deaf?.off
+        : !this.capabilities?.member?.deaf?.off
     ) {
       throw Error('Missing undeaf capability')
     }
@@ -321,7 +321,7 @@ export class FabricRoomSessionConnection
   }
 
   public async removeMember(params: Required<MemberCommandParams>) {
-    if (!this.capabilities.member?.remove) {
+    if (!this.capabilities?.member?.remove) {
       throw Error('Missing setLayout capability')
     }
     if (!params?.memberId) {
@@ -337,15 +337,15 @@ export class FabricRoomSessionConnection
     const { raised = true, memberId } = params || {}
     if (
       memberId == this.member.id && raised
-        ? !this.capabilities.self?.raisehand?.on
-        : !this.capabilities.member?.raisehand?.on
+        ? !this.capabilities?.self?.raisehand?.on
+        : !this.capabilities?.member?.raisehand?.on
     ) {
       throw Error('Missing raisehand capability')
     }
     if (
       memberId == this.member.id && !raised
-        ? !this.capabilities.self?.raisehand?.off
-        : !this.capabilities.member?.raisehand?.off
+        ? !this.capabilities?.self?.raisehand?.off
+        : !this.capabilities?.member?.raisehand?.off
     ) {
       throw Error('Missing lowerhand capability')
     }
@@ -356,7 +356,7 @@ export class FabricRoomSessionConnection
   }
 
   public async setLayout(params: Rooms.SetLayoutParams) {
-    if (!this.capabilities.setLayout) {
+    if (!this.capabilities?.setLayout) {
       throw Error('Missing setLayout capability')
     }
     const extraParams = {
@@ -372,8 +372,8 @@ export class FabricRoomSessionConnection
   public async setInputVolume(params: MemberCommandWithVolumeParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.microphoneVolume
-        : !this.capabilities.member?.microphoneVolume
+        ? !this.capabilities?.self?.microphoneVolume
+        : !this.capabilities?.member?.microphoneVolume
     ) {
       throw Error('Missing setInputVolume capability')
     }
@@ -389,8 +389,8 @@ export class FabricRoomSessionConnection
   public async setOutputVolume(params: MemberCommandWithVolumeParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.speakerVolume
-        : !this.capabilities.member?.speakerVolume
+        ? !this.capabilities?.self?.speakerVolume
+        : !this.capabilities?.member?.speakerVolume
     ) {
       throw Error('Missing setOutputVolume capability')
     }
@@ -406,8 +406,8 @@ export class FabricRoomSessionConnection
   public async setInputSensitivity(params: MemberCommandWithValueParams) {
     if (
       !params || params.memberId === this.member.id
-        ? !this.capabilities.self?.microphoneSensitivity
-        : !this.capabilities.member?.microphoneSensitivity
+        ? !this.capabilities?.self?.microphoneSensitivity
+        : !this.capabilities?.member?.microphoneSensitivity
     ) {
       throw Error('Missing setOutputVolume capability')
     }
@@ -431,8 +431,8 @@ export class FabricRoomSessionConnection
       Object.keys(positions).some((p) =>
         ['self', `${this.memberId}`].includes(p)
       )
-        ? !this.capabilities.self?.position
-        : !this.capabilities.member?.position
+        ? !this.capabilities?.self?.position
+        : !this.capabilities?.member?.position
     ) {
       throw Error('Missing setPositions capability')
     }
@@ -478,7 +478,7 @@ export class FabricRoomSessionConnection
   }
 
   public async lock() {
-    if (!this.capabilities.lock?.on) {
+    if (!this.capabilities?.lock?.on) {
       throw Error('Missing lock capability')
     }
     return this.executeAction<BaseRPCResult>({
@@ -487,7 +487,7 @@ export class FabricRoomSessionConnection
   }
 
   public async unlock() {
-    if (!this.capabilities.lock?.off) {
+    if (!this.capabilities?.lock?.off) {
       throw Error('Missing unlock capability')
     }
     return this.executeAction<BaseRPCResult>({

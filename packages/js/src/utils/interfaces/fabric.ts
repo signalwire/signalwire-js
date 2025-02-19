@@ -39,6 +39,7 @@ import {
   CallConnectEventParams,
   CallRoom,
   CallRoomEventParams,
+  CallCapabilities
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { FabricRoomSession } from '../../fabric'
@@ -73,6 +74,11 @@ export type FabricMemberListUpdatedParams = {
   members: InternalFabricMemberEntity[]
 }
 
+export type FabricCallJoinedEventParams =  {
+  capabilities: CallCapabilities
+} & Omit<CallJoinedEventParams, 'capabilities'>
+
+
 export type FabricRoomSessionEventsHandlerMap = Record<
   VideoRoomDeviceUpdatedEventNames,
   (params: DeviceUpdatedEventParams) => void
@@ -84,7 +90,7 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   Record<MediaEventNames, () => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<BaseConnectionState, (params: FabricRoomSession) => void> &
-  Record<CallJoined, (stream: CallJoinedEventParams) => void> &
+  Record<CallJoined, (stream: FabricCallJoinedEventParams) => void> &
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallLeft, (stream: CallLeftEventParams) => void> &
   Record<CallState, (stream: CallStateEventParams) => void> &
