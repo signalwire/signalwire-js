@@ -75,8 +75,8 @@ test.describe('Room Settings', () => {
         initialEvents: [],
       })
 
-      // --------------- Joining the room or wait for recording.started event---------------
-      const params = await Promise.race([
+      // --------------- wait for room.joined or recording.started event---------------
+      let params = await Promise.race([
         expectRoomJoined(page),
         expectRecordingStarted(page)
       ])
