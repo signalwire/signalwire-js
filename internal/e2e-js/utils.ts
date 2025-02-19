@@ -14,7 +14,7 @@ import { clearInterval } from 'timers'
 // #region Utilities for Playwright test server & fixture
 
 type CreateTestServerOptions = {
-  target: 'heroku' | 'blank'
+  target: 'video' | 'blank'
 }
 
 const TARGET_ROOT_PATH: Record<
@@ -25,9 +25,9 @@ const TARGET_ROOT_PATH: Record<
   }
 > = {
   blank: { path: './templates/blank', port: 1337 },
-  heroku: {
+  video: {
     path: path.dirname(
-      require.resolve('@sw-internal/playground-js/src/heroku/index.html')
+      require.resolve('@sw-internal/playground-js/src/video/index.html')
     ),
     port: 1336,
   },
