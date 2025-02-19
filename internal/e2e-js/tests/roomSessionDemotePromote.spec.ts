@@ -137,7 +137,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     await pageTwo.waitForTimeout(1000)
 
-    // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
+    // --------------- Promote audience from pageOne and resolve on `member.joined` and `room.joined` ---------------
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
         // @ts-expect-error
