@@ -29,6 +29,7 @@ describe('BaseSession', () => {
 
   let ws: WS
   let session: BaseSession
+
   beforeEach(() => {
     ws = new WS(host)
     // Respond to RPCs
@@ -56,6 +57,7 @@ describe('BaseSession', () => {
     session.CloseEventConstructor = SWCloseEvent
     session.dispatch = jest.fn()
   })
+
   afterEach(() => {
     WS.clean()
   })
@@ -83,6 +85,8 @@ describe('BaseSession', () => {
     await ws.connected
 
     await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
+
+    session.disconnect()
   })
 
   it('should set idle mode on signalwire.disconnect', async () => {
@@ -102,6 +106,8 @@ describe('BaseSession', () => {
     const response = RPCDisconnectResponse(request.id)
     await expect(ws).toReceiveMessage(JSON.stringify(response))
     expect(session.status).toEqual('idle')
+
+    session.disconnect()
   })
 
   describe('signalwire.event messages', () => {
@@ -124,6 +130,8 @@ describe('BaseSession', () => {
       expect(session.dispatch).toHaveBeenCalledWith(
         socketMessageAction(request)
       )
+
+      session.disconnect()
     })
 
     it('should send acknowledge message on signalwire.event', async () => {
@@ -148,6 +156,8 @@ describe('BaseSession', () => {
           result: {},
         })
       )
+
+      session.disconnect()
     })
   })
 
@@ -164,6 +174,8 @@ describe('BaseSession', () => {
 
       const response = RPCPingResponse(ping.id, ping.params.timestamp)
       await expect(ws).toReceiveMessage(JSON.stringify(response))
+
+      session.disconnect()
     })
 
     it('should close the connection if no signalwire.ping comes within _checkPingDelay', async () => {
@@ -181,6 +193,8 @@ describe('BaseSession', () => {
       await wait(10)
       expect(session.connected).toBe(false)
       expect(session.closed).toBe(true)
+
+      session.disconnect()
     })
   })
 })

@@ -13,11 +13,11 @@ concurrency:
 jobs:
   e2e-tests:
     name: Run E2E tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false # Continue other jobs if one fails
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
         test_command: ['dev:rtonly']
     steps:
       - uses: actions/checkout@v4

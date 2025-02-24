@@ -26,6 +26,7 @@ let client = null
 let micAnalyzer = null
 
 const inCallElements = [
+  btnHangup,
   roomControls,
   muteSelfBtn,
   unmuteSelfBtn,
@@ -231,9 +232,10 @@ const initializeMicAnalyzer = async (stream) => {
 }
 
 function restoreUI() {
-  btnConnect.classList.remove('d-none')
-  btnDisconnect.classList.add('d-none')
-  connectStatus.innerHTML = 'Not Connected'
+  connectStatus.innerHTML = 'Call Disconnected'
+
+  btnDial.classList.remove('d-none')
+  btnDisconnect.classList.remove('d-none')
 
   inCallElements.forEach((button) => {
     button.classList.add('d-none')
@@ -241,27 +243,62 @@ function restoreUI() {
   })
 }
 
-async function getClient() {
-  if (!client) {
-    client = await SignalWire({
-      host: document.getElementById('host').value,
-      token: document.getElementById('token').value,
-      logLevel: 'debug',
-      debug: { logWsTraffic: true },
-    })
-  }
+/**
+ * Connect the Fabric client (start the WebSocket connection with Auth).
+ */
+window.connect = async () => {
+  connectStatus.innerHTML = 'Connecting...'
 
-  return client
+  client = await SignalWire({
+    host: document.getElementById('host').value,
+    token: document.getElementById('token').value,
+    logLevel: 'debug',
+    debug: { logWsTraffic: true },
+  })
+  window.__client = client
+
+  /**
+   * Following are the internal SDK session events
+   */
+  client.__wsClient.session.on('session.connected', () => {
+    console.debug('>> session.connected')
+  })
+  client.__wsClient.session.on('session.auth_error', (error) => {
+    console.debug('>> session.auth_error', error)
+  })
+  client.__wsClient.session.on('session.disconnecting', () => {
+    console.debug('>> session.disconnecting')
+  })
+  client.__wsClient.session.on('session.disconnected', () => {
+    console.debug('>> session.disconnected')
+  })
+  client.__wsClient.session.on('session.expiring', () => {
+    console.debug('>> session.expiring')
+  })
+  client.__wsClient.session.on('session.idle', () => {
+    console.debug('>> session.idle')
+  })
+  client.__wsClient.session.on('session.reconnecting', () => {
+    console.debug('>> session.reconnecting')
+  })
+  client.__wsClient.session.on('session.unknown', () => {
+    console.debug('>> session.unknown')
+  })
+
+  connectStatus.innerHTML = 'Connected'
+
+  btnConnect.classList.add('d-none')
+  btnDial.classList.remove('d-none')
+  btnDisconnect.classList.remove('d-none')
+
+  removeRoomFromURL()
 }
 
 /**
- * Connect with Relay creating a client and attaching all the event handler.
+ * Dial the Fabric Address
  */
-window.connect = async ({ reattach = false } = {}) => {
-  const client = await getClient()
-  window.__client = client
-
-  connectStatus.innerHTML = 'Connecting...'
+window.dial = async ({ reattach = false } = {}) => {
+  connectStatus.innerHTML = 'Dialing...'
 
   // Set a node_id for steering
   const steeringId = undefined
@@ -307,10 +344,7 @@ window.connect = async ({ reattach = false } = {}) => {
   roomObj.on('room.joined', (params) => {
     console.debug('>> room.joined ', params)
 
-    // Set or update the query parameter 'room' with value room.name
-    const url = new URL(window.location.href)
-    url.searchParams.set('room', params.room_session.name)
-    window.history.pushState({}, '', url)
+    addRoomToURL(params.room_session.name)
   })
   roomObj.on('room.updated', (params) =>
     console.debug('>> room.updated', params)
@@ -422,9 +456,12 @@ window.connect = async ({ reattach = false } = {}) => {
     })
 
   const joinHandler = (params) => {
+    connectStatus.innerHTML = 'Call Connected'
+
     btnConnect.classList.add('d-none')
-    btnDisconnect.classList.remove('d-none')
-    connectStatus.innerHTML = 'Connected'
+    btnDial.classList.add('d-none')
+    btnDisconnect.classList.add('d-none')
+
     inCallElements.forEach((button) => {
       button.classList.remove('d-none')
       button.disabled = false
@@ -437,21 +474,49 @@ window.connect = async ({ reattach = false } = {}) => {
 /**
  * Hangup the roomObj if present
  */
-window.hangup = () => {
+window.hangup = async () => {
   if (micAnalyzer) {
     micAnalyzer.destroy()
   }
 
   if (roomObj) {
-    roomObj.hangup()
+    await roomObj.hangup()
   }
 
   restoreUI()
 
-  // Remove the 'room' query parameter
+  removeRoomFromURL()
+}
+
+/**
+ * Disconnect the Call Fabric client
+ */
+window.disconnect = async () => {
+  await client.disconnect()
+  connectStatus.innerHTML = 'Disconnected'
+
+  client = null
+
+  btnConnect.classList.remove('d-none')
+  btnHangup.classList.add('d-none')
+  btnDial.classList.add('d-none')
+  btnDisconnect.classList.add('d-none')
+
+  removeRoomFromURL()
+}
+
+// Set or update the query parameter 'room' with value room.name
+window.addRoomToURL = (roomName) => {
+  const url = new URL(window.location.href)
+  url.searchParams.set('room', roomName)
+  window.history.replaceState({}, '', url)
+}
+
+// Remove the 'room' query parameter
+window.removeRoomFromURL = () => {
   const url = new URL(window.location.href)
   url.searchParams.delete('room')
-  window.history.pushState({}, '', url)
+  window.history.replaceState({}, '', url)
 }
 
 window.saveInLocalStorage = (e) => {
@@ -817,7 +882,8 @@ window.ready(async function () {
   const urlParams = new URLSearchParams(window.location.search)
   const room = urlParams.get('room')
   if (room) {
-    connect({ reattach: true })
+    await connect()
+    await dial({ reattach: true })
   } else {
     console.log('Room parameter not found')
   }

@@ -250,11 +250,10 @@ window.connect = () => {
   })
 
   const handler = (params) => {
-    console.warn('>> Debug', params)
     // Set or update the query parameter 'room' with value room.name
     const url = new URL(window.location.href)
     url.searchParams.set('room', params.room.name)
-    window.history.pushState({}, '', url)
+    window.history.replaceState({}, '', url)
   }
   roomObj.on('room.joined', handler)
   roomObj.on('room.joined', handler)
@@ -428,7 +427,7 @@ window.hangup = () => {
   // Remove the 'room' query parameter
   const url = new URL(window.location.href)
   url.searchParams.delete('room')
-  window.history.pushState({}, '', url)
+  window.history.replaceState({}, '', url)
 }
 
 window.saveInLocalStorage = (e) => {

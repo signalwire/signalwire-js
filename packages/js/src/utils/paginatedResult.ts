@@ -1,4 +1,4 @@
-import { PaginatedResponse } from '../fabric/types'
+import { PaginatedResponse } from '../fabric/interfaces'
 import { CreateHttpClient } from '../fabric/createHttpClient'
 
 export function buildPaginatedResult<T>(

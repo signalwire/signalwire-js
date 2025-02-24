@@ -1,8 +1,12 @@
-export const useInstanceMap = () => {
-  // Generic map stores multiple instance
-  // For eg;
-  // callId => CallInstance
-  // controlId => PlaybackInstance | RecordingInstance
+import { InstanceMap } from '../../utils/interfaces'
+
+export const useInstanceMap = (): InstanceMap => {
+  /**
+   * Generic map stores multiple instance
+   * For eg;
+   * callId => CallInstance
+   * controlId => PlaybackInstance | RecordingInstance
+   */
   const instanceMap = new Map<string, unknown>()
 
   const getInstance = <T extends unknown>(key: string): T => {
@@ -11,12 +15,12 @@ export const useInstanceMap = () => {
 
   const setInstance = <T extends unknown>(key: string, value: T) => {
     instanceMap.set(key, value)
-    return instanceMap
+    return instanceMap as Map<string, T>
   }
 
-  const deleteInstance = (key: string) => {
+  const deleteInstance = <T extends unknown>(key: string) => {
     instanceMap.delete(key)
-    return instanceMap
+    return instanceMap as Map<string, T>
   }
 
   const getAllInstances = () => {
