@@ -76,6 +76,7 @@ export type GetSubscriberInfoResult = GetSubscriberInfoResponse
 
 // #endregion Subscriber info
 
+export * from './capabilities'
 export * from './address'
 export * from './conversation'
 export * from './device'
@@ -90,7 +91,6 @@ export type {
   ConversationMessageEvent,
   ConversationEvent,
   ConversationEventParams,
-  CallCapabilities
 } from '@signalwire/core'
 
 export type { FabricCallJoinedEventParams } from '../../utils/interfaces'

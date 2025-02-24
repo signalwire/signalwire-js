@@ -39,10 +39,9 @@ import {
   CallConnectEventParams,
   CallRoom,
   CallRoomEventParams,
-  CallCapabilities
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-import { FabricRoomSession } from '../../fabric'
+import { CallCapabilitiesContract, FabricRoomSession } from '../../fabric'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -75,7 +74,7 @@ export type FabricMemberListUpdatedParams = {
 }
 
 export type FabricCallJoinedEventParams =  {
-  capabilities: CallCapabilities
+  capabilities: CallCapabilitiesContract
 } & Omit<CallJoinedEventParams, 'capabilities'>
 
 

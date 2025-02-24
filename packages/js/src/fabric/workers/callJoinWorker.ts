@@ -4,9 +4,7 @@ import {
   CallJoinedEvent,
   sagaEffects,
   MemberPosition,
-  mapCapabilityPayload,
   stripNamespacePrefix,
-  CallCapabilities,
 } from '@signalwire/core'
 import {
   createFabricRoomSessionMemberObject,
@@ -15,7 +13,8 @@ import {
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
 import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/helpers'
-import { FabricCallJoinedEventParams } from '../../utils/interfaces'
+import { mapCapabilityPayload } from '../utils/capabilitiesHelpers'
+import { CallCapabilitiesContract } from '../../fabric/interfaces'
 
 export const callJoinWorker = function* (
   options: FabricWorkerParams<CallJoinedEvent>
@@ -77,12 +76,12 @@ export const callJoinWorker = function* (
 
   cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
   // the server send the capabilities payload as an array of string 
-  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities || []) as CallCapabilities
+  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities || []) as CallCapabilitiesContract
 
-  const fabricEvent: FabricCallJoinedEventParams = {
+  const fabricEvent = {
     ...payload,
     capabilities: cfRoomSession.capabilities
-  } as FabricCallJoinedEventParams
+  }
   
   cfRoomSession.emit('call.joined', fabricEvent)
 

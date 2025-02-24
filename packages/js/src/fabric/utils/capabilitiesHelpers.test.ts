@@ -1,4 +1,4 @@
-import { mapCapabilityPayload, stripNamespacePrefix } from './eventUtils'
+import { mapCapabilityPayload, stripNamespacePrefix } from "./capabilitiesHelpers"
 
 describe('eventUtils', () => {
   describe('stripNamespacePrefix', () => {
