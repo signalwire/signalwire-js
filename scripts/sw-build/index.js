@@ -4,7 +4,7 @@ import esbuild from 'esbuild'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
 // UMD related deps.
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 import * as rollup from 'rollup'
 import commonjs from '@rollup/plugin-commonjs'
 import license from 'rollup-plugin-license'
