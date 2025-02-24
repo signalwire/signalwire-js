@@ -24,7 +24,7 @@ import type {
   JoinConversationResponse,
   JoinConversationResult,
   ConversationSubscribeResult,
-} from './types'
+} from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'

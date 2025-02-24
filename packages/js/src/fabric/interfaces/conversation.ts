@@ -49,20 +49,21 @@ export type GetConversationsResponse = PaginatedResponse<ConversationResponse>
 
 export type GetConversationsResult = PaginatedResult<ConversationContract>
 
-export type CoversationSubscribeCallback = (
+export type ConversationSubscribeCallback = (
   event: ConversationEventParams
 ) => unknown
 
-export interface CoversationSubscribeResult {
+export interface ConversationSubscribeResult {
   unsubscribe: () => void
 }
 
 export interface ConversationChatMessagesSubscribeParams {
   addressId: string
-  onMessage: CoversationSubscribeCallback
+  onMessage: ConversationSubscribeCallback
 }
 
-export type ConversationChatMessagesSubscribeResult = CoversationSubscribeResult
+export type ConversationChatMessagesSubscribeResult =
+  ConversationSubscribeResult
 
 export interface JoinConversationParams {
   addressId: string
