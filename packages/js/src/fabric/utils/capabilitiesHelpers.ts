@@ -19,11 +19,11 @@ class CapabilityOnOffState implements CapabilityOnOffStateContract {
   constructor(private _flags: string[]) { }
 
   get on() {
-    return this._flags.some((flag) => !flag.endsWith('.off'))
+    return this._flags.some(flag => /^(.*\.on|(?:(?!.*\.off$).*))$/.test(flag))
   }
 
   get off() {
-    return this._flags.some((flag) => flag.endsWith('.off'))
+    return this._flags.some(flag => /^(.*\.off|(?:(?!.*\.on$).*))$/.test(flag))
   }
 }
 class MemberCapability implements MemberCapabilityContract {
