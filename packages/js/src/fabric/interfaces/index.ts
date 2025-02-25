@@ -92,5 +92,3 @@ export type {
   ConversationEvent,
   ConversationEventParams,
 } from '@signalwire/core'
-
-export type { FabricCallJoinedEventParams } from '../../utils/interfaces'

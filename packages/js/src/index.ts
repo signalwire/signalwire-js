@@ -136,6 +136,7 @@ export type {
 } from '@signalwire/webrtc'
 
 export type {
+  FabricCallJoinedEventParams,
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,
   // Just to keep backwards compatibility.
