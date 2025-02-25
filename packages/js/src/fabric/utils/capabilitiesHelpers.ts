@@ -11,6 +11,7 @@ class CapabilityOnOffState implements CapabilityOnOffStateContract {
     return this._flags.some(flag => /^(.*\.off|(?:(?!.*\.on$).*))$/.test(flag))
   }
 }
+
 class MemberCapability implements MemberCapabilityContract {
   private _muteAudio?: CapabilityOnOffState
   private _muteVideo?: CapabilityOnOffState
