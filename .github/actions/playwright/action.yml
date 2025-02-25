@@ -9,18 +9,17 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install OS dependencies for Playwright
-      shell: bash
-      run: sudo npx playwright install-deps
-
     - name: Cache playwright binaries
       uses: actions/cache@v4
       id: playwright-cache
       with:
-        path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}
-    
+        path: |
+          ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}-v2
     - if: steps.playwright-cache.outputs.cache-hit != 'true'
       name: Install Playwright
       shell: bash
-      run: npx playwright install chromium
+      run: |
+        echo "Cache hit: ${{ steps.playwright-cache.outputs.cache-hit }}"
+        ls -R ~/.cache/ms-playwright
+        npx playwright install --with-deps chromium
