@@ -33,8 +33,7 @@
     "prettier": "^2.8.8"
   },
   "overrides": {
-    "esbuild": "0.25.0",
-    "axios": "1.7.4"
+    "esbuild": "0.25.0"
   },
   "devDependencies": {
     "@types/node": "^20.3.2",
