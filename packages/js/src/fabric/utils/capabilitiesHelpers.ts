@@ -139,12 +139,12 @@ export class CallCapabilities implements CallCapabilitiesContract {
 
   get self() {
     this._self = this._self ?? this._buildMemberCapability('self')
-    return this._self!
+    return this._self
   }
 
   get member() {
     this._member = this._member ?? this._buildMemberCapability('member')
-    return this._member!
+    return this._member
   }
 
   get end() {
