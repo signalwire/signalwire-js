@@ -506,7 +506,7 @@ export interface CallJoinedEventParams {
   member_id: string
   node_id?: string
   origin_call_id: string
-  capabilities: string[]
+  capabilities: string[] // TODO: More stronger type is required through server
 }
 
 export interface CallJoinedEvent extends SwEvent {
