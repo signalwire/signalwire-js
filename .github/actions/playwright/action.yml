@@ -9,14 +9,24 @@ inputs:
 runs:
   using: composite
   steps:
-    # - name: Cache playwright binaries
-    #   uses: actions/cache@v4
-    #   id: playwright-cache
-    #   with:
-    #     path: |
-    #       ~/.cache/ms-playwright
-    #     key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}
-    # - if: steps.playwright-cache.outputs.cache-hit != 'true'
-    - name: Install Playwright
+    - name: Cache playwright binaries
+      uses: actions/cache@v4
+      id: playwright-cache
+      with:
+        path: |
+          ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}-v2
+        
+    - if: steps.playwright-cache.outputs.cache-hit != 'true'
+      name: Install Playwright
+      run: |
+        echo "Cache hit: ${{ steps.playwright-cache.outputs.cache-hit }}"
+        # Only list the cache directory if it exists.
+        if [ -d ~/.cache/ms-playwright ]; then
+          ls -R ~/.cache/ms-playwright
+        else
+          echo "~/.cache/ms-playwright does not exist yet."
+        fi
+
+        npx playwright install --with-deps chromium
       shell: bash
-      run: npx playwright install --with-deps chromium
