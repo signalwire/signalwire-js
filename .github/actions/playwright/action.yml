@@ -15,7 +15,7 @@ runs:
       with:
         path: |
           ~/.cache/ms-playwright
-        key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}
+        key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}-v2
 
     - if: steps.playwright-cache.outputs.cache-hit != 'true'
       name: Install Playwright
