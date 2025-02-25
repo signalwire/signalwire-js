@@ -21,5 +21,9 @@ runs:
       shell: bash
       run: |
         echo "Cache hit: ${{ steps.playwright-cache.outputs.cache-hit }}"
-        ls -R ~/.cache/ms-playwright
-        npx playwright install --with-deps chromium
+        # Only list the cache directory if it exists.
+        if [ -d ~/.cache/ms-playwright ]; then
+          ls -R ~/.cache/ms-playwright
+        else
+          echo "~/.cache/ms-playwright does not exist yet."
+        fi
