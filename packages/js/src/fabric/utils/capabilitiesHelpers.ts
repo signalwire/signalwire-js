@@ -121,6 +121,7 @@ class MemberCapability implements MemberCapabilityContract {
     )
   }
 }
+
 export class CallCapabilities implements CallCapabilitiesContract {
   private _self?: MemberCapabilityContract
   private _member?: MemberCapabilityContract
