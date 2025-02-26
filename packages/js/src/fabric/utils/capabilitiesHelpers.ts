@@ -165,7 +165,7 @@ export class CallCapabilities implements CallCapabilitiesContract {
       new CapabilityOnOffState(
         this._flags.filter((flag) => flag.startsWith('vmuted'))
       )
-    return this._vmutedHide!
+    return this._vmutedHide
   }
 
   get lock() {
