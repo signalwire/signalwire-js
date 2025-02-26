@@ -493,74 +493,26 @@ export const createCFClient = async (
   page: Page,
   params?: CreateCFClientParams
 ) => {
-  const sat = await createTestSATToken()
-  if (!sat) {
-    console.error('Invalid SAT. Exiting..')
-    process.exit(4)
-  }
-
-  const { attachSagaMonitor = false } = params || {}
-
-  const swClient = await page.evaluate(
-    async (options) => {
-      const _runningWorkers: any[] = []
-      // @ts-expect-error
-      window._runningWorkers = _runningWorkers
-      const addTask = (task: any) => {
-        if (!_runningWorkers.includes(task)) {
-          _runningWorkers.push(task)
-        }
-      }
-      const removeTask = (task: any) => {
-        const index = _runningWorkers.indexOf(task)
-        if (index > -1) {
-          _runningWorkers.splice(index, 1)
-        }
-      }
-
-      const sagaMonitor = {
-        effectResolved: (_effectId: number, result: any) => {
-          if (result?.toPromise) {
-            addTask(result)
-            // Remove the task when it completes or is cancelled
-            result.toPromise().finally(() => {
-              removeTask(result)
-            })
-          }
-        },
-      }
-
-      // @ts-expect-error
-      const SignalWire = window._SWJS.SignalWire
-      const client: SignalWireContract = await SignalWire({
-        host: options.RELAY_HOST,
-        token: options.API_TOKEN,
-        debug: { logWsTraffic: true },
-        ...(options.attachSagaMonitor && { sagaMonitor }),
-      })
-
-      // @ts-expect-error
-      window._client = client
-      return client
-    },
-    {
-      RELAY_HOST: process.env.RELAY_HOST,
-      API_TOKEN: sat,
-      attachSagaMonitor,
-    }
-  )
-
-  return swClient
+  const sat = await createTestSATToken();
+  return createCFClientWithToken(page, sat, params);
 }
 
 export const createGuestCFClient = async (
   page: Page,
   bodyData: GuestSATTokenRequest,
-  params?: CreateCFClientParams,
+  params?: CreateCFClientParams
 ) => {
-  const sat = await createGuestSATToken(bodyData)
+  const sat = await createGuestSATToken(bodyData);
+  return createCFClientWithToken(page, sat, params);
+}
+
+const createCFClientWithToken = async (
+  page: Page,
+  sat: string | null,
+  params?: CreateCFClientParams
+) => {
   if (!sat) {
-    console.error('Invalid Guest SAT. Exiting...')
+    console.error('Invalid SAT. Exiting..')
     process.exit(4)
   }
 
