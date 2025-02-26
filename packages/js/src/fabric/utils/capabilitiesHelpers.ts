@@ -98,7 +98,7 @@ class MemberCapability implements MemberCapabilityContract {
     //         flag.startsWith(`${this._memberType}.raisehand`)
     //     )
     //   )
-    // return this._raisehand!
+    // return this._raisehand
   }
 
   get position() {
