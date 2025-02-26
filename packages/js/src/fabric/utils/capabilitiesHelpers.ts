@@ -45,7 +45,7 @@ class MemberCapability implements MemberCapabilityContract {
             flag.startsWith(`${this._memberType}.mute.video`)
         )
       )
-    return this._muteVideo!
+    return this._muteVideo
   }
 
   get microphoneVolume() {
