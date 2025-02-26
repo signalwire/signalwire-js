@@ -16,9 +16,9 @@ export interface BaseRoomSessionContract {
    */
   screenShareList: RoomSessionScreenShare[]
   /**
-   * Leaves the room. This detaches all the locally originating streams from the room.
+   * Leaves the room immediately. This detaches all the locally originating streams from the room.
    */
-  leave(): Promise<void>
+  leave(): void
   /**
    * Return the member overlay on top of the root element
    */
