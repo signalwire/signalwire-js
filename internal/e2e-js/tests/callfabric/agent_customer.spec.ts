@@ -45,8 +45,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
     await dialAddress(agent_page, {
       address: `/private/${agentResourceName}`, // or /public/?
       shouldWaitForJoin: false,
-      shouldStartCall: false,
-      dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
+      shouldStartCall: false
     })
 
     const expectInitialEventsForAgent = expectCFInitialEvents(agent_page, [])
@@ -83,12 +82,11 @@ test.describe(agent_customer_static_scripts_desc, () => {
     await dialAddress(customer_page, {
       address: `/private/${customerResourceName}`, // or /public/?
       shouldWaitForJoin: false,
-      shouldStartCall: false,
-      dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
+      shouldStartCall: false
     })
 
     // Let the Agent wait a little before the Customer joins
-    await new Promise((r) => setTimeout(r, 2000))
+    await customer_page.waitForTimeout(2000)
 
     const expectInitialEventsForCustomer = expectCFInitialEvents(customer_page, [])
     await customer_page.evaluate(async () => {
@@ -99,10 +97,8 @@ test.describe(agent_customer_static_scripts_desc, () => {
     })
     await expectInitialEventsForCustomer
 
-    console.log("________ CALL IS IN PROGRESS ________________")
-
     // 5 seconds' call
-    await new Promise((r) => setTimeout(r, 5000))
+    await customer_page.waitForTimeout(5000)
 
     console.log("Expect to have received audio...")
     await expectTotalAudioEnergyToBeGreaterThan(agent_page, 0.15)
@@ -110,7 +106,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
 
     // Attach final listeners
     const customerFinalEvents = expectCFFinalEvents(customer_page)
-    const agentFinalEvents = expectCFFinalEvents(customer_page)
+    const agentFinalEvents = expectCFFinalEvents(agent_page)
 
     console.log("Test done - hanging up customer")
 
@@ -130,8 +126,8 @@ test.describe(agent_customer_static_scripts_desc, () => {
       await call.hangup()
     })
 
-    await customerFinalEvents
-    await agentFinalEvents
+    await Promise.all([customerFinalEvents, agentFinalEvents])
+
     console.log("Test done -", agent_customer_static_scripts_desc)
   })
 })
@@ -168,8 +164,7 @@ test.describe(agent_customer_external_url_desc, () => {
     await dialAddress(agent_page, {
       address: `/private/${agentResourceName}`, // or /public/?
       shouldWaitForJoin: false,
-      shouldStartCall: false,
-      dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
+      shouldStartCall: false
     })
 
     const expectInitialEventsForAgent = expectCFInitialEvents(agent_page, [])
@@ -206,8 +201,7 @@ test.describe(agent_customer_external_url_desc, () => {
     await dialAddress(customer_page, {
       address: `/private/${customerResourceName}`, // or /public/?
       shouldWaitForJoin: false,
-      shouldStartCall: false,
-      dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
+      shouldStartCall: false
     })
 
     // Let the Agent wait a little before the Customer joins
@@ -222,10 +216,8 @@ test.describe(agent_customer_external_url_desc, () => {
     })
     await expectInitialEventsForCustomer
 
-    console.log("________ CALL IS IN PROGRESS ________________")
-
     // 5 seconds' call
-    await new Promise((r) => setTimeout(r, 5000))
+    await customer_page.waitForTimeout(5000)
 
     console.log("Expect to have received audio...")
     await expectTotalAudioEnergyToBeGreaterThan(agent_page, 0.15)
@@ -233,7 +225,7 @@ test.describe(agent_customer_external_url_desc, () => {
 
     // Attach final listeners
     const customerFinalEvents = expectCFFinalEvents(customer_page)
-    const agentFinalEvents = expectCFFinalEvents(customer_page)
+    const agentFinalEvents = expectCFFinalEvents(agent_page)
 
     console.log("Test done - hanging up customer")
 
@@ -253,8 +245,7 @@ test.describe(agent_customer_external_url_desc, () => {
       await call.hangup()
     })
 
-    await customerFinalEvents
-    await agentFinalEvents
+    await Promise.all([customerFinalEvents, agentFinalEvents])
     console.log("Test done -", agent_customer_external_url_desc)
   })
 })
@@ -296,8 +287,7 @@ test.describe(agent_customer_external_url_desc, () => {
 //     await dialAddress(customer_page, {
 //       address: `/private/${customerResourceName}`, // or /public/?
 //       shouldWaitForJoin: false,
-//       shouldStartCall: false,
-//       dialOptions: { logLevel: 'debug', debug: { logWsTraffic: true }}
+//       shouldStartCall: false
 //     })
 
 //     const expectInitialEventsForCustomer = expectCFInitialEvents(customer_page, [])
@@ -309,10 +299,8 @@ test.describe(agent_customer_external_url_desc, () => {
 //     })
 //     await expectInitialEventsForCustomer
 
-//     console.log("________ CALL IS IN PROGRESS ________________")
-
 //     // 10 seconds' call
-//     await new Promise((r) => setTimeout(r, 10000))
+//     await customer_page.waitForTimeout(10000)
 
 //     console.log("Expect to have received some audio...")
 //     await expectTotalAudioEnergyToBeGreaterThan(customer_page, 0.01)
