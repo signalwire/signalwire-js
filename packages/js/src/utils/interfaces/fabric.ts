@@ -14,7 +14,7 @@ import {
   VideoRoomDeviceDisconnectedEventNames,
   VideoRoomDeviceUpdatedEventNames,
   CallJoined,
-  CallJoinedEventParams,
+  CallJoinedEventParams as InternalCallJoinedEventParams,
   CallState,
   CallStateEventParams,
   CallUpdated,
@@ -73,10 +73,9 @@ export type FabricMemberListUpdatedParams = {
   members: InternalFabricMemberEntity[]
 }
 
-export type FabricCallJoinedEventParams =  {
+export type CallJoinedEventParams = {
   capabilities: CallCapabilitiesContract
-} & Omit<CallJoinedEventParams, 'capabilities'>
-
+} & Omit<InternalCallJoinedEventParams, 'capabilities'>
 
 export type FabricRoomSessionEventsHandlerMap = Record<
   VideoRoomDeviceUpdatedEventNames,
@@ -89,14 +88,17 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   Record<MediaEventNames, () => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<BaseConnectionState, (params: FabricRoomSession) => void> &
-  Record<CallJoined, (stream: FabricCallJoinedEventParams) => void> &
+  Record<CallJoined, (stream: CallJoinedEventParams) => void> &
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallLeft, (stream: CallLeftEventParams) => void> &
   Record<CallState, (stream: CallStateEventParams) => void> &
   Record<CallPlay, (stream: CallPlayEventParams) => void> &
   Record<CallConnect, (stream: CallConnectEventParams) => void> &
   Record<CallRoom, (stream: CallRoomEventParams) => void> &
-  Record<RoomJoined | RoomSubscribed, (params: CallJoinedEventParams) => void> &
+  Record<
+    RoomJoined | RoomSubscribed,
+    (params: InternalCallJoinedEventParams) => void
+  > &
   Record<RoomUpdated, (params: CallUpdatedEventParams) => void> &
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
   Record<MemberJoined, (params: FabricMemberJoinedEventParams) => void> &

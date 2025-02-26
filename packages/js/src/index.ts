@@ -108,7 +108,6 @@ export type {
   /**
    * Call Fabric types
    */
-  CallJoinedEventParams,
   CallUpdatedEventParams,
   CallLeftEventParams,
   CallStateEventParams,
@@ -136,7 +135,7 @@ export type {
 } from '@signalwire/webrtc'
 
 export type {
-  FabricCallJoinedEventParams,
+  CallJoinedEventParams,
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,
   // Just to keep backwards compatibility.

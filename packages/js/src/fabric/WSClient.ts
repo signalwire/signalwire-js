@@ -1,7 +1,7 @@
 import {
   actions,
   BaseClient,
-  CallJoinedEventParams,
+  CallJoinedEventParams as InternalCallJoinedEventParams,
   VertoBye,
   VertoSubscribe,
   VideoRoomSubscribedEventParams,
@@ -91,7 +91,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      * right away.
      */
     const joinMutedHandler = (
-      params: CallJoinedEventParams | VideoRoomSubscribedEventParams
+      params: InternalCallJoinedEventParams | VideoRoomSubscribedEventParams
     ) => {
       const member = params.room_session.members?.find(
         // @ts-expect-error FIXME:

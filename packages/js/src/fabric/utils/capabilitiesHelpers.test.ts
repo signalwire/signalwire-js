@@ -128,6 +128,18 @@ describe('eventUtils', () => {
       expect(callCapabilities.vmutedHide?.on).toBeFalsy()
       expect(callCapabilities.vmutedHide?.off).toBeFalsy()
     })
+
+    it('should have some both on and off', () => {
+      const callCapabilities = mapCapabilityPayload([
+        'member.mute.video',
+        'member.mute.audio.on',
+        'member.mute.audio.off',
+      ])
+      expect(callCapabilities.member?.muteVideo?.on).toEqual(true)
+      expect(callCapabilities.member?.muteVideo?.off).toEqual(true)
+      expect(callCapabilities.member?.muteAudio?.on).toEqual(true)
+      expect(callCapabilities.member?.muteAudio?.off).toEqual(true)
+    })
   })
 
   it('should not break if the server send redundant capability', () => {
