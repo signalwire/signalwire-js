@@ -4,6 +4,8 @@ describe('BaseNamespace', () => {
   // Using 'any' data type to bypass TypeScript checks for private or protected members.
   let baseNamespace: any
   let swClientMock: any
+  let listenersMap: Record<string, () => void> = {}
+
   const listenOptions = {
     topics: ['topic1', 'topic2'],
     onEvent1: jest.fn(),
@@ -18,6 +20,19 @@ describe('BaseNamespace', () => {
     swClientMock = {
       client: {
         execute: jest.fn(),
+        session: {
+          on: jest
+            .fn()
+            .mockImplementation((event: string, callback: () => void) => {
+              listenersMap[event] = callback
+            }),
+          once: jest
+            .fn()
+            .mockImplementation((event: string, callback: () => void) => {
+              listenersMap[event] = callback
+            }),
+          off: jest.fn(),
+        },
       },
     }
     baseNamespace = new BaseNamespace(swClientMock)
@@ -92,33 +107,26 @@ describe('BaseNamespace', () => {
   })
 
   describe('subscribe', () => {
-    let emitterOnMock: jest.Mock
-    let emitterOffMock: jest.Mock
-    let addTopicsMock: jest.Mock
-    let removeTopicsMock: jest.Mock
-
-    beforeEach(() => {
+    it('should attach listeners, add topics, and return an unsubscribe function', async () => {
       // Mock this._eventMap
       baseNamespace._eventMap = eventMap
 
       // Mock emitter.on method
-      emitterOnMock = jest.fn()
+      const emitterOnMock: jest.Mock = jest.fn()
       baseNamespace.emitter.on = emitterOnMock
 
       // Mock emitter.off method
-      emitterOffMock = jest.fn()
+      const emitterOffMock: jest.Mock = jest.fn()
       baseNamespace.emitter.off = emitterOffMock
 
       // Mock addTopics method
-      addTopicsMock = jest.fn()
+      const addTopicsMock: jest.Mock = jest.fn()
       baseNamespace.addTopics = addTopicsMock
 
       // Mock removeTopics method
-      removeTopicsMock = jest.fn()
+      const removeTopicsMock: jest.Mock = jest.fn()
       baseNamespace.removeTopics = removeTopicsMock
-    })
 
-    it('should attach listeners, add topics, and return an unsubscribe function', async () => {
       const { topics, ...listeners } = listenOptions
       const unsub = await baseNamespace.subscribe(listenOptions)
 
@@ -161,6 +169,28 @@ describe('BaseNamespace', () => {
         })
       })
       expect(baseNamespace._listenerMap.size).toBe(0)
+    })
+
+    it('should resubscribe after a session reconnection', async () => {
+      const addTopicsMock = jest
+        .spyOn(baseNamespace, 'addTopics')
+        .mockResolvedValue(null)
+
+      await expect(
+        baseNamespace.subscribe(listenOptions)
+      ).resolves.toBeInstanceOf(Function)
+
+      expect(addTopicsMock).toHaveBeenCalledTimes(1)
+
+      expect(listenersMap['session.reconnecting']).toBeDefined()
+      // simulate ws closed
+      listenersMap['session.reconnecting']()
+
+      expect(listenersMap['session.connected']).toBeDefined()
+      // simulate ws opened
+      listenersMap['session.connected']()
+
+      expect(addTopicsMock).toHaveBeenCalledTimes(2)
     })
   })
 

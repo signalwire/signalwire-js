@@ -1,4 +1,4 @@
-import { EventEmitter, ExecuteParams, uuid } from '@signalwire/core'
+import { EventEmitter, ExecuteParams, uuid, getLogger } from '@signalwire/core'
 import { prefixEvent } from './utils/internals'
 import { ListenSubscriber } from './ListenSubscriber'
 import { SWClient } from './SWClient'
@@ -63,6 +63,28 @@ export class BaseNamespace<
 
     // Attach listeners
     this._attachListenersWithTopics(topics!, listeners as Listeners<T>)
+
+    // will be called if requires a new subscribe
+    const sessionReconnectedHandler = () => {
+      if (this._areListenersAttached(topics!, listeners as Listeners<T>)) {
+        this.addTopics(topics!).then(() => {
+          getLogger().info('topics added after ws reconnection')
+        })
+      }
+    }
+
+    // will be called when a new ws is acquired
+    const sessionReconnectingHandler = () => {
+      getLogger().debug(
+        'session.reconnecting emitted! handling existing topics'
+      )
+      // remove the previous listener if any
+      this._client.session.off('session.connected', sessionReconnectedHandler)
+      this._client.session.once('session.connected', sessionReconnectedHandler)
+    }
+
+    this._client.session.on('session.reconnecting', sessionReconnectingHandler)
+
     await this.addTopics(topics!)
 
     const unsub = () => {
