@@ -169,7 +169,6 @@ export const createGuestSATToken = async (bodyData: GuestSATTokenRequest) => {
     }
   )
   const data = await response.json()
-  console.log("---- guest token, data: ", data, " <--------------------")
   return data.token
 }
 
@@ -185,7 +184,6 @@ export const getResourceAddresses = async (resource_id: string) => {
     }
   )
   const data = await response.json()
-  console.log("---- get resource addresses for resource ID [", resource_id, "], response: ", data, " <--------------------")
   return data
 }
 
@@ -1436,15 +1434,12 @@ export interface Resource {
   type: string
   display_name: string
   created_at: string
+  cxml_application?: CXMLApplication
 }
 
 export interface CXMLApplication {
   id: string
   // and other things
-}
-
-export interface ApplicationResource extends Resource {
-  cxml_application?: CXMLApplication
 }
 
 export const createVideoRoomResource = async (name?: string) => {
@@ -1503,7 +1498,6 @@ export const createcXMLScriptResource = async ({
   contents,
 }: CreatecXMLScriptParams) => {
   const response = await fetch(
-//    `https://${process.env.API_HOST}/api/fabric/resources/cxml_scripts`,
     `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
     {
       method: 'POST',
@@ -1518,7 +1512,7 @@ export const createcXMLScriptResource = async ({
       }),
     }
   )
-  const data = (await response.json()) as ApplicationResource
+  const data = (await response.json()) as Resource
   console.log('----> data:', data)
   console.log('>> Resource cXML Script created:', data.id)
   return data
@@ -1533,7 +1527,6 @@ export const createcXMLExternalURLResource = async ({
   contents,
 }: CreatecXMLExternalURLParams) => {
   const response = await fetch(
-//    `https://${process.env.API_HOST}/api/fabric/resources/cxml_scripts`,
     `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
     {
       method: 'POST',
@@ -1548,13 +1541,11 @@ export const createcXMLExternalURLResource = async ({
       }),
     }
   )
-  const data = (await response.json()) as ApplicationResource
+  const data = (await response.json()) as Resource
   console.log('----> data:', data)
   console.log('>> Resource cXML External URL created:', data.id)
   return data
 }
-
-
 
 export interface CreateRelayAppResourceParams {
   name?: string

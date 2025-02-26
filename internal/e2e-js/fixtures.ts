@@ -4,7 +4,7 @@ import {
   CreatecXMLScriptParams,
   CreateRelayAppResourceParams,
   CreateSWMLAppResourceParams,
-  ApplicationResource,
+  Resource,
   createcXMLExternalURLResource,
   createcXMLScriptResource,
   createRelayAppResource,
@@ -32,7 +32,7 @@ type CustomFixture = {
     createVideoRoomResource: typeof createVideoRoomResource
     createSWMLAppResource: typeof createSWMLAppResource
     createRelayAppResource: typeof createRelayAppResource
-    resources: ApplicationResource[]
+    resources: Resource[]
   }
 }
 
@@ -94,7 +94,7 @@ const test = baseTest.extend<CustomFixture>({
     console.log('Cleaning up pages..')
   },
   resource: async ({}, use) => {
-    const resources: ApplicationResource[] = []
+    const resources: Resource[] = []
 
     const resource = {
       createVideoRoomResource: async (params?: string) => {
