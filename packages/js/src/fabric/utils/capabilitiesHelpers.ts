@@ -174,7 +174,7 @@ export class CallCapabilities implements CallCapabilitiesContract {
       new CapabilityOnOffState(
         this._flags.filter((flag) => flag.startsWith('lock'))
       )
-    return this._lock!
+    return this._lock
   }
 
   get device() {
