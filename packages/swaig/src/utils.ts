@@ -18,15 +18,13 @@ export async function validate(
   }
 }
 
-export const fetchSWLogo = async () => {
+export const fetchSWLogo = async (): Promise<Buffer | undefined> => {
   try {
     const response = await fetch(swLogoUrl)
-
-    const buffer = await response.arrayBuffer()
-
-    return buffer
+    const arrayBuffer = await response.arrayBuffer()
+    return Buffer.from(arrayBuffer)
   } catch (error) {
-    console.log('Error fetching the logo', error)
-    return
+    console.error('Error fetching the logo', error)
+    return undefined
   }
 }

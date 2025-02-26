@@ -9,10 +9,10 @@
     "test": ""
   },
   "dependencies": {
-    "firebase": "^10.12.0",
+    "firebase": "^11.3.1",
     "pako": "^2.1.0"
   },
   "devDependencies": {
-    "vite": "^6.0.7"
+    "vite": "^6.2.0"
   }
 }
