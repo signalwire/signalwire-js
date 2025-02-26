@@ -81,7 +81,7 @@ class MemberCapability implements MemberCapabilityContract {
             flag.startsWith(`${this._memberType}.deaf`)
         )
       )
-    return this._deaf!
+    return this._deaf
   }
 
   get raisehand() {
