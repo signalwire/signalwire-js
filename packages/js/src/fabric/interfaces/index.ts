@@ -76,6 +76,7 @@ export type GetSubscriberInfoResult = GetSubscriberInfoResponse
 
 // #endregion Subscriber info
 
+export * from './capabilities'
 export * from './address'
 export * from './conversation'
 export * from './device'

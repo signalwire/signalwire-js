@@ -11,7 +11,7 @@ import {
   SwEvent,
   CallState,
   CallPlay,
-  CallConnect,
+  CallConnect
 } from '..'
 
 /**

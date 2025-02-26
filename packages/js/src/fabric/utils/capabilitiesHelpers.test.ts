@@ -1,4 +1,5 @@
-import { mapCapabilityPayload, stripNamespacePrefix } from './eventUtils'
+import { stripNamespacePrefix } from "@signalwire/core"
+import { mapCapabilityPayload } from "./capabilitiesHelpers"
 
 describe('eventUtils', () => {
   describe('stripNamespacePrefix', () => {
@@ -89,8 +90,8 @@ describe('eventUtils', () => {
       ])
       expect(callCapabilities.member?.deaf?.on).toEqual(true)
       expect(callCapabilities.member?.deaf?.off).toEqual(true)
-      expect(callCapabilities.member?.raisehand?.on).toBeFalsy()
-      expect(callCapabilities.member?.raisehand?.off).toBeFalsy()
+      expect(callCapabilities.member?.raisehand?.on).toEqual(true)
+      expect(callCapabilities.member?.raisehand?.off).toEqual(true)
       expect(callCapabilities.member?.muteVideo?.on).toEqual(true)
       expect(callCapabilities.member?.muteVideo?.off).toEqual(true)
       expect(callCapabilities.member?.muteAudio?.on).toEqual(true)
@@ -104,8 +105,8 @@ describe('eventUtils', () => {
 
       expect(callCapabilities.self?.deaf?.on).toBeFalsy()
       expect(callCapabilities.self?.deaf?.off).toBeFalsy()
-      expect(callCapabilities.self?.raisehand?.on).toBeFalsy()
-      expect(callCapabilities.self?.raisehand?.off).toBeFalsy()
+      expect(callCapabilities.self?.raisehand?.on).toEqual(true)
+      expect(callCapabilities.self?.raisehand?.off).toEqual(true)
       expect(callCapabilities.self?.muteVideo?.on).toBeFalsy()
       expect(callCapabilities.self?.muteVideo?.off).toBeFalsy()
       expect(callCapabilities.self?.muteAudio?.on).toBeFalsy()
@@ -126,6 +127,18 @@ describe('eventUtils', () => {
       expect(callCapabilities.lock?.off).toBeFalsy()
       expect(callCapabilities.vmutedHide?.on).toBeFalsy()
       expect(callCapabilities.vmutedHide?.off).toBeFalsy()
+    })
+
+    it('should have some both on and off', () => {
+      const callCapabilities = mapCapabilityPayload([
+        'member.mute.video',
+        'member.mute.audio.on',
+        'member.mute.audio.off',
+      ])
+      expect(callCapabilities.member?.muteVideo?.on).toEqual(true)
+      expect(callCapabilities.member?.muteVideo?.off).toEqual(true)
+      expect(callCapabilities.member?.muteAudio?.on).toEqual(true)
+      expect(callCapabilities.member?.muteAudio?.off).toEqual(true)
     })
   })
 
