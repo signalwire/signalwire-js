@@ -181,7 +181,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       stopCameraWhileMuted: true,
       stopMicrophoneWhileMuted: true,
       watchMediaPackets: false,
-      destinationNumber: pathname,
+      destinationNumber: params.to,
       nodeId: params.nodeId,
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
