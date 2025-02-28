@@ -1,11 +1,15 @@
 import {
+  asyncRetry,
+  increasingDelay,
+  JSONRPCRequest,
+  JSONRPCResponse,
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
-  SessionOptions,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
+import { SATSessionOptions } from './interfaces'
 
 /**
  * SAT Session is for the Call Fabric SDK
@@ -13,7 +17,7 @@ import { JWTSession } from '../JWTSession'
 export class SATSession extends JWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
 
-  constructor(public options: SessionOptions) {
+  constructor(public options: SATSessionOptions) {
     super(options)
   }
 
@@ -63,5 +67,16 @@ export class SATSession extends JWTSession {
     } catch (error) {
       throw error
     }
+  }
+
+  override async execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
+    return asyncRetry({
+      asyncCallable: () => super.execute(msg),
+      retries: this.options.maxApiRequestRetries,
+      delayFn: increasingDelay({
+        initialDelay: this.options.apiRequestRetriesDelay,
+        variation: this.options.apiRequestRetriesDelayIncrement
+      })
+    })
   }
 }
