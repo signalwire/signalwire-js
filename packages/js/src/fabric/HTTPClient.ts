@@ -1,5 +1,5 @@
 import jwtDecode from 'jwt-decode'
-import { getLogger, HttpError, type UserOptions } from '@signalwire/core'
+import { getLogger, HttpError } from '@signalwire/core'
 import type {
   GetAddressResponse,
   GetAddressesParams,
@@ -13,6 +13,7 @@ import type {
   RegisterDeviceResult,
   GetSubscriberInfoResponse,
   GetSubscriberInfoResult,
+  FabricUserOptions,
 } from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -30,12 +31,15 @@ type JWTHeader = { ch?: string; typ?: string }
 export class HTTPClient implements HTTPClientContract {
   private httpClient: CreateHttpClient
 
-  constructor(public options: UserOptions) {
+  constructor(public options: FabricUserOptions) {
     this.httpClient = createHttpClient({
       baseUrl: `https://${this.httpHost}`,
       headers: {
         Authorization: `Bearer ${this.options.token}`,
       },
+      retries: this.options.maxApiRequestRetries,
+      retriesDelay: this.options.apiRequestRetriesDelay,
+      retriesDelayIncrement: this.options.apiRequestRetriesDelayIncrement
     })
   }
 

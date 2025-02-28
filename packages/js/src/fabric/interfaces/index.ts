@@ -1,3 +1,4 @@
+import { SessionOptions } from '@signalwire/core'
 import { Conversation } from '../Conversation'
 import { Address } from './address'
 import { HTTPClientContract } from './httpClient'
@@ -92,3 +93,12 @@ export type {
   ConversationEvent,
   ConversationEventParams,
 } from '@signalwire/core'
+
+export interface SATSessionOptions extends SessionOptions {
+  /** increment step for each retry delay */
+  apiRequestRetriesDelayIncrement: number
+  /** initial retry delay */
+  apiRequestRetriesDelay: number
+  /** max API request retry, set to 0 disable retries */
+  maxApiRequestRetries: number;
+}

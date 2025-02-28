@@ -20,6 +20,10 @@ import {
   stripNamespacePrefix,
   isJSONRPCRequest,
   isJSONRPCResponse,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -74,6 +78,10 @@ export {
   isJSONRPCResponse,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay
 }
 
 export * from './redux/features/component/componentSlice'
