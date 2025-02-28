@@ -11,16 +11,16 @@ export interface WSClientContract {
    * Dial a resource and connect the call
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link FabricRoomSession}.
+   * @returns A session object {@link FabricRoomSession}.
    */
-  dial(params: DialParams): Promise<FabricRoomSession>
+  dial(params: DialParams): FabricRoomSession
   /**
    * Reattach to the previous call if the previous call was not disconnected
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link FabricRoomSession}.
+   * @returns A session object {@link FabricRoomSession}.
    */
-  reattach(params: DialParams): Promise<FabricRoomSession>
+  reattach(params: DialParams): FabricRoomSession
   /**
    * Handles the incoming call via Push Notification
    *
