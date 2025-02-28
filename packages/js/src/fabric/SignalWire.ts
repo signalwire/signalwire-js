@@ -2,7 +2,7 @@ import { HTTPClient } from './HTTPClient'
 import { Conversation } from './Conversation'
 import { SignalWireClient, SignalWireClientParams } from './interfaces'
 import { WSClient } from './WSClient'
-import { DEFAULT_API_REQUEST_RETRIES, DEFAULT_API_REQUEST_RETRIES_DELAY, DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT } from 'packages/js/src/fabric/utils/constants'
+import { DEFAULT_API_REQUEST_RETRIES, DEFAULT_API_REQUEST_RETRIES_DELAY, DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT } from './utils/constants'
 
 export const SignalWire = (() => {
   let instance: Promise<SignalWireClient> | null = null
