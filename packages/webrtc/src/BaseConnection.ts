@@ -199,19 +199,34 @@ export class BaseConnection<
     this.logger.debug('Set RTCPeer', rtcPeer.uuid, rtcPeer)
     this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
 
+    const setActivePeer = (peerId: string) => {
+      this.logger.debug('>>> Replace active RTCPeer with', peerId)
+      this.activeRTCPeerId = peerId
+    }
+
+    /**
+     * In case of the promote/demote, a new peer is created.
+     * Hence, we hangup the old peer.
+     */
     if (this.peer && this.peer.instance && this.callId !== rtcPeer.uuid) {
       const oldPeerId = this.peer.uuid
       this.logger.debug('>>> Stop old RTCPeer', oldPeerId)
-      // Hangup the previous RTCPeer
-      this.hangup(oldPeerId).catch(console.error)
+
+      // Stop transceivers and then the Peer
       this.peer.detachAndStop()
+
+      // Set the new peer as active peer
+      setActivePeer(rtcPeer.uuid)
+
+      // Send "verto.bye" to the server
+      this.hangup(oldPeerId)
 
       // Remove RTCPeer from local cache to stop answering to ping/pong
       // this.rtcPeerMap.delete(oldPeerId)
+    } else {
+      // Set the new peer as active peer
+      setActivePeer(rtcPeer.uuid)
     }
-
-    this.logger.debug('>>> Replace RTCPeer with', rtcPeer.uuid)
-    this.activeRTCPeerId = rtcPeer.uuid
   }
 
   // Overload for BaseConnection events
@@ -361,8 +376,18 @@ export class BaseConnection<
     try {
       this.logger.debug('Build a new RTCPeer')
       const rtcPeer = this._buildPeer('offer')
-      this.logger.debug('Trigger start for the new RTCPeer!')
+      this.logger.debug('Trigger start for the new RTCPeer!', rtcPeer.uuid)
       await rtcPeer.start()
+
+      /**
+       * Ideally, the SDK set the active peer when the `room.subscribed` or
+       * `verto.display` event is received. However, in some cases, while
+       * promoting/demoting, the RTC Peer negotiates successfully but then
+       * starts the negotiation again.
+       * So, without waiting for the events, we can safely set the active
+       * Peer once the initial negotiation succeeds.
+       */
+      this.setActiveRTCPeer(rtcPeer.uuid)
     } catch (error) {
       this.logger.error('Error building new RTCPeer to promote/demote', error)
     }
@@ -956,10 +981,19 @@ export class BaseConnection<
       }
 
       this.logger.debug('UpdateMedia response', response)
-      if (!this.peer) {
+
+      /**
+       * At a time, there can be multiple RTC Peers.
+       * The {@link executeUpdateMedia} is called with a Peer ID
+       * We need to make sure we set the remote SDP coming from the server
+       * on the appropriate Peer.
+       * The appropriate Peer may or may not be the current/active (this.peer) one.
+       */
+      const peer = this.getRTCPeerById(rtcPeerId)
+      if (!peer) {
         return this.logger.error('Invalid RTCPeer to updateMedia')
       }
-      await this.peer.onRemoteSdp(response.sdp)
+      await peer.onRemoteSdp(response.sdp)
     } catch (error) {
       // Should we hangup when renegotiation fails?
       this.logger.error('UpdateMedia error', error)
@@ -970,7 +1004,7 @@ export class BaseConnection<
     }
   }
 
-  async hangup(id?: string) {
+  hangup(id?: string) {
     const rtcPeerId = id ?? this.callId
     if (!rtcPeerId) {
       throw new Error('Invalid RTCPeer ID to hangup')
@@ -978,7 +1012,11 @@ export class BaseConnection<
 
     try {
       const message = VertoBye(this.dialogParams(rtcPeerId))
-      await this.vertoExecute({
+      /**
+       * Fire-and-Forget
+       * For privacy reasons, the user should be allowed to leave the call immediately.
+       */
+      this.vertoExecute({
         message,
         callID: rtcPeerId,
         node_id: this.nodeId,
