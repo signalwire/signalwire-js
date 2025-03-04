@@ -61,7 +61,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [3.13.0] - 2025-01-21 (Accidental Release — DO NOT USE)
 
-> **Note:** This version was published by mistake and should not be used.  
+> **Note:** This version was published by mistake and should not be used.
 > Please upgrade directly to `3.13.1` or higher.
 
 ## [3.12.1] - 2024-06-03
