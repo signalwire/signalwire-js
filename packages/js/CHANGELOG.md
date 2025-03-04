@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.28.1] - 2024-03-04
+## [3.28.1] - 2025-03-04
 
 ### Added
 
@@ -125,7 +125,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - @signalwire/core@4.2.1
   - @signalwire/webrtc@3.13.1
 
-## [3.28.0] - 2024-01-21 (Accidental Release — DO NOT USE)
+## [3.28.0] - 2025-01-21 (Accidental Release — DO NOT USE)
 
 > **Note:** This version was published by mistake and should not be used.  
 > Please upgrade directly to `3.28.1` or higher.

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.2.1] - 2024-03-04
+## [4.2.1] - 2025-03-04
 
 ### Added
 
@@ -83,7 +83,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - Make SignalWire a singelton for Call Fabric SDK
   - Fix memory leak
 
-## [4.2.0] - 2024-01-21 (Accidental Release — DO NOT USE)
+## [4.2.0] - 2025-01-21 (Accidental Release — DO NOT USE)
 
 > **Note:** This version was published by mistake and should not be used.  
 > Please upgrade directly to `4.2.1` or higher.
