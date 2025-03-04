@@ -330,7 +330,6 @@ export class BaseConnection<
   }
 
   /**
-   * @internal
    * Verto messages have to be wrapped into an execute
    * request and sent using the proper RPC WebRTCMethod.
    */
@@ -848,9 +847,8 @@ export class BaseConnection<
    *   - requesting: we received a redirectDestination so need to send it again
    *     specifying nodeId.
    *
-   * @internal
    */
-  async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
+  private async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
     const rtcPeer = this.getRTCPeerById(rtcPeerId)
     if (!rtcPeer || (rtcPeer.instance.remoteDescription && !this.resuming)) {
       throw new Error(
@@ -904,9 +902,8 @@ export class BaseConnection<
   /**
    * Send the `verto.answer` only if the state is `new`
    *   - new: the first time we send out the answer.
-   * @internal
    */
-  async executeAnswer(sdp: string, rtcPeerId: string, nodeId?: string) {
+  private async executeAnswer(sdp: string, rtcPeerId: string, nodeId?: string) {
     // Set state to `answering` only when `new`, otherwise keep it as `answering`.
     if (this.state === 'new') {
       this.setState('answering')
@@ -937,9 +934,8 @@ export class BaseConnection<
   /**
    * Send the `verto.modify` when it's an offer and remote is already present
    * It helps in renegotiation.
-   * @internal
    */
-  async executeUpdateMedia(sdp: string, rtcPeerId: string) {
+  private async executeUpdateMedia(sdp: string, rtcPeerId: string) {
     try {
       const message = VertoModify({
         ...this.dialogParams(rtcPeerId),
@@ -1380,6 +1376,30 @@ export class BaseConnection<
       video: {
         direction,
       },
+    })
+  }
+
+  public async hold() {
+    const message = VertoModify({
+      ...this.dialogParams(this.callId),
+      action: 'hold',
+    })
+    return await this.vertoExecute<VertoModifyResponse>({
+      message,
+      callID: this.callId,
+      node_id: this.nodeId,
+    })
+  }
+
+  public async unhold() {
+    const message = VertoModify({
+      ...this.dialogParams(this.callId),
+      action: 'unhold',
+    })
+    return this.vertoExecute<VertoModifyResponse>({
+      message,
+      callID: this.callId,
+      node_id: this.nodeId,
     })
   }
 }
