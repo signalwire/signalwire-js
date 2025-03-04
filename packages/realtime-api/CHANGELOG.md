@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.1] - 2024-03-04
+
+### Changed
+
+- [#1085](https://github.com/signalwire/signalwire-js/pull/1085) [`16510322d18280d535da7f10e05e6e768e57a328`](https://github.com/signalwire/signalwire-js/commit/16510322d18280d535da7f10e05e6e768e57a328) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Bump "ws" package to 8.17.1
+
+- [#1161](https://github.com/signalwire/signalwire-js/pull/1161) [`3d0fe342a5dfb34814b376bf62b370f0bf57bfac`](https://github.com/signalwire/signalwire-js/commit/3d0fe342a5dfb34814b376bf62b370f0bf57bfac) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Refactor types for the Voice calling APIs
+
+- [#1124](https://github.com/signalwire/signalwire-js/pull/1124) [`ada6c49538862f466dea659286ea8eb405f4f636`](https://github.com/signalwire/signalwire-js/commit/ada6c49538862f466dea659286ea8eb405f4f636) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce dedicated types for Video and Fabric SDKs
+
+### Fixed
+
+- [#1139](https://github.com/signalwire/signalwire-js/pull/1139) [`8fa40cc5a9ddca975825e6fa7719105900e64356`](https://github.com/signalwire/signalwire-js/commit/8fa40cc5a9ddca975825e6fa7719105900e64356) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Fixed chat suscription after a websocket reconnection
+
+- [#1100](https://github.com/signalwire/signalwire-js/pull/1100) [`96066d60caf9512e1d5658b09c441d9c55b06c23`](https://github.com/signalwire/signalwire-js/commit/96066d60caf9512e1d5658b09c441d9c55b06c23) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix types name typo
+
+- [#1160](https://github.com/signalwire/signalwire-js/pull/1160) [`fd39f12ca49f9257933b59490c64563e3391a93a`](https://github.com/signalwire/signalwire-js/commit/fd39f12ca49f9257933b59490c64563e3391a93a) Thanks [@iAmmar7](https://github.com/iAmmar7)! - - Fix session emitter
+
+  - Make SignalWire a singelton for Call Fabric SDK
+  - Fix memory leak
+
+### Dependencies
+
+- Updated dependencies [[`7130138f9dcd750bc2d9f9bee0d644a2e02425c6`](https://github.com/signalwire/signalwire-js/commit/7130138f9dcd750bc2d9f9bee0d644a2e02425c6), [`df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4`](https://github.com/signalwire/signalwire-js/commit/df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4), [`461943a395d9a40a10658c906447398bff7ec160`](https://github.com/signalwire/signalwire-js/commit/461943a395d9a40a10658c906447398bff7ec160), [`d34f3360163292aedb3474ffc9f7e2017b9d0002`](https://github.com/signalwire/signalwire-js/commit/d34f3360163292aedb3474ffc9f7e2017b9d0002), [`fca4c09ac531ab88dec9d94f3a73d5cd06060d36`](https://github.com/signalwire/signalwire-js/commit/fca4c09ac531ab88dec9d94f3a73d5cd06060d36), [`5e4539144f31ff154e3e295e57d939e86dee0840`](https://github.com/signalwire/signalwire-js/commit/5e4539144f31ff154e3e295e57d939e86dee0840), [`fe5c4cca5c3dd14f0dc3af0579231973e57717f6`](https://github.com/signalwire/signalwire-js/commit/fe5c4cca5c3dd14f0dc3af0579231973e57717f6), [`ed8d713ab9c399bcc335a147d499248d44c72468`](https://github.com/signalwire/signalwire-js/commit/ed8d713ab9c399bcc335a147d499248d44c72468), [`fcb722a9f831359d3a05f9d53282c825dc749fa2`](https://github.com/signalwire/signalwire-js/commit/fcb722a9f831359d3a05f9d53282c825dc749fa2), [`84aaad9b4837739f87b3dd1de99a14eb1123653f`](https://github.com/signalwire/signalwire-js/commit/84aaad9b4837739f87b3dd1de99a14eb1123653f), [`76e573f46553337990c397693985e5004eeecae1`](https://github.com/signalwire/signalwire-js/commit/76e573f46553337990c397693985e5004eeecae1), [`db072e479d9b30ae7aa952c819220eda60f329bb`](https://github.com/signalwire/signalwire-js/commit/db072e479d9b30ae7aa952c819220eda60f329bb), [`16499a4d075d893ad432a5bdbafac950a08edc26`](https://github.com/signalwire/signalwire-js/commit/16499a4d075d893ad432a5bdbafac950a08edc26), [`a2682371fc53c2526f40530b9c9e706397da1a8d`](https://github.com/signalwire/signalwire-js/commit/a2682371fc53c2526f40530b9c9e706397da1a8d), [`32ae8cb6391c91e8d9e8aa38524c6a188ea9d747`](https://github.com/signalwire/signalwire-js/commit/32ae8cb6391c91e8d9e8aa38524c6a188ea9d747), [`3d0fe342a5dfb34814b376bf62b370f0bf57bfac`](https://github.com/signalwire/signalwire-js/commit/3d0fe342a5dfb34814b376bf62b370f0bf57bfac), [`fd39f12ca49f9257933b59490c64563e3391a93a`](https://github.com/signalwire/signalwire-js/commit/fd39f12ca49f9257933b59490c64563e3391a93a), [`f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc`](https://github.com/signalwire/signalwire-js/commit/f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc), [`2dc5db84d40b7224c641371727881c0319c002d1`](https://github.com/signalwire/signalwire-js/commit/2dc5db84d40b7224c641371727881c0319c002d1), [`ada6c49538862f466dea659286ea8eb405f4f636`](https://github.com/signalwire/signalwire-js/commit/ada6c49538862f466dea659286ea8eb405f4f636)]:
+  - @signalwire/core@4.2.1
+
+## [4.1.0] - 2024-01-21 (Accidental Release — DO NOT USE)
+
+> **Note:** This version was published by mistake and should not be used.  
+> Please upgrade directly to `4.1.1` or higher.
+
 ## [4.0.1] - 2024-06-03
 
 ### Fixed
