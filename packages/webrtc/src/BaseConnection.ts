@@ -947,14 +947,17 @@ export class BaseConnection<
         callID: rtcPeerId,
         node_id: this.nodeId,
       })
-      if (!response.sdp) {
-        this.logger.error('UpdateMedia invalid SDP answer', response)
-      }
 
       this.logger.debug('UpdateMedia response', response)
+
       if (!this.peer) {
         return this.logger.error('Invalid RTCPeer to updateMedia')
       }
+
+      if (!response.sdp) {
+        return this.logger.error('UpdateMedia invalid SDP answer', response)
+      }
+
       await this.peer.onRemoteSdp(response.sdp)
     } catch (error) {
       // Should we hangup when renegotiation fails?
@@ -1384,7 +1387,7 @@ export class BaseConnection<
       ...this.dialogParams(this.callId),
       action: 'hold',
     })
-    return await this.vertoExecute<VertoModifyResponse>({
+    await this.vertoExecute<VertoModifyResponse>({
       message,
       callID: this.callId,
       node_id: this.nodeId,
@@ -1396,7 +1399,7 @@ export class BaseConnection<
       ...this.dialogParams(this.callId),
       action: 'unhold',
     })
-    return this.vertoExecute<VertoModifyResponse>({
+    this.vertoExecute<VertoModifyResponse>({
       message,
       callID: this.callId,
       node_id: this.nodeId,

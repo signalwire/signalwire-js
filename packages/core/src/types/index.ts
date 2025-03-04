@@ -166,6 +166,11 @@ export interface BaseConnectionContract<
    * @param params - {@link UpdateMediaParams}
    *
    * @returns A Promise that resolves once the requested media is negotiated or failed.
+   *
+   * @example
+   * ```typescript
+   * room.updateMedia({ video: { direction: 'sendrecv' } })
+   * ```
    */
   updateMedia(params: UpdateMediaParams): Promise<void>
 
@@ -176,6 +181,11 @@ export interface BaseConnectionContract<
    * @param params - {@link UpdateMediaDirection}
    *
    * @returns A Promise that resolves once the requested audio is negotiated or failed.
+   *
+   * @example
+   * ```typescript
+   * room.setAudioDirection('sendrecv')
+   * ```
    */
   setAudioDirection(direction: UpdateMediaDirection): Promise<void>
 
@@ -186,8 +196,39 @@ export interface BaseConnectionContract<
    * @param params - {@link UpdateMediaDirection}
    *
    * @returns A Promise that resolves once the requested video is negotiated or failed.
+   *
+   * @example
+   * ```typescript
+   * room.setVideoDirection('recvonly')
+   * ```
    */
   setVideoDirection(direction: UpdateMediaDirection): Promise<void>
+
+  /**
+   * Hold the call.
+   * It stops the self member's outbound video/audio and other member's inbound video/audio.
+   *
+   * @returns A Promise that resolves once the hold state is acheived.
+   *
+   * @example
+   * ```typescript
+   * room.hold()
+   * ```
+   */
+  hold(): Promise<void>
+
+  /**
+   * Unhold the call.
+   * It resumes the self member's outbound video/audio and other member's inbound video/audio.
+   *
+   * @returns A Promise that resolves once the active call state is acheived.
+   *
+   * @example
+   * ```typescript
+   * room.unhold()
+   * ```
+   */
+  unhold(): Promise<void>
 
   /** @internal */
   stopOutboundAudio(): void

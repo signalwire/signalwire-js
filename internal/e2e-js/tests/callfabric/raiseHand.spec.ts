@@ -5,7 +5,7 @@ import {
   dialAddress,
   expectMCUVisible,
   SERVER_URL,
-} from 'internal/e2e-js/utils'
+} from '../../utils'
 import { FabricRoomSession } from '@signalwire/js'
 
 test.describe('CallFabric Raise/Lower Hand', () => {
