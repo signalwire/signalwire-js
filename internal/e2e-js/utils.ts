@@ -9,11 +9,12 @@ import path from 'path'
 import { expect } from './fixtures'
 import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
+import { clearInterval } from 'timers'
 
 // #region Utilities for Playwright test server & fixture
 
 type CreateTestServerOptions = {
-  target: 'heroku' | 'blank'
+  target: 'video' | 'blank'
 }
 
 const TARGET_ROOT_PATH: Record<
@@ -24,9 +25,9 @@ const TARGET_ROOT_PATH: Record<
   }
 > = {
   blank: { path: './templates/blank', port: 1337 },
-  heroku: {
+  video: {
     path: path.dirname(
-      require.resolve('@sw-internal/playground-js/src/heroku/index.html')
+      require.resolve('@sw-internal/playground-js/src/video/index.html')
     ),
     port: 1336,
   },
@@ -1645,6 +1646,24 @@ export const expectRoomJoined = (
       }
     })
   }, options)
+}
+
+export const expectRecordingStarted = (page: Page) => {
+  return page.evaluate(() => {
+    return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
+      setTimeout(reject, 10000)
+      // At this point window.__roomObj might not have been set yet
+      // we have to pool it and check 
+      const interval = setInterval(() => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        if (roomObj) {
+          clearInterval(interval)
+          roomObj.on('recording.started', (recording: Video.RoomSessionRecording) => resolve(recording))
+        }
+      }, 100)
+    })
+  })
 }
 
 export const expectScreenShareJoined = async (page: Page) => {

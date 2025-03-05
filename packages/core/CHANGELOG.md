@@ -4,6 +4,90 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.1] - 2025-03-04
+
+### Added
+
+- [#1130](https://github.com/signalwire/signalwire-js/pull/1130) [`fca4c09ac531ab88dec9d94f3a73d5cd06060d36`](https://github.com/signalwire/signalwire-js/commit/fca4c09ac531ab88dec9d94f3a73d5cd06060d36) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Introduce the set member position API
+
+- [#1149](https://github.com/signalwire/signalwire-js/pull/1149) [`5e4539144f31ff154e3e295e57d939e86dee0840`](https://github.com/signalwire/signalwire-js/commit/5e4539144f31ff154e3e295e57d939e86dee0840) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Browser SDKs: Expose the `withAudio` and `withVideo` flags to indicate the receiving media.
+
+- [#1121](https://github.com/signalwire/signalwire-js/pull/1121) [`ed8d713ab9c399bcc335a147d499248d44c72468`](https://github.com/signalwire/signalwire-js/commit/ed8d713ab9c399bcc335a147d499248d44c72468) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Allow user to raise/lower thier hand
+
+- [#1123](https://github.com/signalwire/signalwire-js/pull/1123) [`76e573f46553337990c397693985e5004eeecae1`](https://github.com/signalwire/signalwire-js/commit/76e573f46553337990c397693985e5004eeecae1) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose room layout on the `CallFabriRoomSession` object
+
+- [#1183](https://github.com/signalwire/signalwire-js/pull/1183) [`16499a4d075d893ad432a5bdbafac950a08edc26`](https://github.com/signalwire/signalwire-js/commit/16499a4d075d893ad432a5bdbafac950a08edc26) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF & Video SDK: Introduce the hold/unhold API
+
+  ```ts
+  // To hold the call
+  await call.hold()
+
+  // To unhold the call
+  await call.unhold()
+  ```
+
+- [#1137](https://github.com/signalwire/signalwire-js/pull/1137) [`2dc5db84d40b7224c641371727881c0319c002d1`](https://github.com/signalwire/signalwire-js/commit/2dc5db84d40b7224c641371727881c0319c002d1) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Call Fabric and Video SDK: Introduce update media APIs with renegotiation
+
+  ```ts
+  await updateMedia({
+    audio: {
+      direction: 'sendonly' | 'sendrecv',
+      constraints?: MediaTrackConstraints
+    },
+    video: {
+      direction: 'recvonly' | 'inactive'
+      constraints?: MediaTrackConstraints
+    }
+  })
+
+  // Either "audio" or "video" is required with "direction" property.
+  // The "constraints" can only be passed if the "direction" is either "sendrecv" or "sendonly".
+
+  await setVideoDirection('sendonly' | 'sendrecv' | 'recvonly' | 'inactive')
+
+  await setAudioDirection('sendonly' | 'sendrecv' | 'recvonly' | 'inactive')
+  ```
+
+### Changed
+
+- [#1069](https://github.com/signalwire/signalwire-js/pull/1069) [`fe5c4cca5c3dd14f0dc3af0579231973e57717f6`](https://github.com/signalwire/signalwire-js/commit/fe5c4cca5c3dd14f0dc3af0579231973e57717f6) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Remove implicit reauthentication
+
+- [#1159](https://github.com/signalwire/signalwire-js/pull/1159) [`461943a395d9a40a10658c906447398bff7ec160`](https://github.com/signalwire/signalwire-js/commit/461943a395d9a40a10658c906447398bff7ec160) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Maintain the session connection state
+
+- [#1089](https://github.com/signalwire/signalwire-js/pull/1089) [`d34f3360163292aedb3474ffc9f7e2017b9d0002`](https://github.com/signalwire/signalwire-js/commit/d34f3360163292aedb3474ffc9f7e2017b9d0002) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - ADD lock and unlock methods to CallFabricRoomSession
+
+- [#1082](https://github.com/signalwire/signalwire-js/pull/1082) [`fcb722a9f831359d3a05f9d53282c825dc749fa2`](https://github.com/signalwire/signalwire-js/commit/fcb722a9f831359d3a05f9d53282c825dc749fa2) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Added chat namespace with convenience methods to to handle chat messages
+
+- [#1145](https://github.com/signalwire/signalwire-js/pull/1145) [`84aaad9b4837739f87b3dd1de99a14eb1123653f`](https://github.com/signalwire/signalwire-js/commit/84aaad9b4837739f87b3dd1de99a14eb1123653f) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - added capabilities property to CallFabricRoomSession and `call.joined` event
+
+- [#1143](https://github.com/signalwire/signalwire-js/pull/1143) [`f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc`](https://github.com/signalwire/signalwire-js/commit/f24b5fdb2aefcc60a3b07754a1f4842ffe995dcc) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Updated ConversationMessage GetAddressResponse ConversationMessage GetSubscriberInfoResponse with new properties
+
+- [#1124](https://github.com/signalwire/signalwire-js/pull/1124) [`ada6c49538862f466dea659286ea8eb405f4f636`](https://github.com/signalwire/signalwire-js/commit/ada6c49538862f466dea659286ea8eb405f4f636) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Introduce dedicated types for Video and Fabric SDKs
+
+### Fixed
+
+- [#1096](https://github.com/signalwire/signalwire-js/pull/1096) [`7130138f9dcd750bc2d9f9bee0d644a2e02425c6`](https://github.com/signalwire/signalwire-js/commit/7130138f9dcd750bc2d9f9bee0d644a2e02425c6) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix type interface in Message event
+
+- [#1129](https://github.com/signalwire/signalwire-js/pull/1129) [`df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4`](https://github.com/signalwire/signalwire-js/commit/df6377b2ae19bc4ad7b96fc26cf4a71ae51713c4) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF & Video SDKs: Fix layout event parameter type
+
+- [#1095](https://github.com/signalwire/signalwire-js/pull/1095) [`db072e479d9b30ae7aa952c819220eda60f329bb`](https://github.com/signalwire/signalwire-js/commit/db072e479d9b30ae7aa952c819220eda60f329bb) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix message event type
+
+- [#1092](https://github.com/signalwire/signalwire-js/pull/1092) [`a2682371fc53c2526f40530b9c9e706397da1a8d`](https://github.com/signalwire/signalwire-js/commit/a2682371fc53c2526f40530b9c9e706397da1a8d) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix Conversation API types
+
+- [#1170](https://github.com/signalwire/signalwire-js/pull/1170) [`32ae8cb6391c91e8d9e8aa38524c6a188ea9d747`](https://github.com/signalwire/signalwire-js/commit/32ae8cb6391c91e8d9e8aa38524c6a188ea9d747) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Refacterd and moved call capabilites types and helpers from core to js
+
+- [#1161](https://github.com/signalwire/signalwire-js/pull/1161) [`3d0fe342a5dfb34814b376bf62b370f0bf57bfac`](https://github.com/signalwire/signalwire-js/commit/3d0fe342a5dfb34814b376bf62b370f0bf57bfac) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Refactor types for the Voice calling APIs
+
+- [#1160](https://github.com/signalwire/signalwire-js/pull/1160) [`fd39f12ca49f9257933b59490c64563e3391a93a`](https://github.com/signalwire/signalwire-js/commit/fd39f12ca49f9257933b59490c64563e3391a93a) Thanks [@iAmmar7](https://github.com/iAmmar7)! - - Fix session emitter
+
+  - Make SignalWire a singelton for Call Fabric SDK
+  - Fix memory leak
+
+## [4.2.0] - 2025-01-21 (Accidental Release — DO NOT USE)
+
+> **Note:** This version was published by mistake and should not be used.
+> Please upgrade directly to `4.2.1` or higher.
+
 ## [4.1.0] - 2024-06-03
 
 ### Added

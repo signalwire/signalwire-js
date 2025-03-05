@@ -11,6 +11,6 @@
     "sw-test": "bin/cli.js"
   },
   "devDependencies": {
-    "esbuild-register": "^3.4.2"
+    "esbuild-register": "^3.6.0"
   }
 }

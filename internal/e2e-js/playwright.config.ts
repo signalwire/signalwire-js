@@ -40,6 +40,7 @@ const callfabricTests = [
   'address.spec.ts',
   'cleanup.spec.ts',
   'conversation.spec.ts',
+  'holdunhold.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
   'relayApp.spec.ts',

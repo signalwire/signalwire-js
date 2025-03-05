@@ -4,7 +4,7 @@ import esbuild from 'esbuild'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
 // UMD related deps.
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 import * as rollup from 'rollup'
 import commonjs from '@rollup/plugin-commonjs'
 import license from 'rollup-plugin-license'
@@ -33,6 +33,7 @@ const COMMON_WEB = {
   bundle: true,
   plugins: [nodeExternalsPlugin()],
 }
+
 const OPTIONS_MAP = {
   '--node': [
     {
@@ -302,16 +303,22 @@ const mergeOptions = (options, defaultOptions = {}) => {
  */
 const build = async ({ options, setupFile }) => {
   return Promise.all(
-    options.map((opt) => {
+    options.map(async (opt) => {
       // `esbuild` can't generate `umd` so we'll skip it here.
       if (opt.format === 'umd') {
         return Promise.resolve()
       }
 
-      return esbuild.build({
-        ...opt,
-        ...setupFile,
-      })
+      // If watch mode is requested (i.e. in dev mode), we need to use esbuild context API
+      if (opt.watch) {
+        const { watch, ...optWithoutWatch } = opt
+        const ctx = await esbuild.context({ ...optWithoutWatch, ...setupFile })
+        await ctx.watch()
+        return ctx
+      } else {
+        // For production builds, we use esbuild.build()
+        return esbuild.build({ ...opt, ...setupFile })
+      }
     })
   )
 }

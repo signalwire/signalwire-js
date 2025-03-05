@@ -42,6 +42,8 @@ const inCallElements = [
   showVMutedBtn,
   lockRoomBtn,
   unlockRoomBtn,
+  holdCallBtn,
+  unholdCallBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
   controlRecording,
@@ -642,6 +644,14 @@ window.lockRoom = () => {
 
 window.unlockRoom = () => {
   roomObj.unlock()
+}
+
+window.holdCall = () => {
+  roomObj.hold()
+}
+
+window.unholdCall = () => {
+  roomObj.unhold()
 }
 
 window.changeLayout = (select) => {
