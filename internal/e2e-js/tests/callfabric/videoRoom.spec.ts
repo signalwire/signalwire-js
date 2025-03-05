@@ -1,5 +1,9 @@
 import { uuid } from '@signalwire/core'
-import { FabricRoomSession, CallJoinedEventParams } from '@signalwire/js'
+import {
+  FabricRoomSession,
+  CallJoinedEventParams,
+  SignalWireClient,
+} from '@signalwire/js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -377,9 +381,9 @@ test.describe('CallFabric VideoRoom', () => {
     const roomSession = await page.evaluate(async () => {
       try {
         // @ts-expect-error
-        const client = window._client
+        const client: SignalWireClient = window._client
 
-        const call = await client.dial({
+        const call = client.dial({
           to: `/public/invalid-address?channel=video`,
           rootElement: document.getElementById('rootElement'),
         })
