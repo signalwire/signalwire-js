@@ -134,11 +134,13 @@ test.describe(agent_customer_static_scripts_desc, () => {
 
 const agent_customer_external_url_desc = 'CallFabric Agent/Customer interaction, cXML with external URL'
 test.describe(agent_customer_external_url_desc, () => {
+  const external_url_for_cxml = process.env.EXTERNAL_URL_FOR_CXML || 'https://us-central1-video-load-testing-with-gcf.cloudfunctions.net/gcf-external-url'
+
   const cXMLExternalURLAgent = {
-    call_handler_url: `${process.env.EXTERNAL_URL_FOR_CXML}`
+    call_handler_url: external_url_for_cxml
   }
   const cXMLExternalURLCustomer = {
-    call_handler_url: `${process.env.EXTERNAL_URL_FOR_CXML}`
+    call_handler_url: external_url_for_cxml
   }
 
   const test_uuid = `${uuid()}`
