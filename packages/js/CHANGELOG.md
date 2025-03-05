@@ -12,8 +12,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - [#1130](https://github.com/signalwire/signalwire-js/pull/1130) [`fca4c09ac531ab88dec9d94f3a73d5cd06060d36`](https://github.com/signalwire/signalwire-js/commit/fca4c09ac531ab88dec9d94f3a73d5cd06060d36) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Introduce the set member position API
 
-- [#1069](https://github.com/signalwire/signalwire-js/pull/1069) [`fe5c4cca5c3dd14f0dc3af0579231973e57717f6`](https://github.com/signalwire/signalwire-js/commit/fe5c4cca5c3dd14f0dc3af0579231973e57717f6) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Remove implicit reauthentication
-
 - [#1133](https://github.com/signalwire/signalwire-js/pull/1133) [`b3b17aa944212ee744f7ec518ab8663dae2380c2`](https://github.com/signalwire/signalwire-js/commit/b3b17aa944212ee744f7ec518ab8663dae2380c2) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Create and expose member overlays on top of Video element
 
 - [#1121](https://github.com/signalwire/signalwire-js/pull/1121) [`ed8d713ab9c399bcc335a147d499248d44c72468`](https://github.com/signalwire/signalwire-js/commit/ed8d713ab9c399bcc335a147d499248d44c72468) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Allow user to raise/lower thier hand
@@ -57,6 +55,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - [#1103](https://github.com/signalwire/signalwire-js/pull/1103) [`fe44c5d48782e569f942a63afe627cd503da2c87`](https://github.com/signalwire/signalwire-js/commit/fe44c5d48782e569f942a63afe627cd503da2c87) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Add a new `name` parameter to `client.address.getAddress`, allowing you to fetch an address by name.
 
 ### Changed
+
+- [#1069](https://github.com/signalwire/signalwire-js/pull/1069) [`fe5c4cca5c3dd14f0dc3af0579231973e57717f6`](https://github.com/signalwire/signalwire-js/commit/fe5c4cca5c3dd14f0dc3af0579231973e57717f6) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Remove implicit reauthentication
 
 - [#1150](https://github.com/signalwire/signalwire-js/pull/1150) [`ee3728e338979c59bae876d806a5506237ceb062`](https://github.com/signalwire/signalwire-js/commit/ee3728e338979c59bae876d806a5506237ceb062) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Dial the audio-only call by default
 
