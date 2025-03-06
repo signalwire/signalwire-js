@@ -19,15 +19,16 @@ describe('asyncRetry', () => {
       expect(delayFn()).toEqual(20)
       expect(delayFn()).toEqual(30)
     })
-    it('Should NOT increase more than 20', () => {
+    it('Should NOT increase more than 30', () => {
       const delayFn = increasingDelay({
         initialDelay: 10,
-        variation: 10,
-        delayLimit: 20,
+        variation: 8,
+        delayLimit: 30,
       })
       expect(delayFn()).toEqual(10)
-      expect(delayFn()).toEqual(20)
-      expect(delayFn()).toEqual(20)
+      expect(delayFn()).toEqual(18)
+      expect(delayFn()).toEqual(26)
+      expect(delayFn()).toEqual(30)
     })
     it('Should decrease by default', () => {
       const delayFn = decreasingDelay({ initialDelay: 30 })
