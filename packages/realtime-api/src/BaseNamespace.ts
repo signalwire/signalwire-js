@@ -1,4 +1,4 @@
-import { EventEmitter, ExecuteParams, uuid } from '@signalwire/core'
+import { EventEmitter, ExecuteParams, getLogger, uuid } from '@signalwire/core'
 import { prefixEvent } from './utils/internals'
 import { ListenSubscriber } from './ListenSubscriber'
 import { SWClient } from './SWClient'
@@ -18,6 +18,30 @@ export class BaseNamespace<
 > extends ListenSubscriber<Listeners<T>, EventTypes> {
   constructor(options: SWClient) {
     super({ swClient: options })
+
+    this.onSessionReconnect = this.onSessionReconnect.bind(this)
+    this.onSessionDisconnect = this.onSessionDisconnect.bind(this)
+    this._client.session.on('session.reconnecting', this.onSessionReconnect)
+    this._client.session.once('session.disconnected', this.onSessionDisconnect)
+  }
+
+  protected onSessionReconnect() {
+    this._client.session.once('session.connected', async () => {
+      const resendTopics = new Set<string>()
+      for (const { topics } of this._listenerMap.values()) {
+        topics?.forEach((topic) => resendTopics.add(topic))
+      }
+      if (resendTopics.size > 0) {
+        getLogger().info('Re-subscribing channels after reconnection')
+        await this.addTopics([...resendTopics])
+      }
+    })
+  }
+
+  private onSessionDisconnect() {
+    this._client.session.off('session.reconnecting', this.onSessionReconnect)
+    this._client.destroy()
+    this.unsubscribeAll()
   }
 
   protected addTopics(topics: string[]) {

@@ -1,6 +1,6 @@
 import WS from 'jest-websocket-mock'
 import { BaseSession } from './BaseSession'
-import { socketMessageAction } from './redux/actions'
+import { socketMessageAction, sessionReconnectingAction } from './redux/actions'
 import {
   RPCConnect,
   RPCPing,
@@ -108,6 +108,42 @@ describe('BaseSession', () => {
     expect(session.status).toEqual('idle')
 
     session.disconnect()
+  })
+
+  it.only('should dispatch reconnecting action on socket close and then call connect again', async () => {
+    const connectSpy = jest.spyOn(session, 'connect')
+
+    session.connect()
+    await ws.connected
+
+    expect(session.connected).toBe(true)
+    await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
+
+    // Force reconnectDelay() to always return 1000ms
+    const mathRandomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
+
+    // Switch to fake timers for the reconnect delay
+    jest.useFakeTimers()
+
+    // Simulate the socket close event
+    ws.close({
+      code: 1001,
+      reason: 'Network Failure',
+      wasClean: false,
+    })
+
+    expect(session.dispatch).toHaveBeenCalledWith(sessionReconnectingAction())
+    expect(session.connected).toBe(false)
+
+    // Advance timers by exactly the fixed delay (1000ms)
+    jest.advanceTimersByTime(1000)
+
+    // The SDK should try to call connect again
+    expect(connectSpy).toHaveBeenCalledTimes(2)
+
+    // Clean up - restore real timers and the Math.random mock
+    jest.useRealTimers()
+    mathRandomSpy.mockRestore()
   })
 
   describe('signalwire.event messages', () => {
