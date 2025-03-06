@@ -81,24 +81,24 @@ describe('asyncRetry', () => {
     it('Should throw ONLY after the retries is busted', async () => {
       const delaySpy = jest.fn(() => delayFn())
       const callableSpy = jest.fn(() =>
-        Promise.reject(new Error('Good Error Message'))
+        Promise.reject(new Error('Real Callable Error - should be thrown'))
       )
 
       try {
         await asyncRetry({ asyncCallable: callableSpy, delayFn: delaySpy })
-        throw new Error('Bad Error Message')
+        throw new Error('This Error should not be thrown')
       } catch (error) {
         expect(callableSpy).toHaveBeenCalledTimes(10)
         expect(delaySpy).toHaveBeenCalledTimes(9)
         expect(error).toBeInstanceOf(Error)
-        expect(error.message).toBe('Good Error Message')
+        expect(error.message).toBe('Real Callable Error - should be thrown')
       }
     })
 
     it('Should throw with no retries', async () => {
       const delaySpy = jest.fn(() => delayFn())
       const callableSpy = jest.fn(() =>
-        Promise.reject(new Error('Good Error Message'))
+        Promise.reject(new Error('Real Callable Error - should be thrown'))
       )
 
       try {
@@ -107,12 +107,12 @@ describe('asyncRetry', () => {
           delayFn: delaySpy,
           retries: 0,
         })
-        throw new Error('Bad Error Message')
+        throw new Error('This Error should not be thrown')
       } catch (error) {
         expect(callableSpy).toHaveBeenCalledTimes(1)
         expect(delaySpy).not.toHaveBeenCalled()
         expect(error).toBeInstanceOf(Error)
-        expect(error.message).toBe('Good Error Message')
+        expect(error.message).toBe('Real Callable Error - should be thrown')
       }
     })
 

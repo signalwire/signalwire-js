@@ -3,4 +3,4 @@
 '@signalwire/js': minor
 ---
 
-Added API resquest retries by default
+Added API request retries by default
