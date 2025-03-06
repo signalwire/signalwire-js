@@ -29,6 +29,17 @@ describe('asyncRetry', () => {
       expect(delayFn()).toEqual(18)
       expect(delayFn()).toEqual(26)
       expect(delayFn()).toEqual(30)
+      expect(delayFn()).toEqual(30)
+    })
+    it('Should NOT increase more than 30 again', () => {
+      const delayFn = increasingDelay({
+        initialDelay: 10,
+        variation: 35,
+        delayLimit: 30,
+      })
+      expect(delayFn()).toEqual(10)
+      expect(delayFn()).toEqual(30)
+      expect(delayFn()).toEqual(30)
     })
     it('Should decrease by default', () => {
       const delayFn = decreasingDelay({ initialDelay: 30 })
@@ -58,6 +69,26 @@ describe('asyncRetry', () => {
       })
       expect(delayFn()).toEqual(30)
       expect(delayFn()).toEqual(20)
+      expect(delayFn()).toEqual(20)
+    })
+    it('Should NOT decrease more than 20 again', () => {
+      const delayFn = decreasingDelay({
+        initialDelay: 30,
+        variation: 40,
+        delayLimit: 20,
+      })
+      expect(delayFn()).toEqual(30)
+      expect(delayFn()).toEqual(20)
+      expect(delayFn()).toEqual(20)
+    })
+    it('Should NOT decrease more than 20 also', () => {
+      const delayFn = decreasingDelay({
+        initialDelay: 30,
+        variation: 9,
+        delayLimit: 20,
+      })
+      expect(delayFn()).toEqual(30)
+      expect(delayFn()).toEqual(21)
       expect(delayFn()).toEqual(20)
     })
     it('Should always return the same delay', () => {

@@ -22,11 +22,14 @@ export const increasingDelay = ({
 }: DelayOptions) => {
   let delay: number
   return () => {
-    if (upperDelayLimit && (delay >= upperDelayLimit || variation >=upperDelayLimit)) {
+    if (upperDelayLimit && (delay >= upperDelayLimit)) {
       // stop incrementing the delay and just return upperDelayLimit
       return upperDelayLimit
     }
     delay = delay ? delay + variation : initialDelay
+    delay =
+      upperDelayLimit && delay >= upperDelayLimit ? upperDelayLimit : delay
+
     return delay
   }
 }
@@ -43,7 +46,10 @@ export const decreasingDelay = ({
       return bottomDelayLimit ?? 0
     }
     delay = delay ? delay - variation : initialDelay
+    delay =
+      bottomDelayLimit && delay <= bottomDelayLimit ? bottomDelayLimit : delay
     delay = delay < 0 ? 0 : delay
+
     return delay
   }
 }
