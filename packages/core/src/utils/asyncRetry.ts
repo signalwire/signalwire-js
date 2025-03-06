@@ -23,6 +23,7 @@ export const increasingDelay = ({
   let delay: number
   return () => {
     if (upperDelayLimit && delay >= upperDelayLimit) {
+      // stop incrementing the delay and just return upperDelayLimit
       return delay
     }
     delay = delay ? delay + variation : initialDelay
@@ -38,7 +39,8 @@ export const decreasingDelay = ({
   let delay: number
   return () => {
     if (delay === 0 || (bottomDelayLimit && delay <= bottomDelayLimit)) {
-      return delay
+      // stop decrementing the delay and just return bottomDelayLimit or 0
+      return bottomDelayLimit ?? 0
     }
     delay = delay ? delay - variation : initialDelay
     delay = delay < 0 ? 0 : delay
