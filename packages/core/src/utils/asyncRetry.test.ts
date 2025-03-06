@@ -1,7 +1,12 @@
-import { asyncRetry, constDelay, decreasingDelay, increasingDelay } from './asyncRetry'
+import {
+  asyncRetry,
+  constDelay,
+  decreasingDelay,
+  increasingDelay,
+} from './asyncRetry'
 
-describe('retriablePromise', () => {
-  describe('Delay Constructors', () => {
+describe('asyncRetry', () => {
+  describe('Delay Builders', () => {
     it('Should increase by default', () => {
       const delayFn = increasingDelay({ initialDelay: 10 })
       expect(delayFn()).toEqual(10)
@@ -18,7 +23,7 @@ describe('retriablePromise', () => {
       const delayFn = increasingDelay({
         initialDelay: 10,
         variation: 10,
-        capDelay: 20,
+        delayLimit: 20,
       })
       expect(delayFn()).toEqual(10)
       expect(delayFn()).toEqual(20)
@@ -48,7 +53,7 @@ describe('retriablePromise', () => {
       const delayFn = decreasingDelay({
         initialDelay: 30,
         variation: 10,
-        capDelay: 20,
+        delayLimit: 20,
       })
       expect(delayFn()).toEqual(30)
       expect(delayFn()).toEqual(20)
@@ -63,7 +68,7 @@ describe('retriablePromise', () => {
   })
 
   describe('retries', () => {
-    const delayFn = increasingDelay({initialDelay: 10})
+    const delayFn = increasingDelay({ initialDelay: 10 })
     it('Should not throw and execute with no delay or retries', async () => {
       const delaySpy = jest.fn(() => delayFn())
       const callableSpy = jest.fn(() => Promise.resolve())
@@ -139,15 +144,16 @@ describe('retriablePromise', () => {
         }
       })
 
-      
-      await asyncRetry({ asyncCallable: callableSpy, delayFn: delaySpy, validator: validatorSpy })
-      
-      
+      await asyncRetry({
+        asyncCallable: callableSpy,
+        delayFn: delaySpy,
+        validator: validatorSpy,
+      })
+
       expect(callableSpy).toHaveBeenCalledTimes(10)
       expect(delaySpy).toHaveBeenCalledTimes(9)
       expect(validatorSpy).toHaveBeenCalledTimes(9)
       expect(validatorSpy).not.toHaveReturned()
-        
     })
   })
 })

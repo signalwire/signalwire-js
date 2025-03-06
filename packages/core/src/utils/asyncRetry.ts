@@ -9,40 +9,48 @@ interface AsyncRetryOptions<T> {
   validator?: (promiseResult: T) => void | never
 }
 
-interface DelayConstructorOptions {
-    initialDelay?: number,
-    variation?: number
-    capDelay?: number 
+interface DelayOptions {
+  initialDelay?: number
+  variation?: number
+  delayLimit?: number
 }
 
-export const increasingDelay = ({capDelay, initialDelay = DEFAULT_INITIAL_DELAY,  variation = DEFAULT_DELAY_VARIATION}: DelayConstructorOptions) => {
-    let delay:number
-    return () => {
-        if(capDelay && (delay >= capDelay)) {
-            return delay
-        }
-        delay = delay ? delay + variation : initialDelay
-        return delay
+export const increasingDelay = ({
+  delayLimit: upperDelayLimit,
+  initialDelay = DEFAULT_INITIAL_DELAY,
+  variation = DEFAULT_DELAY_VARIATION,
+}: DelayOptions) => {
+  let delay: number
+  return () => {
+    if (upperDelayLimit && delay >= upperDelayLimit) {
+      return delay
     }
+    delay = delay ? delay + variation : initialDelay
+    return delay
+  }
 }
 
-export const decreasingDelay = ({capDelay, initialDelay = DEFAULT_INITIAL_DELAY, variation = DEFAULT_DELAY_VARIATION}: DelayConstructorOptions) => {
-    let delay:number
-    return () => {
-        if(delay === 0 || (capDelay && delay <= capDelay )) {
-            return delay
-        }
-        delay = delay ? delay - variation : initialDelay
-        delay = delay < 0 ? 0 : delay
-        return delay
+export const decreasingDelay = ({
+  delayLimit: bottomDelayLimit,
+  initialDelay = DEFAULT_INITIAL_DELAY,
+  variation = DEFAULT_DELAY_VARIATION,
+}: DelayOptions) => {
+  let delay: number
+  return () => {
+    if (delay === 0 || (bottomDelayLimit && delay <= bottomDelayLimit)) {
+      return delay
     }
+    delay = delay ? delay - variation : initialDelay
+    delay = delay < 0 ? 0 : delay
+    return delay
+  }
 }
 
-export const constDelay = ({initialDelay = DEFAULT_INITIAL_DELAY}: DelayConstructorOptions) => {
-    return () => initialDelay
+export const constDelay = ({
+  initialDelay = DEFAULT_INITIAL_DELAY,
+}: Pick<DelayOptions, 'initialDelay'>) => {
+  return () => initialDelay
 }
-
-
 
 export const asyncRetry = async <T>({
   asyncCallable,
@@ -51,21 +59,22 @@ export const asyncRetry = async <T>({
   validator,
 }: AsyncRetryOptions<T>): Promise<T> => {
   let remainingAttempts = retries - 1 // the 1st call counts as an attempt
-  let wait = 0 
+  let wait = 0
 
   const promiseAttempt = async () => {
     try {
-      const result = await (wait <= 0 // Should not defer the call when: wait <= 0 
+      const result = await (wait <= 0 // Should not defer the call when: wait <= 0
         ? asyncCallable()
         : new Promise<T>((resolve, reject) =>
             setTimeout(() => {
-                asyncCallable()
-                    .then(r => resolve(r))
-                    .catch(e => reject(e))
+              asyncCallable()
+                .then((r) => resolve(r))
+                .catch((e) => reject(e))
             }, wait)
           ))
 
-      if(remainingAttempts) { // avoid messing with the normal returns in the last attempt
+      if (remainingAttempts) {
+        // avoid messing with the normal returns in the last attempt
         validator?.(result)
       }
 
@@ -75,7 +84,7 @@ export const asyncRetry = async <T>({
         wait = delayFn?.() ?? 0
         return promiseAttempt()
       } else {
-      throw error
+        throw error
       }
     }
   }
