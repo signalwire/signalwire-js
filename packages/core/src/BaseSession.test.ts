@@ -110,7 +110,7 @@ describe('BaseSession', () => {
     session.disconnect()
   })
 
-  it.only('should dispatch reconnecting action on socket close and then call connect again', async () => {
+  it('should dispatch reconnecting action on socket close and then call connect again', async () => {
     const connectSpy = jest.spyOn(session, 'connect')
 
     session.connect()
