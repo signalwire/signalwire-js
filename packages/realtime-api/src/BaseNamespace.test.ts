@@ -188,6 +188,56 @@ describe('BaseNamespace', () => {
 
       expect(addTopicsMock).toHaveBeenCalledTimes(2)
     })
+
+    it('should resubscribe only active topics after a session reconnection', async () => {
+      const addTopicsMock = jest
+        .spyOn(baseNamespace, 'addTopics')
+        .mockResolvedValue(null)
+
+      const mockTopics1 = ['topic1']
+      const unsub = await baseNamespace.subscribe({
+        ...listenOptions,
+        topics: mockTopics1,
+      })
+
+      expect(addTopicsMock).toHaveBeenCalledTimes(1)
+      expect(addTopicsMock).toHaveBeenCalledWith(mockTopics1)
+
+      const mockTopics2 = ['topic2', 'topic3']
+      await baseNamespace.subscribe({
+        ...listenOptions,
+        topics: mockTopics2,
+      })
+
+      expect(addTopicsMock).toHaveBeenCalledTimes(2)
+      expect(addTopicsMock).toHaveBeenCalledWith(mockTopics2)
+
+      const mockTopics3 = ['topic4', 'topic5']
+      await baseNamespace.subscribe({
+        ...listenOptions,
+        topics: mockTopics3,
+      })
+
+      expect(addTopicsMock).toHaveBeenCalledTimes(3)
+      expect(addTopicsMock).toHaveBeenCalledWith(mockTopics3)
+
+      // Unsubscribe first subscription
+      await unsub()
+
+      expect(listenersMap['session.reconnecting']).toBeDefined()
+      // simulate ws closed
+      listenersMap['session.reconnecting']()
+
+      expect(listenersMap['session.connected']).toBeDefined()
+      // simulate ws opened
+      listenersMap['session.connected']()
+
+      expect(addTopicsMock).toHaveBeenCalledTimes(4)
+      expect(addTopicsMock).toHaveBeenCalledWith([
+        ...mockTopics2,
+        ...mockTopics3,
+      ])
+    })
   })
 
   describe('hasOtherListeners', () => {

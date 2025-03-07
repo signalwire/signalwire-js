@@ -32,7 +32,7 @@ export class BaseNamespace<
         topics?.forEach((topic) => resendTopics.add(topic))
       }
       if (resendTopics.size > 0) {
-        getLogger().info('Re-subscribing channels after reconnection')
+        getLogger().info('Re-subscribing topics after reconnection')
         await this.addTopics([...resendTopics])
       }
     })
