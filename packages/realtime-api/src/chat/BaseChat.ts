@@ -15,6 +15,29 @@ export class BaseChat<
   T extends BaseChatListenOptions,
   EventTypes extends EventEmitter.ValidEventTypes
 > extends BaseNamespace<T, EventTypes> {
+  protected override onSessionReconnect() {
+    this._client.session.once('session.connected', async () => {
+      const resendChannels = new Set<string>()
+      const resendEvents = new Set<string>()
+
+      // Iterate over all active subscriptions.
+      for (const { topics, listeners } of this._listenerMap.values()) {
+        topics?.forEach((channel) => resendChannels.add(channel))
+        // Get the list of events for each subscription.
+        Object.keys(listeners).forEach((key) => {
+          const _key = key as keyof typeof this._eventMap
+          if (this._eventMap[_key]) {
+            resendEvents.add(String(this._eventMap[_key]))
+          }
+        })
+      }
+      if (resendChannels.size > 0) {
+        getLogger().info('Re-subscribing channels after reconnection')
+        await this.addChannels([...resendChannels], [...resendEvents])
+      }
+    })
+  }
+
   public listen(listenOptions: T) {
     return new Promise<() => Promise<void>>(async (resolve, reject) => {
       try {
@@ -46,28 +69,6 @@ export class BaseChat<
       const _key = key as keyof Listeners<T>
       if (this._eventMap[_key]) events.push(this._eventMap[_key] as string)
     })
-
-    // will be called if requires a new subscribe
-    const sessionReconnectedHandler = () => {
-      if (this._areListenersAttached(channels, listeners as Listeners<T>)) {
-        this.addChannels(channels, events).then(() =>
-          getLogger().info('channels added after ws reconnection')
-        )
-      }
-    }
-
-    // will be called when a new ws is required
-    const sessionReconnectingHandler = () => {
-      getLogger().debug(
-        'session.reconnecting emitted! handling existing subscriptions'
-      )
-      // remove the previous listener if any
-      this._client.session.off('session.connected', sessionReconnectedHandler)
-      this._client.session.once('session.connected', sessionReconnectedHandler)
-    }
-
-    this._client.session.on('session.reconnecting', sessionReconnectingHandler)
-
     await this.addChannels(channels, events)
 
     const unsub = () => {
@@ -86,15 +87,6 @@ export class BaseChat<
 
           // Remove channels from the listener map
           this.removeFromListenerMap(_uuid)
-
-          this._client.session.off(
-            'session.reconnecting',
-            sessionReconnectingHandler
-          )
-          this._client.session.off(
-            'session.connected',
-            sessionReconnectedHandler
-          )
 
           resolve()
         } catch (error) {

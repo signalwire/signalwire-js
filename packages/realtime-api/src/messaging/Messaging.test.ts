@@ -16,6 +16,11 @@ describe('Messaging', () => {
       execute: jest.fn(),
       runWorker: jest.fn(),
       logger: { error: jest.fn() },
+      session: {
+        on: jest.fn(),
+        once: jest.fn(),
+        off: jest.fn(),
+      },
     },
   }
 
