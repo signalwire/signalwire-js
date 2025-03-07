@@ -100,7 +100,14 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'>
+export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> & {
+  /** increment step for each retry delay */
+  apiRequestRetriesDelayIncrement?: number
+  /** initial retry delay */
+  apiRequestRetriesDelay?: number
+  /** max API request retry, set to 0 disable retries */
+  maxApiRequestRetries?: number;
+}
 
 export interface WSClientOptions extends FabricUserOptions {
   /** HTML element in which to display the video stream */

@@ -1,4 +1,9 @@
-import { AuthError, HttpError } from '@signalwire/core'
+import {
+  asyncRetry,
+  AuthError,
+  HttpError,
+  increasingDelay,
+} from '@signalwire/core'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T
@@ -6,9 +11,25 @@ interface InternalHttpResponse<T> extends Response {
 
 async function http<T>(
   input: string,
-  init: RequestInit | undefined
+  init: RequestInit | undefined,
+  retries?: number,
+  retriesDelay?: number,
+  retriesDelayIncrement?: number
 ): Promise<InternalHttpResponse<T>> {
-  const response: InternalHttpResponse<T> = await fetch(input, init)
+  const response: InternalHttpResponse<T> = await asyncRetry({
+    asyncCallable: () => fetch(input, init),
+    retries,
+    validator: (response) => {
+      // whe should retry only error above Http-500
+      if(!response.ok && response.status >= 500) {
+        throw new HttpError(response.status, response.statusText)
+      }
+    },
+    delayFn: increasingDelay({
+      initialDelay: retriesDelay,
+      variation: retriesDelayIncrement,
+    }),
+  })
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -41,6 +62,9 @@ interface CreateHttpClientOptions extends RequestInit {
    * Timeout in milliseconds
    */
   timeout?: number
+  retries?: number
+  retriesDelay?: number
+  retriesDelayIncrement?: number
 }
 
 interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
@@ -51,7 +75,14 @@ interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
 export type CreateHttpClient = ReturnType<typeof createHttpClient>
 
 export const createHttpClient = (
-  { baseUrl, timeout = 30000, ...globalOptions }: CreateHttpClientOptions,
+  {
+    baseUrl,
+    retries = 0,
+    retriesDelay = 0,
+    retriesDelayIncrement = 0,
+    timeout = 30000,
+    ...globalOptions
+  }: CreateHttpClientOptions,
   fetcher = http
 ) => {
   const apiClient = async <T>(
@@ -91,7 +122,10 @@ export const createHttpClient = (
           baseUrl,
           searchParams: options?.searchParams,
         }),
-        reqInit
+        reqInit,
+        retries,
+        retriesDelay,
+        retriesDelayIncrement
       )
 
       return { body: response.parsedBody as T }
