@@ -1,5 +1,8 @@
 import { getLogger } from '@signalwire/core'
+import { ConnectionOptions } from '@signalwire/js'
 import SDPUtils from 'sdp'
+
+const endOfLine = '\r\n'
 
 const _isAudioLine = (line: string) => /^m=audio/.test(line)
 const _isVideoLine = (line: string) => /^m=video/.test(line)
@@ -45,7 +48,6 @@ export const sdpHasAudio = (sdp: string) => {
  * @return the SDP modified
  */
 export const sdpStereoHack = (sdp: string) => {
-  const endOfLine = '\r\n'
   const sdpLines = sdp.split(endOfLine)
 
   const opusIndex = sdpLines.findIndex(
@@ -79,7 +81,6 @@ export const sdpMediaOrderHack = (
   answer: string,
   localOffer: string
 ): string => {
-  const endOfLine = '\r\n'
   const offerLines = localOffer.split(endOfLine)
   const offerAudioIndex = offerLines.findIndex(_isAudioLine)
   const offerVideoIndex = offerLines.findIndex(_isVideoLine)
@@ -110,7 +111,6 @@ export const sdpBitrateHack = (
   min: number,
   start: number
 ) => {
-  const endOfLine = '\r\n'
   const lines = sdp.split(endOfLine)
   lines.forEach((line, i) => {
     if (/^a=fmtp:\d*/.test(line)) {
@@ -124,42 +124,6 @@ export const sdpBitrateHack = (
   return lines.join(endOfLine)
 }
 
-// const sdpAudioRemoveRTPExtensions = (sdp: string, extensionsToFilter: string[]): string => {
-//   const endOfLine = '\r\n'
-
-//   let beginLines: string[] = []
-//   let audioLines: string[] = []
-//   let videoLines: string[] = []
-//   const newLines = sdp.split(endOfLine)
-
-//   const offerAudioIndex = newLines.findIndex(_isAudioLine)
-//   const offerVideoIndex = newLines.findIndex(_isVideoLine)
-
-//   if (offerAudioIndex < offerVideoIndex) {
-//     beginLines = newLines.slice(0, offerAudioIndex)
-//     audioLines = newLines.slice(offerAudioIndex, offerVideoIndex)
-//     videoLines = newLines.slice(offerVideoIndex, (newLines.length - 1))
-//   } else {
-//     beginLines = newLines.slice(0, offerVideoIndex)
-//     audioLines = newLines.slice(offerAudioIndex, (newLines.length - 1))
-//     videoLines = newLines.slice(offerVideoIndex, offerAudioIndex)
-//   }
-
-//   const newAudioLines = audioLines.filter((line: string) => {
-//     return !(line.includes(extensionsToFilter[0]) || line.includes(extensionsToFilter[1]) || line.includes(extensionsToFilter[2]))
-//   })
-
-//   return [...beginLines, ...newAudioLines, ...videoLines, ''].join(endOfLine)
-// }
-
-// const sdpAudioRemoveRidMidExtHack = (sdp: string): string => {
-//   const extensionsToFilter = [
-//     'urn:ietf:params:rtp-hdrext:sdes:mid',
-//     'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
-//     'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
-//   ]
-//   return sdpAudioRemoveRTPExtensions(sdp, extensionsToFilter)
-// }
 
 /**
  * Check for srflx, prflx or relay candidates
@@ -189,13 +153,63 @@ export const sdpHasValidCandidates = (sdp: string) => {
   }
 }
 
+export const opusConfigsHack = (sdp: SDPUtils.SDPBlob, options: ConnectionOptions) => {
+  const sdpLines = SDPUtils.splitLines(sdp)
+  const opusIndex = sdpLines.findIndex(
+    (s) => /^a=rtpmap:(\d+)\s+opus\/(\d+)(?:\/(\d+))?$/i.test(s)
+  )
+
+  if (opusIndex < 0) {
+    // nothing todo
+    return sdp
+  }
+
+  const opusRtpMap = SDPUtils.parseRtpMap(sdpLines[opusIndex])
+
+  const pattern = new RegExp(`^a=fmtp:${opusRtpMap.payloadType}`)
+  const opusFmtpLineIndex = sdpLines.findIndex(s => pattern.test(s))
+
+  const opusParameters =
+    opusFmtpLineIndex >= 0
+      ? SDPUtils.parseFmtp(sdpLines[opusFmtpLineIndex])
+      : {}
+
+  if (options.maxOpusPlaybackRate) {
+    opusParameters.maxplaybackrate = `${options.maxOpusPlaybackRate}`
+    opusParameters.useinbandfec = '1'
+    opusParameters.minptime = '10'
+  }
+
+  if (options.useStereo) {
+    opusParameters.stereo = '1'
+    opusParameters['sprop-stereo'] = '1'
+  }
+
+  const opusFmtpLine = SDPUtils.writeFmtp({
+    channels: opusRtpMap.channels,
+    name: opusRtpMap.name,
+    payloadType: opusRtpMap.payloadType,
+    parameters: opusParameters,
+    clockRate: opusRtpMap.clockRate,
+  })
+
+  if (opusFmtpLineIndex >= 0) {
+    sdpLines[opusFmtpLineIndex] = opusFmtpLine.trim()
+  } else {
+    sdpLines[opusIndex] += `${endOfLine}${opusFmtpLine.trim()}`
+    console.log(sdpLines[opusIndex])
+  }
+
+  return `${sdpLines.join(endOfLine)}${endOfLine}`
+}
+
 /**
  * Remove "a=candidate" lines with local candidates
  * https://bloggeek.me/psa-mdns-and-local-ice-candidates-are-coming/
  */
 export const sdpRemoveLocalCandidates = (sdp: string) => {
   const pattern = /^a=candidate.*.local\ .*/
-  const endOfLine = '\r\n'
+  
   return sdp
     .split(endOfLine)
     .filter((line) => !pattern.test(line))

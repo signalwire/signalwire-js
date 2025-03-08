@@ -4,6 +4,8 @@ import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
 import { sdpHasAudio, sdpHasVideo } from './sdpHelpers'
 
+const DEFAULT_MAX_BITRATE = 64000
+
 // FIXME: Remove and use getUserMedia directly
 export const getUserMedia = (constraints: MediaStreamConstraints) => {
   getLogger().info('RTCService.getUserMedia', constraints)
@@ -43,36 +45,64 @@ export const getMediaConstraints = async (
   options: ConnectionOptions
 ): Promise<MediaStreamConstraints> => {
   let audio = _getAudioConstraints(options)
-  const { micLabel = '', micId } = options
+  let video = _getVideoConstraints(options)
+
+  const { micLabel = '', micId, camLabel = '', camId, maxOpusPlaybackRate, useStereo } = options
+ 
+  const channelCount =  useStereo ? 2 : 1
+  if (typeof audio === 'boolean' && audio) {
+    audio = { channelCount }
+  } else if (typeof audio === 'object') {
+    audio.channelCount =  channelCount
+  }
+  
+  if (typeof video === 'boolean' && video) {
+    video = {}
+  }
 
   if (micId && audio) {
     const newMicId = await assureDeviceId(micId, micLabel, 'microphone').catch(
       (_error) => null
     )
     if (newMicId) {
-      if (typeof audio === 'boolean') {
-        audio = {}
-      }
       audio.deviceId = { exact: newMicId }
     }
   }
 
-  let video = _getVideoConstraints(options)
-  const { camLabel = '', camId } = options
+  if(maxOpusPlaybackRate && audio) {
+    audio.sampleRate = maxOpusPlaybackRate
+  }
 
   if (camId && video) {
     const newCamId = await assureDeviceId(camId, camLabel, 'camera').catch(
       (_error) => null
     )
     if (newCamId) {
-      if (typeof video === 'boolean') {
-        video = {}
-      }
       video.deviceId = { exact: newCamId }
     }
   }
 
   return { audio, video }
+}
+
+export const getSenderAudioMaxBitrate = (options: ConnectionOptions) => {
+  if(!options.maxOpusPlaybackRate && !options.useStereo) {
+    return
+  }
+
+  let maxBitrate = DEFAULT_MAX_BITRATE
+
+  if(options.maxOpusPlaybackRate && (options.maxOpusPlaybackRate <= 8000)) {
+    maxBitrate = options.useStereo ? 20000 : 40000
+  } else if(options.maxOpusPlaybackRate && (options.maxOpusPlaybackRate <= 16000)) {
+    maxBitrate = options.useStereo ? 32000 : 64000
+  } else if(options.maxOpusPlaybackRate && (options.maxOpusPlaybackRate <= 24000)) {
+    maxBitrate = options.useStereo ? 40000 : 80000
+  } else if (options.useStereo) {
+    maxBitrate = 128000
+  }
+
+  return maxBitrate
 }
 
 interface FilterIceServersOptions {

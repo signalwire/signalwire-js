@@ -86,6 +86,8 @@ export interface ConnectionOptions {
   maxIceGatheringTimeout?: number
   /** @internal */
   maxConnectionStateTimeout?: number
+  /** OPUS audio codec max playback rate in Hz */
+  maxOpusPlaybackRate?: number
   /** @internal */
   watchMediaPackets?: boolean
   /** @internal */
@@ -99,6 +101,7 @@ export interface ConnectionOptions {
   nodeId?: string
 
   layout?: string
+
   positions?: VideoPositions
 }
 

@@ -3,12 +3,13 @@ import {
   getUserMedia,
   getMediaConstraints,
   filterIceServers,
+  getSenderAudioMaxBitrate,
 } from './utils/helpers'
 import {
-  sdpStereoHack,
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
+  opusConfigsHack,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -571,6 +572,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           const audioTransceiverParams: RTCRtpTransceiverInit = {
             direction: this.options.negotiateAudio ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],
+            sendEncodings: [{maxBitrate: getSenderAudioMaxBitrate(this.options)}]
           }
           this.logger.debug(
             'Applying audioTransceiverParams',
@@ -801,13 +803,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
     const {
-      useStereo,
       googleMaxBitrate,
       googleMinBitrate,
       googleStartBitrate,
     } = this.options
-    if (localDescription.sdp && useStereo) {
-      localDescription.sdp = sdpStereoHack(localDescription.sdp)
+    if (localDescription.sdp) {
+      localDescription.sdp = opusConfigsHack(localDescription.sdp, this.options)
     }
     if (
       localDescription.sdp &&
@@ -832,8 +833,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    if (remoteDescription.sdp && this.options.useStereo) {
-      remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
+    if (remoteDescription.sdp) {
+      remoteDescription.sdp = opusConfigsHack(remoteDescription.sdp, this.options)
     }
     if (remoteDescription.sdp && this.instance.localDescription) {
       remoteDescription.sdp = sdpMediaOrderHack(
