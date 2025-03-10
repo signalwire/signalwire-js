@@ -37,7 +37,7 @@ export class HTTPClient implements HTTPClientContract {
       headers: {
         Authorization: `Bearer ${this.options.token}`,
       },
-      retries: this.options.maxApiRequestRetries,
+      maxRetries: this.options.maxApiRequestRetries,
       retriesDelay: this.options.apiRequestRetriesDelay,
       retriesDelayIncrement: this.options.apiRequestRetriesDelayIncrement
     })

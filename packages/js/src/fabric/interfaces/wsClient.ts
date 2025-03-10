@@ -105,7 +105,7 @@ export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> & {
   apiRequestRetriesDelayIncrement?: number
   /** initial retry delay */
   apiRequestRetriesDelay?: number
-  /** max API request retry, set to 0 disable retries */
+  /** max API request retry, set 0 to disable retries */  
   maxApiRequestRetries?: number;
 }
 

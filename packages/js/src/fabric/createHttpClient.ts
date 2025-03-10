@@ -12,13 +12,13 @@ interface InternalHttpResponse<T> extends Response {
 async function http<T>(
   input: string,
   init: RequestInit | undefined,
-  retries?: number,
+  maxRetries?: number,
   retriesDelay?: number,
   retriesDelayIncrement?: number
 ): Promise<InternalHttpResponse<T>> {
   const response: InternalHttpResponse<T> = await asyncRetry({
     asyncCallable: () => fetch(input, init),
-    retries,
+    maxRetries,
     validator: (response) => {
       // whe should retry only error above Http-500
       if(!response.ok && response.status >= 500) {
@@ -62,7 +62,7 @@ interface CreateHttpClientOptions extends RequestInit {
    * Timeout in milliseconds
    */
   timeout?: number
-  retries?: number
+  maxRetries?: number
   retriesDelay?: number
   retriesDelayIncrement?: number
 }
@@ -77,7 +77,7 @@ export type CreateHttpClient = ReturnType<typeof createHttpClient>
 export const createHttpClient = (
   {
     baseUrl,
-    retries = 0,
+    maxRetries: retries = 0,
     retriesDelay = 0,
     retriesDelayIncrement = 0,
     timeout = 30000,

@@ -4,7 +4,7 @@ const DEFAULT_DELAY_VARIATION = 1
 
 interface AsyncRetryOptions<T> {
   asyncCallable: () => Promise<T>
-  retries?: number
+  maxRetries?: number
   delayFn?: () => number
   validator?: (promiseResult: T) => void | never
 }
@@ -62,7 +62,7 @@ export const constDelay = ({
 
 export const asyncRetry = async <T>({
   asyncCallable,
-  retries = DEFAULT_MAX_RETRIES,
+  maxRetries: retries = DEFAULT_MAX_RETRIES,
   delayFn,
   validator,
 }: AsyncRetryOptions<T>): Promise<T> => {
