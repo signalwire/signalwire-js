@@ -41,7 +41,6 @@ export class BaseNamespace<
   private onSessionDisconnect() {
     this._client.session.off('session.reconnecting', this.onSessionReconnect)
     this._client.destroy()
-    this.unsubscribeAll()
   }
 
   protected addTopics(topics: string[]) {
