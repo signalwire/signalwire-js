@@ -91,15 +91,20 @@ export const asyncRetry = async <T>({
 
   const promiseAttempt = async () => {
     try {
-      const result = await (wait <= 0 // Should not defer the call when: wait <= 0
-        ? asyncCallable()
-        : new Promise<T>((resolve, reject) =>
-            setTimeout(() => {
-              asyncCallable()
-                .then((r) => resolve(r))
-                .catch((e) => reject(e))
-            }, wait)
-          ))
+      let result: Awaited<T>
+
+      // Should not defer the call when: wait <= 0
+      if (wait <= 0) {
+        result = await asyncCallable()
+      } else {
+        result = await new Promise<T>((resolve, reject) =>
+          setTimeout(() => {
+            asyncCallable()
+              .then(resolve)
+              .catch(reject)
+          }, wait)
+        )
+      }
 
       if (remainingAttempts) {
         // avoid messing with the normal returns in the last attempt
