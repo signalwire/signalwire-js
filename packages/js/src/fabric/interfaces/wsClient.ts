@@ -95,6 +95,8 @@ export interface CallParams {
   userVariables?: WSClientOptions['userVariables']
   /** OPUS audio codec max playback rate in Hz */
   maxOpusPlaybackRate?: number
+  /** OPUS audio codec max average bitrate in Hz */
+  maxOpusAverageBitrate?: number
 }
 
 export interface DialParams extends CallParams {

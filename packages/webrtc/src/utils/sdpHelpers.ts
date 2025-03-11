@@ -179,6 +179,10 @@ export const opusConfigsHack = (sdp: SDPUtils.SDPBlob, options: any) => {
     opusParameters.minptime = '10'
   }
 
+  if(options.maxOpusAverageBitrate) {
+    opusParameters.maxaveragebitrate = `${options.maxOpusAverageBitrate}`
+  }
+
   if (options.useStereo) {
     opusParameters.stereo = '1'
     opusParameters['sprop-stereo'] = '1'
