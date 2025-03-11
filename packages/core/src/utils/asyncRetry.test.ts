@@ -307,14 +307,7 @@ describe('asyncRetry', () => {
         })
 
         try {
-        // loop thru the time allowing the promises to execute 
-        for (let i = 0; i < DEFAULT_MAX_RETRIES; i++) {
-          await Promise.resolve()
-          // Advance timer
-          jest.advanceTimersByTime(CONST_DELAY_INTERVAL)
-          await Promise.resolve()
-          await Promise.resolve()
-        }
+        jest.runAllTimersAsync()
         
         
           await promise
@@ -326,7 +319,7 @@ describe('asyncRetry', () => {
         expect(validatorSpy).toHaveBeenCalledTimes(0)
         expect(error).toBeInstanceOf(Error)
         expect(error.message).toBe('Real Callable Error - should be thrown')
-        await expect(promise).rejects.toEqual(new Error('Real Callable Error - should be thrown'))
+        await expect(() => promise).rejects.toEqual(new Error('Real Callable Error - should be thrown'))
         }
       })
       
