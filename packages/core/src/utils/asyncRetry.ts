@@ -36,7 +36,7 @@ export const increasingDelay = ({
       return upperDelayLimit
     }
     const currentDelay = delay
-    delay = Math.min(delay - variation, upperDelayLimit)
+    delay = Math.min(delay + variation, upperDelayLimit)
 
     return currentDelay;
   }
