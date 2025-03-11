@@ -15,48 +15,68 @@ interface DelayOptions {
   delayLimit?: number
 }
 
+// FIXME
 export const increasingDelay = ({
-  delayLimit: upperDelayLimit,
+  delayLimit: upperDelayLimit = Number.MAX_SAFE_INTEGER,
   initialDelay = DEFAULT_INITIAL_DELAY,
   variation = DEFAULT_DELAY_VARIATION,
 }: DelayOptions) => {
-  let delay: number
+  if(initialDelay < 0 || (upperDelayLimit  < 0) || variation < 0) {
+    throw new Error('No Negative Numbers')
+  }
+  if(initialDelay > upperDelayLimit) {
+    throw new Error('initialDelay must be lte delayLimit')
+  }
+
+  let delay = Math.min(initialDelay, upperDelayLimit)
   return () => {
-    if (upperDelayLimit && (delay >= upperDelayLimit)) {
+    if (delay === upperDelayLimit) {
       // stop incrementing the delay and just return upperDelayLimit
       return upperDelayLimit
     }
-    delay = delay ? delay + variation : initialDelay
-    delay =
-      upperDelayLimit && delay >= upperDelayLimit ? upperDelayLimit : delay
+    const currentDelay = delay
+    delay = Math.min(delay - variation, upperDelayLimit)
 
-    return delay
+    return currentDelay;
   }
 }
 
+// FIXME
 export const decreasingDelay = ({
-  delayLimit: bottomDelayLimit,
+  delayLimit: bottomDelayLimit = 0,
   initialDelay = DEFAULT_INITIAL_DELAY,
   variation = DEFAULT_DELAY_VARIATION,
 }: DelayOptions) => {
-  let delay: number
-  return () => {
-    if (delay === 0 || (bottomDelayLimit && delay <= bottomDelayLimit)) {
-      // stop decrementing the delay and just return bottomDelayLimit or 0
-      return bottomDelayLimit ?? 0
-    }
-    delay = delay ? delay - variation : initialDelay
-    delay =
-      bottomDelayLimit && delay <= bottomDelayLimit ? bottomDelayLimit : delay
-    delay = delay < 0 ? 0 : delay
+  if(initialDelay < 0 || (bottomDelayLimit  < 0) || variation < 0) {
+    throw new Error('No Negative Numbers')
+  }
+  if(initialDelay < bottomDelayLimit) {
+    throw new Error('initialDelay must be gte delayLimit')
+  }
 
-    return delay
+  let delay = Math.max(initialDelay, bottomDelayLimit)
+  return () => {
+
+    
+    return () => {
+      if (delay === bottomDelayLimit) {
+        // stop incrementing the delay and just return upperDelayLimit
+        return bottomDelayLimit
+      }
+      const currentDelay = delay;
+      delay = Math.max(delay - variation, bottomDelayLimit);
+  
+      return currentDelay;
+    }
   }
 }
 
 export const constDelay = ({
   initialDelay = DEFAULT_INITIAL_DELAY,
 }: Pick<DelayOptions, 'initialDelay'>) => {
+  if(initialDelay < 0) {
+    throw new Error('No Negative Numbers')
+  }
   return () => initialDelay
 }
 

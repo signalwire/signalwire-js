@@ -10,6 +10,21 @@ const DELAY_INCREMENT = 100
 
 describe('asyncRetry', () => {
   describe('Delay Builders', () => {
+
+    it('Should not accepted invalid params', () => {
+      expect(() => increasingDelay({initialDelay: -1})).toThrow()
+      expect(() => increasingDelay({delayLimit: -1})).toThrow()
+      expect(() => increasingDelay({variation: -1})).toThrow()
+      expect(() => increasingDelay({variation: -1, initialDelay: -1, delayLimit: -1})).toThrow()
+      expect(() => decreasingDelay({initialDelay: -1})).toThrow()
+      expect(() => decreasingDelay({delayLimit: -1})).toThrow()
+      expect(() => decreasingDelay({variation: -1})).toThrow()
+      expect(() => decreasingDelay({variation: -1, initialDelay: -1, delayLimit: -1})).toThrow()
+      expect(() => constDelay({initialDelay: -1})).toThrow()
+
+      expect(() => increasingDelay({initialDelay: 50, delayLimit: 10})).toThrow()
+      expect(() => decreasingDelay({initialDelay: 10, delayLimit: 50})).toThrow()
+    })
     it('Should increase by default', () => {
       const delayFn = increasingDelay({ })
       expect(delayFn()).toEqual(100)
@@ -36,11 +51,11 @@ describe('asyncRetry', () => {
     })
     it('Should NOT increase more than 30 again', () => {
       const delayFn = increasingDelay({
-        initialDelay: 10,
+        initialDelay: 32,
         variation: 35,
         delayLimit: 30,
       })
-      expect(delayFn()).toEqual(10)
+      expect(delayFn()).toEqual(32)
       expect(delayFn()).toEqual(30)
       expect(delayFn()).toEqual(30)
     })
