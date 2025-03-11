@@ -7,6 +7,7 @@ interface AsyncRetryOptions<T> {
   maxRetries?: number
   delayFn?: () => number
   validator?: (promiseResult: T) => void | never
+  expectedErrorHandler?: (error: Error) => boolean 
 }
 
 interface DelayOptions {
@@ -85,6 +86,7 @@ export const asyncRetry = async <T>({
   maxRetries: retries = DEFAULT_MAX_RETRIES,
   delayFn,
   validator,
+  expectedErrorHandler
 }: AsyncRetryOptions<T>): Promise<T> => {
   let remainingAttempts = retries - 1 // the 1st call counts as an attempt
   let wait = 0
@@ -113,7 +115,7 @@ export const asyncRetry = async <T>({
 
       return result
     } catch (error) {
-      if (remainingAttempts-- > 0) {
+      if (remainingAttempts-- > 0 && !expectedErrorHandler?.(error)) {
         wait = delayFn?.() ?? 0
         return promiseAttempt()
       } else {

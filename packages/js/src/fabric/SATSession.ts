@@ -85,7 +85,14 @@ export class SATSession extends JWTSession {
       delayFn: increasingDelay({
         initialDelay: this.options.apiRequestRetriesDelay,
         variation: this.options.apiRequestRetriesDelayIncrement
-      })
+      }),
+      expectedErrorHandler: (error) => {
+        if(error.message === 'Authentication failed, invalid token') {
+          // is expected skip retries
+          return  true
+        }
+        return false
+      }
     })
   }
 }

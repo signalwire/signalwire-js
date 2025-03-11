@@ -1,3 +1,4 @@
+import { error } from 'console'
 import {
   asyncRetry,
   constDelay,
@@ -7,6 +8,7 @@ import {
 
 const CONST_DELAY_INTERVAL = 100
 const DELAY_INCREMENT = 100
+const DEFAULT_MAX_RETRIES = 10
 
 describe('asyncRetry', () => {
   describe('Delay Builders', () => {
@@ -159,6 +161,22 @@ describe('asyncRetry', () => {
       expect(mockAsyncCallable).toHaveBeenCalledTimes(2)
     })
 
+    test('should not retry if error is expected', async () => {
+      const mockAsyncCallable = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Expected Error'))
+        .mockResolvedValue('success')
+
+      const promise = asyncRetry({
+        asyncCallable: mockAsyncCallable,
+        maxRetries: 5,
+        expectedErrorHandler:(error) => error.message === 'Expected Error'
+      })
+      
+      await expect(() => promise).rejects.toEqual(new Error('Expected Error'))
+      expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
+    })
+
     describe("With fake timers", () => {
 
       beforeEach(() => {
@@ -181,6 +199,42 @@ describe('asyncRetry', () => {
           asyncCallable: mockAsyncCallable,
           maxRetries: 5,
           delayFn: delaySpy,
+        })
+  
+        // First attempt fails
+        await Promise.resolve()
+        expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
+        expect(delaySpy).toHaveBeenCalledTimes(1)
+  
+        // Advance timer
+        jest.advanceTimersByTime(CONST_DELAY_INTERVAL / 2)
+  
+        
+        expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
+        expect(delaySpy).toHaveBeenCalledTimes(1)
+  
+        // Advance timer
+        jest.advanceTimersByTime(CONST_DELAY_INTERVAL / 2)
+        await Promise.resolve()
+  
+
+        await expect(promise).resolves.toBe('success')
+        expect(mockAsyncCallable).toHaveBeenCalledTimes(2)
+        expect(delaySpy).toHaveBeenCalledTimes(1)
+      })
+
+      test('should retry not expected exception ', async () => {
+        const delaySpy = jest.fn(() => constDelayFn())
+        const mockAsyncCallable = jest
+          .fn()
+          .mockRejectedValueOnce(new Error('Failed'))
+          .mockResolvedValue('success')
+  
+        const promise = asyncRetry({
+          asyncCallable: mockAsyncCallable,
+          maxRetries: 5,
+          delayFn: delaySpy,
+          expectedErrorHandler: (_) => false 
         })
   
         // First attempt fails
