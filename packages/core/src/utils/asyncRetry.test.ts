@@ -224,13 +224,7 @@ describe('asyncRetry', () => {
           validator: validatorSpy,
         })
 
-        // loop thru the time allowing the promises to execute 
-        for(let i=0;i<=9;i++) {
-          await Promise.resolve()
-          // Advance timer
-          jest.advanceTimersByTime(CONST_DELAY_INTERVAL)
-          await Promise.resolve()
-        }
+        await jest.runAllTimersAsync()
         
         expect(callableSpy).toHaveBeenCalledTimes(10)
         expect(delaySpy).toHaveBeenCalledTimes(9)
