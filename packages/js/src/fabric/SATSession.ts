@@ -11,7 +11,7 @@ import {
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 
-export interface SATSessionOptions extends SessionOptions {
+export interface ApiRequestRetriesOptions {
   /** increment step for each retry delay */
   apiRequestRetriesDelayIncrement: number
   /** initial retry delay */
@@ -19,6 +19,7 @@ export interface SATSessionOptions extends SessionOptions {
   /** max API request retry, set to 0 disable retries */
   maxApiRequestRetries: number;
 }
+export type SATSessionOptions = SessionOptions & ApiRequestRetriesOptions;
 /**
  * SAT Session is for the Call Fabric SDK
  */
