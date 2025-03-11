@@ -1,5 +1,4 @@
 import { getLogger } from '@signalwire/core'
-import { ConnectionOptions } from '@signalwire/js'
 import SDPUtils from 'sdp'
 
 const endOfLine = '\r\n'
@@ -153,7 +152,7 @@ export const sdpHasValidCandidates = (sdp: string) => {
   }
 }
 
-export const opusConfigsHack = (sdp: SDPUtils.SDPBlob, options: ConnectionOptions) => {
+export const opusConfigsHack = (sdp: SDPUtils.SDPBlob, options: any) => {
   const sdpLines = SDPUtils.splitLines(sdp)
   const opusIndex = sdpLines.findIndex(
     (s) => /^a=rtpmap:(\d+)\s+opus\/(\d+)(?:\/(\d+))?$/i.test(s)

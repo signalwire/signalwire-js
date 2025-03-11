@@ -93,6 +93,8 @@ export interface CallParams {
   negotiateVideo?: boolean
   /** User & UserAgent metadata */
   userVariables?: WSClientOptions['userVariables']
+  /** OPUS audio codec max playback rate in Hz */
+  maxOpusPlaybackRate?: number
 }
 
 export interface DialParams extends CallParams {

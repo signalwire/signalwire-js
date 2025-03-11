@@ -186,6 +186,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      maxOpusPlaybackRate: params.maxOpusPlaybackRate
     })
 
     // WebRTC connection left the room.
