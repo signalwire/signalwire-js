@@ -134,7 +134,8 @@ describe('asyncRetry', () => {
   describe('retries', () => {
     const delayFn = increasingDelay({ initialDelay: DELAY_INCREMENT })
     const constDelayFn = constDelay({initialDelay: CONST_DELAY_INTERVAL})
-    it('Should not throw and execute with no delay or retries', async () => {
+
+    it('should call the promise without delay function and maximum retries', async () => {
       const delaySpy = jest.fn(() => delayFn())
       const callableSpy = jest.fn(() => Promise.resolve())
 
@@ -215,8 +216,6 @@ describe('asyncRetry', () => {
             throw new Error('Validation Error')
           }
         })
-
-        console.log(1)
   
         const promise = asyncRetry({
           asyncCallable: callableSpy,
@@ -255,7 +254,7 @@ describe('asyncRetry', () => {
 
         try {
         // loop thru the time allowing the promises to execute 
-        for(let i=0;i<=9;i++) {
+        for (let i = 0; i < DEFAULT_MAX_RETRIES; i++) {
           await Promise.resolve()
           // Advance timer
           jest.advanceTimersByTime(CONST_DELAY_INTERVAL)
