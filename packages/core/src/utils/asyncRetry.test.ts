@@ -87,7 +87,7 @@ describe('asyncRetry', () => {
       expect(delayFn()).toEqual(3)
       expect(delayFn()).toEqual(0)
     })
-    it('Should NOT decrease more than 20', () => {
+    it('should NOT decrease more less 20', () => {
       const delayFn = decreasingDelay({
         initialDelay: 30,
         variation: 10,
