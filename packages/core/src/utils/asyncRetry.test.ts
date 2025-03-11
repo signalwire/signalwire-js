@@ -1,4 +1,3 @@
-import { error } from 'console'
 import {
   asyncRetry,
   constDelay,
@@ -8,7 +7,6 @@ import {
 
 const CONST_DELAY_INTERVAL = 100
 const DELAY_INCREMENT = 100
-const DEFAULT_MAX_RETRIES = 10
 
 describe('asyncRetry', () => {
   describe('Delay Builders', () => {
@@ -53,11 +51,11 @@ describe('asyncRetry', () => {
     })
     it('Should NOT increase more than 30 again', () => {
       const delayFn = increasingDelay({
-        initialDelay: 32,
+        initialDelay: 20,
         variation: 35,
         delayLimit: 30,
       })
-      expect(delayFn()).toEqual(32)
+      expect(delayFn()).toEqual(20)
       expect(delayFn()).toEqual(30)
       expect(delayFn()).toEqual(30)
     })

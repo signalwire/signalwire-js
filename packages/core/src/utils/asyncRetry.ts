@@ -7,7 +7,7 @@ interface AsyncRetryOptions<T> {
   maxRetries?: number
   delayFn?: () => number
   validator?: (promiseResult: T) => void | never
-  expectedErrorHandler?: (error: Error) => boolean 
+  expectedErrorHandler?: (error: Error) => boolean
 }
 
 interface DelayOptions {
@@ -22,10 +22,10 @@ export const increasingDelay = ({
   initialDelay = DEFAULT_INITIAL_DELAY,
   variation = DEFAULT_DELAY_VARIATION,
 }: DelayOptions) => {
-  if(initialDelay < 0 || (upperDelayLimit  < 0) || variation < 0) {
+  if (initialDelay < 0 || upperDelayLimit < 0 || variation < 0) {
     throw new Error('No Negative Numbers')
   }
-  if(initialDelay > upperDelayLimit) {
+  if (initialDelay > upperDelayLimit) {
     throw new Error('initialDelay must be lte delayLimit')
   }
 
@@ -38,7 +38,7 @@ export const increasingDelay = ({
     const currentDelay = delay
     delay = Math.min(delay + variation, upperDelayLimit)
 
-    return currentDelay;
+    return currentDelay
   }
 }
 
@@ -48,34 +48,31 @@ export const decreasingDelay = ({
   initialDelay = DEFAULT_INITIAL_DELAY,
   variation = DEFAULT_DELAY_VARIATION,
 }: DelayOptions) => {
-  if(initialDelay < 0 || (bottomDelayLimit  < 0) || variation < 0) {
+  if (initialDelay < 0 || bottomDelayLimit < 0 || variation < 0) {
     throw new Error('No Negative Numbers')
   }
-  if(initialDelay < bottomDelayLimit) {
+  if (initialDelay < bottomDelayLimit) {
     throw new Error('initialDelay must be gte delayLimit')
   }
 
   let delay = Math.max(initialDelay, bottomDelayLimit)
-  return () => {
 
-    
-    return () => {
-      if (delay === bottomDelayLimit) {
-        // stop incrementing the delay and just return upperDelayLimit
-        return bottomDelayLimit
-      }
-      const currentDelay = delay;
-      delay = Math.max(delay - variation, bottomDelayLimit);
-  
-      return currentDelay;
+  return () => {
+    if (delay === bottomDelayLimit) {
+      // stop incrementing the delay and just return upperDelayLimit
+      return bottomDelayLimit
     }
+    const currentDelay = delay
+    delay = Math.max(delay - variation, bottomDelayLimit)
+
+    return currentDelay
   }
 }
 
 export const constDelay = ({
   initialDelay = DEFAULT_INITIAL_DELAY,
 }: Pick<DelayOptions, 'initialDelay'>) => {
-  if(initialDelay < 0) {
+  if (initialDelay < 0) {
     throw new Error('No Negative Numbers')
   }
   return () => initialDelay
@@ -86,7 +83,7 @@ export const asyncRetry = async <T>({
   maxRetries: retries = DEFAULT_MAX_RETRIES,
   delayFn,
   validator,
-  expectedErrorHandler
+  expectedErrorHandler,
 }: AsyncRetryOptions<T>): Promise<T> => {
   let remainingAttempts = retries - 1 // the 1st call counts as an attempt
   let wait = 0
@@ -101,9 +98,7 @@ export const asyncRetry = async <T>({
       } else {
         result = await new Promise<T>((resolve, reject) =>
           setTimeout(() => {
-            asyncCallable()
-              .then(resolve)
-              .catch(reject)
+            asyncCallable().then(resolve).catch(reject)
           }, wait)
         )
       }
