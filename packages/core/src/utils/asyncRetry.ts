@@ -16,7 +16,6 @@ interface DelayOptions {
   delayLimit?: number
 }
 
-// FIXME
 export const increasingDelay = ({
   delayLimit: upperDelayLimit = Number.MAX_SAFE_INTEGER,
   initialDelay = DEFAULT_INITIAL_DELAY,
@@ -42,7 +41,6 @@ export const increasingDelay = ({
   }
 }
 
-// FIXME
 export const decreasingDelay = ({
   delayLimit: bottomDelayLimit = 0,
   initialDelay = DEFAULT_INITIAL_DELAY,
