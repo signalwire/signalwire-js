@@ -4,10 +4,16 @@ import {
   HttpError,
   increasingDelay,
 } from '@signalwire/core'
+import { ApiRequestRetriesOptions } from 'packages/js/src/fabric/SATSession'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T
 }
+
+const DEFAULT_MAX_RETRIES = 0
+const DEFAULT_INITIAL_DELAY = 0
+const DEFAULT_DELAY_VARIATION = 0
+const DEFAULT_TIMEOUT = 30000
 
 async function http<T>(
   input: string,
@@ -56,15 +62,12 @@ async function http<T>(
   return response
 }
 
-interface CreateHttpClientOptions extends RequestInit {
+type CreateHttpClientOptions = RequestInit & Partial<ApiRequestRetriesOptions> & {
   baseUrl: string
   /**
    * Timeout in milliseconds
    */
   timeout?: number
-  maxRetries?: number
-  retriesDelay?: number
-  retriesDelayIncrement?: number
 }
 
 interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
@@ -77,10 +80,10 @@ export type CreateHttpClient = ReturnType<typeof createHttpClient>
 export const createHttpClient = (
   {
     baseUrl,
-    maxRetries: retries = 0,
-    retriesDelay = 0,
-    retriesDelayIncrement = 0,
-    timeout = 30000,
+    maxApiRequestRetries: retries = DEFAULT_MAX_RETRIES,
+    apiRequestRetriesDelay: retriesDelay = DEFAULT_INITIAL_DELAY,
+    apiRequestRetriesDelayIncrement: retriesDelayIncrement = DEFAULT_DELAY_VARIATION,
+    timeout = DEFAULT_TIMEOUT,
     ...globalOptions
   }: CreateHttpClientOptions,
   fetcher = http
