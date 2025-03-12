@@ -93,11 +93,11 @@ export const getSenderAudioMaxBitrate = (options: ConnectionOptions) => {
   let maxBitrate = DEFAULT_MAX_BITRATE
 
   if(options.maxOpusPlaybackRate && (options.maxOpusPlaybackRate <= 8000)) {
-    maxBitrate = options.useStereo ? 20000 : 40000
+    maxBitrate = !options.useStereo ? 2000 : 4000
   } else if(options.maxOpusPlaybackRate && (options.maxOpusPlaybackRate <= 16000)) {
-    maxBitrate = options.useStereo ? 32000 : 64000
+    maxBitrate = !options.useStereo ? 32000 : 64000
   } else if(options.maxOpusPlaybackRate && (options.maxOpusPlaybackRate <= 24000)) {
-    maxBitrate = options.useStereo ? 40000 : 80000
+    maxBitrate = !options.useStereo ? 40000 : 80000
   } else if (options.useStereo) {
     maxBitrate = 128000
   }

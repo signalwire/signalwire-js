@@ -1,4 +1,4 @@
-import type { VideoPositions } from '@signalwire/core'
+import type { PlaybackRate, VideoPositions } from '@signalwire/core'
 import {
   BaseConnectionState,
   VideoRoomDeviceEventParams,
@@ -87,7 +87,7 @@ export interface ConnectionOptions {
   /** @internal */
   maxConnectionStateTimeout?: number
   /** OPUS audio codec max playback rate in Hz */
-  maxOpusPlaybackRate?: number
+  maxOpusPlaybackRate?: PlaybackRate
   /** OPUS audio codec max average bitrate in Hz */
   maxOpusAverageBitrate?: number
   /** @internal */
