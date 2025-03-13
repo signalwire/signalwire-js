@@ -1,3 +1,5 @@
+import { getLogger } from "../utils/logger"
+
 const DEFAULT_MAX_RETRIES = 10
 const DEFAULT_INITIAL_DELAY = 100
 const DEFAULT_DELAY_VARIATION = 1
@@ -110,6 +112,7 @@ export const asyncRetry = async <T>({
     } catch (error) {
       if (remainingAttempts-- > 0 && !expectedErrorHandler?.(error)) {
         wait = delayFn?.() ?? 0
+        getLogger().debug(`Retrying request: ${retries-remainingAttempts} X of ${retries}`)
         return promiseAttempt()
       } else {
         throw error
