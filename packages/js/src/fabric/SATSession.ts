@@ -1,4 +1,8 @@
 import {
+  asyncRetry,
+  increasingDelay,
+  JSONRPCRequest,
+  JSONRPCResponse,
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
@@ -7,13 +11,22 @@ import {
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 
+export interface ApiRequestRetriesOptions {
+  /** increment step for each retry delay */
+  apiRequestRetriesDelayIncrement: number
+  /** initial retry delay */
+  apiRequestRetriesDelay: number
+  /** max API request retry, set to 0 disable retries */
+  maxApiRequestRetries: number;
+}
+export type SATSessionOptions = SessionOptions & ApiRequestRetriesOptions;
 /**
  * SAT Session is for the Call Fabric SDK
  */
 export class SATSession extends JWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
 
-  constructor(public options: SessionOptions) {
+  constructor(public options: SATSessionOptions) {
     super(options)
   }
 
@@ -63,5 +76,23 @@ export class SATSession extends JWTSession {
     } catch (error) {
       throw error
     }
+  }
+
+  override async execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
+    return asyncRetry({
+      asyncCallable: () => super.execute(msg),
+      maxRetries: this.options.maxApiRequestRetries,
+      delayFn: increasingDelay({
+        initialDelay: this.options.apiRequestRetriesDelay,
+        variation: this.options.apiRequestRetriesDelayIncrement
+      }),
+      expectedErrorHandler: (error) => {
+        if(error.message.startsWith('Authentication failed')) {
+          // is expected to be handle by the app developer, skipping retries
+          return  true
+        }
+        return false
+      }
+    })
   }
 }
