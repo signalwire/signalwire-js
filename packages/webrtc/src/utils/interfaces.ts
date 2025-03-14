@@ -1,4 +1,4 @@
-import type { VideoPositions } from '@signalwire/core'
+import type { PlaybackRate, VideoPositions } from '@signalwire/core'
 import {
   BaseConnectionState,
   VideoRoomDeviceEventParams,
@@ -86,6 +86,10 @@ export interface ConnectionOptions {
   maxIceGatheringTimeout?: number
   /** @internal */
   maxConnectionStateTimeout?: number
+  /** OPUS audio codec max playback rate in Hz */
+  maxOpusPlaybackRate?: PlaybackRate
+  /** OPUS audio codec max average bitrate in Hz */
+  maxOpusAverageBitrate?: number
   /** @internal */
   watchMediaPackets?: boolean
   /** @internal */
@@ -99,6 +103,7 @@ export interface ConnectionOptions {
   nodeId?: string
 
   layout?: string
+
   positions?: VideoPositions
 }
 

@@ -326,6 +326,14 @@ export type PubSubChannelEvents =
   | InternalVideoEventNames
   | SessionEvents
 
+export enum PlaybackRate {
+  hz_8000 = 8000,
+  hz_12000 = 12000,
+  hz_16000 = 16000,
+  hz_24000 = 24000,
+  hz_48000 = 48000,
+}
+
 export * from './video'
 export * from './utils'
 export * from './cantina'

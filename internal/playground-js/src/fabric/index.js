@@ -313,6 +313,7 @@ window.dial = async ({ reattach = false } = {}) => {
     rootElement: document.getElementById('rootElement'),
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
+    maxOpusPlaybackRate: parseInt(document.getElementById('opusConfig').value)
   })
 
   window.__call = call
@@ -888,6 +889,8 @@ window.ready(async function () {
   document.getElementById('audio').checked = true
   document.getElementById('video').checked =
     localStorage.getItem('fabric.ws.video') === 'true'
+  document.getElementById('opusConfig').value =
+    localStorage.getItem('fabric.ws.opusConfig') || ''
 
   const urlParams = new URLSearchParams(window.location.search)
   const room = urlParams.get('room')
