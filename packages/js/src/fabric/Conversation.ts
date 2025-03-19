@@ -224,7 +224,7 @@ export class Conversation {
 
       chatMessages = await Promise.all(chatMessages.map(async message => ({
         ...message,
-        user_name: await this.httpClient.getAddress({id: message.from_address_id})
+        user_name: (await this.httpClient.getAddress({id: message.from_address_id})).display_name
       })))
 
       return {
