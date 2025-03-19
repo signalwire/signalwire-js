@@ -4,6 +4,10 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { uuid } from '@signalwire/core'
 
+const mock_getAddressSpy = jest.fn(() =>
+  Promise.resolve({ display_name: 'subscriber-name' })
+)
+
 // Mock HTTPClient
 jest.mock('./HTTPClient', () => {
   return {
@@ -13,6 +17,7 @@ jest.mock('./HTTPClient', () => {
         fetchSubscriberInfo: jest.fn(() =>
           Promise.resolve({ id: 'subscriber-id' })
         ),
+        getAddress: mock_getAddressSpy
       }
     }),
   }
@@ -320,6 +325,11 @@ describe('Conversation', () => {
   })
 
   describe('Chat utilities', () => {
+
+    beforeEach(() => {
+      jest.clearAllMocks()
+    })
+
     it('Should return adresss chat messages only', async () => {
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: {
@@ -336,6 +346,7 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(1)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
       expect(messages.data[0].conversation_id).toEqual(addressId)
     })
 
@@ -360,6 +371,7 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(10)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)    
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -387,6 +399,8 @@ describe('Conversation', () => {
       let messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(10)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)
+      
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -424,6 +438,8 @@ describe('Conversation', () => {
       })
 
       expect(messages.data).toHaveLength(3)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
+      
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -453,6 +469,8 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(3)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
+      
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
