@@ -181,7 +181,7 @@ export class Conversation {
       cached: ConversationMessage[] = [],
       isDirectionNext = true
     ): Promise<GetConversationChatMessageResult> => {
-      const chatMessages = [...cached]
+      let chatMessages = [...cached]
       const isValid = (item: ConversationMessage) =>
         item.conversation_id === addressId && item.subtype === 'chat'
 
@@ -221,6 +221,11 @@ export class Conversation {
       if (remaining < chatOnlyMessages.length) {
         missingReturns = chatOnlyMessages.slice(remaining)
       }
+
+      chatMessages = await Promise.all(chatMessages.map(async message => ({
+        ...message,
+        user_name: await this.httpClient.getAddress({id: message.from_address_id})
+      })))
 
       return {
         data: chatMessages as ConversationChatMessage[],
