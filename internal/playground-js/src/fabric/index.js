@@ -313,7 +313,7 @@ window.dial = async ({ reattach = false } = {}) => {
     rootElement: document.getElementById('rootElement'),
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
-    maxOpusPlaybackRate: parseInt(document.getElementById('opusConfig').value)
+    opusMaxPlaybackRate: parseInt(document.getElementById('opusConfig').value)
   })
 
   window.__call = call

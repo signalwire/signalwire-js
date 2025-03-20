@@ -51,7 +51,7 @@ export const getMediaConstraints = async (
     micId,
     camLabel = '',
     camId,
-    maxOpusPlaybackRate,
+    opusMaxPlaybackRate,
     useStereo,
   } = options
 
@@ -75,8 +75,8 @@ export const getMediaConstraints = async (
     }
   }
 
-  if (maxOpusPlaybackRate && audio) {
-    audio.sampleRate = maxOpusPlaybackRate
+  if (opusMaxPlaybackRate && audio) {
+    audio.sampleRate = opusMaxPlaybackRate
   }
 
   if (camId && video) {

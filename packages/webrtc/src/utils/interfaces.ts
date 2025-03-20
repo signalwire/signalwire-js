@@ -87,9 +87,9 @@ export interface ConnectionOptions {
   /** @internal */
   maxConnectionStateTimeout?: number
   /** OPUS audio codec max playback rate in Hz */
-  maxOpusPlaybackRate?: PlaybackRate
+  opusMaxPlaybackRate?: PlaybackRate
   /** OPUS audio codec max average bitrate in Hz */
-  maxOpusAverageBitrate?: number
+  opusMaxAverageBitrate?: number
   /** @internal */
   watchMediaPackets?: boolean
   /** @internal */

@@ -162,24 +162,24 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       throw new Error('Invalid destination address')
     }
 
-    if (params.maxOpusPlaybackRate) {
-      if (!isPlaybackRate(params.maxOpusPlaybackRate)) {
-        throw new Error('Invalid maxOpusPlaybackRate')
+    if (params.opusMaxPlaybackRate) {
+      if (!isPlaybackRate(params.opusMaxPlaybackRate)) {
+        throw new Error('Invalid opusMaxPlaybackRate')
       }
       if (typeof params.audio === 'object') {
         if (
           params.audio?.sampleRate &&
-          params.audio?.sampleRate !== params.maxOpusPlaybackRate
+          params.audio?.sampleRate !== params.opusMaxPlaybackRate
         ) {
           throw new Error(
-            'Mismatching parameters: maxOpusPlaybackRate, audio.sampleRate'
+            'Mismatching parameters: opusMaxPlaybackRate, audio.sampleRate'
           )
         }
       }
     }
 
-    if (params.maxOpusAverageBitrate && params.maxOpusAverageBitrate <= 0) {
-      throw new Error('Invalid maxOpusPlaybackRate')
+    if (params.opusMaxAverageBitrate && params.opusMaxAverageBitrate <= 0) {
+      throw new Error('Invalid opusMaxPlaybackRate')
     }
   }
 
@@ -214,8 +214,8 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
-      maxOpusPlaybackRate: params.maxOpusPlaybackRate,
-      maxOpusAverageBitrate: params.maxOpusAverageBitrate,
+      opusMaxPlaybackRate: params.opusMaxPlaybackRate,
+      opusMaxAverageBitrate: params.opusMaxAverageBitrate,
     })
 
     // WebRTC connection left the room.

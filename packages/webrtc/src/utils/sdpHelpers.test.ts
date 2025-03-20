@@ -52,28 +52,28 @@ describe('SDP utility functions', () => {
 
     it('set stereo=1 and maxplaybackrate=8000 maxbitrate=4000 if a=fmtp is present', () => {
       //@ts-expect-error partial options
-      expect(updateSDPForOpus(SDP_OPUS_NO_STEREO, {useStereo: true, maxOpusPlaybackRate: 8000})).toEqual(SDP_OPUS_STEREO_MAXPLAYBACKRATE)
+      expect(updateSDPForOpus(SDP_OPUS_NO_STEREO, {useStereo: true, opusMaxPlaybackRate: 8000})).toEqual(SDP_OPUS_STEREO_MAXPLAYBACKRATE)
     })
 
     it('set stereo=1 and maxplaybackrate=8000 maxbitrate=2000 if a=fmtp is present', () => {
       //@ts-expect-error partial options
-      expect(updateSDPForOpus(SDP_OPUS_NO_STEREO, {useStereo: false, maxOpusPlaybackRate: 8000})).toEqual(SDP_OPUS_MONO_MAXPLAYBACKRATE)
+      expect(updateSDPForOpus(SDP_OPUS_NO_STEREO, {useStereo: false, opusMaxPlaybackRate: 8000})).toEqual(SDP_OPUS_MONO_MAXPLAYBACKRATE)
     })
 
     it('set stereo=1 and maxplaybackrate=8000 if a=fmtp is NOT present', () => {
       //@ts-expect-error partial options
-      const result = updateSDPForOpus(SDP_NO_OPUS_NO_STEREO, {useStereo: true, maxOpusPlaybackRate: 8000})
+      const result = updateSDPForOpus(SDP_NO_OPUS_NO_STEREO, {useStereo: true, opusMaxPlaybackRate: 8000})
       expect(result).toEqual(SDP_NO_OPUS_STEREO_MAXPLAYBACKRATE)
     })
 
     it('set maxplaybackrate=8000 if a=fmtp is present', () => {
       //@ts-expect-error partial options
-      expect(updateSDPForOpus(SDP_OPUS_NO_STEREO, {maxOpusPlaybackRate: 8000})).toEqual(SDP_OPUS_MAXPLAYBACKRATE)
+      expect(updateSDPForOpus(SDP_OPUS_NO_STEREO, {opusMaxPlaybackRate: 8000})).toEqual(SDP_OPUS_MAXPLAYBACKRATE)
     })
 
     it('set maxplaybackrate=8000 if a=fmtp is NOT present', () => {
       //@ts-expect-error partial options
-      const result = updateSDPForOpus(SDP_NO_OPUS_NO_STEREO, {maxOpusPlaybackRate: 8000})
+      const result = updateSDPForOpus(SDP_NO_OPUS_NO_STEREO, {opusMaxPlaybackRate: 8000})
       expect(result).toEqual(SDP_NO_OPUS_MAXPLAYBACKRATE)
     })
   })
@@ -203,35 +203,35 @@ describe('SDP utility functions', () => {
   describe('getSenderAudioMaxBitrate', () => {
     it('should return 2000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: false, maxOpusPlaybackRate: 8000})).toBe(2000)
+        expect(getMaxBitrate({useStereo: false, opusMaxPlaybackRate: 8000})).toBe(2000)
     })
     it('should return 4000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: true, maxOpusPlaybackRate: 8000})).toBe(4000)
+        expect(getMaxBitrate({useStereo: true, opusMaxPlaybackRate: 8000})).toBe(4000)
     })
     it('should return 320000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: false, maxOpusPlaybackRate: 16000})).toBe(32000)
+        expect(getMaxBitrate({useStereo: false, opusMaxPlaybackRate: 16000})).toBe(32000)
     })
     it('should return 640000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: true, maxOpusPlaybackRate: 16000})).toBe(64000)
+        expect(getMaxBitrate({useStereo: true, opusMaxPlaybackRate: 16000})).toBe(64000)
     })
     it('should return 400000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: false, maxOpusPlaybackRate: 24000})).toBe(40000)
+        expect(getMaxBitrate({useStereo: false, opusMaxPlaybackRate: 24000})).toBe(40000)
     })
     it('should return 800000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: true, maxOpusPlaybackRate: 24000})).toBe(80000)
+        expect(getMaxBitrate({useStereo: true, opusMaxPlaybackRate: 24000})).toBe(80000)
     })
     it('should return 640000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: false, maxOpusPlaybackRate: 48000})).toBe(64000)
+        expect(getMaxBitrate({useStereo: false, opusMaxPlaybackRate: 48000})).toBe(64000)
     })
     it('should return 1280000', () => {
       //@ts-expect-error partial options
-        expect(getMaxBitrate({useStereo: true, maxOpusPlaybackRate: 48000})).toBe(128000)
+        expect(getMaxBitrate({useStereo: true, opusMaxPlaybackRate: 48000})).toBe(128000)
     })
 })
 })

@@ -187,7 +187,7 @@ export const upsertCodecParams = (
  * @returns True if the opus parameters are specified
  */
 const shouldOfferOpusOnly = (options: BaseConnectionOptions) =>
-  !!options.maxOpusAverageBitrate || !!options.maxOpusPlaybackRate
+  !!options.opusMaxAverageBitrate || !!options.opusMaxPlaybackRate
 
 export const updateSDPForOpus = (
   sdp: string,
@@ -198,13 +198,13 @@ export const updateSDPForOpus = (
 
   if (shouldOfferOpusOnly(options)) {
     filterAudioCodes(parsedSDP, [opusPayload, dtmfPayload])
-    if (options.maxOpusPlaybackRate) {
-      opusFmtpConfig['maxplaybackrate'] = `${options.maxOpusPlaybackRate}`
+    if (options.opusMaxPlaybackRate) {
+      opusFmtpConfig['maxplaybackrate'] = `${options.opusMaxPlaybackRate}`
       opusFmtpConfig['maxaveragebitrate'] = `${getMaxBitrate(options)}`
     }
 
-    if (options.maxOpusAverageBitrate) {
-      opusFmtpConfig['maxaveragebitrate'] = `${options.maxOpusAverageBitrate}`
+    if (options.opusMaxAverageBitrate) {
+      opusFmtpConfig['maxaveragebitrate'] = `${options.opusMaxAverageBitrate}`
     }
   }
 
@@ -295,22 +295,22 @@ export const hasMatchingSdpDirection = ({
 }
 
 export const getMaxBitrate = (options: BaseConnectionOptions) => {
-  if (!options.maxOpusPlaybackRate && !options.useStereo) {
+  if (!options.opusMaxPlaybackRate && !options.useStereo) {
     return
   }
 
   let maxBitrate = DEFAULT_MAX_BITRATE
 
-  if (options.maxOpusPlaybackRate && options.maxOpusPlaybackRate <= 8000) {
+  if (options.opusMaxPlaybackRate && options.opusMaxPlaybackRate <= 8000) {
     maxBitrate = !options.useStereo ? 2000 : 4000
   } else if (
-    options.maxOpusPlaybackRate &&
-    options.maxOpusPlaybackRate <= 16000
+    options.opusMaxPlaybackRate &&
+    options.opusMaxPlaybackRate <= 16000
   ) {
     maxBitrate = !options.useStereo ? 32000 : 64000
   } else if (
-    options.maxOpusPlaybackRate &&
-    options.maxOpusPlaybackRate <= 24000
+    options.opusMaxPlaybackRate &&
+    options.opusMaxPlaybackRate <= 24000
   ) {
     maxBitrate = !options.useStereo ? 40000 : 80000
   } else if (options.useStereo) {
