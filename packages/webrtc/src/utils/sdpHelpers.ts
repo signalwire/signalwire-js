@@ -1,31 +1,32 @@
 import { getLogger } from '@signalwire/core'
-import SDPUtils from 'sdp'
+import { BaseConnectionOptions } from '../BaseConnection'
+import sdpTransform from 'sdp-transform'
+
+const DEFAULT_MAX_BITRATE = 64000
 
 const endOfLine = '\r\n'
 
-const _isAudioLine = (line: string) => /^m=audio/.test(line)
-const _isVideoLine = (line: string) => /^m=video/.test(line)
-const _getCodecPayloadType = (line: string) => {
-  const pattern = new RegExp('a=rtpmap:(\\d+) \\w+\\/\\d+')
-  const result = line.match(pattern)
-  return result && result.length == 2 ? result[1] : null
-}
-const _normalizeSDPLines = (sdp: string) => {
-  // Make the line break consistent
-  return sdp.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-}
+type MediaSectionType = 'audio' | 'video'
+
+const opusPayload = 111
+const dtmfPayload = 110
+
+const _getMediaSection = (
+  mutableParsedSDP: sdpTransform.SessionDescription,
+  type: 'audio' | 'video'
+) => mutableParsedSDP.media.find((medisSection) => medisSection.type == type)
+
+const _stringifyParamMap = (paramMap: sdpTransform.ParamMap) =>
+  Object.entries(paramMap)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(';')
 
 /**
  * Check if SDP has a media section (audio or video)
  */
-export const sdpHasMediaSection = (sdp: string, media: 'audio' | 'video') => {
-  const lines = _normalizeSDPLines(sdp).split('\n')
-  for (let line of lines) {
-    if (line.startsWith(`m=${media}`)) {
-      return true
-    }
-  }
-  return false
+export const sdpHasMediaSection = (sdp: string, type: MediaSectionType) => {
+  const parsedSDP = sdpTransform.parse(sdp)
+  return !!_getMediaSection(parsedSDP, type)
 }
 
 /**
@@ -42,62 +43,20 @@ export const sdpHasAudio = (sdp: string) => {
   return sdpHasMediaSection(sdp, 'audio')
 }
 
-/**
- * Add stereo support hacking the SDP
- * @return the SDP modified
- */
-export const sdpStereoHack = (sdp: string) => {
-  const sdpLines = sdp.split(endOfLine)
-
-  const opusIndex = sdpLines.findIndex(
-    (s) => /^a=rtpmap/.test(s) && /opus\/48000/.test(s)
-  )
-  if (opusIndex < 0) {
-    return sdp
-  }
-
-  const opusPayload = _getCodecPayloadType(sdpLines[opusIndex])
-
-  const pattern = new RegExp(`a=fmtp:${opusPayload}`)
-  const fmtpLineIndex = sdpLines.findIndex((s) => pattern.test(s))
-
-  if (fmtpLineIndex >= 0) {
-    if (!/stereo=1;/.test(sdpLines[fmtpLineIndex])) {
-      // Append stereo=1 to fmtp line if not already present
-      sdpLines[fmtpLineIndex] += '; stereo=1; sprop-stereo=1'
-    }
-  } else {
-    // create an fmtp line
-    sdpLines[
-      opusIndex
-    ] += `${endOfLine}a=fmtp:${opusPayload} stereo=1; sprop-stereo=1`
-  }
-
-  return sdpLines.join(endOfLine)
-}
-
 export const sdpMediaOrderHack = (
   answer: string,
   localOffer: string
 ): string => {
-  const offerLines = localOffer.split(endOfLine)
-  const offerAudioIndex = offerLines.findIndex(_isAudioLine)
-  const offerVideoIndex = offerLines.findIndex(_isVideoLine)
-  if (
-    offerVideoIndex == -1 ||
-    offerAudioIndex == -1 ||
-    offerAudioIndex < offerVideoIndex
-  ) {
+  const parsedOffer = sdpTransform.parse(localOffer)
+  const parsedAnswer = sdpTransform.parse(answer)
+
+  if (parsedOffer.media[0].type === parsedAnswer.media[0].type) {
     return answer
   }
 
-  const answerLines = answer.split(endOfLine)
-  const answerAudioIndex = answerLines.findIndex(_isAudioLine)
-  const answerVideoIndex = answerLines.findIndex(_isVideoLine)
-  const audioLines = answerLines.slice(answerAudioIndex, answerVideoIndex)
-  const videoLines = answerLines.slice(answerVideoIndex, answerLines.length - 1)
-  const beginLines = answerLines.slice(0, answerAudioIndex)
-  return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
+  parsedAnswer.media.reverse()
+
+  return sdpTransform.write(parsedAnswer)
 }
 
 /**
@@ -123,87 +82,140 @@ export const sdpBitrateHack = (
   return lines.join(endOfLine)
 }
 
-
 /**
- * Check for srflx, prflx or relay candidates
- * TODO: improve the logic check private/public IP for typ host
+ * Check for srflx, prflx relay, or host with public IP candidates
  *
  * @param sdp string
  * @returns boolean
  */
 export const sdpHasValidCandidates = (sdp: string) => {
   try {
-    const regex = /typ (?:srflx|prflx|relay)/
-    const sections = SDPUtils.getMediaSections(sdp)
-    for (const section of sections) {
-      const lines = SDPUtils.splitLines(section)
-      const valid = lines.some((line) => {
-        return line.indexOf('a=candidate') === 0 && regex.test(line)
-      })
-      if (!valid) {
-        return false
-      }
-    }
-
-    return true
+    const validCandidatesTypes = ['srflx', 'prflx', 'relay']
+    const typeHostInvalidIP = [
+      /^10\./,
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+      /^192\.168\./,
+      /^127\./,
+      /^169\.254\./,
+      /^fc00:/,
+      /^fd00:/,
+      /^fe80:/,
+      /\.local$/,
+    ]
+    const parsedSDP = sdpTransform.parse(sdp)
+    return (
+      parsedSDP.media
+        // map each section to boolean, depending on having at least one valid candide
+        .map((mediaSection) =>
+          mediaSection.candidates?.some(
+            (candidate) =>
+              validCandidatesTypes.includes(candidate.type) ||
+              (candidate.type === 'host' &&
+                !typeHostInvalidIP.some((pattern) =>
+                  pattern.test(candidate.ip)
+                ))
+          )
+        )
+        // reduce to true if all sections have valid candidates
+        .reduce((acc, value) => acc && value, true)
+    )
   } catch (error) {
     getLogger().error('Error checking SDP', error)
     return false
   }
 }
 
-export const opusConfigsHack = (sdp: SDPUtils.SDPBlob, options: any) => {
-  const sdpLines = SDPUtils.splitLines(sdp)
-  const opusIndex = sdpLines.findIndex(
-    (s) => /^a=rtpmap:(\d+)\s+opus\/(\d+)(?:\/(\d+))?$/i.test(s)
-  )
+export const filterAudioCodes = (
+  mutableParsedSDP: sdpTransform.SessionDescription,
+  codecPayloads: number[]
+) => {
+  mutableParsedSDP.media.forEach((mediaSection) => {
+    if (mediaSection.type == 'audio') {
+      mediaSection.payloads = codecPayloads.join(' ')
+      mediaSection.rtp = mediaSection.rtp.filter((rtp) =>
+        codecPayloads.includes(rtp.payload)
+      )
+      mediaSection.fmtp = mediaSection.fmtp.filter((rtp) =>
+        codecPayloads.includes(rtp.payload)
+      )
+    }
+  })
+}
 
-  if (opusIndex < 0) {
-    // nothing todo
-    return sdp
+const _getOrCreatePayloadFmtp = (
+  mediaSection: sdpTransform.MediaDescription,
+  codecPayload: number
+) => {
+  let codecFmtp = mediaSection.fmtp.find((fmtp) => fmtp.payload == codecPayload)
+
+  if (!codecFmtp) {
+    codecFmtp = {
+      payload: codecPayload,
+      config: '',
+    }
+    mediaSection.fmtp.push(codecFmtp)
   }
 
-  const opusRtpMap = SDPUtils.parseRtpMap(sdpLines[opusIndex])
+  return codecFmtp
+}
 
-  const pattern = new RegExp(`^a=fmtp:${opusRtpMap.payloadType}`)
-  const opusFmtpLineIndex = sdpLines.findIndex(s => pattern.test(s))
-
-  const opusParameters =
-    opusFmtpLineIndex >= 0
-      ? SDPUtils.parseFmtp(sdpLines[opusFmtpLineIndex])
-      : {}
-
-  if (options.maxOpusPlaybackRate) {
-    opusParameters.maxplaybackrate = `${options.maxOpusPlaybackRate}`
-    opusParameters.useinbandfec = '1'
-    opusParameters.minptime = '10'
+export const upsertCodecParams = (
+  mutableParsedSDP: sdpTransform.SessionDescription,
+  media: MediaSectionType,
+  codecPayload: number,
+  params: sdpTransform.ParamMap
+) => {
+  const mediaSection = _getMediaSection(mutableParsedSDP, media)
+  if (!mediaSection || !mediaSection.payloads?.includes(`${codecPayload}`)) {
+    // nothing todo, either the media doesn't exist or the codec is not included in the payloads
+    return
   }
 
-  if(options.maxOpusAverageBitrate) {
-    opusParameters.maxaveragebitrate = `${options.maxOpusAverageBitrate}`
+  const fmtp = _getOrCreatePayloadFmtp(mediaSection, codecPayload)
+
+  // parse existing configs
+  let currentParams = fmtp.config.trim().length
+    ? sdpTransform.parseParams(fmtp.config)
+    : {}
+  // merge config
+  let updatedParams = { ...currentParams, ...params }
+
+  fmtp.config = _stringifyParamMap(updatedParams)
+}
+
+/**
+ * @returns True if the opus parameters are specified
+ */
+const shouldOfferOpusOnly = (options: BaseConnectionOptions) =>
+  !!options.maxOpusAverageBitrate || !!options.maxOpusPlaybackRate
+
+export const updateSDPForOpus = (
+  sdp: string,
+  options: BaseConnectionOptions
+) => {
+  const parsedSDP = sdpTransform.parse(sdp)
+  const opusFmtpConfig: sdpTransform.ParamMap = {}
+
+  if (shouldOfferOpusOnly(options)) {
+    filterAudioCodes(parsedSDP, [opusPayload, dtmfPayload])
+    if (options.maxOpusPlaybackRate) {
+      opusFmtpConfig['maxplaybackrate'] = `${options.maxOpusPlaybackRate}`
+      opusFmtpConfig['maxaveragebitrate'] = `${getMaxBitrate(options)}`
+    }
+
+    if (options.maxOpusAverageBitrate) {
+      opusFmtpConfig['maxaveragebitrate'] = `${options.maxOpusAverageBitrate}`
+    }
   }
 
   if (options.useStereo) {
-    opusParameters.stereo = '1'
-    opusParameters['sprop-stereo'] = '1'
+    opusFmtpConfig.stereo = '1'
+    opusFmtpConfig['sprop-stereo'] = '1'
   }
 
-  const opusFmtpLine = SDPUtils.writeFmtp({
-    channels: opusRtpMap.channels,
-    name: opusRtpMap.name,
-    payloadType: opusRtpMap.payloadType,
-    parameters: opusParameters,
-    clockRate: opusRtpMap.clockRate,
-  })
+  upsertCodecParams(parsedSDP, 'audio', opusPayload, opusFmtpConfig)
 
-  if (opusFmtpLineIndex >= 0) {
-    sdpLines[opusFmtpLineIndex] = opusFmtpLine.trim()
-  } else {
-    sdpLines[opusIndex] += `${endOfLine}${opusFmtpLine.trim()}`
-    console.log(sdpLines[opusIndex])
-  }
-
-  return `${sdpLines.join(endOfLine)}${endOfLine}`
+  return sdpTransform.write(parsedSDP)
 }
 
 /**
@@ -211,12 +223,17 @@ export const opusConfigsHack = (sdp: SDPUtils.SDPBlob, options: any) => {
  * https://bloggeek.me/psa-mdns-and-local-ice-candidates-are-coming/
  */
 export const sdpRemoveLocalCandidates = (sdp: string) => {
-  const pattern = /^a=candidate.*.local\ .*/
-  
-  return sdp
-    .split(endOfLine)
-    .filter((line) => !pattern.test(line))
-    .join(endOfLine)
+  const parsedSDP = sdpTransform.parse(sdp)
+
+  parsedSDP.media.forEach((mediaSection) => {
+    mediaSection.candidates = mediaSection.candidates?.filter(
+      (candidate) => !/\.local$/.test(candidate.ip)
+    )
+  })
+
+  const result = sdpTransform.write(parsedSDP)
+
+  return result
 }
 
 /**
@@ -227,32 +244,16 @@ export const getSdpDirection = (
   sdp: string,
   media: 'audio' | 'video'
 ): RTCRtpTransceiverDirection => {
-  const lines = _normalizeSDPLines(sdp).split('\n')
-  let inMediaSection = false
+  const parsedSDP = sdpTransform.parse(sdp)
 
-  const directions = ['inactive', 'recvonly', 'sendonly', 'sendrecv', 'stopped']
-
-  for (let line of lines) {
-    if (line.startsWith('m=')) {
-      // Check if this is the media section we're interested in
-      inMediaSection = line.startsWith(`m=${media}`)
-    } else if (inMediaSection && line.startsWith('a=')) {
-      // Check for direction attribute within this media section
-      const attr = line.substring(2)
-      if (directions.includes(attr)) {
-        // Return the found direction attribute
-        return attr as RTCRtpTransceiverDirection
-      }
-    }
-  }
-
-  // If no media section is found, return `stopped`
-  if (!inMediaSection) {
-    return 'stopped'
-  }
-
-  // If no direction attribute is found, return 'sendrecv' as per SDP standard
-  return 'sendrecv'
+  const mediaSection = parsedSDP.media.find(
+    (mediaSection) => mediaSection.type == media
+  )
+  return !mediaSection
+    ? // If no media section is found, return `stopped`
+      'stopped'
+    : // If no direction attribute is found, return 'sendrecv' as per SDP standard
+      mediaSection.direction ?? 'sendrecv'
 }
 
 /**
@@ -291,4 +292,30 @@ export const hasMatchingSdpDirection = ({
   const expectedRemoteDirection = getOppositeSdpDirection(localDirection)
   const remoteDirection = getSdpDirection(remoteSdp, media)
   return remoteDirection === expectedRemoteDirection
+}
+
+export const getMaxBitrate = (options: BaseConnectionOptions) => {
+  if (!options.maxOpusPlaybackRate && !options.useStereo) {
+    return
+  }
+
+  let maxBitrate = DEFAULT_MAX_BITRATE
+
+  if (options.maxOpusPlaybackRate && options.maxOpusPlaybackRate <= 8000) {
+    maxBitrate = !options.useStereo ? 2000 : 4000
+  } else if (
+    options.maxOpusPlaybackRate &&
+    options.maxOpusPlaybackRate <= 16000
+  ) {
+    maxBitrate = !options.useStereo ? 32000 : 64000
+  } else if (
+    options.maxOpusPlaybackRate &&
+    options.maxOpusPlaybackRate <= 24000
+  ) {
+    maxBitrate = !options.useStereo ? 40000 : 80000
+  } else if (options.useStereo) {
+    maxBitrate = 128000
+  }
+
+  return maxBitrate
 }

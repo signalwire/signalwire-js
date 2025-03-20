@@ -3,13 +3,12 @@ import {
   getUserMedia,
   getMediaConstraints,
   filterIceServers,
-  getSenderAudioMaxBitrate,
 } from './utils/helpers'
 import {
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
-  opusConfigsHack,
+  updateSDPForOpus,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -72,6 +71,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.options
     )
 
+    this._validateOptions()
+
     this._onIce = this._onIce.bind(this)
     this._onEndedTrackHandler = this._onEndedTrackHandler.bind(this)
 
@@ -85,6 +86,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     this.rtcConfigPolyfill = this.config
+  }
+
+  private _validateOptions() {
+    if (
+      this.options.useStereo === true &&
+      typeof this.options.audio === 'object' &&
+      (this.options.audio.channelCount ?? 2) != 2
+    ) {
+      throw new Error('Mismatch params: useStereo, audio.channelCount')
+    }
   }
 
   get options() {
@@ -572,7 +583,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           const audioTransceiverParams: RTCRtpTransceiverInit = {
             direction: this.options.negotiateAudio ? 'sendrecv' : 'sendonly',
             streams: [this._localStream],
-            sendEncodings: [{maxBitrate: getSenderAudioMaxBitrate(this.options)}]
           }
           this.logger.debug(
             'Applying audioTransceiverParams',
@@ -802,13 +812,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
-    const {
-      googleMaxBitrate,
-      googleMinBitrate,
-      googleStartBitrate,
-    } = this.options
+    const { googleMaxBitrate, googleMinBitrate, googleStartBitrate } =
+      this.options
     if (localDescription.sdp) {
-      localDescription.sdp = opusConfigsHack(localDescription.sdp, this.options)
+      localDescription.sdp = updateSDPForOpus(
+        localDescription.sdp,
+        this.options
+      )
     }
     if (
       localDescription.sdp &&
@@ -834,7 +844,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
     if (remoteDescription.sdp) {
-      remoteDescription.sdp = opusConfigsHack(remoteDescription.sdp, this.options)
+      remoteDescription.sdp = updateSDPForOpus(
+        remoteDescription.sdp,
+        this.options
+      )
     }
     if (remoteDescription.sdp && this.instance.localDescription) {
       remoteDescription.sdp = sdpMediaOrderHack(

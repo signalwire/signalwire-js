@@ -5,6 +5,7 @@ import {
   VertoBye,
   VertoSubscribe,
   VideoRoomSubscribedEventParams,
+  isPlaybackRate
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
 import { createFabricRoomSessionObject } from './FabricRoomSession'
@@ -154,11 +155,38 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
-    const [pathname, query] = params.to.split('?')
+  private _validateDialParams(params: DialParams) {
+    const [pathname] = params.to.split('?')
+
     if (!pathname) {
       throw new Error('Invalid destination address')
     }
+
+    if (params.maxOpusPlaybackRate) {
+      if (!isPlaybackRate(params.maxOpusPlaybackRate)) {
+        throw new Error('Invalid maxOpusPlaybackRate')
+      }
+      if (typeof params.audio === 'object') {
+        if (
+          params.audio?.sampleRate &&
+          params.audio?.sampleRate !== params.maxOpusPlaybackRate
+        ) {
+          throw new Error(
+            'Mismatching parameters: maxOpusPlaybackRate, audio.sampleRate'
+          )
+        }
+      }
+    }
+
+    if (params.maxOpusAverageBitrate && params.maxOpusAverageBitrate <= 0) {
+      throw new Error('Invalid maxOpusPlaybackRate')
+    }
+  }
+
+  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
+    this._validateDialParams(params)
+
+    const [, query] = params.to.split('?')
 
     let video = false
     let negotiateVideo = false

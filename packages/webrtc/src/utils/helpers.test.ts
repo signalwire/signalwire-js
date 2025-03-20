@@ -1,4 +1,4 @@
-import { getMediaConstraints, getSenderAudioMaxBitrate } from '../utils/helpers'
+import { getMediaConstraints } from '../utils/helpers'
 
 jest.mock('../utils/deviceHelpers', () => ({
     assureDeviceId: jest.fn().mockImplementation(async(p:any)=> Promise.resolve(p))
@@ -155,30 +155,4 @@ describe('Helpers functions', () => {
         })
     })
 
-    describe('getSenderAudioMaxBitrate', () => {
-        it('should return 2000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: false, maxOpusPlaybackRate: 8000})).toBe(2000)
-        })
-        it('should return 4000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: true, maxOpusPlaybackRate: 8000})).toBe(4000)
-        })
-        it('should return 320000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: false, maxOpusPlaybackRate: 16000})).toBe(32000)
-        })
-        it('should return 640000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: true, maxOpusPlaybackRate: 16000})).toBe(64000)
-        })
-        it('should return 400000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: false, maxOpusPlaybackRate: 24000})).toBe(40000)
-        })
-        it('should return 800000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: true, maxOpusPlaybackRate: 24000})).toBe(80000)
-        })
-        it('should return 640000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: false, maxOpusPlaybackRate: 48000})).toBe(64000)
-        })
-        it('should return 1280000', () => {
-            expect(getSenderAudioMaxBitrate({useStereo: true, maxOpusPlaybackRate: 48000})).toBe(128000)
-        })
-    })
 })
