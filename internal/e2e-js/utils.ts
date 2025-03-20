@@ -1329,7 +1329,7 @@ export interface Resource {
 
 export const createVideoRoomResource = async (name?: string) => {
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
+    `https://${process.env.API_HOST}/api/fabric/resources/conference_rooms`,
     {
       method: 'POST',
       headers: {

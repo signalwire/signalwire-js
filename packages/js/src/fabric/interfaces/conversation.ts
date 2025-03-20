@@ -104,6 +104,7 @@ export type GetMessagesResult = PaginatedResult<ConversationMessage>
 
 export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
   text: string
+  user_name: string
 }
 
 export interface GetConversationChatMessageParams {
