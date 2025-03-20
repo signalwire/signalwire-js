@@ -213,7 +213,9 @@ export const updateSDPForOpus = (
     opusFmtpConfig['sprop-stereo'] = '1'
   }
 
-  upsertCodecParams(parsedSDP, 'audio', opusPayload, opusFmtpConfig)
+  if(Object.keys(opusFmtpConfig).length) {
+    upsertCodecParams(parsedSDP, 'audio', opusPayload, opusFmtpConfig)
+  }
 
   return sdpTransform.write(parsedSDP)
 }
