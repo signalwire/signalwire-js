@@ -20,6 +20,10 @@ import {
   stripNamespacePrefix,
   isJSONRPCRequest,
   isJSONRPCResponse,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay,
   isPlaybackRate
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
@@ -76,6 +80,10 @@ export {
   isPlaybackRate,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay
 }
 
 export * from './redux/features/component/componentSlice'

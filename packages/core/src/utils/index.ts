@@ -26,6 +26,8 @@ export * from './extendComponent'
 export * from './debounce'
 export * from './SWCloseEvent'
 export * from './eventUtils'
+export * from './asyncRetry'
+
 export { LOCAL_EVENT_PREFIX }
 
 export const mutateStorageKey = (key: string) => `${STORAGE_PREFIX}${key}`
