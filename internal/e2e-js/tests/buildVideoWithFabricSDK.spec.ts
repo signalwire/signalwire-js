@@ -2,6 +2,7 @@ import {
   OverlayMap,
   LocalVideoOverlay,
   FabricRoomSession,
+  SignalWireClient,
 } from '@signalwire/js'
 import { test, expect, Page } from '../fixtures'
 import {
@@ -269,9 +270,9 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
           // @ts-expect-error
-          const client = window._client
+          const client: SignalWireClient = window._client
 
-          const call = await client.dial({
+          const call = client.dial({
             to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
