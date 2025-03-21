@@ -1,13 +1,19 @@
-import { UserOptions } from '@signalwire/core'
+import {
+  BaseClient,
+  SwAuthorizationStateEventParams,
+  UserOptions,
+} from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
-import { ApiRequestRetriesOptions } from 'packages/js/src/fabric/SATSession'
+import { ApiRequestRetriesOptions } from '../SATSession'
 
-export interface WSClientContract {
+export interface WSClientContract extends BaseClient<WSClientEvents> {
   /**
-   * Disconnects the client from the SignalWire network.
+   * The current authorization state of the WebSocket connection.
+   * Pass this, along with {@link protocolKey}, to the {@link SignalWire} client if you wish to
+   * reconnect to the previous WebSocket connection.
    */
-  disconnect(): Promise<void>
+  authState: string | undefined
   /**
    * Dial a resource and connect the call
    *
@@ -52,6 +58,15 @@ export interface WSClientContract {
    * @returns A promise that resolves when the client is successfully marked as offline.
    */
   offline(): Promise<void>
+}
+
+export type WSClientEventsHandlerMap = Record<
+  'authorization.state',
+  (params: SwAuthorizationStateEventParams) => void
+>
+
+export type WSClientEvents = {
+  [k in keyof WSClientEventsHandlerMap]: WSClientEventsHandlerMap[k]
 }
 
 export interface OnlineParams {
@@ -101,7 +116,11 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> & Partial<ApiRequestRetriesOptions>
+export type FabricUserOptions = Omit<
+  UserOptions,
+  'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
+> &
+  Partial<ApiRequestRetriesOptions>
 
 export interface WSClientOptions extends FabricUserOptions {
   /** HTML element in which to display the video stream */

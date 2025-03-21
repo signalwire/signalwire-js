@@ -7,7 +7,7 @@ import type {
   VideoAPIEvent,
   SwEventParams,
   WebRTCMessageParams,
-  SwAuthorizationStateParams,
+  SwAuthorizationStateEvent,
 } from '../../../types'
 import type { SessionChannel, SwEventChannel } from '../../interfaces'
 import { createCatchableSaga } from '../../utils/sagaHelpers'
@@ -29,7 +29,7 @@ const isVideoEvent = (e: SwEventParams): e is VideoAPIEvent => {
 }
 const isSwAuthorizationState = (
   e: SwEventParams
-): e is SwAuthorizationStateParams => {
+): e is SwAuthorizationStateEvent => {
   return e?.event_type === 'signalwire.authorization.state'
 }
 
@@ -54,7 +54,7 @@ export function* sessionChannelWatcher({
     /**
      * After connecting to the SignalWire network, it sends the `authorization_state`
      * through the `signalwire.authorization.state` event. We store this value in
-     * the storage since it is required for reconnect.
+     * the storage (or expose it to the client) since it is required for reconnect.
      */
     if (isSwAuthorizationState(broadcastParams)) {
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
