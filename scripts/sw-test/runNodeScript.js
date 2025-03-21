@@ -11,6 +11,7 @@ const ALLOWED_SCRIPT_EXTENSIONS = ['js', 'ts']
 
 const getScriptOptions = (pathname, config) => {
   const ignoreFiles = config.ignoreFiles || []
+  const includeFiles = config.includeFiles || []
   const ignoreDirectories = config.ignoreDirectories
     ? [...config.ignoreDirectories, 'playwright']
     : ['playwright']
@@ -33,11 +34,11 @@ const getScriptOptions = (pathname, config) => {
       .replace(/\.\.(\/|\\)/g, '')
       .replace(/\\/g, '/')
 
-    if (
-      fs.lstatSync(itemPath).isFile() &&
-      normalizedPath.includes('.test.') &&
-      !ignoreFiles.includes(normalizedPath)
-    ) {
+    const isValidFile = fs.lstatSync(itemPath).isFile() && normalizedPath.includes('.test.')
+    const isIncludedFile = (includeFiles.length == 0) || includeFiles.includes(normalizedPath)
+    const isIgnoredFile = ignoreFiles.includes(normalizedPath)
+
+    if (isValidFile && isIncludedFile && !isIgnoredFile) {
       acc.push({
         name: normalizedPath,
         type: getScriptType(itemPath),
@@ -78,6 +79,8 @@ const getRunParams = (script) => {
 
 async function runNodeScript(config) {
   const tests = getScriptOptions(path.join(process.cwd(), './src'), config)
+  let testResults = []
+  let runFailed = false
   try {
     for await (const test of tests) {
       await new Promise((resolve, reject) => {
@@ -94,15 +97,27 @@ async function runNodeScript(config) {
 
         child.on('close', (exitCode) => {
           if (exitCode !== 0) {
-            reject(exitCode)
+            console.log("Adding to FAILED tests: ", test.name)
+            testResults.push({ "test": test.name, "result": "FAIL", "exitCode": exitCode, "time": Date.now()})
+            runFailed = true
+            resolve()
+          } else {
+            console.log("Adding to passed tests: ", test.name)
+            testResults.push({ "test": test.name, "result": "OK", "time": Date.now()})
+            resolve()
           }
-          resolve()
         })
       })
     }
   } catch (error) {
     console.error('Process Exit with errorCode', error)
     process.exit(error ?? 1)
+  }
+  console.log("--------- test results: ", testResults)
+  console.log("-------------------------------------------")
+
+  if (runFailed === true) {
+    process.exit(1)
   }
 }
 
