@@ -1,7 +1,7 @@
 import { PlaybackRate, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
-import { ApiRequestRetriesOptions } from 'packages/js/src/fabric/SATSession'
+import { ApiRequestRetriesOptions } from '../SATSession'
 
 export interface WSClientContract {
   /**
@@ -105,7 +105,8 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> & Partial<ApiRequestRetriesOptions>
+export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> &
+  Partial<ApiRequestRetriesOptions>
 
 export interface WSClientOptions extends FabricUserOptions {
   /** HTML element in which to display the video stream */
