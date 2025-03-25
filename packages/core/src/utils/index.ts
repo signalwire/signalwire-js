@@ -227,3 +227,4 @@ export const isJSONRPCResponse = (
 export const isSATAuth = (e?: Authorization): e is SATAuthorization => {
   return typeof e !== 'undefined' && 'jti' in e
 }
+

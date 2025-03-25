@@ -23,7 +23,7 @@ import {
   asyncRetry,
   increasingDelay,
   decreasingDelay,
-  constDelay
+  constDelay,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -81,7 +81,7 @@ export {
   asyncRetry,
   increasingDelay,
   decreasingDelay,
-  constDelay
+  constDelay,
 }
 
 export * from './redux/features/component/componentSlice'

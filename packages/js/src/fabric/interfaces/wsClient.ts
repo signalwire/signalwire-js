@@ -1,4 +1,4 @@
-import { UserOptions } from '@signalwire/core'
+import { PlaybackRate, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 import { ApiRequestRetriesOptions } from '../SATSession'
@@ -94,6 +94,10 @@ export interface CallParams {
   negotiateVideo?: boolean
   /** User & UserAgent metadata */
   userVariables?: WSClientOptions['userVariables']
+  /** OPUS audio codec max playback rate in Hz */
+  opusMaxPlaybackRate?: PlaybackRate
+  /** OPUS audio codec max average bitrate in Hz */
+  opusMaxAverageBitrate?: number
 }
 
 export interface DialParams extends CallParams {
