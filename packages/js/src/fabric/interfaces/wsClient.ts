@@ -1,16 +1,12 @@
-import {
-  BaseClient,
-  SwAuthorizationStateEventParams,
-  UserOptions,
-} from '@signalwire/core'
+import { BaseClient, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 import { ApiRequestRetriesOptions } from '../SATSession'
 
-export interface WSClientContract extends BaseClient<WSClientEvents> {
+export interface WSClientContract extends BaseClient<{}> {
   /**
    * The current authorization state of the WebSocket connection.
-   * Pass this, along with {@link protocolKey}, to the {@link SignalWire} client if you wish to
+   * Store and pass this to the {@link SignalWire} client if you wish to
    * reconnect to the previous WebSocket connection.
    */
   authState: string | undefined
@@ -58,15 +54,6 @@ export interface WSClientContract extends BaseClient<WSClientEvents> {
    * @returns A promise that resolves when the client is successfully marked as offline.
    */
   offline(): Promise<void>
-}
-
-export type WSClientEventsHandlerMap = Record<
-  'authorization.state',
-  (params: SwAuthorizationStateEventParams) => void
->
-
-export type WSClientEvents = {
-  [k in keyof WSClientEventsHandlerMap]: WSClientEventsHandlerMap[k]
 }
 
 export interface OnlineParams {

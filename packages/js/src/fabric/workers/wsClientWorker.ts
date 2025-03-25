@@ -7,7 +7,6 @@ import {
   MapToPubSubShape,
   SDKWorkerHooks,
   WebRTCMessageParams,
-  SwAuthorizationStateEvent,
 } from '@signalwire/core'
 import { WSClient } from '../WSClient'
 
@@ -36,13 +35,6 @@ export const wsClientWorker: SDKWorker<WSClient, WSClientWorkerHooks> =
       handleIncomingInvite(action.payload.params)
     }
 
-    function* authStateWorker(
-      action: MapToPubSubShape<SwAuthorizationStateEvent>
-    ) {
-      client.authState = action.payload.authorization_state
-      client.emit('authorization.state', action.payload)
-    }
-
     const isVertoInvite = (action: SDKActions) => {
       if (
         action.type === 'webrtc.message' &&
@@ -51,10 +43,6 @@ export const wsClientWorker: SDKWorker<WSClient, WSClientWorkerHooks> =
         return action.payload.method === 'verto.invite'
       }
       return false
-    }
-
-    const isAuthState = (action: SDKActions) => {
-      return action.type === 'signalwire.authorization.state'
     }
 
     try {
@@ -67,12 +55,6 @@ export const wsClientWorker: SDKWorker<WSClient, WSClientWorkerHooks> =
 
         // Fire all the events with fireHoseWorker
         yield sagaEffects.fork(fireHoseWorker, action)
-
-        // If the event is signalwire.authorization.state, handle that with authStateWorker
-        if (isAuthState(action)) {
-          getLogger().debug('An authorization state is received', action)
-          yield sagaEffects.fork(authStateWorker, action)
-        }
 
         // If the event is verto.invite, handle that with vertoInviteWorker
         if (isVertoInvite(action)) {

@@ -19,3 +19,11 @@ export const getAuthError = ({ session }: SDKState) => {
 export const getAuthState = ({ session }: SDKState) => {
   return session.authState
 }
+
+export const getAuthStateEncoded = ({ session }: SDKState) => {
+  return session.authStateEncoded
+}
+
+export const getProtocol = ({ session }: SDKState) => {
+  return session.protocol
+}

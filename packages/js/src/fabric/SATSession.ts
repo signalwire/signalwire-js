@@ -3,13 +3,17 @@ import {
   increasingDelay,
   JSONRPCRequest,
   JSONRPCResponse,
+  RPCConnect,
+  RPCConnectParams,
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
   SessionOptions,
+  SwAuthorizationState,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
+import { decodeAuthState, encodeAuthState } from './utils/helpers'
 
 export interface ApiRequestRetriesOptions {
   /** increment step for each retry delay */
@@ -39,13 +43,45 @@ export class SATSession extends JWTSession {
     return undefined
   }
 
-  override async _checkTokenExpiration() {
-    /**
-     * noop
-     *
-     * The Call Fabric SDK does not attach any timer and
-     * does not emit any events to inform the user about the token expiry.
-     */
+  async onSwAuthorizationState(state: SwAuthorizationState) {
+    if (this.options.onAuthStateChange) {
+      const encoded = encodeAuthState({
+        authState: state,
+        protocol: this.relayProtocol,
+      })
+      this.options.onAuthStateChange(encoded)
+    }
+  }
+
+  /**
+   * Authenticate with the SignalWire Network using SAT
+   * @return Promise<void>
+   */
+  async authenticate() {
+    let authState: string | undefined
+    let protocol: string | undefined
+
+    if (this.options.authState?.length) {
+      const decoded = decodeAuthState(this.options.authState)
+      authState = decoded.authState
+      protocol = decoded.protocol
+    }
+
+    const params: RPCConnectParams = {
+      ...this._connectParams,
+      authentication: {
+        jwt_token: this.options.token,
+      },
+      ...(authState && { authorization_state: authState }),
+      ...(protocol && { protocol }),
+    }
+
+    try {
+      this._rpcConnectResult = await this.execute(RPCConnect(params))
+    } catch (error) {
+      this.logger.debug('SATSession authenticate error', error)
+      throw error
+    }
   }
 
   /**

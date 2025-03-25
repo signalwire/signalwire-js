@@ -31,6 +31,9 @@ export const SignalWire = (() => {
           await wsClient.connect()
 
           resolve({
+            get authState() {
+              return wsClient.authState
+            },
             registerDevice: httpClient.registerDevice.bind(httpClient),
             unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
             getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),

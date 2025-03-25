@@ -2,6 +2,7 @@ import {
   actions,
   BaseClient,
   CallJoinedEventParams as InternalCallJoinedEventParams,
+  selectors,
   VertoBye,
   VertoSubscribe,
   VideoRoomSubscribedEventParams,
@@ -22,15 +23,12 @@ import {
 import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
-import { WSClientContract, WSClientEvents } from './interfaces/wsClient'
+import { WSClientContract } from './interfaces/wsClient'
+import { encodeAuthState } from './utils/helpers'
 
-export class WSClient
-  extends BaseClient<WSClientEvents>
-  implements WSClientContract
-{
+export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
   private _disconnected: boolean = false
-  public authState: string | undefined
 
   constructor(private wsClientOptions: WSClientOptions) {
     const client = createWSClient(wsClientOptions)
@@ -53,6 +51,12 @@ export class WSClient
         },
       },
     })
+  }
+
+  get authState() {
+    const protocol = this.select(selectors.getProtocol)
+    const authStateEncoded = this.select(selectors.getAuthStateEncoded)
+    return encodeAuthState({ authState: authStateEncoded, protocol })
   }
 
   private makeFabricObject(makeRoomOptions: MakeRoomOptions) {
