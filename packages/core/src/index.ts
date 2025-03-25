@@ -24,7 +24,6 @@ import {
   increasingDelay,
   decreasingDelay,
   constDelay,
-  isPlaybackRate
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -77,13 +76,12 @@ export {
   isSATAuth,
   isJSONRPCRequest,
   isJSONRPCResponse,
-  isPlaybackRate,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
   asyncRetry,
   increasingDelay,
   decreasingDelay,
-  constDelay
+  constDelay,
 }
 
 export * from './redux/features/component/componentSlice'

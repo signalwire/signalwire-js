@@ -1,4 +1,3 @@
-import { PlaybackRate } from '../types'
 import {
   Authorization,
   JSONRPCRequest,
@@ -229,6 +228,3 @@ export const isSATAuth = (e?: Authorization): e is SATAuthorization => {
   return typeof e !== 'undefined' && 'jti' in e
 }
 
-export const isPlaybackRate = (value: unknown): value is PlaybackRate => {
-  return Object.values(PlaybackRate).includes(value as PlaybackRate)
-}
