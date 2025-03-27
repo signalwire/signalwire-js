@@ -23,7 +23,7 @@ import {
 import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
-import { WSClientContract } from './interfaces/wsClient'
+import { ReattachParams, WSClientContract } from './interfaces/wsClient'
 import { encodeAuthState } from './utils/helpers'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
@@ -162,7 +162,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
+  private buildOutboundCall(
+    params: DialParams & { attach?: boolean; prevCallId?: string }
+  ) {
     const [pathname, query] = params.to.split('?')
     if (!pathname) {
       throw new Error('Invalid destination address')
@@ -192,6 +194,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       destinationNumber: params.to,
       nodeId: params.nodeId,
       attach: params.attach ?? false,
+      prevCallId: params.prevCallId,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
     })
@@ -319,10 +322,17 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public async reattach(params: DialParams) {
+  public async reattach(params: ReattachParams) {
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
-        const call = this.buildOutboundCall({ ...params, attach: true })
+        if (!params.callId) {
+          throw new Error('Call ID is required to reattach')
+        }
+        const call = this.buildOutboundCall({
+          ...params,
+          attach: true,
+          prevCallId: params.callId,
+        })
         resolve(call)
       } catch (error) {
         this.logger.error('Unable to connect and reattach a call', error)

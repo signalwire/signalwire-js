@@ -103,6 +103,10 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
+export interface ReattachParams extends DialParams {
+  callId: string
+}
+
 export type FabricUserOptions = Omit<
   UserOptions,
   'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
