@@ -110,11 +110,16 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  /** The SDK invokes this method and uses the new token to re-auth. */
-  onRefreshToken?(): Promise<string>
+  /** Authorization state used to reconnect to the WebSocket client */
+  authState?: string
+  /** Callback triggered whenever the authorization state changes */
+  onAuthStateChange?: (authState: string) => unknown
+  /** Callback invoked by the SDK to fetch a new token for re-authentication */
+  onRefreshToken?: () => Promise<string>
   sessionChannel?: SessionChannel
   instanceMap?: InstanceMap
 }
+
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
@@ -211,7 +216,6 @@ export interface SATAuthorization {
   jti: string
   project_id: string
   fabric_subscriber: {
-    // TODO: public ?
     version: number
     expires_at: number
     subscriber_id: string

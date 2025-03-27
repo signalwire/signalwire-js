@@ -2,7 +2,11 @@ import { HTTPClient } from './HTTPClient'
 import { Conversation } from './Conversation'
 import { SignalWireClient, SignalWireClientParams } from './interfaces'
 import { WSClient } from './WSClient'
-import { DEFAULT_API_REQUEST_RETRIES, DEFAULT_API_REQUEST_RETRIES_DELAY, DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT } from './utils/constants'
+import {
+  DEFAULT_API_REQUEST_RETRIES,
+  DEFAULT_API_REQUEST_RETRIES_DELAY,
+  DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT,
+} from './utils/constants'
 
 export const SignalWire = (() => {
   let instance: Promise<SignalWireClient> | null = null
@@ -14,8 +18,9 @@ export const SignalWire = (() => {
           const options = {
             maxApiRequestRetries: DEFAULT_API_REQUEST_RETRIES,
             apiRequestRetriesDelay: DEFAULT_API_REQUEST_RETRIES_DELAY,
-            apiRequestRetriesDelayIncrement: DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT,
-            ...params
+            apiRequestRetriesDelayIncrement:
+              DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT,
+            ...params,
           }
 
           const wsClient = new WSClient(options)
@@ -26,6 +31,9 @@ export const SignalWire = (() => {
           await wsClient.connect()
 
           resolve({
+            get authState() {
+              return wsClient.authState
+            },
             registerDevice: httpClient.registerDevice.bind(httpClient),
             unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
             getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
@@ -60,9 +68,9 @@ export const SignalWire = (() => {
               sendMessage: conversation.sendMessage.bind(conversation),
               join: conversation.joinConversation.bind(conversation),
             },
-            // @ts-expect-error For debugging purposes
             on: wsClient.on.bind(wsClient),
             off: wsClient.off.bind(wsClient),
+            // @ts-expect-error For debugging purposes
             __httpClient: httpClient,
             __wsClient: wsClient,
           })

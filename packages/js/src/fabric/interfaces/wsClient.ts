@@ -1,13 +1,15 @@
-import { UserOptions } from '@signalwire/core'
+import { BaseClient, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 import { ApiRequestRetriesOptions } from '../SATSession'
 
-export interface WSClientContract {
+export interface WSClientContract extends BaseClient<{}> {
   /**
-   * Disconnects the client from the SignalWire network.
+   * The current authorization state of the WebSocket connection.
+   * Store and pass this to the {@link SignalWire} client if you wish to
+   * reconnect to the previous WebSocket connection.
    */
-  disconnect(): Promise<void>
+  authState: string | undefined
   /**
    * Dial a resource and connect the call
    *
@@ -101,7 +103,14 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> &
+export interface ReattachParams extends DialParams {
+  callId: string
+}
+
+export type FabricUserOptions = Omit<
+  UserOptions,
+  'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
+> &
   Partial<ApiRequestRetriesOptions>
 
 export interface WSClientOptions extends FabricUserOptions {
