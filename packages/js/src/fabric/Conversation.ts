@@ -229,9 +229,7 @@ export class Conversation {
           if (!message.from_address_id) {
             // nothing to lookup
             return message
-          }
-
-          console.log(message)
+          }      
           if (!this.lookupCache.has(message.from_address_id)) {
             this.lookupCache.set(
               message.from_address_id,
