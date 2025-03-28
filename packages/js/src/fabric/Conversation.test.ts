@@ -4,8 +4,9 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { uuid } from '@signalwire/core'
 
+const displayName = 'subscriber-name'
 const mock_getAddressSpy = jest.fn(() =>
-  Promise.resolve({ display_name: 'subscriber-name' })
+  Promise.resolve({ display_name: displayName })
 )
 
 // Mock HTTPClient
@@ -17,7 +18,7 @@ jest.mock('./HTTPClient', () => {
         fetchSubscriberInfo: jest.fn(() =>
           Promise.resolve({ id: 'subscriber-id' })
         ),
-        getAddress: mock_getAddressSpy
+        getAddress: mock_getAddressSpy,
       }
     }),
   }
@@ -325,7 +326,6 @@ describe('Conversation', () => {
   })
 
   describe('Chat utilities', () => {
-
     beforeEach(() => {
       jest.clearAllMocks()
     })
@@ -346,7 +346,7 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(1)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(0)
       expect(messages.data[0].conversation_id).toEqual(addressId)
     })
 
@@ -355,10 +355,10 @@ describe('Conversation', () => {
         body: {
           data: [
             { subtype: 'log', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'xyz' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'xyz', from_address_id: 'fa1' },
           ],
           links: {
             next: 'http://next.url',
@@ -371,10 +371,15 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(10)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)    
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(1) // since all message are from same address
+
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
+      ).toBe(true)
+      console.log(messages.data)
+      expect(
+        messages.data.every((item) => item.user_name === displayName)
       ).toBe(true)
     })
 
@@ -383,9 +388,9 @@ describe('Conversation', () => {
         body: {
           data: [
             { subtype: 'log', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa2' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa3' },
             { subtype: 'chat', conversation_id: 'xyz' },
           ],
           links: {
@@ -399,8 +404,8 @@ describe('Conversation', () => {
       let messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(10)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)
-      
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3) // since we have 3 distinct from
+
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -438,8 +443,8 @@ describe('Conversation', () => {
       })
 
       expect(messages.data).toHaveLength(3)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
-      
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(0) // messages without from_address_id should not try to resolve the address
+
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -454,8 +459,16 @@ describe('Conversation', () => {
           body: {
             data: [
               { subtype: 'log', conversation_id: 'abc' },
-              { subtype: 'chat', conversation_id: 'abc' },
-              { subtype: 'chat', conversation_id: 'xyz' },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'xyz',
+                from_address_id: 'fa1',
+              },
             ],
             links: {
               next: count < 3 ? 'http://next.url' : undefined,
@@ -469,8 +482,8 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(3)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
-      
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(1) // since all messages are from same address
+
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
