@@ -24,6 +24,7 @@ import type {
   JoinConversationResponse,
   JoinConversationResult,
   ConversationSubscribeResult,
+  GetAddressResponse,
 } from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -45,6 +46,10 @@ export class Conversation {
     string,
     Set<ConversationSubscribeCallback>
   > = {}
+  private fromAddressDisplayNameCache = new Map<
+    string,
+    Promise<GetAddressResponse>
+  >()
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -222,10 +227,33 @@ export class Conversation {
         missingReturns = chatOnlyMessages.slice(remaining)
       }
 
-      chatMessages = await Promise.all(chatMessages.map(async message => ({
-        ...message,
-        user_name: (await this.httpClient.getAddress({id: message.from_address_id})).display_name
-      })))
+      chatMessages = await Promise.all(
+        chatMessages.map(async (message) => {
+          if (!message.from_address_id) {
+            // nothing to lookup
+            return message
+          }
+
+          console.log(message)
+          if (!this.fromAddressDisplayNameCache.has(message.from_address_id)) {
+            this.fromAddressDisplayNameCache.set(
+              message.from_address_id,
+              this.httpClient.getAddress({
+                id: message.from_address_id,
+              })
+            )
+          }
+
+          return {
+            ...message,
+            user_name: (
+              await this.fromAddressDisplayNameCache.get(
+                message.from_address_id
+              )
+            )?.display_name,
+          }
+        })
+      )
 
       return {
         data: chatMessages as ConversationChatMessage[],
