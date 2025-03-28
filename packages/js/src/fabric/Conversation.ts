@@ -46,10 +46,7 @@ export class Conversation {
     string,
     Set<ConversationSubscribeCallback>
   > = {}
-  private fromAddressDisplayNameCache = new Map<
-    string,
-    Promise<GetAddressResponse>
-  >()
+  private lookupCache = new Map<string, Promise<GetAddressResponse>>()
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -235,8 +232,8 @@ export class Conversation {
           }
 
           console.log(message)
-          if (!this.fromAddressDisplayNameCache.has(message.from_address_id)) {
-            this.fromAddressDisplayNameCache.set(
+          if (!this.lookupCache.has(message.from_address_id)) {
+            this.lookupCache.set(
               message.from_address_id,
               this.httpClient.getAddress({
                 id: message.from_address_id,
@@ -246,11 +243,8 @@ export class Conversation {
 
           return {
             ...message,
-            user_name: (
-              await this.fromAddressDisplayNameCache.get(
-                message.from_address_id
-              )
-            )?.display_name,
+            user_name: (await this.lookupCache.get(message.from_address_id))
+              ?.display_name,
           }
         })
       )
