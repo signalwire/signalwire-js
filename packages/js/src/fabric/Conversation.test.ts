@@ -619,5 +619,122 @@ describe('Conversation', () => {
       expect(mockCallback2).toHaveBeenCalledTimes(1)
       expect(mockCallback3).toHaveBeenCalledTimes(0)
     })
+
+    describe('user_name cache', () => {
+      beforeEach(() => {
+        jest.useFakeTimers()
+      })
+
+      afterEach(() => {
+        jest.useRealTimers()
+        jest.clearAllMocks()
+      })
+
+      it('Should not fetch new values if cache not expired', async () => {
+        ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+          body: {
+            data: [
+              { subtype: 'log', conversation_id: 'abc' },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'xyz',
+                from_address_id: 'fa1',
+              },
+            ],
+            links: {
+              next: 'http://next.url',
+              prev: 'http://prev.url',
+            },
+          },
+        })
+
+        let username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        jest.advanceTimersByTime(1000 * 60 * 2)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+      })
+
+      it('Should fetch new values after cache not expired', async () => {
+        ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+          body: {
+            data: [
+              { subtype: 'log', conversation_id: 'abc' },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'xyz',
+                from_address_id: 'fa1',
+              },
+            ],
+            links: {
+              next: 'http://next.url',
+              prev: 'http://prev.url',
+            },
+          },
+        })
+
+        let username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        jest.advanceTimersByTime(1000 * 60 * 3 + 1)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(2)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(2)
+
+        jest.advanceTimersByTime(1000 * 60 * 2)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(2)
+      })
+    })
   })
 })

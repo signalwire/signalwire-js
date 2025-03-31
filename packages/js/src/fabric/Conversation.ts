@@ -46,7 +46,10 @@ export class Conversation {
     string,
     Set<ConversationSubscribeCallback>
   > = {}
-  private lookupCache = new Map<string, Promise<GetAddressResponse>>()
+  private lookupCache = new Map<
+    string,
+    { lastRequested: number; promise: Promise<GetAddressResponse> }
+  >()
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -61,19 +64,16 @@ export class Conversation {
   }
 
   private lookupUsername(addressId: string) {
-    if (!this.lookupCache.has(addressId)) {
-      this.lookupCache.set(
-        addressId,
-        this.httpClient.getAddress({
+    if ((Date.now() - (this.lookupCache.get(addressId)?.lastRequested ?? 0)  >= CACHE_ITEM_EXPIRATION)) {
+      this.lookupCache.set(addressId, {
+        lastRequested: Date.now(),
+        promise: this.httpClient.getAddress({
           id: addressId,
-        })
-      )
-      setTimeout(() => {
-        this.lookupCache.delete(addressId)
-      }, CACHE_ITEM_EXPIRATION)
+        }),
+      })
     }
 
-    return async () => (await this.lookupCache.get(addressId))?.display_name
+    return async () => (await this.lookupCache.get(addressId)?.promise)?.display_name
   }
 
   /** @internal */
