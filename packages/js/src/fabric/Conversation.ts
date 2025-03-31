@@ -24,6 +24,7 @@ import type {
   JoinConversationResponse,
   JoinConversationResult,
   ConversationSubscribeResult,
+  GetAddressResponse,
 } from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -31,7 +32,7 @@ import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
 
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
-
+const CACHE_ITEM_EXPIRATION = 1000 * 60 * 3 // 3 minutes
 interface ConversationOptions {
   httpClient: HTTPClient
   wsClient: WSClient
@@ -45,6 +46,10 @@ export class Conversation {
     string,
     Set<ConversationSubscribeCallback>
   > = {}
+  private lookupCache = new Map<
+    string,
+    { lastRequested: number; promise: Promise<GetAddressResponse> }
+  >()
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
@@ -56,6 +61,19 @@ export class Conversation {
         conversation: this,
       },
     })
+  }
+
+  private lookupUsername(addressId: string) {
+    if ((Date.now() - (this.lookupCache.get(addressId)?.lastRequested ?? 0)  >= CACHE_ITEM_EXPIRATION)) {
+      this.lookupCache.set(addressId, {
+        lastRequested: Date.now(),
+        promise: this.httpClient.getAddress({
+          id: addressId,
+        }),
+      })
+    }
+
+    return async () => (await this.lookupCache.get(addressId)?.promise)?.display_name
   }
 
   /** @internal */
@@ -222,10 +240,19 @@ export class Conversation {
         missingReturns = chatOnlyMessages.slice(remaining)
       }
 
-      chatMessages = await Promise.all(chatMessages.map(async message => ({
-        ...message,
-        user_name: (await this.httpClient.getAddress({id: message.from_address_id})).display_name
-      })))
+      chatMessages = await Promise.all(
+        chatMessages.map(async (message) => {
+          if (!message.from_address_id) {
+            // nothing to lookup
+            return message
+          }
+
+          return {
+            ...message,
+            user_name: await this.lookupUsername(message.from_address_id)(),
+          }
+        })
+      )
 
       return {
         data: chatMessages as ConversationChatMessage[],
