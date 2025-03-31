@@ -9,7 +9,7 @@ interface AsyncRetryOptions<T> {
   maxRetries?: number
   delayFn?: () => number
   validator?: (promiseResult: T) => void | never
-  expectedErrorHandler?: (error: Error) => boolean
+  expectedErrorHandler?: (error: any) => boolean
 }
 
 interface DelayOptions {
