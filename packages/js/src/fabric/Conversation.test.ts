@@ -17,7 +17,7 @@ jest.mock('./HTTPClient', () => {
         fetchSubscriberInfo: jest.fn(() =>
           Promise.resolve({ id: 'subscriber-id' })
         ),
-        getAddress: mock_getAddressSpy
+        getAddress: mock_getAddressSpy,
       }
     }),
   }
@@ -325,7 +325,6 @@ describe('Conversation', () => {
   })
 
   describe('Chat utilities', () => {
-
     beforeEach(() => {
       jest.clearAllMocks()
     })
@@ -371,7 +370,7 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(10)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)    
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -400,7 +399,7 @@ describe('Conversation', () => {
 
       expect(messages.data).toHaveLength(10)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)
-      
+
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -439,7 +438,7 @@ describe('Conversation', () => {
 
       expect(messages.data).toHaveLength(3)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
-      
+
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -470,7 +469,7 @@ describe('Conversation', () => {
 
       expect(messages.data).toHaveLength(3)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
-      
+
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
@@ -605,6 +604,83 @@ describe('Conversation', () => {
       expect(mockCallback1).toHaveBeenCalledTimes(2)
       expect(mockCallback2).toHaveBeenCalledTimes(1)
       expect(mockCallback3).toHaveBeenCalledTimes(0)
+    })
+  })
+
+  describe('getChatMessages', () => {
+    beforeEach(() => {
+      httpClient.getAddress = jest
+        .fn()
+        .mockImplementation(({ id }) =>
+          Promise.resolve({ display_name: `User-${id}` })
+        )
+    })
+
+    it('should preserve extra messages with pagination', async () => {
+      const page1 = {
+        data: [
+          {
+            conversation_id: 'address1',
+            subtype: 'chat',
+            from_address_id: '1',
+          },
+          {
+            conversation_id: 'address1',
+            subtype: 'log',
+            from_address_id: '2',
+          },
+          {
+            conversation_id: 'address1',
+            subtype: 'chat',
+            from_address_id: '3',
+          },
+        ],
+        hasNext: true,
+        hasPrev: false,
+        nextPage: jest.fn(),
+        prevPage: jest.fn(),
+        self: jest.fn(),
+        firstPage: jest.fn(),
+      }
+
+      const page2 = {
+        data: [
+          {
+            conversation_id: 'address1',
+            subtype: 'chat',
+            from_address_id: '4',
+          },
+          {
+            conversation_id: 'address1',
+            subtype: 'chat',
+            from_address_id: '5',
+          },
+        ],
+        hasNext: false,
+        hasPrev: true,
+        nextPage: jest.fn(),
+        prevPage: jest.fn(),
+        self: jest.fn(),
+        firstPage: jest.fn(),
+      }
+
+      ;(page1.nextPage as jest.Mock).mockResolvedValue(page2)
+      conversation.getConversationMessages = jest.fn().mockResolvedValue(page1)
+
+      const result = await conversation.getChatMessages({
+        addressId: 'address1',
+        pageSize: 3,
+      })
+
+      expect(result.data).toHaveLength(3)
+      expect(result.data[0].from_address_id).toBe('1')
+      expect(result.data[1].from_address_id).toBe('3')
+      expect(result.data[2].from_address_id).toBe('4')
+      expect(result.hasNext).toBe(true)
+
+      const nextResult = await result.nextPage()
+      expect(nextResult?.data).toHaveLength(1)
+      expect(nextResult?.data[0].from_address_id).toBe('5')
     })
   })
 })
