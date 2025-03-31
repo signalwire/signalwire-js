@@ -63,4 +63,13 @@ describe('SessionState Tests', () => {
     store.dispatch(reauthAction({ token: 'foo' }))
     expect(getAuthStatus(store.getState())).toEqual('authorizing')
   })
+
+  it('should set authorizationState on sessionActions.updateAuthorizationState', () => {
+    store.dispatch(sessionActions.updateAuthorizationState('foo'))
+
+    expect(store.getState().session).toStrictEqual({
+      ...initialSessionState,
+      authorizationState: 'foo',
+    })
+  })
 })
