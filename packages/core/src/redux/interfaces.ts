@@ -21,6 +21,7 @@ import type {
   VideoManagerAction,
   PubSubEventAction,
   FabricAction,
+  SwAuthorizationState,
 } from '../types'
 import { SDKRunSaga } from '.'
 
@@ -65,7 +66,7 @@ export interface SessionState {
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
   authorization?: Authorization
-  authorizationState?: string
+  authorizationState?: SwAuthorizationState
   authError?: SessionAuthError
   authCount: number
 }
