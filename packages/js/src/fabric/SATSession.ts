@@ -1,5 +1,7 @@
 import {
   asyncRetry,
+  BaseJWTSession,
+  getLogger,
   increasingDelay,
   JSONRPCRequest,
   JSONRPCResponse,
@@ -12,8 +14,10 @@ import {
   SwAuthorizationState,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
-import { JWTSession } from '../JWTSession'
+import { JWTHeader } from '../JWTSession'
 import { decodeAuthState, encodeAuthState } from './utils/helpers'
+import jwtDecode from 'jwt-decode'
+import { SwCloseEvent } from '../utils/CloseEvent'
 
 export interface ApiRequestRetriesOptions {
   /** increment step for each retry delay */
@@ -28,11 +32,24 @@ export type SATSessionOptions = SessionOptions & ApiRequestRetriesOptions
 /**
  * SAT Session is for the Call Fabric SDK
  */
-export class SATSession extends JWTSession {
+export class SATSession extends BaseJWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
+  public WebSocketConstructor = WebSocket
+  public CloseEventConstructor = SwCloseEvent
+  public agent = process.env.SDK_PKG_AGENT!
 
   constructor(public options: SATSessionOptions) {
-    super(options)
+    let decodedJwt: JWTHeader = {}
+    try {
+      decodedJwt = jwtDecode(options.token, { header: true })
+    } catch (e) {
+      getLogger().debug('[SATSession] error decoding the JWT')
+    }
+
+    super({
+      ...options,
+      host: decodedJwt?.ch || options.host,
+    })
   }
 
   override get signature() {
@@ -57,7 +74,7 @@ export class SATSession extends JWTSession {
    * Authenticate with the SignalWire Network using SAT
    * @return Promise<void>
    */
-  async authenticate() {
+  override async authenticate() {
     let authState: string | undefined
     let protocol: string | undefined
 
@@ -125,7 +142,7 @@ export class SATSession extends JWTSession {
         variation: this.options.apiRequestRetriesDelayIncrement,
       }),
       expectedErrorHandler: (error) => {
-        if (error.message.startsWith('Authentication failed')) {
+        if (error?.message?.startsWith('Authentication failed')) {
           // is expected to be handle by the app developer, skipping retries
           return true
         }

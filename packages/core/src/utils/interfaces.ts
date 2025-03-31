@@ -97,7 +97,7 @@ export interface BaseRPCResult extends Record<string, unknown> {
 }
 
 export interface SessionOptions {
-  /** @internal */
+  /** SignalWire host, e.g. `relay.signalwire.com` or `puc.signalwire.com` */
   host?: string
   /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
   project?: string
