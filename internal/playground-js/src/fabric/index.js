@@ -246,6 +246,12 @@ function restoreUI() {
 }
 
 /**
+ * Stale auth state; (socket closing due to this auth state)
+ *
+ * eyJhdXRoU3RhdGUiOiJLdTZWL1ZKUm83OURqNitjSzJ1dzVHYVBRUUt6M0gyMFpqak8zLzVaamZodFVBVXMrRWJmdDBMelRVQUtYbGJlVWgzdXFiWVVnVjlqVU90N1F5SE16ZGJLeDFmUFRabTJMWFhrNENvMDFFVWlzY2Y1a2JMQXJUL3dZanVueERtVnZmeUNoUlhoU1lGRE5wVllNL3h3SCtuUElwWlk3ajN5Ym4vVHAycUEydHRrR3BqakxaWUFSaSs3a1lUOEl4WDVmc1hWUFpiVXZDVlcrcjRBOHN5WlRFQjdPazJMb0x0YUc0aElqeXVFZHlXOC9LTmJ5Qitpc0JoRUpiUWhLNFN5MGhMTDIvd01pa0JJMkZtb0szTUtaS1diRm50bVFhZWN1T2lFbC84L01xajFCNTRZMzhBVWczVGFDWjM1YmpHQnhjWEdXNmxpYnBaU0EybHpSMjhzbEpDNy83NEhPRm5Nbmk4UVJKa3ovTnRCcWh0NlB2SDFyWVBlM25pYzNsdzg0enBmZlZ2MitBT2NlV0JMNXJ2ZnBBaWQ3cGljQUJ3cTlZVHN5UTVUYTI1M294QzRCQTNEcWU1WjFVVUVmcGQxN3pWRmdEU0JiUk5HY3p3VG9OREwzejR4d1FJNkE4UkkrNDZlMnVLcEc0NnoxZEZLaXZMK24wUTI2bmJzdnkyMUVSem04V2hiVDViMStVa3ZXL0xuQmIwYmtXY0xabnhUZ01KWnR3Tjd5R2ZDTWJxY0tMMlZHbXZ1UUgrdXdMVDU6ajVkbUM2US9vZHZMN1R6bkFkWWxrZz09IiwicHJvdG9jb2wiOiJzaWduYWx3aXJlXzI0M2FmZDZhLWMxYTctNDYwZi04ZDJlLTNmNWFmOGFjYzk4NV9mNjAxMWFlYy1mNDAzLTRhZmMtYWFhNy0yZTc3MDhkYTA2M2JfZjE1YzVlM2EtZTVkNi00NjA3LTlhM2QtYzVhZjBhYTkyMzZhIn0=
+ */
+
+/**
  * Connect the Fabric client (start the WebSocket connection with Auth).
  */
 window.connect = async () => {
@@ -256,6 +262,10 @@ window.connect = async () => {
     token: document.getElementById('token').value,
     logLevel: 'debug',
     debug: { logWsTraffic: true },
+    authState: localStorage.getItem('fabric.ws.authState'),
+    onAuthStateChange: (authState) => {
+      saveInLocalStorage({ target: { name: 'authState', value: authState } })
+    },
   })
   window.__client = client
 
@@ -313,6 +323,7 @@ window.dial = async ({ reattach = false } = {}) => {
     rootElement: document.getElementById('rootElement'),
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
+    callId: localStorage.getItem('fabric.ws.callId'),
   })
 
   window.__call = call
@@ -425,11 +436,14 @@ window.dial = async ({ reattach = false } = {}) => {
 
   roomObj.on('destroy', () => {
     console.debug('>> destroy')
+    localStorage.removeItem('fabric.ws.callId')
     restoreUI()
   })
 
   await call.start()
   console.debug('Call Obj', call)
+
+  saveInLocalStorage({ target: { name: 'callId', value: call.callId } })
 
   /* --------- Render video element using custom function ---------- */
   // setTimeout(async () => {
@@ -505,6 +519,9 @@ window.disconnect = async () => {
   btnDisconnect.classList.add('d-none')
 
   removeRoomFromURL()
+
+  localStorage.removeItem('fabric.ws.callId')
+  localStorage.removeItem('fabric.ws.authState')
 }
 
 // Set or update the query parameter 'room' with value room.name
