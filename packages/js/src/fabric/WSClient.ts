@@ -5,6 +5,7 @@ import {
   VertoBye,
   VertoSubscribe,
   VideoRoomSubscribedEventParams,
+  isPlaybackRate
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
 import { createFabricRoomSessionObject } from './FabricRoomSession'
@@ -154,11 +155,38 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
-    const [pathname, query] = params.to.split('?')
+  private _validateDialParams(params: DialParams) {
+    const [pathname] = params.to.split('?')
+
     if (!pathname) {
       throw new Error('Invalid destination address')
     }
+
+    if (params.opusMaxPlaybackRate) {
+      if (!isPlaybackRate(params.opusMaxPlaybackRate)) {
+        throw new Error('Invalid opusMaxPlaybackRate')
+      }
+      if (typeof params.audio === 'object') {
+        if (
+          params.audio?.sampleRate &&
+          params.audio?.sampleRate !== params.opusMaxPlaybackRate
+        ) {
+          throw new Error(
+            'Mismatching parameters: opusMaxPlaybackRate, audio.sampleRate'
+          )
+        }
+      }
+    }
+
+    if (params.opusMaxAverageBitrate && params.opusMaxAverageBitrate <= 0) {
+      throw new Error('Invalid opusMaxPlaybackRate')
+    }
+  }
+
+  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
+    this._validateDialParams(params)
+
+    const [, query] = params.to.split('?')
 
     let video = false
     let negotiateVideo = false
@@ -186,6 +214,8 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      opusMaxPlaybackRate: params.opusMaxPlaybackRate,
+      opusMaxAverageBitrate: params.opusMaxAverageBitrate,
     })
 
     // WebRTC connection left the room.

@@ -17,25 +17,49 @@ describe('Helpers functions', () => {
 
             it('should return audio === true & video === false', async () => {
                 const mediaConstraints = await getMediaConstraints({})
-                expect(mediaConstraints.audio).toStrictEqual(true)
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
                 expect(mediaConstraints.video).toStrictEqual(false)
             })
 
             it('should return audio === true & video === false', async () => {
                 const mediaConstraints = await getMediaConstraints({audio: true, video: true})
-                expect(mediaConstraints.audio).toStrictEqual(true)
-                expect(mediaConstraints.video).toStrictEqual(true)
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
+                expect(mediaConstraints.video).toEqual({})
             })
 
             it('should return audio === {}', async () => {
                 const mediaConstraints = await getMediaConstraints({audio: {}})
-                expect(mediaConstraints.audio).toEqual({})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
                 expect(mediaConstraints.video).toStrictEqual(false)
             })
 
             it('should return audio === {}', async () => {
                 const mediaConstraints = await getMediaConstraints({audio: {}, video: {}})
-                expect(mediaConstraints.audio).toEqual({})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
+                expect(mediaConstraints.video).toEqual({})
+            })
+
+            it('should return compatible audio constrains, mono - audio only', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: true, video: false, opusMaxPlaybackRate: 8000, useStereo: false})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1, "sampleRate": 8000})
+                expect(mediaConstraints.video).toStrictEqual(false)
+            })
+
+            it('should return compatible audio constrains, stereo - audio only', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: true, video: false, opusMaxPlaybackRate: 8000, useStereo: true})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 2, "sampleRate": 8000})
+                expect(mediaConstraints.video).toStrictEqual(false)
+            })
+
+            it('should return compatible audio constrains, mono - with video', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: true, video: true, opusMaxPlaybackRate: 8000, useStereo: false})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1, "sampleRate": 8000})
+                expect(mediaConstraints.video).toEqual({})
+            })
+
+            it('should return compatible audio constrains, stereo - with video', async () => {
+                const mediaConstraints = await getMediaConstraints({audio: true, video: true, opusMaxPlaybackRate: 8000, useStereo: true})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 2, "sampleRate": 8000})
                 expect(mediaConstraints.video).toEqual({})
             })
 
@@ -47,17 +71,17 @@ describe('Helpers functions', () => {
     
             it('should return audio === true', async () => {
                 const mediaConstraints = await getMediaConstraints({remoteSdp: SDP})
-                expect(mediaConstraints.audio).toStrictEqual(true)
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
             })
 
             it('should return audio === {}', async () => {
                 const mediaConstraints = await getMediaConstraints({audio: {}, remoteSdp: SDP})
-                expect(mediaConstraints.audio).toEqual({})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
             })
 
             it('should return audio === {deviceId: { exact: "abcd" }}', async () => {
                 const mediaConstraints = await getMediaConstraints({micId: 'abcd', remoteSdp: SDP})
-                expect(mediaConstraints.audio).toEqual({deviceId: { exact: "abcd" }})
+                expect(mediaConstraints.audio).toEqual({deviceId: { exact: "abcd" }, channelCount: 1})
             })
         })
 
@@ -107,27 +131,28 @@ describe('Helpers functions', () => {
 
             it('should return audio === true & video === false', async () => {
                 const mediaConstraints = await getMediaConstraints({remoteSdp: SDP})
-                expect(mediaConstraints.audio).toStrictEqual(true)
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
                 expect(mediaConstraints.video).toStrictEqual(false)
             })
 
             it('should return audio === true & video === true', async () => {
                 const mediaConstraints = await getMediaConstraints({video: true, remoteSdp: SDP})
-                expect(mediaConstraints.audio).toStrictEqual(true)
-                expect(mediaConstraints.video).toStrictEqual(true)
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
+                expect(mediaConstraints.video).toEqual({})
             })
 
             it('should return audio === {} & video === {}', async () => {
                 const mediaConstraints = await getMediaConstraints({audio: {}, video: {}, remoteSdp: SDP})
-                expect(mediaConstraints.audio).toEqual({})
+                expect(mediaConstraints.audio).toEqual({"channelCount": 1})
                 expect(mediaConstraints.video).toEqual({})
             })
 
             it('should return audio === {deviceId: { exact: "abcd" }} & video === {deviceId: { exact: "abcd" }}' , async () => {
                 const mediaConstraints = await getMediaConstraints({micId: 'abcd', camId: 'abcd', remoteSdp: SDP})
-                expect(mediaConstraints.audio).toEqual({deviceId: { exact: "abcd" }})
+                expect(mediaConstraints.audio).toEqual({deviceId: { exact: "abcd" }, channelCount: 1})
                 expect(mediaConstraints.video).toEqual({deviceId: { exact: "abcd" }})
             })
         })
     })
+
 })

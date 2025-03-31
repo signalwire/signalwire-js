@@ -2,7 +2,8 @@ import { getLogger } from '@signalwire/core'
 import { getUserMedia as _getUserMedia } from './getUserMedia'
 import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
-import { sdpHasAudio, sdpHasVideo } from './sdpHelpers'
+import { getMaxBitrate, sdpHasAudio, sdpHasVideo } from './sdpHelpers'
+import { BaseConnectionOptions } from '../BaseConnection'
 
 // FIXME: Remove and use getUserMedia directly
 export const getUserMedia = (constraints: MediaStreamConstraints) => {
@@ -43,37 +44,55 @@ export const getMediaConstraints = async (
   options: ConnectionOptions
 ): Promise<MediaStreamConstraints> => {
   let audio = _getAudioConstraints(options)
-  const { micLabel = '', micId } = options
+  let video = _getVideoConstraints(options)
+
+  const {
+    micLabel = '',
+    micId,
+    camLabel = '',
+    camId,
+    opusMaxPlaybackRate,
+    useStereo,
+  } = options
+
+  const channelCount = useStereo ? 2 : 1
+  if (typeof audio === 'boolean' && audio) {
+    audio = { channelCount }
+  } else if (typeof audio === 'object') {
+    audio.channelCount = channelCount
+  }
+
+  if (typeof video === 'boolean' && video) {
+    video = {}
+  }
 
   if (micId && audio) {
     const newMicId = await assureDeviceId(micId, micLabel, 'microphone').catch(
       (_error) => null
     )
     if (newMicId) {
-      if (typeof audio === 'boolean') {
-        audio = {}
-      }
       audio.deviceId = { exact: newMicId }
     }
   }
 
-  let video = _getVideoConstraints(options)
-  const { camLabel = '', camId } = options
+  if (opusMaxPlaybackRate && audio) {
+    audio.sampleRate = opusMaxPlaybackRate
+  }
 
   if (camId && video) {
     const newCamId = await assureDeviceId(camId, camLabel, 'camera').catch(
       (_error) => null
     )
     if (newCamId) {
-      if (typeof video === 'boolean') {
-        video = {}
-      }
       video.deviceId = { exact: newCamId }
     }
   }
 
   return { audio, video }
 }
+
+export const getSenderAudioMaxBitrate = (options: BaseConnectionOptions) =>
+  getMaxBitrate(options)
 
 interface FilterIceServersOptions {
   disableUdpIceServers?: boolean

@@ -147,3 +147,15 @@ export type Promisify<T> = {
 export type Prettify<T> = NonNullable<unknown> & {
   [K in keyof T]: Prettify<T[K]>
 } & {}
+
+export enum PlaybackRate {
+  hz_8000 = 8000,
+  hz_12000 = 12000,
+  hz_16000 = 16000,
+  hz_24000 = 24000,
+  hz_48000 = 48000,
+}
+
+export const isPlaybackRate = (value: unknown): value is PlaybackRate => {
+  return Object.values(PlaybackRate).includes(value as PlaybackRate)
+}
