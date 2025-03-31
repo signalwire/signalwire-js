@@ -60,7 +60,7 @@ export function* sessionChannelWatcher({
     if (isSwAuthorizationState(broadcastParams)) {
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
       yield put(
-        sessionActions.updateAuthStateEncoded(
+        sessionActions.updateAuthorizationState(
           broadcastParams.params.authorization_state
         )
       )

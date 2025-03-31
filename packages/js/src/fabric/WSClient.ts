@@ -55,8 +55,8 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
 
   get authState() {
     const protocol = this.select(selectors.getProtocol)
-    const authStateEncoded = this.select(selectors.getAuthStateEncoded)
-    return encodeAuthState({ authState: authStateEncoded, protocol })
+    const authState = this.select(selectors.getAuthorizationState)
+    return encodeAuthState({ authState: authState, protocol })
   }
 
   private makeFabricObject(makeRoomOptions: MakeRoomOptions) {

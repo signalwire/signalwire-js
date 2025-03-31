@@ -22,7 +22,7 @@ import {
 } from './types'
 import {
   getAuthError,
-  getAuthState,
+  getAuthorization,
   getAuthStatus,
 } from './redux/features/session/sessionSelectors'
 import { AuthError } from './CustomErrors'
@@ -252,7 +252,7 @@ export class BaseComponent<
 
   /** @internal */
   protected get _sessionAuthState(): Authorization | undefined {
-    return getAuthState(this.store.getState())
+    return getAuthorization(this.store.getState())
   }
 
   /** @internal */
