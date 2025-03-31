@@ -1,9 +1,12 @@
 import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
+  CreatecXMLScriptParams,
   CreateRelayAppResourceParams,
   CreateSWMLAppResourceParams,
   Resource,
+  createcXMLExternalURLResource,
+  createcXMLScriptResource,
   createRelayAppResource,
   createSWMLAppResource,
   createVideoRoomResource,
@@ -11,6 +14,7 @@ import {
   disconnectClient,
   enablePageLogs,
   leaveRoom,
+  CreatecXMLExternalURLParams,
 } from './utils'
 
 type CustomPage = Page & {
@@ -23,6 +27,8 @@ type CustomFixture = {
   }): Promise<PageWithWsInspector<CustomPage>>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
+    createcXMLExternalURLResource: typeof createcXMLExternalURLResource
+    createcXMLScriptResource: typeof createcXMLScriptResource
     createVideoRoomResource: typeof createVideoRoomResource
     createSWMLAppResource: typeof createSWMLAppResource
     createRelayAppResource: typeof createRelayAppResource
@@ -93,6 +99,16 @@ const test = baseTest.extend<CustomFixture>({
     const resource = {
       createVideoRoomResource: async (params?: string) => {
         const data = await createVideoRoomResource(params)
+        resources.push(data)
+        return data
+      },
+      createcXMLExternalURLResource: async (params: CreatecXMLExternalURLParams) => {
+        const data = await createcXMLExternalURLResource(params)
+        resources.push(data)
+        return data
+      },
+      createcXMLScriptResource: async (params: CreatecXMLScriptParams) => {
+        const data = await createcXMLScriptResource(params)
         resources.push(data)
         return data
       },
