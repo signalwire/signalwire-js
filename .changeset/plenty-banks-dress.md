@@ -3,4 +3,4 @@
 '@signalwire/js': patch
 ---
 
-changed the type of the error param for the `expectedErrorHandler` internal handler
+CF SDK: Changed the type of the error param for the `expectedErrorHandler` internal handler
