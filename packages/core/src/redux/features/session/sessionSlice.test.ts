@@ -40,6 +40,7 @@ describe('SessionState Tests', () => {
         video_allowed: 'both',
         meta: {},
       },
+      authStateEncoded: undefined,
       authError: undefined,
       authCount: 1,
     })
