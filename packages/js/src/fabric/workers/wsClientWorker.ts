@@ -36,10 +36,7 @@ export const wsClientWorker: SDKWorker<WSClient, WSClientWorkerHooks> =
     }
 
     const isVertoInvite = (action: SDKActions) => {
-      if (
-        action.type === 'webrtc.message' &&
-        action.payload.method === 'verto.invite'
-      ) {
+      if (action.type === 'webrtc.message') {
         return action.payload.method === 'verto.invite'
       }
       return false

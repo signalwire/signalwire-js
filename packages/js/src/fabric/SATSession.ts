@@ -1,3 +1,4 @@
+import jwtDecode from 'jwt-decode'
 import {
   asyncRetry,
   BaseJWTSession,
@@ -15,9 +16,8 @@ import {
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
 import { JWTHeader } from '../JWTSession'
-import { decodeAuthState, encodeAuthState } from './utils/helpers'
-import jwtDecode from 'jwt-decode'
 import { SwCloseEvent } from '../utils/CloseEvent'
+import { decodeAuthState, encodeAuthState } from './utils/helpers'
 
 export interface ApiRequestRetriesOptions {
   /** increment step for each retry delay */
