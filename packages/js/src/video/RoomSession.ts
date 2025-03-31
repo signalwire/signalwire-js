@@ -207,7 +207,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         const video = params?.video ?? videoFromConstructor
 
         // @ts-expect-error
-        const authorization: VideoAuthorization = client._sessionAuthState
+        const authorization: VideoAuthorization = client._sessionAuthorization
         getLogger().debug('getJoinMediaParams authorization?', authorization)
         if (authorization && authorization.type === 'video') {
           const mediaOptions = getJoinMediaParams({

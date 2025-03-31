@@ -251,7 +251,7 @@ export class BaseComponent<
   }
 
   /** @internal */
-  protected get _sessionAuthState(): Authorization | undefined {
+  protected get _sessionAuthorization(): Authorization | undefined {
     return getAuthorization(this.store.getState())
   }
 
