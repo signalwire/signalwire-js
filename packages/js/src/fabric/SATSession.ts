@@ -87,7 +87,7 @@ export class SATSession extends JWTSession {
         variation: this.options.apiRequestRetriesDelayIncrement
       }),
       expectedErrorHandler: (error) => {
-        if(error.message?.startsWith('Authentication failed')) {
+        if(error?.message?.startsWith('Authentication failed')) {
           // is expected to be handle by the app developer, skipping retries
           return  true
         }
