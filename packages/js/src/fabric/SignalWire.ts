@@ -31,9 +31,6 @@ export const SignalWire = (() => {
           await wsClient.connect()
 
           resolve({
-            get authState() {
-              return wsClient.authState
-            },
             registerDevice: httpClient.registerDevice.bind(httpClient),
             unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
             getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
@@ -68,9 +65,9 @@ export const SignalWire = (() => {
               sendMessage: conversation.sendMessage.bind(conversation),
               join: conversation.joinConversation.bind(conversation),
             },
+            // @ts-expect-error For debugging purposes
             on: wsClient.on.bind(wsClient),
             off: wsClient.off.bind(wsClient),
-            // @ts-expect-error For debugging purposes
             __httpClient: httpClient,
             __wsClient: wsClient,
           })

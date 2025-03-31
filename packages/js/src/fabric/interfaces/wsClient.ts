@@ -1,15 +1,19 @@
-import { BaseClient, UserOptions } from '@signalwire/core'
+import { UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 import { ApiRequestRetriesOptions } from '../SATSession'
 
-export interface WSClientContract extends BaseClient<{}> {
+export interface WSClientContract {
   /**
    * The current authorization state of the WebSocket connection.
    * Store and pass this to the {@link SignalWire} client if you wish to
    * reconnect to the previous WebSocket connection.
    */
   authState: string | undefined
+  /**
+   * Disconnects the client from the SignalWire network.
+   */
+  disconnect(): Promise<void>
   /**
    * Dial a resource and connect the call
    *
