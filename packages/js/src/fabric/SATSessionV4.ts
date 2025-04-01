@@ -16,7 +16,7 @@ import {
 } from '@signalwire/core'
 import { JWTHeader } from '../JWTSession'
 import { SwCloseEvent } from '../utils/CloseEvent'
-import { decodeAuthState, encodeAuthState } from './utils/helpers'
+import { decodeAuthState, encodeAuthState } from './utils/authStateCodec'
 import { SATSessionOptionsV4 } from './interfaces/wsClient'
 
 /**

@@ -24,6 +24,8 @@ import {
   MemberCommandWithVolumeParams,
   RequestMemberParams,
 } from '../utils/interfaces'
+import { getStorage } from '../utils/storage'
+import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { fabricWorker } from './workers'
 import { FabricRoomSessionMember } from './FabricRoomSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
@@ -119,6 +121,19 @@ export class FabricRoomSessionConnection
     })
   }
 
+  private async join() {
+    if (this.options.attach) {
+      this.options.prevCallId =
+        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+    }
+    this.logger.debug(
+      `Tying to reattach to previuos call? ${!!this.options
+        .prevCallId} - prevCallId: ${this.options.prevCallId}`
+    )
+
+    return super.invite<FabricRoomSession>()
+  }
+
   private executeAction<
     InputType,
     OutputType = InputType,
@@ -174,11 +189,16 @@ export class FabricRoomSessionConnection
   public async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once('room.subscribed', () => {
+        this.once('room.subscribed', (params) => {
+          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
           resolve()
         })
 
-        await super.invite<FabricRoomSession>()
+        this.once('destroy', () => {
+          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+        })
+
+        await this.join()
       } catch (error) {
         this.logger.error('WSClient call start', error)
         reject(error)

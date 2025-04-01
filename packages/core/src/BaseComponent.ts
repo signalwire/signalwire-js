@@ -19,11 +19,14 @@ import {
   OnlyStateProperties,
   EmitterContract,
   BaseComponentContract,
+  SwAuthorizationState,
 } from './types'
 import {
   getAuthError,
   getAuthorization,
+  getAuthorizationState,
   getAuthStatus,
+  getProtocol,
 } from './redux/features/session/sessionSelectors'
 import { AuthError } from './CustomErrors'
 import { executeActionWorker } from './workers'
@@ -164,6 +167,7 @@ export class BaseComponent<
     return this.emitter.listenerCount(event)
   }
 
+  /** @internal */
   destroy() {
     this._destroyer?.()
     this.removeAllListeners()
@@ -235,7 +239,7 @@ export class BaseComponent<
   }
 
   /** @internal */
-  select<T>(selectorFn: (state: SDKState) => T) {
+  protected select<T>(selectorFn: (state: SDKState) => T) {
     return selectorFn(this.store.getState())
   }
 
@@ -247,17 +251,27 @@ export class BaseComponent<
 
   /** @internal */
   protected get _sessionAuthStatus(): SessionAuthStatus {
-    return getAuthStatus(this.store.getState())
+    return this.select(getAuthStatus)
   }
 
   /** @internal */
   protected get _sessionAuthorization(): Authorization | undefined {
-    return getAuthorization(this.store.getState())
+    return this.select(getAuthorization)
+  }
+
+  /** @internal */
+  protected get _sessionProtocol(): string | undefined {
+    return this.select(getProtocol)
+  }
+
+  /** @internal */
+  protected get _sessionAuthorizationState(): SwAuthorizationState | undefined {
+    return this.select(getAuthorizationState)
   }
 
   /** @internal */
   protected _waitUntilSessionAuthorized(): Promise<this> {
-    const authStatus = getAuthStatus(this.store.getState())
+    const authStatus = this.select(getAuthStatus)
 
     switch (authStatus) {
       case 'authorized':
@@ -277,8 +291,8 @@ export class BaseComponent<
       case 'authorizing':
         return new Promise((resolve, reject) => {
           const unsubscribe = this.store.subscribe(() => {
-            const authStatus = getAuthStatus(this.store.getState())
-            const authError = getAuthError(this.store.getState())
+            const authStatus = this.select(getAuthStatus)
+            const authError = this.select(getAuthError)
 
             if (authStatus === 'authorized') {
               resolve(this)

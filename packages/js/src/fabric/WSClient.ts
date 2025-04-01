@@ -29,9 +29,13 @@ import { WSClientContract } from './interfaces/wsClient'
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
   private _disconnected: boolean = false
+  protected fabricRoomSessionCreator = createFabricRoomSessionObject
 
-  constructor(private wsClientOptions: WSClientOptions) {
-    const client = createWSClient(wsClientOptions)
+  constructor(
+    private wsClientOptions: WSClientOptions,
+    clientCreator: typeof createWSClient = createWSClient
+  ) {
+    const client = clientCreator(wsClientOptions)
     super(client)
 
     this._incomingCallManager = new IncomingCallManager({
@@ -64,7 +68,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       ...options
     } = makeRoomOptions
 
-    const room = createFabricRoomSessionObject({
+    const room = this.fabricRoomSessionCreator({
       ...options,
       store: this.store,
     })
