@@ -110,10 +110,6 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  /** Authorization state used to reconnect to the WebSocket client */
-  authState?: string
-  /** Callback triggered whenever the authorization state changes */
-  onAuthStateChange?: (authState: string) => unknown
   /** Callback invoked by the SDK to fetch a new token for re-authentication */
   onRefreshToken?: () => Promise<string>
   sessionChannel?: SessionChannel

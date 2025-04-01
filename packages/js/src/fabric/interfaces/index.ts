@@ -1,13 +1,17 @@
 import { Conversation } from '../Conversation'
 import { Address } from './address'
 import { HTTPClientContract } from './httpClient'
-import { WSClientContract, WSClientOptions } from './wsClient'
+import {
+  WSClientContract,
+  WSClientContractV4,
+  WSClientOptions,
+  WSClientOptionsV4,
+} from './wsClient'
 
 export interface SignalWireClientParams extends WSClientOptions {}
+export interface SignalWireClientParamsV4 extends WSClientOptionsV4 {}
 
-export interface SignalWireContract
-  extends WSClientContract,
-    Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
+interface SignalWireContractBase extends Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
   address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress'>
   conversation: {
     getConversations: Conversation['getConversations']
@@ -25,7 +29,15 @@ export interface SignalWireContract
   }
 }
 
+export type SignalWireContract = SignalWireContractBase &
+  WSClientContract 
+
+export type SignalWireContractV4 = SignalWireContractBase &
+  WSClientContractV4
+  
 export type SignalWireClient = SignalWireContract
+
+export type SignalWireClientV4 = SignalWireContractV4
 
 // #region Paginated response and result
 
@@ -83,12 +95,3 @@ export * from './device'
 export * from './httpClient'
 export * from './incomingCallManager'
 export * from './wsClient'
-
-export { FabricRoomSession } from '../FabricRoomSession'
-export type {
-  ConversationMessageEventName,
-  ConversationMessageEventParams,
-  ConversationMessageEvent,
-  ConversationEvent,
-  ConversationEventParams,
-} from '@signalwire/core'

@@ -1,55 +1,24 @@
-import jwtDecode from 'jwt-decode'
 import {
   asyncRetry,
-  BaseJWTSession,
-  getLogger,
   increasingDelay,
   JSONRPCRequest,
   JSONRPCResponse,
-  RPCConnect,
-  RPCConnectParams,
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
-  SessionOptions,
-  SwAuthorizationState,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
-import { JWTHeader } from '../JWTSession'
-import { SwCloseEvent } from '../utils/CloseEvent'
-import { decodeAuthState, encodeAuthState } from './utils/helpers'
-
-export interface ApiRequestRetriesOptions {
-  /** increment step for each retry delay */
-  apiRequestRetriesDelayIncrement: number
-  /** initial retry delay */
-  apiRequestRetriesDelay: number
-  /** max API request retry, set to 0 disable retries */
-  maxApiRequestRetries: number
-}
-export type SATSessionOptions = SessionOptions & ApiRequestRetriesOptions
+import { JWTSession } from '../JWTSession'
+import { SATSessionOptions } from './interfaces/wsClient'
 
 /**
  * SAT Session is for the Call Fabric SDK
  */
-export class SATSession extends BaseJWTSession {
+export class SATSession extends JWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
-  public WebSocketConstructor = WebSocket
-  public CloseEventConstructor = SwCloseEvent
-  public agent = process.env.SDK_PKG_AGENT!
 
   constructor(public options: SATSessionOptions) {
-    let decodedJwt: JWTHeader = {}
-    try {
-      decodedJwt = jwtDecode(options.token, { header: true })
-    } catch (e) {
-      getLogger().debug('[SATSession] error decoding the JWT')
-    }
-
-    super({
-      ...options,
-      host: decodedJwt?.ch || options.host,
-    })
+    super(options)
   }
 
   override get signature() {
@@ -60,45 +29,13 @@ export class SATSession extends BaseJWTSession {
     return undefined
   }
 
-  async onSwAuthorizationState(state: SwAuthorizationState) {
-    if (this.options.onAuthStateChange) {
-      const encoded = encodeAuthState({
-        authState: state,
-        protocol: this.relayProtocol,
-      })
-      this.options.onAuthStateChange(encoded)
-    }
-  }
-
-  /**
-   * Authenticate with the SignalWire Network using SAT
-   * @return Promise<void>
-   */
-  override async authenticate() {
-    let authState: string | undefined
-    let protocol: string | undefined
-
-    if (this.options.authState?.length) {
-      const decoded = decodeAuthState(this.options.authState)
-      authState = decoded.authState
-      protocol = decoded.protocol
-    }
-
-    const params: RPCConnectParams = {
-      ...this._connectParams,
-      authentication: {
-        jwt_token: this.options.token,
-      },
-      ...(authState && { authorization_state: authState }),
-      ...(protocol && { protocol }),
-    }
-
-    try {
-      this._rpcConnectResult = await this.execute(RPCConnect(params))
-    } catch (error) {
-      this.logger.debug('SATSession authenticate error', error)
-      throw error
-    }
+  override async _checkTokenExpiration() {
+    /**
+     * noop
+     *
+     * The Call Fabric SDK does not attach any timer and
+     * does not emit any events to inform the user about the token expiry.
+     */
   }
 
   /**
@@ -128,7 +65,6 @@ export class SATSession extends BaseJWTSession {
         ...reauthResponse,
       }
     } catch (error) {
-      this.logger.debug('Session Reauthenticate Failed', error)
       throw error
     }
   }

@@ -4,7 +4,7 @@ import {
   HttpError,
   increasingDelay,
 } from '@signalwire/core'
-import { ApiRequestRetriesOptions } from 'packages/js/src/fabric/SATSession'
+import { ApiRequestRetriesOptions } from './interfaces'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T

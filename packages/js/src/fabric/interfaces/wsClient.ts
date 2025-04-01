@@ -1,15 +1,8 @@
-import { UserOptions } from '@signalwire/core'
+import { SessionOptions, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
-import { ApiRequestRetriesOptions } from '../SATSession'
 
 export interface WSClientContract {
-  /**
-   * The current authorization state of the WebSocket connection.
-   * Store and pass this to the {@link SignalWire} client if you wish to
-   * reconnect to the previous WebSocket connection.
-   */
-  authState: string | undefined
   /**
    * Disconnects the client from the SignalWire network.
    */
@@ -58,6 +51,15 @@ export interface WSClientContract {
    * @returns A promise that resolves when the client is successfully marked as offline.
    */
   offline(): Promise<void>
+}
+
+export interface WSClientContractV4 extends WSClientContract {
+  /**
+   * The current authorization state of the WebSocket connection.
+   * Store and pass this to the {@link SignalWire} client if you wish to
+   * reconnect to the previous WebSocket connection.
+   */
+  authState: string | undefined
 }
 
 export interface OnlineParams {
@@ -111,13 +113,36 @@ export interface ReattachParams extends DialParams {
   callId: string
 }
 
-export type FabricUserOptions = Omit<
+export interface ApiRequestRetriesOptions {
+  /** Increment step for each retry delay */
+  apiRequestRetriesDelayIncrement?: number
+  /** Initial retry delay */
+  apiRequestRetriesDelay?: number
+  /** Max API request retry, set to 0 disable retries */
+  maxApiRequestRetries?: number
+}
+
+export interface SATSessionOptions
+  extends ApiRequestRetriesOptions,
+    SessionOptions {}
+
+export interface SATSessionOptionsV4 extends SATSessionOptions {
+  /** Authorization state used to reconnect to the WebSocket client */
+  authState?: string
+  /** Callback triggered whenever the authorization state changes */
+  onAuthStateChange?: (authState: string) => unknown
+}
+
+type FabricUserOptionsBase = Omit<
   UserOptions,
   'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
-> &
-  Partial<ApiRequestRetriesOptions>
+>
 
-export interface WSClientOptions extends FabricUserOptions {
+export type FabricUserOptions = FabricUserOptionsBase & SATSessionOptions
+
+export type FabricUserOptionsV4 = FabricUserOptionsBase & SATSessionOptionsV4
+
+interface WSClientOptionsBase {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Call back function to receive the incoming call */
@@ -125,3 +150,7 @@ export interface WSClientOptions extends FabricUserOptions {
   /** User & UserAgent metadata */
   userVariables?: Record<string, any>
 }
+
+export type WSClientOptions = WSClientOptionsBase & FabricUserOptions
+
+export type WSClientOptionsV4 = WSClientOptionsBase & FabricUserOptionsV4

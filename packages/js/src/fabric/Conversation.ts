@@ -1,6 +1,7 @@
 import { type ConversationEventParams } from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
+import { WSClientV4 } from './WSClientV4'
 import type {
   GetConversationsResponse,
   GetMessagesParams,
@@ -34,13 +35,13 @@ const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 
 interface ConversationOptions {
   httpClient: HTTPClient
-  wsClient: WSClient
+  wsClient: WSClient | WSClientV4
 }
 
 // TODO: Implement a TS contract
 export class Conversation {
   private httpClient: HTTPClient
-  private wsClient: WSClient
+  private wsClient: WSClient | WSClientV4
   private callbacks = new Set<ConversationSubscribeCallback>()
   private chatSubscriptions: Record<
     string,
