@@ -13,4 +13,11 @@ export {
   DialParams,
   ReattachParams,
 } from './interfaces/wsClient'
+export {
+  SignalWireClient,
+  SignalWireContract,
+  SignalWireClientParams,
+  GetSubscriberInfoResponse,
+  GetSubscriberInfoResult,
+} from './interfaces'
 export { FabricRoomSession, isFabricRoomSession } from './FabricRoomSession'

@@ -1,4 +1,8 @@
-import { SessionOptions, UserOptions } from '@signalwire/core'
+import {
+  OnAuthStateChange,
+  SessionOptions,
+  UserOptions,
+} from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 
@@ -51,15 +55,6 @@ export interface WSClientContract {
    * @returns A promise that resolves when the client is successfully marked as offline.
    */
   offline(): Promise<void>
-}
-
-export interface WSClientContractV4 extends WSClientContract {
-  /**
-   * The current authorization state of the WebSocket connection.
-   * Store and pass this to the {@link SignalWire} client if you wish to
-   * reconnect to the previous WebSocket connection.
-   */
-  authState: string | undefined
 }
 
 export interface OnlineParams {
@@ -126,31 +121,23 @@ export interface SATSessionOptions
   extends ApiRequestRetriesOptions,
     SessionOptions {}
 
-export interface SATSessionOptionsV4 extends SATSessionOptions {
-  /** Authorization state used to reconnect to the WebSocket client */
-  authState?: string
-  /** Callback triggered whenever the authorization state changes */
-  onAuthStateChange?: (authState: string) => unknown
-}
-
-type FabricUserOptionsBase = Omit<
+export type FabricUserOptions = Omit<
   UserOptions,
   'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
->
+> &
+  SATSessionOptions
 
-export type FabricUserOptions = FabricUserOptionsBase & SATSessionOptions
-
-export type FabricUserOptionsV4 = FabricUserOptionsBase & SATSessionOptionsV4
-
-interface WSClientOptionsBase {
+export interface WSClientOptions extends FabricUserOptions {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
   /** User & UserAgent metadata */
   userVariables?: Record<string, any>
+  /**
+   * Callback triggered whenever the authorization state changes
+   *
+   * Applicable only with the {@link SignalWireV4} client.
+   */
+  onAuthStateChange?: OnAuthStateChange
 }
-
-export type WSClientOptions = WSClientOptionsBase & FabricUserOptions
-
-export type WSClientOptionsV4 = WSClientOptionsBase & FabricUserOptionsV4

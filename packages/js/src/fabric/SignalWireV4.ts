@@ -1,6 +1,6 @@
 import { HTTPClient } from './HTTPClient'
 import { Conversation } from './Conversation'
-import { SignalWireClientParamsV4, SignalWireClientV4 } from './interfaces'
+import { SignalWireClient, SignalWireClientParams } from './interfaces'
 import { WSClientV4 } from './WSClientV4'
 import {
   DEFAULT_API_REQUEST_RETRIES,
@@ -9,11 +9,11 @@ import {
 } from './utils/constants'
 
 export const SignalWireV4 = (() => {
-  let instance: Promise<SignalWireClientV4> | null = null
+  let instance: Promise<SignalWireClient> | null = null
 
-  return (params: SignalWireClientParamsV4) => {
+  return (params: SignalWireClientParams) => {
     if (!instance) {
-      instance = new Promise<SignalWireClientV4>(async (resolve, reject) => {
+      instance = new Promise<SignalWireClient>(async (resolve, reject) => {
         try {
           if (!params.token) {
             throw new Error('Token is required')
@@ -35,9 +35,6 @@ export const SignalWireV4 = (() => {
           await wsClient.connect()
 
           resolve({
-            get authState() {
-              return wsClient.authState
-            },
             registerDevice: httpClient.registerDevice.bind(httpClient),
             unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
             getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),

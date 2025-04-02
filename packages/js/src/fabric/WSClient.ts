@@ -2,6 +2,7 @@ import {
   actions,
   BaseClient,
   CallJoinedEventParams as InternalCallJoinedEventParams,
+  selectors,
   VertoBye,
   VertoSubscribe,
   VideoRoomSubscribedEventParams,
@@ -25,6 +26,7 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
+import { encodeAuthState } from './utils/authStateCodec'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -32,7 +34,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   protected fabricRoomSessionCreator = createFabricRoomSessionObject
 
   constructor(
-    private wsClientOptions: WSClientOptions,
+    protected wsClientOptions: WSClientOptions,
     clientCreator: typeof createWSClient = createWSClient
   ) {
     const client = clientCreator(wsClientOptions)
@@ -192,12 +194,21 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      onAuthStateChange: this.wsClientOptions.onAuthStateChange,
     })
 
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
       call.destroy()
+
+      if (this.wsClientOptions.onAuthStateChange) {
+        const protocol = selectors.getProtocol(this.store.getState())
+        const authState = selectors.getAuthorizationState(this.store.getState())
+
+        const encode = encodeAuthState({ authState, protocol })
+        this.wsClientOptions.onAuthStateChange(encode)
+      }
     })
 
     this.session.once('session.disconnected', () => {
@@ -377,9 +388,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  /**
-   * Mark the client as 'online' to receive calls over WebSocket
-   */
   public async online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     return this.execute<unknown, void>({
@@ -388,9 +396,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  /**
-   * Mark the client as 'offline' to receive calls over WebSocket
-   */
   public offline() {
     this._incomingCallManager.setNotificationHandlers({})
     return this.execute<unknown, void>({

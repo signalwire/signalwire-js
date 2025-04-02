@@ -6,7 +6,7 @@ import {
   Chat as ChatNamespace,
   PubSub as PubSubNamespace,
 } from '@signalwire/core'
-import type { CustomSaga } from '@signalwire/core'
+import type { CustomSaga, OnAuthStateChange } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
 import { makeAudioElementSaga } from './features/mediaElements/mediaElementsSagas'
 import { VideoManager, createVideoManagerObject } from './cantina'
@@ -41,6 +41,12 @@ export interface MakeRoomOptions extends ConnectionOptions {
   stopMicrophoneWhileMuted?: boolean
   /** Local media stream to override the local video and audio stream tracks */
   localStream?: MediaStream
+  /**
+   * Callback triggered whenever the authorization state changes
+   *
+   * Applicable only with the {@link FabricRoomSessionV4} class.
+   */
+  onAuthStateChange?: OnAuthStateChange
 }
 
 export class ClientAPI extends BaseClient<ClientEvents> {

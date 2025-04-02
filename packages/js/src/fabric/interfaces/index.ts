@@ -1,17 +1,13 @@
 import { Conversation } from '../Conversation'
 import { Address } from './address'
 import { HTTPClientContract } from './httpClient'
-import {
-  WSClientContract,
-  WSClientContractV4,
-  WSClientOptions,
-  WSClientOptionsV4,
-} from './wsClient'
+import { WSClientContract, WSClientOptions } from './wsClient'
 
 export interface SignalWireClientParams extends WSClientOptions {}
-export interface SignalWireClientParamsV4 extends WSClientOptionsV4 {}
 
-interface SignalWireContractBase extends Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
+export interface SignalWireContract
+  extends WSClientContract,
+    Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
   address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress'>
   conversation: {
     getConversations: Conversation['getConversations']
@@ -29,15 +25,7 @@ interface SignalWireContractBase extends Omit<HTTPClientContract, 'getAddresses'
   }
 }
 
-export type SignalWireContract = SignalWireContractBase &
-  WSClientContract 
-
-export type SignalWireContractV4 = SignalWireContractBase &
-  WSClientContractV4
-  
 export type SignalWireClient = SignalWireContract
-
-export type SignalWireClientV4 = SignalWireContractV4
 
 // #region Paginated response and result
 

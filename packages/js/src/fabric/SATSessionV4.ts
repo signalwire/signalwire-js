@@ -11,13 +11,12 @@ import {
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
-  SwAuthorizationState,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
 import { JWTHeader } from '../JWTSession'
 import { SwCloseEvent } from '../utils/CloseEvent'
-import { decodeAuthState, encodeAuthState } from './utils/authStateCodec'
-import { SATSessionOptionsV4 } from './interfaces/wsClient'
+import { decodeAuthState } from './utils/authStateCodec'
+import { SATSessionOptions } from './interfaces/wsClient'
 
 /**
  * SAT Session is for the Call Fabric SDK
@@ -28,7 +27,7 @@ export class SATSessionV4 extends BaseJWTSession {
   public CloseEventConstructor = SwCloseEvent
   public agent = process.env.SDK_PKG_AGENT!
 
-  constructor(public options: SATSessionOptionsV4) {
+  constructor(public options: SATSessionOptions) {
     let decodedJwt: JWTHeader = {}
     try {
       decodedJwt = jwtDecode(options.token, { header: true })
@@ -48,16 +47,6 @@ export class SATSessionV4 extends BaseJWTSession {
       return (authorization as SATAuthorization).jti
     }
     return undefined
-  }
-
-  override async onSwAuthorizationState(state: SwAuthorizationState) {
-    if (this.options.onAuthStateChange) {
-      const encoded = encodeAuthState({
-        authState: state,
-        protocol: this.relayProtocol,
-      })
-      this.options.onAuthStateChange(encoded)
-    }
   }
 
   /**

@@ -96,6 +96,8 @@ export interface BaseRPCResult extends Record<string, unknown> {
   message: string
 }
 
+export type OnAuthStateChange = (authState: string) => unknown
+
 export interface SessionOptions {
   /** internal */
   host?: string
@@ -110,6 +112,13 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+  /**
+   * Authorization state used when reconnecting to the WebSocket
+   * and/or reattaching to the call via the {@link client.reattach} API.
+   *
+   * Applicable only with the {@link SignalWireV4} client.
+   */
+  authState?: string
   /** Callback invoked by the SDK to fetch a new token for re-authentication */
   onRefreshToken?: () => Promise<string>
   sessionChannel?: SessionChannel

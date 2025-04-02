@@ -1,19 +1,37 @@
-import { connect } from '@signalwire/core'
+import { connect, OnAuthStateChange, selectors } from '@signalwire/core'
 import { FabricRoomSessionEvents } from '../utils/interfaces'
 import {
   FabricRoomSession,
   FabricRoomSessionConnection,
   FabricRoomSessionOptions,
 } from './FabricRoomSession'
+import { encodeAuthState } from './utils/authStateCodec'
 
-export interface FabricRoomSessionV4 extends FabricRoomSession {}
+export interface FabricRoomSessionOptionsV4 extends FabricRoomSessionOptions {
+  onAuthStateChange?: OnAuthStateChange
+}
 
 export class FabricRoomSessionConnectionV4 extends FabricRoomSessionConnection {
+  constructor(public options: FabricRoomSessionOptionsV4) {
+    super(options)
+  }
+
   public override async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
         this.once('room.subscribed', () => {
           resolve()
+
+          if (this.options.onAuthStateChange) {
+            const protocol = selectors.getProtocol(this.store.getState())
+            const authState = selectors.getAuthorizationState(
+              this.store.getState()
+            )
+            const callId = this.callId
+
+            const encode = encodeAuthState({ authState, protocol, callId })
+            this.options.onAuthStateChange(encode)
+          }
         })
 
         await super.invite<FabricRoomSession>()
@@ -27,12 +45,12 @@ export class FabricRoomSessionConnectionV4 extends FabricRoomSessionConnection {
 
 /** @internal */
 export const createFabricRoomSessionObjectV4 = (
-  params: FabricRoomSessionOptions
+  params: FabricRoomSessionOptionsV4
 ): FabricRoomSession => {
   const room = connect<
     FabricRoomSessionEvents,
     FabricRoomSessionConnectionV4,
-    FabricRoomSessionV4
+    FabricRoomSession
   >({
     store: params.store,
     Component: FabricRoomSessionConnectionV4,

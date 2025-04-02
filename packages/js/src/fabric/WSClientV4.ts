@@ -1,20 +1,17 @@
-import { selectors } from '@signalwire/core'
-import { WSClientOptionsV4 } from './interfaces'
-import { encodeAuthState } from './utils/authStateCodec'
 import { createWSClientV4 } from './createWSClientV4'
 import { WSClient } from './WSClient'
 import { createFabricRoomSessionObjectV4 } from './FabricRoomSessionV4'
+import { wsClientWorkerV4 } from './workers/wsClientWorkerV4'
+import { WSClientOptions } from './interfaces'
 
 export class WSClientV4 extends WSClient {
   protected fabricRoomSessionCreator = createFabricRoomSessionObjectV4
 
-  constructor(wsClientOptionsV4: WSClientOptionsV4) {
-    super(wsClientOptionsV4, createWSClientV4)
-  }
+  constructor(public wsClientOptions: WSClientOptions) {
+    super(wsClientOptions, createWSClientV4)
 
-  get authState() {
-    const protocol = this.select(selectors.getProtocol)
-    const authState = this.select(selectors.getAuthorizationState)
-    return encodeAuthState({ authState: authState, protocol })
+    this.runWorker('wsClientWorkerV4', {
+      worker: wsClientWorkerV4,
+    })
   }
 }
