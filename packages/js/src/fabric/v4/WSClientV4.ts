@@ -1,10 +1,10 @@
-import { createWSClientV4 } from './createWSClientV4'
 import { WSClient } from '../WSClient'
-import { createFabricRoomSessionObjectV4 } from './FabricRoomSessionV4'
-import { wsClientWorkerV4 } from '../workers/wsClientWorkerV4'
 import { DialParams, WSClientOptions } from '../interfaces'
 import { FabricRoomSession } from '../FabricRoomSession'
 import { decodeAuthState } from '../utils/authStateCodec'
+import { createWSClientV4 } from './createWSClientV4'
+import { createFabricRoomSessionObjectV4 } from './FabricRoomSessionV4'
+import { wsClientWorkerV4 } from './wsClientWorkerV4'
 
 export class WSClientV4 extends WSClient {
   protected fabricRoomSessionCreator = createFabricRoomSessionObjectV4

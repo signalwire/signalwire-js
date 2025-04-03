@@ -7,16 +7,15 @@ import {
   IncomingInviteWithSource,
 } from './interfaces'
 import { WSClient } from './WSClient'
-import { WSClientV4 } from './v4/WSClientV4'
 
 interface IncomingCallManagerOptions {
-  client: WSClient | WSClientV4
+  client: WSClient
   buildInboundCall: WSClient['buildInboundCall']
   executeVertoBye: WSClient['executeVertoBye']
 }
 
 export class IncomingCallManager {
-  private _client: WSClient | WSClientV4
+  private _client: WSClient
   private _pendingInvites: Record<string, IncomingInvite> = {}
   private _handlers: IncomingCallHandlers = {}
 

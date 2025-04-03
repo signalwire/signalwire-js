@@ -10,7 +10,7 @@ import {
   componentSelectors,
   ReduxComponent,
 } from '@signalwire/core'
-import { WSClientV4 } from '../v4/WSClientV4'
+import { WSClientV4 } from './WSClientV4'
 import { encodeAuthState } from '../utils/authStateCodec'
 
 export const wsClientWorkerV4: SDKWorker<WSClientV4> = function* (

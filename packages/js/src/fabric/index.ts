@@ -1,3 +1,9 @@
+/**
+ * ============ CAUTION ============
+ * 
+ * Anything we export from here in available on the Public interface.
+ */
+
 export * from './SignalWire'
 export * from './interfaces/address'
 export * from './interfaces/capabilities'
