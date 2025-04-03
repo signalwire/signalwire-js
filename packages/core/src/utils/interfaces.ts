@@ -119,6 +119,12 @@ export interface SessionOptions {
    * Applicable only with the {@link SignalWireV4} client.
    */
   authState?: string
+  /**
+   * Callback triggered whenever the authorization state changes
+   *
+   * Applicable only with the {@link SignalWireV4} client.
+   */
+  onAuthStateChange?: OnAuthStateChange
   /** Callback invoked by the SDK to fetch a new token for re-authentication */
   onRefreshToken?: () => Promise<string>
   sessionChannel?: SessionChannel

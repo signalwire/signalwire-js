@@ -1,5 +1,4 @@
 import {
-  OnAuthStateChange,
   SessionOptions,
   UserOptions,
 } from '@signalwire/core'
@@ -135,10 +134,4 @@ export interface WSClientOptions extends FabricUserOptions {
   incomingCallHandlers?: IncomingCallHandlers
   /** User & UserAgent metadata */
   userVariables?: Record<string, any>
-  /**
-   * Callback triggered whenever the authorization state changes
-   *
-   * Applicable only with the {@link SignalWireV4} client.
-   */
-  onAuthStateChange?: OnAuthStateChange
 }
