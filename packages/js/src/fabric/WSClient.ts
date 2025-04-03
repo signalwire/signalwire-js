@@ -25,7 +25,10 @@ import {
 import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
-import { WSClientContract } from './interfaces/wsClient'
+import {
+  BuildOutboundCallParams,
+  WSClientContract,
+} from './interfaces/wsClient'
 import { encodeAuthState } from './utils/authStateCodec'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
@@ -162,7 +165,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
+  protected buildOutboundCall(params: BuildOutboundCallParams) {
     const [pathname, query] = params.to.split('?')
     if (!pathname) {
       throw new Error('Invalid destination address')
@@ -195,6 +198,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
       onAuthStateChange: this.wsClientOptions.onAuthStateChange,
+      prevCallId: params.prevCallId,
     })
 
     // WebRTC connection left the room.
@@ -322,7 +326,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         const call = this.buildOutboundCall(params)
         resolve(call)
       } catch (error) {
-        this.logger.error('Unable to connect and dial a call', error)
+        this.logger.error('Unable to dial a call', error)
         reject(error)
       }
     })
@@ -334,7 +338,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         const call = this.buildOutboundCall({ ...params, attach: true })
         resolve(call)
       } catch (error) {
-        this.logger.error('Unable to connect and reattach a call', error)
+        this.logger.error('Unable to reattach a call', error)
         reject(error)
       }
     })

@@ -256,9 +256,9 @@ window.connect = async () => {
     token: document.getElementById('token').value,
     logLevel: 'debug',
     debug: { logWsTraffic: true },
-    authState: localStorage.getItem('fabric.ws.authState'),
+    authState: sessionStorage.getItem('fabric.ws.authState'),
     onAuthStateChange: (authState) => {
-      saveInLocalStorage({ target: { name: 'authState', value: authState } })
+      sessionStorage.setItem('fabric.ws.authState', authState)
     },
   })
   window.__client = client

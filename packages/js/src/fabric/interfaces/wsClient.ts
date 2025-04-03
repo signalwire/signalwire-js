@@ -104,8 +104,9 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export interface ReattachParams extends DialParams {
-  callId: string
+export interface BuildOutboundCallParams extends DialParams {
+  prevCallId?: string
+  attach?: boolean
 }
 
 export interface ApiRequestRetriesOptions {
