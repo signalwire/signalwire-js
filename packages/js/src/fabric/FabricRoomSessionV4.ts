@@ -12,8 +12,8 @@ export interface FabricRoomSessionOptionsV4 extends FabricRoomSessionOptions {
 }
 
 export class FabricRoomSessionConnectionV4 extends FabricRoomSessionConnection {
-  constructor(public options: FabricRoomSessionOptionsV4) {
-    super(options)
+  constructor(private fabricOptions: FabricRoomSessionOptionsV4) {
+    super(fabricOptions)
   }
 
   public override async start() {
@@ -22,7 +22,7 @@ export class FabricRoomSessionConnectionV4 extends FabricRoomSessionConnection {
         this.once('room.subscribed', () => {
           resolve()
 
-          if (this.options.onAuthStateChange) {
+          if (this.fabricOptions.onAuthStateChange) {
             const protocol = selectors.getProtocol(this.store.getState())
             const authState = selectors.getAuthorizationState(
               this.store.getState()
@@ -30,7 +30,7 @@ export class FabricRoomSessionConnectionV4 extends FabricRoomSessionConnection {
             const callId = this.callId
 
             const encode = encodeAuthState({ authState, protocol, callId })
-            this.options.onAuthStateChange(encode)
+            this.fabricOptions.onAuthStateChange(encode)
           }
         })
 

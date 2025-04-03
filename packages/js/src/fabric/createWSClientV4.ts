@@ -1,8 +1,8 @@
 import { configureStore } from '@signalwire/core'
 import { SATSessionV4 } from './SATSessionV4'
-import { WSClientOptionsV4 } from './interfaces'
+import { WSClientOptions } from './interfaces'
 
-export const createWSClientV4 = (options: WSClientOptionsV4) => {
+export const createWSClientV4 = (options: WSClientOptions) => {
   const store = configureStore({
     userOptions: options,
     SessionConstructor: SATSessionV4,
