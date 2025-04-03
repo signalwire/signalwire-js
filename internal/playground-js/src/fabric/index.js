@@ -509,9 +509,6 @@ window.disconnect = async () => {
   btnDisconnect.classList.add('d-none')
 
   removeRoomFromURL()
-
-  localStorage.removeItem('fabric.ws.callId')
-  localStorage.removeItem('fabric.ws.authState')
 }
 
 // Set or update the query parameter 'room' with value room.name
