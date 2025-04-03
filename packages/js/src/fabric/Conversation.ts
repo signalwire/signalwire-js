@@ -224,14 +224,10 @@ export class Conversation {
         missingReturns = chatOnlyMessages.slice(remaining)
       }
 
-      chatMessages = await Promise.all(
-        chatMessages.map(async (message) => ({
-          ...message,
-          user_name: (
-            await this.httpClient.getAddress({ id: message.from_address_id })
-          ).display_name,
-        }))
-      )
+      chatMessages = await Promise.all(chatMessages.map(async message => ({
+        ...message,
+        user_name: (await this.httpClient.getAddress({id: message.from_address_id})).display_name
+      })))
 
       return {
         data: chatMessages as ConversationChatMessage[],

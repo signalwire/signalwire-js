@@ -99,7 +99,7 @@ export interface BaseRPCResult extends Record<string, unknown> {
 export type OnAuthStateChange = (authState: string) => unknown
 
 export interface SessionOptions {
-  /** internal */
+  /** @internal */
   host?: string
   /** SignalWire project id, e.g. `a10d8a9f-2166-4e82-56ff-118bc3a4840f` */
   project?: string
