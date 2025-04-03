@@ -7,7 +7,7 @@ import {
   IncomingInviteWithSource,
 } from './interfaces'
 import { WSClient } from './WSClient'
-import { WSClientV4 } from './WSClientV4'
+import { WSClientV4 } from './v4/WSClientV4'
 
 interface IncomingCallManagerOptions {
   client: WSClient | WSClientV4

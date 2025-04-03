@@ -13,10 +13,10 @@ import {
   SATAuthorization,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
-import { JWTHeader } from '../JWTSession'
-import { SwCloseEvent } from '../utils/CloseEvent'
-import { decodeAuthState } from './utils/authStateCodec'
-import { SATSessionOptions } from './interfaces/wsClient'
+import { JWTHeader } from '../../JWTSession'
+import { SwCloseEvent } from '../../utils/CloseEvent'
+import { decodeAuthState } from '../utils/authStateCodec'
+import { SATSessionOptions } from '../interfaces/wsClient'
 
 /**
  * SAT Session is for the Call Fabric SDK

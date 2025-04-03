@@ -1,12 +1,12 @@
-import { HTTPClient } from './HTTPClient'
-import { Conversation } from './Conversation'
-import { SignalWireClient, SignalWireClientParams } from './interfaces'
-import { WSClientV4 } from './WSClientV4'
+import { HTTPClient } from '../HTTPClient'
+import { Conversation } from '../Conversation'
+import { SignalWireClient, SignalWireClientParams } from '../interfaces'
 import {
   DEFAULT_API_REQUEST_RETRIES,
   DEFAULT_API_REQUEST_RETRIES_DELAY,
   DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT,
-} from './utils/constants'
+} from '../utils/constants'
+import { WSClientV4 } from './WSClientV4'
 
 export const SignalWireV4 = (() => {
   let instance: Promise<SignalWireClient> | null = null

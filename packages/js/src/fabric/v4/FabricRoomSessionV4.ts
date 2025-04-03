@@ -1,11 +1,11 @@
 import { connect, OnAuthStateChange, selectors } from '@signalwire/core'
-import { FabricRoomSessionEvents } from '../utils/interfaces'
+import { FabricRoomSessionEvents } from '../../utils/interfaces'
 import {
   FabricRoomSession,
   FabricRoomSessionConnection,
   FabricRoomSessionOptions,
-} from './FabricRoomSession'
-import { encodeAuthState } from './utils/authStateCodec'
+} from '../FabricRoomSession'
+import { encodeAuthState } from '../utils/authStateCodec'
 
 export interface FabricRoomSessionOptionsV4 extends FabricRoomSessionOptions {
   onAuthStateChange?: OnAuthStateChange
