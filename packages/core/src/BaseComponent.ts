@@ -19,14 +19,11 @@ import {
   OnlyStateProperties,
   EmitterContract,
   BaseComponentContract,
-  SwAuthorizationState,
 } from './types'
 import {
   getAuthError,
   getAuthorization,
-  getAuthorizationState,
   getAuthStatus,
-  getProtocol,
 } from './redux/features/session/sessionSelectors'
 import { AuthError } from './CustomErrors'
 import { executeActionWorker } from './workers'
@@ -257,16 +254,6 @@ export class BaseComponent<
   /** @internal */
   protected get _sessionAuthorization(): Authorization | undefined {
     return this.select(getAuthorization)
-  }
-
-  /** @internal */
-  protected get _sessionProtocol(): string | undefined {
-    return this.select(getProtocol)
-  }
-
-  /** @internal */
-  protected get _sessionAuthorizationState(): SwAuthorizationState | undefined {
-    return this.select(getAuthorizationState)
   }
 
   /** @internal */
