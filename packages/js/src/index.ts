@@ -61,7 +61,7 @@ export * as PubSub from './pubSub'
  * with Chat/Messaging capabilties.
  */
 export * as Fabric from './fabric'
-export { SignalWire } from './fabric'
+export { SignalWire, SignalWireV4 } from './fabric'
 export * from './fabric/interfaces'
 
 /**

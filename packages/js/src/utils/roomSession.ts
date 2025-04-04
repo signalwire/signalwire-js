@@ -3,7 +3,7 @@ import type { VideoAuthorization } from '@signalwire/core'
 import type { BaseRoomSessionJoinParams } from './interfaces'
 
 type GetJoinMediaParamsOptions = BaseRoomSessionJoinParams & {
-  authState: VideoAuthorization
+  authorization: VideoAuthorization
 }
 /**
  * getJoinMediaParams returns whether the Join method must send/recv
@@ -15,7 +15,7 @@ type GetJoinMediaParamsOptions = BaseRoomSessionJoinParams & {
  */
 export const getJoinMediaParams = (options: GetJoinMediaParamsOptions) => {
   const {
-    authState,
+    authorization,
     audio = true,
     video = true,
     sendAudio,
@@ -24,7 +24,7 @@ export const getJoinMediaParams = (options: GetJoinMediaParamsOptions) => {
     receiveVideo,
   } = options
   getLogger().debug('getJoinMediaParams options', { ...options })
-  const { audio_allowed, video_allowed, join_as } = authState
+  const { audio_allowed, video_allowed, join_as } = authorization
   // Fallback to 'member' in case of null/undefined
   const joinAs = join_as ?? 'member'
   const canSend = joinAs === 'member'

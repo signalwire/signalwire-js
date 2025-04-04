@@ -6,11 +6,11 @@ import {
   SDKWorkerParams,
   SDKActions,
   FabricAction,
+  MapToPubSubShape,
 } from '@signalwire/core'
 import { FabricRoomSessionConnection } from '../FabricRoomSession'
 import { createFabricRoomSessionMemberObject } from '../FabricRoomSessionMember'
 import { callSegmentWorker } from './callSegmentWorker'
-import { MapToPubSubShape } from 'packages/core/dist/core/src'
 
 export type FabricWorkerParams<T> =
   SDKWorkerParams<FabricRoomSessionConnection> & {

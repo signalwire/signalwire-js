@@ -1,7 +1,6 @@
 import type { EventEmitter } from '../utils/EventEmitter'
-import type { VideoAPIEvent, InternalVideoEventNames } from './video'
+import type { VideoAPIEvent } from './video'
 import type {
-  SessionEvents,
   JSONRPCRequest,
   UpdateMediaParams,
   UpdateMediaDirection,
@@ -300,15 +299,19 @@ export interface WebRTCMessageParams extends SwEvent {
   params: JSONRPCRequest
 }
 
+export type SwAuthorizationStateEventName = 'signalwire.authorization.state'
+
 export type SwAuthorizationState = string
-export interface SwAuthorizationStateParams {
-  event_type: 'signalwire.authorization.state'
-  params: {
-    authorization_state: SwAuthorizationState
-  }
+
+export interface SwAuthorizationStateEventParams {
+  authorization_state: SwAuthorizationState
 }
 
-// prettier-ignore
+export interface SwAuthorizationStateEvent {
+  event_type: SwAuthorizationStateEventName
+  params: SwAuthorizationStateEventParams
+}
+
 export type SwEventParams =
   | VideoAPIEvent
   | WebRTCMessageParams
@@ -317,14 +320,9 @@ export type SwEventParams =
   | TaskEvent
   | MessagingEvent
   | VoiceCallEvent
-  | SwAuthorizationStateParams
+  | SwAuthorizationStateEvent
   | ConversationEvent
   | FabricEvent
-
-// prettier-ignore
-export type PubSubChannelEvents =
-  | InternalVideoEventNames
-  | SessionEvents
 
 export * from './video'
 export * from './utils'

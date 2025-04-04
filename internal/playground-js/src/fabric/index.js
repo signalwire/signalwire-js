@@ -1,4 +1,4 @@
-import { SignalWire, buildVideoElement } from '@signalwire/js'
+import { SignalWire, SignalWireV4, buildVideoElement } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,
@@ -251,11 +251,15 @@ function restoreUI() {
 window.connect = async () => {
   connectStatus.innerHTML = 'Connecting...'
 
-  client = await SignalWire({
+  client = await SignalWireV4({
     host: document.getElementById('host').value,
     token: document.getElementById('token').value,
     logLevel: 'debug',
     debug: { logWsTraffic: true },
+    authState: sessionStorage.getItem('fabric.ws.authState'),
+    onAuthStateChange: (authState) => {
+      sessionStorage.setItem('fabric.ws.authState', authState)
+    },
   })
   window.__client = client
 

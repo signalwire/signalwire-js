@@ -13,7 +13,7 @@ import {
   mapFabricLayoutActionToVideoLayoutAction,
   mapFabricMemberActionToVideoMemberJoinAndLeftAction,
   mapFabricMemberActionToVideoMemberUpdatedAction,
-} from '../utils/helpers'
+} from '../utils/eventMappers'
 import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callSegmentWorker = function* (

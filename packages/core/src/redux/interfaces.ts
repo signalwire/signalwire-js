@@ -21,6 +21,7 @@ import type {
   VideoManagerAction,
   PubSubEventAction,
   FabricAction,
+  SwAuthorizationState,
 } from '../types'
 import { SDKRunSaga } from '.'
 
@@ -39,6 +40,7 @@ export interface WebRTCCall extends SWComponent {
   nodeId?: string
   roomId?: string
   roomSessionId?: string
+  originCallId?: string
   memberId?: string
   previewUrl?: string
   byeCause?: string
@@ -64,7 +66,8 @@ export interface SessionState {
   protocol: string
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
-  authState?: Authorization
+  authorization?: Authorization
+  authorizationState?: SwAuthorizationState
   authError?: SessionAuthError
   authCount: number
 }

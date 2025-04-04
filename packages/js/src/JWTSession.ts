@@ -9,7 +9,7 @@ import {
 import { getStorage, sessionStorageManager } from './utils/storage'
 import { SwCloseEvent } from './utils/CloseEvent'
 
-type JWTHeader = { ch?: string; typ?: string }
+export type JWTHeader = { ch?: string; typ?: string }
 
 export class JWTSession extends BaseJWTSession {
   public WebSocketConstructor = WebSocket
@@ -21,9 +21,7 @@ export class JWTSession extends BaseJWTSession {
   constructor(public options: SessionOptions) {
     let decodedJwt: JWTHeader = {}
     try {
-      decodedJwt = jwtDecode<{ ch?: string; typ: string }>(options.token, {
-        header: true,
-      })
+      decodedJwt = jwtDecode(options.token, { header: true })
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         getLogger().debug('[JWTSession] error decoding the JWT')

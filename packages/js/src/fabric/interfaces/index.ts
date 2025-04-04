@@ -83,12 +83,3 @@ export * from './device'
 export * from './httpClient'
 export * from './incomingCallManager'
 export * from './wsClient'
-
-export { FabricRoomSession } from '../FabricRoomSession'
-export type {
-  ConversationMessageEventName,
-  ConversationMessageEventParams,
-  ConversationMessageEvent,
-  ConversationEvent,
-  ConversationEventParams,
-} from '@signalwire/core'

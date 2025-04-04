@@ -18,7 +18,7 @@ describe('SessionState Tests', () => {
       protocol: rpcConnectResultVRT.protocol,
       iceServers: rpcConnectResultVRT.ice_servers,
       authStatus: 'authorized',
-      authState: {
+      authorization: {
         media_allowed: 'all',
         audio_allowed: 'both',
         join_as: 'member',
@@ -40,6 +40,7 @@ describe('SessionState Tests', () => {
         video_allowed: 'both',
         meta: {},
       },
+      authorizationState: undefined,
       authError: undefined,
       authCount: 1,
     })
@@ -61,5 +62,14 @@ describe('SessionState Tests', () => {
 
     store.dispatch(reauthAction({ token: 'foo' }))
     expect(getAuthStatus(store.getState())).toEqual('authorizing')
+  })
+
+  it('should set authorizationState on sessionActions.updateAuthorizationState', () => {
+    store.dispatch(sessionActions.updateAuthorizationState('foo'))
+
+    expect(store.getState().session).toStrictEqual({
+      ...initialSessionState,
+      authorizationState: 'foo',
+    })
   })
 })
