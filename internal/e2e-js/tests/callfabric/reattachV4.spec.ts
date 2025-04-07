@@ -3,10 +3,15 @@ import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
+  createTestSATToken,
   dialAddress,
   expectMCUVisible,
 } from '../../utils'
-import { FabricRoomSession, SignalWireClient } from '@signalwire/js'
+import {
+  FabricRoomSession,
+  SignalWireClient,
+  SignalWireContract,
+} from '@signalwire/js'
 
 test.describe('Reattach with v4 Client', () => {
   test('it should reattach the call', async ({
@@ -19,7 +24,6 @@ test.describe('Reattach with v4 Client', () => {
     const roomName = `e2e-reattach-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    console.log('>> creating first client')
     await createCFClient(page, { useV4Client: true })
 
     // Dial an address and join a video room
@@ -219,5 +223,97 @@ test.describe('Reattach with v4 Client', () => {
       () => window._roomObj.peer.localAudioTrack
     )
     expect(localAudioTrack).toEqual({})
+  })
+
+  // TODO: Unskip this test once the following issue is resolved:
+  // https://github.com/signalwire/cloud-product/issues/14179
+  test.skip('it should not reattach with invalid authState', async ({
+    createCustomPage,
+    resource,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const roomName = `e2e-reattach-${uuid()}`
+    await resource.createVideoRoomResource(roomName)
+
+    await createCFClient(page, { useV4Client: true })
+
+    // Dial an address and join a video room
+    const roomSession = await dialAddress(page, {
+      address: `/public/${roomName}?channel=video`,
+    })
+
+    expect(roomSession.room_session).toBeDefined()
+
+    await expectMCUVisible(page)
+
+    await page.reload({ waitUntil: 'domcontentloaded' })
+
+    // Create a client with invalid auth state
+    const sat = await createTestSATToken()
+    await page.evaluate(
+      async (options) => {
+        // Get, decode, and use the previous call protocol and ID
+        const authStateFromStorage = sessionStorage.getItem(
+          'authState'
+        ) as string
+        const decodedAuthState = window.atob(authStateFromStorage)
+        const prevAuthState = JSON.parse(decodedAuthState)
+
+        const json = JSON.stringify({
+          authState: 'wrong auth state',
+          protocol: prevAuthState.protocol,
+          callId: prevAuthState.callId,
+        })
+        const authState = window.btoa(json)
+
+        const SignalWire = window._SWJS.SignalWireV4
+        const client: SignalWireContract = await SignalWire({
+          host: options.RELAY_HOST,
+          token: options.TOKEN,
+          debug: { logWsTraffic: true },
+          maxApiRequestRetries: 0,
+          onAuthStateChange: (state) => {
+            sessionStorage.setItem('authState', state)
+          },
+          authState,
+        })
+
+        window._client = client
+      },
+      {
+        RELAY_HOST: process.env.RELAY_HOST,
+        TOKEN: sat,
+      }
+    )
+
+    // Reattach to the previous call session
+    const reattachError = await page.evaluate(
+      async ({ roomName }) => {
+        return new Promise<any>(async (resolve, reject) => {
+          // @ts-expect-error
+          const client: SignalWireClient = window._client
+
+          try {
+            const call = await client.reattach({
+              to: `/public/${roomName}?channel=video`,
+              rootElement: document.getElementById('rootElement'),
+            })
+            call.on('call.joined', reject)
+
+            // @ts-expect-error
+            window._roomObj = call
+            await call.start()
+          } catch (e) {
+            resolve(e)
+          }
+        })
+      },
+      { roomName }
+    )
+
+    expect(reattachError).toBeDefined()
+    expect(reattachError).toBeInstanceOf(Error)
   })
 })
