@@ -42,6 +42,7 @@ const callfabricTests = [
   'holdunhold.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
+  'reattachV4.spec.ts',
   'relayApp.spec.ts',
   'swml.spec.ts',
   'videoRoom.spec.ts',
