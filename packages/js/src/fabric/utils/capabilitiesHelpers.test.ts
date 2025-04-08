@@ -90,7 +90,7 @@ describe('eventUtils', () => {
       ])
       expect(callCapabilities.member?.deaf?.on).toEqual(true)
       expect(callCapabilities.member?.deaf?.off).toEqual(true)
-      expect(callCapabilities.member?.raisehand?.on).toEqual(true)
+      expect(callCapabilities.member?.raisehand?.on).toEqual(false)
       expect(callCapabilities.member?.raisehand?.off).toEqual(true)
       expect(callCapabilities.member?.muteVideo?.on).toEqual(true)
       expect(callCapabilities.member?.muteVideo?.off).toEqual(true)
