@@ -200,7 +200,7 @@ describe('SDP utility functions', () => {
     })
   })
 
-  describe('getSenderAudioMaxBitrate', () => {
+  describe('getMaxBitrate', () => {
     it('should return 2000', () => {
       //@ts-expect-error partial options
         expect(getMaxBitrate({useStereo: false, opusMaxPlaybackRate: 8000})).toBe(2000)

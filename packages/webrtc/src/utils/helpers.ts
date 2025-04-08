@@ -2,8 +2,7 @@ import { getLogger } from '@signalwire/core'
 import { getUserMedia as _getUserMedia } from './getUserMedia'
 import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
-import { getMaxBitrate, sdpHasAudio, sdpHasVideo } from './sdpHelpers'
-import { BaseConnectionOptions } from '../BaseConnection'
+import { sdpHasAudio, sdpHasVideo } from './sdpHelpers'
 
 // FIXME: Remove and use getUserMedia directly
 export const getUserMedia = (constraints: MediaStreamConstraints) => {
@@ -90,9 +89,6 @@ export const getMediaConstraints = async (
 
   return { audio, video }
 }
-
-export const getSenderAudioMaxBitrate = (options: BaseConnectionOptions) =>
-  getMaxBitrate(options)
 
 interface FilterIceServersOptions {
   disableUdpIceServers?: boolean
