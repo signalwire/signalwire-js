@@ -236,7 +236,7 @@ export class BaseComponent<
   }
 
   /** @internal */
-  protected select<T>(selectorFn: (state: SDKState) => T) {
+  select<T>(selectorFn: (state: SDKState) => T) {
     return selectorFn(this.store.getState())
   }
 
