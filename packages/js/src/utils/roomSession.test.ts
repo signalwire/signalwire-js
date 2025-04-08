@@ -119,7 +119,7 @@ describe('getJoinMediaParams', () => {
             it(`should handle params: ${JSON.stringify(params)}`, () => {
               const authorization = authStateMap.get(`${joinType}-${direction}`)
               if (!authorization) {
-                throw 'Invalid AuthState'
+                throw 'Invalid Authorization'
               }
               const result = getJoinMediaParams({ ...params, authorization })
 
