@@ -28,6 +28,7 @@ type CustomFixture = {
     createRelayAppResource: typeof createRelayAppResource
     resources: Resource[]
   }
+  useV4Client: boolean
 }
 
 const test = baseTest.extend<CustomFixture>({
@@ -124,6 +125,11 @@ const test = baseTest.extend<CustomFixture>({
       })
       await Promise.allSettled(deleteResources)
     }
+  },
+  useV4Client: async ({}, use, testInfo) => {
+    const val =
+      (testInfo.project.use as { useV4Client: boolean }).useV4Client ?? false
+    await use(val)
   },
 })
 

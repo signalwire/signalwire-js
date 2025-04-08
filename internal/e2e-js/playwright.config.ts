@@ -35,14 +35,16 @@ const reattachTests = [
   'roomSessionReattachWrongCallId.spec.ts',
   'roomSessionReattachWrongProtocol.spec.ts',
 ]
-const callfabricTests = [
+const videoElementTests = ['buildVideoWithVideoSDK.spec.ts']
+const fabricV3Tests = ['reattach.spec.ts']
+const fabricV4Tests = ['reattachV4.spec.ts']
+const fabricBaseTests = [
   'address.spec.ts',
+  'buildVideoWithFabricSDK.spec.ts',
   'cleanup.spec.ts',
   'conversation.spec.ts',
   'holdunhold.spec.ts',
   'raiseHand.spec.ts',
-  'reattach.spec.ts',
-  'reattachV4.spec.ts',
   'relayApp.spec.ts',
   'swml.spec.ts',
   'videoRoom.spec.ts',
@@ -52,10 +54,6 @@ const renegotiationTests = [
   'roomSessionUpdateMedia.spec.ts',
   'renegotiateAudio.spec.ts',
   'renegotiateVideo.spec.ts',
-]
-const videoElementTests = [
-  'buildVideoWithVideoSDK.spec.ts',
-  'buildVideoWithFabricSDK.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
@@ -69,6 +67,16 @@ const useDesktopChrome = {
       '--use-fake-device-for-media-stream',
     ],
   },
+}
+
+const useFabricV3Client = {
+  ...useDesktopChrome,
+  useV4Client: false,
+}
+
+const useFabricV4Client = {
+  ...useDesktopChrome,
+  useV4Client: true,
 }
 
 const config: PlaywrightTestConfig = {
@@ -96,9 +104,11 @@ const config: PlaywrightTestConfig = {
         ...demoteTests,
         ...audienceTests,
         ...reattachTests,
-        ...callfabricTests,
-        ...renegotiationTests,
         ...videoElementTests,
+        ...fabricBaseTests,
+        ...fabricV3Tests,
+        ...fabricV4Tests,
+        ...renegotiationTests,
         ...v2WebRTC,
       ],
     },
@@ -133,19 +143,29 @@ const config: PlaywrightTestConfig = {
       testMatch: reattachTests,
     },
     {
-      name: 'callfabric',
-      use: useDesktopChrome,
-      testMatch: callfabricTests,
-    },
-    {
-      name: 'renegotiation',
-      use: useDesktopChrome,
-      testMatch: renegotiationTests,
-    },
-    {
       name: 'videoElement',
       use: useDesktopChrome,
       testMatch: videoElementTests,
+    },
+    {
+      name: 'fabricV3',
+      use: useFabricV3Client,
+      testMatch: [...fabricBaseTests, ...fabricV3Tests],
+    },
+    {
+      name: 'fabricV4',
+      use: useFabricV4Client,
+      testMatch: [...fabricBaseTests, ...fabricV4Tests],
+    },
+    {
+      name: 'renegotiationV3',
+      use: useFabricV3Client,
+      testMatch: renegotiationTests,
+    },
+    {
+      name: 'renegotiationV4',
+      use: useFabricV4Client,
+      testMatch: renegotiationTests,
     },
     {
       name: 'v2WebRTC',
@@ -154,4 +174,5 @@ const config: PlaywrightTestConfig = {
     },
   ],
 }
+
 export default config

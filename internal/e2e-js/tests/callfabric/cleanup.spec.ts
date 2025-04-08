@@ -9,7 +9,10 @@ import {
 } from '../../utils'
 
 test.describe('Clean up', () => {
-  test('it should create a webscoket client', async ({ createCustomPage }) => {
+  test('it should create a webscoket client', async ({
+    createCustomPage,
+    useV4Client,
+  }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
@@ -30,7 +33,7 @@ test.describe('Clean up', () => {
 
     expect(websocketUrl).toBe(null)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     await disconnectClient(page)
 
@@ -42,11 +45,12 @@ test.describe('Clean up', () => {
 
   test('it should cleanup session emitter and workers', async ({
     createCustomPage,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page, { attachSagaMonitor: true })
+    await createCFClient(page, { attachSagaMonitor: true, useV4Client })
 
     await test.step('the client should have workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
@@ -91,6 +95,7 @@ test.describe('Clean up', () => {
   test('it should cleanup call emitter and workers without affecting the client', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -98,7 +103,7 @@ test.describe('Clean up', () => {
     const roomName = `e2e-cleanup_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page, { attachSagaMonitor: true })
+    await createCFClient(page, { attachSagaMonitor: true, useV4Client })
 
     // Dial an address and join a video room
     await dialAddress(page, {

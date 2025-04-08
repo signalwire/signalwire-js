@@ -33,6 +33,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
   test('should not render any video if rootElement is not passed', async ({
     createCustomPage,
+    useV4Client,
     resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -40,7 +41,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     const roomName = randomizeRoomName('build-video-element')
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room without passing the rootElement
     await dialAddress(page, {
@@ -56,6 +57,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
   test('should return the rootElement', async ({
     createCustomPage,
+    useV4Client,
     resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -63,7 +65,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     const roomName = randomizeRoomName('build-video-element')
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room without passing the rootElement
     await dialAddress(page, {
@@ -116,6 +118,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
   test('should render multiple video elements', async ({
     createCustomPage,
+    useV4Client,
     resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -123,7 +126,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     const roomName = randomizeRoomName('build-video-element')
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial and expect both video and member overlays
     await dialAddress(page, {
@@ -255,6 +258,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
   test('should render the video even if the function is called before call.start', async ({
     createCustomPage,
+    useV4Client,
     resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -262,14 +266,13 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     const roomName = randomizeRoomName('build-video-element')
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Create and expect 1 video elements
     await page.evaluate(
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
+          const client = window._client!
 
           const call = await client.dial({
             to: `/public/${roomName}?channel=video`,
@@ -308,6 +311,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
   test('should not create a new element if the elements are same', async ({
     createCustomPage,
+    useV4Client,
     resource,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -315,7 +319,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     const roomName = randomizeRoomName('build-video-element')
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room with rootElement
     await dialAddress(page, {
@@ -346,6 +350,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
   test('should handle the element for multiple users', async ({
     createCustomPage,
+    useV4Client,
     resource,
   }) => {
     const pageOne = await createCustomPage({ name: '[pageOne]' })
@@ -356,7 +361,10 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     const roomName = randomizeRoomName('build-video-element')
     await resource.createVideoRoomResource(roomName)
 
-    await Promise.all([createCFClient(pageOne), createCFClient(pageTwo)])
+    await Promise.all([
+      createCFClient(pageOne, { useV4Client }),
+      createCFClient(pageTwo, { useV4Client }),
+    ])
 
     // Dial an address and join a video room from pageOne
     await dialAddress(pageOne, {
