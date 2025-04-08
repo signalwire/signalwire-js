@@ -50,11 +50,12 @@ test.describe('Clean up', () => {
 
     await test.step('the client should have workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        // @ts-expect-error
-        const client = window._client
+        const client = window._client!
 
         return {
+          // @ts-expect-error
           clientListenersLength: client.__wsClient.sessionEventNames().length,
+          // @ts-expect-error
           clientWorkersLength: client.__wsClient._runningWorkers.length,
           // @ts-expect-error
           globalWorkersLength: window._runningWorkers.length,
@@ -69,11 +70,12 @@ test.describe('Clean up', () => {
 
     await test.step('the client should not have workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        // @ts-expect-error
-        const client = window._client
+        const client = window._client!
 
         return {
+          // @ts-expect-error
           clientListenersLength: client.__wsClient.sessionEventNames().length,
+          // @ts-expect-error
           clientWorkersLength: client.__wsClient._runningWorkers.length,
           // @ts-expect-error
           globalWorkersLength: window._runningWorkers.length,
@@ -106,11 +108,12 @@ test.describe('Clean up', () => {
     const { beforeClientListenersLength, beforeClientWorkersLength } =
       await test.step('call and client should have watchers attached', async () => {
         const watchers: Record<string, number> = await page.evaluate(() => {
-          // @ts-expect-error
-          const client = window._client
+          const client = window._client!
 
           return {
+            // @ts-expect-error
             clientListenersLength: client.__wsClient.sessionEventNames().length,
+            // @ts-expect-error
             clientWorkersLength: client.__wsClient._runningWorkers.length,
 
             // @ts-expect-error
@@ -139,11 +142,12 @@ test.describe('Clean up', () => {
 
     await test.step('call should not have any watchers attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        // @ts-expect-error
-        const client = window._client
+        const client = window._client!
 
         return {
+          // @ts-expect-error
           clientListenersLength: client.__wsClient.sessionEventNames().length,
+          // @ts-expect-error
           clientWorkersLength: client.__wsClient._runningWorkers.length,
 
           // @ts-expect-error
@@ -167,11 +171,12 @@ test.describe('Clean up', () => {
 
     await test.step('client should not have any watchers attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        // @ts-expect-error
-        const client = window._client
+        const client = window._client!
 
         return {
+          // @ts-expect-error
           clientListenersLength: client.__wsClient.sessionEventNames().length,
+          // @ts-expect-error
           clientWorkersLength: client.__wsClient._runningWorkers.length,
 
           // @ts-expect-error
