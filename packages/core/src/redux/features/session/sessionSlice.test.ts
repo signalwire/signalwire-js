@@ -18,7 +18,7 @@ describe('SessionState Tests', () => {
       protocol: rpcConnectResultVRT.protocol,
       iceServers: rpcConnectResultVRT.ice_servers,
       authStatus: 'authorized',
-      authState: {
+      authorization: {
         media_allowed: 'all',
         audio_allowed: 'both',
         join_as: 'member',

@@ -18,7 +18,6 @@ declare global {
     _SWJS: {
       SignalWire: typeof SignalWire
     }
-    _authState?: string
     _client?: SignalWireClient
   }
 }

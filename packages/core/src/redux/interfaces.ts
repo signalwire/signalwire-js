@@ -64,7 +64,7 @@ export interface SessionState {
   protocol: string
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
-  authState?: Authorization
+  authorization?: Authorization
   authError?: SessionAuthError
   authCount: number
 }
