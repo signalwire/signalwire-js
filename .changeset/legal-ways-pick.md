@@ -2,4 +2,4 @@
 '@signalwire/js': patch
 ---
 
-Changed: Uncomment raisehand capability logic
+CF SDK: Fix Raise Hand call and member capability.
