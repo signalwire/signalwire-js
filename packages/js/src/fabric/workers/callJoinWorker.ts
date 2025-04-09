@@ -12,7 +12,7 @@ import {
 } from '../FabricRoomSessionMember'
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
-import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/helpers'
+import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/eventMappers'
 import { mapCapabilityPayload } from '../utils/capabilitiesHelpers'
 
 export const callJoinWorker = function* (

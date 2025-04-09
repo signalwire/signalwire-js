@@ -1,7 +1,6 @@
-import { UserOptions } from '@signalwire/core'
+import { SessionOptions, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
-import { ApiRequestRetriesOptions } from '../SATSession'
 
 export interface WSClientContract {
   /**
@@ -101,8 +100,24 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> &
-  Partial<ApiRequestRetriesOptions>
+export interface ApiRequestRetriesOptions {
+  /** Increment step for each retry delay */
+  apiRequestRetriesDelayIncrement?: number
+  /** Initial retry delay */
+  apiRequestRetriesDelay?: number
+  /** Max API request retry, set to 0 disable retries */
+  maxApiRequestRetries?: number
+}
+
+export interface SATSessionOptions
+  extends ApiRequestRetriesOptions,
+    SessionOptions {}
+
+export type FabricUserOptions = Omit<
+  UserOptions,
+  'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
+> &
+  SATSessionOptions
 
 export interface WSClientOptions extends FabricUserOptions {
   /** HTML element in which to display the video stream */
