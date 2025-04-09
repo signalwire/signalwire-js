@@ -4,4 +4,4 @@
 '@signalwire/js': patch
 ---
 
-CF SDK: Fix the `getAddresses` contract with internal refactoring
+CF SDK: Fix the `getAddresses` TS contract with internal refactoring
