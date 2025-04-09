@@ -1,7 +1,6 @@
 import type { EventEmitter } from '../utils/EventEmitter'
-import type { VideoAPIEvent, InternalVideoEventNames } from './video'
+import type { VideoAPIEvent } from './video'
 import type {
-  SessionEvents,
   JSONRPCRequest,
   UpdateMediaParams,
   UpdateMediaDirection,
@@ -325,11 +324,6 @@ export type SwEventParams =
   | SwAuthorizationStateEvent
   | ConversationEvent
   | FabricEvent
-
-// prettier-ignore
-export type PubSubChannelEvents =
-  | InternalVideoEventNames
-  | SessionEvents
 
 export * from './video'
 export * from './utils'

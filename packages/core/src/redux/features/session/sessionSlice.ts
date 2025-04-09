@@ -6,7 +6,7 @@ import type {
   SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
-import type { DeepReadonly } from '../../../types'
+import type { DeepReadonly, SwAuthorizationState } from '../../../types'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 import { authErrorAction, initAction, reauthAction } from '../../actions'
 
@@ -15,6 +15,7 @@ export const initialSessionState: DeepReadonly<SessionState> = {
   iceServers: [],
   authStatus: 'unknown',
   authorization: undefined,
+  authorizationState: undefined,
   authError: undefined,
   authCount: 0,
 }
@@ -48,6 +49,15 @@ const sessionSlice = createDestroyableSlice({
       return {
         ...state,
         authorization: payload,
+      }
+    },
+    updateAuthorizationState: (
+      state,
+      { payload }: PayloadAction<SwAuthorizationState>
+    ) => {
+      return {
+        ...state,
+        authorizationState: payload,
       }
     },
   },

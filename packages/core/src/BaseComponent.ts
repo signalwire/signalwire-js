@@ -247,17 +247,17 @@ export class BaseComponent<
 
   /** @internal */
   protected get _sessionAuthStatus(): SessionAuthStatus {
-    return getAuthStatus(this.store.getState())
+    return this.select(getAuthStatus)
   }
 
   /** @internal */
   protected get _sessionAuthorization(): Authorization | undefined {
-    return getAuthorization(this.store.getState())
+    return this.select(getAuthorization)
   }
 
   /** @internal */
   protected _waitUntilSessionAuthorized(): Promise<this> {
-    const authStatus = getAuthStatus(this.store.getState())
+    const authStatus = this._sessionAuthStatus
 
     switch (authStatus) {
       case 'authorized':
@@ -277,8 +277,8 @@ export class BaseComponent<
       case 'authorizing':
         return new Promise((resolve, reject) => {
           const unsubscribe = this.store.subscribe(() => {
-            const authStatus = getAuthStatus(this.store.getState())
-            const authError = getAuthError(this.store.getState())
+            const authStatus = this.select(getAuthStatus)
+            const authError = this.select(getAuthError)
 
             if (authStatus === 'authorized') {
               resolve(this)
