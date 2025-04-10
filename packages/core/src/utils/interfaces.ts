@@ -349,6 +349,7 @@ export type FabricMethod =
   | 'call.layout.set'
   | 'call.microphone.volume.set'
   | 'call.microphone.sensitivity.set'
+  | 'call.speaker.volume.set'
   | 'call.lock'
   | 'call.unlock'
   | 'call.raisehand'

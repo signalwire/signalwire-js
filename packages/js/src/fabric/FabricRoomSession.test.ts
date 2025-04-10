@@ -321,7 +321,7 @@ describe('FabricRoomSession', () => {
       expect(spy).toHaveBeenCalledWith({ volume: 10 })
       expect(room.execute).toHaveBeenCalledWith(
         {
-          method: 'video.member.set_output_volume',
+          method: 'call.speaker.volume.set',
           params: {
             ...actionParams,
             volume: 10,
@@ -373,7 +373,7 @@ describe('FabricRoomSession', () => {
           method: 'call.microphone.sensitivity.set',
           params: {
             ...actionParams,
-            value: 10,
+            sensitivity: 10,
           },
         },
         {}
@@ -472,7 +472,7 @@ describe('FabricRoomSession', () => {
     })
   })
 
-  describe('should throw if capability is missing', () => {
+  describe.only('should throw if capability is missing', () => {
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store

@@ -10,6 +10,8 @@ import {
   BaseConnectionContract,
   FabricRoomSessionMethods,
   MemberCommandParams,
+  MemberCommandWithVolumeParams,
+  MemberCommandWithValueParams,
 } from '@signalwire/core'
 import {
   BaseRoomSessionConnection,
@@ -20,8 +22,6 @@ import {
   ExecuteMemberActionParams,
   FabricRoomSessionContract,
   FabricRoomSessionEvents,
-  MemberCommandWithValueParams,
-  MemberCommandWithVolumeParams,
   RequestMemberParams,
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
@@ -30,6 +30,7 @@ import { fabricWorker } from './workers'
 import { FabricRoomSessionMember } from './FabricRoomSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
+import { createFabricRoomSessionValidateProxy } from './utils/validationProxy'
 
 export interface FabricRoomSession
   extends FabricRoomSessionContract,
@@ -206,14 +207,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async audioMute(params: MemberCommandParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.muteAudio.off
-        : !this.capabilities?.member.muteAudio.off
-    ) {
-      throw Error('Missing audio mute capability')
-    }
+  public async audioMute(params?: MemberCommandParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'audio',
@@ -221,14 +215,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async audioUnmute(params: MemberCommandParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.muteAudio.on
-        : !this.capabilities?.member.muteAudio.on
-    ) {
-      throw Error('Missing audio unmute capability')
-    }
+  public async audioUnmute(params?: MemberCommandParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'audio',
@@ -236,14 +223,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async videoMute(params: MemberCommandParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.muteVideo.off
-        : !this.capabilities?.member.muteVideo.on
-    ) {
-      throw Error('Missing video mute capability')
-    }
+  public async videoMute(params?: MemberCommandParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'video',
@@ -251,14 +231,7 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async videoUnmute(params: MemberCommandParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.muteVideo.on
-        : !this.capabilities?.member.muteVideo.on
-    ) {
-      throw Error('Missing video unmute capability')
-    }
+  public async videoUnmute(params?: MemberCommandParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'video',
@@ -266,28 +239,14 @@ export class FabricRoomSessionConnection
     })
   }
 
-  public async deaf(params: MemberCommandParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.deaf.on
-        : !this.capabilities?.member.deaf.on
-    ) {
-      throw Error('Missing deaf capability')
-    }
+  public async deaf(params?: MemberCommandParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.deaf',
       memberId: params?.memberId,
     })
   }
 
-  public async undeaf(params: MemberCommandParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.deaf.off
-        : !this.capabilities?.member.deaf.off
-    ) {
-      throw Error('Missing undeaf capability')
-    }
+  public async undeaf(params?: MemberCommandParams) {
     return this.executeAction<BaseRPCResult>({
       method: 'call.undeaf',
       memberId: params?.memberId,
@@ -321,12 +280,6 @@ export class FabricRoomSessionConnection
   }
 
   public async removeMember(params: Required<MemberCommandParams>) {
-    if (!this.capabilities?.member.remove) {
-      throw Error('Missing setLayout capability')
-    }
-    if (!params?.memberId) {
-      throw new TypeError('Invalid or missing "memberId" argument')
-    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.member.remove',
       memberId: params.memberId,
@@ -335,20 +288,6 @@ export class FabricRoomSessionConnection
 
   public async setRaisedHand(params?: Rooms.SetRaisedHandRoomParams) {
     const { raised = true, memberId } = params || {}
-    if (
-      memberId == this.member.id && raised
-        ? !this.capabilities?.self.raisehand.on
-        : !this.capabilities?.member.raisehand.on
-    ) {
-      throw Error('Missing raisehand capability')
-    }
-    if (
-      memberId == this.member.id && !raised
-        ? !this.capabilities?.self.raisehand.off
-        : !this.capabilities?.member.raisehand.off
-    ) {
-      throw Error('Missing lowerhand capability')
-    }
     return this.executeAction<BaseRPCResult>({
       method: raised ? 'call.raisehand' : 'call.lowerhand',
       memberId,
@@ -370,79 +309,42 @@ export class FabricRoomSessionConnection
   }
 
   public async setInputVolume(params: MemberCommandWithVolumeParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.microphoneVolume
-        : !this.capabilities?.member.microphoneVolume
-    ) {
-      throw Error('Missing setInputVolume capability')
-    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.volume.set',
-      memberId: params?.memberId,
+      memberId: params.memberId,
       extraParams: {
-        volume: params?.volume,
+        volume: params.volume,
       },
     })
   }
 
   public async setOutputVolume(params: MemberCommandWithVolumeParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.speakerVolume
-        : !this.capabilities?.member.speakerVolume
-    ) {
-      throw Error('Missing setOutputVolume capability')
-    }
     return this.executeAction<BaseRPCResult>({
-      method: 'video.member.set_output_volume',
-      memberId: params?.memberId,
+      method: 'call.speaker.volume.set',
+      memberId: params.memberId,
       extraParams: {
-        volume: params?.volume,
+        volume: params.volume,
       },
     })
   }
 
   public async setInputSensitivity(params: MemberCommandWithValueParams) {
-    if (
-      !params || params.memberId === this.member.id
-        ? !this.capabilities?.self.microphoneSensitivity
-        : !this.capabilities?.member.microphoneSensitivity
-    ) {
-      throw Error('Missing setOutputVolume capability')
-    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.microphone.sensitivity.set',
-      memberId: params?.memberId,
+      memberId: params.memberId,
       extraParams: {
-        value: params?.value,
+        sensitivity: params.value,
       },
     })
   }
 
   public async setPositions(params: Rooms.SetPositionsParams) {
-    const positions = params.positions
-
-    if (positions && !Object.keys(positions).length) {
-      throw new Error('Invalid positions')
-    }
-
-    if (
-      Object.keys(positions).some((p) =>
-        ['self', `${this.memberId}`].includes(p)
-      )
-        ? !this.capabilities?.self.position
-        : !this.capabilities?.member.position
-    ) {
-      throw Error('Missing setPositions capability')
-    }
-
     const targets: {
       target: RequestMemberParams
       position: VideoPosition
     }[] = []
 
-    Object.entries(positions).forEach(([key, value]) => {
+    Object.entries(params.positions).forEach(([key, value]) => {
       const targetMember =
         key === 'self'
           ? this.member
@@ -478,18 +380,12 @@ export class FabricRoomSessionConnection
   }
 
   public async lock() {
-    if (!this.capabilities?.lock.on) {
-      throw Error('Missing lock capability')
-    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.lock',
     })
   }
 
   public async unlock() {
-    if (!this.capabilities?.lock.off) {
-      throw Error('Missing unlock capability')
-    }
     return this.executeAction<BaseRPCResult>({
       method: 'call.unlock',
     })
@@ -515,5 +411,5 @@ export const createFabricRoomSessionObject = (
     Component: FabricRoomSessionConnection,
   })(params)
 
-  return room
+  return createFabricRoomSessionValidateProxy(room)
 }
