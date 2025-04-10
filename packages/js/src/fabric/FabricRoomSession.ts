@@ -295,9 +295,6 @@ export class FabricRoomSessionConnection
   }
 
   public async setLayout(params: Rooms.SetLayoutParams) {
-    if (!this.capabilities?.setLayout) {
-      throw Error('Missing setLayout capability')
-    }
     const extraParams = {
       layout: params.name,
       positions: params.positions,

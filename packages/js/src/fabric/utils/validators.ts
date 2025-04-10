@@ -125,6 +125,12 @@ export function validateSetRaiseHand(
   }
 }
 
+export function validateSetLayout(this: FabricRoomSessionConnection) {
+  if (!this.capabilities?.setLayout) {
+    throw new CapabilityError('Missing setLayout capability')
+  }
+}
+
 export function validateSetInputVolume(
   this: FabricRoomSessionConnection,
   params: MemberCommandWithVolumeParams

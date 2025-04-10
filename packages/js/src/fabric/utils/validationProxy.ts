@@ -6,6 +6,7 @@ import {
   validateRemoveMember,
   validateSetInputSensitivity,
   validateSetInputVolume,
+  validateSetLayout,
   validateSetOutputVolume,
   validateSetPositions,
   validateSetRaiseHand,
@@ -35,6 +36,7 @@ export const validationsMap: ValidatorMap = {
   undeaf: validateUndeaf,
   removeMember: validateRemoveMember,
   setRaisedHand: validateSetRaiseHand,
+  setLayout: validateSetLayout,
   setInputVolume: validateSetInputVolume,
   setOutputVolume: validateSetOutputVolume,
   setInputSensitivity: validateSetInputSensitivity,
@@ -43,18 +45,27 @@ export const validationsMap: ValidatorMap = {
   unlock: validateUnlock,
 }
 
+/**
+ * Wraps a FabricRoomSession instance with a Proxy that runs validation
+ * functions (from validationsMap) before calling the original method.
+ *
+ * @param instance - The FabricRoomSession instance to wrap.
+ * @returns The proxied FabricRoomSession.
+ */
 export function createFabricRoomSessionValidateProxy(
   instance: FabricRoomSession
 ) {
   return new Proxy(instance, {
     get(target, prop: keyof FabricRoomSession, receiver) {
+      // Only intercept keys that have an associated validator
       if (typeof prop === 'string' && prop in validationsMap) {
         const targetConn = target as unknown as FabricRoomSessionConnection
-        const origMethod = targetConn[prop]
+        const origMethod = targetConn[prop] as Function
         if (typeof origMethod === 'function') {
-          return function (...args: unknown[]) {
+          // Wrap in a promise so validator runs asynchronously
+          return async function (...args: unknown[]) {
             // Run the validator before calling the method
-            const validator = validationsMap[prop]
+            const validator = validationsMap[prop as keyof FabricRoomSession]
             if (validator) {
               validator.apply(targetConn, args)
             }
