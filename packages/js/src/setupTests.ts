@@ -57,7 +57,7 @@ class MockHTMLMediaElement {
 ;(global as any).HTMLMediaElement = MockHTMLMediaElement
 
 // Define a mock ResizeObserver
-class ResizeObserver {
+class MockResizeObserver {
   private callback: ResizeObserverCallback
   private observedElements = new Map<
     Element,
@@ -104,6 +104,19 @@ class ResizeObserver {
 }
 
 // Mock global ResizeObserver
-global.ResizeObserver = ResizeObserver
+global.ResizeObserver = MockResizeObserver
+
+// Define a mock Audio
+class MockAudio {
+  src: string
+  constructor(src: string) {
+    this.src = src
+  }
+  play() {}
+  pause() {}
+}
+
+// Mock global Audio
+global.Audio = MockAudio as any
 
 global.WebSocket = WebSocket
