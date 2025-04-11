@@ -6,7 +6,8 @@ import {
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
 
-test.describe('Conversation Room', () => {
+/* TODO: re-enable after fixes are deployed on prod */
+test.describe.skip('Conversation Room', () => {
   test('send message in a room conversation', async ({
     createCustomPage,
     resource,
