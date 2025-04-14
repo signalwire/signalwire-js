@@ -388,6 +388,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           this.call.id,
           newConstraints
         )
+        // Should we check if the current track is capable enough to support the incoming constraints?
+        // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/getCapabilities
         await sender.track.applyConstraints(newConstraints)
       }
     } catch (error) {

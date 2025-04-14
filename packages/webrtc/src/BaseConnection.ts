@@ -234,8 +234,7 @@ export class BaseConnection<
     return super.emit(event, ...args)
   }
 
-  /** @internal */
-  dialogParams(rtcPeerId: string) {
+  private dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
       attach,
@@ -368,17 +367,23 @@ export class BaseConnection<
   }
 
   updateCamera(constraints: MediaTrackConstraints) {
+    const prevVideoConstraints = this.localVideoTrack?.getConstraints() || {}
     return this.applyConstraintsAndRefreshStream({
       video: {
         aspectRatio: 16 / 9,
+        ...prevVideoConstraints,
         ...constraints,
       },
     })
   }
 
   updateMicrophone(constraints: MediaTrackConstraints) {
+    const prevAudioConstraints = this.localAudioTrack?.getConstraints() || {}
     return this.applyConstraintsAndRefreshStream({
-      audio: constraints,
+      audio: {
+        ...prevAudioConstraints,
+        ...constraints,
+      },
     })
   }
 
@@ -1252,7 +1257,7 @@ export class BaseConnection<
       }
 
       // Check if the peer is already negotiating
-      if (this.peer?.isNegotiating) {
+      if (this.peer.isNegotiating) {
         throw new Error('The peer is already negotiating the media!')
       }
 
@@ -1358,9 +1363,7 @@ export class BaseConnection<
     }
 
     return this.updateMedia({
-      audio: {
-        direction,
-      },
+      audio: { direction },
     })
   }
 
@@ -1376,9 +1379,7 @@ export class BaseConnection<
     }
 
     return this.updateMedia({
-      video: {
-        direction,
-      },
+      video: { direction },
     })
   }
 
