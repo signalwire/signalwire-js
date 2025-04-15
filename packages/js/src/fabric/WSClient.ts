@@ -179,7 +179,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     }
 
     if (params.opusMaxAverageBitrate && params.opusMaxAverageBitrate <= 0) {
-      throw new Error('Invalid opusMaxPlaybackRate')
+      throw new Error('Invalid opusMaxPlaybackRate. It can only be a positive number.')
     }
   }
 
