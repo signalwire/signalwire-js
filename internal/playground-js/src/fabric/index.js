@@ -323,7 +323,7 @@ window.dial = async ({ reattach = false } = {}) => {
       )
     }
     if (document.getElementById('maxAverageBitrate').value.trim().length) {
-      dialOptions[`${codecPrefix}maxAverageBitrate`] = parseInt(
+      dialOptions[`${codecPrefix}MaxAverageBitrate`] = parseInt(
         document.getElementById('maxAverageBitrate').value
       )
     }
