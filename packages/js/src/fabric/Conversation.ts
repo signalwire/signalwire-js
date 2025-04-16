@@ -256,7 +256,7 @@ export class Conversation {
 
       return {
         data: chatMessages as ConversationChatMessage[],
-        hasNext: !!conversationMessages?.hasNext || !!cached.length,
+        hasNext: !!conversationMessages?.hasNext || !!missingReturns.length,
         hasPrev: !!conversationMessages?.hasPrev,
 
         nextPage: () =>
