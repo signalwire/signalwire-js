@@ -18,8 +18,7 @@ test.describe('CallFabric Reconnections', () => {
     await page.evaluate(
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
+          const client = window._client!
 
           const call = await client.dial({
             to: `/public/${roomName}`,
@@ -185,8 +184,7 @@ test.describe('CallFabric Reconnections', () => {
     await page.evaluate(
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
+          const client = window._client!
 
           const call = await client.dial({
             to: `/public/${roomName}`,
@@ -333,5 +331,4 @@ test.describe('CallFabric Reconnections', () => {
       ],
     })
   })
-
 })

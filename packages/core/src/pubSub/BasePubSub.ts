@@ -8,7 +8,7 @@ import {
   validateEventsToSubscribe,
   BaseConsumer,
 } from '..'
-import { getAuthState } from '../redux/features/session/sessionSelectors'
+import { getAuthorization } from '../redux/features/session/sessionSelectors'
 import type {
   PubSubChannel,
   InternalPubSubChannel,
@@ -196,9 +196,13 @@ export class BasePubSubConsumer<
   // `realtime-api`
   async getAllowedChannels() {
     await this._waitUntilSessionAuthorized()
-    const authState = this.select(getAuthState)
-    if (authState && 'channels' in authState && authState.channels) {
-      return authState.channels
+    const authorization = this.select(getAuthorization)
+    if (
+      authorization &&
+      'channels' in authorization &&
+      authorization.channels
+    ) {
+      return authorization.channels
     }
     return {}
   }

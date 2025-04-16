@@ -4,7 +4,7 @@ import {
   HttpError,
   increasingDelay,
 } from '@signalwire/core'
-import { ApiRequestRetriesOptions } from 'packages/js/src/fabric/SATSession'
+import { ApiRequestRetriesOptions } from './interfaces'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T
@@ -27,7 +27,7 @@ async function http<T>(
     maxRetries,
     validator: (response) => {
       // whe should retry only error above Http-500
-      if(!response.ok && response.status >= 500) {
+      if (!response.ok && response.status >= 500) {
         throw new HttpError(response.status, response.statusText)
       }
     },
@@ -62,13 +62,14 @@ async function http<T>(
   return response
 }
 
-type CreateHttpClientOptions = RequestInit & Partial<ApiRequestRetriesOptions> & {
-  baseUrl: string
-  /**
-   * Timeout in milliseconds
-   */
-  timeout?: number
-}
+type CreateHttpClientOptions = RequestInit &
+  Partial<ApiRequestRetriesOptions> & {
+    baseUrl: string
+    /**
+     * Timeout in milliseconds
+     */
+    timeout?: number
+  }
 
 interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
   body?: Record<string, unknown>
@@ -82,7 +83,8 @@ export const createHttpClient = (
     baseUrl,
     maxApiRequestRetries: retries = DEFAULT_MAX_RETRIES,
     apiRequestRetriesDelay: retriesDelay = DEFAULT_INITIAL_DELAY,
-    apiRequestRetriesDelayIncrement: retriesDelayIncrement = DEFAULT_DELAY_VARIATION,
+    apiRequestRetriesDelayIncrement:
+      retriesDelayIncrement = DEFAULT_DELAY_VARIATION,
     timeout = DEFAULT_TIMEOUT,
     ...globalOptions
   }: CreateHttpClientOptions,

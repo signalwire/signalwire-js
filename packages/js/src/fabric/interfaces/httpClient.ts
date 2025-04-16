@@ -26,7 +26,7 @@ export interface HTTPClientContract {
    * @param params - The parameters for filtering resources {@link GetAddressesParams}.
    * @returns A promise that resolves to the list of resources {@link GetAddressesResult}.
    */
-  getAddresses(params: GetAddressesParams): Promise<GetAddressesResult>
+  getAddresses(params?: GetAddressesParams): Promise<GetAddressesResult>
   /**
    * Register a device to receive incoming call requests.
    *

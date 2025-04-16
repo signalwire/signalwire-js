@@ -74,8 +74,7 @@ test.describe('Reattach Tests', () => {
     let roomSession = await page.evaluate(
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
+          const client = window._client!
 
           const call = await client.dial({
             to: `/public/${roomName}?channel=video`,
@@ -147,8 +146,7 @@ test.describe('Reattach Tests', () => {
     const callJoinedEvent = await page.evaluate(
       async ({ roomName }) => {
         return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
+          const client = window._client!
 
           const call = await client.reattach({
             to: `/public/${roomName}?channel=video`,

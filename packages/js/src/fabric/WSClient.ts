@@ -7,12 +7,14 @@ import {
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
-import { createFabricRoomSessionObject } from './FabricRoomSession'
+import {
+  createFabricRoomSessionObject,
+  FabricRoomSession,
+} from './FabricRoomSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
   DialParams,
-  FabricRoomSession,
   IncomingInvite,
   OnlineParams,
   HandlePushNotificationParams,
