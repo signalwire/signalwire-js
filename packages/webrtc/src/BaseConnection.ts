@@ -163,12 +163,20 @@ export class BaseConnection<
     return this.peer ? this.peer.getDeviceLabel('video') : null
   }
 
+  get cameraConstraints() {
+    return this.peer ? this.peer.getTrackConstraints('video') : null
+  }
+
   get microphoneId() {
     return this.peer ? this.peer.getDeviceId('audio') : null
   }
 
   get microphoneLabel() {
     return this.peer ? this.peer.getDeviceLabel('audio') : null
+  }
+
+  get microphoneConstraints() {
+    return this.peer ? this.peer.getTrackConstraints('audio') : null
   }
 
   get withAudio() {
@@ -367,23 +375,17 @@ export class BaseConnection<
   }
 
   updateCamera(constraints: MediaTrackConstraints) {
-    const prevVideoConstraints = this.localVideoTrack?.getConstraints() || {}
     return this.applyConstraintsAndRefreshStream({
       video: {
         aspectRatio: 16 / 9,
-        ...prevVideoConstraints,
         ...constraints,
       },
     })
   }
 
   updateMicrophone(constraints: MediaTrackConstraints) {
-    const prevAudioConstraints = this.localAudioTrack?.getConstraints() || {}
     return this.applyConstraintsAndRefreshStream({
-      audio: {
-        ...prevAudioConstraints,
-        ...constraints,
-      },
+      audio: constraints,
     })
   }
 

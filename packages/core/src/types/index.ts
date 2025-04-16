@@ -70,6 +70,8 @@ export interface BaseConnectionContract<
   readonly cameraId: string | null
   /** The label of the video device, or null if not available */
   readonly cameraLabel: string | null
+  /** The constraints applied to the video device, or null if not available */
+  readonly cameraConstraints: MediaTrackConstraints | null
   /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
   readonly localStream: MediaStream | undefined
   /** Indicates if there is any receiving audio */
@@ -90,6 +92,8 @@ export interface BaseConnectionContract<
   readonly microphoneId: string | null
   /** The label of the audio input device, or null if not available */
   readonly microphoneLabel: string | null
+  /** The constraints applied to the audio input device, or null if not available */
+  readonly microphoneConstraints: MediaTrackConstraints | null
   /**
    * Provides access to the remote [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
    */
