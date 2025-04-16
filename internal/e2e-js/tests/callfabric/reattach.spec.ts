@@ -205,8 +205,7 @@ test.describe('CallFabric Reattach', () => {
         const roomSession: CallJoinedEventParams = await page.evaluate(
           async ({ roomName }) => {
             return new Promise<any>(async (resolve, _reject) => {
-              // @ts-expect-error
-              const client = window._client
+              const client = window._client!
 
               const call = await client.reattach({
                 to: `/public/${roomName}?channel=video`,

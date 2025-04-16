@@ -354,8 +354,8 @@ export class BaseConnection<
 
   /** @internal */
   _getRPCMethod(): WebRTCMethod {
-    const authState = this.select(selectors.getAuthState)
-    if (authState && isSATAuth(authState)) {
+    const authorization = this.select(selectors.getAuthorization)
+    if (authorization && isSATAuth(authorization)) {
       return 'webrtc.verto'
     }
     return 'video.message'

@@ -38,6 +38,7 @@ interface ConversationOptions {
   wsClient: WSClient
 }
 
+// TODO: Implement a TS contract
 export class Conversation {
   private httpClient: HTTPClient
   private wsClient: WSClient

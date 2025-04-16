@@ -29,12 +29,14 @@ test.describe('RoomSession', () => {
 
     await test.step('the room should have workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        // @ts-expect-error
         const roomObj = window._roomObj
 
         return {
+          // @ts-expect-error
           roomSessionListenersLength: roomObj.sessionEventNames().length,
+          // @ts-expect-error
           roomListenersLength: roomObj.eventNames().length,
+          // @ts-expect-error
           roomWorkersLength: roomObj._runningWorkers.length,
           // @ts-expect-error
           globalWorkersLength: window._runningWorkers.length,
@@ -51,12 +53,14 @@ test.describe('RoomSession', () => {
 
     await test.step('the room should not have any workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        // @ts-expect-error
         const roomObj = window._roomObj
 
         return {
+          // @ts-expect-error
           roomSessionListenersLength: roomObj.sessionEventNames().length,
+          // @ts-expect-error
           roomListenersLength: roomObj.eventNames().length,
+          // @ts-expect-error
           roomWorkersLength: roomObj._runningWorkers.length,
           // @ts-expect-error
           globalWorkersLength: window._runningWorkers.length,

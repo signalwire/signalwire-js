@@ -1,5 +1,7 @@
 import type {
   FabricRoomSession,
+  SignalWire,
+  SignalWireClient,
   SignalWireContract,
   Video,
 } from '@signalwire/js'
@@ -10,6 +12,15 @@ import { expect } from './fixtures'
 import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
 import { clearInterval } from 'timers'
+
+declare global {
+  interface Window {
+    _SWJS: {
+      SignalWire: typeof SignalWire
+    }
+    _client?: SignalWireClient
+  }
+}
 
 // #region Utilities for Playwright test server & fixture
 
@@ -496,7 +507,6 @@ export const createCFClient = async (
         },
       }
 
-      // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
@@ -505,7 +515,6 @@ export const createCFClient = async (
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
-      // @ts-expect-error
       window._client = client
       return client
     },
@@ -1537,13 +1546,16 @@ export const expectRecordingStarted = (page: Page) => {
     return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
       setTimeout(reject, 10000)
       // At this point window.__roomObj might not have been set yet
-      // we have to pool it and check 
+      // we have to pool it and check
       const interval = setInterval(() => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         if (roomObj) {
           clearInterval(interval)
-          roomObj.on('recording.started', (recording: Video.RoomSessionRecording) => resolve(recording))
+          roomObj.on(
+            'recording.started',
+            (recording: Video.RoomSessionRecording) => resolve(recording)
+          )
         }
       }, 100)
     })

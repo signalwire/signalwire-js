@@ -6,20 +6,11 @@ import {
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
-  SessionOptions,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
+import { SATSessionOptions } from './interfaces'
 
-export interface ApiRequestRetriesOptions {
-  /** increment step for each retry delay */
-  apiRequestRetriesDelayIncrement: number
-  /** initial retry delay */
-  apiRequestRetriesDelay: number
-  /** max API request retry, set to 0 disable retries */
-  maxApiRequestRetries: number;
-}
-export type SATSessionOptions = SessionOptions & ApiRequestRetriesOptions;
 /**
  * SAT Session is for the Call Fabric SDK
  */
@@ -84,15 +75,15 @@ export class SATSession extends JWTSession {
       maxRetries: this.options.maxApiRequestRetries,
       delayFn: increasingDelay({
         initialDelay: this.options.apiRequestRetriesDelay,
-        variation: this.options.apiRequestRetriesDelayIncrement
+        variation: this.options.apiRequestRetriesDelayIncrement,
       }),
       expectedErrorHandler: (error) => {
-        if(error?.message?.startsWith('Authentication failed')) {
+        if (error?.message?.startsWith('Authentication failed')) {
           // is expected to be handle by the app developer, skipping retries
-          return  true
+          return true
         }
         return false
-      }
+      },
     })
   }
 }
