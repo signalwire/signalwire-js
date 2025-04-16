@@ -4,8 +4,9 @@ import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import { uuid } from '@signalwire/core'
 
+const displayName = 'subscriber-name'
 const mock_getAddressSpy = jest.fn(() =>
-  Promise.resolve({ display_name: 'subscriber-name' })
+  Promise.resolve({ display_name: displayName })
 )
 
 // Mock HTTPClient
@@ -345,7 +346,7 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(1)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(0)
       expect(messages.data[0].conversation_id).toEqual(addressId)
     })
 
@@ -354,10 +355,10 @@ describe('Conversation', () => {
         body: {
           data: [
             { subtype: 'log', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'xyz' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'xyz', from_address_id: 'fa1' },
           ],
           links: {
             next: 'http://next.url',
@@ -370,10 +371,14 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(10)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(1) // since all message are from same address
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
         messages.data.every((item) => item.conversation_id === addressId)
+      ).toBe(true)
+      console.log(messages.data)
+      expect(
+        messages.data.every((item) => item.user_name === displayName)
       ).toBe(true)
     })
 
@@ -382,9 +387,9 @@ describe('Conversation', () => {
         body: {
           data: [
             { subtype: 'log', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
-            { subtype: 'chat', conversation_id: 'abc' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa1' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa2' },
+            { subtype: 'chat', conversation_id: 'abc', from_address_id: 'fa3' },
             { subtype: 'chat', conversation_id: 'xyz' },
           ],
           links: {
@@ -398,7 +403,9 @@ describe('Conversation', () => {
       let messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(10)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(10)
+
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3) // since we have 3 distinct from
+
 
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
@@ -437,7 +444,8 @@ describe('Conversation', () => {
       })
 
       expect(messages.data).toHaveLength(3)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(0) // messages without from_address_id should not try to resolve the address
+
 
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
@@ -453,8 +461,16 @@ describe('Conversation', () => {
           body: {
             data: [
               { subtype: 'log', conversation_id: 'abc' },
-              { subtype: 'chat', conversation_id: 'abc' },
-              { subtype: 'chat', conversation_id: 'xyz' },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'xyz',
+                from_address_id: 'fa1',
+              },
             ],
             links: {
               next: count < 3 ? 'http://next.url' : undefined,
@@ -468,7 +484,9 @@ describe('Conversation', () => {
       const messages = await conversation.getChatMessages({ addressId })
 
       expect(messages.data).toHaveLength(3)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(3)
+
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(1) // since all messages are from same address
+
 
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(
@@ -604,6 +622,123 @@ describe('Conversation', () => {
       expect(mockCallback1).toHaveBeenCalledTimes(2)
       expect(mockCallback2).toHaveBeenCalledTimes(1)
       expect(mockCallback3).toHaveBeenCalledTimes(0)
+    })
+
+    describe('user_name cache', () => {
+      beforeEach(() => {
+        jest.useFakeTimers()
+      })
+
+      afterEach(() => {
+        jest.useRealTimers()
+        jest.clearAllMocks()
+      })
+
+      it('Should not fetch new values if cache not expired', async () => {
+        ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+          body: {
+            data: [
+              { subtype: 'log', conversation_id: 'abc' },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'xyz',
+                from_address_id: 'fa1',
+              },
+            ],
+            links: {
+              next: 'http://next.url',
+              prev: 'http://prev.url',
+            },
+          },
+        })
+
+        let username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        jest.advanceTimersByTime(1000 * 60 * 2)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+      })
+
+      it('Should fetch new values after cache expired', async () => {
+        ;(httpClient.fetch as jest.Mock).mockResolvedValue({
+          body: {
+            data: [
+              { subtype: 'log', conversation_id: 'abc' },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'abc',
+                from_address_id: 'fa1',
+              },
+              {
+                subtype: 'chat',
+                conversation_id: 'xyz',
+                from_address_id: 'fa1',
+              },
+            ],
+            links: {
+              next: 'http://next.url',
+              prev: 'http://prev.url',
+            },
+          },
+        })
+
+        let username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
+
+        jest.advanceTimersByTime(1000 * 60 * 3 + 1)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(2)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(2)
+
+        jest.advanceTimersByTime(1000 * 60 * 2)
+
+        username = await (conversation as any).lookupUsername('abc')()
+        expect(username).toEqual(displayName)
+        expect(mock_getAddressSpy).toHaveBeenCalledTimes(2)
+      })
     })
   })
 
