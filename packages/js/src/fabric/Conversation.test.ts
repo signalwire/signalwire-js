@@ -682,7 +682,7 @@ describe('Conversation', () => {
         expect(mock_getAddressSpy).toHaveBeenCalledTimes(1)
       })
 
-      it('Should fetch new values after cache not expired', async () => {
+      it('Should fetch new values after cache expired', async () => {
         ;(httpClient.fetch as jest.Mock).mockResolvedValue({
           body: {
             data: [
