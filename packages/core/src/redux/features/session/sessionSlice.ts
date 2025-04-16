@@ -6,7 +6,7 @@ import type {
   SessionAuthError,
   SessionAuthStatus,
 } from '../../../utils/interfaces'
-import type { DeepReadonly } from '../../../types'
+import type { DeepReadonly, SwAuthorizationState } from '../../../types'
 import { createDestroyableSlice } from '../../utils/createDestroyableSlice'
 import { authErrorAction, initAction, reauthAction } from '../../actions'
 
@@ -51,7 +51,10 @@ const sessionSlice = createDestroyableSlice({
         authorization: payload,
       }
     },
-    updateAuthorizationState: (state, { payload }: PayloadAction<string>) => {
+    updateAuthorizationState: (
+      state,
+      { payload }: PayloadAction<SwAuthorizationState>
+    ) => {
       return {
         ...state,
         authorizationState: payload,

@@ -2,9 +2,9 @@ import type {
   FabricRoomSession,
   SignalWire,
   SignalWireV4,
+  SignalWireClient,
   SignalWireContract,
   Video,
-  SignalWireClient,
 } from '@signalwire/js'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'

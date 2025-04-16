@@ -1,7 +1,4 @@
-import {
-  SessionOptions,
-  UserOptions,
-} from '@signalwire/core'
+import { SessionOptions, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 
