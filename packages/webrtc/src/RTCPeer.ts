@@ -368,30 +368,39 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     try {
       const sender = this._getSenderByKind(kind)
       if (!sender || !sender.track) {
-        return this.logger.info(
-          'No sender to apply constraints',
+        // TODO this is breaking chance we need to eval if we want to have it on VideoSDK
+        this.logger.error(
+          'No sender track to apply constraints',
           kind,
           constraints
         )
+        throw new Error('No sender track to apply constraints')
       }
-      if (sender.track.readyState === 'live') {
-        const newConstraints: MediaTrackConstraints = {
-          ...sender.track.getConstraints(),
-          ...constraints,
-        }
-        const deviceId = this.getDeviceId(kind)
-        if (deviceId && !this.options.screenShare) {
-          newConstraints.deviceId = { exact: deviceId }
-        }
-        this.logger.info(
-          `Apply ${kind} constraints`,
-          this.call.id,
-          newConstraints
+      if (sender.track.readyState !== 'live') {
+        this.logger.error(
+          'Sender track is not live to apply constraints',
+          kind,
+          constraints
         )
-        await sender.track.applyConstraints(newConstraints)
+        throw new Error('Sender track is not live to apply constraints')
       }
+      const newConstraints: MediaTrackConstraints = {
+        ...sender.track.getConstraints(),
+        ...constraints,
+      }
+      const deviceId = this.getDeviceId(kind)
+      if (deviceId && !this.options.screenShare) {
+        newConstraints.deviceId = { exact: deviceId }
+      }
+      this.logger.info(
+        `Apply ${kind} constraints`,
+        this.call.id,
+        newConstraints
+      )
+      await sender.track.applyConstraints(newConstraints)
     } catch (error) {
       this.logger.error('Error applying constraints', kind, constraints)
+      throw error
     }
   }
 

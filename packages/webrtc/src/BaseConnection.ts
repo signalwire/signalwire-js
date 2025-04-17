@@ -21,7 +21,11 @@ import {
   UpdateMediaParams,
   UpdateMediaDirection,
 } from '@signalwire/core'
-import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
+import type {
+  ReduxComponent,
+  VertoModifyResponse,
+  VideoRoomDeviceConstraintsUpdatedEventNames,
+} from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
   ConnectionOptions,
@@ -29,6 +33,7 @@ import {
   UpdateMediaOptionsParams,
   BaseConnectionEvents,
   OnVertoByeParams,
+  EmitDeviceConstraintsUpdatedEventsParams,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
 import {
@@ -563,11 +568,30 @@ export class BaseConnection<
         // Add or update the transceiver (may trigger renegotiation)
         await this.handleTransceiverForTrack(newTrack)
 
-        // Emit the device.updated events
-        this.emitDeviceUpdatedEvents({
-          newTrack,
-          prevAudioTrack,
-          prevVideoTrack,
+        const prevTrack = newTrack.kind === 'audio' ?
+          prevAudioTrack: prevVideoTrack
+        
+        if (newTrack.getConstraints().deviceId !== prevTrack?.getConstraints().deviceId) {
+          // Emit the device.updated events only when the device was updated
+          this.emitDeviceUpdatedEvents({
+            newTrack,
+            prevAudioTrack,
+            prevVideoTrack,
+          })
+        }
+
+        this.emitDeviceConstraintsUpdatedEvents({
+          currentConstraints: newTrack.getConstraints(),
+          prevTrackIdentifiers: prevTrack ? {
+            kind: prevTrack?.kind,
+            label: prevTrack?.label,
+            deviceId: prevTrack?.getConstraints().deviceId
+          } : undefined,
+          currentTrackIdentifiers: {
+            kind: newTrack.kind,
+            label: newTrack.label,
+            deviceId: newTrack.getConstraints().deviceId
+          }
         })
       }
 
@@ -696,26 +720,46 @@ export class BaseConnection<
     if (newTrack.kind === 'audio') {
       this.emit('microphone.updated', {
         previous: {
-          deviceId: prevAudioTrack?.id,
+          // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/id
+          deviceId: prevAudioTrack?.getConstraints().deviceId,
           label: prevAudioTrack?.label,
         },
         current: {
-          deviceId: newTrack.id,
+          deviceId: newTrack.getConstraints().deviceId,
           label: newTrack.label,
         },
       })
     } else if (newTrack.kind === 'video') {
       this.emit('camera.updated', {
         previous: {
-          deviceId: prevVideoTrack?.id,
+          deviceId: prevVideoTrack?.getConstraints().deviceId,
           label: prevVideoTrack?.label,
         },
         current: {
-          deviceId: newTrack.id,
+          deviceId: newTrack.getConstraints().deviceId,
           label: newTrack.label,
         },
       })
     }
+  }
+
+  //** internal */
+  public emitDeviceConstraintsUpdatedEvents({
+    currentConstraints,
+    prevTrackIdentifiers,
+    currentTrackIdentifiers,
+  }: EmitDeviceConstraintsUpdatedEventsParams) {
+    
+    const eventPrefix =
+      currentTrackIdentifiers.kind === 'audioinput' ? 'microphone' : 'camera'
+    const event: VideoRoomDeviceConstraintsUpdatedEventNames = `${eventPrefix}.constraints.updated`
+
+    this.emit(event, {
+      kind: currentTrackIdentifiers.kind,
+      previous: prevTrackIdentifiers,
+      current: currentTrackIdentifiers,
+      constraints: currentConstraints,
+    })
   }
 
   /**

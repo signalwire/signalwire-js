@@ -15,6 +15,7 @@ import {
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
+import { emitDeviceUpdatedEventHelper } from '../utils/helpers'
 
 type VertoEventWorkerOnDone = (args: BaseConnection<any>) => void
 type VertoEventWorkerOnFail = (args: { error: Error }) => void
@@ -129,11 +130,55 @@ export const vertoEventWorker: SDKWorker<
           break
         }
         const { audio, video } = params.mediaParams
+
+        const prevAudioTrack = peer?.localAudioTrack?.clone()
         if (peer && video) {
-          peer.applyMediaConstraints('video', video)
+          const prevTrackIdentifiers = peer?.localVideoTrack
+            ? {
+                kind: peer.localVideoTrack.kind,
+                label: peer.localVideoTrack.label,
+                deviceId: peer.localVideoTrack.getConstraints().deviceId,
+              }
+            : undefined
+
+          peer
+            .applyMediaConstraints('video', video)
+            .then(() => {
+              instance.emitDeviceConstraintsUpdatedEvents({
+                currentConstraints: peer.localVideoTrack!.getConstraints(),
+                prevTrackIdentifiers,
+                currentTrackIdentifiers: {
+                  kind: peer.localVideoTrack!.kind,
+                  label: peer.localVideoTrack!.label,
+                  deviceId: peer.localVideoTrack!.getConstraints().deviceId,
+                },
+              })
+            })
+            .catch(console.error)
         }
         if (peer && audio) {
-          peer.applyMediaConstraints('audio', audio)
+          const prevTrackIdentifiers = peer?.localAudioTrack
+            ? {
+                kind: peer.localAudioTrack.kind,
+                label: peer.localAudioTrack.label,
+                deviceId: peer.localAudioTrack.getConstraints().deviceId,
+              }
+            : undefined
+
+          peer
+            .applyMediaConstraints('audio', audio)
+            .then(() => {
+              instance.emitDeviceConstraintsUpdatedEvents({
+                currentConstraints: peer.localAudioTrack!.getConstraints(),
+                prevTrackIdentifiers,
+                currentTrackIdentifiers: {
+                  kind: peer.localAudioTrack!.kind,
+                  label: peer.localAudioTrack!.label,
+                  deviceId: peer.localAudioTrack!.getConstraints().deviceId,
+                },
+              })
+            })
+            .catch(console.error)
         }
         break
       }
@@ -164,6 +209,4 @@ export const vertoEventWorker: SDKWorker<
       })
     yield sagaEffects.fork(catchableWorker, action)
   }
-
-  getLogger().trace('vertoEventWorker ended')
 }
