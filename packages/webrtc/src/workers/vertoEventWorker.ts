@@ -15,6 +15,7 @@ import {
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
+import { emitDeviceUpdatedEventHelper } from '../utils/helpers'
 
 type VertoEventWorkerOnDone = (args: BaseConnection<any>) => void
 type VertoEventWorkerOnFail = (args: { error: Error }) => void
@@ -129,11 +130,28 @@ export const vertoEventWorker: SDKWorker<
           break
         }
         const { audio, video } = params.mediaParams
+
+        const prevAudioTrack = peer?.localAudioTrack?.clone()
+        const prevVideoTrack = peer?.localVideoTrack?.clone()
         if (peer && video) {
-          peer.applyMediaConstraints('video', video)
+          peer.applyMediaConstraints('video', video).then(() => {
+            emitDeviceUpdatedEventHelper({
+              prevAudioTrack,
+              prevVideoTrack,
+              newTrack: peer?.localVideoTrack!,
+              emitFn: instance.emit,
+            })
+          })
         }
         if (peer && audio) {
-          peer.applyMediaConstraints('audio', audio)
+          peer.applyMediaConstraints('audio', audio).then(() => {
+            emitDeviceUpdatedEventHelper({
+              prevAudioTrack,
+              prevVideoTrack,
+              newTrack: peer?.localAudioTrack!,
+              emitFn: instance.emit,
+            })
+          })
         }
         break
       }
@@ -164,6 +182,4 @@ export const vertoEventWorker: SDKWorker<
       })
     yield sagaEffects.fork(catchableWorker, action)
   }
-
-  getLogger().trace('vertoEventWorker ended')
 }

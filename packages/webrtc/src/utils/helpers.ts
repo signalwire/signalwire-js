@@ -1,7 +1,10 @@
 import { getLogger } from '@signalwire/core'
 import { getUserMedia as _getUserMedia } from './getUserMedia'
 import { assureDeviceId } from './deviceHelpers'
-import { ConnectionOptions } from './interfaces'
+import {
+  ConnectionOptions,
+  EmitDeviceUpdatedEventHelperParams,
+} from './interfaces'
 import { sdpHasAudio, sdpHasVideo } from './sdpHelpers'
 
 // FIXME: Remove and use getUserMedia directly
@@ -99,4 +102,35 @@ export const filterIceServers = (
     ...server,
     urls: disableUdpIceServers ? filterOutUdpUrls(server.urls) : server.urls,
   }))
+}
+
+export const emitDeviceUpdatedEventHelper = ({
+  prevAudioTrack,
+  prevVideoTrack,
+  newTrack,
+  emitFn,
+}: EmitDeviceUpdatedEventHelperParams) => {
+  if (newTrack.kind === 'audio') {
+    emitFn('microphone.updated', {
+      previous: {
+        deviceId: prevAudioTrack?.id,
+        label: prevAudioTrack?.label,
+      },
+      current: {
+        deviceId: newTrack.id,
+        label: newTrack.label,
+      },
+    })
+  } else if (newTrack.kind === 'video') {
+    emitFn('camera.updated', {
+      previous: {
+        deviceId: prevVideoTrack?.id,
+        label: prevVideoTrack?.label,
+      },
+      current: {
+        deviceId: newTrack.id,
+        label: newTrack.label,
+      },
+    })
+  }
 }

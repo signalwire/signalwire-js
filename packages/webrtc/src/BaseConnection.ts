@@ -43,6 +43,7 @@ import {
   INVITE_VERSION,
   VIDEO_CONSTRAINTS,
 } from './utils/constants'
+import { emitDeviceUpdatedEventHelper } from './utils/helpers'
 
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
@@ -693,29 +694,12 @@ export class BaseConnection<
     prevAudioTrack,
     prevVideoTrack,
   }: EmitDeviceUpdatedEventsParams) {
-    if (newTrack.kind === 'audio') {
-      this.emit('microphone.updated', {
-        previous: {
-          deviceId: prevAudioTrack?.id,
-          label: prevAudioTrack?.label,
-        },
-        current: {
-          deviceId: newTrack.id,
-          label: newTrack.label,
-        },
-      })
-    } else if (newTrack.kind === 'video') {
-      this.emit('camera.updated', {
-        previous: {
-          deviceId: prevVideoTrack?.id,
-          label: prevVideoTrack?.label,
-        },
-        current: {
-          deviceId: newTrack.id,
-          label: newTrack.label,
-        },
-      })
-    }
+    emitDeviceUpdatedEventHelper({
+      prevAudioTrack,
+      prevVideoTrack,
+      newTrack,
+      emitFn: this.emit.bind(this),
+    })
   }
 
   /**
