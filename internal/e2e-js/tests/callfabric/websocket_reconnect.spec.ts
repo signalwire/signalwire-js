@@ -2,7 +2,7 @@ import { test } from '../../fixtures'
 import { SERVER_URL, createCFClient, expectMCUVisible } from '../../utils'
 
 test.describe('CallFabric Reconnections', () => {
-  test.skip('Should reconnect the WebSocket as soon it gets onClose event, without media renegotiation', async ({
+  test('Should reconnect the WebSocket as soon it gets onClose event, without media renegotiation', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -168,7 +168,7 @@ test.describe('CallFabric Reconnections', () => {
     })
   })
 
-  test.skip('Should reconnect the WebSocket when network is up (before FS timeout), without media renegotiation', async ({
+  test('Should reconnect the WebSocket when network is up (before FS timeout), without media renegotiation', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
