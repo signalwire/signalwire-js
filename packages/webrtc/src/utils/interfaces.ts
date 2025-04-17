@@ -1,4 +1,8 @@
-import type { EventEmitter, VideoPositions } from '@signalwire/core'
+import type {
+  EventEmitter,
+  MediaDeviceIdentifiers,
+  VideoPositions,
+} from '@signalwire/core'
 import {
   BaseConnectionState,
   VideoRoomDeviceEventParams,
@@ -106,6 +110,11 @@ export interface EmitDeviceUpdatedEventsParams {
   newTrack: MediaStreamTrack
   prevAudioTrack?: MediaStreamTrack | null
   prevVideoTrack?: MediaStreamTrack | null
+}
+export interface EmitDeviceConstraintsUpdatedEventsParams {
+  currentConstraints: MediaTrackConstraints
+  prevTrackIdentifiers: MediaDeviceIdentifiers | undefined
+  currentTrackIdentifiers: MediaDeviceIdentifiers
 }
 
 export interface EmitDeviceUpdatedEventHelperParams

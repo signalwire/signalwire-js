@@ -1,6 +1,8 @@
 export type CameraUpdated = 'camera.updated'
+export type CameraConstraintsUpdated = 'camera.constraints.updated'
 export type CameraDisconnected = 'camera.disconnected'
 export type MicrophoneUpdated = 'microphone.updated'
+export type MicrophoneConstraintsUpdated = 'microphone.constraints.updated'
 export type MicrophoneDisconnected = 'microphone.disconnected'
 export type SpeakerUpdated = 'speaker.updated'
 export type SpeakerDisconnected = 'speaker.disconnected'
@@ -14,6 +16,10 @@ export type VideoRoomDeviceUpdatedEventNames =
   | MicrophoneUpdated
   | SpeakerUpdated
 
+export type VideoRoomDeviceConstraintsUpdatedEventNames =
+  | CameraConstraintsUpdated
+  | MicrophoneConstraintsUpdated
+
 export type VideoRoomDeviceDisconnectedEventNames =
   | CameraDisconnected
   | MicrophoneDisconnected
@@ -21,10 +27,11 @@ export type VideoRoomDeviceDisconnectedEventNames =
 
 export type VideoRoomDeviceEventNames =
   | VideoRoomDeviceUpdatedEventNames
+  | VideoRoomDeviceConstraintsUpdatedEventNames
   | VideoRoomDeviceDisconnectedEventNames
 
 export interface VideoRoomMediaDeviceInfo {
-  deviceId: MediaDeviceInfo['deviceId'] | undefined
+  deviceId: MediaTrackConstraintSet['deviceId']
   label: MediaDeviceInfo['label'] | undefined
 }
 
@@ -33,8 +40,21 @@ export interface DeviceUpdatedEventParams {
   current: VideoRoomMediaDeviceInfo
 }
 
+export interface MediaDeviceIdentifiers {
+  deviceId: MediaTrackConstraintSet['deviceId']
+  kind: string
+  label: string
+}
+export interface DeviceConstraintsUpdatedEventParams {
+  kind: string
+  previous: MediaDeviceIdentifiers | undefined
+  current: MediaDeviceIdentifiers
+  constraints: MediaTrackConstraints
+}
+
 export type DeviceDisconnectedEventParams = VideoRoomMediaDeviceInfo
 
 export type VideoRoomDeviceEventParams =
   | DeviceUpdatedEventParams
   | DeviceDisconnectedEventParams
+  | DeviceConstraintsUpdatedEventParams

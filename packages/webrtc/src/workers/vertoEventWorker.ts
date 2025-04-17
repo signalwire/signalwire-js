@@ -132,26 +132,53 @@ export const vertoEventWorker: SDKWorker<
         const { audio, video } = params.mediaParams
 
         const prevAudioTrack = peer?.localAudioTrack?.clone()
-        const prevVideoTrack = peer?.localVideoTrack?.clone()
         if (peer && video) {
-          peer.applyMediaConstraints('video', video).then(() => {
-            emitDeviceUpdatedEventHelper({
-              prevAudioTrack,
-              prevVideoTrack,
-              newTrack: peer?.localVideoTrack!,
-              emitFn: instance.emit,
+          const prevTrackIdentifiers = peer?.localVideoTrack
+            ? {
+                kind: peer.localVideoTrack.kind,
+                label: peer.localVideoTrack.label,
+                deviceId: peer.localVideoTrack.getConstraints().deviceId,
+              }
+            : undefined
+
+          peer
+            .applyMediaConstraints('video', video)
+            .then(() => {
+              instance.emitDeviceConstraintsUpdatedEvents({
+                currentConstraints: peer.localVideoTrack!.getConstraints(),
+                prevTrackIdentifiers,
+                currentTrackIdentifiers: {
+                  kind: peer.localVideoTrack!.kind,
+                  label: peer.localVideoTrack!.label,
+                  deviceId: peer.localVideoTrack!.getConstraints().deviceId,
+                },
+              })
             })
-          })
+            .catch(console.error)
         }
         if (peer && audio) {
-          peer.applyMediaConstraints('audio', audio).then(() => {
-            emitDeviceUpdatedEventHelper({
-              prevAudioTrack,
-              prevVideoTrack,
-              newTrack: peer?.localAudioTrack!,
-              emitFn: instance.emit,
+          const prevTrackIdentifiers = peer?.localAudioTrack
+            ? {
+                kind: peer.localAudioTrack.kind,
+                label: peer.localAudioTrack.label,
+                deviceId: peer.localAudioTrack.getConstraints().deviceId,
+              }
+            : undefined
+
+          peer
+            .applyMediaConstraints('audio', audio)
+            .then(() => {
+              instance.emitDeviceConstraintsUpdatedEvents({
+                currentConstraints: peer.localAudioTrack!.getConstraints(),
+                prevTrackIdentifiers,
+                currentTrackIdentifiers: {
+                  kind: peer.localAudioTrack!.kind,
+                  label: peer.localAudioTrack!.label,
+                  deviceId: peer.localAudioTrack!.getConstraints().deviceId,
+                },
+              })
             })
-          })
+            .catch(console.error)
         }
         break
       }
