@@ -418,7 +418,7 @@ test.describe('CallFabric Reattach', () => {
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
               if (
-                event.member.input_volume === SPEAKER_VOLUME &&
+                event.member.output_volume === SPEAKER_VOLUME &&
                 event.member.member_id === memberTwoId
               )
                 res(true)
