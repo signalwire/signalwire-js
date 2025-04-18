@@ -12,4 +12,5 @@ CF SDK:
 
 - Introduces a validation proxy for the `FabricRoomSession` class.
 - Introduces a `CapabilityError` for the errors based on the missing capability.
-- Fixes the `setOutputVolume` API.
+- Fixes the `setOutputVolume` API for Call Fabric.
+- Fixes the `setInputSensitivity` API param for Call Fabric.
