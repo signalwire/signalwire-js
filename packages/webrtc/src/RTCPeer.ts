@@ -274,6 +274,19 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
+  getTrackConstraints(kind: string) {
+    try {
+      const sender = this._getSenderByKind(kind)
+      if (!sender || !sender.track) {
+        return null
+      }
+      return sender.track.getConstraints()
+    } catch (error) {
+      this.logger.error('RTCPeer getTrackConstraints error', kind, error)
+      return null
+    }
+  }
+
   getDeviceLabel(kind: string) {
     try {
       const sender = this._getSenderByKind(kind)
@@ -388,6 +401,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           this.call.id,
           newConstraints
         )
+        // Should we check if the current track is capable enough to support the incoming constraints?
+        // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/getCapabilities
         await sender.track.applyConstraints(newConstraints)
       }
     } catch (error) {

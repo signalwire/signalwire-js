@@ -17,6 +17,7 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
 
 const _shouldNegotiateVideo = (options: ConnectionOptions) => {
   return (
+    // TBD: The "negotiateVideo" is a flag used for the incoming video, not for the outgoing.
     (options.negotiateVideo ?? true) &&
     (!options.remoteSdp || sdpHasVideo(options.remoteSdp))
   )
@@ -24,6 +25,7 @@ const _shouldNegotiateVideo = (options: ConnectionOptions) => {
 
 const _shouldNegotiateAudio = (options: ConnectionOptions) => {
   return (
+    // TBD: The "negotiateAudio" is a flag used for the incoming audio, not for the outgoing.
     (options.negotiateAudio ?? true) &&
     (!options.remoteSdp || sdpHasAudio(options.remoteSdp))
   )

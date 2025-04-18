@@ -110,7 +110,7 @@ test.describe('CallFabric VideoRoom', () => {
       { roomSession }
     )
 
-    // // --------------- Muting Video (self) ---------------
+    // --------------- Muting Video (self) ---------------
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
