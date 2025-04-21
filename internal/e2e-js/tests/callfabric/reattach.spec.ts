@@ -191,7 +191,7 @@ test.describe('CallFabric Reattach', () => {
             roomObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
-                event.member.input_volume === SPEAKER_VOLUME
+                event.member.output_volume === SPEAKER_VOLUME
               ) {
                 res(true)
               }
@@ -366,7 +366,7 @@ test.describe('CallFabric Reattach', () => {
           roomObj.on('member.updated.audioMuted', (event) => {
             if (
               event.member.member_id === memberTwoId &&
-              event.member.video_muted == true
+              event.member.audio_muted == true
             ) {
               res(true)
             }
@@ -391,8 +391,8 @@ test.describe('CallFabric Reattach', () => {
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
               if (
-                event.member.input_volume === MIC_VOLUME &&
-                event.member.member_id === memberTwoId
+                event.member.member_id === memberTwoId &&
+                event.member.input_volume === MIC_VOLUME
               )
                 res(true)
             })
@@ -418,8 +418,8 @@ test.describe('CallFabric Reattach', () => {
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
               if (
-                event.member.output_volume === SPEAKER_VOLUME &&
-                event.member.member_id === memberTwoId
+                event.member.member_id === memberTwoId &&
+                event.member.output_volume === SPEAKER_VOLUME
               )
                 res(true)
             })
