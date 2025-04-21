@@ -13,8 +13,7 @@ runs:
       uses: actions/cache@v4
       id: playwright-cache
       with:
-        path: |
-          $HOME/.cache/ms-playwright
+        path: ${{ env.HOME }}/.cache/ms-playwright
         key: ${{ runner.os }}-playwright-${{ inputs.PLAYWRIGHT_VERSION }}
 
     - if: steps.playwright-cache.outputs.cache-hit != 'true'
