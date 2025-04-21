@@ -228,6 +228,17 @@ export class BaseSession {
   protected destroySocket() {
     if (this._socket) {
       this._socket.close()
+
+      /**
+       * Since the real `close` event can be delayed by OS/Browser,
+       * trigger it manually to to perform the cleanup.
+       */
+      this.wsCloseHandler(
+        new this.CloseEventConstructor('close', {
+          reason: 'Client-side closed',
+        })
+      )
+
       this._socket = null
     }
   }
@@ -257,7 +268,7 @@ export class BaseSession {
    * Clear the Session and close the WS connection.
    * @return void
    */
-  async disconnect() {
+  disconnect() {
     /**
      * Return if there is not a _socket instance or
      * if it's already in closing state.

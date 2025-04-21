@@ -16,39 +16,47 @@ import type {
   SendConversationMessageResult,
   GetConversationChatMessageParams,
   GetConversationsResult,
-  CoversationSubscribeCallback,
+  ConversationSubscribeCallback,
   ConversationChatMessagesSubscribeParams,
   ConversationChatMessagesSubscribeResult,
   GetConversationChatMessageResult,
   JoinConversationParams,
   JoinConversationResponse,
   JoinConversationResult,
-  CoversationSubscribeResult,
-} from './types'
+  ConversationSubscribeResult,
+  GetAddressResponse,
+} from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
 
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
-
+const CACHE_ITEM_EXPIRATION = 1000 * 60 * 3 // 3 minutes
 interface ConversationOptions {
   httpClient: HTTPClient
   wsClient: WSClient
 }
 
+// TODO: Implement a TS contract
 export class Conversation {
   private httpClient: HTTPClient
   private wsClient: WSClient
-  private callbacks = new Set<CoversationSubscribeCallback>()
-  private chatSubscriptions: Record<string, Set<CoversationSubscribeCallback>> =
-    {}
+  private callbacks = new Set<ConversationSubscribeCallback>()
+  private chatSubscriptions: Record<
+    string,
+    Set<ConversationSubscribeCallback>
+  > = {}
+  private lookupCache = new Map<
+    string,
+    { lastRequested: number; promise: Promise<GetAddressResponse> }
+  >()
 
   constructor(options: ConversationOptions) {
     this.httpClient = options.httpClient
     this.wsClient = options.wsClient
 
-    this.wsClient.clientApi.runWorker('conversationWorker', {
+    this.wsClient.runWorker('conversationWorker', {
       worker: conversationWorker,
       initialState: {
         conversation: this,
@@ -56,8 +64,21 @@ export class Conversation {
     })
   }
 
+  private lookupUsername(addressId: string) {
+    if ((Date.now() - (this.lookupCache.get(addressId)?.lastRequested ?? 0)  >= CACHE_ITEM_EXPIRATION)) {
+      this.lookupCache.set(addressId, {
+        lastRequested: Date.now(),
+        promise: this.httpClient.getAddress({
+          id: addressId,
+        }),
+      })
+    }
+
+    return async () => (await this.lookupCache.get(addressId)?.promise)?.display_name
+  }
+
   /** @internal */
-  public handleEvent(event: ConversationEventParams) {
+  handleEvent(event: ConversationEventParams) {
     if (event.subtype === 'chat') {
       const chatCallbacks = this.chatSubscriptions[event.conversation_id]
       if (chatCallbacks?.size) {
@@ -179,7 +200,7 @@ export class Conversation {
       cached: ConversationMessage[] = [],
       isDirectionNext = true
     ): Promise<GetConversationChatMessageResult> => {
-      const chatMessages = [...cached]
+      let chatMessages = [...cached]
       const isValid = (item: ConversationMessage) =>
         item.conversation_id === addressId && item.subtype === 'chat'
 
@@ -220,9 +241,23 @@ export class Conversation {
         missingReturns = chatOnlyMessages.slice(remaining)
       }
 
+      chatMessages = await Promise.all(
+        chatMessages.map(async (message) => {
+          if (!message.from_address_id) {
+            // nothing to lookup
+            return message
+          }
+
+          return {
+            ...message,
+            user_name: await this.lookupUsername(message.from_address_id)(),
+          }
+        })
+      )
+
       return {
         data: chatMessages as ConversationChatMessage[],
-        hasNext: !!conversationMessages?.hasNext || !!cached.length,
+        hasNext: !!conversationMessages?.hasNext || !!missingReturns.length,
         hasPrev: !!conversationMessages?.hasPrev,
 
         nextPage: () =>
@@ -253,11 +288,8 @@ export class Conversation {
   }
 
   public async subscribe(
-    callback: CoversationSubscribeCallback
-  ): Promise<CoversationSubscribeResult> {
-    // Connect the websocket client first
-    await this.wsClient.connect()
-
+    callback: ConversationSubscribeCallback
+  ): Promise<ConversationSubscribeResult> {
     this.callbacks.add(callback)
 
     return {
@@ -269,9 +301,6 @@ export class Conversation {
     params: ConversationChatMessagesSubscribeParams
   ): Promise<ConversationChatMessagesSubscribeResult> {
     const { addressId, onMessage } = params
-
-    // Connect the websocket client first
-    await this.wsClient.connect()
 
     if (!(addressId in this.chatSubscriptions)) {
       this.chatSubscriptions[addressId] = new Set()

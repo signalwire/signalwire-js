@@ -14,7 +14,7 @@ import {
   VideoRoomDeviceDisconnectedEventNames,
   VideoRoomDeviceUpdatedEventNames,
   CallJoined,
-  CallJoinedEventParams,
+  CallJoinedEventParams as InternalCallJoinedEventParams,
   CallState,
   CallStateEventParams,
   CallUpdated,
@@ -41,7 +41,7 @@ import {
   CallRoomEventParams,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-import { FabricRoomSession } from '../../fabric'
+import { CallCapabilitiesContract, FabricRoomSession } from '../../fabric'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -73,6 +73,10 @@ export type FabricMemberListUpdatedParams = {
   members: InternalFabricMemberEntity[]
 }
 
+export type CallJoinedEventParams = {
+  capabilities: CallCapabilitiesContract
+} & Omit<InternalCallJoinedEventParams, 'capabilities'>
+
 export type FabricRoomSessionEventsHandlerMap = Record<
   VideoRoomDeviceUpdatedEventNames,
   (params: DeviceUpdatedEventParams) => void
@@ -91,7 +95,10 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   Record<CallPlay, (stream: CallPlayEventParams) => void> &
   Record<CallConnect, (stream: CallConnectEventParams) => void> &
   Record<CallRoom, (stream: CallRoomEventParams) => void> &
-  Record<RoomJoined | RoomSubscribed, (params: CallJoinedEventParams) => void> &
+  Record<
+    RoomJoined | RoomSubscribed,
+    (params: InternalCallJoinedEventParams) => void
+  > &
   Record<RoomUpdated, (params: CallUpdatedEventParams) => void> &
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
   Record<MemberJoined, (params: FabricMemberJoinedEventParams) => void> &

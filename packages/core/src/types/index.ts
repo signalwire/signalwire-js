@@ -1,6 +1,10 @@
 import type { EventEmitter } from '../utils/EventEmitter'
-import type { VideoAPIEvent, InternalVideoEventNames } from './video'
-import type { SessionEvents, JSONRPCRequest } from '../utils/interfaces'
+import type { VideoAPIEvent } from './video'
+import type {
+  JSONRPCRequest,
+  UpdateMediaParams,
+  UpdateMediaDirection,
+} from '../utils/interfaces'
 import type { VideoManagerEvent } from './cantina'
 import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
@@ -65,6 +69,8 @@ export interface BaseConnectionContract<
   readonly cameraId: string | null
   /** The label of the video device, or null if not available */
   readonly cameraLabel: string | null
+  /** The constraints applied to the video device, or null if not available */
+  readonly cameraConstraints: MediaTrackConstraints | null
   /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
   readonly localStream: MediaStream | undefined
   /** Indicates if there is any receiving audio */
@@ -85,6 +91,8 @@ export interface BaseConnectionContract<
   readonly microphoneId: string | null
   /** The label of the audio input device, or null if not available */
   readonly microphoneLabel: string | null
+  /** The constraints applied to the audio input device, or null if not available */
+  readonly microphoneConstraints: MediaTrackConstraints | null
   /**
    * Provides access to the remote [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
    */
@@ -153,6 +161,77 @@ export interface BaseConnectionContract<
    * ```
    */
   sendDigits(dtmf: string): Promise<void>
+
+  /**
+   * Upgrade or downgrade the media in the WebRTC connection.
+   * It perform RTC Peer renegotiation.
+   *
+   * @param params - {@link UpdateMediaParams}
+   *
+   * @returns A Promise that resolves once the requested media is negotiated or failed.
+   *
+   * @example
+   * ```typescript
+   * room.updateMedia({ video: { direction: 'sendrecv' } })
+   * ```
+   */
+  updateMedia(params: UpdateMediaParams): Promise<void>
+
+  /**
+   * Add or update the audio with requested direction.
+   * It perform RTC Peer renegotiation.
+   *
+   * @param params - {@link UpdateMediaDirection}
+   *
+   * @returns A Promise that resolves once the requested audio is negotiated or failed.
+   *
+   * @example
+   * ```typescript
+   * room.setAudioDirection('sendrecv')
+   * ```
+   */
+  setAudioDirection(direction: UpdateMediaDirection): Promise<void>
+
+  /**
+   * Add or update the video with requested direction.
+   * It perform RTC Peer renegotiation.
+   *
+   * @param params - {@link UpdateMediaDirection}
+   *
+   * @returns A Promise that resolves once the requested video is negotiated or failed.
+   *
+   * @example
+   * ```typescript
+   * room.setVideoDirection('recvonly')
+   * ```
+   */
+  setVideoDirection(direction: UpdateMediaDirection): Promise<void>
+
+  /**
+   * Hold the call.
+   * It stops the self member's outbound video/audio and other member's inbound video/audio.
+   *
+   * @returns A Promise that resolves once the hold state is acheived.
+   *
+   * @example
+   * ```typescript
+   * room.hold()
+   * ```
+   */
+  hold(): Promise<void>
+
+  /**
+   * Unhold the call.
+   * It resumes the self member's outbound video/audio and other member's inbound video/audio.
+   *
+   * @returns A Promise that resolves once the active call state is acheived.
+   *
+   * @example
+   * ```typescript
+   * room.unhold()
+   * ```
+   */
+  unhold(): Promise<void>
 
   /** @internal */
   stopOutboundAudio(): void
@@ -224,12 +303,17 @@ export interface WebRTCMessageParams extends SwEvent {
   params: JSONRPCRequest
 }
 
+export type SwAuthorizationStateEventName = 'signalwire.authorization.state'
+
 export type SwAuthorizationState = string
-export interface SwAuthorizationStateParams {
-  event_type: 'signalwire.authorization.state'
-  params: {
-    authorization_state: SwAuthorizationState
-  }
+
+export interface SwAuthorizationStateEventParams {
+  authorization_state: SwAuthorizationState
+}
+
+export interface SwAuthorizationStateEvent {
+  event_type: SwAuthorizationStateEventName
+  params: SwAuthorizationStateEventParams
 }
 
 // prettier-ignore
@@ -241,14 +325,9 @@ export type SwEventParams =
   | TaskEvent
   | MessagingEvent
   | VoiceCallEvent
-  | SwAuthorizationStateParams
+  | SwAuthorizationStateEvent
   | ConversationEvent
   | FabricEvent
-
-// prettier-ignore
-export type PubSubChannelEvents =
-  | InternalVideoEventNames
-  | SessionEvents
 
 export * from './video'
 export * from './utils'

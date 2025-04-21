@@ -18,16 +18,23 @@ import {
   WebRTCMethod,
   // VertoAttach,
   VertoAnswer,
+  UpdateMediaParams,
+  UpdateMediaDirection,
 } from '@signalwire/core'
-import type { ReduxComponent } from '@signalwire/core'
+import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
   ConnectionOptions,
+  EmitDeviceUpdatedEventsParams,
+  UpdateMediaOptionsParams,
   BaseConnectionEvents,
   OnVertoByeParams,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
-import { sdpRemoveLocalCandidates } from './utils/sdpHelpers'
+import {
+  hasMatchingSdpDirection,
+  sdpRemoveLocalCandidates,
+} from './utils/sdpHelpers'
 import * as workers from './workers'
 import {
   AUDIO_CONSTRAINTS,
@@ -58,9 +65,6 @@ export class BaseConnection<
   public causeCode: string
   /** @internal */
   public gotEarly = false
-
-  /** @internal */
-  public doReinvite = false
 
   private state: BaseConnectionState = 'new'
   private prevState: BaseConnectionState = 'new'
@@ -159,12 +163,20 @@ export class BaseConnection<
     return this.peer ? this.peer.getDeviceLabel('video') : null
   }
 
+  get cameraConstraints() {
+    return this.peer ? this.peer.getTrackConstraints('video') : null
+  }
+
   get microphoneId() {
     return this.peer ? this.peer.getDeviceId('audio') : null
   }
 
   get microphoneLabel() {
     return this.peer ? this.peer.getDeviceLabel('audio') : null
+  }
+
+  get microphoneConstraints() {
+    return this.peer ? this.peer.getTrackConstraints('audio') : null
   }
 
   get withAudio() {
@@ -230,8 +242,7 @@ export class BaseConnection<
     return super.emit(event, ...args)
   }
 
-  /** @internal */
-  dialogParams(rtcPeerId: string) {
+  private dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
       attach,
@@ -326,17 +337,16 @@ export class BaseConnection<
   }
 
   /**
-   * @internal
    * Verto messages have to be wrapped into an execute
    * request and sent using the proper RPC WebRTCMethod.
    */
-  private vertoExecute(params: {
+  private vertoExecute<InputType, OutputType = InputType>(params: {
     message: JSONRPCRequest
     callID?: string
     node_id?: string
     subscribe?: EventEmitter.EventNames<EventTypes>[]
   }) {
-    return this.execute({
+    return this.execute<InputType, OutputType>({
       method: this._getRPCMethod(),
       params,
     })
@@ -344,8 +354,8 @@ export class BaseConnection<
 
   /** @internal */
   _getRPCMethod(): WebRTCMethod {
-    const authState = this.select(selectors.getAuthState)
-    if (authState && isSATAuth(authState)) {
+    const authorization = this.select(selectors.getAuthorization)
+    if (authorization && isSATAuth(authorization)) {
       return 'webrtc.verto'
     }
     return 'video.message'
@@ -365,7 +375,7 @@ export class BaseConnection<
   }
 
   updateCamera(constraints: MediaTrackConstraints) {
-    return this.updateConstraints({
+    return this.applyConstraintsAndRefreshStream({
       video: {
         aspectRatio: 16 / 9,
         ...constraints,
@@ -374,12 +384,50 @@ export class BaseConnection<
   }
 
   updateMicrophone(constraints: MediaTrackConstraints) {
-    return this.updateConstraints({
+    return this.applyConstraintsAndRefreshStream({
       audio: constraints,
     })
   }
 
-  /** @internal */
+  /**
+   * Determines the appropriate {@link RTCRtpTransceiverDirection} based on current audio/video
+   * and negotiation options. The returned direction tells the peer connection
+   * whether to send, receive, both, or remain inactive for the given media kind.
+   */
+  private _getTransceiverDirection(kind: 'video' | 'audio' | string) {
+    let direction: RTCRtpTransceiverDirection = 'inactive'
+
+    if (kind === 'audio') {
+      if (this.options.audio && this.options.negotiateAudio) {
+        direction = 'sendrecv'
+      } else if (this.options.audio && !this.options.negotiateAudio) {
+        direction = 'sendonly'
+      } else if (!this.options.audio && this.options.negotiateAudio) {
+        direction = 'recvonly'
+      } else {
+        direction = 'inactive'
+      }
+    }
+    if (kind === 'video') {
+      if (this.options.video && this.options.negotiateVideo) {
+        direction = 'sendrecv'
+      } else if (this.options.video && !this.options.negotiateVideo) {
+        direction = 'sendonly'
+      } else if (!this.options.video && this.options.negotiateVideo) {
+        direction = 'recvonly'
+      } else {
+        direction = 'inactive'
+      }
+    }
+
+    return direction
+  }
+
+  /**
+   * Adjusts senders based on the given audio/video constraints. If a constraint is set to false,
+   * it stops the corresponding outbound track. Returns true if at least one sender is active,
+   * otherwise false.
+   */
   private manageSendersWithConstraints(constraints: MediaStreamConstraints) {
     if (constraints.audio === false) {
       this.logger.info('Switching off the microphone')
@@ -395,12 +443,15 @@ export class BaseConnection<
   }
 
   /**
-   * @internal
+   * Attempts to obtain a new media stream that matches the given constraints, using a recursive
+   * strategy. If the new constraints fail, it tries to restore the old constraints.
+   * Returns a Promise that resolves to the new MediaStream or resolves without a stream if
+   * constraints were fully disabled. Rejects on unrecoverable errors.
    */
   private updateConstraints(
     constraints: MediaStreamConstraints,
     { attempt = 0 } = {}
-  ): Promise<void> {
+  ): Promise<MediaStream | void> {
     if (attempt > 1) {
       return Promise.reject(new Error('Failed to update constraints'))
     }
@@ -482,116 +533,209 @@ export class BaseConnection<
           return reject(error)
         }
 
-        await this.updateStream(newStream)
         this.logger.debug('updateConstraints done')
-        resolve()
+        resolve(newStream)
       } catch (error) {
         this.logger.error('updateConstraints', error)
         reject(error)
-      } finally {
-        this.peer?._attachAudioTrackListener()
-        this.peer?._attachVideoTrackListener()
       }
     })
   }
 
+  /**
+   * Updates local tracks and transceivers from the given stream.
+   * For each new track, it adds/updates a transceiver and emits updated device events.
+   */
   private async updateStream(stream: MediaStream) {
+    try {
+      if (!this.peer) {
+        throw new Error('Invalid RTCPeerConnection.')
+      }
+
+      // Store the previous tracks for device.updated events
+      const prevVideoTrack = this.localVideoTrack
+      const prevAudioTrack = this.localAudioTrack
+
+      this.logger.debug('updateStream got stream', stream)
+      if (!this.localStream) {
+        this.localStream = new MediaStream()
+      }
+
+      const tracks = stream.getTracks()
+      this.logger.debug(`updateStream got ${tracks.length} tracks`)
+
+      for (const newTrack of tracks) {
+        this.logger.debug('updateStream apply track: ', newTrack)
+
+        // Add or update the transceiver (may trigger renegotiation)
+        await this.handleTransceiverForTrack(newTrack)
+
+        // Emit the device.updated events
+        this.emitDeviceUpdatedEvents({
+          newTrack,
+          prevAudioTrack,
+          prevVideoTrack,
+        })
+      }
+
+      this.logger.debug('updateStream done')
+    } catch (error) {
+      this.logger.error('updateStream error', error)
+      throw error
+    }
+  }
+
+  /**
+   * Finds or creates a transceiver for the new track. If an existing transceiver is found,
+   * replaces its track and updates its direction, if needed. If no transceiver is found,
+   * adds a new one. The method can trigger renegotiation.
+   */
+  private async handleTransceiverForTrack(newTrack: MediaStreamTrack) {
     if (!this.peer) {
-      throw new Error('Invalid RTCPeerConnection.')
+      return this.logger.error('Invalid RTCPeerConnection')
     }
 
-    // Store the previous tracks for device.updated event
-    const prevVideoTrack = this.localVideoTrack
-    const prevAudioTrack = this.localAudioTrack
+    const transceiver = this.peer.instance
+      .getTransceivers()
+      .find(({ mid, sender, receiver }) => {
+        if (sender.track && sender.track.kind === newTrack.kind) {
+          this.logger.debug('Found transceiver by sender')
+          return true
+        }
+        if (receiver.track && receiver.track.kind === newTrack.kind) {
+          this.logger.debug('Found transceiver by receiver')
+          return true
+        }
+        if (mid === null) {
+          this.logger.debug('Found disassociated transceiver')
+          return true
+        }
+        return false
+      })
 
-    // Detach listeners because updateStream will trigger the track ended event
+    if (transceiver) {
+      this.logger.debug(
+        'handleTransceiverForTrack got transceiver',
+        transceiver.currentDirection,
+        transceiver.mid
+      )
+
+      // Existing transceiver found, replace track if it's different
+      if (transceiver.sender.track?.id !== newTrack.id) {
+        await transceiver.sender.replaceTrack(newTrack)
+        this.logger.debug(
+          `handleTransceiverForTrack replaceTrack for ${newTrack.kind}`
+        )
+      }
+
+      // Update direction if needed
+      const newDirection = this._getTransceiverDirection(newTrack.kind)
+      if (transceiver.direction !== newDirection) {
+        transceiver.direction = newDirection
+        this.logger.debug(
+          `handleTransceiverForTrack set direction to ${newDirection}`
+        )
+      }
+
+      // Stop old track and add a new one
+      this.replaceOldTrack(newTrack)
+    } else {
+      this.logger.debug(
+        'handleTransceiverForTrack no transceiver found; addTransceiver and start dancing!'
+      )
+
+      // No suitable transceiver found, add a new one
+      const direction = this._getTransceiverDirection(newTrack.kind)
+      this.peer.type = 'offer'
+      this.localStream?.addTrack(newTrack)
+      this.peer.instance.addTransceiver(newTrack, {
+        direction: direction,
+        streams: [this.localStream!],
+      })
+    }
+  }
+
+  /**
+   * Replaces old tracks of the same kind in the local stream with the new track.
+   * Stops and removes the old track, then adds the new one. Also updates related
+   * device options and reattaches track listeners.
+   */
+  private replaceOldTrack(newTrack: MediaStreamTrack) {
+    if (!this.peer || !this.localStream) {
+      return this.logger.error('Invalid RTCPeerConnection')
+    }
+
+    // Detach listeners because stopTrack will trigger the track ended event
     this.peer._detachAudioTrackListener()
     this.peer._detachVideoTrackListener()
 
-    this.logger.debug('updateStream got stream', stream)
-    if (!this.localStream) {
-      this.localStream = new MediaStream()
-    }
-    const { instance } = this.peer
-    const tracks = stream.getTracks()
-    this.logger.debug(`updateStream got ${tracks.length} tracks`)
-    for (let i = 0; i < tracks.length; i++) {
-      const newTrack = tracks[i]
-      this.logger.debug('updateStream apply track: ', newTrack)
-      const transceiver = instance
-        .getTransceivers()
-        .find(({ mid, sender, receiver }) => {
-          if (sender.track && sender.track.kind === newTrack.kind) {
-            this.logger.debug('Found transceiver by sender')
-            return true
-          }
-          if (receiver.track && receiver.track.kind === newTrack.kind) {
-            this.logger.debug('Found transceiver by receiver')
-            return true
-          }
-          if (mid === null) {
-            this.logger.debug('Found disassociated transceiver')
-            return true
-          }
-          return false
-        })
-      if (transceiver && transceiver.sender) {
-        this.logger.debug(
-          'updateStream got transceiver',
-          transceiver.currentDirection,
-          transceiver.mid
-        )
-        await transceiver.sender.replaceTrack(newTrack)
-        this.logger.debug('updateStream replaceTrack')
-        transceiver.direction = 'sendrecv'
-        this.logger.debug('updateStream set to sendrecv')
-        this.localStream.getTracks().forEach((track) => {
-          if (track.kind === newTrack.kind && track.id !== newTrack.id) {
-            this.logger.debug(
-              'updateStream stop old track and apply new one - '
-            )
-            stopTrack(track)
-            this.localStream?.removeTrack(track)
-          }
-        })
-        this.localStream.addTrack(newTrack)
-      } else {
-        this.logger.debug(
-          'updateStream no transceiver found. addTrack and start dancing!'
-        )
-        this.peer.type = 'offer'
-        this.doReinvite = true
-        this.localStream.addTrack(newTrack)
-        instance.addTrack(newTrack, this.localStream)
+    this.localStream.getTracks().forEach((oldTrack) => {
+      if (oldTrack.kind === newTrack.kind && oldTrack.id !== newTrack.id) {
+        this.logger.debug('replaceOldTrack stop old track and apply new one')
+        stopTrack(oldTrack)
+        this.localStream?.removeTrack(oldTrack)
       }
-      this.logger.debug('updateStream simply update mic/cam')
-      if (newTrack.kind === 'audio') {
-        this.emit('microphone.updated', {
-          previous: {
-            deviceId: prevAudioTrack?.id,
-            label: prevAudioTrack?.label,
-          },
-          current: {
-            deviceId: newTrack?.id,
-            label: newTrack?.label,
-          },
-        })
-        this.options.micId = newTrack.getSettings().deviceId
-      } else if (newTrack.kind === 'video') {
-        this.emit('camera.updated', {
-          previous: {
-            deviceId: prevVideoTrack?.id,
-            label: prevVideoTrack?.label,
-          },
-          current: {
-            deviceId: newTrack?.id,
-            label: newTrack?.label,
-          },
-        })
-        this.options.camId = newTrack.getSettings().deviceId
-      }
+    })
+    this.localStream.addTrack(newTrack)
+
+    if (newTrack.kind === 'audio') {
+      this.options.micId = newTrack.getSettings().deviceId
     }
-    this.logger.debug('updateStream done')
+
+    if (newTrack.kind === 'video') {
+      this.options.camId = newTrack.getSettings().deviceId
+    }
+
+    // Attach listeners again
+    this.peer._attachAudioTrackListener()
+    this.peer._attachVideoTrackListener()
+  }
+
+  /**
+   * Emits device updated events for audio or video. Uses previously stored
+   * track references to indicate what changed between old and new devices.
+   */
+  private emitDeviceUpdatedEvents({
+    newTrack,
+    prevAudioTrack,
+    prevVideoTrack,
+  }: EmitDeviceUpdatedEventsParams) {
+    if (newTrack.kind === 'audio') {
+      this.emit('microphone.updated', {
+        previous: {
+          deviceId: prevAudioTrack?.id,
+          label: prevAudioTrack?.label,
+        },
+        current: {
+          deviceId: newTrack.id,
+          label: newTrack.label,
+        },
+      })
+    } else if (newTrack.kind === 'video') {
+      this.emit('camera.updated', {
+        previous: {
+          deviceId: prevVideoTrack?.id,
+          label: prevVideoTrack?.label,
+        },
+        current: {
+          deviceId: newTrack.id,
+          label: newTrack.label,
+        },
+      })
+    }
+  }
+
+  /**
+   * Applies the given constraints by retrieving a new stream and then uses
+   * {@link updateStream} to synchronize local tracks with that new stream.
+   */
+  private async applyConstraintsAndRefreshStream(
+    constraints: MediaStreamConstraints
+  ): Promise<void> {
+    const newStream = await this.updateConstraints(constraints)
+    if (newStream) {
+      await this.updateStream(newStream)
+    }
   }
 
   runRTCPeerWorkers(rtcPeerId: string) {
@@ -710,9 +854,8 @@ export class BaseConnection<
    *   - requesting: we received a redirectDestination so need to send it again
    *     specifying nodeId.
    *
-   * @internal
    */
-  async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
+  private async executeInvite(sdp: string, rtcPeerId: string, nodeId?: string) {
     const rtcPeer = this.getRTCPeerById(rtcPeerId)
     if (!rtcPeer || (rtcPeer.instance.remoteDescription && !this.resuming)) {
       throw new Error(
@@ -766,9 +909,8 @@ export class BaseConnection<
   /**
    * Send the `verto.answer` only if the state is `new`
    *   - new: the first time we send out the answer.
-   * @internal
    */
-  async executeAnswer(sdp: string, rtcPeerId: string, nodeId?: string) {
+  private async executeAnswer(sdp: string, rtcPeerId: string, nodeId?: string) {
     // Set state to `answering` only when `new`, otherwise keep it as `answering`.
     if (this.state === 'new') {
       this.setState('answering')
@@ -796,31 +938,40 @@ export class BaseConnection<
     }
   }
 
-  /** @internal */
-  async executeUpdateMedia(sdp: string, rtcPeerId: string) {
+  /**
+   * Send the `verto.modify` when it's an offer and remote is already present
+   * It helps in renegotiation.
+   */
+  private async executeUpdateMedia(sdp: string, rtcPeerId: string) {
     try {
       const message = VertoModify({
         ...this.dialogParams(rtcPeerId),
         sdp,
         action: 'updateMedia',
       })
-      const response: any = await this.vertoExecute({
+      const response = await this.vertoExecute<VertoModifyResponse>({
         message,
         callID: rtcPeerId,
         node_id: this.nodeId,
       })
-      if (!response.sdp) {
-        this.logger.error('UpdateMedia invalid SDP answer', response)
-      }
 
       this.logger.debug('UpdateMedia response', response)
+
       if (!this.peer) {
         return this.logger.error('Invalid RTCPeer to updateMedia')
       }
+
+      if (!response.sdp) {
+        return this.logger.error('UpdateMedia invalid SDP answer', response)
+      }
+
       await this.peer.onRemoteSdp(response.sdp)
     } catch (error) {
+      // Should we hangup when renegotiation fails?
       this.logger.error('UpdateMedia error', error)
-      // this.setState('hangup')
+
+      // Reject the pending negotiation promise
+      this.peer?._pendingNegotiationPromise?.reject(error)
       throw error
     }
   }
@@ -950,12 +1101,7 @@ export class BaseConnection<
   }
 
   /** @internal */
-  updateMediaOptions(options: {
-    audio?: boolean | MediaTrackConstraints
-    video?: boolean | MediaTrackConstraints
-    negotiateAudio?: boolean
-    negotiateVideo?: boolean
-  }) {
+  updateMediaOptions(options: UpdateMediaOptionsParams) {
     this.logger.debug('updateMediaOptions', { ...options })
     this.options = {
       ...this.options,
@@ -1048,5 +1194,218 @@ export class BaseConnection<
       rtcPeer.stop()
     })
     this.rtcPeerMap.clear()
+  }
+
+  /**
+   * Add or update the transceiver based on the media type and direction
+   */
+  private _upsertTransceiverByKind(
+    direction: RTCRtpTransceiverDirection,
+    kind: 'audio' | 'video'
+  ) {
+    if (!this.peer) {
+      return this.logger.error('Invalid RTCPeerConnection')
+    }
+
+    let transceiver = this.peer.instance
+      .getTransceivers()
+      .find(
+        (tr) =>
+          tr.sender.track?.kind === kind || tr.receiver.track?.kind === kind
+      )
+
+    if (transceiver) {
+      if (transceiver.direction === direction) {
+        this.logger.info(
+          `Transceiver ${kind} has the same direction "${direction}".`
+        )
+        return
+      }
+
+      transceiver.direction = direction
+      this.logger.info(`Updated ${kind} transceiver to "${direction}" mode.`)
+    } else {
+      // No transceiver exists; add one if the direction is not "inactive"
+      if (direction !== 'inactive') {
+        // Ensure we act as the offerer when adding the transceiver during renegotiation
+        this.peer.type = 'offer'
+        transceiver = this.peer.instance.addTransceiver(kind, { direction })
+        this.logger.info(`Added ${kind} transceiver in "${direction}" mode.`)
+      }
+    }
+
+    if (direction === 'stopped' || direction === 'inactive') {
+      this.peer.stopTrackReceiver(kind)
+      this.peer.stopTrackSender(kind)
+    } else if (direction === 'sendonly') {
+      this.peer.stopTrackReceiver(kind)
+    } else if (direction === 'recvonly') {
+      this.peer.stopTrackSender(kind)
+    }
+  }
+
+  /**
+   * Allow user to upgrade/downgrade media in a call.
+   * This performs RTC Peer renegotiation.
+   *
+   * @param params: {@link UpdateMediaParams}
+   */
+  public async updateMedia(params: UpdateMediaParams) {
+    try {
+      const { audio, video } = params
+
+      if (!this.peer) {
+        throw new Error('Invalid RTCPeerConnection')
+      }
+
+      // Check if the peer is already negotiating
+      if (this.peer.isNegotiating) {
+        throw new Error('The peer is already negotiating the media!')
+      }
+
+      /**
+       * Create a new renegotiation promise that would be resolved by the {@link executeUpdateMedia}
+       */
+      const peer = this.peer
+      const negotiationPromise = new Promise((resolve, reject) => {
+        peer._pendingNegotiationPromise = {
+          resolve,
+          reject,
+        }
+      })
+
+      const shouldEnableAudio = ['sendonly', 'sendrecv'].includes(
+        audio?.direction || ''
+      )
+      const shouldEnableVideo = ['sendonly', 'sendrecv'].includes(
+        video?.direction || ''
+      )
+
+      const shouldNegotiateAudio = ['sendrecv', 'receive'].includes(
+        audio?.direction || ''
+      )
+      const shouldNegotiateVideo = ['sendrecv', 'receive'].includes(
+        video?.direction || ''
+      )
+
+      this.updateMediaOptions({
+        ...(audio && { audio: audio?.constraints ?? shouldEnableAudio }),
+        ...(video && { video: video?.constraints ?? shouldEnableVideo }),
+        ...(audio && { negotiateAudio: shouldNegotiateAudio }),
+        ...(video && { negotiateVideo: shouldNegotiateVideo }),
+      })
+
+      /**
+       * The {@link applyConstraintsAndRefreshStream} updates the constraints,
+       * gets the new user stream and updates the transceiver.
+       * However, it only handles the media which is being enabled.
+       * If the media is being disabled, we need to handle that below.
+       */
+      await this.applyConstraintsAndRefreshStream({
+        ...(audio && { audio: audio?.constraints ?? shouldEnableAudio }),
+        ...(video && { video: video?.constraints ?? shouldEnableVideo }),
+      })
+
+      // When disabling audio
+      if (audio && !shouldEnableAudio) {
+        this._upsertTransceiverByKind(audio.direction, 'audio')
+      }
+
+      // When disabling video
+      if (video && !shouldEnableVideo) {
+        this._upsertTransceiverByKind(video.direction, 'video')
+      }
+
+      /**
+       * Trigger the negotiation with the new settings.
+       * If the negotiation is already ongoing it would not have a side effect.
+       */
+      await this.peer.startNegotiation()
+
+      // Wait for the Renegotiation to complete
+      await negotiationPromise
+
+      // Throw error if the remote SDP does not include the expected audio direction
+      if (
+        !hasMatchingSdpDirection({
+          localSdp: this.peer.localSdp!,
+          remoteSdp: this.peer.remoteSdp!,
+          media: 'audio',
+        })
+      ) {
+        throw new Error('The server did not set the audio direction correctly')
+      }
+
+      // Throw error if the remote SDP does not include the expected video direction
+      if (
+        !hasMatchingSdpDirection({
+          localSdp: this.peer.localSdp!,
+          remoteSdp: this.peer.remoteSdp!,
+          media: 'video',
+        })
+      ) {
+        throw new Error('The server did not set the video direction correctly')
+      }
+    } catch (error) {
+      // Reject the negotiation promise if an error occurs
+      this.peer?._pendingNegotiationPromise?.reject(error)
+      throw error
+    }
+  }
+
+  /**
+   * Allow user to set the audio direction on the RTC Peer.
+   * This performs RTC Peer renegotiation.
+   *
+   * @param direction {@link UpdateMediaDirection}
+   */
+  public async setAudioDirection(direction: UpdateMediaDirection) {
+    if (!['sendonly', 'sendrecv', 'recvonly', 'inactive'].includes(direction)) {
+      throw new Error('Invalid direction specified')
+    }
+
+    return this.updateMedia({
+      audio: { direction },
+    })
+  }
+
+  /**
+   * Allow user to set the video direction on the RTC Peer.
+   * This performs RTC Peer renegotiation.
+   *
+   * @param direction {@link UpdateMediaDirection}
+   */
+  public async setVideoDirection(direction: UpdateMediaDirection) {
+    if (!['sendonly', 'sendrecv', 'recvonly', 'inactive'].includes(direction)) {
+      throw new Error('Invalid direction specified')
+    }
+
+    return this.updateMedia({
+      video: { direction },
+    })
+  }
+
+  public async hold() {
+    const message = VertoModify({
+      ...this.dialogParams(this.callId),
+      action: 'hold',
+    })
+    await this.vertoExecute<VertoModifyResponse>({
+      message,
+      callID: this.callId,
+      node_id: this.nodeId,
+    })
+  }
+
+  public async unhold() {
+    const message = VertoModify({
+      ...this.dialogParams(this.callId),
+      action: 'unhold',
+    })
+    this.vertoExecute<VertoModifyResponse>({
+      message,
+      callID: this.callId,
+      node_id: this.nodeId,
+    })
   }
 }

@@ -22,6 +22,11 @@ describe('SWClient', () => {
       disconnect: jest.fn(),
       runWorker: jest.fn(),
       sessionEmitter: { on: jest.fn() },
+      session: {
+        on: jest.fn(),
+        once: jest.fn(),
+        off: jest.fn(),
+      },
     }
     ;(createClient as any).mockReturnValue(clientMock)
 

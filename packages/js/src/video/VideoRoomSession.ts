@@ -78,15 +78,15 @@ export class VideoRoomSessionConnection
 
   get interactivityMode() {
     return this.select(({ session }) => {
-      const { authState } = session
-      return (authState as VideoAuthorization)?.join_as ?? ''
+      const { authorization } = session
+      return (authorization as VideoAuthorization)?.join_as ?? ''
     })
   }
 
   get permissions() {
     return this.select(({ session }) => {
-      const { authState } = session
-      return (authState as VideoAuthorization)?.room?.scopes ?? []
+      const { authorization } = session
+      return (authorization as VideoAuthorization)?.room?.scopes ?? []
     })
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/e2e-js",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "@sw-internal/playground-js": "0.0.15",
-    "node-fetch": "^2.6.7",
-    "vite": "^5.4.10"
+    "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",

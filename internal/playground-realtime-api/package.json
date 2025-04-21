@@ -8,7 +8,7 @@
     "test": ""
   },
   "devDependencies": {
-    "esbuild-register": "^3.4.2",
+    "esbuild-register": "^3.6.0",
     "inquirer": "^8.2.5",
     "node-watch": "^0.7.3"
   }

@@ -42,6 +42,7 @@ describe('SATSession', () => {
     session.CloseEventConstructor = SWCloseEvent
     session.dispatch = jest.fn()
   })
+
   afterEach(() => {
     WS.clean()
   })

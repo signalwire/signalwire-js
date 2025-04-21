@@ -110,7 +110,7 @@ test.describe('CallFabric VideoRoom', () => {
       { roomSession }
     )
 
-    // // --------------- Muting Video (self) ---------------
+    // --------------- Muting Video (self) ---------------
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
@@ -376,8 +376,7 @@ test.describe('CallFabric VideoRoom', () => {
     // Dial an address and join a video room
     const roomSession = await page.evaluate(async () => {
       try {
-        // @ts-expect-error
-        const client = window._client
+        const client = window._client!
 
         const call = await client.dial({
           to: `/public/invalid-address?channel=video`,
@@ -424,11 +423,11 @@ test.describe('CallFabric VideoRoom', () => {
 
     // There should be no inbound/outbound video
     const stats = await getStats(page)
-    expect(stats.outboundRTP).not.toHaveProperty('video')
-    expect(stats.inboundRTP).not.toHaveProperty('video')
+    expect(stats.outboundRTP.video?.packetsSent).toBe(0)
+    expect(stats.inboundRTP.video?.packetsReceived).toBe(0)
 
     // There should be audio packets
-    expect(stats.inboundRTP.audio.packetsReceived).toBeGreaterThan(0)
+    expect(stats.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
 
     // There should be no MCU either
     const videoElement = await page.$('div[id^="sw-sdk-"] > video')

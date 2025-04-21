@@ -62,3 +62,11 @@ export const VertoResult = (id: string, method: VertoMethod) => {
     },
   })
 }
+
+export interface VertoModifyResponse {
+  action: string
+  callID: string
+  holdState: 'held' | 'active'
+  node_id?: string
+  sdp?: string
+}

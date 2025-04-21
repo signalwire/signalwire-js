@@ -34,7 +34,7 @@ interface StartSagaOptions {
   userOptions: InternalUserOptions
 }
 
-export function* initSessionSaga({
+export function* sessionSaga({
   initSession,
   sessionEmitter,
   userOptions,
@@ -45,6 +45,8 @@ export function* initSessionSaga({
   userOptions: InternalUserOptions
   channels: InternalChannels
 }): SagaIterator {
+  getLogger().debug('sessionSaga [started]')
+
   const session = initSession()
   /**
    * Channel to broadcast all the events sent by the server
@@ -70,7 +72,7 @@ export function* initSessionSaga({
     }
   }
 
-  yield fork(sessionChannelWatcher, {
+  const sessionChannelTask: Task = yield fork(sessionChannelWatcher, {
     session,
     sessionChannel,
     swEventChannel,
@@ -96,18 +98,19 @@ export function* initSessionSaga({
   sessionEmitter.emit('session.disconnected')
 
   /**
-   * We have to manually cancel the fork because it is not
-   * being automatically cleaned up when the session is
-   * destroyed, most likely because it's using a timer.
+   * Session disconnected: Cancel the session watchers.
    */
   sessionStatusTask.cancel()
+  sessionChannelTask.cancel()
   customTasks.forEach((task) => task.cancel())
+
   /**
-   * Do not close swEventChannel, and sessionChannel
-   * since we may need them again in case of reauth/reconnect
-   * swEventChannel.close()
-   * sessionChannel.close()
+   * Session disconnected: Close channels.
    */
+  swEventChannel.close()
+  sessionChannel.close()
+
+  getLogger().debug('sessionSaga [ended]')
 }
 
 export function* reauthenticateWorker({
@@ -148,7 +151,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         sessionForceCloseAction.type,
       ])
 
-      getLogger().trace('sessionStatusWatcher', action.type, action.payload)
+      getLogger().debug('sessionStatusWatcher', action.type, action.payload)
       switch (action.type) {
         case authSuccessAction.type: {
           yield put(sessionActions.connected(session.rpcConnectResult))
@@ -227,6 +230,8 @@ export default (options: RootSagaOptions) => {
     userOptions: InternalUserOptions
     channels: InternalChannels
   }): SagaIterator {
+    getLogger().debug('rootSaga [started]')
+
     if (userOptions.logger) {
       setLogger(userOptions.logger)
     }
@@ -238,26 +243,23 @@ export default (options: RootSagaOptions) => {
       /**
        * Wait for an initAction to start
        */
-      const action = yield take([initAction.type, reauthAction.type])
-
-      /**
-       * Update token only if the action contains a `token`
-       * (case of reauthAction with a new token)
-       */
-      if (action?.payload?.token) {
-        userOptions.token = action.payload.token
-      }
+      yield take(initAction.type)
 
       /**
        * Create Session and related sessionChannel to
        * send/receive websocket messages
        */
       try {
-        yield call(initSessionSaga, {
+        yield call(sessionSaga, {
           ...options,
           userOptions,
           channels,
         })
+
+        /**
+         * Stop the Root Saga when the session is disconnected
+         */
+        break
       } catch (error) {
         getLogger().error('RootSaga Error:', error)
       } finally {
@@ -267,5 +269,6 @@ export default (options: RootSagaOptions) => {
         getLogger().debug('Reboot rootSaga')
       }
     }
+    getLogger().debug('rootSaga [finished]')
   }
 }

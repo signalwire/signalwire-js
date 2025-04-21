@@ -7,12 +7,13 @@ import type {
   VideoAPIEvent,
   SwEventParams,
   WebRTCMessageParams,
-  SwAuthorizationStateParams,
+  SwAuthorizationStateEvent,
 } from '../../../types'
 import type { SessionChannel, SwEventChannel } from '../../interfaces'
 import { createCatchableSaga } from '../../utils/sagaHelpers'
 import { socketMessageAction } from '../../actions'
 import { getLogger, isWebrtcEventType, toInternalAction } from '../../../utils'
+import { sessionActions } from './sessionSlice'
 
 type SessionSagaParams = {
   session: BaseSession
@@ -27,9 +28,9 @@ const isWebrtcEvent = (e: SwEventParams): e is WebRTCMessageParams => {
 const isVideoEvent = (e: SwEventParams): e is VideoAPIEvent => {
   return !!e?.event_type?.startsWith('video.')
 }
-const isSwAuthorizationState = (
+const isSwAuthorizationStateEvent = (
   e: SwEventParams
-): e is SwAuthorizationStateParams => {
+): e is SwAuthorizationStateEvent => {
   return e?.event_type === 'signalwire.authorization.state'
 }
 
@@ -38,6 +39,8 @@ export function* sessionChannelWatcher({
   swEventChannel,
   session,
 }: SessionSagaParams): SagaIterator {
+  getLogger().debug('sessionChannelWatcher [started]')
+
   function* swEventWorker(broadcastParams: SwEventParams) {
     yield put(swEventChannel, toInternalAction(broadcastParams))
 
@@ -48,8 +51,19 @@ export function* sessionChannelWatcher({
        */
       return
     }
-    if (isSwAuthorizationState(broadcastParams)) {
+
+    /**
+     * After connecting to the SignalWire network, it sends the `authorization_state`
+     * through the `signalwire.authorization.state` event. We store this value in
+     * the browser storage for JWT and in Redux store for SAT since it is required for reconnect.
+     */
+    if (isSwAuthorizationStateEvent(broadcastParams)) {
       session.onSwAuthorizationState(broadcastParams.params.authorization_state)
+      yield put(
+        sessionActions.updateAuthorizationState(
+          broadcastParams.params.authorization_state
+        )
+      )
       return
     }
 
@@ -57,6 +71,8 @@ export function* sessionChannelWatcher({
      * Put actions with `event_type` to trigger all the children sagas
      * This should replace all the isWebrtcEvent/isVideoEvent guards below
      * since we'll move that logic on a separate package.
+     *
+     * TODO: We no longer need this and it can be removed
      */
     yield put({ type: broadcastParams.event_type, payload: broadcastParams })
   }
@@ -78,6 +94,7 @@ export function* sessionChannelWatcher({
         return getLogger().debug(`Unknown message: ${method}`, action)
     }
   }
+
   const sessionChannelWorkerCatchable = createCatchableSaga<
     PayloadAction<JSONRPCRequest>
   >(sessionChannelWorker, (error) => {
@@ -96,7 +113,7 @@ export function* sessionChannelWatcher({
     } catch (error) {
       getLogger().error('sessionChannelWorker error:', error)
     } finally {
-      getLogger().debug('sessionChannelWorker finally')
+      getLogger().debug('sessionChannelWorker [finally]')
     }
   }
 }

@@ -22,7 +22,7 @@ import {
 } from './types'
 import {
   getAuthError,
-  getAuthState,
+  getAuthorization,
   getAuthStatus,
 } from './redux/features/session/sessionSelectors'
 import { AuthError } from './CustomErrors'
@@ -132,12 +132,6 @@ export class BaseComponent<
 
     this.eventNames().forEach((eventName) => {
       this.off(eventName)
-    })
-
-    // FIXME: Session events should not be removed when the component is destroyed
-    // It should be removed when the Client is destroyed
-    this.sessionEventNames().forEach((eventName) => {
-      this.sessionEmitter.off(eventName)
     })
 
     return this.emitter as EventEmitter<EventTypes>
@@ -253,17 +247,17 @@ export class BaseComponent<
 
   /** @internal */
   protected get _sessionAuthStatus(): SessionAuthStatus {
-    return getAuthStatus(this.store.getState())
+    return this.select(getAuthStatus)
   }
 
   /** @internal */
-  protected get _sessionAuthState(): Authorization | undefined {
-    return getAuthState(this.store.getState())
+  protected get _sessionAuthorization(): Authorization | undefined {
+    return this.select(getAuthorization)
   }
 
   /** @internal */
   protected _waitUntilSessionAuthorized(): Promise<this> {
-    const authStatus = getAuthStatus(this.store.getState())
+    const authStatus = this._sessionAuthStatus
 
     switch (authStatus) {
       case 'authorized':
@@ -283,8 +277,8 @@ export class BaseComponent<
       case 'authorizing':
         return new Promise((resolve, reject) => {
           const unsubscribe = this.store.subscribe(() => {
-            const authStatus = getAuthStatus(this.store.getState())
-            const authError = getAuthError(this.store.getState())
+            const authStatus = this.select(getAuthStatus)
+            const authError = this.select(getAuthError)
 
             if (authStatus === 'authorized') {
               resolve(this)

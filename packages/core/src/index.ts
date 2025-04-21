@@ -20,7 +20,10 @@ import {
   stripNamespacePrefix,
   isJSONRPCRequest,
   isJSONRPCResponse,
-  mapCapabilityPayload,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay,
 } from './utils'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
@@ -31,7 +34,6 @@ import { BaseComponent } from './BaseComponent'
 import { BaseConsumer } from './BaseConsumer'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
-import { findNamespaceInPayload } from './redux/features/shared/namespace'
 import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
 import {
   MEMBER_UPDATED_EVENTS,
@@ -64,7 +66,6 @@ export {
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
-  findNamespaceInPayload,
   timeoutPromise,
   debounce,
   SWCloseEvent,
@@ -75,7 +76,10 @@ export {
   isJSONRPCResponse,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
-  mapCapabilityPayload,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay,
 }
 
 export * from './redux/features/component/componentSlice'

@@ -228,11 +228,11 @@ async function getClient() {
  * Connect with Relay creating a client and attaching all the event handler.
  */
 window.connect = async () => {
+  connectStatus.innerHTML = 'Connecting...'
+
   const client = await getClient()
   window.__client = client
 
-  connectStatus.innerHTML = 'Connecting...'
-  await client.connect()
   connectStatus.innerHTML = 'Connected!'
 
   btnConnect.classList.add('d-none')

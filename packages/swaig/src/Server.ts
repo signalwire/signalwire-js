@@ -17,7 +17,6 @@ import {
 } from './schemas'
 import { fetchSWLogo, validate } from './utils'
 import { version } from '../package.json'
-
 declare module 'fastify' {
   interface FastifyRequest {
     webHookUsername?: string
@@ -200,9 +199,9 @@ export class Server {
           {
             filename: 'theme.css',
             content: `
-              .swagger-ui .topbar .download-url-wrapper input[type=text] { border: 1px solid #044ef4 }
-              .swagger-ui .topbar .download-url-wrapper .download-url-button { background: #044ef4; }
-            `,
+                .swagger-ui .topbar .download-url-wrapper input[type=text] { border: 1px solid #044ef4 }
+                .swagger-ui .topbar .download-url-wrapper .download-url-button { background: #044ef4; }
+              `,
           },
           ...(this.options.documentation?.ui?.theme?.css || []),
         ],
@@ -212,7 +211,7 @@ export class Server {
             rel: 'icon',
             sizes: '16x16',
             type: 'image/png',
-            content: logo as Buffer,
+            content: logo!,
           },
           ...(this.options.documentation?.ui?.theme?.favicon || []),
         ],
@@ -220,7 +219,7 @@ export class Server {
       },
       logo: {
         type: 'image/svg+xml',
-        content: logo as Buffer,
+        content: logo!,
         ...this.options.documentation?.ui?.logo,
       },
       ...this.options.documentation?.ui,

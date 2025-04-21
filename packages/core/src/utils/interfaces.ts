@@ -1,5 +1,4 @@
 import type { SagaIterator } from '@redux-saga/types'
-import type { EventEmitter } from '../utils/EventEmitter'
 import { BaseSession } from '../BaseSession'
 import { SDKStore } from '../redux'
 import {
@@ -17,7 +16,7 @@ import {
   AllOrNone,
   ChatJSONRPCMethod,
   MessagingJSONRPCMethod,
-  VoiceJSONRPCMethod,
+  VoiceCallMethod,
   ClientContextMethod,
 } from '..'
 
@@ -65,7 +64,7 @@ export type JSONRPCMethod =
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
-  | VoiceJSONRPCMethod
+  | VoiceCallMethod
   | ClientContextMethod
 
 export type JSONRPCSubscribeMethod = Extract<
@@ -111,11 +110,12 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  /** The SDK invokes this method and uses the new token to re-auth. */
+  /** Callback invoked by the SDK to fetch a new token for re-authentication */
   onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
   instanceMap?: InstanceMap
 }
+
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
@@ -128,11 +128,6 @@ export interface UserOptions extends SessionOptions {
 }
 
 export interface InternalUserOptions extends UserOptions {
-  /**
-   * TODO: Create type containing all the possible types the
-   * emitter should be allowed to handle
-   */
-  emitter: EventEmitter<any>
   workers?: SDKWorker<any>[]
 }
 
@@ -141,12 +136,8 @@ export interface InternalUserOptions extends UserOptions {
  * the interface we use internally that extends the options provided.
  * @internal
  */
-export interface BaseClientOptions<
-  // TODO: review if having a default makes sense.
-  EventTypes extends EventEmitter.ValidEventTypes = any
-> extends UserOptions {
+export interface BaseClientOptions extends UserOptions {
   store: SDKStore
-  emitter: EventEmitter<EventTypes>
 }
 
 export interface BaseComponentOptions {
@@ -359,6 +350,7 @@ export type FabricMethod =
   | 'call.layout.set'
   | 'call.microphone.volume.set'
   | 'call.microphone.sensitivity.set'
+  | 'call.speaker.volume.set'
   | 'call.lock'
   | 'call.unlock'
   | 'call.raisehand'
@@ -453,8 +445,8 @@ export type InstanceMap = {
   get: <T extends unknown>(key: string) => T
   set: <T extends unknown>(key: string, value: T) => Map<string, T>
   remove: <T extends unknown>(key: string) => Map<string, T>
-  getAll: <T extends unknown>() => [string, T][]
-  deleteAll: <T extends unknown>() => Map<string, T>
+  getAll: () => [string, unknown][]
+  deleteAll: () => Map<string, unknown>
 }
 
 type SDKWorkerBaseParams<T> = {
@@ -468,7 +460,7 @@ type SDKWorkerBaseParams<T> = {
    */
   payload?: any
   initialState?: any
-  getSession: () => BaseSession | undefined
+  getSession: () => BaseSession | null
   instanceMap: InstanceMap
   dispatcher?: (
     type: any,
@@ -514,3 +506,25 @@ export interface WsTrafficOptions {
 export interface InternalSDKLogger extends SDKLogger {
   wsTraffic: (options: WsTrafficOptions) => void
 }
+
+export type UpdateMediaDirection =
+  | 'sendonly'
+  | 'recvonly'
+  | 'sendrecv'
+  | 'inactive'
+
+type EnabledUpdateMedia = {
+  direction: Extract<UpdateMediaDirection, 'sendonly' | 'sendrecv'>
+  constraints?: MediaTrackConstraints
+}
+
+type DisabledUpdateMedia = {
+  direction: Extract<UpdateMediaDirection, 'recvonly' | 'inactive'>
+  constraints?: never
+}
+
+type MediaControl = EnabledUpdateMedia | DisabledUpdateMedia
+
+export type UpdateMediaParams =
+  | { audio: MediaControl; video?: MediaControl }
+  | { audio?: MediaControl; video: MediaControl }

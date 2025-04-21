@@ -4,7 +4,6 @@ import {
   CallJoinedEvent,
   sagaEffects,
   MemberPosition,
-  mapCapabilityPayload,
   stripNamespacePrefix,
 } from '@signalwire/core'
 import {
@@ -13,7 +12,8 @@ import {
 } from '../FabricRoomSessionMember'
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
-import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/helpers'
+import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/eventMappers'
+import { mapCapabilityPayload } from '../utils/capabilitiesHelpers'
 
 export const callJoinWorker = function* (
   options: FabricWorkerParams<CallJoinedEvent>
@@ -74,14 +74,15 @@ export const callJoinWorker = function* (
   })
 
   cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
-  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities || [])
+  // the server send the capabilities payload as an array of string
+  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities)
 
-  // FIXME: Capabilities type is incompatible.
-  // @ts-expect-error
-  cfRoomSession.emit('call.joined', {
+  const fabricEvent = {
     ...payload,
     capabilities: cfRoomSession.capabilities,
-  })
+  }
+
+  cfRoomSession.emit('call.joined', fabricEvent)
 
   getLogger().trace('callJoinWorker ended')
 }

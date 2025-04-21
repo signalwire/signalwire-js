@@ -69,5 +69,7 @@ describe('JWTSession', () => {
     await ws.connected
 
     await expect(ws).toReceiveMessage(JSON.stringify(rpcConnect))
+
+    session.disconnect()
   })
 })

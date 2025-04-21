@@ -1,5 +1,5 @@
 import jwtDecode from 'jwt-decode'
-import { getLogger, HttpError, type UserOptions } from '@signalwire/core'
+import { getLogger, HttpError } from '@signalwire/core'
 import type {
   GetAddressResponse,
   GetAddressesParams,
@@ -12,7 +12,9 @@ import type {
   GetAddressesResult,
   RegisterDeviceResult,
   GetSubscriberInfoResponse,
-} from './types'
+  GetSubscriberInfoResult,
+  FabricUserOptions,
+} from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
@@ -21,19 +23,23 @@ import {
   isGetAddressByNameParams,
   isGetAddressesResponse,
 } from './utils/typeGuard'
+import { HTTPClientContract } from './interfaces/httpClient'
 
 type JWTHeader = { ch?: string; typ?: string }
 
 // TODO: extends from a Base class to share from core
-export class HTTPClient {
+export class HTTPClient implements HTTPClientContract {
   private httpClient: CreateHttpClient
 
-  constructor(public options: UserOptions) {
+  constructor(public options: FabricUserOptions) {
     this.httpClient = createHttpClient({
       baseUrl: `https://${this.httpHost}`,
       headers: {
         Authorization: `Bearer ${this.options.token}`,
       },
+      maxApiRequestRetries: this.options.maxApiRequestRetries,
+      apiRequestRetriesDelay: this.options.apiRequestRetriesDelay,
+      apiRequestRetriesDelayIncrement: this.options.apiRequestRetriesDelayIncrement
     })
   }
 
@@ -52,6 +58,7 @@ export class HTTPClient {
         getLogger().debug('[JWTSession] error decoding the JWT')
       }
     }
+    // Shouldn't this be other way around?
     const host = this.options.host || decodedJwt?.ch
     if (!host) {
       return 'fabric.signalwire.com'
@@ -132,12 +139,12 @@ export class HTTPClient {
     const { id } = params
 
     const path = `/subscriber/devices/${id}` as const
-    return await this.httpClient<void>(path, {
+    await this.httpClient<void>(path, {
       method: 'DELETE',
     })
   }
 
-  public async getSubscriberInfo() {
+  public async getSubscriberInfo(): Promise<GetSubscriberInfoResult> {
     let path = '/api/fabric/subscriber/info'
 
     const { body } = await this.httpClient<GetSubscriberInfoResponse>(path)
