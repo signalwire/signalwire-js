@@ -425,7 +425,10 @@ test.describe('CallFabric Reattach', () => {
             })
           })
 
-          await roomObj.setOutputVolume({ volume: SPEAKER_VOLUME })
+          await roomObj.setOutputVolume({
+            volume: SPEAKER_VOLUME,
+            memberId: memberTwoId,
+          })
           await memberUpdatedEvent
         },
         { SPEAKER_VOLUME, memberTwoId }
