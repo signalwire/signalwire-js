@@ -41,7 +41,7 @@ test.describe('CallFabric Reattach', () => {
     // Reattach to an address to join the same call session
     roomSession = await page.evaluate(
       async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
+        return new Promise(async (resolve, _reject) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
 
@@ -440,7 +440,7 @@ test.describe('CallFabric Reattach', () => {
         // Reattach to an address to join the same call session
         const roomSession: CallJoinedEventParams = await pageTwo.evaluate(
           async ({ roomName }) => {
-            return new Promise<any>(async (resolve, _reject) => {
+            return new Promise(async (resolve, _reject) => {
               const client = window._client!
 
               const call = await client.reattach({
