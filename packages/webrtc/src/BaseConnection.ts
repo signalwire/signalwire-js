@@ -256,16 +256,12 @@ export class BaseConnection<
       pingSupported = true,
     } = this.options
 
-    const hasRemoteDescription = Boolean(this.peer?.instance?.remoteDescription)
-    // we should attach when resending an invite
-    const shouldAttach = attach || hasRemoteDescription
-
     return {
       dialogParams: {
         id: rtcPeerId,
         destinationNumber,
-        attach: shouldAttach,
-        reattaching: shouldAttach,
+        attach: attach,
+        reattaching: attach,
         callerName,
         callerNumber,
         remoteCallerName,

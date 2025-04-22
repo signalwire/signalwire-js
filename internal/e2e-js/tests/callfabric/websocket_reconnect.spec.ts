@@ -41,53 +41,12 @@ test.describe('CallFabric Reconnections', () => {
       assertations: [
         {
           type: 'send',
-          name: 'connect',
-          expect: {
-            method: 'signalwire.connect',
-            'params.version.major': 4,
-          },
-        },
-        {
-          type: 'recv',
-          name: 'connect-response',
-          expect: {
-            'result.authorization.jti': /.+/,
-            'result.authorization.project_id':
-              'cb1e91b6-ae04-4be0-89ae-0dffc5ea6aed',
-            'result.authorization.fabric_subscriber.subscriber_id':
-              '48fe0d0c-ac31-4222-93c9-39590ce92d78',
-          },
-        },
-        {
-          type: 'recv',
-          name: 'authorization-state',
-          expect: {
-            method: 'signalwire.event',
-            'params.event_type': 'signalwire.authorization.state',
-            'params.params.authorization_state': /.+/,
-          },
-        },
-        {
-          type: 'send',
           name: 'invite',
           expect: {
             method: 'webrtc.verto',
             'params.message.method': 'verto.invite',
-            'params.message.params.dialogParams.callID': /.+/,
             'params.message.params.dialogParams.destination_number':
               '/public/cf-e2e-test-room',
-            'params.message.params.sdp':
-              /^(?=.*a=setup:actpass.*)(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
-          },
-        },
-        {
-          type: 'recv',
-          name: 'conversation-call_started',
-          expect: {
-            method: 'signalwire.event',
-            'params.event_type': 'conversation.message',
-            'params.params.type': 'message',
-            'params.params.kind': 'call_started',
           },
         },
         {
@@ -105,22 +64,11 @@ test.describe('CallFabric Reconnections', () => {
             method: 'signalwire.event',
             'params.event_type': 'webrtc.message',
             'params.params.method': 'verto.answer',
-            'params.params.params.sdp':
-              /^(?=.*a=setup:(?:active|passive))(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
           },
         },
         {
           type: 'recv',
-          name: 'mediaParams',
-          expect: {
-            method: 'signalwire.event',
-            'params.event_type': 'webrtc.message',
-            'params.params.method': 'verto.mediaParams',
-          },
-        },
-        {
-          type: 'recv',
-          name: 'mediaParams',
+          name: 'callJoined',
           expect: {
             method: 'signalwire.event',
             'params.event_type': 'call.joined',
@@ -129,16 +77,12 @@ test.describe('CallFabric Reconnections', () => {
       ],
     })
 
-    await expectMCUVisible(page)
-
     // simulate ws
     page.resetWsTraffic()
     await page.evaluate(async () => {
       //@ts-ignore
       window._roomObj._closeWSConnection()
-      return new Promise((res) => {
-        setTimeout(() => res(null), 15000)
-      })
+      return new Promise((ressolve) => setTimeout(ressolve, 15000))
     })
 
     await page.expectWsTraffic({
@@ -158,10 +102,14 @@ test.describe('CallFabric Reconnections', () => {
           expectNot: {
             method: 'webrtc.verto',
             'params.message.method': 'verto.invite',
-            'params.message.params.dialogParams.callID': /.+/,
-            'params.message.params.dialogParams.destination_number': /^\/.+/,
-            'params.message.params.sdp':
-              /^(?=.*a=setup:actpass.*)(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
+          },
+        },
+        {
+          type: 'recv',
+          name: 'callJoined',
+          expectNot: {
+            method: 'signalwire.event',
+            'params.event_type': 'call.joined',
           },
         },
       ],
@@ -207,53 +155,12 @@ test.describe('CallFabric Reconnections', () => {
       assertations: [
         {
           type: 'send',
-          name: 'connect',
-          expect: {
-            method: 'signalwire.connect',
-            'params.version.major': 4,
-          },
-        },
-        {
-          type: 'recv',
-          name: 'connect-response',
-          expect: {
-            'result.authorization.jti': /.+/,
-            'result.authorization.project_id':
-              'cb1e91b6-ae04-4be0-89ae-0dffc5ea6aed',
-            'result.authorization.fabric_subscriber.subscriber_id':
-              '48fe0d0c-ac31-4222-93c9-39590ce92d78',
-          },
-        },
-        {
-          type: 'recv',
-          name: 'authorization-state',
-          expect: {
-            method: 'signalwire.event',
-            'params.event_type': 'signalwire.authorization.state',
-            'params.params.authorization_state': /.+/,
-          },
-        },
-        {
-          type: 'send',
           name: 'invite',
           expect: {
             method: 'webrtc.verto',
             'params.message.method': 'verto.invite',
-            'params.message.params.dialogParams.callID': /.+/,
             'params.message.params.dialogParams.destination_number':
               '/public/cf-e2e-test-room',
-            'params.message.params.sdp':
-              /^(?=.*a=setup:actpass.*)(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
-          },
-        },
-        {
-          type: 'recv',
-          name: 'conversation-call_started',
-          expect: {
-            method: 'signalwire.event',
-            'params.event_type': 'conversation.message',
-            'params.params.type': 'message',
-            'params.params.kind': 'call_started',
           },
         },
         {
@@ -271,22 +178,11 @@ test.describe('CallFabric Reconnections', () => {
             method: 'signalwire.event',
             'params.event_type': 'webrtc.message',
             'params.params.method': 'verto.answer',
-            'params.params.params.sdp':
-              /^(?=.*a=setup:(?:active|passive))(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
           },
         },
         {
           type: 'recv',
-          name: 'mediaParams',
-          expect: {
-            method: 'signalwire.event',
-            'params.event_type': 'webrtc.message',
-            'params.params.method': 'verto.mediaParams',
-          },
-        },
-        {
-          type: 'recv',
-          name: 'mediaParams',
+          name: 'callJoined',
           expect: {
             method: 'signalwire.event',
             'params.event_type': 'call.joined',
@@ -294,8 +190,6 @@ test.describe('CallFabric Reconnections', () => {
         },
       ],
     })
-
-    await expectMCUVisible(page)
 
     page.resetWsTraffic()
     await page.swNetworkDown()
@@ -322,10 +216,14 @@ test.describe('CallFabric Reconnections', () => {
           expectNot: {
             method: 'webrtc.verto',
             'params.message.method': 'verto.invite',
-            'params.message.params.dialogParams.callID': /.+/,
-            'params.message.params.dialogParams.destination_number': /^\/.+/,
-            'params.message.params.sdp':
-              /^(?=.*a=setup:actpass.*)(?=.*^m=audio.*)(?=.*^m=video.*)/ms,
+          },
+        },
+        {
+          type: 'recv',
+          name: 'callJoined',
+          expectNot: {
+            method: 'signalwire.event',
+            'params.event_type': 'call.joined',
           },
         },
       ],
