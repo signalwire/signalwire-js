@@ -69,6 +69,9 @@ test.describe('CallFabric Reattach', () => {
     createCustomPage,
     resource,
   }) => {
+    const MIC_VOLUME = 10
+    const SPEAKER_VOLUME = 10
+
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
@@ -152,13 +155,10 @@ test.describe('CallFabric Reattach', () => {
       )
     })
 
-    const MIC_VOLUME = 10
-    const SPEAKER_VOLUME = 10
-
     // --------------- Change Audio Volume (self) ---------------
     await test.step('change mic volume', async () => {
       await page.evaluate(
-        async ({ MIC_VOLUME, memberId }) => {
+        async ({ volume, memberId }) => {
           // @ts-expect-error
           const roomObj: FabricRoomSession = window._roomObj
 
@@ -166,24 +166,24 @@ test.describe('CallFabric Reattach', () => {
             roomObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
-                event.member.input_volume === MIC_VOLUME
+                event.member.input_volume === volume
               ) {
                 res(true)
               }
             })
           })
 
-          await roomObj.setInputVolume({ volume: MIC_VOLUME })
+          await roomObj.setInputVolume({ volume: volume })
           await memberUpdatedEvent
         },
-        { MIC_VOLUME, memberId }
+        { volume: MIC_VOLUME, memberId }
       )
     })
 
     // --------------- Change Speaker Volume (self) ---------------
     await test.step('change speaker volume', async () => {
       await page.evaluate(
-        async ({ SPEAKER_VOLUME, memberId }) => {
+        async ({ volume, memberId }) => {
           // @ts-expect-error
           const roomObj: FabricRoomSession = window._roomObj
 
@@ -191,17 +191,17 @@ test.describe('CallFabric Reattach', () => {
             roomObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
-                event.member.output_volume === SPEAKER_VOLUME
+                event.member.output_volume === volume
               ) {
                 res(true)
               }
             })
           })
 
-          await roomObj.setOutputVolume({ volume: SPEAKER_VOLUME })
+          await roomObj.setOutputVolume({ volume: volume })
           await memberUpdatedEvent
         },
-        { SPEAKER_VOLUME, memberId }
+        { volume: SPEAKER_VOLUME, memberId }
       )
     })
 
@@ -233,14 +233,14 @@ test.describe('CallFabric Reattach', () => {
     // })
 
     const roomSessionAfter =
-      await test.step('relaod page and reattach', async () => {
+      await test.step('reload page and reattach', async () => {
         await page.reload({ waitUntil: 'domcontentloaded' })
         await createCFClient(page)
 
         // Reattach to an address to join the same call session
         const roomSession: CallJoinedEventParams = await page.evaluate(
           async ({ roomName }) => {
-            return new Promise<any>(async (resolve, _reject) => {
+            return new Promise(async (resolve, _reject) => {
               const client = window._client!
 
               const call = await client.reattach({
@@ -295,6 +295,9 @@ test.describe('CallFabric Reattach', () => {
     createCustomPage,
     resource,
   }) => {
+    const MIC_VOLUME = 10
+    const SPEAKER_VOLUME = 10
+
     const pageOne = await createCustomPage({ name: '[pageOne]' })
     const pageTwo = await createCustomPage({ name: '[pageTwo]' })
     await pageOne.goto(SERVER_URL)
@@ -336,14 +339,14 @@ test.describe('CallFabric Reattach', () => {
 
     // --------------- Muting Video (other member) ---------------
     await test.step('[pageOne] mute video of memberTwo', async () => {
-      await pageOne.evaluate(async (memberTwoId) => {
+      await pageOne.evaluate(async (memberId) => {
         // @ts-expect-error
         const roomObj: FabricRoomSession = window._roomObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.videoMuted', (event) => {
             if (
-              event.member.member_id === memberTwoId &&
+              event.member.member_id === memberId &&
               event.member.video_muted == true
             ) {
               res(true)
@@ -351,21 +354,21 @@ test.describe('CallFabric Reattach', () => {
           })
         })
 
-        await roomObj.videoMute({ memberId: memberTwoId })
+        await roomObj.videoMute({ memberId })
         await memberUpdatedMutedEvent
       }, memberTwoId)
     })
 
     // --------------- Muting Audio (other member) ---------------
     await test.step('[pageOne] mute audio of memberTwo', async () => {
-      await pageOne.evaluate(async (memberTwoId) => {
+      await pageOne.evaluate(async (memberId) => {
         // @ts-expect-error
         const roomObj: FabricRoomSession = window._roomObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.audioMuted', (event) => {
             if (
-              event.member.member_id === memberTwoId &&
+              event.member.member_id === memberId &&
               event.member.audio_muted == true
             ) {
               res(true)
@@ -373,73 +376,64 @@ test.describe('CallFabric Reattach', () => {
           })
         })
 
-        await roomObj.audioMute({ memberId: memberTwoId })
+        await roomObj.audioMute({ memberId })
         await memberUpdatedMutedEvent
       }, memberTwoId)
     })
 
-    const MIC_VOLUME = 10
-    const SPEAKER_VOLUME = 10
-
     // --------------- Change Audio Volume (other member) ---------------
     await test.step('[pageOne] change mic volume for memberTwo', async () => {
       await pageOne.evaluate(
-        async ({ MIC_VOLUME, memberTwoId }) => {
+        async ({ volume, memberId }) => {
           // @ts-expect-error
           const roomObj: FabricRoomSession = window._roomObj
 
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
               if (
-                event.member.member_id === memberTwoId &&
-                event.member.input_volume === MIC_VOLUME
+                event.member.member_id === memberId &&
+                event.member.input_volume === volume
               )
                 res(true)
             })
           })
 
-          await roomObj.setInputVolume({
-            volume: MIC_VOLUME,
-            memberId: memberTwoId,
-          })
+          await roomObj.setInputVolume({ volume, memberId })
           await memberUpdatedEvent
         },
-        { MIC_VOLUME, memberTwoId }
+        { volume: MIC_VOLUME, memberId: memberTwoId }
       )
     })
 
     // --------------- Change Speaker Volume (other member) ---------------
     await test.step('[pageOne] change speaker volume for memberTwo', async () => {
       await pageOne.evaluate(
-        async ({ SPEAKER_VOLUME, memberTwoId }) => {
+        async ({ volume, memberId }) => {
           // @ts-expect-error
           const roomObj: FabricRoomSession = window._roomObj
 
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
               if (
-                event.member.member_id === memberTwoId &&
-                event.member.output_volume === SPEAKER_VOLUME
+                event.member.member_id === memberId &&
+                event.member.output_volume === volume
               )
                 res(true)
             })
           })
 
-          await roomObj.setOutputVolume({
-            volume: SPEAKER_VOLUME,
-            memberId: memberTwoId,
-          })
+          await roomObj.setOutputVolume({ volume, memberId })
           await memberUpdatedEvent
         },
-        { SPEAKER_VOLUME, memberTwoId }
+        { volume: SPEAKER_VOLUME, memberId: memberTwoId }
       )
     })
 
     // --------------- Change Noise Gate ---------------
-    // TODO: Add "setInputSensitivity" this when the server issue is fixed
+    // TODO: Add "setInputSensitivity" API test when the server issue is fixed
 
     const roomSessionTwoAfter =
-      await test.step('[pageTwo] relaod page and reattach', async () => {
+      await test.step('[pageTwo] reload page and reattach', async () => {
         await pageTwo.reload({ waitUntil: 'domcontentloaded' })
         await createCFClient(pageTwo)
 
