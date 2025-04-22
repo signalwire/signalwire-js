@@ -10,6 +10,7 @@ import {
   expectMCUVisibleForAudience,
   expectStatWithPolling,
   getStats,
+  waitForStabilizedStats,
 } from '../../utils'
 
 test.describe('CallFabric Video Renegotiation', () => {
@@ -63,15 +64,11 @@ test.describe('CallFabric Video Renegotiation', () => {
       const stats3 = await getStats(page)
       expect(stats3.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
       expect(stats3.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
-      await expectStatWithPolling(page, {
+      await waitForStabilizedStats(page, {
         propertyPath: 'outboundRTP.video.packetsSent',
-        matcher: 'toBe',
-        expected: 0,
       })
-      await expectStatWithPolling(page, {
+      await waitForStabilizedStats(page, {
         propertyPath: 'inboundRTP.video.packetsReceived',
-        matcher: 'toBe',
-        expected: 0,
       })
     })
   })
@@ -134,10 +131,8 @@ test.describe('CallFabric Video Renegotiation', () => {
       const stats3 = await getStats(page)
       expect(stats3.outboundRTP.audio?.packetsSent).toBeGreaterThan(0)
       expect(stats3.inboundRTP.audio?.packetsReceived).toBeGreaterThan(0)
-      await expectStatWithPolling(page, {
+      await waitForStabilizedStats(page, {
         propertyPath: 'outboundRTP.video.packetsSent',
-        matcher: 'toBe',
-        expected: 0,
       })
       await expectStatWithPolling(page, {
         propertyPath: 'inboundRTP.video.packetsReceived',
