@@ -30,7 +30,7 @@ jobs:
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+          PACKAGE_JSON_PATH: ./internal/e2e-realtime-api/package.json
       - name: Test
         id: run-tests
         run: npm run -w=@sw-internal/e2e-realtime-api dev
