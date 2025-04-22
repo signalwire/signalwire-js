@@ -23,5 +23,7 @@ export {
   SignalWireClientParams,
   GetSubscriberInfoResponse,
   GetSubscriberInfoResult,
+  PaginatedResponse,
+  PaginatedResult,
 } from './interfaces'
 export { FabricRoomSession, isFabricRoomSession } from './FabricRoomSession'
