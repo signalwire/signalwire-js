@@ -619,6 +619,7 @@ test.describe('RoomSession', () => {
         'recording.started',
         'room.updated',
       ],
+      expectToJoin: false,
     }
 
     await Promise.all([
@@ -634,7 +635,7 @@ test.describe('RoomSession', () => {
 
     // --------------- Start recording and playback from 1st room ---------------
     await pageOne.evaluate(
-      async ({ PLAYBACK_URL }) => {
+      async ({ playbackURL }) => {
         // @ts-expect-error
         const roomObj: VideoRoomSession = window._roomObj
 
@@ -659,13 +660,11 @@ test.describe('RoomSession', () => {
         })
 
         await roomObj.startRecording()
-        await roomObj.play({
-          url: PLAYBACK_URL!,
-        })
+        await roomObj.play({ url: playbackURL! })
 
         return Promise.all([recordingStarted, playbackStarted])
       },
-      { PLAYBACK_URL: process.env.PLAYBACK_URL }
+      { playbackURL: process.env.PLAYBACK_URL }
     )
 
     // --------------- Joining the 2nd room ---------------
