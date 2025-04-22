@@ -72,18 +72,19 @@ const useDesktopChrome = {
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
-  reporter: process.env.CI ? 'github' : 'list',
+  reporter: [[process.env.CI ? 'github' : 'list'], ['./SDKReporter.ts']],
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
   timeout: 120_000,
+  workers: 1,
+  maxFailures: 1,
   expect: {
     // Default is 5000
     timeout: 10_000,
   },
   // Forbid test.only on CI
   forbidOnly: !!process.env.CI,
-  workers: 1,
   projects: [
     {
       name: 'default',
