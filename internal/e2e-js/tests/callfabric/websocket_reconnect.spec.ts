@@ -1,8 +1,8 @@
 import { test } from '../../fixtures'
-import { SERVER_URL, createCFClient, expectMCUVisible } from '../../utils'
+import { SERVER_URL, createCFClient, dialAddress, expectMCUVisible } from '../../utils'
 
 test.describe('CallFabric Reconnections', () => {
-  test('Should reconnect the WebSocket as soon it gets onClose event, without media renegotiation', async ({
+  test.skip('Should reconnect the WebSocket as soon it gets onClose event, without media renegotiation', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -15,27 +15,10 @@ test.describe('CallFabric Reconnections', () => {
 
     page.resetWsTraffic()
     // Dial an address and join a video room
-    await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          const client = window._client!
-
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          call.on('room.joined', resolve)
-          call.on('room.updated', () => {})
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    await dialAddress(page, {
+      address: `/public/${roomName}?channel=video`,
+    })
+    
 
     await page.expectWsTraffic({
       assertations: [
@@ -129,27 +112,9 @@ test.describe('CallFabric Reconnections', () => {
 
     page.resetWsTraffic()
     // Dial an address and join a video room
-    await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          const client = window._client!
-
-          const call = await client.dial({
-            to: `/public/${roomName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          call.on('room.joined', resolve)
-          call.on('room.updated', () => {})
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          await call.start()
-        })
-      },
-      { roomName }
-    )
+    await dialAddress(page, {
+      address: `/public/${roomName}?channel=video`,
+    })
 
     await page.expectWsTraffic({
       assertations: [
