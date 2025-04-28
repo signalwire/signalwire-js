@@ -18,6 +18,7 @@ import {
   createVideoRoomSessionObject,
   VideoRoomSessionConnection,
 } from './video/VideoRoomSession'
+import { CallParams } from './fabric/interfaces'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
@@ -26,19 +27,7 @@ export interface Client<RoomSessionType = RoomSession>
   pubSub: ClientAPI['pubSub']
 }
 
-export interface MakeRoomOptions extends ConnectionOptions {
-  /** HTML element in which to display the video stream */
-  rootElement?: HTMLElement
-  /** Whether to apply the local-overlay on top of your video. Default: `true`. */
-  applyLocalVideoOverlay?: boolean
-  /** Whether to apply an overlay on top of each member. Default: `true`. */
-  applyMemberOverlay?: boolean
-  /** Whether to mirror the local video overlay. Default: `false`. */
-  mirrorLocalVideoOverlay?: boolean
-  /** Whether to stop the camera when the member is muted. Default: `true`. */
-  stopCameraWhileMuted?: boolean
-  /** Whether to stop the microphone when the member is muted. Default: `true`. */
-  stopMicrophoneWhileMuted?: boolean
+export interface MakeRoomOptions extends CallParams, ConnectionOptions {
   /** Local media stream to override the local video and audio stream tracks */
   localStream?: MediaStream
 }
