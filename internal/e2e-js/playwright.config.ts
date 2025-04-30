@@ -40,9 +40,11 @@ const callfabricTests = [
   'cleanup.spec.ts',
   'conversation.spec.ts',
   'holdunhold.spec.ts',
+  'mirrorVideo.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
   'relayApp.spec.ts',
+  'roomDevice.spec.ts',
   'swml.spec.ts',
   'videoRoom.spec.ts',
   'videoRoomLayout.spec.ts',
@@ -58,7 +60,7 @@ const videoElementTests = [
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
-const useDesktopChrome = {
+const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
   launchOptions: {
     // devtools: true,
