@@ -86,6 +86,7 @@ const config: PlaywrightTestConfig = {
   // Forbid test.only on CI
   forbidOnly: !!process.env.CI,
   workers: 1,
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   projects: [
     {
       name: 'default',
