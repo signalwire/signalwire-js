@@ -1,4 +1,5 @@
 import type {
+  DialParams,
   FabricRoomSession,
   SignalWire,
   SignalWireClient,
@@ -530,7 +531,7 @@ export const createCFClient = async (
 
 interface DialAddressParams {
   address: string
-  dialOptions?: Record<string, any>
+  dialOptions?: Partial<DialParams>
   reattach?: boolean
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
@@ -565,7 +566,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
-          ...dialOptions,
+          ...JSON.parse(dialOptions),
         })
 
         if (shouldWaitForJoin) {
@@ -586,7 +587,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     },
     {
       address,
-      dialOptions,
+      dialOptions: JSON.stringify(dialOptions),
       reattach,
       shouldPassRootElement,
       shouldStartCall,
