@@ -50,6 +50,7 @@ jobs:
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_JS_SW_TEST_CONFIG }}
+          EXTERNAL_URL_FOR_CXML: ${{ secrets.EXTERNAL_URL_FOR_CXML }}
 
   report-result:
     needs: e2e-tests
