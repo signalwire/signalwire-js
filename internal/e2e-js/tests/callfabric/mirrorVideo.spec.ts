@@ -1,5 +1,6 @@
 import { FabricRoomSession } from '@signalwire/js'
-import path from 'node:path'
+import { resolve } from 'node:path'
+import { constants, accessSync } from 'node:fs'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -9,15 +10,14 @@ import {
 } from '../../utils'
 import { uuid } from '@signalwire/core'
 
+const videoFile = resolve(__dirname, '../../assets/sw-docs.y4m')
+
 test.use({
   launchOptions: {
     args: [
       '--use-fake-ui-for-media-stream',
       '--use-fake-device-for-media-stream',
-      `--use-file-for-fake-video-capture=${path.resolve(
-        __dirname,
-        '../../assets/sw-docs.y4m'
-      )}`,
+      `--use-file-for-fake-video-capture=${videoFile}`,
     ],
   },
 })
@@ -28,6 +28,14 @@ type Test = {
 
 test.describe('CallFabric Mirror Video', () => {
   const tests: Test[] = [{ mirrored: false }, { mirrored: true }]
+
+  test.beforeAll(() => {
+    try {
+      accessSync(videoFile, constants.R_OK)
+    } catch (err) {
+      throw new Error(`❌ Missing fake video file at ${videoFile}`)
+    }
+  })
 
   tests.forEach(({ mirrored }) => {
     test(`should display the video ${
