@@ -12,6 +12,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
   test("should join a room and be able to raise/lower self member's hand", async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -19,7 +20,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     const roomName = `e2e-hand-raise_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room
     const roomSession = await dialAddress(page, {
@@ -87,6 +88,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
   test("should join a room and be able to raise/lower other member's hand", async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const pageOne = await createCustomPage({ name: '[page-one]' })
     const pageTwo = await createCustomPage({ name: '[page-two]' })
@@ -97,7 +99,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await resource.createVideoRoomResource(roomName)
 
     // Create client, dial an address and join a video room from page-one
-    await createCFClient(pageOne)
+    await createCFClient(pageOne, { useV4Client })
     const roomSessionOne = await dialAddress(pageOne, {
       address: `/public/${roomName}?channel=video`,
     })
@@ -112,7 +114,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await expectMCUVisible(pageOne)
 
     // Create client, dial an address and join a video room from page-two
-    await createCFClient(pageTwo)
+    await createCFClient(pageTwo, { useV4Client })
     const roomSessionTwo = await dialAddress(pageTwo, {
       address: `/public/${roomName}?channel=video`,
     })

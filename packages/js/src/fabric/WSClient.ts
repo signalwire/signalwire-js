@@ -2,6 +2,7 @@ import {
   actions,
   BaseClient,
   CallJoinedEventParams as InternalCallJoinedEventParams,
+  selectors,
   VertoBye,
   VertoSubscribe,
   VideoRoomSubscribedEventParams,
@@ -24,14 +25,22 @@ import {
 import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
-import { WSClientContract } from './interfaces/wsClient'
+import {
+  BuildOutboundCallParams,
+  WSClientContract,
+} from './interfaces/wsClient'
+import { encodeAuthState } from './utils/authStateCodec'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
   private _disconnected: boolean = false
+  protected fabricRoomSessionCreator = createFabricRoomSessionObject
 
-  constructor(private wsClientOptions: WSClientOptions) {
-    const client = createWSClient(wsClientOptions)
+  constructor(
+    protected wsClientOptions: WSClientOptions,
+    clientCreator: typeof createWSClient = createWSClient
+  ) {
+    const client = clientCreator(wsClientOptions)
     super(client)
 
     this._incomingCallManager = new IncomingCallManager({
@@ -64,7 +73,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       ...options
     } = makeRoomOptions
 
-    const room = createFabricRoomSessionObject({
+    const room = this.fabricRoomSessionCreator({
       ...options,
       store: this.store,
     })
@@ -156,7 +165,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
+  protected buildOutboundCall(params: BuildOutboundCallParams) {
     const [pathname, query] = params.to.split('?')
     if (!pathname) {
       throw new Error('Invalid destination address')
@@ -189,12 +198,22 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      onAuthStateChange: this.wsClientOptions.onAuthStateChange,
+      prevCallId: params.prevCallId,
     })
 
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
       call.destroy()
+
+      if (this.wsClientOptions.onAuthStateChange) {
+        const protocol = selectors.getProtocol(this.store.getState())
+        const authState = selectors.getAuthorizationState(this.store.getState())
+
+        const encode = encodeAuthState({ authState, protocol })
+        this.wsClientOptions.onAuthStateChange(encode)
+      }
     })
 
     this.session.once('session.disconnected', () => {
@@ -308,7 +327,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         const call = this.buildOutboundCall(params)
         resolve(call)
       } catch (error) {
-        this.logger.error('Unable to connect and dial a call', error)
+        this.logger.error('Unable to dial a call', error)
         reject(error)
       }
     })
@@ -320,7 +339,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         const call = this.buildOutboundCall({ ...params, attach: true })
         resolve(call)
       } catch (error) {
-        this.logger.error('Unable to connect and reattach a call', error)
+        this.logger.error('Unable to reattach a call', error)
         reject(error)
       }
     })
@@ -374,9 +393,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  /**
-   * Mark the client as 'online' to receive calls over WebSocket
-   */
   public async online({ incomingCallHandlers }: OnlineParams) {
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     return this.execute<unknown, void>({
@@ -385,9 +401,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  /**
-   * Mark the client as 'offline' to receive calls over WebSocket
-   */
   public offline() {
     this._incomingCallManager.setNotificationHandlers({})
     return this.execute<unknown, void>({

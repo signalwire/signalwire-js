@@ -10,6 +10,7 @@ import {
   RegisterDeviceResult,
   UnregisterDeviceParams,
 } from './device'
+import { WSClientOptions } from './wsClient'
 
 export interface HTTPClientContract {
   /**
@@ -48,3 +49,5 @@ export interface HTTPClientContract {
    */
   getSubscriberInfo(): Promise<GetSubscriberInfoResult>
 }
+
+export type HTTPClientOptions = WSClientOptions

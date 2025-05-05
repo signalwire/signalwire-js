@@ -5,11 +5,12 @@ import { SERVER_URL, createCFClient } from '../../utils'
 test.describe('Addresses', () => {
   test('query multiple addresses and single address', async ({
     createCustomPage,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     const { addressById, addressByName, addressToCompare } =
       await page.evaluate(async () => {
@@ -35,11 +36,12 @@ test.describe('Addresses', () => {
 
   test('Should return only type rooms in ASC order by name', async ({
     createCustomPage,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     const isCorrectlySorted = await page.evaluate(async () => {
       // @ts-expect-error
@@ -95,11 +97,12 @@ test.describe('Addresses', () => {
   */
   test.skip('Should return only type rooms in DESC order by name', async ({
     createCustomPage,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     const isCorrectlySorted = await page.evaluate(async () => {
       // @ts-expect-error

@@ -45,6 +45,7 @@ test.describe('CallFabric SWML', () => {
   test('should dial an address and expect a TTS audio', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -55,7 +56,7 @@ test.describe('CallFabric SWML', () => {
       contents: swmlTTS,
     })
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and listen a TTS
     await dialAddress(page, {
@@ -93,6 +94,7 @@ test.describe('CallFabric SWML', () => {
   test('should dial an address and expect a hangup', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -103,7 +105,7 @@ test.describe('CallFabric SWML', () => {
       contents: swmlHangup,
     })
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and listen a TTS
     await dialAddress(page, {

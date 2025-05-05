@@ -15,6 +15,7 @@ test.describe('CallFabric VideoRoom', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -22,7 +23,7 @@ test.describe('CallFabric VideoRoom', () => {
     const roomName = `e2e-video-room_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room
     const roomSession: CallJoinedEventParams = await dialAddress(page, {
@@ -367,11 +368,14 @@ test.describe('CallFabric VideoRoom', () => {
     // ).toStrictEqual(meta)
   })
 
-  test('should fail on invalid address', async ({ createCustomPage }) => {
+  test('should fail on invalid address', async ({
+    createCustomPage,
+    useV4Client,
+  }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room
     const roomSession = await page.evaluate(async () => {
@@ -400,6 +404,7 @@ test.describe('CallFabric VideoRoom', () => {
   test('should handle joining a room with audio channel only', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -407,7 +412,7 @@ test.describe('CallFabric VideoRoom', () => {
     const roomName = `e2e-video-room_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address with audio only channel
     const roomSession = await dialAddress(page, {

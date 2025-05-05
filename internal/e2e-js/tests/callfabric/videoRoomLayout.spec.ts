@@ -16,6 +16,7 @@ test.describe('CallFabric Video Room Layout', () => {
   test('should join a room and be able to change the layout', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -23,7 +24,7 @@ test.describe('CallFabric Video Room Layout', () => {
     const roomName = `e2e-video-layout_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room
     const roomSession = await dialAddress(page, {
@@ -63,6 +64,7 @@ test.describe('CallFabric Video Room Layout', () => {
   test('should join a room and be able to change the member position in the layout', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -70,7 +72,7 @@ test.describe('CallFabric Video Room Layout', () => {
     const roomName = `e2e-video-layout-position_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address and join a video room
     const roomSession = await dialAddress(page, {
@@ -133,6 +135,7 @@ test.describe('CallFabric Video Room Layout', () => {
   test.skip('should join a room and be able to change other member position in the layout', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const pageOne = await createCustomPage({ name: '[page-one]' })
     const pageTwo = await createCustomPage({ name: '[page-two]' })
@@ -143,7 +146,7 @@ test.describe('CallFabric Video Room Layout', () => {
     await resource.createVideoRoomResource(roomName)
 
     // Create client for pageOne and Dial an address to join a video room
-    await createCFClient(pageOne)
+    await createCFClient(pageOne, { useV4Client })
     const roomSessionOne = (await dialAddress(pageOne, {
       address: `/public/${roomName}?channel=video`,
     })) as VideoRoomSubscribedEventParams
@@ -151,7 +154,7 @@ test.describe('CallFabric Video Room Layout', () => {
     await expectMCUVisible(pageOne)
 
     // Create client for pageTwo and Dial an address to join a video room
-    await createCFClient(pageTwo)
+    await createCFClient(pageTwo, { useV4Client })
     const roomSessionTwo = (await dialAddress(pageTwo, {
       address: `/public/${roomName}?channel=video`,
     })) as VideoRoomSubscribedEventParams

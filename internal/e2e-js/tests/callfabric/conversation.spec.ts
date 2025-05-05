@@ -10,6 +10,7 @@ test.describe('Conversation Room', () => {
   test('send message in a room conversation', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     const page2 = await createCustomPage({
@@ -18,8 +19,8 @@ test.describe('Conversation Room', () => {
     await page.goto(SERVER_URL)
     await page2.goto(SERVER_URL)
 
-    await createCFClient(page)
-    await createCFClient(page2)
+    await createCFClient(page, { useV4Client })
+    await createCFClient(page2, { useV4Client })
 
     const roomName = `e2e-js-convo-room_${uuid()}`
     await resource.createVideoRoomResource(roomName)

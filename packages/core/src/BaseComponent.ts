@@ -164,6 +164,7 @@ export class BaseComponent<
     return this.emitter.listenerCount(event)
   }
 
+  /** @internal */
   destroy() {
     this._destroyer?.()
     this.removeAllListeners()
@@ -257,7 +258,7 @@ export class BaseComponent<
 
   /** @internal */
   protected _waitUntilSessionAuthorized(): Promise<this> {
-    const authStatus = this._sessionAuthStatus
+    const authStatus = this.select(getAuthStatus)
 
     switch (authStatus) {
       case 'authorized':

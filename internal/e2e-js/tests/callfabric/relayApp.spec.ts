@@ -15,6 +15,7 @@ test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     let playback
     const client = await SignalWire({
@@ -58,7 +59,7 @@ test.describe('CallFabric Relay Application', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     await dialAddress(page, {
       address: `/private/${topic}`,
@@ -124,6 +125,7 @@ test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect a silence', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     let playback
     const client = await SignalWire({
@@ -163,7 +165,7 @@ test.describe('CallFabric Relay Application', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     await dialAddress(page, {
       address: `/private/${topic}?channel=video`,
@@ -239,6 +241,7 @@ test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect a hangup', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const client = await SignalWire({
       host: process.env.RELAY_HOST,
@@ -275,7 +278,7 @@ test.describe('CallFabric Relay Application', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     await dialAddress(page, {
       address: `/private/${topic}?channel=video`,

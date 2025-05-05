@@ -27,9 +27,11 @@ jobs:
             demote,
             audience,
             reattach,
-            callfabric,
-            renegotiation,
             videoElement,
+            fabricV3,
+            fabricV4,
+            renegotiationV3,
+            renegotiationV4,
             v2WebRTC,
           ]
     steps:
