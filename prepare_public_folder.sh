@@ -10,7 +10,8 @@ echo "<h1>JS SDK Playground</h1>" > public/index.html
 # Fetch origin to list the branches below
 git fetch --prune --no-tags
 
-# List remote branches, skip HEAD & canary, strip "origin/"
+# Loop all the branches and - for each - build the SDK, build the playground-js
+# and copy the `dist` folder in the global `public` folder.
 for remote in $( \
   git branch -r \
     | awk '{print $1}' \
