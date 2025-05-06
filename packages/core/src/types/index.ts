@@ -1,7 +1,6 @@
 import type { EventEmitter } from '../utils/EventEmitter'
-import type { VideoAPIEvent, InternalVideoEventNames } from './video'
+import type { VideoAPIEvent } from './video'
 import type {
-  SessionEvents,
   JSONRPCRequest,
   UpdateMediaParams,
   UpdateMediaDirection,
@@ -70,6 +69,8 @@ export interface BaseConnectionContract<
   readonly cameraId: string | null
   /** The label of the video device, or null if not available */
   readonly cameraLabel: string | null
+  /** The constraints applied to the video device, or null if not available */
+  readonly cameraConstraints: MediaTrackConstraints | null
   /** Provides access to the local [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) */
   readonly localStream: MediaStream | undefined
   /** Indicates if there is any receiving audio */
@@ -90,6 +91,8 @@ export interface BaseConnectionContract<
   readonly microphoneId: string | null
   /** The label of the audio input device, or null if not available */
   readonly microphoneLabel: string | null
+  /** The constraints applied to the audio input device, or null if not available */
+  readonly microphoneConstraints: MediaTrackConstraints | null
   /**
    * Provides access to the remote [MediaStream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream)
    */
@@ -300,12 +303,17 @@ export interface WebRTCMessageParams extends SwEvent {
   params: JSONRPCRequest
 }
 
+export type SwAuthorizationStateEventName = 'signalwire.authorization.state'
+
 export type SwAuthorizationState = string
-export interface SwAuthorizationStateParams {
-  event_type: 'signalwire.authorization.state'
-  params: {
-    authorization_state: SwAuthorizationState
-  }
+
+export interface SwAuthorizationStateEventParams {
+  authorization_state: SwAuthorizationState
+}
+
+export interface SwAuthorizationStateEvent {
+  event_type: SwAuthorizationStateEventName
+  params: SwAuthorizationStateEventParams
 }
 
 // prettier-ignore
@@ -317,14 +325,9 @@ export type SwEventParams =
   | TaskEvent
   | MessagingEvent
   | VoiceCallEvent
-  | SwAuthorizationStateParams
+  | SwAuthorizationStateEvent
   | ConversationEvent
   | FabricEvent
-
-// prettier-ignore
-export type PubSubChannelEvents =
-  | InternalVideoEventNames
-  | SessionEvents
 
 export * from './video'
 export * from './utils'

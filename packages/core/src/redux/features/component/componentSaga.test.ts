@@ -28,8 +28,11 @@ describe('componentCleanupSaga', () => {
       },
     })
   })
-  it('should cleanup unused components from the store', () => {
-    return expectSaga(componentCleanupSagaWorker)
+
+  it('should cleanup unused components from the store', async () => {
+    jest.useFakeTimers()
+
+    const sagaPromise = expectSaga(componentCleanupSagaWorker)
       .withReducer(rootReducer, store.getState())
       .hasFinalState({
         components: {
@@ -43,11 +46,17 @@ describe('componentCleanupSaga', () => {
           protocol: '',
           iceServers: [],
           authStatus: 'unknown',
-          authState: undefined,
+          authorization: undefined,
+          authorizationState: undefined,
           authError: undefined,
           authCount: 0,
         },
       })
-      .run()
+      .run({ silenceTimeout: true })
+
+    jest.runAllTimers()
+    await sagaPromise
+
+    jest.useRealTimers()
   })
 })

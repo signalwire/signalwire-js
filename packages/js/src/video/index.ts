@@ -27,9 +27,6 @@ export type { MakeRoomOptions, RoomSessionOptions }
 
 /** @ignore */
 export type {
-  MemberCommandParams,
-  MemberCommandWithVolumeParams,
-  MemberCommandWithValueParams,
   DeprecatedMemberUpdatableProps,
   DeprecatedVideoMemberHandlerParams,
   VideoMemberHandlerParams,

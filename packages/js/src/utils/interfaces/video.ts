@@ -192,16 +192,6 @@ export type AddMicrophoneOptions = MediaTrackConstraints & {
   autoJoin?: boolean
 }
 
-export interface MemberCommandParams {
-  memberId?: string
-}
-export interface MemberCommandWithVolumeParams extends MemberCommandParams {
-  volume: number
-}
-export interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
-
 export interface BaseRoomInterface {
   join(): Promise<unknown>
   leave(): Promise<unknown>

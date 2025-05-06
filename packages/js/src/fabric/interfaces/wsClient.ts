@@ -1,7 +1,6 @@
-import { AudioCodecParams, UserOptions } from '@signalwire/core'
+import { AudioCodecParams, SessionOptions, UserOptions } from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
-import { ApiRequestRetriesOptions } from '../SATSession'
 
 export interface WSClientContract {
   /**
@@ -79,9 +78,18 @@ export interface HandlePushNotificationResult {
   resultType: 'inboundCall'
 }
 
-export interface CallParams {
+/**
+ * These are the default call parameters that can be passed
+ * while initiating a SignalWire client or the call
+ */
+interface DefaultCallParams {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement | null
+  /** User & UserAgent metadata */
+  userVariables?: Record<string, any>
+}
+
+export interface CallParams extends DefaultCallParams {
   /** Disable ICE UDP transport policy */
   disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */
@@ -92,8 +100,16 @@ export interface CallParams {
   negotiateAudio?: boolean
   /** Negotiate the incoming video from the RTC. Default: `true` for "video" channel. */
   negotiateVideo?: boolean
-  /** User & UserAgent metadata */
-  userVariables?: WSClientOptions['userVariables']
+  /** Whether to apply the local-overlay on top of your video. Default: `true`. */
+  applyLocalVideoOverlay?: boolean
+  /** Whether to apply an overlay on top of each member. Default: `true`. */
+  applyMemberOverlay?: boolean
+  /** Whether to mirror the local video overlay. Default: `false`. */
+  mirrorLocalVideoOverlay?: boolean
+  /** Whether to stop the camera when the member is muted. Default: `true`. */
+  stopCameraWhileMuted?: boolean
+  /** Whether to stop the microphone when the member is muted. Default: `true`. */
+  stopMicrophoneWhileMuted?: boolean
   /** audio codec with fmtp params */
   audioCodecs?: AudioCodecParams[]
 }
@@ -103,14 +119,26 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export type FabricUserOptions = Omit<UserOptions, 'onRefreshToken'> &
-  Partial<ApiRequestRetriesOptions>
+export interface ApiRequestRetriesOptions {
+  /** Increment step for each retry delay */
+  apiRequestRetriesDelayIncrement?: number
+  /** Initial retry delay */
+  apiRequestRetriesDelay?: number
+  /** Max API request retry, set to 0 disable retries */
+  maxApiRequestRetries?: number
+}
 
-export interface WSClientOptions extends FabricUserOptions {
-  /** HTML element in which to display the video stream */
-  rootElement?: HTMLElement
+export interface SATSessionOptions
+  extends ApiRequestRetriesOptions,
+    SessionOptions {}
+
+export type FabricUserOptions = Omit<
+  UserOptions,
+  'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
+> &
+  SATSessionOptions
+
+export interface WSClientOptions extends DefaultCallParams, FabricUserOptions {
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
-  /** User & UserAgent metadata */
-  userVariables?: Record<string, any>
 }

@@ -50,17 +50,17 @@ export const promoteDemoteWorker: SDKWorker<
   getLogger().debug('promoteDemoteWorker:', action.type, action.payload)
 
   yield sagaEffects.put(
-    sessionActions.updateAuthState(action.payload.authorization)
+    sessionActions.updateAuthorization(action.payload.authorization)
   )
-  const authState: VideoAuthorization = yield sagaEffects.select(
-    selectors.getAuthState
+  const authorization: VideoAuthorization = yield sagaEffects.select(
+    selectors.getAuthorization
   )
-  if (!authState) {
-    throw new Error(`Invalid authState for '${action.type}'`)
+  if (!authorization) {
+    throw new Error(`Invalid authorization for '${action.type}'`)
   }
 
   // TODO: use the new getJoinMediaParams in here
-  const { audio_allowed, video_allowed } = authState
+  const { audio_allowed, video_allowed } = authorization
   switch (action.type) {
     case 'video.member.promoted':
       /**

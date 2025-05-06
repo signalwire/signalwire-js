@@ -1,4 +1,9 @@
-import { JSONRPCRequest, actions, componentActions } from '@signalwire/core'
+import {
+  CapabilityError,
+  JSONRPCRequest,
+  actions,
+  componentActions,
+} from '@signalwire/core'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
   FabricRoomSession,
@@ -321,7 +326,7 @@ describe('FabricRoomSession', () => {
       expect(spy).toHaveBeenCalledWith({ volume: 10 })
       expect(room.execute).toHaveBeenCalledWith(
         {
-          method: 'video.member.set_output_volume',
+          method: 'call.speaker.volume.set',
           params: {
             ...actionParams,
             volume: 10,
@@ -373,7 +378,7 @@ describe('FabricRoomSession', () => {
           method: 'call.microphone.sensitivity.set',
           params: {
             ...actionParams,
-            value: 10,
+            sensitivity: 10,
           },
         },
         {}
@@ -529,75 +534,75 @@ describe('FabricRoomSession', () => {
 
     test('audioMute implementation', async () => {
       await expect(room.audioMute({ memberId: 'member-id-2' })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
 
     test('audioUnmute implementation', async () => {
       await expect(
         room.audioUnmute({ memberId: 'member-id-2' })
-      ).rejects.toThrow(/^Missing/)
+      ).rejects.toThrow(CapabilityError)
     })
 
     test('videoMute implementation', async () => {
       await expect(room.videoMute({ memberId: 'member-id-2' })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
 
     test('videoUnmute implementation', async () => {
       await expect(
         room.videoUnmute({ memberId: 'member-id-2' })
-      ).rejects.toThrow(/^Missing/)
+      ).rejects.toThrow(CapabilityError)
     })
 
     test('deaf implementation', async () => {
       await expect(room.deaf({ memberId: 'member-id-2' })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
 
     test('undeaf implementation', async () => {
       await expect(room.undeaf({ memberId: 'member-id-2' })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
 
     test('removeMember implementation', async () => {
       await expect(
         room.removeMember({ memberId: 'member-id-1' })
-      ).rejects.toThrow(/^Missing/)
+      ).rejects.toThrow(CapabilityError)
     })
 
     test('setLayout implementation', async () => {
       await expect(room.setLayout({ name: 'layout-1' })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
 
     test('setInputVolume implementation', async () => {
       await expect(room.setInputVolume({ volume: 10 })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
 
     test('setOutputVolume implementation', async () => {
       await expect(room.setOutputVolume({ volume: 10 })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
 
     test('lock implementation', async () => {
-      await expect(room.lock()).rejects.toThrow(/^Missing/)
+      await expect(room.lock()).rejects.toThrow(CapabilityError)
     })
 
     test('unlock implementation', async () => {
-      await expect(room.unlock()).rejects.toThrow(/^Missing/)
+      await expect(room.unlock()).rejects.toThrow(CapabilityError)
     })
 
     test('setInputSensitivity implementation', async () => {
       await expect(room.setInputSensitivity({ value: 10 })).rejects.toThrow(
-        /^Missing/
+        CapabilityError
       )
     })
   })

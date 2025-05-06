@@ -7,12 +7,14 @@ import {
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
-import { createFabricRoomSessionObject } from './FabricRoomSession'
+import {
+  createFabricRoomSessionObject,
+  FabricRoomSession,
+} from './FabricRoomSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
   DialParams,
-  FabricRoomSession,
   IncomingInvite,
   OnlineParams,
   HandlePushNotificationParams,
@@ -183,10 +185,11 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       negotiateAudio: params.negotiateAudio ?? true,
       negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.wsClientOptions.rootElement,
-      applyLocalVideoOverlay: true,
-      applyMemberOverlay: true,
-      stopCameraWhileMuted: true,
-      stopMicrophoneWhileMuted: true,
+      applyLocalVideoOverlay: params.applyLocalVideoOverlay,
+      applyMemberOverlay: params.applyMemberOverlay,
+      stopCameraWhileMuted: params.stopCameraWhileMuted,
+      stopMicrophoneWhileMuted: params.stopMicrophoneWhileMuted,
+      mirrorLocalVideoOverlay: params.mirrorLocalVideoOverlay,
       watchMediaPackets: false,
       destinationNumber: params.to,
       nodeId: params.nodeId,

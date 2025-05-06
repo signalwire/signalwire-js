@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "sw-test --mode=playwright --pass-with-no-tests",
+    "test:update:snapshots": "npm run dev --update-snapshots",
     "test": ""
   },
   "dependencies": {

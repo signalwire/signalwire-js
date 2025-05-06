@@ -207,11 +207,11 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
         const video = params?.video ?? videoFromConstructor
 
         // @ts-expect-error
-        const authState: VideoAuthorization = client._sessionAuthState
-        getLogger().debug('getJoinMediaParams authState?', authState)
-        if (authState && authState.type === 'video') {
+        const authorization: VideoAuthorization = client._sessionAuthorization
+        getLogger().debug('getJoinMediaParams authorization?', authorization)
+        if (authorization && authorization.type === 'video') {
           const mediaOptions = getJoinMediaParams({
-            authState,
+            authorization,
             // constructor values override the send
             sendAudio: Boolean(audio),
             sendVideo: Boolean(video),
@@ -223,7 +223,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
             return reject(
               new Error(
                 `Invalid arguments to join the room. The token used has join_as: '${
-                  authState.join_as
+                  authorization.join_as
                 }'. \n${JSON.stringify(params, null, 2)}\n`
               )
             )

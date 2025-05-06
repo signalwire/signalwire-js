@@ -34,7 +34,6 @@ import { BaseComponent } from './BaseComponent'
 import { BaseConsumer } from './BaseConsumer'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
-import { findNamespaceInPayload } from './redux/features/shared/namespace'
 import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
 import {
   MEMBER_UPDATED_EVENTS,
@@ -67,7 +66,6 @@ export {
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
-  findNamespaceInPayload,
   timeoutPromise,
   debounce,
   SWCloseEvent,

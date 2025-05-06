@@ -1,4 +1,4 @@
-import { getLogger } from "../utils/logger"
+import { getLogger } from '../utils/logger'
 
 const DEFAULT_MAX_RETRIES = 10
 const DEFAULT_INITIAL_DELAY = 100
@@ -9,7 +9,7 @@ interface AsyncRetryOptions<T> {
   maxRetries?: number
   delayFn?: () => number
   validator?: (promiseResult: T) => void | never
-  expectedErrorHandler?: (error: Error) => boolean
+  expectedErrorHandler?: (error: any) => boolean
 }
 
 interface DelayOptions {
@@ -112,7 +112,9 @@ export const asyncRetry = async <T>({
     } catch (error) {
       if (remainingAttempts-- > 0 && !expectedErrorHandler?.(error)) {
         wait = delayFn?.() ?? 0
-        getLogger().debug(`Retrying request: ${retries-remainingAttempts} X of ${retries}`)
+        getLogger().debug(
+          `Retrying request: ${retries - remainingAttempts} of ${retries}`
+        )
         return promiseAttempt()
       } else {
         throw error

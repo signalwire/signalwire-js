@@ -339,6 +339,15 @@ window.dial = async ({ reattach = false } = {}) => {
   })
   roomObj.on('call.joined', (params) => {
     console.debug('>> call.joined', params)
+
+    const selfMember = params.room_session.members.find(
+      (member) => member.member_id === params.member_id
+    )
+    if (selfMember) {
+      microphoneVolume.value = selfMember.input_volume
+      speakerVolume.value = selfMember.output_volume
+      inputSensitivity.value = selfMember.input_sensitivity
+    }
   })
   roomObj.on('call.updated', (params) => {
     console.debug('>> call.updated', params)
@@ -442,6 +451,16 @@ window.dial = async ({ reattach = false } = {}) => {
   roomObj.on('destroy', () => {
     console.debug('>> destroy')
     restoreUI()
+  })
+
+  roomObj.on('microphone.updated', (params) => {
+    console.debug('>> microphone.updated', params)
+  })
+  roomObj.on('camera.updated', (params) => {
+    console.debug('>> camera.updated', params)
+  })
+  roomObj.on('speaker.updated', (params) => {
+    console.debug('>> speaker.updated', params)
   })
 
   await call.start()
@@ -712,10 +731,10 @@ window.changeSpeaker = (select) => {
 window.rangeInputHandler = (range) => {
   switch (range.id) {
     case 'microphoneVolume':
-      roomObj.setMicrophoneVolume({ volume: range.value })
+      roomObj.setInputVolume({ volume: range.value })
       break
     case 'speakerVolume':
-      roomObj.setSpeakerVolume({ volume: range.value })
+      roomObj.setOutputVolume({ volume: range.value })
       break
     case 'inputSensitivity':
       roomObj.setInputSensitivity({ value: range.value })
