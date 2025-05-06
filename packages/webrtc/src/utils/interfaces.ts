@@ -1,4 +1,4 @@
-import type { PlaybackRate, VideoPositions } from '@signalwire/core'
+import type { AudioCodecParams, VideoPositions } from '@signalwire/core'
 import {
   BaseConnectionState,
   VideoRoomDeviceEventParams,
@@ -30,6 +30,8 @@ export interface ConnectionOptions {
   disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */
   audio?: MediaStreamConstraints['audio']
+  /** audio codec with fmtp params */
+  audioCodecs?: AudioCodecParams[]
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
   /** @internal */
@@ -86,10 +88,6 @@ export interface ConnectionOptions {
   maxIceGatheringTimeout?: number
   /** @internal */
   maxConnectionStateTimeout?: number
-  /** OPUS audio codec max playback rate in Hz */
-  opusMaxPlaybackRate?: PlaybackRate
-  /** OPUS audio codec max average bitrate in Hz */
-  opusMaxAverageBitrate?: number
   /** @internal */
   watchMediaPackets?: boolean
   /** @internal */

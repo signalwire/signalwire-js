@@ -1,20 +1,14 @@
-import { getLogger } from '@signalwire/core'
-import { BaseConnectionOptions } from '../BaseConnection'
+import { AudioCodecParams, getLogger } from '@signalwire/core'
 import sdpTransform from 'sdp-transform'
-
-const DEFAULT_MAX_BITRATE = 64000
 
 const endOfLine = '\r\n'
 
 type MediaSectionType = 'audio' | 'video'
 
-const opusPayload = 111
-const dtmfPayload = 110
-
 const _getMediaSection = (
   mutableParsedSDP: sdpTransform.SessionDescription,
-  type: 'audio' | 'video'
-) => mutableParsedSDP.media.find((medisSection) => medisSection.type == type)
+  type: MediaSectionType
+) => mutableParsedSDP.media.find((mediaSection) => mediaSection.type == type)
 
 const _stringifyParamMap = (paramMap: sdpTransform.ParamMap) =>
   Object.entries(paramMap)
@@ -142,6 +136,26 @@ export const filterAudioCodes = (
   })
 }
 
+const _mapToCodecPayload = (
+  parsedSDP: sdpTransform.SessionDescription,
+  mediaType: MediaSectionType,
+  codecs: string[]
+) => {
+  const codecPayloads = codecs.map((codec) => {
+    const mediaSection = _getMediaSection(parsedSDP, mediaType)
+    return mediaSection?.rtp.find((rtp) => rtp.codec === codec)?.payload
+  })
+
+  const filteredPayloads: number[] = codecPayloads.filter(
+    (payload) => typeof payload === 'number'
+  )
+  if (filteredPayloads.length !== codecs.length) {
+    throw new Error('Enable to map all codecs to payload numbers')
+  }
+
+  return filteredPayloads
+}
+
 const _getOrCreatePayloadFmtp = (
   mediaSection: sdpTransform.MediaDescription,
   codecPayload: number
@@ -159,7 +173,7 @@ const _getOrCreatePayloadFmtp = (
   return codecFmtp
 }
 
-export const upsertCodecParams = (
+const upsertCodecParams = (
   mutableParsedSDP: sdpTransform.SessionDescription,
   media: MediaSectionType,
   codecPayload: number,
@@ -183,41 +197,56 @@ export const upsertCodecParams = (
   fmtp.config = _stringifyParamMap(updatedParams)
 }
 
-/**
- * @returns True if the opus parameters are specified
- */
-const shouldOfferOpusOnly = (options: BaseConnectionOptions) =>
-  !!options.opusMaxAverageBitrate || !!options.opusMaxPlaybackRate
+export const sdpStereoHack = (sdp: string) => {
+  const parsedSDP = sdpTransform.parse(sdp)
+  try {
+    const opusPayload = _mapToCodecPayload(parsedSDP, 'audio', ['opus'])[0]
+    upsertCodecParams(parsedSDP, 'audio', opusPayload, {
+      stereo: '1',
+      'sprop-stereo': '1',
+    })
 
-export const updateSDPForOpus = (
+    const result = sdpTransform.write(parsedSDP)
+
+    return result
+  } catch (e) {
+    console.warn(e)
+    return sdp
+  }
+}
+
+export const useAudioCodecs = (
   sdp: string,
-  options: BaseConnectionOptions
+  audioCodecs: AudioCodecParams[]
 ) => {
   const parsedSDP = sdpTransform.parse(sdp)
-  const opusFmtpConfig: sdpTransform.ParamMap = {}
+  const audioCodecSplitted = audioCodecs.map((audioCodecParam) =>
+    audioCodecParam.split(':')
+  )
+  const audioCodecNames = audioCodecSplitted.map(
+    (audioCodecParams) => audioCodecParams[0]
+  )
+  const audioCodecPayloads = _mapToCodecPayload(
+    parsedSDP,
+    'audio',
+    audioCodecNames
+  )
+  const audioCodecParams = audioCodecSplitted.map(
+    (audioCodecParams) => audioCodecParams[1]
+  )
 
-  if (shouldOfferOpusOnly(options)) {
-    filterAudioCodes(parsedSDP, [opusPayload, dtmfPayload])
-    if (options.opusMaxPlaybackRate) {
-      opusFmtpConfig['maxplaybackrate'] = `${options.opusMaxPlaybackRate}`
-      opusFmtpConfig['maxaveragebitrate'] = `${getMaxBitrate(options)}`
+  filterAudioCodes(parsedSDP, audioCodecPayloads)
+
+  audioCodecParams.forEach((params, idx) => {
+    if (params.length) {
+      const paramsMap = sdpTransform.parseParams(params)
+      upsertCodecParams(parsedSDP, 'audio', audioCodecPayloads[idx], paramsMap)
     }
+  })
 
-    if (options.opusMaxAverageBitrate) {
-      opusFmtpConfig['maxaveragebitrate'] = `${options.opusMaxAverageBitrate}`
-    }
-  }
+  const result = sdpTransform.write(parsedSDP)
 
-  if (options.useStereo) {
-    opusFmtpConfig.stereo = '1'
-    opusFmtpConfig['sprop-stereo'] = '1'
-  }
-
-  if(Object.keys(opusFmtpConfig).length) {
-    upsertCodecParams(parsedSDP, 'audio', opusPayload, opusFmtpConfig)
-  }
-
-  return sdpTransform.write(parsedSDP)
+  return result
 }
 
 /**
@@ -294,30 +323,4 @@ export const hasMatchingSdpDirection = ({
   const expectedRemoteDirection = getOppositeSdpDirection(localDirection)
   const remoteDirection = getSdpDirection(remoteSdp, media)
   return remoteDirection === expectedRemoteDirection
-}
-
-export const getMaxBitrate = (options: BaseConnectionOptions) => {
-  if (!options.opusMaxPlaybackRate && !options.useStereo) {
-    return
-  }
-
-  let maxBitrate = DEFAULT_MAX_BITRATE
-
-  if (options.opusMaxPlaybackRate && options.opusMaxPlaybackRate <= 8000) {
-    maxBitrate = !options.useStereo ? 2000 : 4000
-  } else if (
-    options.opusMaxPlaybackRate &&
-    options.opusMaxPlaybackRate <= 16000
-  ) {
-    maxBitrate = !options.useStereo ? 32000 : 64000
-  } else if (
-    options.opusMaxPlaybackRate &&
-    options.opusMaxPlaybackRate <= 24000
-  ) {
-    maxBitrate = !options.useStereo ? 40000 : 80000
-  } else if (options.useStereo) {
-    maxBitrate = 128000
-  }
-
-  return maxBitrate
 }

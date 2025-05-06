@@ -8,7 +8,8 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
-  updateSDPForOpus,
+  useAudioCodecs,
+  sdpStereoHack,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -812,13 +813,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
-    const { googleMaxBitrate, googleMinBitrate, googleStartBitrate } =
-      this.options
-    if (localDescription.sdp) {
-      localDescription.sdp = updateSDPForOpus(
-        localDescription.sdp,
-        this.options
-      )
+    const {
+      useStereo,
+      googleMaxBitrate,
+      googleMinBitrate,
+      googleStartBitrate,
+      audioCodecs,
+    } = this.options
+    if (localDescription.sdp && useStereo) {
+      localDescription.sdp = sdpStereoHack(localDescription.sdp)
     }
     if (
       localDescription.sdp &&
@@ -833,6 +836,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         googleStartBitrate
       )
     }
+    if (localDescription.sdp && audioCodecs) {
+      localDescription.sdp = useAudioCodecs(localDescription.sdp, audioCodecs)
+    }
     // this.logger.debug(
     //   'LOCAL SDP \n',
     //   `Type: ${localDescription.type}`,
@@ -843,11 +849,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    if (remoteDescription.sdp) {
-      remoteDescription.sdp = updateSDPForOpus(
-        remoteDescription.sdp,
-        this.options
-      )
+    const { useStereo, audioCodecs } = this.options
+    if (remoteDescription.sdp && useStereo) {
+      remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
+    }
+    if (remoteDescription.sdp && audioCodecs) {
+      remoteDescription.sdp = useAudioCodecs(remoteDescription.sdp, audioCodecs)
     }
     if (remoteDescription.sdp && this.instance.localDescription) {
       remoteDescription.sdp = sdpMediaOrderHack(

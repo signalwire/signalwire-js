@@ -317,16 +317,17 @@ window.dial = async ({ reattach = false } = {}) => {
 
   if (document.getElementById('targetCodec').value.trim().length) {
     const codecPrefix = document.getElementById('targetCodec').value
-    if (document.getElementById('maxPlaybackRate').value.trim().length) {
-      dialOptions[`${codecPrefix}MaxPlaybackRate`] = parseInt(
-        document.getElementById('maxPlaybackRate').value
-      )
-    }
-    if (document.getElementById('maxAverageBitrate').value.trim().length) {
-      dialOptions[`${codecPrefix}MaxAverageBitrate`] = parseInt(
-        document.getElementById('maxAverageBitrate').value
-      )
-    }
+    dialOptions.audioCodecs = [
+      `${codecPrefix}:${
+        document.getElementById('maxPlaybackRate').value.trim().length
+          ? 'maxplaybackrate='
+          : ''
+      }${document.getElementById('maxPlaybackRate').value.trim()}${
+        document.getElementById('maxAverageBitrate').value.trim().length
+          ? ';maxaveragebitrate='
+          : ''
+      }${document.getElementById('maxAverageBitrate').value.trim()}`,
+    ]
   }
   const call = await dialer(dialOptions)
 

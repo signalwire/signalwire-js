@@ -39,30 +39,6 @@ describe('Helpers functions', () => {
                 expect(mediaConstraints.video).toEqual({})
             })
 
-            it('should return compatible audio constrains, mono - audio only', async () => {
-                const mediaConstraints = await getMediaConstraints({audio: true, video: false, opusMaxPlaybackRate: 8000, useStereo: false})
-                expect(mediaConstraints.audio).toEqual({"channelCount": 1, "sampleRate": 8000})
-                expect(mediaConstraints.video).toStrictEqual(false)
-            })
-
-            it('should return compatible audio constrains, stereo - audio only', async () => {
-                const mediaConstraints = await getMediaConstraints({audio: true, video: false, opusMaxPlaybackRate: 8000, useStereo: true})
-                expect(mediaConstraints.audio).toEqual({"channelCount": 2, "sampleRate": 8000})
-                expect(mediaConstraints.video).toStrictEqual(false)
-            })
-
-            it('should return compatible audio constrains, mono - with video', async () => {
-                const mediaConstraints = await getMediaConstraints({audio: true, video: true, opusMaxPlaybackRate: 8000, useStereo: false})
-                expect(mediaConstraints.audio).toEqual({"channelCount": 1, "sampleRate": 8000})
-                expect(mediaConstraints.video).toEqual({})
-            })
-
-            it('should return compatible audio constrains, stereo - with video', async () => {
-                const mediaConstraints = await getMediaConstraints({audio: true, video: true, opusMaxPlaybackRate: 8000, useStereo: true})
-                expect(mediaConstraints.audio).toEqual({"channelCount": 2, "sampleRate": 8000})
-                expect(mediaConstraints.video).toEqual({})
-            })
-
         });
 
         describe('SDP support audio', () => {
