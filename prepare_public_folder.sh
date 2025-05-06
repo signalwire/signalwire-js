@@ -42,5 +42,5 @@ for remote in $( \
     echo "Error building $branch"
   }
 
-echo "\n"
+  echo "\n"
 done
