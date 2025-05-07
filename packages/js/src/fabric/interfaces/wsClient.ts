@@ -110,7 +110,7 @@ export interface CallParams extends DefaultCallParams {
   stopCameraWhileMuted?: boolean
   /** Whether to stop the microphone when the member is muted. Default: `true`. */
   stopMicrophoneWhileMuted?: boolean
-  /** audio codec with fmtp params */
+  /** Audio codec with fmtp params */
   audioCodecs?: AudioCodecParams[]
 }
 
