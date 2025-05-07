@@ -44,11 +44,24 @@ export const sdpMediaOrderHack = (
   const parsedOffer = sdpTransform.parse(localOffer)
   const parsedAnswer = sdpTransform.parse(answer)
 
-  if (parsedOffer.media[0].type === parsedAnswer.media[0].type) {
+  if (
+    parsedOffer.media.length == 1 ||
+    parsedOffer.media?.[0]?.type === parsedAnswer.media?.[0]?.type ||
+    parsedOffer.media?.[0]?.type === 'audio' ||
+    !(Boolean(parsedOffer.media?.length) && Boolean(parsedAnswer.media?.length))
+  ) {
     return answer
   }
 
-  parsedAnswer.media.reverse()
+  const answerMediaIndex = parsedAnswer.media.findIndex(
+    (mediaSession) => mediaSession.type === parsedOffer.media[0].type
+  )
+  if (answerMediaIndex !== -1) {
+    ;[parsedAnswer.media[0], parsedAnswer.media[answerMediaIndex]] = [
+      parsedAnswer.media[answerMediaIndex],
+      parsedAnswer.media[0],
+    ]
+  }
 
   return sdpTransform.write(parsedAnswer)
 }
