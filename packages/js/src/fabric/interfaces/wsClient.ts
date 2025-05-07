@@ -1,4 +1,8 @@
-import { AudioCodecParams, SessionOptions, UserOptions } from '@signalwire/core'
+import {
+  AudioCodecOptions,
+  SessionOptions,
+  UserOptions,
+} from '@signalwire/core'
 import { IncomingCallHandlers } from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 
@@ -111,7 +115,7 @@ export interface CallParams extends DefaultCallParams {
   /** Whether to stop the microphone when the member is muted. Default: `true`. */
   stopMicrophoneWhileMuted?: boolean
   /** Audio codec with fmtp params */
-  audioCodecs?: AudioCodecParams[]
+  audioCodecs?: AudioCodecOptions[]
 }
 
 export interface DialParams extends CallParams {

@@ -1,4 +1,4 @@
-import type { AudioCodecParams, VideoPositions } from '@signalwire/core'
+import type { AudioCodecOptions, VideoPositions } from '@signalwire/core'
 import {
   BaseConnectionState,
   VideoRoomDeviceEventParams,
@@ -31,7 +31,7 @@ export interface ConnectionOptions {
   /** Audio constraints to use when joining the room. Default: `true`. */
   audio?: MediaStreamConstraints['audio']
   /** audio codec with fmtp params */
-  audioCodecs?: AudioCodecParams[]
+  audioCodecs?: AudioCodecOptions[]
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
   /** @internal */

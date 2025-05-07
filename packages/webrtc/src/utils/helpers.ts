@@ -47,18 +47,16 @@ export const getMediaConstraints = async (
   let audio = _getAudioConstraints(options)
   let video = _getVideoConstraints(options)
 
-  const {
-    micLabel = '',
-    micId,
-    camLabel = '',
-    camId,
-    useStereo,
-  } = options
+  const { micLabel = '', micId, camLabel = '', camId, useStereo } = options
 
   const channelCount = useStereo ? 2 : 1
-  if (typeof audio === 'boolean' && audio) {
+  if (typeof audio === 'boolean' && audio && useStereo !== undefined) {
     audio = { channelCount }
-  } else if (typeof audio === 'object') {
+  } else if (
+    typeof audio === 'object' &&
+    useStereo !== undefined &&
+    !audio.channelCount
+  ) {
     audio.channelCount = channelCount
   }
 

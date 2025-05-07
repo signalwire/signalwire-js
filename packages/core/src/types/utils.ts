@@ -148,7 +148,7 @@ export type Prettify<T> = NonNullable<unknown> & {
   [K in keyof T]: Prettify<T[K]>
 } & {}
 
-export type AudioCodecParams =
+export type AudioCodecOptions =
   | `opus:${string}`
   | `red:${string}`
   | `G722:${string}`

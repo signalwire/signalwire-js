@@ -1,4 +1,4 @@
-import { AudioCodecParams, getLogger } from '@signalwire/core'
+import { AudioCodecOptions, getLogger } from '@signalwire/core'
 import sdpTransform from 'sdp-transform'
 
 const endOfLine = '\r\n'
@@ -217,7 +217,7 @@ export const sdpStereoHack = (sdp: string) => {
 
 export const useAudioCodecs = (
   sdp: string,
-  audioCodecs: AudioCodecParams[]
+  audioCodecs: AudioCodecOptions[]
 ) => {
   const parsedSDP = sdpTransform.parse(sdp)
   const audioCodecSplitted = audioCodecs.map((audioCodecParam) =>
