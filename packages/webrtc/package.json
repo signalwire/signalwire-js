@@ -40,5 +40,8 @@
     "@signalwire/core": "4.2.1",
     "sdp-transform": "2.15.0"
   },
-  "types": "dist/cjs/webrtc/src/index.d.ts"
+  "types": "dist/cjs/webrtc/src/index.d.ts",
+  "devDependencies": {
+    "@types/sdp-transform": "^2.4.9"
+  }
 }
