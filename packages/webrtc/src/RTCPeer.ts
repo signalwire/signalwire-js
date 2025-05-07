@@ -93,7 +93,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (
       this.options.useStereo === true &&
       typeof this.options.audio === 'object' &&
-      (this.options.audio.channelCount ?? 2) != 2
+      (this.options.audio.channelCount ?? 2) !== 2
     ) {
       throw new Error('Mismatch params: useStereo, audio.channelCount')
     }
