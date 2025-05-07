@@ -20,7 +20,7 @@ describe('Helpers functions', () => {
 
       it('should return audio === true & video === false', async () => {
         const mediaConstraints = await getMediaConstraints({})
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
         expect(mediaConstraints.video).toStrictEqual(false)
       })
 
@@ -29,13 +29,13 @@ describe('Helpers functions', () => {
           audio: true,
           video: true,
         })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
         expect(mediaConstraints.video).toEqual({})
       })
 
       it('should return audio === {}', async () => {
         const mediaConstraints = await getMediaConstraints({ audio: {} })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
         expect(mediaConstraints.video).toStrictEqual(false)
       })
 
@@ -44,7 +44,7 @@ describe('Helpers functions', () => {
           audio: {},
           video: {},
         })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
         expect(mediaConstraints.video).toEqual({})
       })
     })
@@ -55,7 +55,7 @@ describe('Helpers functions', () => {
 
       it('should return audio === true', async () => {
         const mediaConstraints = await getMediaConstraints({ remoteSdp: SDP })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
       })
 
       it('should return audio === {}', async () => {
@@ -63,7 +63,7 @@ describe('Helpers functions', () => {
           audio: {},
           remoteSdp: SDP,
         })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
       })
 
       it('should return audio === {deviceId: { exact: "abcd" }}', async () => {
@@ -72,8 +72,7 @@ describe('Helpers functions', () => {
           remoteSdp: SDP,
         })
         expect(mediaConstraints.audio).toEqual({
-          deviceId: { exact: 'abcd' },
-          channelCount: 1,
+          deviceId: { exact: 'abcd' }
         })
       })
     })
@@ -136,7 +135,7 @@ describe('Helpers functions', () => {
 
       it('should return audio === true & video === false', async () => {
         const mediaConstraints = await getMediaConstraints({ remoteSdp: SDP })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
         expect(mediaConstraints.video).toStrictEqual(false)
       })
 
@@ -145,7 +144,7 @@ describe('Helpers functions', () => {
           video: true,
           remoteSdp: SDP,
         })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
         expect(mediaConstraints.video).toEqual({})
       })
 
@@ -155,7 +154,7 @@ describe('Helpers functions', () => {
           video: {},
           remoteSdp: SDP,
         })
-        expect(mediaConstraints.audio).toEqual({ channelCount: 1 })
+        expect(mediaConstraints.audio).toEqual({})
         expect(mediaConstraints.video).toEqual({})
       })
 
