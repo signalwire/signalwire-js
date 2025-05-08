@@ -5,10 +5,11 @@ import {
   filterIceServers,
 } from './utils/helpers'
 import {
-  sdpStereoHack,
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
+  useAudioCodecs,
+  sdpStereoHack,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -71,6 +72,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.options
     )
 
+    this._validateOptions()
+
     this._onIce = this._onIce.bind(this)
     this._onEndedTrackHandler = this._onEndedTrackHandler.bind(this)
 
@@ -84,6 +87,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     this.rtcConfigPolyfill = this.config
+  }
+
+  private _validateOptions() {
+    if (
+      this.options.useStereo === true &&
+      typeof this.options.audio === 'object' &&
+      (this.options.audio.channelCount ?? 2) !== 2
+    ) {
+      throw new Error('Mismatch params: useStereo, audio.channelCount')
+    }
   }
 
   get options() {
@@ -820,6 +833,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       googleMaxBitrate,
       googleMinBitrate,
       googleStartBitrate,
+      audioCodecs,
     } = this.options
     if (localDescription.sdp && useStereo) {
       localDescription.sdp = sdpStereoHack(localDescription.sdp)
@@ -837,6 +851,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         googleStartBitrate
       )
     }
+    if (localDescription.sdp && audioCodecs) {
+      localDescription.sdp = useAudioCodecs(localDescription.sdp, audioCodecs)
+    }
     // this.logger.debug(
     //   'LOCAL SDP \n',
     //   `Type: ${localDescription.type}`,
@@ -847,7 +864,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    if (remoteDescription.sdp && this.options.useStereo) {
+    const { useStereo, audioCodecs } = this.options
+    if (remoteDescription.sdp && useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
     if (remoteDescription.sdp && this.instance.localDescription) {

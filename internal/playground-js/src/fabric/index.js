@@ -307,13 +307,29 @@ window.dial = async ({ reattach = false } = {}) => {
 
   const dialer = reattach ? client.reattach : client.dial
 
-  const call = await dialer({
+  const dialOptions = {
     nodeId: steeringId,
     to: document.getElementById('destination').value,
     rootElement: document.getElementById('rootElement'),
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
-  })
+  }
+
+  if (document.getElementById('targetCodec').value.trim().length) {
+    const codecPrefix = document.getElementById('targetCodec').value
+    dialOptions.audioCodecs = [
+      `${codecPrefix}:${
+        document.getElementById('maxPlaybackRate').value.trim().length
+          ? 'maxplaybackrate='
+          : ''
+      }${document.getElementById('maxPlaybackRate').value.trim()}${
+        document.getElementById('maxAverageBitrate').value.trim().length
+          ? ';maxaveragebitrate='
+          : ''
+      }${document.getElementById('maxAverageBitrate').value.trim()}`,
+    ]
+  }
+  const call = await dialer(dialOptions)
 
   window.__call = call
   roomObj = call
@@ -907,6 +923,12 @@ window.ready(async function () {
   document.getElementById('audio').checked = true
   document.getElementById('video').checked =
     localStorage.getItem('fabric.ws.video') === 'true'
+  document.getElementById('targetCodec').value =
+    localStorage.getItem('fabric.ws.targetCodec') || ''
+  document.getElementById('maxPlaybackRate').value =
+    localStorage.getItem('fabric.ws.maxPlaybackRate') || ''
+  document.getElementById('maxAverageBitrate').value =
+    localStorage.getItem('fabric.ws.maxAverageBitrate') || ''
 
   const urlParams = new URLSearchParams(window.location.search)
   const room = urlParams.get('room')

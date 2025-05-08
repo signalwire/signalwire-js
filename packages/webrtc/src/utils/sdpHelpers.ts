@@ -1,29 +1,26 @@
-import { getLogger } from '@signalwire/core'
-import SDPUtils from 'sdp'
+import { AudioCodecOptions, getLogger } from '@signalwire/core'
+import sdpTransform from 'sdp-transform'
 
-const _isAudioLine = (line: string) => /^m=audio/.test(line)
-const _isVideoLine = (line: string) => /^m=video/.test(line)
-const _getCodecPayloadType = (line: string) => {
-  const pattern = new RegExp('a=rtpmap:(\\d+) \\w+\\/\\d+')
-  const result = line.match(pattern)
-  return result && result.length == 2 ? result[1] : null
-}
-const _normalizeSDPLines = (sdp: string) => {
-  // Make the line break consistent
-  return sdp.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-}
+const endOfLine = '\r\n'
+
+type MediaSectionType = 'audio' | 'video'
+
+const _getMediaSection = (
+  mutableParsedSDP: sdpTransform.SessionDescription,
+  type: MediaSectionType
+) => mutableParsedSDP.media.find((mediaSection) => mediaSection.type == type)
+
+const _stringifyParamMap = (paramMap: sdpTransform.ParamMap) =>
+  Object.entries(paramMap)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(';')
 
 /**
  * Check if SDP has a media section (audio or video)
  */
-export const sdpHasMediaSection = (sdp: string, media: 'audio' | 'video') => {
-  const lines = _normalizeSDPLines(sdp).split('\n')
-  for (let line of lines) {
-    if (line.startsWith(`m=${media}`)) {
-      return true
-    }
-  }
-  return false
+export const sdpHasMediaSection = (sdp: string, type: MediaSectionType) => {
+  const parsedSDP = sdpTransform.parse(sdp)
+  return !!_getMediaSection(parsedSDP, type)
 }
 
 /**
@@ -40,64 +37,33 @@ export const sdpHasAudio = (sdp: string) => {
   return sdpHasMediaSection(sdp, 'audio')
 }
 
-/**
- * Add stereo support hacking the SDP
- * @return the SDP modified
- */
-export const sdpStereoHack = (sdp: string) => {
-  const endOfLine = '\r\n'
-  const sdpLines = sdp.split(endOfLine)
-
-  const opusIndex = sdpLines.findIndex(
-    (s) => /^a=rtpmap/.test(s) && /opus\/48000/.test(s)
-  )
-  if (opusIndex < 0) {
-    return sdp
-  }
-
-  const opusPayload = _getCodecPayloadType(sdpLines[opusIndex])
-
-  const pattern = new RegExp(`a=fmtp:${opusPayload}`)
-  const fmtpLineIndex = sdpLines.findIndex((s) => pattern.test(s))
-
-  if (fmtpLineIndex >= 0) {
-    if (!/stereo=1;/.test(sdpLines[fmtpLineIndex])) {
-      // Append stereo=1 to fmtp line if not already present
-      sdpLines[fmtpLineIndex] += '; stereo=1; sprop-stereo=1'
-    }
-  } else {
-    // create an fmtp line
-    sdpLines[
-      opusIndex
-    ] += `${endOfLine}a=fmtp:${opusPayload} stereo=1; sprop-stereo=1`
-  }
-
-  return sdpLines.join(endOfLine)
-}
-
 export const sdpMediaOrderHack = (
   answer: string,
   localOffer: string
 ): string => {
-  const endOfLine = '\r\n'
-  const offerLines = localOffer.split(endOfLine)
-  const offerAudioIndex = offerLines.findIndex(_isAudioLine)
-  const offerVideoIndex = offerLines.findIndex(_isVideoLine)
+  const parsedOffer = sdpTransform.parse(localOffer)
+  const parsedAnswer = sdpTransform.parse(answer)
+
   if (
-    offerVideoIndex == -1 ||
-    offerAudioIndex == -1 ||
-    offerAudioIndex < offerVideoIndex
+    parsedOffer.media.length == 1 ||
+    parsedOffer.media?.[0]?.type === parsedAnswer.media?.[0]?.type ||
+    parsedOffer.media?.[0]?.type === 'audio' ||
+    !(Boolean(parsedOffer.media?.length) && Boolean(parsedAnswer.media?.length))
   ) {
     return answer
   }
 
-  const answerLines = answer.split(endOfLine)
-  const answerAudioIndex = answerLines.findIndex(_isAudioLine)
-  const answerVideoIndex = answerLines.findIndex(_isVideoLine)
-  const audioLines = answerLines.slice(answerAudioIndex, answerVideoIndex)
-  const videoLines = answerLines.slice(answerVideoIndex, answerLines.length - 1)
-  const beginLines = answerLines.slice(0, answerAudioIndex)
-  return [...beginLines, ...videoLines, ...audioLines, ''].join(endOfLine)
+  const answerMediaIndex = parsedAnswer.media.findIndex(
+    (mediaSession) => mediaSession.type === parsedOffer.media[0].type
+  )
+  if (answerMediaIndex !== -1) {
+    ;[parsedAnswer.media[0], parsedAnswer.media[answerMediaIndex]] = [
+      parsedAnswer.media[answerMediaIndex],
+      parsedAnswer.media[0],
+    ]
+  }
+
+  return sdpTransform.write(parsedAnswer)
 }
 
 /**
@@ -110,7 +76,6 @@ export const sdpBitrateHack = (
   min: number,
   start: number
 ) => {
-  const endOfLine = '\r\n'
   const lines = sdp.split(endOfLine)
   lines.forEach((line, i) => {
     if (/^a=fmtp:\d*/.test(line)) {
@@ -124,69 +89,177 @@ export const sdpBitrateHack = (
   return lines.join(endOfLine)
 }
 
-// const sdpAudioRemoveRTPExtensions = (sdp: string, extensionsToFilter: string[]): string => {
-//   const endOfLine = '\r\n'
-
-//   let beginLines: string[] = []
-//   let audioLines: string[] = []
-//   let videoLines: string[] = []
-//   const newLines = sdp.split(endOfLine)
-
-//   const offerAudioIndex = newLines.findIndex(_isAudioLine)
-//   const offerVideoIndex = newLines.findIndex(_isVideoLine)
-
-//   if (offerAudioIndex < offerVideoIndex) {
-//     beginLines = newLines.slice(0, offerAudioIndex)
-//     audioLines = newLines.slice(offerAudioIndex, offerVideoIndex)
-//     videoLines = newLines.slice(offerVideoIndex, (newLines.length - 1))
-//   } else {
-//     beginLines = newLines.slice(0, offerVideoIndex)
-//     audioLines = newLines.slice(offerAudioIndex, (newLines.length - 1))
-//     videoLines = newLines.slice(offerVideoIndex, offerAudioIndex)
-//   }
-
-//   const newAudioLines = audioLines.filter((line: string) => {
-//     return !(line.includes(extensionsToFilter[0]) || line.includes(extensionsToFilter[1]) || line.includes(extensionsToFilter[2]))
-//   })
-
-//   return [...beginLines, ...newAudioLines, ...videoLines, ''].join(endOfLine)
-// }
-
-// const sdpAudioRemoveRidMidExtHack = (sdp: string): string => {
-//   const extensionsToFilter = [
-//     'urn:ietf:params:rtp-hdrext:sdes:mid',
-//     'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
-//     'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
-//   ]
-//   return sdpAudioRemoveRTPExtensions(sdp, extensionsToFilter)
-// }
-
 /**
- * Check for srflx, prflx or relay candidates
- * TODO: improve the logic check private/public IP for typ host
+ * Check for srflx, prflx relay, or host with public IP candidates
  *
  * @param sdp string
  * @returns boolean
  */
 export const sdpHasValidCandidates = (sdp: string) => {
   try {
-    const regex = /typ (?:srflx|prflx|relay)/
-    const sections = SDPUtils.getMediaSections(sdp)
-    for (const section of sections) {
-      const lines = SDPUtils.splitLines(section)
-      const valid = lines.some((line) => {
-        return line.indexOf('a=candidate') === 0 && regex.test(line)
-      })
-      if (!valid) {
-        return false
-      }
-    }
-
-    return true
+    const validCandidatesTypes = ['srflx', 'prflx', 'relay']
+    const typeHostInvalidIP = [
+      /^10\./,
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+      /^192\.168\./,
+      /^127\./,
+      /^169\.254\./,
+      /^fc00:/,
+      /^fd00:/,
+      /^fe80:/,
+      /\.local$/,
+    ]
+    const parsedSDP = sdpTransform.parse(sdp)
+    return (
+      parsedSDP.media
+        // map each section to boolean, depending on having at least one valid candide
+        .map((mediaSection) =>
+          mediaSection.candidates?.some(
+            (candidate) =>
+              validCandidatesTypes.includes(candidate.type) ||
+              (candidate.type === 'host' &&
+                !typeHostInvalidIP.some((pattern) =>
+                  pattern.test(candidate.ip)
+                ))
+          )
+        )
+        // reduce to true if all sections have valid candidates
+        .reduce((acc, value) => acc && value, true)
+    )
   } catch (error) {
     getLogger().error('Error checking SDP', error)
     return false
   }
+}
+
+export const filterAudioCodes = (
+  mutableParsedSDP: sdpTransform.SessionDescription,
+  codecPayloads: number[]
+) => {
+  mutableParsedSDP.media.forEach((mediaSection) => {
+    if (mediaSection.type == 'audio') {
+      mediaSection.payloads = codecPayloads.join(' ')
+      mediaSection.rtp = mediaSection.rtp.filter((rtp) =>
+        codecPayloads.includes(rtp.payload)
+      )
+      mediaSection.fmtp = mediaSection.fmtp.filter((rtp) =>
+        codecPayloads.includes(rtp.payload)
+      )
+    }
+  })
+}
+
+const _mapToCodecPayload = (
+  parsedSDP: sdpTransform.SessionDescription,
+  mediaType: MediaSectionType,
+  codecs: string[]
+) => {
+  const codecPayloads = codecs.map((codec) => {
+    const mediaSection = _getMediaSection(parsedSDP, mediaType)
+    return mediaSection?.rtp.find((rtp) => rtp.codec === codec)?.payload
+  })
+
+  const filteredPayloads: number[] = codecPayloads.filter(
+    (payload) => typeof payload === 'number'
+  )
+  if (filteredPayloads.length !== codecs.length) {
+    throw new Error('Enable to map all codecs to payload numbers')
+  }
+
+  return filteredPayloads
+}
+
+const _getOrCreatePayloadFmtp = (
+  mediaSection: sdpTransform.MediaDescription,
+  codecPayload: number
+) => {
+  let codecFmtp = mediaSection.fmtp.find((fmtp) => fmtp.payload == codecPayload)
+
+  if (!codecFmtp) {
+    codecFmtp = {
+      payload: codecPayload,
+      config: '',
+    }
+    mediaSection.fmtp.push(codecFmtp)
+  }
+
+  return codecFmtp
+}
+
+const upsertCodecParams = (
+  mutableParsedSDP: sdpTransform.SessionDescription,
+  media: MediaSectionType,
+  codecPayload: number,
+  params: sdpTransform.ParamMap
+) => {
+  const mediaSection = _getMediaSection(mutableParsedSDP, media)
+  if (!mediaSection || !mediaSection.payloads?.includes(`${codecPayload}`)) {
+    // nothing todo, either the media doesn't exist or the codec is not included in the payloads
+    return
+  }
+
+  const fmtp = _getOrCreatePayloadFmtp(mediaSection, codecPayload)
+
+  // parse existing configs
+  let currentParams = fmtp.config.trim().length
+    ? sdpTransform.parseParams(fmtp.config)
+    : {}
+  // merge config
+  let updatedParams = { ...currentParams, ...params }
+
+  fmtp.config = _stringifyParamMap(updatedParams)
+}
+
+export const sdpStereoHack = (sdp: string) => {
+  const parsedSDP = sdpTransform.parse(sdp)
+  try {
+    const opusPayload = _mapToCodecPayload(parsedSDP, 'audio', ['opus'])[0]
+    upsertCodecParams(parsedSDP, 'audio', opusPayload, {
+      stereo: '1',
+      'sprop-stereo': '1',
+    })
+
+    const result = sdpTransform.write(parsedSDP)
+
+    return result
+  } catch (e) {
+    console.warn(e)
+    return sdp
+  }
+}
+
+export const useAudioCodecs = (
+  sdp: string,
+  audioCodecs: AudioCodecOptions[]
+) => {
+  const parsedSDP = sdpTransform.parse(sdp)
+  const audioCodecSplitted = audioCodecs.map((audioCodecParam) =>
+    audioCodecParam.split(':')
+  )
+  const audioCodecNames = audioCodecSplitted.map(
+    (audioCodecParams) => audioCodecParams[0]
+  )
+  const audioCodecPayloads = _mapToCodecPayload(
+    parsedSDP,
+    'audio',
+    audioCodecNames
+  )
+  const audioCodecParams = audioCodecSplitted.map(
+    (audioCodecParams) => audioCodecParams[1]
+  )
+
+  filterAudioCodes(parsedSDP, audioCodecPayloads)
+
+  audioCodecParams.forEach((params, idx) => {
+    if (params.length) {
+      const paramsMap = sdpTransform.parseParams(params)
+      upsertCodecParams(parsedSDP, 'audio', audioCodecPayloads[idx], paramsMap)
+    }
+  })
+
+  const result = sdpTransform.write(parsedSDP)
+
+  return result
 }
 
 /**
@@ -194,12 +267,17 @@ export const sdpHasValidCandidates = (sdp: string) => {
  * https://bloggeek.me/psa-mdns-and-local-ice-candidates-are-coming/
  */
 export const sdpRemoveLocalCandidates = (sdp: string) => {
-  const pattern = /^a=candidate.*.local\ .*/
-  const endOfLine = '\r\n'
-  return sdp
-    .split(endOfLine)
-    .filter((line) => !pattern.test(line))
-    .join(endOfLine)
+  const parsedSDP = sdpTransform.parse(sdp)
+
+  parsedSDP.media.forEach((mediaSection) => {
+    mediaSection.candidates = mediaSection.candidates?.filter(
+      (candidate) => !/\.local$/.test(candidate.ip)
+    )
+  })
+
+  const result = sdpTransform.write(parsedSDP)
+
+  return result
 }
 
 /**
@@ -210,32 +288,16 @@ export const getSdpDirection = (
   sdp: string,
   media: 'audio' | 'video'
 ): RTCRtpTransceiverDirection => {
-  const lines = _normalizeSDPLines(sdp).split('\n')
-  let inMediaSection = false
+  const parsedSDP = sdpTransform.parse(sdp)
 
-  const directions = ['inactive', 'recvonly', 'sendonly', 'sendrecv', 'stopped']
-
-  for (let line of lines) {
-    if (line.startsWith('m=')) {
-      // Check if this is the media section we're interested in
-      inMediaSection = line.startsWith(`m=${media}`)
-    } else if (inMediaSection && line.startsWith('a=')) {
-      // Check for direction attribute within this media section
-      const attr = line.substring(2)
-      if (directions.includes(attr)) {
-        // Return the found direction attribute
-        return attr as RTCRtpTransceiverDirection
-      }
-    }
-  }
-
-  // If no media section is found, return `stopped`
-  if (!inMediaSection) {
-    return 'stopped'
-  }
-
-  // If no direction attribute is found, return 'sendrecv' as per SDP standard
-  return 'sendrecv'
+  const mediaSection = parsedSDP.media.find(
+    (mediaSection) => mediaSection.type == media
+  )
+  return !mediaSection
+    ? // If no media section is found, return `stopped`
+      'stopped'
+    : // If no direction attribute is found, return 'sendrecv' as per SDP standard
+      mediaSection.direction ?? 'sendrecv'
 }
 
 /**

@@ -26,6 +26,7 @@
       href="https://signalwire.com/assets/images/favicon.ico"
     />
   </head>
+
   <body class="bg-light">
     <div class="container">
       <div class="row pt-5">
@@ -94,7 +95,53 @@
                   </label>
                 </div>
               </div>
-              <div class="d-grid gap-2">
+              <div class="card">
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="targetCodec">Codec</label>
+                    <select
+                      class="form-select"
+                      id="targetCodec"
+                      onchange="saveInLocalStorage(event)"
+                    >
+                      <option value="">Select codec...</option>
+                      <option value="opus">opus</option>
+                      <option value="PCMA">PCMA</option>
+                      <option value="PCMU">PCMU</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="maxPlaybackRate" class="mt-2"
+                      >Maximum Playback Rate</label
+                    >
+                    <select
+                      class="form-select"
+                      id="maxPlaybackRate"
+                      onchange="saveInLocalStorage(event)"
+                    >
+                      <option value="">Select playback rate...</option>
+                      <option value="8000">8000 Hz</option>
+                      <option value="12000">12000 Hz</option>
+                      <option value="16000">16000 Hz</option>
+                      <option value="24000">24000 Hz</option>
+                      <option value="48000">48000 Hz</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="maxAverageBitrate" class="mt-2"
+                      >Maximum Average Bitrate</label
+                    >
+                    <input
+                      type="number"
+                      id="maxAverageBitrate"
+                      class="form-control"
+                      placeholder="64000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-grid gap-2 mt-3">
                 <button
                   id="btnConnect"
                   class="btn btn-primary"
