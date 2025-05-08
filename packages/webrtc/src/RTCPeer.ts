@@ -868,9 +868,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (remoteDescription.sdp && useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
-    if (remoteDescription.sdp && audioCodecs) {
-      remoteDescription.sdp = useAudioCodecs(remoteDescription.sdp, audioCodecs)
-    }
     if (remoteDescription.sdp && this.instance.localDescription) {
       remoteDescription.sdp = sdpMediaOrderHack(
         remoteDescription.sdp,
