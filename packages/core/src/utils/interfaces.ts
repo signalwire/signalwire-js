@@ -406,6 +406,8 @@ export interface ExecuteExtendedOptions<InputType, OutputType, ParamsType> {
   transformReject?: ExecuteTransform<InputType, OutputType>
   /** To transform the RPC execute params */
   transformParams?: ExecuteTransform<ParamsType, ExecuteParams['params']>
+  
+  expectAuthStateUpdate?: boolean
 }
 
 export type ExecuteTransform<InputType = unknown, OutputType = unknown> = (

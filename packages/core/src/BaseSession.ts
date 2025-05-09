@@ -7,6 +7,8 @@ import {
   safeParseJson,
   isJSONRPCResponse,
   SWCloseEvent,
+  isAuthStateEvent,
+  isConnectRequest,
 } from './utils'
 import { DEFAULT_HOST, WebSocketState } from './utils/constants'
 import {
@@ -39,7 +41,7 @@ import {
   sessionReconnectingAction,
 } from './redux/actions'
 import { sessionActions } from './redux/features/session/sessionSlice'
-import { SwAuthorizationState } from '.'
+import { ExecuteOptions, SwAuthorizationState } from '.'
 import { SessionChannel, SessionChannelAction } from './redux/interfaces'
 
 export const SW_SYMBOL = Symbol('BaseSession')
@@ -65,6 +67,7 @@ export class BaseSession {
   protected _rpcConnectResult: RPCConnectResult
 
   private _requests = new Map<string, SessionRequestObject>()
+  private _waitingAuthStateUpdate: string | null = null
   private _socket: WebSocketClient | null = null
   private _host: string = DEFAULT_HOST
 
@@ -73,6 +76,7 @@ export class BaseSession {
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
   private _swConnectError = Symbol.for('sw-connect-error')
   private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
+  private _unsyncedAuthState = Symbol.for('sw-authorization_sate-unsynced')
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
@@ -286,7 +290,10 @@ export class BaseSession {
    * Send a JSON object to the server.
    * @return Promise that will resolve/reject depending on the server response
    */
-  execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
+  execute(
+    msg: JSONRPCRequest | JSONRPCResponse,
+    options?: ExecuteOptions
+  ): Promise<any> {
     if (this._status === 'disconnecting') {
       this.logger.warn(
         'Reject request because the session is disconnecting',
@@ -308,6 +315,9 @@ export class BaseSession {
     if ('params' in msg) {
       // This is a request so save the "id" to resolve the Promise later
       promise = new Promise((resolve, reject) => {
+        this._waitingAuthStateUpdate = options?.expectAuthStateChange
+          ? msg.id
+          : null
         this._requests.set(msg.id, { rpcRequest: msg, resolve, reject })
       })
     }
@@ -329,7 +339,7 @@ export class BaseSession {
       if (error === this._executeConnectionClosed) {
         throw this._executeConnectionClosed
       } else if (error === this._executeTimeoutError) {
-        if ('method' in msg && msg.method === 'signalwire.connect') {
+        if (isConnectRequest(msg)) {
           throw this._swConnectError
         }
         this._checkCurrentStatus()
@@ -451,6 +461,12 @@ export class BaseSession {
     const payload = this.decode<JSONRPCRequest | JSONRPCResponse>(event.data)
     this.logger.wsTraffic({ type: 'recv', payload })
 
+    if (this._waitingAuthStateUpdate && !isAuthStateEvent(payload)) {
+      // we lost a `signalwire.authorization.state` probably in a WS reconnection
+      // the server should always send before any other msg
+      return this._rejectRequestExpectingAuthStateUpdate()
+    }
+
     if (isJSONRPCResponse(payload)) {
       const request = this._requests.get(payload.id)
       if (request) {
@@ -492,6 +508,16 @@ export class BaseSession {
         )
         // If it's not a response, trigger the dispatch.
         this.dispatch(socketMessageAction(payload))
+    }
+  }
+
+  // stops the RTC negotiation to continue if the client authorization_state is not synced
+  private _rejectRequestExpectingAuthStateUpdate() {
+    if (this._waitingAuthStateUpdate) {
+      const request = this._requests.get(this._waitingAuthStateUpdate)
+      this._requests.delete(this._waitingAuthStateUpdate)
+      this._waitingAuthStateUpdate = null
+      return request?.reject(this._unsyncedAuthState)
     }
   }
 

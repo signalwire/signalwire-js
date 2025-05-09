@@ -181,6 +181,7 @@ export class BaseComponent<
       transformParams = identity,
       transformResolve = identity,
       transformReject = identity,
+      expectAuthStateUpdate
     }: ExecuteExtendedOptions<InputType, OutputType, ParamsType> = {
       transformParams: identity,
       transformResolve: identity,
@@ -199,6 +200,7 @@ export class BaseComponent<
           componentId: this.__uuid,
           method,
           params: transformParams(params as ParamsType),
+          options: { expectAuthStateUpdate }
         },
       })
     })
