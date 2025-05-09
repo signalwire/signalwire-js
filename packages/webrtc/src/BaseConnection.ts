@@ -21,7 +21,11 @@ import {
   UpdateMediaParams,
   UpdateMediaDirection,
 } from '@signalwire/core'
-import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
+import type {
+  ExecuteOptions,
+  ReduxComponent,
+  VertoModifyResponse,
+} from '@signalwire/core'
 import RTCPeer from './RTCPeer'
 import {
   ConnectionOptions,
@@ -260,8 +264,8 @@ export class BaseConnection<
       dialogParams: {
         id: rtcPeerId,
         destinationNumber,
-        attach: attach || this.resuming,
-        reattaching: attach || this.resuming,
+        attach: attach,
+        reattaching: attach,
         callerName,
         callerNumber,
         remoteCallerName,
@@ -344,6 +348,7 @@ export class BaseConnection<
     message: JSONRPCRequest
     callID?: string
     node_id?: string
+    options?: ExecuteOptions
     subscribe?: EventEmitter.EventNames<EventTypes>[]
   }) {
     return this.execute<InputType, OutputType>({
@@ -896,6 +901,7 @@ export class BaseConnection<
         callID: rtcPeerId,
         node_id: nodeId ?? this.options.nodeId,
         subscribe,
+        options: { expectAuthStateChange: true },
       })
       this.logger.debug('Invite response', response)
 
@@ -925,6 +931,7 @@ export class BaseConnection<
         callID: rtcPeerId,
         node_id: nodeId ?? this.options.nodeId,
         subscribe: this.getSubscriptions(),
+        options: { expectAuthStateChange: true },
       })
       this.logger.debug('Answer response', response)
 

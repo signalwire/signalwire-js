@@ -7,6 +7,8 @@ import {
   RPCReauthenticateParams,
   SATAuthorization,
   UNIFIED_CONNECT_VERSION,
+  isConnectRequest,
+  getLogger,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 import { SATSessionOptions } from './interfaces'
@@ -78,8 +80,9 @@ export class SATSession extends JWTSession {
         variation: this.options.apiRequestRetriesDelayIncrement,
       }),
       expectedErrorHandler: (error) => {
-        if (error?.message?.startsWith('Authentication failed')) {
-          // is expected to be handle by the app developer, skipping retries
+        getLogger().warn(error)
+        if (isConnectRequest(msg)) {
+          // `signalwire.connect` retries are handle by the connection
           return true
         }
         return false
