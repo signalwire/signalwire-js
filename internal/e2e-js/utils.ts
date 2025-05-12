@@ -12,6 +12,21 @@ import { expect } from './fixtures'
 import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
 import { clearInterval } from 'timers'
+import {
+  createShare,
+  deleteShare,
+  express,
+  init,
+  loadRoot,
+  PROXY_BACKEND_MODE,
+  PUBLIC_SHARE_MODE,
+  Root,
+  setLogLevel,
+  Share,
+  ShareRequest,
+} from '@openziti/zrok'
+
+import { EventEmitter } from 'stream'
 
 declare global {
   interface Window {
@@ -999,10 +1014,15 @@ export async function expectStatWithPolling(
 
 // #region Utilities for v2 WebRTC testing
 
+export type StatusEvents = 'initiated' | 'ringing' | 'answered' | 'completed'
+
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
-  codecs?: string | undefined
+  codecs?: string | undefined,
+  statusCallbackUrl?: string | undefined,
+  statusEvents?: StatusEvents[] | undefined,
+  statusCallBackMethod: 'GET' | 'POST' = 'POST'
 ) => {
   const data = new URLSearchParams()
 
@@ -1023,6 +1043,14 @@ export const createCallWithCompatibilityApi = async (
   data.append('Record', 'true')
   data.append('RecordingChannels', 'dual')
   data.append('Trim', 'do-not-trim')
+
+  if (statusCallbackUrl && statusEvents) {
+    data.append('StatusCallback', statusCallbackUrl)
+    for (const event of statusEvents) {
+      data.append('StatusEvent', event)
+    }
+    data.append('StatusCallbackMethod', statusCallBackMethod)
+  }
 
   console.log(
     'REST API URL: ',
@@ -1620,4 +1648,50 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   })
 
   expect(roomMemberId).toEqual(memberId)
+}
+
+export type ExpressApplication = ReturnType<typeof express>
+
+export class MockWebhookServer extends EventEmitter {
+  constructor(private app: ExpressApplication, private root: Root, private shr: Share) { 
+    super()
+    this.app.all('*', (req: any, res: any) => {
+      this.emit('request', req)
+      res.status(200).send({
+        success: true
+      })
+    })
+  }
+
+  listen(port?: number) {
+    return new Promise<string[] | undefined>(resolve => {
+      this.app.listen(port, () => {
+        resolve(this.shr.frontendEndpoints)
+      })
+    })
+  }
+
+  close() {
+    this.app.close()
+    return deleteShare(this.root, this.shr)
+  }
+}
+
+export const createMockWebhookServer = async () => {
+  const root = loadRoot()
+  console.log(root)
+  setLogLevel(5)
+  console.log('init', root.zitiIdentityName(root.environmentIdentityName()))
+  await init(root)
+    .catch((err: Error) => {
+        console.log('INSIDE ERROR HANDLER', err)
+    })
+  console.log('HERE >>>>')
+  const shr = await createShare(root, new ShareRequest(PUBLIC_SHARE_MODE, PROXY_BACKEND_MODE, 'http-server'))
+
+  const app = express(shr)
+  
+  const webhookServer = new MockWebhookServer(app, root, shr)
+  
+  return webhookServer
 }
