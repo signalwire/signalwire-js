@@ -88,10 +88,6 @@ export interface MemberCommandWithValueParams extends MemberCommandParams {
   value: number
 }
 
-export interface ExecuteOptions {
-  expectAuthStateChange: boolean
-}
-
 type IsAny<T> = 0 extends 1 & T ? true : false
 type IsUnknown<T> = IsAny<T> extends true
   ? false

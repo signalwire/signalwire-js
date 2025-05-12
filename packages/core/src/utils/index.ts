@@ -228,10 +228,5 @@ export const isSATAuth = (e?: Authorization): e is SATAuthorization => {
   return typeof e !== 'undefined' && 'jti' in e
 }
 
-export const isAuthStateEvent = (e: JSONRPCRequest | JSONRPCResponse) =>
-  isJSONRPCRequest(e) &&
-  e.method === 'signalwire.event' &&
-  e.params?.event_type === 'signalwire.authorization.state'
-
 export const isConnectRequest = (e: JSONRPCRequest | JSONRPCResponse) =>
   isJSONRPCRequest(e) && e.method == 'signalwire.connect'
