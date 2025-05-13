@@ -12,7 +12,7 @@ import {
   expectv2HasReceivedSilence,
   getDialConferenceLaml,
   randomizeResourceName,
-  createMockWebhookServer,
+  MockWebhookServer,
 } from '../../utils'
 
 const silenceDescription = 'should handle a call from REST API to v2 client, playing silence at answer'
@@ -496,6 +496,18 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
   test('should receive call status webhook callback', async ({
     createCustomVanillaPage,
   }) => {
+    const mockWebhookServer = new MockWebhookServer()
+    console.log('mockWebhookServer', mockWebhookServer)
+    const tunnelLink = await mockWebhookServer.listen(19898, true)
+    console.log('TUNNEL LINKS', tunnelLink)
+    expect(tunnelLink).toMatch(/^http:\/\/.*\.zrok.swire.io/)
+
+    const statusCallBacks = new Array<Record<string, unknown>>()
+
+    mockWebhookServer.on('request', (req) => {
+      statusCallBacks.push(req.body)
+    })
+
     const expectCallActive = async (page: Page) => {
       // Hangup call button locator
       const hangupCall = page.locator('#hangupCall')
@@ -513,14 +525,6 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
       // Wait for call to be hung up
       await expect(hangupCall).toBeDisabled()
     }
-    const mockWebhookServer = await createMockWebhookServer()
-    await new Promise(resolve => setTimeout(resolve, 10_000))
-    console.log('mockWebhookServer', mockWebhookServer)
-    const tunnelLinks = await mockWebhookServer.listen()
-    console.log('TUNNEL LINKS', tunnelLinks)
-    expect(tunnelLinks).not.toBeUndefined()
-    const [ statusCallBackUrl, ..._] = tunnelLinks!
-    
 
     const pageCallee = await createCustomVanillaPage({ name: '[callee]' })
     await pageCallee.goto(SERVER_URL + '/v2vanilla.html')
@@ -545,17 +549,11 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
 
     console.log('inline Laml: ', inlineLaml)
 
-    const statusCallBacks = new Array<Record<string, unknown>>()
-
-    mockWebhookServer.on('request', (req) => {
-      statusCallBacks.push(req.body)
-    })
-
     const createResult = await createCallWithCompatibilityApi(
       resource,
       inlineLaml,
       undefined,
-      statusCallBackUrl,
+      tunnelLink,
       ['initiated', 'ringing', 'answered', 'completed']
     )
     expect(createResult).toBe(201)

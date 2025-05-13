@@ -13,22 +13,10 @@ import { expect } from './fixtures'
 import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
 import { clearInterval } from 'timers'
-import {
-  createShare,
-  deleteShare,
-  express,
-  init,
-  loadRoot,
-  PROXY_BACKEND_MODE,
-  PUBLIC_SHARE_MODE,
-  Root,
-  setLogLevel,
-  Share,
-  ShareRequest,
-} from '@openziti/zrok'
-
-import { EventEmitter } from 'stream'
-
+import express, { Express, Request, Response } from 'express'
+import { Server } from 'http'
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import { EventEmitter } from 'events'
 declare global {
   interface Window {
     _SWJS: {
@@ -1651,48 +1639,78 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   expect(roomMemberId).toEqual(memberId)
 }
 
-export type ExpressApplication = ReturnType<typeof express>
-
 export class MockWebhookServer extends EventEmitter {
-  constructor(private app: ExpressApplication, private root: Root, private shr: Share) { 
+  private app: Express
+  private server: Server
+  private zrokProcess: ChildProcessWithoutNullStreams
+
+  constructor() {
     super()
-    this.app.all('*', (req: any, res: any) => {
-      this.emit('request', req)
+    this.app = express()
+    const self = this
+    this.app.all('/', (req: Request, res: Response) => {
+      self.emit('request', req)
+      console.log('request body: ', req.body)
       res.status(200).send({
         success: true
       })
     })
   }
 
-  listen(port?: number) {
-    return new Promise<string[] | undefined>(resolve => {
-      this.app.listen(port, () => {
-        resolve(this.shr.frontendEndpoints)
+  listen(port: number = 18989, startTunnel: boolean = false) {
+    return new Promise<string>((resolve) => {
+      this.server = this.app.listen(port, (err?: Error) => {
+        if(err) {
+          console.error('Error Starting MockWebhookServer: ', err)
+          process.exit(5)
+        }
+        if (startTunnel == false) {
+          resolve('Started without tunnel')
+          return
+        }
       })
+  
+      if (startTunnel) {
+        try {
+          this.zrokProcess = spawn('zrok', [
+            'share',
+            'public',
+            '--headless',
+            `${port}`
+          ])
+          this.zrokProcess.on('error', (err) => {
+            console.error('zrok process error event: ', err);
+          })
+          this.zrokProcess.stdout.on('data', (data) => {
+            console.log(`zrok processs stdout: ${data}`);
+          })
+          this.zrokProcess.stderr.on('data', (data) => {
+            // zrok is writing only to std error for every logs
+            const logObj = JSON.parse(data)
+            if (logObj.level == 'info') {
+              console.log(`zrok process stdout: ${data}`)
+              if (logObj.msg && logObj.msg.startsWith('access your zrok share at the following endpoints:')) {
+                const tunnelUrl = logObj.msg.split('\n')[1].trim()
+                resolve(tunnelUrl as string)
+              }
+            } else {
+              console.error(`zrok process stderr: ${data}`)
+            }
+          })
+          
+          this.zrokProcess.on('close', (code) => {
+            console.log(`zrok process exited with code ${code}`);
+          })
+        } catch (err) {
+          console.error('Error Starting Zrok Share: ', err)
+          process.exit(5)
+        }
+      }
     })
   }
 
   close() {
-    this.app.close()
-    return deleteShare(this.root, this.shr)
+    this.server.close()
+    this.zrokProcess.kill('SIGKILL')
   }
-}
-
-export const createMockWebhookServer = async () => {
-  const root = loadRoot()
-  console.log(root)
-  setLogLevel(5)
-  console.log('init', root.zitiIdentityName(root.environmentIdentityName()))
-  await init(root)
-    .catch((err: Error) => {
-        console.log('INSIDE ERROR HANDLER', err)
-    })
-  console.log('HERE >>>>')
-  const shr = await createShare(root, new ShareRequest(PUBLIC_SHARE_MODE, PROXY_BACKEND_MODE, 'http-server'))
-
-  const app = express(shr)
-  
-  const webhookServer = new MockWebhookServer(app, root, shr)
-  
-  return webhookServer
 }
