@@ -46,6 +46,15 @@ jobs:
         uses: ./.github/actions/playwright
         with:
           PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+      - name: Install Zrok
+        if: ${{ matrix.project == 'v2WebRTC'}}
+        run: |
+          curl -O https://github.com/openziti/zrok/releases/download/v1.0.4/zrok_1.0.4_linux_amd64.tar.gz
+          mkdir /tmp/zrok && tar -xf ./zrok_1.0.4_linux_amd64.tar.gz -C /tmp/zrok
+          mkdir -p /usr/bin && install /tmp/zrok/zrok /usr/bin/
+          zrok version
+          zrok config set apiEndpoint ${{ secrets.SW_ZROK_API_ENDPOINT }}
+          zrok enable ${{ secrets.SW_ZROK_TOKEN }}
       - name: Test
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:

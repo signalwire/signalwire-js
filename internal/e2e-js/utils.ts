@@ -1036,7 +1036,7 @@ export const createCallWithCompatibilityApi = async (
   if (statusCallbackUrl && statusEvents) {
     data.append('StatusCallback', statusCallbackUrl)
     for (const event of statusEvents) {
-      data.append('StatusEvent', event)
+      data.append('StatusCallbackEvent', event)
     }
     data.append('StatusCallbackMethod', statusCallBackMethod)
   }
@@ -1647,13 +1647,12 @@ export class MockWebhookServer extends EventEmitter {
   constructor() {
     super()
     this.app = express()
+    this.app.use(express.urlencoded({ extended: true }));
     const self = this
     this.app.all('/', (req: Request, res: Response) => {
       self.emit('request', req)
       console.log('request body: ', req.body)
-      res.status(200).send({
-        success: true
-      })
+      res.status(204).end()
     })
   }
 
@@ -1706,6 +1705,16 @@ export class MockWebhookServer extends EventEmitter {
           process.exit(5)
         }
       }
+    })
+  }
+
+  waitFor(status: StatusEvents) {
+    return new Promise((resolve) => {
+      this.on('request', (req: Request) => {
+        if (req.body.CallStatus === status) {
+          resolve(req.body)
+        }
+      })
     })
   }
 
