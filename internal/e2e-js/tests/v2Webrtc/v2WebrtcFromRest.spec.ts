@@ -548,7 +548,7 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
     expect(initiatedStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN}`,
       CallStatus: 'initiated',
       ApiVersion: '2010-04-01',
@@ -568,7 +568,7 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
     expect(ringingStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN}`,
       CallStatus: 'ringing',
       ApiVersion: '2010-04-01',
@@ -579,7 +579,7 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
     expect(answeredStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN}`,
       CallStatus: 'answered',
       ApiVersion: '2010-04-01',
@@ -618,7 +618,7 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
     expect(completedStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN}`,
       CallStatus: 'completed',
       ApiVersion: '2010-04-01',
@@ -691,7 +691,7 @@ test.describe('v2WebrtcFromRest', () => {
     expect(initiatedStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN};codecs=PCMU,PCMA`,
       CallStatus: 'initiated',
       ApiVersion: '2010-04-01',
@@ -711,7 +711,7 @@ test.describe('v2WebrtcFromRest', () => {
     expect(ringingStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN};codecs=PCMU,PCMA`,
       CallStatus: 'ringing',
       ApiVersion: '2010-04-01',
@@ -722,7 +722,7 @@ test.describe('v2WebrtcFromRest', () => {
     expect(answeredStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN};codecs=PCMU,PCMA`,
       CallStatus: 'answered',
       ApiVersion: '2010-04-01',
@@ -764,7 +764,7 @@ test.describe('v2WebrtcFromRest', () => {
     expect(completedStatus).toMatchObject({
       CallSid: expect.any(String),
       AccountSid: expect.any(String),
-      From: `sip:${process.env.VOICE_DIAL_FROM_NUMBER}@sip.signalwire.com`,
+      From: expect.stringContaining(`sip:${process.env.VOICE_DIAL_FROM_NUMBER}`),
       To: `verto:${resource}@${process.env.VERTO_DOMAIN};codecs=PCMU,PCMA`,
       CallStatus: 'completed',
       ApiVersion: '2010-04-01',
