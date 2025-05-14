@@ -48,6 +48,9 @@ jobs:
       - name: Install Zrok
         if: ${{ matrix.project == 'v2WebRTC'}}
         uses: ./.github/actions/zrok
+        with:
+          ZROK_API_ENDPOINT: ${{ secrets.SW_ZROK_API_ENDPOINT }}
+          ZROK_TOKEN: ${{ secrets.SW_ZROK_TOKEN }}
       - name: Test
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
