@@ -53,7 +53,7 @@ jobs:
           mkdir -p /usr/local/bin && install /tmp/zrok/zrok /usr/local/bin/
           zrok version
           zrok config set apiEndpoint ${{ secrets.SW_ZROK_API_ENDPOINT }}
-          zrok enable ${{ secrets.SW_ZROK_TOKEN }}
+          zrok enable ${{ secrets.SW_ZROK_TOKEN }} --headless
       - name: Test
         run: npm run -w=@sw-internal/e2e-js dev -- --project ${{ matrix.project }}
         env:
