@@ -1,24 +1,44 @@
+import jwtDecode from 'jwt-decode'
 import {
   asyncRetry,
+  BaseJWTSession,
+  getLogger,
   increasingDelay,
   JSONRPCRequest,
   JSONRPCResponse,
+  RPCConnect,
+  RPCConnectParams,
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
-import { JWTSession } from '../JWTSession'
-import { SATSessionOptions } from './interfaces/wsClient'
+import { JWTHeader } from '../../JWTSession'
+import { SwCloseEvent } from '../../utils/CloseEvent'
+import { decodeAuthState } from '../utils/authStateCodec'
+import { SATSessionOptions } from '../interfaces/wsClient'
 
 /**
  * SAT Session is for the Call Fabric SDK
  */
-export class SATSession extends JWTSession {
+export class SATSessionV4 extends BaseJWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
+  public WebSocketConstructor = WebSocket
+  public CloseEventConstructor = SwCloseEvent
+  public agent = process.env.SDK_PKG_AGENT!
 
   constructor(public options: SATSessionOptions) {
-    super(options)
+    let decodedJwt: JWTHeader = {}
+    try {
+      decodedJwt = jwtDecode(options.token, { header: true })
+    } catch (e) {
+      getLogger().debug('[SATSession] error decoding the JWT')
+    }
+
+    super({
+      ...options,
+      host: decodedJwt?.ch || options.host,
+    })
   }
 
   override get signature() {
@@ -29,13 +49,35 @@ export class SATSession extends JWTSession {
     return undefined
   }
 
-  override async _checkTokenExpiration() {
-    /**
-     * noop
-     *
-     * The Call Fabric SDK does not attach any timer and
-     * does not emit any events to inform the user about the token expiry.
-     */
+  /**
+   * Authenticate with the SignalWire Network using SAT
+   * @return Promise<void>
+   */
+  override async authenticate() {
+    let authState: string | undefined
+    let protocol: string | undefined
+
+    if (this.options.authState?.length) {
+      const decoded = decodeAuthState(this.options.authState)
+      authState = decoded.authState
+      protocol = decoded.protocol
+    }
+
+    const params: RPCConnectParams = {
+      ...this._connectParams,
+      authentication: {
+        jwt_token: this.options.token,
+      },
+      ...(authState && { authorization_state: authState }),
+      ...(protocol && { protocol }),
+    }
+
+    try {
+      this._rpcConnectResult = await this.execute(RPCConnect(params))
+    } catch (error) {
+      this.logger.debug('SATSession authenticate error', error)
+      throw error
+    }
   }
 
   /**
@@ -65,6 +107,7 @@ export class SATSession extends JWTSession {
         ...reauthResponse,
       }
     } catch (error) {
+      this.logger.debug('Session Reauthenticate Failed', error)
       throw error
     }
   }

@@ -316,7 +316,6 @@ export interface SwAuthorizationStateEvent {
   params: SwAuthorizationStateEventParams
 }
 
-// prettier-ignore
 export type SwEventParams =
   | VideoAPIEvent
   | WebRTCMessageParams

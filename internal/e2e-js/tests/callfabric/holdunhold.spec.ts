@@ -15,6 +15,7 @@ test.describe('CallFabric Hold/Unhold Call', () => {
   test('should dial a call and be able to hold/unhold the call', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const pageOne = await createCustomPage({ name: '[page-one]' })
     const pageTwo = await createCustomPage({ name: '[page-two]' })
@@ -25,7 +26,7 @@ test.describe('CallFabric Hold/Unhold Call', () => {
     await resource.createVideoRoomResource(roomName)
 
     await test.step('[page-one] should create a client and dial a call', async () => {
-      await createCFClient(pageOne)
+      await createCFClient(pageOne, { useV4Client })
       await dialAddress(pageOne, {
         address: `/public/${roomName}?channel=video`,
       })
@@ -33,7 +34,7 @@ test.describe('CallFabric Hold/Unhold Call', () => {
     })
 
     await test.step('[page-two] should create a client and dial a call', async () => {
-      await createCFClient(pageTwo)
+      await createCFClient(pageTwo, { useV4Client })
       await dialAddress(pageTwo, {
         address: `/public/${roomName}?channel=video`,
       })

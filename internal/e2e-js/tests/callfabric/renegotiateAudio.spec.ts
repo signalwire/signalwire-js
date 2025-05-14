@@ -15,6 +15,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
   test('it should enable audio with "sendrecv" and then disable with "inactive"', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -22,7 +23,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const roomName = `e2e-room-audio-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address with video only channel
     await dialAddress(page, {
@@ -100,6 +101,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
   test('it should enable audio with "sendonly" and then disable with "recvonly"', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -107,7 +109,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const roomName = `e2e-room-audio-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address with video only channel
     await dialAddress(page, {
@@ -169,6 +171,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
   test('it should enable audio with "recvonly" and then disable with "inactive"', async ({
     createCustomPage,
     resource,
+    useV4Client,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -176,7 +179,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const roomName = `e2e-room-audio-reneg-${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    await createCFClient(page)
+    await createCFClient(page, { useV4Client })
 
     // Dial an address with video only channel
     await dialAddress(page, {

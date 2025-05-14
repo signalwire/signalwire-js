@@ -2,6 +2,7 @@ import type {
   DialParams,
   FabricRoomSession,
   SignalWire,
+  SignalWireV4,
   SignalWireClient,
   SignalWireContract,
   Video,
@@ -21,7 +22,9 @@ declare global {
   interface Window {
     _SWJS: {
       SignalWire: typeof SignalWire
+      SignalWireV4: typeof SignalWireV4
     }
+    _authState?: string
     _client?: SignalWireClient
   }
 }
@@ -468,6 +471,8 @@ export const leaveRoom = async (page: Page) => {
 
 interface CreateCFClientParams {
   attachSagaMonitor?: boolean
+  useV4Client?: boolean
+  useAuthState?: boolean
 }
 
 export const createCFClient = async (
@@ -480,7 +485,11 @@ export const createCFClient = async (
     process.exit(4)
   }
 
-  const { attachSagaMonitor = false } = params || {}
+  const {
+    attachSagaMonitor = false,
+    useV4Client = false,
+    useAuthState = true,
+  } = params || {}
 
   const swClient = await page.evaluate(
     async (options) => {
@@ -511,11 +520,21 @@ export const createCFClient = async (
         },
       }
 
-      const SignalWire = window._SWJS.SignalWire
+      const SignalWire = options.useV4Client
+        ? window._SWJS.SignalWireV4
+        : window._SWJS.SignalWire
+
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         debug: { logWsTraffic: true },
+        maxApiRequestRetries: 5,
+        onAuthStateChange: (state) => {
+          sessionStorage.setItem('authState', state)
+        },
+        ...(options.useAuthState && {
+          authState: sessionStorage.getItem('authState')!,
+        }),
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
@@ -526,6 +545,8 @@ export const createCFClient = async (
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
       attachSagaMonitor,
+      useV4Client,
+      useAuthState,
     }
   )
 

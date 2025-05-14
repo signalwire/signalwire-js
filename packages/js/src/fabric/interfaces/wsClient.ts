@@ -117,6 +117,11 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
+export interface BuildOutboundCallParams extends DialParams {
+  prevCallId?: string
+  attach?: boolean
+}
+
 export interface ApiRequestRetriesOptions {
   /** Increment step for each retry delay */
   apiRequestRetriesDelayIncrement?: number

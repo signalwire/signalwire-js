@@ -67,6 +67,9 @@ export const roomSubscribedWorker: SDKWorker<
   yield sagaEffects.put(
     componentActions.upsert({
       id: action.payload.call_id,
+      ...('origin_call_id' in action.payload && {
+        originCallId: action.payload.origin_call_id,
+      }),
       roomId: action.payload.room_session.room_id,
       roomSessionId: roomSessionId,
       memberId: action.payload.member_id,
