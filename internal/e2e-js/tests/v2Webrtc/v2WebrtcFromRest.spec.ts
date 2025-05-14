@@ -480,16 +480,6 @@ test.describe('v2WebrtcFromRest422', () => {
     expect(createResult).toBe(422)
     console.info('END: ', get422Description)
   })
-
-  test('should receive call status webhook callback', async ({
-    createCustomVanillaPage,
-  }) => {
-    const mockWebhookServer = await createMockWebhookServer()
-    const tunnelLinks = await mockWebhookServer.listen()
-    expect(tunnelLinks).not.toBeUndefined()
-    const [ statusCallBackUrl, ..._] = tunnelLinks!
-    
-  })
 })
 
 const callStatusWebhookDescription = 'should receive call status webhook callback'
