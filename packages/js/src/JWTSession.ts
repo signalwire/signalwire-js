@@ -90,7 +90,7 @@ export class JWTSession extends BaseJWTSession {
   }
 
   protected override _onSocketClose(event: SWCloseEvent) {
-    if (this.status === 'unknown' || this.status === 'disconnected') {
+    if (this.status === 'disconnected') {
       const { protocolKey, authStateKey, callIdKey } = sessionStorageManager(
         this.options.token
       )
