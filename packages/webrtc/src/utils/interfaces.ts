@@ -90,13 +90,14 @@ export interface ConnectionOptions {
   watchMediaPackets?: boolean
   /** @internal */
   watchMediaPacketsTimeout?: number
-
   /** @internal */
   pingSupported?: boolean
   /** @internal */
   prevCallId?: string
   /** @internal */
   nodeId?: string
+  /** @internal */
+  fromFabricAddressId?: string
 
   layout?: string
   positions?: VideoPositions

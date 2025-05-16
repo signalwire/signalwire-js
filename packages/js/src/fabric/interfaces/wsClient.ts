@@ -110,6 +110,8 @@ export interface CallParams extends DefaultCallParams {
   stopCameraWhileMuted?: boolean
   /** Whether to stop the microphone when the member is muted. Default: `true`. */
   stopMicrophoneWhileMuted?: boolean
+  /** Fabric address ID matching one of the subscriber’s addresses to attribute conversation API events in the INVITE. */
+  fromFabricAddressId?: string
 }
 
 export interface DialParams extends CallParams {
