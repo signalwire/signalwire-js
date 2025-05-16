@@ -9,9 +9,11 @@ import {
   UNIFIED_CONNECT_VERSION,
   isConnectRequest,
   getLogger,
+  isVertoInvite,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 import { SATSessionOptions } from './interfaces'
+import { SYMBOL_EXECUTE_CONNECTION_CLOSED } from 'packages/core/src/utils/constants'
 
 /**
  * SAT Session is for the Call Fabric SDK
@@ -73,7 +75,10 @@ export class SATSession extends JWTSession {
 
   override async execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
     return asyncRetry({
-      asyncCallable: () => super.execute(msg),
+      asyncCallable: async () => {
+        await this._waitConnected() // avoid queuing a retry
+        return super.execute(msg)
+      },
       maxRetries: this.options.maxApiRequestRetries,
       delayFn: increasingDelay({
         initialDelay: this.options.apiRequestRetriesDelay,
@@ -83,6 +88,11 @@ export class SATSession extends JWTSession {
         getLogger().warn(error)
         if (isConnectRequest(msg)) {
           // `signalwire.connect` retries are handle by the connection
+          return true
+        }
+        if (isVertoInvite(msg) && error === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
+          // we can't retry verto.invites in the transport layer
+          getLogger().debug('skip verto.invite retry on error:', error)
           return true
         }
         return false

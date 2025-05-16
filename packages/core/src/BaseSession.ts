@@ -9,7 +9,13 @@ import {
   SWCloseEvent,
   isConnectRequest,
 } from './utils'
-import { DEFAULT_HOST, WebSocketState } from './utils/constants'
+import {
+  DEFAULT_HOST,
+  SYMBOL_CONNECT_ERROR,
+  SYMBOL_EXECUTE_CONNECTION_CLOSED,
+  SYMBOL_EXECUTE_TIMEOUT,
+  WebSocketState,
+} from './utils/constants'
 import {
   RPCConnect,
   RPCConnectParams,
@@ -70,15 +76,16 @@ export class BaseSession {
   private _host: string = DEFAULT_HOST
 
   private _executeTimeoutMs = 10 * 1000
-  private _executeTimeoutError = Symbol.for('sw-execute-timeout')
+  private _executeTimeoutError = SYMBOL_EXECUTE_TIMEOUT
   private _executeQueue: Set<JSONRPCRequest | JSONRPCResponse> = new Set()
-  private _swConnectError = Symbol.for('sw-connect-error')
-  private _executeConnectionClosed = Symbol.for('sw-execute-connection-closed')
+  private _swConnectError = SYMBOL_CONNECT_ERROR
+  private _executeConnectionClosed = SYMBOL_EXECUTE_CONNECTION_CLOSED
 
   private _checkPingDelay = 15 * 1000
   private _checkPingTimer: any = null
   private _reconnectTimer: ReturnType<typeof setTimeout>
   private _status: SessionStatus = 'unknown'
+  private _resolveWaitConnected: null | (() => void) = null
   private _sessionChannel: SessionChannel
   private wsOpenHandler: (event: Event) => void
   private wsCloseHandler: (event: SWCloseEvent) => void
@@ -180,6 +187,16 @@ export class BaseSession {
 
   get ready() {
     return !Boolean(this.idle || !this.connected)
+  }
+
+  protected async _waitConnected() {
+    return new Promise<void>((resolve) => {
+      if (this.connected) {
+        resolve()
+      } else {
+        this._resolveWaitConnected = resolve
+      }
+    })
   }
 
   set token(token: string) {
@@ -401,6 +418,7 @@ export class BaseSession {
       this._clearTimers()
       await this.authenticate()
       this._status = 'connected'
+      this._resolveWaitConnected?.()
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
@@ -446,6 +464,7 @@ export class BaseSession {
     this._requests.forEach(({ reject }) => {
       reject(this._executeConnectionClosed)
     })
+    this._requests.clear()
   }
 
   protected _onSocketMessage(event: MessageEvent) {

@@ -230,3 +230,8 @@ export const isSATAuth = (e?: Authorization): e is SATAuthorization => {
 
 export const isConnectRequest = (e: JSONRPCRequest | JSONRPCResponse) =>
   isJSONRPCRequest(e) && e.method == 'signalwire.connect'
+
+export const isVertoInvite = (e: JSONRPCRequest | JSONRPCResponse) =>
+  isJSONRPCRequest(e) &&
+  e.method == 'webrtc.verto' &&
+  e.params?.message.method === 'verto.invite'

@@ -13,12 +13,7 @@ export const executeActionWorker: SDKWorker<ExecuteActionParams> = function* (
 ): SagaIterator {
   const { initialState, onDone, onFail, getSession } = options
 
-  const {
-    requestId: id,
-    method,
-    params,
-    options: executeOptions,
-  } = initialState
+  const { requestId: id, method, params } = initialState
 
   const session = getSession()
 
@@ -32,7 +27,7 @@ export const executeActionWorker: SDKWorker<ExecuteActionParams> = function* (
   try {
     let message = RPCExecute({ id, method, params })
 
-    const response = yield call(session.execute, message, executeOptions)
+    const response = yield call(session.execute, message)
     onDone?.(response)
   } catch (error) {
     getLogger().warn('Execute error: ', error)
