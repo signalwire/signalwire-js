@@ -10,11 +10,10 @@ import {
   isConnectRequest,
   getLogger,
   isVertoInvite,
+  SYMBOL_EXECUTE_CONNECTION_CLOSED,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 import { SATSessionOptions } from './interfaces'
-import { SYMBOL_EXECUTE_CONNECTION_CLOSED } from 'packages/core/src/utils/constants'
-
 /**
  * SAT Session is for the Call Fabric SDK
  */
