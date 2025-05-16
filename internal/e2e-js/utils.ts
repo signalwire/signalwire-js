@@ -157,6 +157,41 @@ export const createTestSATToken = async () => {
   return data.token
 }
 
+interface GuestSATTokenRequest {
+  allowed_addresses: string[];
+}
+export const createGuestSATToken = async (bodyData: GuestSATTokenRequest) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/guests/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(bodyData),
+    }
+  )
+  const data = await response.json()
+  return data.token
+}
+
+export const getResourceAddresses = async (resource_id: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/${resource_id}/addresses`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+    }
+  )
+  const data = await response.json()
+  return data
+}
+
+
 interface CreateTestCRTOptions {
   ttl: number
   member_id: string
@@ -474,7 +509,24 @@ export const createCFClient = async (
   page: Page,
   params?: CreateCFClientParams
 ) => {
-  const sat = await createTestSATToken()
+  const sat = await createTestSATToken();
+  return createCFClientWithToken(page, sat, params);
+}
+
+export const createGuestCFClient = async (
+  page: Page,
+  bodyData: GuestSATTokenRequest,
+  params?: CreateCFClientParams
+) => {
+  const sat = await createGuestSATToken(bodyData);
+  return createCFClientWithToken(page, sat, params);
+}
+
+const createCFClientWithToken = async (
+  page: Page,
+  sat: string | null,
+  params?: CreateCFClientParams
+) => {
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
     process.exit(4)
@@ -511,6 +563,7 @@ export const createCFClient = async (
         },
       }
 
+      // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
@@ -519,6 +572,7 @@ export const createCFClient = async (
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
+      // @ts-expect-error
       window._client = client
       return client
     },
@@ -1437,6 +1491,12 @@ export interface Resource {
   type: string
   display_name: string
   created_at: string
+  cxml_application?: CXMLApplication
+}
+
+export interface CXMLApplication {
+  id: string
+  // and other things
 }
 
 export const createVideoRoomResource = async (name?: string) => {
@@ -1483,6 +1543,64 @@ export const createSWMLAppResource = async ({
   )
   const data = (await response.json()) as Resource
   console.log('>> Resource SWML App created:', data.id)
+  return data
+}
+
+export interface CreatecXMLScriptParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createcXMLScriptResource = async ({
+  name,
+  contents,
+}: CreatecXMLScriptParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-cxml-script_${uuid()}`,
+        handle_calls_using: 'script',
+        call_handler_script: contents.call_handler_script,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('----> data:', data)
+  console.log('>> Resource cXML Script created:', data.id)
+  return data
+}
+
+export interface CreatecXMLExternalURLParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createcXMLExternalURLResource = async ({
+  name,
+  contents,
+}: CreatecXMLExternalURLParams) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify({
+        name: name ?? `e2e-cxml-external-url_${uuid()}`,
+        handle_calls_using: 'external_url',
+        call_handler_url: contents.call_handler_url,
+      }),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('----> data:', data)
+  console.log('>> Resource cXML External URL created:', data.id)
   return data
 }
 
