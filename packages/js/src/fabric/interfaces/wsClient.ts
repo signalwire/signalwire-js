@@ -1,5 +1,8 @@
 import { SessionOptions, UserOptions } from '@signalwire/core'
-import { IncomingCallHandlers } from './incomingCallManager'
+import {
+  IncomingCallHandler,
+  IncomingCallHandlers,
+} from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 
 export interface WSClientContract {
@@ -54,7 +57,13 @@ export interface WSClientContract {
 }
 
 export interface OnlineParams {
-  incomingCallHandlers: IncomingCallHandlers
+  incomingCallHandlers: {
+  /** @deprecated */
+  all?: IncomingCallHandler
+  /** @deprecated */
+  pushNotification?: IncomingCallHandler
+  websocket?: IncomingCallHandler
+}
 }
 
 export interface PushNotificationPayload {
@@ -72,7 +81,10 @@ export interface PushNotificationPayload {
   decrypted: Record<string, any>
 }
 
-export type HandlePushNotificationParams = PushNotificationPayload
+export interface HandlePushNotificationParams {
+  pushNotificationPayload: PushNotificationPayload
+  incomingCallHandler: IncomingCallHandler
+}
 
 export interface HandlePushNotificationResult {
   resultType: 'inboundCall'

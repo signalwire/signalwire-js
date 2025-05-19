@@ -328,14 +328,17 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {
+    const { pushNotificationPayload, incomingCallHandler } = params
+    this._incomingCallManager.setNotificationHandlers({ pushNotification: incomingCallHandler })
+    
     return new Promise<HandlePushNotificationResult>(
       async (resolve, reject) => {
-        const { decrypted, type } = params
+        const { decrypted, type } = pushNotificationPayload
         if (type !== 'call_invite') {
-          this.logger.warn('Unknown notification type', params)
+          this.logger.warn('Unknown notification type', pushNotificationPayload)
           reject('Unknown notification type')
         }
-        this.logger.debug('handlePushNotification', params)
+        this.logger.debug('handlePushNotification', pushNotificationPayload)
         const {
           params: { params: payload },
           node_id: nodeId,
@@ -379,6 +382,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
    * Mark the client as 'online' to receive calls over WebSocket
    */
   public async online({ incomingCallHandlers }: OnlineParams) {
+    if (incomingCallHandlers.all || incomingCallHandlers.pushNotification) {
+      this.logger.warn(`Don't use online with Push Notification`)
+    }
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     return this.execute<unknown, void>({
       method: 'subscriber.online',
