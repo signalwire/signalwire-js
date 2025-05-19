@@ -329,8 +329,10 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
 
   public handlePushNotification(params: HandlePushNotificationParams) {
     const { pushNotificationPayload, incomingCallHandler } = params
-    this._incomingCallManager.setNotificationHandlers({ pushNotification: incomingCallHandler })
-    
+    this._incomingCallManager.setNotificationHandlers({
+      pushNotification: incomingCallHandler,
+    })
+
     return new Promise<HandlePushNotificationResult>(
       async (resolve, reject) => {
         const { decrypted, type } = pushNotificationPayload
@@ -383,7 +385,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
    */
   public async online({ incomingCallHandlers }: OnlineParams) {
     if (incomingCallHandlers.all || incomingCallHandlers.pushNotification) {
-      this.logger.warn(`Don't use online with Push Notification`)
+      this.logger.warn(
+        `Make sure the device is not register to receive Push Notification while is online`
+      )
     }
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     return this.execute<unknown, void>({
