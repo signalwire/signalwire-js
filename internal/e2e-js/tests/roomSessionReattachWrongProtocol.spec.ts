@@ -9,8 +9,7 @@ import {
 } from '../utils'
 
 test.describe('RoomSessionReattachWrongProtocol', () => {
-  // FIXME we're not cleaning the session set when the WS disconnects just after sending the signalwire.connect
-  test.skip('should handle joining a room, reattaching with wrong protocol ID and then leaving the room', async ({
+  test('should handle joining a room, reattaching with wrong protocol ID and then leaving the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[reattach-bad-auth]' })
