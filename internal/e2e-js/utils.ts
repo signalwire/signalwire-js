@@ -1467,7 +1467,7 @@ export const createSWMLAppResource = async ({
   contents,
 }: CreateSWMLAppResourceParams) => {
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/swml_applications`,
+    `https://${process.env.API_HOST}/api/fabric/resources/swml_webhooks`,
     {
       method: 'POST',
       headers: {
