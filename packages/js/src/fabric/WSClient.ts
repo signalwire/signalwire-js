@@ -328,19 +328,19 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {
-    const { pushNotificationPayload, incomingCallHandler } = params
+    const { incomingCallHandler } = params
     this._incomingCallManager.setNotificationHandlers({
       pushNotification: incomingCallHandler,
     })
 
     return new Promise<HandlePushNotificationResult>(
       async (resolve, reject) => {
-        const { decrypted, type } = pushNotificationPayload
+        const { decrypted, type } = params
         if (type !== 'call_invite') {
-          this.logger.warn('Unknown notification type', pushNotificationPayload)
+          this.logger.warn('Unknown notification type', params)
           reject('Unknown notification type')
         }
-        this.logger.debug('handlePushNotification', pushNotificationPayload)
+        this.logger.debug('handlePushNotification', params)
         const {
           params: { params: payload },
           node_id: nodeId,
