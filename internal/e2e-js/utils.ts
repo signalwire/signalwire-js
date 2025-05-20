@@ -1467,7 +1467,7 @@ export const createSWMLAppResource = async ({
   contents,
 }: CreateSWMLAppResourceParams) => {
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/swml_applications`,
+    `https://${process.env.API_HOST}/api/fabric/resources/swml_scripts`,
     {
       method: 'POST',
       headers: {
@@ -1476,8 +1476,7 @@ export const createSWMLAppResource = async ({
       },
       body: JSON.stringify({
         name: name ?? `e2e-swml-app_${uuid()}`,
-        handle_calls_using: 'script',
-        call_handler_script: JSON.stringify(contents),
+        contents: JSON.stringify(contents),
       }),
     }
   )
