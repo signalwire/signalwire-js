@@ -386,7 +386,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   public async online({ incomingCallHandlers }: OnlineParams) {
     if (incomingCallHandlers.all || incomingCallHandlers.pushNotification) {
       this.logger.warn(
-        `Make sure the device is not register to receive Push Notification while is online`
+        `Make sure the device is not registered to receive Push Notifications while it is online`
       )
     }
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
