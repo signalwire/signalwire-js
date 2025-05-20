@@ -15,7 +15,7 @@ git fetch --no-tags
 for branch_name in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
   # Remove `remote/` from refname
   branch=${branch_name/origin\//}
-  if [[ $branch == "canary" ]]; then
+  if [[ $branch == "canary" || $branch == "origin"]]; then
     # canary branch is too old!
     echo "Skip canary branch"
     continue
