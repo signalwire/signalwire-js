@@ -40,7 +40,10 @@ const callfabricTests = [
   'address.spec.ts',
   'cleanup.spec.ts',
   'conversation.spec.ts',
+  'deviceEvent.spec.ts',
+  'deviceState.spec.ts',
   'holdunhold.spec.ts',
+  'mirrorVideo.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
   'relayApp.spec.ts',
@@ -59,7 +62,7 @@ const videoElementTests = [
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
-const useDesktopChrome = {
+const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
   launchOptions: {
     // devtools: true,
@@ -85,6 +88,7 @@ const config: PlaywrightTestConfig = {
   // Forbid test.only on CI
   forbidOnly: !!process.env.CI,
   workers: 1,
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   projects: [
     {
       name: 'default',

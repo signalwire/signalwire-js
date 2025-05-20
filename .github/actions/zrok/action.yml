@@ -1,0 +1,26 @@
+name: Zrok
+description: Install zrok
+
+inputs:
+  ZROK_VERSION:
+    required: false
+    description: Zrok version to use
+    default: 1.0.4
+  ZROK_API_ENDPOINT:
+    required: true
+    description: Zrok apiEndpoint
+  ZROK_TOKEN:
+    required: true
+    description: Zrok token
+runs:
+  using: composite
+  steps:
+    - name: Install Zrok
+      shell: bash
+      run: |
+        curl -L -O https://github.com/openziti/zrok/releases/download/v1.0.4/zrok_${{ inputs.ZROK_VERSION }}_linux_amd64.tar.gz
+        mkdir /tmp/zrok && tar xvzf ./zrok_${{ inputs.ZROK_VERSION }}_linux_amd64.tar.gz -C /tmp/zrok
+        mkdir -p /usr/local/bin && install /tmp/zrok/zrok /usr/local/bin/
+        zrok version
+        zrok config set apiEndpoint ${{ inputs.ZROK_API_ENDPOINT }}
+        zrok enable ${{ inputs.ZROK_TOKEN }} --headless

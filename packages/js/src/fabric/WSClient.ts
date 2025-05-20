@@ -178,16 +178,18 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       negotiateAudio: params.negotiateAudio ?? true,
       negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.wsClientOptions.rootElement,
-      applyLocalVideoOverlay: true,
-      applyMemberOverlay: true,
-      stopCameraWhileMuted: true,
-      stopMicrophoneWhileMuted: true,
+      applyLocalVideoOverlay: params.applyLocalVideoOverlay,
+      applyMemberOverlay: params.applyMemberOverlay,
+      stopCameraWhileMuted: params.stopCameraWhileMuted,
+      stopMicrophoneWhileMuted: params.stopMicrophoneWhileMuted,
+      mirrorLocalVideoOverlay: params.mirrorLocalVideoOverlay,
       watchMediaPackets: false,
       destinationNumber: params.to,
       nodeId: params.nodeId,
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      fromFabricAddressId: params.fromFabricAddressId,
     })
 
     // WebRTC connection left the room.

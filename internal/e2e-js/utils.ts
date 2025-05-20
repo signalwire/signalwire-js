@@ -1,4 +1,5 @@
 import type {
+  DialParams,
   FabricRoomSession,
   SignalWire,
   SignalWireClient,
@@ -12,7 +13,10 @@ import { expect } from './fixtures'
 import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
 import { clearInterval } from 'timers'
-
+import express, { Express, Request, Response } from 'express'
+import { Server } from 'http'
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import { EventEmitter } from 'events'
 declare global {
   interface Window {
     _SWJS: {
@@ -584,7 +588,7 @@ const createCFClientWithToken = async (
 
 interface DialAddressParams {
   address: string
-  dialOptions?: Record<string, any>
+  dialOptions?: Partial<DialParams>
   reattach?: boolean
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
@@ -619,7 +623,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
-          ...dialOptions,
+          ...JSON.parse(dialOptions),
         })
 
         if (shouldWaitForJoin) {
@@ -640,7 +644,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     },
     {
       address,
-      dialOptions,
+      dialOptions: JSON.stringify(dialOptions),
       reattach,
       shouldPassRootElement,
       shouldStartCall,
@@ -1053,10 +1057,15 @@ export async function expectStatWithPolling(
 
 // #region Utilities for v2 WebRTC testing
 
+export type StatusEvents = 'initiated' | 'ringing' | 'answered' | 'completed'
+
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
-  codecs?: string | undefined
+  codecs?: string | undefined,
+  statusCallbackUrl?: string | undefined,
+  statusEvents?: StatusEvents[] | undefined,
+  statusCallBackMethod: 'GET' | 'POST' = 'POST'
 ) => {
   const data = new URLSearchParams()
 
@@ -1077,6 +1086,14 @@ export const createCallWithCompatibilityApi = async (
   data.append('Record', 'true')
   data.append('RecordingChannels', 'dual')
   data.append('Trim', 'do-not-trim')
+
+  if (statusCallbackUrl && statusEvents) {
+    data.append('StatusCallback', statusCallbackUrl)
+    for (const event of statusEvents) {
+      data.append('StatusCallbackEvent', event)
+    }
+    data.append('StatusCallbackMethod', statusCallBackMethod)
+  }
 
   console.log(
     'REST API URL: ',
@@ -1377,6 +1394,92 @@ export const expectRelayConnected = async (
   // Wait for call button to be enabled when signalwire.ready occurs
   await expect(startCall).toBeEnabled()
 }
+
+export class MockWebhookServer extends EventEmitter {
+  private app: Express
+  private server: Server
+  private zrokProcess: ChildProcessWithoutNullStreams
+
+  constructor() {
+    super()
+    this.app = express()
+    this.app.use(express.urlencoded({ extended: true }));
+    const self = this
+    this.app.all('/', (req: Request, res: Response) => {
+      self.emit('request', req)
+      console.log('request body: ', req.body)
+      res.status(204).end()
+    })
+  }
+
+  listen(port: number = 18989, startTunnel: boolean = false) {
+    return new Promise<string>((resolve) => {
+      this.server = this.app.listen(port, (err?: Error) => {
+        if(err) {
+          console.error('Error Starting MockWebhookServer: ', err)
+          process.exit(5)
+        }
+        if (startTunnel == false) {
+          resolve('Started without tunnel')
+          return
+        }
+      })
+  
+      if (startTunnel) {
+        try {
+          this.zrokProcess = spawn('zrok', [
+            'share',
+            'public',
+            '--headless',
+            `${port}`
+          ])
+          this.zrokProcess.on('error', (err) => {
+            console.error('zrok process error event: ', err);
+          })
+          this.zrokProcess.stdout.on('data', (data) => {
+            console.log(`zrok processs stdout: ${data}`);
+          })
+          this.zrokProcess.stderr.on('data', (data) => {
+            // zrok is writing only to std error for every logs
+            const logObj = JSON.parse(data)
+            if (logObj.level == 'info') {
+              console.log(`zrok process stdout: ${data}`)
+              if (logObj.msg && logObj.msg.startsWith('access your zrok share at the following endpoints:')) {
+                const tunnelUrl = logObj.msg.split('\n')[1].trim()
+                resolve(tunnelUrl as string)
+              }
+            } else {
+              console.error(`zrok process stderr: ${data}`)
+            }
+          })
+          
+          this.zrokProcess.on('close', (code) => {
+            console.log(`zrok process exited with code ${code}`);
+          })
+        } catch (err) {
+          console.error('Error Starting Zrok Share: ', err)
+          process.exit(5)
+        }
+      }
+    })
+  }
+
+  waitFor(status: StatusEvents) {
+    return new Promise((resolve) => {
+      this.on('request', (req: Request) => {
+        if (req.body.CallStatus === status) {
+          resolve(req.body)
+        }
+      })
+    })
+  }
+
+  close() {
+    this.server.close()
+    this.zrokProcess.kill('SIGKILL')
+  }
+}
+
 
 // #endregion
 
