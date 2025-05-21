@@ -43,7 +43,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
     await createCFClient(agent_page)
 
     await dialAddress(agent_page, {
-      address: `/private/${agentResourceName}`, // or /public/?
+      address: `/public/${agentResourceName}`, // or /public/?
       shouldWaitForJoin: false,
       shouldStartCall: false
     })
@@ -80,7 +80,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
     await createGuestCFClient(customer_page, { allowed_addresses: allowed_addresses})
 
     await dialAddress(customer_page, {
-      address: `/private/${customerResourceName}`, // or /public/?
+      address: `/public/${customerResourceName}`, // or /public/?
       shouldWaitForJoin: false,
       shouldStartCall: false
     })
@@ -137,10 +137,10 @@ test.describe(agent_customer_external_url_desc, () => {
   const external_url_for_cxml = process.env.EXTERNAL_URL_FOR_CXML
 
   const cXMLExternalURLAgent = {
-    call_handler_url: external_url_for_cxml
+    primary_request_url: external_url_for_cxml
   }
   const cXMLExternalURLCustomer = {
-    call_handler_url: external_url_for_cxml
+    primary_request_url: external_url_for_cxml
   }
 
   const test_uuid = `${uuid()}`
@@ -159,12 +159,12 @@ test.describe(agent_customer_external_url_desc, () => {
       contents: cXMLExternalURLAgent,
     })
 
-    expect(agent_resource_data.cxml_script?.id).toBeDefined()
+    expect(agent_resource_data.cxml_webhook?.id).toBeDefined()
 
     await createCFClient(agent_page)
 
     await dialAddress(agent_page, {
-      address: `/private/${agentResourceName}`, // or /public/?
+      address: `/public/${agentResourceName}`, // or /public/?
       shouldWaitForJoin: false,
       shouldStartCall: false
     })
@@ -186,7 +186,7 @@ test.describe(agent_customer_external_url_desc, () => {
     const customer_page = await createCustomPage({ name: '[customer_page]' })
     await customer_page.goto(SERVER_URL)
 
-    const customerResourceName = `${test_uuid}_e2e-cxml-external-url-customer_${uuid()}`
+    const customerResourceName = `${test_uuid}_e2e-cxml-ext-url-customer_${uuid()}`
     const customer_resource_data = await resource.createcXMLExternalURLResource({
       name: customerResourceName,
       contents: cXMLExternalURLCustomer,
@@ -201,7 +201,7 @@ test.describe(agent_customer_external_url_desc, () => {
     await createGuestCFClient(customer_page, { allowed_addresses: allowed_addresses})
 
     await dialAddress(customer_page, {
-      address: `/private/${customerResourceName}`, // or /public/?
+      address: `/public/${customerResourceName}`, // or /public/?
       shouldWaitForJoin: false,
       shouldStartCall: false
     })

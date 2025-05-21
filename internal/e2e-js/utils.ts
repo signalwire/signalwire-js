@@ -1492,6 +1492,7 @@ export interface Resource {
   display_name: string
   created_at: string
   cxml_script?: CXMLApplication
+  cxml_webhook?: CXMLApplication
 }
 
 export interface CXMLApplication {
@@ -1586,7 +1587,7 @@ export const createcXMLExternalURLResource = async ({
 }: CreatecXMLExternalURLParams) => {
   const requestBody = {
     name: name ?? `e2e-cxml-ext-url_${uuid()}`,
-    primary_request_url: contents.call_handler_url,
+    primary_request_url: contents.primary_request_url,
   }
   console.log('-----> request body (external URL):', requestBody)
 
