@@ -38,7 +38,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
       contents: cXMLScriptAgentContent,
     })
 
-    expect(agent_resource_data.cxml_application?.id).toBeDefined()
+    expect(agent_resource_data.cxml_script?.id).toBeDefined()
 
     await createCFClient(agent_page)
 
@@ -153,13 +153,13 @@ test.describe(agent_customer_external_url_desc, () => {
     const agent_page = await createCustomPage({ name: '[agent_page]' })
     await agent_page.goto(SERVER_URL)
 
-    const agentResourceName = `${test_uuid}_e2e-cxml-external-url-agent_${uuid()}`
+    const agentResourceName = `${test_uuid}_e2e-cxml-ext-url-agent_${uuid()}`
     const agent_resource_data = await resource.createcXMLExternalURLResource({
       name: agentResourceName,
       contents: cXMLExternalURLAgent,
     })
 
-    expect(agent_resource_data.cxml_application?.id).toBeDefined()
+    expect(agent_resource_data.cxml_script?.id).toBeDefined()
 
     await createCFClient(agent_page)
 

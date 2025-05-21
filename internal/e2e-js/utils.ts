@@ -1491,7 +1491,7 @@ export interface Resource {
   type: string
   display_name: string
   created_at: string
-  cxml_application?: CXMLApplication
+  cxml_script?: CXMLApplication
 }
 
 export interface CXMLApplication {
@@ -1553,19 +1553,21 @@ export const createcXMLScriptResource = async ({
   name,
   contents,
 }: CreatecXMLScriptParams) => {
+  const requestBody = {
+    name: name ?? `e2e-cxml-script_${uuid()}`,
+    contents: contents.call_handler_script,
+  }
+  console.log('-----> request body (script):', requestBody)
+
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_scripts`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
-      body: JSON.stringify({
-        name: name ?? `e2e-cxml-script_${uuid()}`,
-        handle_calls_using: 'script',
-        call_handler_script: contents.call_handler_script,
-      }),
+      body: JSON.stringify(requestBody),
     }
   )
   const data = (await response.json()) as Resource
@@ -1582,19 +1584,21 @@ export const createcXMLExternalURLResource = async ({
   name,
   contents,
 }: CreatecXMLExternalURLParams) => {
+  const requestBody = {
+    name: name ?? `e2e-cxml-ext-url_${uuid()}`,
+    primary_request_url: contents.call_handler_url,
+  }
+  console.log('-----> request body (external URL):', requestBody)
+
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/cxml_applications`,
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_webhooks`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
-      body: JSON.stringify({
-        name: name ?? `e2e-cxml-external-url_${uuid()}`,
-        handle_calls_using: 'external_url',
-        call_handler_url: contents.call_handler_url,
-      }),
+      body: JSON.stringify(requestBody),
     }
   )
   const data = (await response.json()) as Resource
