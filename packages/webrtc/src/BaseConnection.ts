@@ -267,6 +267,7 @@ export class BaseConnection<
       userVariables,
       screenShare,
       additionalDevice,
+      fromFabricAddressId,
       pingSupported = true,
     } = this.options
 
@@ -283,6 +284,7 @@ export class BaseConnection<
         userVariables,
         screenShare,
         additionalDevice,
+        fromFabricAddressId,
         pingSupported,
         version: INVITE_VERSION,
       },

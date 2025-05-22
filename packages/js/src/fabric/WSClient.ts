@@ -180,16 +180,18 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       negotiateAudio: params.negotiateAudio ?? true,
       negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.wsClientOptions.rootElement,
-      applyLocalVideoOverlay: true,
-      applyMemberOverlay: true,
-      stopCameraWhileMuted: true,
-      stopMicrophoneWhileMuted: true,
+      applyLocalVideoOverlay: params.applyLocalVideoOverlay,
+      applyMemberOverlay: params.applyMemberOverlay,
+      stopCameraWhileMuted: params.stopCameraWhileMuted,
+      stopMicrophoneWhileMuted: params.stopMicrophoneWhileMuted,
+      mirrorLocalVideoOverlay: params.mirrorLocalVideoOverlay,
       watchMediaPackets: false,
       destinationNumber: params.to,
       nodeId: params.nodeId,
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      fromFabricAddressId: params.fromFabricAddressId,
     })
 
     // WebRTC connection left the room.
@@ -330,6 +332,11 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {
+    const { incomingCallHandler } = params
+    this._incomingCallManager.setNotificationHandlers({
+      pushNotification: incomingCallHandler,
+    })
+
     return new Promise<HandlePushNotificationResult>(
       async (resolve, reject) => {
         const { decrypted, type } = params
@@ -381,6 +388,11 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
    * Mark the client as 'online' to receive calls over WebSocket
    */
   public async online({ incomingCallHandlers }: OnlineParams) {
+    if (incomingCallHandlers.all || incomingCallHandlers.pushNotification) {
+      this.logger.warn(
+        `Make sure the device is not registered to receive Push Notifications while it is online`
+      )
+    }
     this._incomingCallManager.setNotificationHandlers(incomingCallHandlers)
     return this.execute<unknown, void>({
       method: 'subscriber.online',

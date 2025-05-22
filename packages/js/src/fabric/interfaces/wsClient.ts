@@ -1,5 +1,8 @@
 import { SessionOptions, UserOptions } from '@signalwire/core'
-import { IncomingCallHandlers } from './incomingCallManager'
+import {
+  IncomingCallHandler,
+  IncomingCallHandlers,
+} from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 
 export interface WSClientContract {
@@ -72,15 +75,26 @@ export interface PushNotificationPayload {
   decrypted: Record<string, any>
 }
 
-export type HandlePushNotificationParams = PushNotificationPayload
+export type HandlePushNotificationParams = PushNotificationPayload & {
+  incomingCallHandler?: IncomingCallHandler
+}
 
 export interface HandlePushNotificationResult {
   resultType: 'inboundCall'
 }
 
-export interface CallParams {
+/**
+ * These are the default call parameters that can be passed
+ * while initiating a SignalWire client or the call
+ */
+interface DefaultCallParams {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement | null
+  /** User & UserAgent metadata */
+  userVariables?: Record<string, any>
+}
+
+export interface CallParams extends DefaultCallParams {
   /** Disable ICE UDP transport policy */
   disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */
@@ -91,8 +105,18 @@ export interface CallParams {
   negotiateAudio?: boolean
   /** Negotiate the incoming video from the RTC. Default: `true` for "video" channel. */
   negotiateVideo?: boolean
-  /** User & UserAgent metadata */
-  userVariables?: WSClientOptions['userVariables']
+  /** Whether to apply the local-overlay on top of your video. Default: `true`. */
+  applyLocalVideoOverlay?: boolean
+  /** Whether to apply an overlay on top of each member. Default: `true`. */
+  applyMemberOverlay?: boolean
+  /** Whether to mirror the local video overlay. Default: `false`. */
+  mirrorLocalVideoOverlay?: boolean
+  /** Whether to stop the camera when the member is muted. Default: `true`. */
+  stopCameraWhileMuted?: boolean
+  /** Whether to stop the microphone when the member is muted. Default: `true`. */
+  stopMicrophoneWhileMuted?: boolean
+  /** Fabric address ID matching one of the subscriber’s addresses to attribute conversation API events in the INVITE. */
+  fromFabricAddressId?: string
 }
 
 export interface DialParams extends CallParams {
@@ -119,11 +143,7 @@ export type FabricUserOptions = Omit<
 > &
   SATSessionOptions
 
-export interface WSClientOptions extends FabricUserOptions {
-  /** HTML element in which to display the video stream */
-  rootElement?: HTMLElement
+export interface WSClientOptions extends DefaultCallParams, FabricUserOptions {
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
-  /** User & UserAgent metadata */
-  userVariables?: Record<string, any>
 }
