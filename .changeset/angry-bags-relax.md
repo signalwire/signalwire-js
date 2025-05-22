@@ -2,4 +2,4 @@
 '@signalwire/js': patch
 ---
 
-Added optional `incomingCallHandler` parameter to `handlePushNotification()`
+CF SDK: Optional `incomingCallHandler` parameter to `handlePushNotification()`
