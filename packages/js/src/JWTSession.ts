@@ -49,7 +49,7 @@ export class JWTSession extends BaseJWTSession {
 
     const { protocolKey } = sessionStorageManager(this.options.token)
     if (protocolKey) {
-      this.logger.trace('Search protocol for', protocolKey)
+      this.logger.debug('Search protocol for', protocolKey)
       return getStorage()?.getItem(protocolKey) ?? ''
     }
     return ''
@@ -62,8 +62,24 @@ export class JWTSession extends BaseJWTSession {
 
     const { protocolKey } = sessionStorageManager(this.options.token)
     if (protocolKey) {
-      this.logger.trace('Persist protocol', protocolKey, this.relayProtocol)
+      this.logger.debug('Persist protocol', protocolKey, this.relayProtocol)
       getStorage()?.setItem(protocolKey, this.relayProtocol)
+    }
+  }
+
+  override removeRelayProtocol() {
+    const { protocolKey } = sessionStorageManager(this.options.token)
+    if (protocolKey) {
+      this.logger.debug('Remove protocol', protocolKey, this.relayProtocol)
+      getStorage()?.removeItem(protocolKey)
+    }
+  }
+
+  override removePrevCallId() {
+    const { callIdKey } = sessionStorageManager(this.options.token)
+    if (callIdKey) {
+      this.logger.debug('Remove Call', callIdKey)
+      getStorage()?.removeItem(callIdKey)
     }
   }
 
@@ -89,8 +105,16 @@ export class JWTSession extends BaseJWTSession {
     }
   }
 
+  override removeSwAuthorizationState() {
+    const { authStateKey } = sessionStorageManager(this.options.token)
+    if (authStateKey) {
+      this.logger.trace('Remove auth state', authStateKey)
+      getStorage()?.removeItem(authStateKey)
+    }
+  }
+
   protected override _onSocketClose(event: SWCloseEvent) {
-    if (this.status === 'unknown' || this.status === 'disconnected') {
+    if (this.status === 'disconnected') {
       const { protocolKey, authStateKey, callIdKey } = sessionStorageManager(
         this.options.token
       )
