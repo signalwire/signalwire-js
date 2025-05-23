@@ -99,15 +99,8 @@ export class BaseConnection<
     return this.state === 'active'
   }
 
-  get newish() {
-    return this.state === 'new'
-  }
   get requesting() {
     return this.state === 'requesting'
-  }
-
-  get destroysh() {
-    return this.state === 'destroy'
   }
 
   get trying() {
@@ -850,18 +843,13 @@ export class BaseConnection<
   }
 
   /** @internal */
-  async onLocalSDPReady(
-    rtcPeer: RTCPeer<EventTypes>,
-    defferedLocalDescription?: RTCSessionDescriptionInit
-  ) {
-    const { type, sdp } =
-      rtcPeer.instance.localDescription || defferedLocalDescription || {}
-
-    if (!type || !sdp) {
+  async onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
+    if (!rtcPeer.instance.localDescription) {
       this.logger.error('Missing localDescription', rtcPeer)
       throw new Error('Invalid RTCPeerConnection localDescription')
     }
 
+    const { type, sdp } = rtcPeer.instance.localDescription
     const mungedSDP = this._mungeSDP(sdp)
     this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
     switch (type) {
