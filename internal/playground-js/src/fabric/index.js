@@ -315,19 +315,9 @@ window.dial = async ({ reattach = false } = {}) => {
     audio: document.getElementById('audio').checked,
   }
 
-  if (document.getElementById('targetCodec').value.trim().length) {
-    const codecPrefix = document.getElementById('targetCodec').value
-    dialOptions.audioCodecs = [
-      `${codecPrefix}:${
-        document.getElementById('maxPlaybackRate').value.trim().length
-          ? 'maxplaybackrate='
-          : ''
-      }${document.getElementById('maxPlaybackRate').value.trim()}${
-        document.getElementById('maxAverageBitrate').value.trim().length
-          ? ';maxaveragebitrate='
-          : ''
-      }${document.getElementById('maxAverageBitrate').value.trim()}`,
-    ]
+  if (document.getElementById('audioCodec').value.trim().length) {
+    const userInput = document.getElementById('audioCodec').value.trim()
+    dialOptions.audioCodecs = userInput.split('\n').map((codec) => codec.trim())
   }
   const call = await dialer(dialOptions)
 

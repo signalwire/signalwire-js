@@ -98,44 +98,14 @@
               <div class="card">
                 <div class="card-body">
                   <div class="form-group">
-                    <label for="targetCodec">Codec</label>
-                    <select
-                      class="form-select"
-                      id="targetCodec"
-                      onchange="saveInLocalStorage(event)"
-                    >
-                      <option value="">Select codec...</option>
-                      <option value="opus">opus</option>
-                      <option value="PCMA">PCMA</option>
-                      <option value="PCMU">PCMU</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label for="maxPlaybackRate" class="mt-2"
-                      >Maximum Playback Rate</label
-                    >
-                    <select
-                      class="form-select"
-                      id="maxPlaybackRate"
-                      onchange="saveInLocalStorage(event)"
-                    >
-                      <option value="">Select playback rate...</option>
-                      <option value="8000">8000 Hz</option>
-                      <option value="12000">12000 Hz</option>
-                      <option value="16000">16000 Hz</option>
-                      <option value="24000">24000 Hz</option>
-                      <option value="48000">48000 Hz</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label for="maxAverageBitrate" class="mt-2"
-                      >Maximum Average Bitrate</label
-                    >
-                    <input
-                      type="number"
-                      id="maxAverageBitrate"
+                    <label for="targetCodec">Audio Codec Override</label>
+                    <textarea
+                      type="text"
+                      rows="3"
                       class="form-control"
-                      placeholder="64000"
+                      id=""
+                      placeholder="opus:maxplaybackrate=8000;maxaveragebitrate=4000\nPCMU:"
+                      onchange="saveInLocalStorage(event)"
                     />
                   </div>
                 </div>
