@@ -321,6 +321,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.restartIce()
     } catch (error) {
       this.logger.error('restartIceWithRelayOnly', error)
+      this._rejectStartMethod?.(error)
+      this._pendingNegotiationPromise?.reject(error)
     }
   }
 
