@@ -3,7 +3,7 @@
   "description": "Shared code for the SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "4.1.0",
+  "version": "4.2.1",
   "main": "dist/index.node.js",
   "module": "dist/index.esm.js",
   "files": [
@@ -46,7 +46,7 @@
   "devDependencies": {
     "@redux-saga/testing-utils": "^1.1.5",
     "@types/uuid": "^9.0.2",
-    "jest-websocket-mock": "^2.4.0",
+    "jest-websocket-mock": "^2.5.0",
     "mock-socket": "^9.2.1",
     "redux-saga-test-plan": "^4.0.6"
   },

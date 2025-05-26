@@ -1,4 +1,9 @@
 import type { VideoPositions } from '@signalwire/core'
+import {
+  BaseConnectionState,
+  VideoRoomDeviceEventParams,
+  VideoRoomDeviceEventNames,
+} from '@signalwire/core'
 
 export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
@@ -85,14 +90,52 @@ export interface ConnectionOptions {
   watchMediaPackets?: boolean
   /** @internal */
   watchMediaPacketsTimeout?: number
-
   /** @internal */
   pingSupported?: boolean
   /** @internal */
   prevCallId?: string
   /** @internal */
   nodeId?: string
+  /** @internal */
+  fromFabricAddressId?: string
 
   layout?: string
   positions?: VideoPositions
+}
+
+export interface EmitDeviceUpdatedEventsParams {
+  newTrack: MediaStreamTrack
+  prevAudioTrack?: MediaStreamTrack | null
+  prevVideoTrack?: MediaStreamTrack | null
+}
+
+export type UpdateMediaOptionsParams = Pick<
+  ConnectionOptions,
+  'video' | 'audio' | 'negotiateVideo' | 'negotiateAudio'
+>
+
+export interface OnVertoByeParams {
+  byeCause: string
+  byeCauseCode: string
+  rtcPeerId: string
+  redirectDestination?: string
+}
+
+export type MediaEventNames =
+  | 'media.connected'
+  | 'media.reconnecting'
+  | 'media.disconnected'
+
+type BaseConnectionEventsHandlerMap = Record<
+  BaseConnectionState,
+  (params: any) => void
+> &
+  Record<MediaEventNames, () => void> &
+  Record<
+    VideoRoomDeviceEventNames,
+    (params: VideoRoomDeviceEventParams) => void
+  >
+
+export type BaseConnectionEvents = {
+  [k in keyof BaseConnectionEventsHandlerMap]: BaseConnectionEventsHandlerMap[k]
 }

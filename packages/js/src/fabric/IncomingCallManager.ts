@@ -1,29 +1,34 @@
-import { CallFabricRoomSession } from './CallFabricRoomSession'
+import { FabricRoomSession } from './FabricRoomSession'
 import {
-  CallOptions,
+  CallParams,
   IncomingCallHandlers,
   IncomingCallNotification,
   IncomingInvite,
-} from './types'
+  IncomingInviteWithSource,
+} from './interfaces'
+import { WSClient } from './WSClient'
+
+interface IncomingCallManagerOptions {
+  client: WSClient
+  buildInboundCall: WSClient['buildInboundCall']
+  executeVertoBye: WSClient['executeVertoBye']
+}
 
 export class IncomingCallManager {
+  private _client: WSClient
   private _pendingInvites: Record<string, IncomingInvite> = {}
   private _handlers: IncomingCallHandlers = {}
 
-  constructor(
-    private _buildCallObject: (
-      invite: IncomingInvite,
-      params: CallOptions
-    ) => CallFabricRoomSession,
-    private _executeReject: (callId: string, nodeId: string) => Promise<void>
-  ) {}
+  constructor(private options: IncomingCallManagerOptions) {
+    this._client = options.client
+  }
 
   private _buildNotification(invite: IncomingInvite): IncomingCallNotification {
-    const accept = async (params: CallOptions) => {
-      return new Promise<CallFabricRoomSession>((resolve, reject) => {
+    const accept = async (params: CallParams) => {
+      return new Promise<FabricRoomSession>((resolve, reject) => {
         delete this._pendingInvites[invite.callID]
         try {
-          const call = this._buildCallObject(invite, params)
+          const call = this.options.buildInboundCall(invite, params)
           call.answer()
 
           resolve(call)
@@ -35,7 +40,7 @@ export class IncomingCallManager {
 
     const reject = () => {
       delete this._pendingInvites[invite.callID]
-      return this._executeReject(invite.callID, invite.nodeId)
+      return this.options.executeVertoBye(invite.callID, invite.nodeId)
     }
 
     return {
@@ -64,9 +69,9 @@ export class IncomingCallManager {
     }
   }
 
-  handleIncomingInvite(incomingInvite: IncomingInvite) {
+  handleIncomingInvite(incomingInvite: IncomingInviteWithSource) {
     if (incomingInvite.callID in this._pendingInvites) {
-      console.log(
+      this._client.logger.debug(
         `skiping nottification for pending invite to callID: ${incomingInvite.callID}`
       )
       return
@@ -74,7 +79,7 @@ export class IncomingCallManager {
     this._pendingInvites[incomingInvite.callID] = incomingInvite
 
     if (!(this._handlers.all || this._handlers[incomingInvite.source])) {
-      console.log('skiping nottification no listeners:')
+      this._client.logger.warn('Skiping nottification due to no listeners')
       return
     }
 

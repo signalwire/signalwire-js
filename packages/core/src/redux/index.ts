@@ -17,12 +17,11 @@ import {
 } from '../utils/interfaces'
 import { useSession } from './utils/useSession'
 import { useInstanceMap } from './utils/useInstanceMap'
-import { CallSegmentContract } from '../types/callSegment'
 
 export interface ConfigureStoreOptions {
   userOptions: InternalUserOptions
   SessionConstructor: SessionConstructor
-  runSagaMiddleware?: boolean
+  runRootSaga?: boolean
   preloadedState?: Partial<SDKState>
 }
 
@@ -37,9 +36,13 @@ const configureStore = (options: ConfigureStoreOptions) => {
     userOptions,
     SessionConstructor,
     preloadedState = {},
-    runSagaMiddleware = true,
+    runRootSaga = true,
   } = options
-  const sagaMiddleware = createSagaMiddleware()
+
+  const sagaMiddleware = createSagaMiddleware({
+    // @ts-expect-error For testing purposes only
+    sagaMonitor: userOptions.sagaMonitor,
+  })
   const swEventChannel: SwEventChannel = multicastChannel()
   const sessionChannel: SessionChannel = channel()
   /**
@@ -65,8 +68,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
 
   const instanceMap = useInstanceMap()
 
-  const callSegments: CallSegmentContract[] = []
-
   const { initSession, getSession, sessionEmitter } = useSession({
     userOptions,
     sessionChannel,
@@ -85,11 +86,10 @@ const configureStore = (options: ConfigureStoreOptions) => {
       channels,
       getSession,
       instanceMap,
-      callSegments,
     })
   }
 
-  if (runSagaMiddleware) {
+  if (runRootSaga) {
     const saga = rootSaga({
       initSession,
       sessionEmitter,
@@ -102,7 +102,6 @@ const configureStore = (options: ConfigureStoreOptions) => {
     runSaga,
     channels,
     instanceMap,
-    callSegments,
     sessionEmitter,
   }
 }

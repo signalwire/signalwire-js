@@ -16,10 +16,9 @@ export const configureJestStore = () => {
       project: PROJECT_ID,
       token: TOKEN,
       devTools: false,
-      emitter: new EventEmitter(),
     },
     SessionConstructor: JWTSession,
-    runSagaMiddleware: false,
+    runRootSaga: false,
   })
 }
 
@@ -43,7 +42,6 @@ export const configureFullStack = () => {
       project: PROJECT_ID,
       token: TOKEN,
       devTools: false,
-      emitter,
     },
     SessionConstructor: jest.fn().mockImplementation(() => {
       return session
@@ -78,19 +76,91 @@ export const dispatchMockedRoomSubscribed = ({
   memberId: string
   callId: string
 }) => {
+  const mockedEventChannel = 'mocked-event-channel'
+  const mockedMemberName = 'mocked-member-name'
+  const mockedProjectId = 'mocked-project-id'
+
   const payload: any = {
     jsonrpc: '2.0',
     id: 'd8a9fb9a-ad28-4a0a-8caa-5e06ec22f856',
     method: 'signalwire.event',
     params: {
       event_type: 'video.room.subscribed',
-      event_channel: 'EC_4d2c491d-bf96-4802-9008-c360a51155a2',
+      event_channel: mockedEventChannel,
       params: {
         call_id: callId,
         member_id: memberId,
         room_session: {
+          project_id: mockedProjectId,
           room_id: roomId,
           id: roomSessionId,
+          event_channel: mockedEventChannel,
+          name: mockedMemberName,
+          display_name: mockedMemberName,
+          locked: false,
+          prioritize_handraise: false,
+          recording: false,
+          streaming: false,
+          hide_video_muted: false,
+          layout_name: 'grid-responsive',
+          meta: {},
+          audience_count: 0,
+          members: [
+            {
+              id: memberId,
+              room_id: roomId,
+              room_session_id: roomSessionId,
+              name: mockedMemberName,
+              type: 'member',
+              parent_id: null,
+              requested_position: 'auto',
+              handraised: false,
+              visible: true,
+              audio_muted: false,
+              video_muted: false,
+              deaf: false,
+              input_volume: 0,
+              output_volume: 0,
+              input_sensitivity: 11.11111111111111,
+              meta: {},
+            },
+          ],
+        },
+        room: {
+          project_id: mockedProjectId,
+          room_id: roomId,
+          event_channel: mockedEventChannel,
+          name: mockedMemberName,
+          display_name: mockedMemberName,
+          locked: false,
+          prioritize_handraise: false,
+          recording: false,
+          streaming: false,
+          hide_video_muted: false,
+          layout_name: 'grid-responsive',
+          meta: {},
+          audience_count: 0,
+          members: [
+            {
+              id: memberId,
+              room_id: roomId,
+              room_session_id: roomSessionId,
+              name: mockedMemberName,
+              type: 'member',
+              parent_id: null,
+              requested_position: 'auto',
+              handraised: false,
+              visible: true,
+              audio_muted: false,
+              video_muted: false,
+              deaf: false,
+              input_volume: 0,
+              output_volume: 0,
+              input_sensitivity: 11.11111111111111,
+              meta: {},
+            },
+          ],
+          room_session_id: roomSessionId,
         },
       },
     },
@@ -107,6 +177,8 @@ export const dispatchMockedCallJoined = ({
   memberId2 = 'member-id-random',
   callId,
   nodeId,
+  originCallId,
+  capabilities,
 }: {
   session: any
   roomSessionId: string
@@ -115,6 +187,8 @@ export const dispatchMockedCallJoined = ({
   memberId2?: string
   callId: string
   nodeId: string
+  originCallId: string
+  capabilities: string[]
 }) => {
   const payload = {
     jsonrpc: '2.0',
@@ -170,9 +244,11 @@ export const dispatchMockedCallJoined = ({
         },
         room_id: roomId,
         room_session_id: roomSessionId,
+        origin_call_id: originCallId,
         call_id: callId,
         member_id: memberId,
         node_id: nodeId,
+        capabilities: capabilities,
       },
       timestamp: 1712142454.67701,
     },

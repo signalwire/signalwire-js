@@ -1,4 +1,9 @@
-import type { SwEvent } from '.'
+import type {
+  RecordingEnded,
+  RecordingStarted,
+  RecordingUpdated,
+  SwEvent,
+} from '.'
 import { MapToPubSubShape } from '..'
 import type {
   CamelToSnakeCase,
@@ -7,13 +12,6 @@ import type {
   OnlyStateProperties,
   OnlyFunctionProperties,
 } from './utils'
-
-/**
- * Public event types
- */
-export type RecordingStarted = 'recording.started'
-export type RecordingUpdated = 'recording.updated'
-export type RecordingEnded = 'recording.ended'
 
 /**
  * Public listener types

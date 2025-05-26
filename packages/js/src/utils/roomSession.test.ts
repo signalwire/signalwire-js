@@ -3,7 +3,7 @@ import { BaseRoomSessionJoinParams } from './interfaces'
 import { getJoinMediaParams } from './roomSession'
 
 describe('getJoinMediaParams', () => {
-  const authState: VideoAuthorization = {
+  const authorization: VideoAuthorization = {
     type: 'video',
     project: 'project_id',
     scopes: ['video'],
@@ -21,28 +21,29 @@ describe('getJoinMediaParams', () => {
       meta: {},
     },
     signature: 'signature',
+    project_id: '',
   }
   const authStateMap = new Map<string, VideoAuthorization>()
-  authStateMap.set('member-all', authState)
+  authStateMap.set('member-all', authorization)
   authStateMap.set('member-audio-only', {
-    ...authState,
+    ...authorization,
     video_allowed: 'none',
   })
   authStateMap.set('member-video-only', {
-    ...authState,
+    ...authorization,
     audio_allowed: 'none',
   })
   authStateMap.set('audience-all', {
-    ...authState,
+    ...authorization,
     join_as: 'audience',
   })
   authStateMap.set('audience-audio-only', {
-    ...authState,
+    ...authorization,
     join_as: 'audience',
     video_allowed: 'none',
   })
   authStateMap.set('audience-video-only', {
-    ...authState,
+    ...authorization,
     join_as: 'audience',
     audio_allowed: 'none',
   })
@@ -116,11 +117,11 @@ describe('getJoinMediaParams', () => {
             const reqToRecvVideo = typeof receiveVideo !== 'undefined' ? receiveVideo : Boolean(video)
 
             it(`should handle params: ${JSON.stringify(params)}`, () => {
-              const authState = authStateMap.get(`${joinType}-${direction}`)
-              if (!authState) {
-                throw 'Invalid AuthState'
+              const authorization = authStateMap.get(`${joinType}-${direction}`)
+              if (!authorization) {
+                throw 'Invalid Authorization'
               }
-              const result = getJoinMediaParams({ ...params, authState })
+              const result = getJoinMediaParams({ ...params, authorization })
 
               expect(result).toStrictEqual({
                 // prettier-ignore

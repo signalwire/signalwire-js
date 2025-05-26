@@ -20,6 +20,8 @@ import type {
   VoiceCallAction,
   VideoManagerAction,
   PubSubEventAction,
+  FabricAction,
+  SwAuthorizationState,
 } from '../types'
 import { SDKRunSaga } from '.'
 
@@ -63,7 +65,8 @@ export interface SessionState {
   protocol: string
   iceServers?: RTCIceServer[]
   authStatus: SessionAuthStatus
-  authState?: Authorization
+  authorization?: Authorization
+  authorizationState?: SwAuthorizationState
   authError?: SessionAuthError
   authCount: number
 }
@@ -89,9 +92,12 @@ export type CustomSaga<T> = (params: CustomSagaParams<T>) => SagaIterator<any>
 
 /**
  * Converts from:
- * { event_type: <value>, params: <value> }
+ *
+ * `{ event_type: <value>, params: <value> }`
+ *
  * into
- * { type: <value>, payload: <value> }
+ *
+ * `{ type: <value>, payload: <value> }`
  */
 export type MapToPubSubShape<T> = {
   [K in keyof T as K extends 'event_type'
@@ -113,6 +119,7 @@ export type PubSubAction =
   | TaskAction
   | MessagingAction
   | VoiceCallAction
+  | FabricAction
 
 export type SessionChannelAction =
   | PayloadAction<void, SessionEvents>

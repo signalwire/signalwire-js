@@ -1,14 +1,14 @@
 import type {
   CallReceived,
   CallState,
-  CallPlaybackStarted,
-  CallPlaybackUpdated,
-  CallPlaybackEnded,
-  CallPlaybackFailed,
-  CallRecordingStarted,
-  CallRecordingUpdated,
-  CallRecordingEnded,
-  CallRecordingFailed,
+  PlaybackStarted,
+  PlaybackUpdated,
+  PlaybackEnded,
+  PlaybackFailed,
+  RecordingStarted,
+  RecordingUpdated,
+  RecordingEnded,
+  RecordingFailed,
   CallPromptStarted,
   CallPromptUpdated,
   CallPromptEnded,
@@ -110,17 +110,11 @@ export type RealTimeCallEventsHandlerMapping = Record<
   (call: Call) => void
 > &
   Record<
-    | CallPlaybackStarted
-    | CallPlaybackUpdated
-    | CallPlaybackEnded
-    | CallPlaybackFailed,
+    PlaybackStarted | PlaybackUpdated | PlaybackEnded | PlaybackFailed,
     (playback: CallPlayback) => void
   > &
   Record<
-    | CallRecordingStarted
-    | CallRecordingUpdated
-    | CallRecordingEnded
-    | CallRecordingFailed,
+    RecordingStarted | RecordingUpdated | RecordingEnded | RecordingFailed,
     (recording: CallRecording) => void
   > &
   Record<
@@ -149,14 +143,14 @@ export type RealtimeCallListenersEventsMapping = Record<
   'onStateChanged',
   CallState
 > &
-  Record<'onPlaybackStarted', CallPlaybackStarted> &
-  Record<'onPlaybackUpdated', CallPlaybackUpdated> &
-  Record<'onPlaybackFailed', CallPlaybackFailed> &
-  Record<'onPlaybackEnded', CallPlaybackEnded> &
-  Record<'onRecordingStarted', CallRecordingStarted> &
-  Record<'onRecordingUpdated', CallRecordingUpdated> &
-  Record<'onRecordingFailed', CallRecordingFailed> &
-  Record<'onRecordingEnded', CallRecordingEnded> &
+  Record<'onPlaybackStarted', PlaybackStarted> &
+  Record<'onPlaybackUpdated', PlaybackUpdated> &
+  Record<'onPlaybackFailed', PlaybackFailed> &
+  Record<'onPlaybackEnded', PlaybackEnded> &
+  Record<'onRecordingStarted', RecordingStarted> &
+  Record<'onRecordingUpdated', RecordingUpdated> &
+  Record<'onRecordingFailed', RecordingFailed> &
+  Record<'onRecordingEnded', RecordingEnded> &
   Record<'onPromptStarted', CallPromptStarted> &
   Record<'onPromptUpdated', CallPromptUpdated> &
   Record<'onPromptFailed', CallPromptFailed> &
@@ -176,10 +170,7 @@ export type RealtimeCallListenersEventsMapping = Record<
  * Call Playback
  */
 export type CallPlaybackEvents = Record<
-  | CallPlaybackStarted
-  | CallPlaybackUpdated
-  | CallPlaybackEnded
-  | CallPlaybackFailed,
+  PlaybackStarted | PlaybackUpdated | PlaybackEnded | PlaybackFailed,
   (playback: CallPlayback) => void
 >
 
@@ -192,11 +183,11 @@ export interface CallPlaybackListeners {
 
 export type CallPlaybackListenersEventsMapping = Record<
   'onStarted',
-  CallPlaybackStarted
+  PlaybackStarted
 > &
-  Record<'onUpdated', CallPlaybackUpdated> &
-  Record<'onFailed', CallPlaybackFailed> &
-  Record<'onEnded', CallPlaybackEnded>
+  Record<'onUpdated', PlaybackUpdated> &
+  Record<'onFailed', PlaybackFailed> &
+  Record<'onEnded', PlaybackEnded>
 
 export interface CallPlayMethodParams {
   playlist: VoicePlaylist
@@ -226,10 +217,7 @@ export interface CallPlayTTSMethodParams extends VoiceCallPlayTTSMethodParams {
  * Call Recording
  */
 export type CallRecordingEvents = Record<
-  | CallRecordingStarted
-  | CallRecordingUpdated
-  | CallRecordingEnded
-  | CallRecordingFailed,
+  RecordingStarted | RecordingUpdated | RecordingEnded | RecordingFailed,
   (recording: CallRecording) => void
 >
 
@@ -242,11 +230,11 @@ export interface CallRecordingListeners {
 
 export type CallRecordingListenersEventsMapping = Record<
   'onStarted',
-  CallRecordingStarted
+  RecordingStarted
 > &
-  Record<'onUpdated', CallRecordingUpdated> &
-  Record<'onFailed', CallRecordingFailed> &
-  Record<'onEnded', CallRecordingEnded>
+  Record<'onUpdated', RecordingUpdated> &
+  Record<'onFailed', RecordingFailed> &
+  Record<'onEnded', RecordingEnded>
 
 export interface CallRecordMethodParams extends VoiceCallRecordMethodParams {
   listen?: CallRecordingListeners

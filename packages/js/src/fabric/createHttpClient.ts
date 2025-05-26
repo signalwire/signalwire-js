@@ -1,14 +1,41 @@
-import { AuthError, HttpError } from '@signalwire/core'
+import {
+  asyncRetry,
+  AuthError,
+  HttpError,
+  increasingDelay,
+} from '@signalwire/core'
+import { ApiRequestRetriesOptions } from './interfaces'
 
 interface InternalHttpResponse<T> extends Response {
   parsedBody?: T
 }
 
+const DEFAULT_MAX_RETRIES = 0
+const DEFAULT_INITIAL_DELAY = 0
+const DEFAULT_DELAY_VARIATION = 0
+const DEFAULT_TIMEOUT = 30000
+
 async function http<T>(
   input: string,
-  init: RequestInit | undefined
+  init: RequestInit | undefined,
+  maxRetries?: number,
+  retriesDelay?: number,
+  retriesDelayIncrement?: number
 ): Promise<InternalHttpResponse<T>> {
-  const response: InternalHttpResponse<T> = await fetch(input, init)
+  const response: InternalHttpResponse<T> = await asyncRetry({
+    asyncCallable: () => fetch(input, init),
+    maxRetries,
+    validator: (response) => {
+      // whe should retry only error above Http-500
+      if (!response.ok && response.status >= 500) {
+        throw new HttpError(response.status, response.statusText)
+      }
+    },
+    delayFn: increasingDelay({
+      initialDelay: retriesDelay,
+      variation: retriesDelayIncrement,
+    }),
+  })
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -35,13 +62,14 @@ async function http<T>(
   return response
 }
 
-interface CreateHttpClientOptions extends RequestInit {
-  baseUrl: string
-  /**
-   * Timeout in milliseconds
-   */
-  timeout?: number
-}
+type CreateHttpClientOptions = RequestInit &
+  Partial<ApiRequestRetriesOptions> & {
+    baseUrl: string
+    /**
+     * Timeout in milliseconds
+     */
+    timeout?: number
+  }
 
 interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
   body?: Record<string, unknown>
@@ -51,7 +79,15 @@ interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
 export type CreateHttpClient = ReturnType<typeof createHttpClient>
 
 export const createHttpClient = (
-  { baseUrl, timeout = 30000, ...globalOptions }: CreateHttpClientOptions,
+  {
+    baseUrl,
+    maxApiRequestRetries: retries = DEFAULT_MAX_RETRIES,
+    apiRequestRetriesDelay: retriesDelay = DEFAULT_INITIAL_DELAY,
+    apiRequestRetriesDelayIncrement:
+      retriesDelayIncrement = DEFAULT_DELAY_VARIATION,
+    timeout = DEFAULT_TIMEOUT,
+    ...globalOptions
+  }: CreateHttpClientOptions,
   fetcher = http
 ) => {
   const apiClient = async <T>(
@@ -91,7 +127,10 @@ export const createHttpClient = (
           baseUrl,
           searchParams: options?.searchParams,
         }),
-        reqInit
+        reqInit,
+        retries,
+        retriesDelay,
+        retriesDelayIncrement
       )
 
       return { body: response.parsedBody as T }

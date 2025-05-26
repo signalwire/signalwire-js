@@ -21,7 +21,7 @@ export class JWTSession extends BaseJWTSession {
   constructor(public options: SessionOptions) {
     let decodedJwt: JWTHeader = {}
     try {
-      decodedJwt = jwtDecode<{ ch?: string; typ: string }>(options.token, {
+      decodedJwt = jwtDecode(options.token, {
         header: true,
       })
     } catch (e) {
@@ -90,7 +90,7 @@ export class JWTSession extends BaseJWTSession {
   }
 
   protected override _onSocketClose(event: SWCloseEvent) {
-    if (this.status === 'unknown') {
+    if (this.status === 'unknown' || this.status === 'disconnected') {
       const { protocolKey, authStateKey, callIdKey } = sessionStorageManager(
         this.options.token
       )

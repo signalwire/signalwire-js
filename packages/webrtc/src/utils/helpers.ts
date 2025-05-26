@@ -2,6 +2,7 @@ import { getLogger } from '@signalwire/core'
 import { getUserMedia as _getUserMedia } from './getUserMedia'
 import { assureDeviceId } from './deviceHelpers'
 import { ConnectionOptions } from './interfaces'
+import { sdpHasAudio, sdpHasVideo } from './sdpHelpers'
 
 // FIXME: Remove and use getUserMedia directly
 export const getUserMedia = (constraints: MediaStreamConstraints) => {
@@ -14,12 +15,39 @@ export const getUserMedia = (constraints: MediaStreamConstraints) => {
   return _getUserMedia(constraints)
 }
 
+const _shouldNegotiateVideo = (options: ConnectionOptions) => {
+  return (
+    // TBD: The "negotiateVideo" is a flag used for the incoming video, not for the outgoing.
+    (options.negotiateVideo ?? true) &&
+    (!options.remoteSdp || sdpHasVideo(options.remoteSdp))
+  )
+}
+
+const _shouldNegotiateAudio = (options: ConnectionOptions) => {
+  return (
+    // TBD: The "negotiateAudio" is a flag used for the incoming audio, not for the outgoing.
+    (options.negotiateAudio ?? true) &&
+    (!options.remoteSdp || sdpHasAudio(options.remoteSdp))
+  )
+}
+
+const _getVideoConstraints = (options: ConnectionOptions) => {
+  return _shouldNegotiateVideo(options)
+    ? options.video ?? !!options.camId
+    : false
+}
+
+const _getAudioConstraints = (options: ConnectionOptions) => {
+  return _shouldNegotiateAudio(options) ? options.audio ?? true : false
+}
+
 export const getMediaConstraints = async (
   options: ConnectionOptions
 ): Promise<MediaStreamConstraints> => {
-  let { audio = true, micId } = options
-  const { micLabel = '' } = options
-  if (micId) {
+  let audio = _getAudioConstraints(options)
+  const { micLabel = '', micId } = options
+
+  if (micId && audio) {
     const newMicId = await assureDeviceId(micId, micLabel, 'microphone').catch(
       (_error) => null
     )
@@ -31,9 +59,10 @@ export const getMediaConstraints = async (
     }
   }
 
-  let { video = false, camId } = options
-  const { camLabel = '' } = options
-  if (camId) {
+  let video = _getVideoConstraints(options)
+  const { camLabel = '', camId } = options
+
+  if (camId && video) {
     const newCamId = await assureDeviceId(camId, camLabel, 'camera').catch(
       (_error) => null
     )

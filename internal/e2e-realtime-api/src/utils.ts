@@ -62,7 +62,7 @@ const apiFetch = async (url: string, options: RequestInit) => {
 
 interface CreateRelayAppResourceParams {
   name: string
-  reference: string
+  topic: string
 }
 export const createRelayAppResource = async (
   params: CreateRelayAppResourceParams
@@ -231,7 +231,7 @@ export const createTestRunner = ({
           // Create a relay application resource
           relayApp = await createRelayAppResource({
             name: relayAppName,
-            reference: context,
+            topic: context,
           })
 
           // Assign a Relay App resource as a call handler on a Domain App

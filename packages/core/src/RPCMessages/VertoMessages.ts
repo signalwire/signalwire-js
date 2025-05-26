@@ -10,6 +10,7 @@ const tmpMap: VertoParams = {
   remoteCallerNumber: 'remote_caller_id_number',
   callerName: 'caller_id_name',
   callerNumber: 'caller_id_number',
+  fromFabricAddressId: 'from_fabric_address_id',
 }
 
 /**
@@ -61,4 +62,12 @@ export const VertoResult = (id: string, method: VertoMethod) => {
       method,
     },
   })
+}
+
+export interface VertoModifyResponse {
+  action: string
+  callID: string
+  holdState: 'held' | 'active'
+  node_id?: string
+  sdp?: string
 }

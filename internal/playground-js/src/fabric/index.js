@@ -26,6 +26,7 @@ let client = null
 let micAnalyzer = null
 
 const inCallElements = [
+  btnHangup,
   roomControls,
   muteSelfBtn,
   unmuteSelfBtn,
@@ -33,12 +34,16 @@ const inCallElements = [
   unmuteVideoSelfBtn,
   deafSelfBtn,
   undeafSelfBtn,
+  raiseHandBtn,
+  lowerHandBtn,
   controlSliders,
   controlLayout,
   hideVMutedBtn,
   showVMutedBtn,
-  raiseHandBtn,
-  lowerHandBtn,
+  lockRoomBtn,
+  unlockRoomBtn,
+  holdCallBtn,
+  unholdCallBtn,
   hideScreenShareBtn,
   showScreenShareBtn,
   controlRecording,
@@ -78,7 +83,7 @@ window.playbackEnded = () => {
 
 async function loadLayouts(currentLayoutId) {
   try {
-    const { layouts } = await roomObj.getLayoutList()
+    const { layouts } = await roomObj.getLayouts()
     const fillSelectElement = (id) => {
       const layoutEl = document.getElementById(id)
       layoutEl.innerHTML = ''
@@ -104,6 +109,29 @@ async function loadLayouts(currentLayoutId) {
     fillSelectElement('ssLayout')
   } catch (error) {
     console.warn('Error listing layout', error)
+  }
+}
+
+let currentPositionId = null
+async function loadPositions(layout) {
+  const positionEl = document.getElementById('position')
+  positionEl.innerHTML = ''
+
+  const defOption = document.createElement('option')
+  defOption.value = ''
+  defOption.innerHTML = 'Change position...'
+  positionEl.appendChild(defOption)
+
+  const layers = layout.layers || []
+  for (var i = 0; i < layers.length; i++) {
+    const position = layers[i].position
+    var opt = document.createElement('option')
+    opt.value = position
+    opt.innerHTML = position
+    positionEl.appendChild(opt)
+  }
+  if (currentPositionId) {
+    positionEl.value = currentPositionId
   }
 }
 
@@ -206,9 +234,10 @@ const initializeMicAnalyzer = async (stream) => {
 }
 
 function restoreUI() {
-  btnConnect.classList.remove('d-none')
-  btnDisconnect.classList.add('d-none')
-  connectStatus.innerHTML = 'Not Connected'
+  connectStatus.innerHTML = 'Call Disconnected'
+
+  btnDial.classList.remove('d-none')
+  btnDisconnect.classList.remove('d-none')
 
   inCallElements.forEach((button) => {
     button.classList.add('d-none')
@@ -216,32 +245,69 @@ function restoreUI() {
   })
 }
 
-async function getClient() {
-  if (!client) {
-    client = await SignalWire({
-      host: document.getElementById('host').value,
-      token: document.getElementById('token').value,
-      logLevel: 'debug',
-      debug: { logWsTraffic: true },
-    })
-  }
+/**
+ * Connect the Fabric client (start the WebSocket connection with Auth).
+ */
+window.connect = async () => {
+  connectStatus.innerHTML = 'Connecting...'
 
-  return client
+  client = await SignalWire({
+    host: document.getElementById('host').value,
+    token: document.getElementById('token').value,
+    logLevel: 'debug',
+    debug: { logWsTraffic: true },
+  })
+  window.__client = client
+
+  /**
+   * Following are the internal SDK session events
+   */
+  client.__wsClient.session.on('session.connected', () => {
+    console.debug('>> session.connected')
+  })
+  client.__wsClient.session.on('session.auth_error', (error) => {
+    console.debug('>> session.auth_error', error)
+  })
+  client.__wsClient.session.on('session.disconnecting', () => {
+    console.debug('>> session.disconnecting')
+  })
+  client.__wsClient.session.on('session.disconnected', () => {
+    console.debug('>> session.disconnected')
+  })
+  client.__wsClient.session.on('session.expiring', () => {
+    console.debug('>> session.expiring')
+  })
+  client.__wsClient.session.on('session.idle', () => {
+    console.debug('>> session.idle')
+  })
+  client.__wsClient.session.on('session.reconnecting', () => {
+    console.debug('>> session.reconnecting')
+  })
+  client.__wsClient.session.on('session.unknown', () => {
+    console.debug('>> session.unknown')
+  })
+
+  connectStatus.innerHTML = 'Connected'
+
+  btnConnect.classList.add('d-none')
+  btnDial.classList.remove('d-none')
+  btnDisconnect.classList.remove('d-none')
+
+  removeRoomFromURL()
 }
 
 /**
- * Connect with Relay creating a client and attaching all the event handler.
+ * Dial the Fabric Address
  */
-window.connect = async () => {
-  const client = await getClient()
-  window.__client = client
-
-  connectStatus.innerHTML = 'Connecting...'
+window.dial = async ({ reattach = false } = {}) => {
+  connectStatus.innerHTML = 'Dialing...'
 
   // Set a node_id for steering
   const steeringId = undefined
 
-  const call = await client.dial({
+  const dialer = reattach ? client.reattach : client.dial
+
+  const call = await dialer({
     nodeId: steeringId,
     to: document.getElementById('destination').value,
     rootElement: document.getElementById('rootElement'),
@@ -251,6 +317,73 @@ window.connect = async () => {
 
   window.__call = call
   roomObj = call
+
+  roomObj.on('call.state', (params) => {
+    console.debug('>> call.state', params)
+  })
+  roomObj.on('call.joined', (params) => {
+    console.debug('>> call.joined', params)
+
+    const selfMember = params.room_session.members.find(
+      (member) => member.member_id === params.member_id
+    )
+    if (selfMember) {
+      microphoneVolume.value = selfMember.input_volume
+      speakerVolume.value = selfMember.output_volume
+      inputSensitivity.value = selfMember.input_sensitivity
+    }
+  })
+  roomObj.on('call.updated', (params) => {
+    console.debug('>> call.updated', params)
+  })
+  roomObj.on('call.left', (params) => {
+    console.debug('>> call.left', params)
+  })
+  roomObj.on('call.play', (params) => {
+    console.debug('>> call.play', params)
+  })
+  roomObj.on('call.connect', (params) => {
+    console.debug('>> call.connect', params)
+  })
+  roomObj.on('call.room', (params) => {
+    console.debug('>> call.room', params)
+  })
+
+  roomObj.on('room.subscribed', (params) =>
+    console.debug('>> room.subscribed', params)
+  )
+  roomObj.on('room.joined', (params) => {
+    console.debug('>> room.joined ', params)
+
+    addRoomToURL(params.room_session.name)
+  })
+  roomObj.on('room.updated', (params) =>
+    console.debug('>> room.updated', params)
+  )
+  roomObj.on('room.left', (params) => {
+    console.debug('>> room.left', params)
+  })
+  roomObj.on('room.ended', (params) => {
+    console.debug('>> room.ended', params)
+    hangup()
+  })
+
+  roomObj.on('member.joined', (params) =>
+    console.debug('>> member.joined', params)
+  )
+  roomObj.on('member.updated', (params) =>
+    console.debug('>> member.updated', params)
+  )
+  roomObj.on('member.updated.audioMuted', (params) =>
+    console.debug('>> member.updated.audioMuted', params)
+  )
+  roomObj.on('member.updated.videoMuted', (params) =>
+    console.debug('>> member.updated.videoMuted', params)
+  )
+  roomObj.on('member.left', (params) => console.debug('>> member.left', params))
+  roomObj.on('member.talking', (params) =>
+    console.debug('>> member.talking', params)
+  )
 
   roomObj.on('media.connected', () => {
     console.debug('>> media.connected')
@@ -262,23 +395,7 @@ window.connect = async () => {
     console.debug('>> media.disconnected')
   })
 
-  roomObj.on('room.subscribed', (params) =>
-    console.debug('>> room.subscribed', params)
-  )
-  roomObj.on('room.started', (params) =>
-    console.debug('>> room.started', params)
-  )
-  roomObj.on('room.joined', (params) =>
-    console.debug('>> room.joined ', params)
-  )
-  roomObj.on('room.updated', (params) =>
-    console.debug('>> room.updated', params)
-  )
-  roomObj.on('room.ended', (params) => {
-    console.debug('>> room.ended', params)
-    hangup()
-  })
-
+  // CF SDK does not support recording events yet
   roomObj.on('recording.started', (params) => {
     console.debug('>> recording.started', params)
     document.getElementById('recordingState').innerText = 'recording'
@@ -292,23 +409,7 @@ window.connect = async () => {
     document.getElementById('recordingState').innerText = params.state
   })
 
-  roomObj.on('member.joined', (params) =>
-    console.debug('>> member.joined', params)
-  )
-  roomObj.on('member.updated', (params) =>
-    console.debug('>> member.updated', params)
-  )
-  roomObj.on('member.updated.audio_muted', (params) =>
-    console.debug('>> member.updated.audio_muted', params)
-  )
-  roomObj.on('member.updated.video_muted', (params) =>
-    console.debug('>> member.updated.video_muted', params)
-  )
-  roomObj.on('member.left', (params) => console.debug('>> member.left', params))
-  roomObj.on('member.talking', (params) =>
-    console.debug('>> member.talking', params)
-  )
-
+  // CF SDK does not support playback events yet
   roomObj.on('playback.started', (params) => {
     console.debug('>> playback.started', params)
     playbackStarted()
@@ -324,9 +425,10 @@ window.connect = async () => {
     }
   })
 
-  roomObj.on('layout.changed', (params) =>
+  roomObj.on('layout.changed', (params) => {
     console.debug('>> layout.changed', params)
-  )
+    loadPositions(params.layout)
+  })
 
   roomObj.on('track', (event) => console.debug('>> DEMO track', event))
 
@@ -335,10 +437,20 @@ window.connect = async () => {
     restoreUI()
   })
 
+  roomObj.on('microphone.updated', (params) => {
+    console.debug('>> microphone.updated', params)
+  })
+  roomObj.on('camera.updated', (params) => {
+    console.debug('>> camera.updated', params)
+  })
+  roomObj.on('speaker.updated', (params) => {
+    console.debug('>> speaker.updated', params)
+  })
+
   await call.start()
   console.debug('Call Obj', call)
 
-  // Render video element using custom function
+  /* --------- Render video element using custom function ---------- */
   // setTimeout(async () => {
   //   const { unsubscribe } = await buildVideoElement({
   //     room: call,
@@ -365,9 +477,12 @@ window.connect = async () => {
     })
 
   const joinHandler = (params) => {
+    connectStatus.innerHTML = 'Call Connected'
+
     btnConnect.classList.add('d-none')
-    btnDisconnect.classList.remove('d-none')
-    connectStatus.innerHTML = 'Connected'
+    btnDial.classList.add('d-none')
+    btnDisconnect.classList.add('d-none')
+
     inCallElements.forEach((button) => {
       button.classList.remove('d-none')
       button.disabled = false
@@ -380,16 +495,49 @@ window.connect = async () => {
 /**
  * Hangup the roomObj if present
  */
-window.hangup = () => {
+window.hangup = async () => {
   if (micAnalyzer) {
     micAnalyzer.destroy()
   }
 
   if (roomObj) {
-    roomObj.hangup()
+    await roomObj.hangup()
   }
 
   restoreUI()
+
+  removeRoomFromURL()
+}
+
+/**
+ * Disconnect the Call Fabric client
+ */
+window.disconnect = async () => {
+  await client.disconnect()
+  connectStatus.innerHTML = 'Disconnected'
+
+  client = null
+
+  btnConnect.classList.remove('d-none')
+  btnHangup.classList.add('d-none')
+  btnDial.classList.add('d-none')
+  btnDisconnect.classList.add('d-none')
+
+  removeRoomFromURL()
+}
+
+// Set or update the query parameter 'room' with value room.name
+window.addRoomToURL = (roomName) => {
+  const url = new URL(window.location.href)
+  url.searchParams.set('room', roomName)
+  window.history.replaceState({}, '', url)
+}
+
+// Remove the 'room' query parameter
+window.removeRoomFromURL = () => {
+  const url = new URL(window.location.href)
+  url.searchParams.delete('room')
+  window.history.replaceState({}, '', url)
 }
 
 window.saveInLocalStorage = (e) => {
@@ -442,11 +590,11 @@ window.startScreenShare = async () => {
     })
 
   screenShareObj.once('destroy', () => {
-    console.debug('screenShare destroy')
+    console.debug('>> screenShare destroy')
   })
 
   screenShareObj.once('room.left', () => {
-    console.debug('screenShare room.left')
+    console.debug('>> screenShare room.left')
   })
 }
 window.stopScreenShare = () => {
@@ -501,8 +649,37 @@ window.showVideoMuted = () => {
   roomObj.showVideoMuted()
 }
 
+window.raiseHand = () => {
+  roomObj.setRaisedHand({ raised: true })
+}
+
+window.lowerHand = () => {
+  roomObj.setRaisedHand({ raised: false })
+}
+
+window.lockRoom = () => {
+  roomObj.lock()
+}
+
+window.unlockRoom = () => {
+  roomObj.unlock()
+}
+
+window.holdCall = () => {
+  roomObj.hold()
+}
+
+window.unholdCall = () => {
+  roomObj.unhold()
+}
+
 window.changeLayout = (select) => {
   roomObj.setLayout({ name: select.value })
+}
+
+window.changePosition = (select) => {
+  roomObj.setPositions({ positions: { self: select.value } })
+  currentPositionId = select.value
 }
 
 window.changeMicrophone = (select) => {
@@ -538,10 +715,10 @@ window.changeSpeaker = (select) => {
 window.rangeInputHandler = (range) => {
   switch (range.id) {
     case 'microphoneVolume':
-      roomObj.setMicrophoneVolume({ volume: range.value })
+      roomObj.setInputVolume({ volume: range.value })
       break
     case 'speakerVolume':
-      roomObj.setSpeakerVolume({ volume: range.value })
+      roomObj.setOutputVolume({ volume: range.value })
       break
     case 'inputSensitivity':
       roomObj.setInputSensitivity({ value: range.value })
@@ -730,4 +907,13 @@ window.ready(async function () {
   document.getElementById('audio').checked = true
   document.getElementById('video').checked =
     localStorage.getItem('fabric.ws.video') === 'true'
+
+  const urlParams = new URLSearchParams(window.location.search)
+  const room = urlParams.get('room')
+  if (room) {
+    await connect()
+    await dial({ reattach: true })
+  } else {
+    console.log('Room parameter not found')
+  }
 })

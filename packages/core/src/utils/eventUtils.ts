@@ -1,3 +1,5 @@
+
+
 export const stripNamespacePrefix = (
   event: string,
   namespace?: string

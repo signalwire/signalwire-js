@@ -9,12 +9,6 @@ const streamingTests = [
   'roomSessionAutomaticStream.spec.ts',
 ]
 const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
-const audienceTests = [
-  'roomSessionAudienceCount.spec.ts',
-  'roomSessionFollowLeader.spec.ts',
-  'roomSessionTalkingEventsToAudience.spec.ts',
-  'roomSessionUnauthorized.spec.ts',
-]
 const promoteTests = [
   'roomSessionPromoteDemote.spec.ts',
   'roomSessionPromoteMeta.spec.ts',
@@ -27,6 +21,12 @@ const demoteTests = [
   'roomSessionDemoteReattachPromote.spec.ts',
   'roomSessionDemotePromote.spec.ts',
 ]
+const audienceTests = [
+  'roomSessionAudienceCount.spec.ts',
+  'roomSessionFollowLeader.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
+  'roomSessionUnauthorized.spec.ts',
+]
 const reattachTests = [
   'roomSessionReattach.spec.ts',
   'roomSessionReattachBadAuth.spec.ts',
@@ -36,15 +36,33 @@ const reattachTests = [
   'roomSessionReattachWrongProtocol.spec.ts',
 ]
 const callfabricTests = [
+  'agent_customer.spec.ts',
   'address.spec.ts',
+  'cleanup.spec.ts',
   'conversation.spec.ts',
+  'deviceEvent.spec.ts',
+  'deviceState.spec.ts',
+  'holdunhold.spec.ts',
+  'mirrorVideo.spec.ts',
+  'raiseHand.spec.ts',
+  'reattach.spec.ts',
   'relayApp.spec.ts',
   'swml.spec.ts',
   'videoRoom.spec.ts',
+  'videoRoomLayout.spec.ts',
+]
+const renegotiationTests = [
+  'roomSessionUpdateMedia.spec.ts',
+  'renegotiateAudio.spec.ts',
+  'renegotiateVideo.spec.ts',
+]
+const videoElementTests = [
+  'buildVideoWithVideoSDK.spec.ts',
+  'buildVideoWithFabricSDK.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
-const useDesktopChrome = {
+const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
   launchOptions: {
     // devtools: true,
@@ -70,6 +88,7 @@ const config: PlaywrightTestConfig = {
   // Forbid test.only on CI
   forbidOnly: !!process.env.CI,
   workers: 1,
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   projects: [
     {
       name: 'default',
@@ -82,6 +101,8 @@ const config: PlaywrightTestConfig = {
         ...audienceTests,
         ...reattachTests,
         ...callfabricTests,
+        ...renegotiationTests,
+        ...videoElementTests,
         ...v2WebRTC,
       ],
     },
@@ -119,6 +140,16 @@ const config: PlaywrightTestConfig = {
       name: 'callfabric',
       use: useDesktopChrome,
       testMatch: callfabricTests,
+    },
+    {
+      name: 'renegotiation',
+      use: useDesktopChrome,
+      testMatch: renegotiationTests,
+    },
+    {
+      name: 'videoElement',
+      use: useDesktopChrome,
+      testMatch: videoElementTests,
     },
     {
       name: 'v2WebRTC',

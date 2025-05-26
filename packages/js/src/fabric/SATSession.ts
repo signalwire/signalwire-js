@@ -1,21 +1,24 @@
 import {
+  asyncRetry,
+  increasingDelay,
+  JSONRPCRequest,
+  JSONRPCResponse,
   RPCReauthenticate,
   RPCReauthenticateParams,
   SATAuthorization,
-  SessionOptions,
   UNIFIED_CONNECT_VERSION,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
+import { SATSessionOptions } from './interfaces'
 
+/**
+ * SAT Session is for the Call Fabric SDK
+ */
 export class SATSession extends JWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
 
-  constructor(public options: SessionOptions) {
+  constructor(public options: SATSessionOptions) {
     super(options)
-  }
-
-  get isReconnecting() {
-    return !!this._rpcConnectResult
   }
 
   override get signature() {
@@ -26,19 +29,18 @@ export class SATSession extends JWTSession {
     return undefined
   }
 
-  override async retrieveRelayProtocol() {
-    // FIXME: until we get the "reattach" working for CF, we should only hijack the protocol in a "reconnect"
-    return this.isReconnecting ? super.retrieveRelayProtocol() : ''
-  }
-
   override async _checkTokenExpiration() {
-    // no-op
+    /**
+     * noop
+     *
+     * The Call Fabric SDK does not attach any timer and
+     * does not emit any events to inform the user about the token expiry.
+     */
   }
 
   /**
-   * Reauthenticate with the SignalWire Network
-   * using a newer SAT. If the session has expired
-   * will reconnect it.
+   * Reauthenticate with the SignalWire Network using a newer SAT.
+   * If the session has expired, this will reconnect it.
    * @return Promise<void>
    */
   override async reauthenticate() {
@@ -65,5 +67,23 @@ export class SATSession extends JWTSession {
     } catch (error) {
       throw error
     }
+  }
+
+  override async execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
+    return asyncRetry({
+      asyncCallable: () => super.execute(msg),
+      maxRetries: this.options.maxApiRequestRetries,
+      delayFn: increasingDelay({
+        initialDelay: this.options.apiRequestRetriesDelay,
+        variation: this.options.apiRequestRetriesDelayIncrement,
+      }),
+      expectedErrorHandler: (error) => {
+        if (error?.message?.startsWith('Authentication failed')) {
+          // is expected to be handle by the app developer, skipping retries
+          return true
+        }
+        return false
+      },
+    })
   }
 }

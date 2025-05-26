@@ -3,6 +3,7 @@ import { test } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
+  dialAddress,
   expectCFFinalEvents,
   expectCFInitialEvents,
   expectPageReceiveAudio,
@@ -19,6 +20,7 @@ test.describe('CallFabric SWML', () => {
             urls: [
               'say:Hi',
               'say:Welcome to SignalWire',
+              "say:Thank you for calling us. All our lines are currently busy, but your call is important to us. Please hang up, and we'll return your call as soon as our representative is available.",
               "say:Thank you for calling us. All our lines are currently busy, but your call is important to us. Please hang up, and we'll return your call as soon as our representative is available.",
             ],
           },
@@ -55,27 +57,12 @@ test.describe('CallFabric SWML', () => {
 
     await createCFClient(page)
 
-    page.resetWsTraffic()
     // Dial an address and listen a TTS
-    await page.evaluate(
-      async ({ resourceName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/private/${resourceName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          resolve(call)
-        })
-      },
-      { resourceName }
-    )
+    await dialAddress(page, {
+      address: `/private/${resourceName}`,
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+    })
 
     const callPlayStarted = page.evaluate(async () => {
       // @ts-expect-error
@@ -100,27 +87,7 @@ test.describe('CallFabric SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    const callPlayEnded = page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return new Promise<boolean>((resolve) => {
-        roomObj.on('call.play', (params: any) => {
-          if (params.state === 'finished') resolve(true)
-        })
-      })
-    })
-
-    const expectFinalEvents = expectCFFinalEvents(page, [callPlayEnded])
-
-    // Hangup the call
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
-
-      await call.hangup()
-    })
-
-    await expectFinalEvents
+    await expectCFFinalEvents(page)
   })
 
   test('should dial an address and expect a hangup', async ({
@@ -139,25 +106,11 @@ test.describe('CallFabric SWML', () => {
     await createCFClient(page)
 
     // Dial an address and listen a TTS
-    await page.evaluate(
-      async ({ resourceName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          // @ts-expect-error
-          const client = window._client
-
-          const call = await client.dial({
-            to: `/private/${resourceName}`,
-            rootElement: document.getElementById('rootElement'),
-          })
-
-          // @ts-expect-error
-          window._roomObj = call
-
-          resolve(call)
-        })
-      },
-      { resourceName }
-    )
+    await dialAddress(page, {
+      address: `/private/${resourceName}`,
+      shouldWaitForJoin: false,
+      shouldStartCall: false,
+    })
 
     const expectInitialEvents = expectCFInitialEvents(page)
     const expectFinalEvents = expectCFFinalEvents(page)

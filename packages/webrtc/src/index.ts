@@ -18,6 +18,7 @@ export {
   createCameraDeviceWatcher,
   createMicrophoneAnalyzer,
 } from './utils/deviceHelpers'
+export type { MicrophoneAnalyzer } from './utils/deviceHelpers'
 export {
   supportsMediaDevices,
   supportsGetUserMedia,
@@ -39,9 +40,4 @@ export {
   requestPermissions,
 } from './utils'
 export * from './utils/interfaces'
-export {
-  BaseConnection,
-  BaseConnectionOptions,
-  BaseConnectionStateEventTypes,
-  MediaEvent,
-} from './BaseConnection'
+export { BaseConnection, BaseConnectionOptions } from './BaseConnection'

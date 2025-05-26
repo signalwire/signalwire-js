@@ -1,5 +1,15 @@
 # @sw-internal/e2e-js
 
+## 0.0.19
+
+### Patch Changes
+
+- [#1102](https://github.com/signalwire/signalwire-js/pull/1102) [`d90911ce3cad4fdba8cd03ac23c191cd644395cb`](https://github.com/signalwire/signalwire-js/commit/d90911ce3cad4fdba8cd03ac23c191cd644395cb) Thanks [@giavac](https://github.com/giavac)! - Improve v2 webrtc e2e tests to detected media timeouts
+
+- [#1067](https://github.com/signalwire/signalwire-js/pull/1067) [`3d67c972f920277befcb3b16c6329851f8ccc146`](https://github.com/signalwire/signalwire-js/commit/3d67c972f920277befcb3b16c6329851f8ccc146) Thanks [@giavac](https://github.com/giavac)! - v2 webrtc e2e test, log response body of failed REST API request, add a test expecting a 422
+
+- [#1176](https://github.com/signalwire/signalwire-js/pull/1176) [`185a10dbe83c017f15b9c57ef48fabfa384515b2`](https://github.com/signalwire/signalwire-js/commit/185a10dbe83c017f15b9c57ef48fabfa384515b2) Thanks [@ayeminag](https://github.com/ayeminag)! - fixed flakey roomSettings.spec.ts
+
 ## 0.0.18
 
 ### Patch Changes

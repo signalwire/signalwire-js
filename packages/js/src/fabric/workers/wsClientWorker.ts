@@ -5,42 +5,56 @@ import {
   SDKWorker,
   SDKActions,
   MapToPubSubShape,
-  SDKWorkerHooks,
   WebRTCMessageParams,
 } from '@signalwire/core'
-import type { BaseConnection } from '@signalwire/webrtc'
-import { createClient } from '../../createClient'
+import { WSClient } from '../WSClient'
 
-type WSClientWorkerOnDone = () => void
-type WSClientWorkerOnFail = (args: { error: Error }) => void
-
-export type WSClientWorkerHooks = SDKWorkerHooks<
-  WSClientWorkerOnDone,
-  WSClientWorkerOnFail
->
-
-export const wsClientWorker: SDKWorker<
-  ReturnType<typeof createClient<BaseConnection<any>>>,
-  WSClientWorkerHooks
-> = function* (options): SagaIterator {
-  getLogger().trace('wsClientWorker started')
-  const { channels, initialState } = options
+export const wsClientWorker: SDKWorker<WSClient> = function* (
+  options
+): SagaIterator {
+  getLogger().debug('wsClientWorker started')
+  const { channels, initialState, instance: client } = options
   const { swEventChannel } = channels
-  const { buildInboundCall } = initialState
+  const { handleIncomingInvite } = initialState
 
-  while (true) {
-    const action: MapToPubSubShape<WebRTCMessageParams> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (action.type === 'webrtc.message') {
-          return action.payload.method === 'verto.invite'
-        }
-        return false
-      })
-    getLogger().debug('Receiving a new call over WebSocket', action)
-
-    // Invoke WSClient function to build and answer the invite
-    buildInboundCall(action.payload.params)
+  function* fireHoseWorker(action: SDKActions) {
+    // @ts-expect-error Emit all events - This is for internal usage
+    client.emit(action.type, action.payload)
   }
 
-  getLogger().trace('wsClientWorker ended')
+  function* vertoInviteWorker(action: MapToPubSubShape<WebRTCMessageParams>) {
+    // Invoke WSClient function to build and answer the invite
+    handleIncomingInvite(action.payload.params)
+  }
+
+  const isVertoInvite = (action: SDKActions) => {
+    if (action.type === 'webrtc.message') {
+      return action.payload.method === 'verto.invite'
+    }
+    return false
+  }
+
+  try {
+    while (true) {
+      // Take all actions from the channel
+      const action: SDKActions = yield sagaEffects.take(
+        swEventChannel,
+        () => true
+      )
+
+      // Fire all the events with fireHoseWorker
+      yield sagaEffects.fork(fireHoseWorker, action)
+
+      // If the event is verto.invite, handle that with vertoInviteWorker
+      if (isVertoInvite(action)) {
+        getLogger().debug('Receiving a call over WebSocket', action)
+        yield sagaEffects.fork(
+          vertoInviteWorker,
+          action as MapToPubSubShape<WebRTCMessageParams>
+        )
+      }
+    }
+  } finally {
+    getLogger().trace('wsClientWorker ended')
+  }
 }

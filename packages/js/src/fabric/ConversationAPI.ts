@@ -1,44 +1,52 @@
 import { Conversation } from './Conversation'
-import { Conversation as ConversationType } from '@signalwire/core'
+import {
+  ConversationAPIGetMessagesParams,
+  ConversationAPISendMessageParams,
+  ConversationContract,
+  ConversationResponse,
+} from './interfaces'
 
-export interface ConversationAPISendMessageOptions {
-  text: string
-}
-
-export interface ConversationAPIGetMessagesOptions {
-  pageSize?: number
-}
-export class ConversationAPI {
+export class ConversationAPI implements ConversationContract {
+  constructor(
+    private conversation: Conversation,
+    private payload: ConversationResponse
+  ) {}
 
   get id() {
-    return this.data.id
+    return this.payload.id
   }
 
-  get created_at() {
-    return this.data.created_at
+  get addressId() {
+    return this.payload.address_id
   }
 
-  get last_message_at() {
-    return this.data.last_message_at
+  get createdAt() {
+    return this.payload.created_at
+  }
+
+  get lastMessageAt() {
+    return this.payload.last_message_at
   }
 
   get metadata() {
-    return this.data.metadata
+    return this.payload.metadata
   }
 
   get name() {
-    return this.data.name
+    return this.payload.name
   }
 
-  constructor(private conversation: Conversation, private data: ConversationType) {}
-
-  sendMessage(options: ConversationAPISendMessageOptions) {
+  sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({
       addressId: this.id,
-      text: options.text,
+      text: params.text,
     })
   }
-  getMessages(options: ConversationAPIGetMessagesOptions | undefined) {
-    return this.conversation.getConversationMessages({ addressId: this.id, ...options })
+
+  getMessages(params?: ConversationAPIGetMessagesParams) {
+    return this.conversation.getConversationMessages({
+      addressId: this.id,
+      ...params,
+    })
   }
 }

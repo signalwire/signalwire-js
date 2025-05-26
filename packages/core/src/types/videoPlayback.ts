@@ -1,4 +1,9 @@
-import type { SwEvent } from '.'
+import type {
+  PlaybackEnded,
+  PlaybackStarted,
+  PlaybackUpdated,
+  SwEvent,
+} from '.'
 import { MapToPubSubShape } from '..'
 import type {
   CamelToSnakeCase,
@@ -6,13 +11,6 @@ import type {
   OnlyStateProperties,
   OnlyFunctionProperties,
 } from './utils'
-
-/**
- * Public event types
- */
-export type PlaybackStarted = 'playback.started'
-export type PlaybackUpdated = 'playback.updated'
-export type PlaybackEnded = 'playback.ended'
 
 /**
  * Public listener types

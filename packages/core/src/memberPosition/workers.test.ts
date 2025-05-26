@@ -7,6 +7,8 @@ import {
   configureJestStore,
 } from '../testUtils'
 import { BaseComponent } from '../BaseComponent'
+import { MapToPubSubShape } from '../redux/interfaces'
+import { VideoMemberUpdatedEvent } from '..'
 
 describe('memberPositionWorker', () => {
   util.inspect.defaultOptions.depth = null
@@ -30,7 +32,7 @@ describe('memberPositionWorker', () => {
   })
 
   const memberId = 'ab42641c-e784-42f1-9815-d264105bc24f'
-  const action = {
+  const action: MapToPubSubShape<VideoMemberUpdatedEvent> = {
     type: 'video.member.updated',
     payload: {
       room_session_id: '8e03ac25-8622-411a-95fc-f897b34ac9e7',
@@ -89,7 +91,6 @@ describe('memberPositionWorker', () => {
         getAll: jest.fn(),
         deleteAll: jest.fn(),
       },
-      callSegments: [],
       getSession,
     })
       .run()
@@ -134,7 +135,6 @@ describe('memberPositionWorker', () => {
         getAll: jest.fn(),
         deleteAll: jest.fn(),
       },
-      callSegments: [],
       getSession,
       dispatcher: mockDispatcher,
     })

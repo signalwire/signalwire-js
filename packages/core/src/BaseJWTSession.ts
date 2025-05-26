@@ -11,16 +11,16 @@ import { type SWCloseEvent, isSATAuth } from './utils'
 
 export class BaseJWTSession extends BaseSession {
   /**
-   * Can be set a value different then zero
-   * to force the JWT as expired within X seconds.
+   * Can set a value different than zero to
+   * force the JWT as expired within X seconds.
    * TODO: Remove this workaround.
    */
-  private _expiredDiffSeconds = 0
-  private _refreshTokenNotificationDiff = 120
+  private readonly _expiredDiffSeconds = 0
+  private readonly _refreshTokenNotificationDiff = 120
   /**
    * Check the JWT expiration every 20seconds
    */
-  private _checkTokenExpirationDelay = 20 * 1000
+  private readonly _checkTokenExpirationDelay = 20 * 1000
   private _checkTokenExpirationTimer: any = null
 
   constructor(public options: SessionOptions) {

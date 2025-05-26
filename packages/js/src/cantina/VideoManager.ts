@@ -3,18 +3,27 @@ import {
   VideoManagerRoomEventNames,
   connect,
   ConsumerContract,
-  VideoManagerRoomEntity,
   validateEventsToSubscribe,
   EventEmitter,
   BaseConsumer,
+  ToExternalJSONResult,
+  VideoManagerRoomEventParams,
+  InternalVideoManagerRoomEntity,
+  RoomsSubscribed,
 } from '@signalwire/core'
 import { videoManagerWorker } from './workers'
 
 /** @internal */
 export type VideoManagerEvents = Record<
   VideoManagerRoomEventNames,
-  (room: VideoManagerRoomEntity) => void
->
+  (room: ToExternalJSONResult<VideoManagerRoomEventParams>) => void
+> &
+  Record<
+    RoomsSubscribed,
+    (room: {
+      rooms: ToExternalJSONResult<InternalVideoManagerRoomEntity>[]
+    }) => void
+  >
 
 /** @internal */
 export interface VideoManager extends ConsumerContract<VideoManagerEvents> {}

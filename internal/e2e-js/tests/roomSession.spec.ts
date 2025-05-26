@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures'
-import type { Video } from '@signalwire/js'
+import type { Video, VideoRoomSession } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -79,7 +79,7 @@ test.describe('RoomSession', () => {
 
     const roomPermissions: any = await page.evaluate(() => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: VideoRoomSession = window._roomObj
       return roomObj.permissions
     })
     expect(roomPermissions).toStrictEqual(permissions)
@@ -88,7 +88,7 @@ test.describe('RoomSession', () => {
     await page.evaluate(
       async ({ joinParams }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
@@ -167,7 +167,7 @@ test.describe('RoomSession', () => {
     // --------------- Session Recording ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: VideoRoomSession = window._roomObj
 
       const recordingStarted = new Promise((resolve, reject) => {
         roomObj.on('recording.started', (params) => {
@@ -259,7 +259,7 @@ test.describe('RoomSession', () => {
     await page.evaluate(
       async ({ PLAYBACK_URL }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const playbackStarted = new Promise((resolve, reject) => {
           roomObj.on('playback.started', (params) => {
@@ -330,7 +330,7 @@ test.describe('RoomSession', () => {
     // --------------- Screenshare ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: VideoRoomSession = window._roomObj
 
       let screenMemberId: string
       const screenJoined = new Promise((resolve) => {
@@ -382,7 +382,7 @@ test.describe('RoomSession', () => {
       // --------------- Get Room Meta ---------------
       const currentMeta: any = await page.evaluate(() => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
         return roomObj.getMeta()
       })
       expect(currentMeta.meta).toStrictEqual(expected)
@@ -395,7 +395,7 @@ test.describe('RoomSession', () => {
     const resultMeta = await page.evaluate(
       async ({ meta }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const setRoomMeta = new Promise((resolve) => {
           roomObj.on('room.updated', (params) => {
@@ -422,7 +422,7 @@ test.describe('RoomSession', () => {
     const resultMetaUpdate = await page.evaluate(
       async ({ meta }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const setRoomMeta = new Promise((resolve) => {
           roomObj.on('room.updated', (params) => {
@@ -456,7 +456,7 @@ test.describe('RoomSession', () => {
     const resultMetaDelete = await page.evaluate(
       async ({ keys }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const deleteRoomMeta = new Promise((resolve) => {
           roomObj.on('room.updated', (params) => {
@@ -487,7 +487,7 @@ test.describe('RoomSession', () => {
       // --------------- Get Room Meta ---------------
       const initialMeta: any = await page.evaluate(() => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
         return roomObj.getMemberMeta()
       })
       expect(initialMeta.meta).toStrictEqual(expected)
@@ -500,7 +500,7 @@ test.describe('RoomSession', () => {
     const resultMemberMeta = await page.evaluate(
       async ({ meta }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const setMemberMeta = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
@@ -527,7 +527,7 @@ test.describe('RoomSession', () => {
     const resultMemberMetaUpdate = await page.evaluate(
       async ({ meta }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const updateMemberMeta = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
@@ -561,7 +561,7 @@ test.describe('RoomSession', () => {
     const resultMemberMetaDelete = await page.evaluate(
       async ({ keys }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const deleteMemberRoomMeta = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
@@ -619,6 +619,7 @@ test.describe('RoomSession', () => {
         'recording.started',
         'room.updated',
       ],
+      expectToJoin: false,
     }
 
     await Promise.all([
@@ -634,9 +635,9 @@ test.describe('RoomSession', () => {
 
     // --------------- Start recording and playback from 1st room ---------------
     await pageOne.evaluate(
-      async ({ PLAYBACK_URL }) => {
+      async ({ playbackURL }) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: VideoRoomSession = window._roomObj
 
         const recordingStarted = new Promise((resolve, reject) => {
           roomObj.on('recording.started', (params) => {
@@ -659,13 +660,11 @@ test.describe('RoomSession', () => {
         })
 
         await roomObj.startRecording()
-        await roomObj.play({
-          url: PLAYBACK_URL!,
-        })
+        await roomObj.play({ url: playbackURL! })
 
         return Promise.all([recordingStarted, playbackStarted])
       },
-      { PLAYBACK_URL: process.env.PLAYBACK_URL }
+      { playbackURL: process.env.PLAYBACK_URL }
     )
 
     // --------------- Joining the 2nd room ---------------
@@ -677,7 +676,7 @@ test.describe('RoomSession', () => {
     // --------------- Getting the recordings from the 2nd room ---------------
     const recordings: any = await pageTwo.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: VideoRoomSession = window._roomObj
       const payload = await roomObj.getRecordings()
 
       return Promise.all(
@@ -722,7 +721,7 @@ test.describe('RoomSession', () => {
     // --------------- Getting the playbacks from the 2nd room ---------------
     const playbacks = await pageTwo.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: VideoRoomSession = window._roomObj
       const payload = await roomObj.getPlaybacks()
 
       return Promise.all(
