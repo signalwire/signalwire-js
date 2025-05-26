@@ -854,17 +854,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (localDescription.sdp && audioCodecs) {
       localDescription.sdp = useAudioCodecs(localDescription.sdp, audioCodecs)
     }
-    // this.logger.debug(
-    //   'LOCAL SDP \n',
-    //   `Type: ${localDescription.type}`,
-    //   '\n\n',
-    //   localDescription.sdp
-    // )
     return this.instance.setLocalDescription(localDescription)
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
-    const { useStereo, audioCodecs } = this.options
+    const { useStereo } = this.options
     if (remoteDescription.sdp && useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
