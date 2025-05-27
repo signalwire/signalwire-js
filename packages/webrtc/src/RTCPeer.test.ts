@@ -17,7 +17,7 @@ jest.mock('@signalwire/core', () => {
 
 describe('RTCPeer', () => {
   let peer: RTCPeer<any>
-  let mockInstance: Partial<RTCPeerConnection>
+  let mockInstance: Partial<jest.Mocked<RTCPeerConnection>>
   let mockCall: jest.Mocked<any>
   let mockLogger: any
 
@@ -37,8 +37,7 @@ describe('RTCPeer', () => {
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
       setConfiguration: jest.fn(),
-      // @ts-ignore - Mock implementation
-      getConfiguration: jest.fn().mockReturnValue({}),
+      getConfiguration: jest.fn(),
       restartIce: jest.fn(),
     }
 
@@ -84,7 +83,7 @@ describe('RTCPeer', () => {
     })
 
     it('should skip if already in relay-only mode', () => {
-      ;(mockInstance.getConfiguration as jest.Mock).mockReturnValue({
+      mockInstance.getConfiguration?.mockReturnValue({
         iceTransportPolicy: 'relay',
       } as RTCConfiguration)
 
@@ -96,7 +95,7 @@ describe('RTCPeer', () => {
 
     it('should update configuration and restart ICE', () => {
       const mockConfig = { iceServers: [] } as RTCConfiguration
-      ;(mockInstance.getConfiguration as jest.Mock).mockReturnValue(mockConfig)
+      mockInstance.getConfiguration?.mockReturnValue(mockConfig)
 
       peer.restartIceWithRelayOnly()
 
@@ -109,7 +108,7 @@ describe('RTCPeer', () => {
 
     it('should handle errors appropriately', () => {
       const error = new Error('Test error')
-      ;(mockInstance.setConfiguration as jest.Mock).mockImplementation(() => {
+      mockInstance.getConfiguration?.mockImplementation(() => {
         throw error
       })
       // @ts-ignore - Access private property for testing
