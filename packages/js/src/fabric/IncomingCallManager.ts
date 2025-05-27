@@ -43,20 +43,11 @@ export class IncomingCallManager {
       return this.options.executeVertoBye(invite.callID, invite.nodeId)
     }
 
-    const reattach = async (params: CallParams) => {
-      return this._client.reattach({
-        ...params,
-        nodeId: invite.nodeId,
-        to: '' 
-      })
-  }
-
     return {
       invite: {
         details: invite,
         accept: (params) => accept(params),
         reject: () => reject(),
-        reattach: (params) => reattach(params),
       },
     }
   }

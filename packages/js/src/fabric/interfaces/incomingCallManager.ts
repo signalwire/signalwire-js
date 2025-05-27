@@ -23,7 +23,6 @@ export interface IncomingCallNotification {
     details: IncomingInvite
     accept: (param: CallParams) => Promise<FabricRoomSession>
     reject: () => Promise<void>
-    reattach: (param: CallParams) => Promise<FabricRoomSession>
   }
 }
 export type IncomingCallHandler = (

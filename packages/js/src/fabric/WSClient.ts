@@ -15,6 +15,7 @@ import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
   DialParams,
+  ReattachParams, 
   IncomingInvite,
   OnlineParams,
   HandlePushNotificationParams,
@@ -158,20 +159,23 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
-    const [pathname, query] = params.to.split('?')
-    if (!pathname) {
-      throw new Error('Invalid destination address')
-    }
+  private buildOutboundCall(params: ReattachParams & { attach?: boolean }) {
 
     let video = false
     let negotiateVideo = false
 
-    const queryParams = new URLSearchParams(query)
-    const channel = queryParams.get('channel')
-    if (channel === 'video') {
-      video = true
-      negotiateVideo = true
+    if (params.to) {
+      const [pathname, query] = params.to.split('?')
+      if (!pathname) {
+        throw new Error('Invalid destination address')
+      }
+
+      const queryParams = new URLSearchParams(query)
+      const channel = queryParams.get('channel')
+      if (channel === 'video') {
+        video = true
+        negotiateVideo = true
+      }
     }
 
     const call = this.makeFabricObject({
@@ -186,7 +190,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       stopMicrophoneWhileMuted: params.stopMicrophoneWhileMuted,
       mirrorLocalVideoOverlay: params.mirrorLocalVideoOverlay,
       watchMediaPackets: false,
-      destinationNumber: params.to,
+      destinationNumber: params.to ?? '',
       nodeId: params.nodeId,
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
@@ -319,7 +323,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public async reattach(params: DialParams) {
+  public async reattach(params: ReattachParams) {
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         const call = this.buildOutboundCall({ ...params, attach: true })
