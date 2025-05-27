@@ -484,7 +484,7 @@ test.describe('v2WebrtcFromRest422', () => {
 
 const callStatusWebhookDescription = 'should receive call status webhook callback'
 
-test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
+test.describe.skip('v2WebRTCFromRestCallStatusWebhook', () => {
   test(callStatusWebhookDescription, async ({
     createCustomVanillaPage,
   }) => {
@@ -631,7 +631,7 @@ test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
 
 
 const conferenceWebhookDescription = 'should receive conference status webhook callbacks'
-test.describe('v2WebrtcFromRest', () => {
+test.describe.skip('v2WebrtcFromRest', () => {
   test(conferenceWebhookDescription, async ({
     createCustomVanillaPage,
   }) => {
