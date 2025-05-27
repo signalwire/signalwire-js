@@ -268,7 +268,7 @@ export class BaseConnection<
       dialogParams: {
         id: rtcPeerId,
         destinationNumber,
-        attach: attach,
+        attach,
         reattaching: attach,
         callerName,
         callerNumber,
