@@ -37,50 +37,47 @@ export const roomSubscribedWorker: SDKWorker<
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
   }
-  try {
-    const action: MapToPubSubShape<VideoRoomSubscribedEvent | CallJoinedEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (
-          action.type === 'video.room.subscribed' ||
-          action.type === 'call.joined'
-        ) {
-          return action.payload.call_id === rtcPeerId
-        }
-        return false
-      })
 
-    // New emitter should not change the payload by reference
-    const clonedPayload = JSON.parse(JSON.stringify(action.payload))
+  const action: MapToPubSubShape<VideoRoomSubscribedEvent | CallJoinedEvent> =
+    yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
+      if (
+        action.type === 'video.room.subscribed' ||
+        action.type === 'call.joined'
+      ) {
+        return action.payload.call_id === rtcPeerId
+      }
+      return false
+    })
 
-    /**
-     * In here we joined a room_session so we can swap between RTCPeers
-     */
-    instance.setActiveRTCPeer(rtcPeerId)
+  // New emitter should not change the payload by reference
+  const clonedPayload = JSON.parse(JSON.stringify(action.payload))
 
-    const roomSessionId =
-      action.payload.room_session.id ||
-      action.payload.room_session.room_session_id
+  /**
+   * In here we joined a room_session so we can swap between RTCPeers
+   */
+  instance.setActiveRTCPeer(rtcPeerId)
 
-    /**
-     * TODO: Replace the redux action/component with properties on RTCPeer instance?
-     */
-    yield sagaEffects.put(
-      componentActions.upsert({
-        id: action.payload.call_id,
-        roomId: action.payload.room_session.room_id,
-        roomSessionId: roomSessionId,
-        memberId: action.payload.member_id,
-        previewUrl: action.payload.room_session.preview_url,
-      })
-    )
+  const roomSessionId =
+    action.payload.room_session.id ||
+    action.payload.room_session.room_session_id
 
-    instance.emit('room.subscribed', action.payload)
-    instance.emit('room.joined', transformPayload.call(instance, clonedPayload))
+  /**
+   * TODO: Replace the redux action/component with properties on RTCPeer instance?
+   */
+  yield sagaEffects.put(
+    componentActions.upsert({
+      id: action.payload.call_id,
+      roomId: action.payload.room_session.room_id,
+      roomSessionId: roomSessionId,
+      memberId: action.payload.member_id,
+      previewUrl: action.payload.room_session.preview_url,
+    })
+  )
 
-    getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
-  } finally {
-    getLogger().debug(`roomSubscribedWorker for ${rtcPeerId} [cancelled]`)
-  }
+  instance.emit('room.subscribed', action.payload)
+  instance.emit('room.joined', transformPayload.call(instance, clonedPayload))
+
+  getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
 }
 
 function transformPayload(

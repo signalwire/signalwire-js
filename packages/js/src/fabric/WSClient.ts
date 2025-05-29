@@ -26,8 +26,6 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { getStorage } from '../utils/storage'
-import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -160,7 +158,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildOutboundCall(params: ReattachParams & { attach?: boolean }) {
-
+  
     let video = false
     let negotiateVideo = false
 
@@ -312,8 +310,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   public async dial(params: DialParams) {
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
-        // in case the user left the previous call with hangup, and is not reattaching
-        getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
         const call = this.buildOutboundCall(params)
         resolve(call)
       } catch (error) {

@@ -227,11 +227,3 @@ export const isJSONRPCResponse = (
 export const isSATAuth = (e?: Authorization): e is SATAuthorization => {
   return typeof e !== 'undefined' && 'jti' in e
 }
-
-export const isConnectRequest = (e: JSONRPCRequest | JSONRPCResponse) =>
-  isJSONRPCRequest(e) && e.method == 'signalwire.connect'
-
-export const isVertoInvite = (e: JSONRPCRequest | JSONRPCResponse) =>
-  isJSONRPCRequest(e) &&
-  e.method == 'webrtc.verto' &&
-  e.params?.message.method === 'verto.invite'

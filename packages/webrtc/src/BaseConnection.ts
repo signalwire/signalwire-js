@@ -20,9 +20,6 @@ import {
   VertoAnswer,
   UpdateMediaParams,
   UpdateMediaDirection,
-  asyncRetry,
-  constDelay,
-  SYMBOL_EXECUTE_CONNECTION_CLOSED,
 } from '@signalwire/core'
 import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -97,10 +94,6 @@ export class BaseConnection<
 
   get active() {
     return this.state === 'active'
-  }
-
-  get requesting() {
-    return this.state === 'requesting'
   }
 
   get trying() {
@@ -284,18 +277,12 @@ export class BaseConnection<
     }
   }
 
-  private _myWorkers: Task[] = []
-
   getRTCPeerById(rtcPeerId: string) {
     return this.rtcPeerMap.get(rtcPeerId)
   }
 
   appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {
     return this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
-  }
-
-  removeRTCPeer(rtcPeerId: string) {
-    return this.rtcPeerMap.delete(rtcPeerId)
   }
 
   setActiveRTCPeer(rtcPeerId: string) {
@@ -754,74 +741,38 @@ export class BaseConnection<
   }
 
   runRTCPeerWorkers(rtcPeerId: string) {
-    const vertoWorker = this.runWorker('vertoEventWorker', {
+    this.runWorker('vertoEventWorker', {
       worker: workers.vertoEventWorker,
       initialState: { rtcPeerId },
     })
-    this._myWorkers.push(vertoWorker)
 
     const main = !(this.options.additionalDevice || this.options.screenShare)
 
     if (main) {
-      const subscribedWorker = this.runWorker('roomSubscribedWorker', {
+      this.runWorker('roomSubscribedWorker', {
         worker: workers.roomSubscribedWorker,
         initialState: { rtcPeerId },
       })
-      this._myWorkers.push(subscribedWorker)
 
-      const promoteDemoteWorker = this.runWorker('promoteDemoteWorker', {
+      this.runWorker('promoteDemoteWorker', {
         worker: workers.promoteDemoteWorker,
         initialState: { rtcPeerId },
       })
-      this._myWorkers.push(promoteDemoteWorker)
-    }
-  }
-
-  removeRTCWorkers() {
-    for (const task of this._myWorkers) {
-      this.cancelWorker(task)
-    }
-    this._myWorkers = []
-  }
-
-  private _destroyPeer() {
-    if (this.peer) {
-      //clean up previous attempt
-      this.peer.detachAndStop()
-      this.removeRTCWorkers()
-      this.removeRTCPeer(this.peer.uuid)
-      this.peer = undefined
     }
   }
 
   /** @internal */
   invite<T>(): Promise<T> {
-    return asyncRetry({
-      asyncCallable: async () => {
-        return new Promise(async (resolve, reject) => {
-          await this._waitUntilSessionAuthorized()
-          this.direction = 'outbound'
-          this.peer = this._buildPeer('offer')
-          try {
-            await this.peer.start()
-            resolve(this as any as T)
-          } catch (error) {
-            this.logger.error('Invite error', error)
-            this._destroyPeer()
-            reject(error)
-          }
-        })
-      },
-      maxRetries: 5,
-      delayFn: constDelay({ initialDelay: 0 }),
-      expectedErrorHandler: (error) => {
-        if (this.requesting && error === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
-          this.logger.debug('Retrying verto.invite with new RTCPeer')
-          return false // we should retry
-        }
-        // other case are expected to be handle upstream
-        return true
-      },
+    return new Promise(async (resolve, reject) => {
+      this.direction = 'outbound'
+      this.peer = this._buildPeer('offer')
+      try {
+        await this.peer.start()
+        resolve(this as any as T)
+      } catch (error) {
+        this.logger.error('Invite error', error)
+        reject(error)
+      }
     })
   }
 
@@ -843,12 +794,11 @@ export class BaseConnection<
   }
 
   /** @internal */
-  async onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
+  onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
     if (!rtcPeer.instance.localDescription) {
       this.logger.error('Missing localDescription', rtcPeer)
       throw new Error('Invalid RTCPeerConnection localDescription')
     }
-
     const { type, sdp } = rtcPeer.instance.localDescription
     const mungedSDP = this._mungeSDP(sdp)
     this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
@@ -857,7 +807,6 @@ export class BaseConnection<
         this._watchSessionAuth()
         // If we have a remoteDescription already, send reinvite
         if (!this.resuming && rtcPeer.instance.remoteDescription) {
-          // TODO test auth_state with media updates
           return this.executeUpdateMedia(mungedSDP, rtcPeer.uuid)
         } else {
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
@@ -950,17 +899,11 @@ export class BaseConnection<
         node_id: nodeId ?? this.options.nodeId,
         subscribe,
       })
-      if (this.state === 'requesting') {
-        // The Server Created the call, and now is trying to connect us to the destination
-        this.setState('trying')
-      }
       this.logger.debug('Invite response', response)
 
       this.resuming = false
     } catch (error) {
-      if (typeof error !== 'symbol') {
-        this.setState('hangup')
-      }
+      this.setState('hangup')
       throw error
     }
   }

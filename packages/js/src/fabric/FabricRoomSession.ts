@@ -181,8 +181,7 @@ export class FabricRoomSessionConnection
         `[resume] connectionState for ${this.id} is '${connectionState}'`
       )
       if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
-        // should not resume when selfMember is defined (the SDK didn't lost its state since the `call.joined` was received)
-        this.resuming = !this.selfMember
+        this.resuming = true
         this.peer.restartIce()
       }
     }
