@@ -484,7 +484,7 @@ test.describe('v2WebrtcFromRest422', () => {
 
 const callStatusWebhookDescription = 'should receive call status webhook callback'
 
-test.describe.skip('v2WebRTCFromRestCallStatusWebhook', () => {
+test.describe('v2WebRTCFromRestCallStatusWebhook', () => {
   test(callStatusWebhookDescription, async ({
     createCustomVanillaPage,
   }) => {
@@ -534,6 +534,8 @@ test.describe.skip('v2WebRTCFromRestCallStatusWebhook', () => {
 
     console.log('inline Laml: ', inlineLaml)
     const initiatedCallbackRequest = mockWebhookServer.waitFor('initiated')
+    const ringingCallbackRequest = mockWebhookServer.waitFor('ringing')
+    const answeredCallbackRequest = mockWebhookServer.waitFor('answered')
     const createResult = await createCallWithCompatibilityApi(
       resource,
       inlineLaml,
@@ -556,8 +558,6 @@ test.describe.skip('v2WebRTCFromRestCallStatusWebhook', () => {
       CallbackSource: 'call-progress-events',
     })
 
-    const ringingCallbackRequest = mockWebhookServer.waitFor('ringing')
-    const answeredCallbackRequest = mockWebhookServer.waitFor('answered')
     const callStatusCallee = pageCallee.locator('#callStatus')
     expect(callStatusCallee).not.toBe(null)
     await expect(callStatusCallee).toContainText('-> active')
@@ -631,7 +631,7 @@ test.describe.skip('v2WebRTCFromRestCallStatusWebhook', () => {
 
 
 const conferenceWebhookDescription = 'should receive conference status webhook callbacks'
-test.describe.skip('v2WebrtcFromRest', () => {
+test.describe('v2WebrtcFromRest', () => {
   test(conferenceWebhookDescription, async ({
     createCustomVanillaPage,
   }) => {
@@ -676,6 +676,8 @@ test.describe.skip('v2WebrtcFromRest', () => {
 
     console.log('inline Laml: ', inlineLaml)
     const initiatedCallbackRequest = mockWebhookServer.waitFor('initiated')
+    const ringingCallbackRequest = mockWebhookServer.waitFor('ringing')
+    const answeredCallbackRequest = mockWebhookServer.waitFor('answered')
     const createResult = await createCallWithCompatibilityApi(
       resource,
       inlineLaml,
@@ -699,8 +701,6 @@ test.describe.skip('v2WebrtcFromRest', () => {
       CallbackSource: 'call-progress-events',
     })
 
-    const ringingCallbackRequest = mockWebhookServer.waitFor('ringing')
-    const answeredCallbackRequest = mockWebhookServer.waitFor('answered')
     const callStatusCallee = pageCallee.locator('#callStatus')
     expect(callStatusCallee).not.toBe(null)
     await expect(callStatusCallee).toContainText('-> active')
