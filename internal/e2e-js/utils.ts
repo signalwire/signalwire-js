@@ -1426,40 +1426,66 @@ export class MockWebhookServer extends EventEmitter {
       })
   
       if (startTunnel) {
-        try {
-          this.zrokProcess = spawn('zrok', [
-            'share',
-            'public',
-            '--headless',
-            `${port}`
-          ])
-          this.zrokProcess.on('error', (err) => {
-            console.error('zrok process error event: ', err);
-          })
-          this.zrokProcess.stdout.on('data', (data) => {
-            console.log(`zrok processs stdout: ${data}`);
-          })
-          this.zrokProcess.stderr.on('data', (data) => {
-            // zrok is writing only to std error for every logs
-            const logObj = JSON.parse(data)
-            if (logObj.level == 'info') {
-              console.log(`zrok process stdout: ${data}`)
-              if (logObj.msg && logObj.msg.startsWith('access your zrok share at the following endpoints:')) {
-                const tunnelUrl = logObj.msg.split('\n')[1].trim()
-                resolve(tunnelUrl as string)
+        const MAX_RETRIES = 3
+        const tunnel = (attempt = 0) => {
+          try {
+            this.zrokProcess = spawn('zrok', [
+              'share',
+              'public',
+              '--backend-mode',
+              'proxy',
+              '--headless',
+              '--insecure',
+              `${port}`
+            ])
+            this.zrokProcess.on('error', (err) => {
+              console.error('zrok process error event: ', err);
+            })
+            this.zrokProcess.stdout.on('data', (data) => {
+              console.log(`zrok processs stdout: ${data}`);
+            })
+            this.zrokProcess.stderr.on('data', (data) => {
+              const dataStr = data.toString('utf-8')
+              // zrok is writing only to std error for every logs
+              try {
+                const logObj = JSON.parse(dataStr)
+                if (logObj.level == 'info') {
+                  console.log(`zrok process stdout: ${data}`)
+                  if (logObj.msg && logObj.msg.startsWith('access your zrok share at the following endpoints:')) {
+                    const tunnelUrl = logObj.msg.split('\n')[1].trim()
+                    resolve(tunnelUrl as string)
+                  }
+                } else {
+                  console.error(`zrok process stderr: ${data}`)
+                }
+              } catch (e) {
+                if (dataStr.startsWith('[ERROR]: unable to create share')) {
+                  console.error('Error Starting Zrok Share: ', dataStr)
+                  if (attempt < MAX_RETRIES) {
+                    console.log(`Retrying (attempt: ${attempt+1} `)
+                    tunnel(attempt+1)
+                  } else {
+                    process.exit(5)
+                  }
+                }
               }
-            } else {
-              console.error(`zrok process stderr: ${data}`)
-            }
-          })
+            })
           
-          this.zrokProcess.on('close', (code) => {
-            console.log(`zrok process exited with code ${code}`);
-          })
-        } catch (err) {
-          console.error('Error Starting Zrok Share: ', err)
-          process.exit(5)
+            this.zrokProcess.on('close', (code) => {
+              console.log(`zrok process exited with code ${code}`);
+            })
+          } catch (err) {
+            console.error('Error Starting Zrok Share: ', err)
+            if (attempt < MAX_RETRIES) {
+              console.log(`Retrying (attempt: ${attempt+1} `)
+              tunnel(attempt+1)
+            } else {
+              process.exit(5)
+            }
+          }
         }
+
+        tunnel()
       }
     })
   }
