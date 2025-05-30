@@ -89,5 +89,8 @@ export const promoteDemoteWorker: SDKWorker<
 
   instance._triggerNewRTCPeer()
 
-  getLogger().debug('promoteDemoteWorker ended', rtcPeerId)
+    getLogger().debug('promoteDemoteWorker ended', rtcPeerId)
+  } finally {
+    getLogger().debug(`promoteDemoteWorker for ${rtcPeerId} [cancelled]`)
+  }
 }
