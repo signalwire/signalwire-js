@@ -262,7 +262,7 @@ export class BaseConnection<
         id: rtcPeerId,
         destinationNumber,
         attach,
-        reattaching: attach,
+        reattaching: attach || this.resuming,
         callerName,
         callerNumber,
         remoteCallerName,
