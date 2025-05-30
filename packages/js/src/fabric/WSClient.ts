@@ -15,7 +15,6 @@ import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
   DialParams,
-  ReattachParams, 
   IncomingInvite,
   OnlineParams,
   HandlePushNotificationParams,
@@ -26,8 +25,6 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { getStorage } from '../utils/storage'
-import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -159,16 +156,14 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: ReattachParams & { attach?: boolean }) {
+  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
+    const [pathname, query] = params.to.split('?')
+    if (!pathname) {
+      throw new Error('Invalid destination address')
+    }
 
     let video = false
     let negotiateVideo = false
-
-    if (params.to) {
-      const [pathname, query] = params.to.split('?')
-      if (!pathname) {
-        throw new Error('Invalid destination address')
-      }
 
       const queryParams = new URLSearchParams(query)
       const channel = queryParams.get('channel')
@@ -176,7 +171,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         video = true
         negotiateVideo = true
       }
-    }
 
     const call = this.makeFabricObject({
       audio: params.audio ?? true,
@@ -190,7 +184,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       stopMicrophoneWhileMuted: params.stopMicrophoneWhileMuted,
       mirrorLocalVideoOverlay: params.mirrorLocalVideoOverlay,
       watchMediaPackets: false,
-      destinationNumber: params.to ?? '',
+      destinationNumber: params.to,
       nodeId: params.nodeId,
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
@@ -312,8 +306,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   public async dial(params: DialParams) {
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
-        // in case the user left the previous call with hangup, and is not reattaching
-        getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
         const call = this.buildOutboundCall(params)
         resolve(call)
       } catch (error) {
@@ -323,7 +315,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public async reattach(params: ReattachParams) {
+  public async reattach(params: DialParams) {
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         const call = this.buildOutboundCall({ ...params, attach: true })

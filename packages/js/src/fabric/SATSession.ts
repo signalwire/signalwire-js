@@ -11,9 +11,11 @@ import {
   getLogger,
   isVertoInvite,
   SYMBOL_EXECUTE_CONNECTION_CLOSED,
+  SYMBOL_EXECUTE_TIMEOUT,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 import { SATSessionOptions } from './interfaces'
+
 /**
  * SAT Session is for the Call Fabric SDK
  */
@@ -89,8 +91,8 @@ export class SATSession extends JWTSession {
           // `signalwire.connect` retries are handle by the connection
           return true
         }
-        if (isVertoInvite(msg) && error === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
-          // we can't retry verto.invites in the transport layer
+        if (isVertoInvite(msg) && ![SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(error)) {
+          // we can't retry verto.invites after errors on the transport layer
           getLogger().debug('skip verto.invite retry on error:', error)
           return true
         }
