@@ -124,11 +124,6 @@ export interface DialParams extends CallParams {
   nodeId?: string
 }
 
-export interface ReattachParams extends CallParams {
-  to?: string
-  nodeId?: string
-}
-
 export interface ApiRequestRetriesOptions {
   /** Increment step for each retry delay */
   apiRequestRetriesDelayIncrement?: number

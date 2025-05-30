@@ -37,7 +37,7 @@ export const roomSubscribedWorker: SDKWorker<
   if (!rtcPeerId) {
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
   }
-  try {
+
     const action: MapToPubSubShape<VideoRoomSubscribedEvent | CallJoinedEvent> =
       yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
         if (
@@ -78,9 +78,6 @@ export const roomSubscribedWorker: SDKWorker<
     instance.emit('room.joined', transformPayload.call(instance, clonedPayload))
 
     getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
-  } finally {
-    getLogger().debug(`roomSubscribedWorker for ${rtcPeerId} [cancelled]`)
-  }
 }
 
 function transformPayload(

@@ -35,7 +35,6 @@ export const promoteDemoteWorker: SDKWorker<
     throw new Error('Missing rtcPeerId for promoteDemoteWorker')
   }
 
-  try {
     const action: MapToPubSubShape<
       VideoMemberPromotedEvent | VideoMemberDemotedEvent
     > = yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
@@ -91,7 +90,4 @@ export const promoteDemoteWorker: SDKWorker<
     instance._triggerNewRTCPeer()
 
     getLogger().debug('promoteDemoteWorker ended', rtcPeerId)
-  } finally {
-    getLogger().debug(`promoteDemoteWorker for ${rtcPeerId} [cancelled]`)
-  }
 }
