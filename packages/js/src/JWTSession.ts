@@ -49,7 +49,7 @@ export class JWTSession extends BaseJWTSession {
 
     const { protocolKey } = sessionStorageManager(this.options.token)
     if (protocolKey) {
-      this.logger.debug('Search protocol for', protocolKey)
+      this.logger.trace('Search protocol for', protocolKey)
       return getStorage()?.getItem(protocolKey) ?? ''
     }
     return ''
@@ -62,7 +62,7 @@ export class JWTSession extends BaseJWTSession {
 
     const { protocolKey } = sessionStorageManager(this.options.token)
     if (protocolKey) {
-      this.logger.debug('Persist protocol', protocolKey, this.relayProtocol)
+      this.logger.trace('Persist protocol', protocolKey, this.relayProtocol)
       getStorage()?.setItem(protocolKey, this.relayProtocol)
     }
   }

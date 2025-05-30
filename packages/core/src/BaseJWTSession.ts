@@ -22,7 +22,6 @@ export class BaseJWTSession extends BaseSession {
    */
   private readonly _checkTokenExpirationDelay = 20 * 1000
   private _checkTokenExpirationTimer: any = null
-  private _allowAAuthRetry = 1
 
   constructor(public options: SessionOptions) {
     super(options)
@@ -95,18 +94,9 @@ export class BaseJWTSession extends BaseSession {
       this._rpcConnectResult = await this.execute(RPCConnect(params))
       await this.persistRelayProtocol()
       await this._checkTokenExpiration()
-      this._allowAAuthRetry = 1
     } catch (error) {
-      this.logger.debug(
-        'BaseJWTSession authenticate error',
-        error,
-        this._allowAAuthRetry
-      )
-      if (
-        error.message === 'Requester validation failed' &&
-        this._allowAAuthRetry > 0
-      ) {
-        this._allowAAuthRetry -= 1
+      this.logger.debug('BaseJWTSession authenticate error', error)
+      if (error.message === 'Requester validation failed') {
         // removed the persisted params to try again
         this.removeRelayProtocol()
         this.removeSwAuthorizationState()

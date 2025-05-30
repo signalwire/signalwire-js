@@ -23,6 +23,7 @@ import {
   asyncRetry,
   constDelay,
   SYMBOL_EXECUTE_CONNECTION_CLOSED,
+  SYMBOL_EXECUTE_TIMEOUT,
 } from '@signalwire/core'
 import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -815,7 +816,7 @@ export class BaseConnection<
       maxRetries: 5,
       delayFn: constDelay({ initialDelay: 0 }),
       expectedErrorHandler: (error) => {
-        if (this.requesting && error === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
+        if (this.requesting && [SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(error)) { // eslint-disable-line max-len, no-nested-ternaryerror === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
           this.logger.debug('Retrying verto.invite with new RTCPeer')
           return false // we should retry
         }
@@ -848,7 +849,6 @@ export class BaseConnection<
       this.logger.error('Missing localDescription', rtcPeer)
       throw new Error('Invalid RTCPeerConnection localDescription')
     }
-
     const { type, sdp } = rtcPeer.instance.localDescription
     const mungedSDP = this._mungeSDP(sdp)
     this.logger.debug('LOCAL SDP \n', `Type: ${type}`, '\n\n', mungedSDP)
@@ -857,7 +857,6 @@ export class BaseConnection<
         this._watchSessionAuth()
         // If we have a remoteDescription already, send reinvite
         if (!this.resuming && rtcPeer.instance.remoteDescription) {
-          // TODO test auth_state with media updates
           return this.executeUpdateMedia(mungedSDP, rtcPeer.uuid)
         } else {
           return this.executeInvite(mungedSDP, rtcPeer.uuid)
@@ -958,9 +957,7 @@ export class BaseConnection<
 
       this.resuming = false
     } catch (error) {
-      if (typeof error !== 'symbol') {
         this.setState('hangup')
-      }
       throw error
     }
   }
