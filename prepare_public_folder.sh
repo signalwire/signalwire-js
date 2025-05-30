@@ -20,7 +20,9 @@ for remote in $( \
 ); do
   branch="${remote#origin/}"
       
-  echo "Processing branch: $branch"
+  echo "======================================"
+  echo " Processing branch: $branch"
+  echo "======================================"
 
   echo "Creating public/$branch"
   mkdir -p "public/$branch"
@@ -31,16 +33,22 @@ for remote in $( \
   echo "NPM install and Build SDK for this branch"
   # TODO: Build only JS/required sdks 
   npm ci && npm run build
+  if npm ci && npm run build; then
+    echo "SDK built successfully for '$branch'"
+  else
+    echo "SDK build failed for '$branch', skipping"
+    continue
+  fi
 
-  echo "Building playgrounds for $branch"
-  {
+  echo "Building playground for $branch"
     # VITE_BASE used in internal/playground-js/vite.config.ts
-    VITE_BASE="/signalwire-js/$branch/" npm run -w=@sw-internal/playground-js build
-    echo "Move static assets to 'public'"
-    cp -R ./internal/playground-js/dist/* $folder
-  } || { 
-    echo "Error building $branch"
-  }
+  if VITE_BASE="/signalwire-js/$branch/" npm run -w=@sw-internal/playground-js build \
+     && cp -R internal/playground-js/dist/* "public/$branch/"; then
+    echo "Playground built"
+  else
+    echo "Playground build failed for '$branch', skipping"
+    continue
+  fi
 
   echo "\n"
 done
