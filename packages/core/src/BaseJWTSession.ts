@@ -96,6 +96,14 @@ export class BaseJWTSession extends BaseSession {
       await this._checkTokenExpiration()
     } catch (error) {
       this.logger.debug('BaseJWTSession authenticate error', error)
+      if (error.message === 'Requester validation failed') {
+        // removed the persisted params to try again
+        this.removeRelayProtocol()
+        this.removeSwAuthorizationState()
+        this.removePrevCallId()
+        await this.authenticate()
+        return
+      }
       throw error
     }
   }
@@ -106,6 +114,18 @@ export class BaseJWTSession extends BaseSession {
   }
 
   async persistRelayProtocol() {
+    // no-op
+  }
+
+  removeRelayProtocol() {
+    // no-op
+  }
+
+  removeSwAuthorizationState() {
+    // no-op
+  }
+
+  removePrevCallId() {
     // no-op
   }
 
