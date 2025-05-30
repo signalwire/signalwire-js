@@ -36,6 +36,7 @@ const reattachTests = [
   'roomSessionReattachWrongProtocol.spec.ts',
 ]
 const callfabricTests = [
+  'agent_customer.spec.ts',
   'address.spec.ts',
   'cleanup.spec.ts',
   'conversation.spec.ts',

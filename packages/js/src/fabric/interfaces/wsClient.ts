@@ -1,5 +1,8 @@
 import { SessionOptions, UserOptions } from '@signalwire/core'
-import { IncomingCallHandlers } from './incomingCallManager'
+import {
+  IncomingCallHandler,
+  IncomingCallHandlers,
+} from './incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 
 export interface WSClientContract {
@@ -72,7 +75,9 @@ export interface PushNotificationPayload {
   decrypted: Record<string, any>
 }
 
-export type HandlePushNotificationParams = PushNotificationPayload
+export type HandlePushNotificationParams = PushNotificationPayload & {
+  incomingCallHandler?: IncomingCallHandler
+}
 
 export interface HandlePushNotificationResult {
   resultType: 'inboundCall'
@@ -110,6 +115,8 @@ export interface CallParams extends DefaultCallParams {
   stopCameraWhileMuted?: boolean
   /** Whether to stop the microphone when the member is muted. Default: `true`. */
   stopMicrophoneWhileMuted?: boolean
+  /** Fabric address ID matching one of the subscriber’s addresses to attribute conversation API events in the INVITE. */
+  fromFabricAddressId?: string
 }
 
 export interface DialParams extends CallParams {
