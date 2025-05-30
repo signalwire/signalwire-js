@@ -31,24 +31,18 @@ for remote in $( \
   git switch -f "$branch"
 
   echo "NPM install and Build SDK for this branch"
-  # TODO: Build only JS/required sdks 
-  npm ci && npm run build
-  if npm ci && npm run build; then
-    echo "SDK built successfully for '$branch'"
-  else
-    echo "SDK build failed for '$branch', skipping"
-    continue
-  fi
+  # TODO: Build only JS/required sdks
+    { npm ci && npm run build; } \
+    || { echo "SDK build failed for '$branch', skipping"; continue; }
 
   echo "Building playground for $branch"
-    # VITE_BASE used in internal/playground-js/vite.config.ts
-  if VITE_BASE="/signalwire-js/$branch/" npm run -w=@sw-internal/playground-js build \
-     && cp -R internal/playground-js/dist/* "public/$branch/"; then
-    echo "Playground built"
-  else
-    echo "Playground build failed for '$branch', skipping"
-    continue
-  fi
+  # VITE_BASE used in internal/playground-js/vite.config.ts
+  { VITE_BASE="/signalwire-js/$branch/" \
+      npm run -w=@sw-internal/playground-js build \
+    && cp -R internal/playground-js/dist/* "public/$branch/"; } \
+    || { echo "Playground build failed for '$branch', skipping"; continue; }
 
+
+  echo "Completed $branch"
   echo "\n"
 done
