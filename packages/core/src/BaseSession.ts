@@ -445,6 +445,7 @@ export class BaseSession {
     this._requests.forEach(({ reject }) => {
       reject(this._executeConnectionClosed)
     })
+    this._requests.clear()
   }
 
   protected _onSocketMessage(event: MessageEvent) {
