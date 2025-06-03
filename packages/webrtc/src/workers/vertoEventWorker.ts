@@ -154,16 +154,16 @@ export const vertoEventWorker: SDKWorker<
     getLogger().error('Verto Error', error)
   })
 
-    while (true) {
-      const action: MapToPubSubShape<WebRTCMessageParams> =
-        yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-          if (isWebrtcAction(action)) {
-            return action.payload.params?.callID === rtcPeerId
-          }
-          return false
-        })
-      yield sagaEffects.fork(catchableWorker, action)
-    }
+  while (true) {
+    const action: MapToPubSubShape<WebRTCMessageParams> =
+      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
+        if (isWebrtcAction(action)) {
+          return action.payload.params?.callID === rtcPeerId
+        }
+        return false
+      })
+    yield sagaEffects.fork(catchableWorker, action)
+  }
 
   getLogger().trace('vertoEventWorker ended')
 }

@@ -763,17 +763,17 @@ export class BaseConnection<
 
   /** @internal */
   invite<T>(): Promise<T> {
-        return new Promise(async (resolve, reject) => {
-          this.direction = 'outbound'
-          this.peer = this._buildPeer('offer')
-          try {
-            await this.peer.start()
-            resolve(this as any as T)
-          } catch (error) {
-            this.logger.error('Invite error', error)
-            reject(error)
-          }
-        })
+    return new Promise(async (resolve, reject) => {
+      this.direction = 'outbound'
+      this.peer = this._buildPeer('offer')
+      try {
+        await this.peer.start()
+        resolve(this as any as T)
+      } catch (error) {
+        this.logger.error('Invite error', error)
+        reject(error)
+      }
+    })
   }
 
   /** @internal */
@@ -903,7 +903,7 @@ export class BaseConnection<
 
       this.resuming = false
     } catch (error) {
-        this.setState('hangup')
+      this.setState('hangup')
       throw error
     }
   }
