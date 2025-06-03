@@ -16,6 +16,7 @@ export {
   HandlePushNotificationParams,
   HandlePushNotificationResult,
   DialParams,
+  ReattachParams
 } from './interfaces/wsClient'
 export {
   SignalWireClient,
