@@ -314,6 +314,16 @@ export class BaseComponent<
     return this._attachWorker(name, def)
   }
 
+  public cancelWorker(workerTask: Task) {
+    const foundTaskIndex = this._runningWorkers.findIndex(
+      (task) => task === workerTask
+    )
+    if (foundTaskIndex > -1) {
+      this._runningWorkers.splice(foundTaskIndex, 1)
+      workerTask.cancel()
+    }
+  }
+
   private _setWorker<Hooks extends SDKWorkerHooks = SDKWorkerHooks>(
     name: string,
     def: SDKWorkerDefinition<Hooks>

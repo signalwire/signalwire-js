@@ -165,12 +165,12 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     let video = false
     let negotiateVideo = false
 
-    const queryParams = new URLSearchParams(query)
-    const channel = queryParams.get('channel')
-    if (channel === 'video') {
-      video = true
-      negotiateVideo = true
-    }
+      const queryParams = new URLSearchParams(query)
+      const channel = queryParams.get('channel')
+      if (channel === 'video') {
+        video = true
+        negotiateVideo = true
+      }
 
     const call = this.makeFabricObject({
       audio: params.audio ?? true,
