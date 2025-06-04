@@ -156,11 +156,18 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return room
   }
 
-  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
-    const [pathname, query] = params.to.split('?')
+  private _validateDialParams(params: DialParams) {
+    const [pathname] = params.to.split('?')
+
     if (!pathname) {
       throw new Error('Invalid destination address')
     }
+  }
+
+  private buildOutboundCall(params: DialParams & { attach?: boolean }) {
+    this._validateDialParams(params)
+
+    const [, query] = params.to.split('?')
 
     let video = false
     let negotiateVideo = false
@@ -190,6 +197,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
       fromFabricAddressId: params.fromFabricAddressId,
+      audioCodecs: params.audioCodecs,
     })
 
     // WebRTC connection left the room.
@@ -227,6 +235,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       prevCallId: payload.callID,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      audioCodecs: params.audioCodecs
     })
 
     // WebRTC connection left the room.
