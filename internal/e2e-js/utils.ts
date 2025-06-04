@@ -1771,11 +1771,10 @@ export const expectLayoutChanged = (page: Page, layoutName: string) => {
   )
 }
 
-export const expectRoomJoined = async (
+export const expectRoomJoined = (
   page: Page,
   options: { invokeJoin: boolean } = { invokeJoin: true }
 ) => {
-  await page.waitForNavigation({ waitUntil: 'networkidle' }); // Ensure the page is loaded
   return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve, reject) => {
       // @ts-expect-error
