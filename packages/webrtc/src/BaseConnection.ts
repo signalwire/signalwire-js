@@ -242,7 +242,7 @@ export class BaseConnection<
     return super.emit(event, ...args)
   }
 
-  private dialogParams(rtcPeerId: string) {
+  protected dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
       attach,
@@ -261,8 +261,8 @@ export class BaseConnection<
       dialogParams: {
         id: rtcPeerId,
         destinationNumber,
-        attach,
-        reattaching: attach || this.resuming,
+        attach: attach,
+        reattaching: attach,
         callerName,
         callerNumber,
         remoteCallerName,
