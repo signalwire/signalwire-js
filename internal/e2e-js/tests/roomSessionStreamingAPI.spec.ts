@@ -51,7 +51,25 @@ test.describe('Room Streaming from REST API', () => {
     // Visit the stream page on pageTwo to make sure it's working
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
-    await pageTwo.waitForSelector(`text=${streamName}`, { timeout: 10_000 })
+    // FIX ME just testing...
+    // await pageTwo.waitForSelector(`text=${streamName}`, { timeout: 10_000 })
+
+    let checked = false
+    for (let i = 0; i < 10; i++) {
+      try {
+        await expect(pageTwo.locator(`text=${streamName}`)).toBeVisible({
+          timeout: 900,
+        })
+        checked = true
+        break
+      } catch (error) {
+        console.error(`Attempt ${i + 1}: Stream not visible yet, retrying...`)
+        await pageTwo.waitForTimeout(100)
+      }
+    }
+    if (!checked) {
+      throw new Error(`Stream ${streamName} not visible after 10 attempts`)
+    }
 
     await deleteRoom(roomData.id)
   })
