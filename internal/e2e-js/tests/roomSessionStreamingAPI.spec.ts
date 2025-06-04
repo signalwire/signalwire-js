@@ -44,6 +44,7 @@ test.describe('Room Streaming from REST API', () => {
 
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
     await expectRoomJoined(pageOne)
+    console.log('>> expectRoomJoined resolved on pageOne')
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
