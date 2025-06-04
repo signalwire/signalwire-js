@@ -816,7 +816,13 @@ export class BaseConnection<
       maxRetries: 5,
       delayFn: constDelay({ initialDelay: 0 }),
       expectedErrorHandler: (error) => {
-        if (this.requesting && [SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(error)) { // eslint-disable-line max-len, no-nested-ternaryerror === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
+        if (
+          this.requesting &&
+          [SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(
+            error
+          )
+        ) {
+          // eslint-disable-line max-len, no-nested-ternaryerror === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
           this.logger.debug('Retrying verto.invite with new RTCPeer')
           return false // we should retry
         }
@@ -957,7 +963,7 @@ export class BaseConnection<
 
       this.resuming = false
     } catch (error) {
-        this.setState('hangup')
+      this.setState('hangup')
       throw error
     }
   }

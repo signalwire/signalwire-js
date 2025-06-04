@@ -15,7 +15,7 @@ import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
   DialParams,
-  ReattachParams, 
+  ReattachParams,
   IncomingInvite,
   OnlineParams,
   HandlePushNotificationParams,
@@ -160,7 +160,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildOutboundCall(params: ReattachParams & { attach?: boolean }) {
-
     let video = false
     let negotiateVideo = false
 
