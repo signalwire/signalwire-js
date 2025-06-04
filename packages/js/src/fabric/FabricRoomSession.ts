@@ -64,6 +64,13 @@ export class FabricRoomSessionConnection
     return this._member?.memberId
   }
 
+  override dialogParams(rtcPeerId: string) {
+    const params = super.dialogParams(rtcPeerId)
+    params.dialogParams.attach = this.options.attach || this.resuming
+    params.dialogParams.reattaching = this.options.attach || this.resuming
+    return params
+  }
+  
   set currentLayoutEvent(event: FabricLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }

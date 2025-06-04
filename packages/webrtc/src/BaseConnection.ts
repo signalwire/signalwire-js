@@ -250,7 +250,7 @@ export class BaseConnection<
     return super.emit(event, ...args)
   }
 
-  private dialogParams(rtcPeerId: string) {
+  protected dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
       attach,
