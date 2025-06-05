@@ -7,9 +7,9 @@ import {
   expectInteractivityMode,
   expectMemberId,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession demote participant, reattach and then promote again', () => {
@@ -48,10 +48,10 @@ test.describe('RoomSession demote participant, reattach and then promote again',
       createTestRoomSession(pageTwo, participant2Settings),
     ])
 
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined: any = await expectRoomJoined(pageTwo)
+    const pageTwoRoomJoined: any = await expectRoomJoinWithDefaults(pageTwo)
     const participant2Id = pageTwoRoomJoined.member_id
     await expectMemberId(pageTwo, participant2Id)
     await expectMCUVisible(pageTwo)
@@ -59,6 +59,14 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     // --------------- Sessions established ---------------
 
     await pageTwo.waitForTimeout(1000)
+
+    const promiseAudienceRoomJoined = pageTwo.evaluate<any>(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.once('room.joined', resolve)
+      })
+    })
 
     // --------------- Demote participant on pageTwo to audience from pageOne
     // and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
@@ -111,17 +119,11 @@ test.describe('RoomSession demote participant, reattach and then promote again',
       { demoteMemberId: participant2Id }
     )
 
-    const promiseAudienceRoomJoined = await pageTwo.evaluate<any>(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-      })
-    })
+    const audienceRoomJoined = await promiseAudienceRoomJoined
 
     // --------------- Make sure member_id is the same after demote on pageTwo ---------------
     await expectMemberId(pageTwo, participant2Id) // before demote
-    await expectMemberId(pageTwo, promiseAudienceRoomJoined.member_id) // after demote
+    await expectMemberId(pageTwo, audienceRoomJoined.member_id) // after demote
 
     await expectInteractivityMode(pageTwo, 'audience')
     await expectSDPDirection(pageTwo, 'recvonly', true)
@@ -148,7 +150,9 @@ test.describe('RoomSession demote participant, reattach and then promote again',
 
     console.time('reattach')
     // Join again
-    const reattachParams: any = await expectRoomJoined(pageTwo)
+    const reattachParams: any = await expectRoomJoinWithDefaults(pageTwo, {
+      joinAs: 'audience',
+    })
     console.timeEnd('reattach')
 
     expect(reattachParams.room).toBeDefined()
@@ -157,10 +161,10 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     expect(reattachParams.room.name).toBe(room_name)
     // Make sure the member_id is stable
     expect(reattachParams.member_id).toBeDefined()
-    expect(reattachParams.member_id).toBe(promiseAudienceRoomJoined.member_id)
+    expect(reattachParams.member_id).toBe(audienceRoomJoined.member_id)
     // Also call_id must remain the same
     expect(reattachParams.call_id).toBeDefined()
-    expect(reattachParams.call_id).toBe(promiseAudienceRoomJoined.call_id)
+    expect(reattachParams.call_id).toBe(audienceRoomJoined.call_id)
 
     await expectMCUVisibleForAudience(pageTwo)
     await expectInteractivityMode(pageTwo, 'audience')
@@ -169,6 +173,10 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     await pageTwo.waitForTimeout(1000)
 
     // --------------- Time to promote again at PageTwo ---------------
+
+    const promisePromotedRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
+      invokeJoin: false,
+    })
 
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
@@ -201,10 +209,6 @@ test.describe('RoomSession demote participant, reattach and then promote again',
       },
       { promoteMemberId: participant2Id }
     )
-
-    const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
-      invokeJoin: false,
-    })
 
     await Promise.all([
       promiseMemberWaitingForMemberJoin,
