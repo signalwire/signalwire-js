@@ -21,7 +21,7 @@ jobs:
         project: [
             # default,
             streaming,
-            # badNetwork,
+            badNetwork,
             # promote,
             # demote,
             audience,
