@@ -51,7 +51,6 @@ test.describe('Room Streaming from REST API', () => {
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
     await pageTwo.waitForSelector(`text=${streamName}`, { timeout: 10_000 })
-    console.log('>> Stream is visible on pageTwo')
     await deleteRoom(roomData.id)
   })
 })
