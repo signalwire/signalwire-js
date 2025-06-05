@@ -50,11 +50,8 @@ test.describe('Room Session Multiple Streams', () => {
       initialEvents: ['stream.started', 'stream.ended'],
     }
 
-    const { vrt: pageOneVRT } = await createTestRoomSession(
-      pageOne,
-      connectionSettings
-    )
-    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
+    await createTestRoomSession(pageOne, connectionSettings)
+    await expectRoomJoinWithDefaults(pageOne)
 
     await expectMCUVisible(pageOne)
 
@@ -92,11 +89,8 @@ test.describe('Room Session Multiple Streams', () => {
       initialEvents: ['stream.started', 'stream.ended'],
     }
 
-    const { vrt: pageOneVRT } = await createTestRoomSession(
-      pageOne,
-      connectionSettings
-    )
-    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
+    await createTestRoomSession(pageOne, connectionSettings)
+    await expectRoomJoinWithDefaults(pageOne)
 
     await expectMCUVisible(pageOne)
 

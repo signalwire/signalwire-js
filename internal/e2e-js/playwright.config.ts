@@ -6,7 +6,7 @@ const streamingTests = [
   'roomSessionStreamingAPI.spec.ts',
   'roomSessionStreaming.spec.ts',
   'roomSessionMultipleStreams.spec.ts',
-  // 'roomSessionAutomaticStream.spec.ts',
+  'roomSessionAutomaticStream.spec.ts',
 ]
 const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
 const promoteTests = [

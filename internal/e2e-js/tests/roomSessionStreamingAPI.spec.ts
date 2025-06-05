@@ -41,8 +41,8 @@ test.describe('Room Streaming from REST API', () => {
     )
 
     // Create and join room from the 1st tab and resolve on 'room.joined'
-    const { vrt } = await createTestRoomSession(pageOne, connectionSettings)
-    await expectRoomJoinWithDefaults(pageOne, { vrt })
+    await createTestRoomSession(pageOne, connectionSettings)
+    await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)

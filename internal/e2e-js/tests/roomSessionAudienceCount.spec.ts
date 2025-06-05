@@ -28,7 +28,7 @@ test.describe('RoomSession Audience Count', () => {
 
     const memberInitialEvents = ['room.audience_count']
 
-    const { vrt: pageOneVRT } = await createTestRoomSession(pageOne, {
+    await createTestRoomSession(pageOne, {
       vrt: {
         room_name,
         user_name: 'e2e_member',
@@ -39,7 +39,7 @@ test.describe('RoomSession Audience Count', () => {
       initialEvents: memberInitialEvents,
     })
 
-    const [{ vrt: pageTwoVRT }] = await Promise.all(
+    await Promise.all(
       audiencePages.map((page, i) => {
         return createTestRoomSession(page, {
           vrt: {
@@ -94,7 +94,7 @@ test.describe('RoomSession Audience Count', () => {
       expectedAudienceCount
     )
 
-    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
+    await expectRoomJoinWithDefaults(pageOne)
 
     const expectorPageTwo = expectAudienceCount(pageTwo)
     const audienceCountPageTwoPromise = expectorPageTwo.waitFor(
@@ -103,7 +103,7 @@ test.describe('RoomSession Audience Count', () => {
 
     // join as audience on pageTwo and resolve on `room.joined`
     const joinTwoParams: any = await expectRoomJoinWithDefaults(pageTwo, {
-      vrt: pageTwoVRT,
+      joinAs: 'audience',
     })
     // expect to have only 1 audience in the room at the moment
     expect(joinTwoParams.room_session.audience_count).toBe(1)
@@ -112,7 +112,7 @@ test.describe('RoomSession Audience Count', () => {
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
     await Promise.all(
       pageThreeToFive.map((page) =>
-        expectRoomJoinWithDefaults(page, { vrt: { join_as: 'audience' } })
+        expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
       )
     )
 
