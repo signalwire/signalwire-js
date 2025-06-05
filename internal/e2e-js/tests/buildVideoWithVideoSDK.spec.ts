@@ -388,7 +388,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room from pageTwo
-    await expectRoomJoinWithDefaults(pageOne, { vrt: pageTwoVRT })
+    await expectRoomJoinWithDefaults(pageTwo, { vrt: pageTwoVRT })
     await expectMCUVisible(pageTwo)
 
     await test.step('should have correct DOM elements and overlayMap with two members', async () => {
