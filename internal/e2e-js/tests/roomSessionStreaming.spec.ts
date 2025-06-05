@@ -48,13 +48,13 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
+    await expectRoomJoinWithDefaults(pageOne)
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2nd tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageTwo, { joinAs: 'member' })
+    await expectRoomJoinWithDefaults(pageTwo)
 
     const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 
@@ -133,7 +133,7 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining from the 3rd tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageThree, { joinAs: 'member' })
+    await expectRoomJoinWithDefaults(pageThree)
 
     const { streamsOnJoined, streamsOnGet, streamOnEnd } =
       await pageThreeStreamPromise

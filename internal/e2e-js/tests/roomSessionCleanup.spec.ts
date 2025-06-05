@@ -1,7 +1,8 @@
+import { Video } from '@signalwire/js'
 import { test, expect } from '../fixtures'
 import {
   createTestRoomSession,
-  expectRoomJoined,
+  expectRoomJoinWithDefaults,
   leaveRoom,
   randomizeRoomName,
   SERVER_URL,
@@ -25,11 +26,12 @@ test.describe('RoomSession', () => {
       attachSagaMonitor: true,
     })
 
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page)
 
     await test.step('the room should have workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        const roomObj = window._roomObj
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
 
         return {
           // @ts-expect-error
@@ -53,7 +55,8 @@ test.describe('RoomSession', () => {
 
     await test.step('the room should not have any workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {
-        const roomObj = window._roomObj
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
 
         return {
           // @ts-expect-error

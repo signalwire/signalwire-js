@@ -8,11 +8,11 @@ import {
   expectMemberId,
   expectLayoutChanged,
   setLayoutOnPage,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -64,10 +64,12 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined = await expectRoomJoined(pageTwo)
+    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo, {
+      joinAs: 'audience',
+    })
     const audienceId = pageTwoRoomJoined.member_id
     await expectMCUVisibleForAudience(pageTwo)
     await expectPageReceiveAudio(pageTwo)
@@ -123,7 +125,7 @@ test.describe('RoomSession promote/demote methods', () => {
     // and resolve on `member.left`
     // and `layout.changed` with position off-canvas
 
-    const promiseAudienceRoomJoined = expectRoomJoined(pageTwo, {
+    const promiseAudienceRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
       invokeJoin: false,
     })
 

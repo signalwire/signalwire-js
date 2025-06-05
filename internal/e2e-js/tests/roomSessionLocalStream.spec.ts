@@ -3,10 +3,10 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   randomizeRoomName,
   createTestVRTToken,
   expectMCUVisibleForAudience,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession with custom local stream', () => {
@@ -62,7 +62,7 @@ test.describe('RoomSession with custom local stream', () => {
     )
 
     // Join the room and expect the MCU (without local overlay) to be visible
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page)
     await expectMCUVisibleForAudience(page)
 
     const afterJoin = await page.evaluate(async () => {
@@ -93,7 +93,7 @@ test.describe('RoomSession with custom local stream', () => {
     }
 
     await createTestRoomSession(page, connectionSettings)
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page)
     await expectMCUVisibleForAudience(page)
 
     const before = await page.evaluate(async () => {

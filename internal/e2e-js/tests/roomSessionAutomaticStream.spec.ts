@@ -35,11 +35,8 @@ test.describe('Room Session Auto Stream', () => {
     const roomData = await createRoom({ name: roomName })
     await createStreamForRoom(roomName, streamingURL)
 
-    const { vrt: pageOneVRT } = await createTestRoomSession(
-      pageOne,
-      connectionSettings
-    )
-    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
+    await createTestRoomSession(pageOne, connectionSettings)
+    await expectRoomJoinWithDefaults(pageOne)
 
     await expectMCUVisible(pageOne)
 
