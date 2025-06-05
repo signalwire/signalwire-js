@@ -48,8 +48,8 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     await Promise.all(
       allPages.map((page, i) =>
         i === allPages.length - 1
-          ? expectRoomJoinWithDefaults(page, { vrt: { join_as: 'audience' } })
-          : expectRoomJoinWithDefaults(page, { vrt: { join_as: 'member' } })
+          ? expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
+          : expectRoomJoinWithDefaults(page, { joinAs: 'member' })
       )
     )
     await Promise.all(

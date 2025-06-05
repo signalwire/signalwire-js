@@ -305,7 +305,7 @@ export const createTestRoomSession = async (
     }
   )
 
-  return { roomSession, vrt }
+  return roomSession
 }
 
 export const createTestRoomSessionWithJWT = async (
@@ -1796,18 +1796,17 @@ export const expectRoomJoined = (
 
 export const expectRoomJoinWithDefaults = async (
   page: Page,
-  options: {
+  options?: {
     invokeJoin?: boolean
-    vrt: { join_as: CreateTestVRTOptions['join_as'] }
+    joinAs?: CreateTestVRTOptions['join_as']
   }
 ) => {
-  const params = await expectRoomJoined(page, {
-    invokeJoin: options.invokeJoin ?? true,
-  })
+  const { invokeJoin = true, joinAs = 'member' } = options || {}
+  const params = await expectRoomJoined(page, { invokeJoin })
   await expectMemberId(page, params.member_id)
-  const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
+  const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
   await expectSDPDirection(page, dir, true)
-  const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
+  const mode = joinAs === 'audience' ? 'audience' : 'member'
   await expectInteractivityMode(page, mode)
   return params
 }

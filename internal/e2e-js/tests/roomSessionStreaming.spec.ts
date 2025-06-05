@@ -32,12 +32,11 @@ test.describe('RoomSession', () => {
       initialEvents: ['stream.started', 'stream.ended'],
     }
 
-    const [{ vrt: pageOneVRT }, { vrt: pageTwoVRT }, { vrt: pageThreeVRT }] =
-      await Promise.all([
-        createTestRoomSession(pageOne, connectionSettings),
-        createTestRoomSession(pageTwo, connectionSettings),
-        createTestRoomSession(pageThree, connectionSettings),
-      ])
+    await Promise.all([
+      createTestRoomSession(pageOne, connectionSettings),
+      createTestRoomSession(pageTwo, connectionSettings),
+      createTestRoomSession(pageThree, connectionSettings),
+    ])
 
     // --------------- Promise that resolve on 'stream.started' ---------------
     const pageTwoStreamPromise = pageTwo.evaluate(() => {
@@ -49,13 +48,13 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
+    await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2nd tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageTwo, { vrt: pageTwoVRT })
+    await expectRoomJoinWithDefaults(pageTwo, { joinAs: 'member' })
 
     const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 
@@ -134,7 +133,7 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining from the 3rd tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageThree, { vrt: pageThreeVRT })
+    await expectRoomJoinWithDefaults(pageThree, { joinAs: 'member' })
 
     const { streamsOnJoined, streamsOnGet, streamOnEnd } =
       await pageThreeStreamPromise

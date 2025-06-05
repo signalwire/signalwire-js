@@ -38,13 +38,13 @@ test.describe('RoomSession talking events to audience', () => {
       initialEvents: ['member.talking'],
     }
 
-    const [{ vrt: pageOneVRT }, { vrt: pageTwoVRT }] = await Promise.all([
+    await Promise.all([
       createTestRoomSession(pageOne, memberSettings),
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
     // --------------- Joining from the 2nd tab as audience and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageTwo, { vrt: pageTwoVRT })
+    await expectRoomJoinWithDefaults(pageTwo, { joinAs: 'audience' })
 
     // Checks that the video is visible on pageTwo
     await expectMCUVisibleForAudience(pageTwo)
@@ -75,7 +75,7 @@ test.describe('RoomSession talking events to audience', () => {
     await pageTwo.waitForTimeout(1000)
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
+    await expectRoomJoinWithDefaults(pageOne)
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)

@@ -18,7 +18,7 @@ test.describe('RoomSession unauthorized methods for audience', () => {
     const roomName = randomizeRoomName('e2e-403')
     const audiencePermissions: string[] = []
 
-    const { vrt } = await createTestRoomSession(page, {
+    await createTestRoomSession(page, {
       vrt: {
         room_name: roomName,
         user_name: 'e2e_test_403',
@@ -40,7 +40,9 @@ test.describe('RoomSession unauthorized methods for audience', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page, { vrt })
+    const joinParams = await expectRoomJoinWithDefaults(page, {
+      joinAs: 'audience',
+    })
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
