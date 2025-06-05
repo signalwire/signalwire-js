@@ -6,7 +6,6 @@ import {
   randomizeRoomName,
   createStreamForRoom,
   deleteRoom,
-  expectRoomJoined,
   expectMCUVisible,
 } from '../utils'
 
@@ -40,10 +39,8 @@ test.describe('Room Streaming from REST API', () => {
       `${process.env.RTMP_SERVER}${streamName}`
     )
 
-    await createTestRoomSession(pageOne, connectionSettings)
-
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
+    await createTestRoomSession(pageOne, connectionSettings)
     console.log('>> expectRoomJoined resolved on pageOne')
 
     // Checks that the video is visible on pageOne

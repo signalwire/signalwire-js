@@ -308,7 +308,7 @@ export const createTestRoomSession = async (
 
   console.log('>> options.expectToJoin', options.expectToJoin)
   if (options.expectToJoin !== false) {
-    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
+    await expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
       console.log('>> expectRoomJoined', params)
       await expectMemberId(page, params.member_id)
       console.log('>> expectMemberId', params.member_id)
@@ -1791,6 +1791,9 @@ export const expectLayoutChanged = (page: Page, layoutName: string) => {
   )
 }
 
+/**
+ *
+ */
 export const expectRoomJoined = (
   page: Page,
   options: { invokeJoin: boolean } = { invokeJoin: true }
