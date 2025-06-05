@@ -4,10 +4,10 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
   getRemoteMediaIP,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 type Test = {
@@ -46,7 +46,9 @@ test.describe('RoomSessionReattach', () => {
       await createTestRoomSession(page, connectionSettings)
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoined(page)
+      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+        joinAs: row.join_as,
+      })
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()
@@ -79,7 +81,9 @@ test.describe('RoomSessionReattach', () => {
 
       console.time('reattach')
       // Join again
-      const reattachParams: any = await expectRoomJoined(page)
+      const reattachParams: any = await expectRoomJoinWithDefaults(page, {
+        joinAs: row.join_as,
+      })
       console.timeEnd('reattach')
 
       expect(reattachParams.room).toBeDefined()
