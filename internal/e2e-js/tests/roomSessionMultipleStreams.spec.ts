@@ -3,7 +3,7 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
+  expectRoomJoinWithDefaults,
   expectMCUVisible,
   randomizeRoomName,
 } from '../utils'
@@ -34,10 +34,10 @@ test.describe('Room Session Multiple Streams', () => {
     return streamStarted
   }
 
-  test('Should create multiple streams and list data about them all', async ({
+  test('should create multiple streams and list data about them all', async ({
     createCustomPage,
   }) => {
-    const pageOne = await createCustomPage({ name: '[pageOnes]' })
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
     await pageOne.goto(SERVER_URL)
 
     const connectionSettings = {
@@ -50,9 +50,11 @@ test.describe('Room Session Multiple Streams', () => {
       initialEvents: ['stream.started', 'stream.ended'],
     }
 
-    await createTestRoomSession(pageOne, connectionSettings)
-
-    await expectRoomJoined(pageOne)
+    const { vrt: pageOneVRT } = await createTestRoomSession(
+      pageOne,
+      connectionSettings
+    )
+    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
 
     await expectMCUVisible(pageOne)
 
@@ -74,10 +76,10 @@ test.describe('Room Session Multiple Streams', () => {
     expect(streamsResult.streams).toHaveLength(2)
   })
 
-  test('Should not create more the MAX_STREAM_FOR_ENTERPRIZE streams', async ({
+  test(`should not create more than ${MAX_STREAM_FOR_ENTERPRIZE} streams`, async ({
     createCustomPage,
   }) => {
-    const pageOne = await createCustomPage({ name: '[pageOnes]' })
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
     await pageOne.goto(SERVER_URL)
 
     const connectionSettings = {
@@ -90,9 +92,11 @@ test.describe('Room Session Multiple Streams', () => {
       initialEvents: ['stream.started', 'stream.ended'],
     }
 
-    await createTestRoomSession(pageOne, connectionSettings)
-
-    await expectRoomJoined(pageOne)
+    const { vrt: pageOneVRT } = await createTestRoomSession(
+      pageOne,
+      connectionSettings
+    )
+    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
 
     await expectMCUVisible(pageOne)
 
