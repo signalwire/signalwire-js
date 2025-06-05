@@ -4,6 +4,7 @@ import {
   SERVER_URL,
   createTestRoomSession,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
   expectRoomJoined,
   randomizeRoomName,
 } from '../utils'
@@ -56,13 +57,13 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     const roomName = randomizeRoomName('build-video-element')
 
-    await createRoomSession(page, {
+    const { vrt } = await createRoomSession(page, {
       roomName,
       shouldPassRootElement: false,
     })
 
     // Join a video room without passing the rootElement
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page, { vrt })
 
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
@@ -76,13 +77,13 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     const roomName = randomizeRoomName('build-video-element')
 
-    await createRoomSession(page, {
+    const { vrt } = await createRoomSession(page, {
       roomName,
       shouldPassRootElement: false,
     })
 
     // Join a video room without passing the rootElement
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page, { vrt })
 
     // Build a video element
     const { element } = await page.evaluate(async () => {
@@ -135,7 +136,7 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     const roomName = randomizeRoomName('build-video-element')
 
-    await createTestRoomSession(page, {
+    const { vrt } = await createTestRoomSession(page, {
       vrt: {
         room_name: roomName,
         user_name: 'e2e_test',
@@ -154,7 +155,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room and expect both video and member overlays
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page, { vrt })
 
     await expectMCUVisible(page)
 
@@ -287,7 +288,7 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     const roomName = randomizeRoomName('build-video-element')
 
-    await createRoomSession(page, {
+    const { vrt } = await createRoomSession(page, {
       roomName,
     })
 
@@ -306,7 +307,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page, { vrt })
 
     await expectMCUVisible(page)
 
@@ -326,12 +327,13 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     const roomName = randomizeRoomName('build-video-element')
 
-    await createRoomSession(page, {
+    const { vrt } = await createRoomSession(page, {
       roomName,
     })
 
     // Join a video room with rootElement
     await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page, { vrt })
 
     // Create a video element with the same rootElement
     await page.evaluate(async () => {
@@ -365,12 +367,12 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     const roomName = randomizeRoomName('build-video-element')
 
-    await createRoomSession(pageOne, {
+    const { vrt: pageOneVRT } = await createRoomSession(pageOne, {
       roomName,
     })
 
     // Join a video room from pageOne
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
     await expectMCUVisible(pageOne)
 
     await test.step('should have correct DOM elements and overlayMap with one member', async () => {
@@ -381,12 +383,12 @@ test.describe('buildVideoElement with Video SDK', () => {
       expect(await getLocalVideoOverlay(pageOne)).toBeDefined()
     })
 
-    await createRoomSession(pageTwo, {
+    const { vrt: pageTwoVRT } = await createRoomSession(pageTwo, {
       roomName,
     })
 
     // Join a video room from pageTwo
-    await expectRoomJoined(pageTwo)
+    await expectRoomJoinWithDefaults(pageOne, { vrt: pageTwoVRT })
     await expectMCUVisible(pageTwo)
 
     await test.step('should have correct DOM elements and overlayMap with two members', async () => {
