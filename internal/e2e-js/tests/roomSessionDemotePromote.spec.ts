@@ -66,9 +66,17 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     await pageTwo.waitForTimeout(1000)
 
+    const promiseDemotedRoomJoined = pageTwo.evaluate<any>(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.once('room.joined', resolve)
+      })
+    })
+
     // --------------- Demote participant on pageTwo to audience from pageOne
     // and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
-    await pageOne.evaluate(
+    const promiseDemoterMemberLeft = pageOne.evaluate(
       async ({ demoteMemberId }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
@@ -118,17 +126,14 @@ test.describe('RoomSession demote participant and then promote again', () => {
       { demoteMemberId: participant2Id }
     )
 
-    const promiseDemotedRoomJoined = await pageTwo.evaluate<any>(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.once('room.joined', resolve)
-      })
-    })
+    const [demotedRoomJoined, _] = await Promise.all([
+      promiseDemotedRoomJoined,
+      promiseDemoterMemberLeft,
+    ])
 
     // --------------- Make sure member_id is the same after demote on pageTwo ---------------
     await expectMemberId(pageTwo, participant2Id) // before demote
-    await expectMemberId(pageTwo, promiseDemotedRoomJoined.member_id) // after demote
+    await expectMemberId(pageTwo, demotedRoomJoined.member_id) // after demote
 
     await expectInteractivityMode(pageTwo, 'audience')
     await expectSDPDirection(pageTwo, 'recvonly', true)
@@ -137,7 +142,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     await pageTwo.waitForTimeout(1000)
 
-    const promisePromotedRoomJoined = await pageTwo.evaluate<any>(() => {
+    const promisePromotedRoomJoined = pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj

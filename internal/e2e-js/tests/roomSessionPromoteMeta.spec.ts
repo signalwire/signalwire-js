@@ -46,7 +46,7 @@ test.describe('RoomSession promote updating member meta', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne)
+    await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
