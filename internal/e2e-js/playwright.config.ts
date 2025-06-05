@@ -4,7 +4,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test'
 
 const streamingTests = [
   'roomSessionStreamingAPI.spec.ts',
-  // 'roomSessionStreaming.spec.ts',
+  'roomSessionStreaming.spec.ts',
   // 'roomSessionMultipleStreams.spec.ts',
   // 'roomSessionAutomaticStream.spec.ts',
 ]

@@ -224,7 +224,6 @@ export const createTestRoomSession = async (
     vrt: CreateTestVRTOptions
     /** set of events to automatically subscribe before room.join() */
     initialEvents?: string[]
-    expectToJoin?: boolean
     roomSessionOptions?: Record<string, any>
     shouldPassRootElement?: boolean
     attachSagaMonitor?: boolean
