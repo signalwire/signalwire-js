@@ -64,6 +64,13 @@ export class FabricRoomSessionConnection
     return this._member?.memberId
   }
 
+  override dialogParams(rtcPeerId: string) {
+    const params = super.dialogParams(rtcPeerId)
+    params.dialogParams.attach = this.options.attach || this.resuming
+    params.dialogParams.reattaching = this.options.attach || this.resuming
+    return params
+  }
+  
   set currentLayoutEvent(event: FabricLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }
@@ -181,7 +188,8 @@ export class FabricRoomSessionConnection
         `[resume] connectionState for ${this.id} is '${connectionState}'`
       )
       if (['closed', 'failed', 'disconnected'].includes(connectionState)) {
-        this.resuming = true
+        // should not resume when selfMember is defined (the SDK didn't lost its state since the `call.joined` was received)
+        this.resuming = !this.selfMember
         this.peer.restartIce()
       }
     }
