@@ -6,8 +6,8 @@ import {
   deleteRoom,
   CreateOrUpdateRoomOptions,
   randomizeRoomName,
-  expectRoomJoined,
   expectRecordingStarted,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 interface TestConfig {
@@ -38,18 +38,22 @@ test.describe('Room Settings', () => {
       expect: (params) => {
         // match either room.joined or recording.started events
         try {
-          expect(params).toEqual(expect.objectContaining({
-            room_session: expect.objectContaining({
-              recording: true
-            }),
-            room: expect.objectContaining({
-              recording: true
+          expect(params).toEqual(
+            expect.objectContaining({
+              room_session: expect.objectContaining({
+                recording: true,
+              }),
+              room: expect.objectContaining({
+                recording: true,
+              }),
             })
-          }))
-        } catch(_e) {
-          expect(params).toEqual(expect.objectContaining({
-            state: 'recording'
-          }))
+          )
+        } catch (_e) {
+          expect(params).toEqual(
+            expect.objectContaining({
+              state: 'recording',
+            })
+          )
         }
       },
     },
@@ -77,8 +81,8 @@ test.describe('Room Settings', () => {
 
       // --------------- wait for room.joined or recording.started event---------------
       let params = await Promise.race([
-        expectRoomJoined(page),
-        expectRecordingStarted(page)
+        expectRoomJoinWithDefaults(page),
+        expectRecordingStarted(page),
       ])
       // Run custom expectations for each run
       row.expect(params)

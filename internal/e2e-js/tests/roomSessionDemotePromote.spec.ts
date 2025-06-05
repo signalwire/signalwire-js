@@ -7,8 +7,8 @@ import {
   expectInteractivityMode,
   expectMemberId,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession demote participant and then promote again', () => {
@@ -48,13 +48,13 @@ test.describe('RoomSession demote participant and then promote again', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2nd tab as member and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined: any = await expectRoomJoined(pageTwo)
+    const pageTwoRoomJoined: any = await expectRoomJoinWithDefaults(pageTwo)
 
     const participant2Id = pageTwoRoomJoined.member_id
     await expectMemberId(pageTwo, participant2Id)
@@ -118,7 +118,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
       { demoteMemberId: participant2Id }
     )
 
-    const promiseAudienceRoomJoined = await pageTwo.evaluate<any>(() => {
+    const promiseDemotedRoomJoined = await pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj = window._roomObj
@@ -128,7 +128,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     // --------------- Make sure member_id is the same after demote on pageTwo ---------------
     await expectMemberId(pageTwo, participant2Id) // before demote
-    await expectMemberId(pageTwo, promiseAudienceRoomJoined.member_id) // after demote
+    await expectMemberId(pageTwo, promiseDemotedRoomJoined.member_id) // after demote
 
     await expectInteractivityMode(pageTwo, 'audience')
     await expectSDPDirection(pageTwo, 'recvonly', true)
@@ -136,6 +136,14 @@ test.describe('RoomSession demote participant and then promote again', () => {
     // --------------- Time to promote again at PageTwo ---------------
 
     await pageTwo.waitForTimeout(1000)
+
+    const promisePromotedRoomJoined = await pageTwo.evaluate<any>(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj = window._roomObj
+        roomObj.once('room.joined', resolve)
+      })
+    })
 
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
@@ -169,10 +177,6 @@ test.describe('RoomSession demote participant and then promote again', () => {
       },
       { promoteMemberId: participant2Id }
     )
-
-    const promisePromotedRoomJoined = expectRoomJoined(pageTwo, {
-      invokeJoin: false,
-    })
 
     await Promise.all([
       promiseMemberWaitingForMemberJoin,
