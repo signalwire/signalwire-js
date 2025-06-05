@@ -5,7 +5,6 @@ import {
   createTestRoomSession,
   expectMCUVisible,
   expectRoomJoinWithDefaults,
-  expectRoomJoined,
   randomizeRoomName,
 } from '../utils'
 
@@ -328,7 +327,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(page, { roomName })
 
     // Join a video room with rootElement
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page)
     await expectRoomJoinWithDefaults(page)
 
     // Create a video element with the same rootElement
