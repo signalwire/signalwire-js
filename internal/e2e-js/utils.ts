@@ -306,24 +306,7 @@ export const createTestRoomSession = async (
     }
   )
 
-  console.log('>> options.expectToJoin', options.expectToJoin)
-  if (options.expectToJoin !== false) {
-    await expectRoomJoined(page).then(async (params) => {
-      console.log('>> expectRoomJoined', params)
-      await expectMemberId(page, params.member_id)
-      console.log('>> expectMemberId', params.member_id)
-
-      const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
-      await expectSDPDirection(page, dir, true)
-      console.log('>> expectSDPDirection', dir)
-
-      const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
-      await expectInteractivityMode(page, mode)
-      console.log('>> expectInteractivityMode', mode)
-    })
-  }
-
-  return roomSession
+  return { roomSession, vrt }
 }
 
 export const createTestRoomSessionWithJWT = async (
@@ -567,7 +550,6 @@ const createCFClientWithToken = async (
         },
       }
 
-      // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
@@ -576,7 +558,6 @@ const createCFClientWithToken = async (
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
-      // @ts-expect-error
       window._client = client
       return client
     },
@@ -1779,9 +1760,6 @@ export const expectLayoutChanged = (page: Page, layoutName: string) => {
   )
 }
 
-/**
- *
- */
 export const expectRoomJoined = (
   page: Page,
   options: { invokeJoin: boolean } = { invokeJoin: true }
@@ -1801,6 +1779,20 @@ export const expectRoomJoined = (
       }
     })
   }, options)
+}
+
+export const expectRoomJoinWithDefaults = async (
+  page: Page,
+  options: { invokeJoin?: boolean; vrt: CreateTestVRTOptions }
+) => {
+  const params = await expectRoomJoined(page, {
+    invokeJoin: options.invokeJoin ?? true,
+  })
+  await expectMemberId(page, params.member_id)
+  const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
+  await expectSDPDirection(page, dir, true)
+  const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
+  await expectInteractivityMode(page, mode)
 }
 
 export const expectRecordingStarted = (page: Page) => {

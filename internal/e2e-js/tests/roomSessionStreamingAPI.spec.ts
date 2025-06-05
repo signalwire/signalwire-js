@@ -7,6 +7,7 @@ import {
   createStreamForRoom,
   deleteRoom,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('Room Streaming from REST API', () => {
@@ -39,13 +40,12 @@ test.describe('Room Streaming from REST API', () => {
       `${process.env.RTMP_SERVER}${streamName}`
     )
 
-    // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await createTestRoomSession(pageOne, connectionSettings)
-    console.log('>> expectRoomJoined resolved on pageOne')
+    // Create and join room from the 1st tab and resolve on 'room.joined'
+    const { vrt } = await createTestRoomSession(pageOne, connectionSettings)
+    await expectRoomJoinWithDefaults(pageOne, { vrt })
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
-    console.log('>> MCU is visible on pageOne')
 
     // Visit the stream page on pageTwo to make sure it's working
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
