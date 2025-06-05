@@ -5,7 +5,7 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession Audience Count', () => {
@@ -28,7 +28,7 @@ test.describe('RoomSession Audience Count', () => {
 
     const memberInitialEvents = ['room.audience_count']
 
-    await createTestRoomSession(pageOne, {
+    const { vrt: pageOneVRT } = await createTestRoomSession(pageOne, {
       vrt: {
         room_name,
         user_name: 'e2e_member',
@@ -39,7 +39,7 @@ test.describe('RoomSession Audience Count', () => {
       initialEvents: memberInitialEvents,
     })
 
-    await Promise.all(
+    const [{ vrt: pageTwoVRT }] = await Promise.all(
       audiencePages.map((page, i) => {
         return createTestRoomSession(page, {
           vrt: {
@@ -94,7 +94,7 @@ test.describe('RoomSession Audience Count', () => {
       expectedAudienceCount
     )
 
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
 
     const expectorPageTwo = expectAudienceCount(pageTwo)
     const audienceCountPageTwoPromise = expectorPageTwo.waitFor(
@@ -102,13 +102,19 @@ test.describe('RoomSession Audience Count', () => {
     )
 
     // join as audience on pageTwo and resolve on `room.joined`
-    const joinTwoParams: any = await expectRoomJoined(pageTwo)
+    const joinTwoParams: any = await expectRoomJoinWithDefaults(pageTwo, {
+      vrt: pageTwoVRT,
+    })
     // expect to have only 1 audience in the room at the moment
     expect(joinTwoParams.room_session.audience_count).toBe(1)
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
-    await Promise.all(pageThreeToFive.map((page) => expectRoomJoined(page)))
+    await Promise.all(
+      pageThreeToFive.map((page) =>
+        expectRoomJoinWithDefaults(page, { vrt: { join_as: 'audience' } })
+      )
+    )
 
     // wait for all the room.audienceCount
     await Promise.all([

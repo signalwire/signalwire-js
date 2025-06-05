@@ -1,10 +1,11 @@
+import { Video } from '@signalwire/js'
 import { test } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession talking events to audience', () => {
@@ -37,13 +38,13 @@ test.describe('RoomSession talking events to audience', () => {
       initialEvents: ['member.talking'],
     }
 
-    await Promise.all([
+    const [{ vrt: pageOneVRT }, { vrt: pageTwoVRT }] = await Promise.all([
       createTestRoomSession(pageOne, memberSettings),
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
     // --------------- Joining from the 2nd tab as audience and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageTwo)
+    await expectRoomJoinWithDefaults(pageTwo, { vrt: pageTwoVRT })
 
     // Checks that the video is visible on pageTwo
     await expectMCUVisibleForAudience(pageTwo)
@@ -60,7 +61,7 @@ test.describe('RoomSession talking events to audience', () => {
     const waitForMemberJoined = pageTwo.evaluate(async () => {
       return new Promise((resolve, reject) => {
         // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj: Video.RoomSession = window._roomObj
         roomObj.on('member.joined', ({ member }) => {
           if (member.name === 'e2e_member') {
             resolve(true)
@@ -74,7 +75,7 @@ test.describe('RoomSession talking events to audience', () => {
     await pageTwo.waitForTimeout(1000)
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne, { vrt: pageOneVRT })
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
