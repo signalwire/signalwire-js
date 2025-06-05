@@ -1796,7 +1796,10 @@ export const expectRoomJoined = (
 
 export const expectRoomJoinWithDefaults = async (
   page: Page,
-  options: { invokeJoin?: boolean; vrt: CreateTestVRTOptions }
+  options: {
+    invokeJoin?: boolean
+    vrt: { join_as: CreateTestVRTOptions['join_as'] }
+  }
 ) => {
   const params = await expectRoomJoined(page, {
     invokeJoin: options.invokeJoin ?? true,
@@ -1806,6 +1809,7 @@ export const expectRoomJoinWithDefaults = async (
   await expectSDPDirection(page, dir, true)
   const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
   await expectInteractivityMode(page, mode)
+  return params
 }
 
 export const expectRecordingStarted = (page: Page) => {

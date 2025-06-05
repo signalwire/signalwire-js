@@ -3,11 +3,11 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession end_room_session_on_leave feature', () => {
@@ -44,9 +44,21 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       })
     )
 
-    await Promise.all(allPages.map((page) => expectRoomJoined(page)))
-    // last page is audience                                            
-    await Promise.all(allPages.map((page, i) => i === allPages.length - 1 ? expectMCUVisibleForAudience(page) : expectMCUVisible(page)))
+    // Last page is audience
+    await Promise.all(
+      allPages.map((page, i) =>
+        i === allPages.length - 1
+          ? expectRoomJoinWithDefaults(page, { vrt: { join_as: 'audience' } })
+          : expectRoomJoinWithDefaults(page, { vrt: { join_as: 'member' } })
+      )
+    )
+    await Promise.all(
+      allPages.map((page, i) =>
+        i === allPages.length - 1
+          ? expectMCUVisibleForAudience(page)
+          : expectMCUVisible(page)
+      )
+    )
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
     await pageOne.waitForTimeout(2000)

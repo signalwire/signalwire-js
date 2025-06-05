@@ -24,7 +24,7 @@ jobs:
             # badNetwork,
             # promote,
             # demote,
-            # audience,
+            audience,
             # reattach,
             # callfabric,
             # renegotiation,
