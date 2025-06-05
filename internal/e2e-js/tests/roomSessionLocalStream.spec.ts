@@ -7,6 +7,7 @@ import {
   createTestVRTToken,
   expectMCUVisibleForAudience,
   expectRoomJoinWithDefaults,
+  expectRoomJoined,
 } from '../utils'
 
 test.describe('RoomSession with custom local stream', () => {
@@ -62,7 +63,7 @@ test.describe('RoomSession with custom local stream', () => {
     )
 
     // Join the room and expect the MCU (without local overlay) to be visible
-    await expectRoomJoinWithDefaults(page)
+    await expectRoomJoined(page)
     await expectMCUVisibleForAudience(page)
 
     const afterJoin = await page.evaluate(async () => {
