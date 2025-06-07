@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, dev, joao/opus_config]
+    branches: [main, dev]
   workflow_dispatch:
 
 concurrency:
