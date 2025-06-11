@@ -8,7 +8,8 @@ import {
   expectMCUVisible,
 } from '../utils'
 
-test.describe('RoomSessionReattachWrongProtocol', () => {
+// FIXME: This test is skipped because it requires Hagrid changes
+test.skip.describe('RoomSessionReattachWrongProtocol', () => {
   test('should handle joining a room, reattaching with wrong protocol ID and then leaving the room', async ({
     createCustomPage,
   }) => {
