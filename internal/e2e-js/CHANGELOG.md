@@ -1,5 +1,27 @@
 # @sw-internal/e2e-js
 
+## 0.0.20-dev.202506111650.ad2f5be.0
+
+### Patch Changes
+
+- [#1202](https://github.com/signalwire/signalwire-js/pull/1202) [`4668e16e659d2ce4fd60816efdd566bf96e0b338`](https://github.com/signalwire/signalwire-js/commit/4668e16e659d2ce4fd60816efdd566bf96e0b338) Thanks [@ayeminag](https://github.com/ayeminag)! - Temporarily disabled convo api tests
+
+- [#1203](https://github.com/signalwire/signalwire-js/pull/1203) [`d40076940941f5e7629bacb522800f6ca8f91501`](https://github.com/signalwire/signalwire-js/commit/d40076940941f5e7629bacb522800f6ca8f91501) Thanks [@giavac](https://github.com/giavac)! - Re-enable Conversation Room e2e tests
+
+- [#1216](https://github.com/signalwire/signalwire-js/pull/1216) [`ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06`](https://github.com/signalwire/signalwire-js/commit/ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - CHANGED improved the handling of WebSockets reconnections.
+
+- [#1210](https://github.com/signalwire/signalwire-js/pull/1210) [`8852aa801f8b02b649324a85c7c6f202082ea1a8`](https://github.com/signalwire/signalwire-js/commit/8852aa801f8b02b649324a85c7c6f202082ea1a8) Thanks [@ayeminag](https://github.com/ayeminag)! - Fix conversation spec by making sure promise doesn't resolve on call logs conversation.message and also allow for GET messages response assert to include more than 2 messages in case they include call logs
+
+- [#1223](https://github.com/signalwire/signalwire-js/pull/1223) [`eb0d8f72a42342ddadadc83b9dfe5d3cc1602167`](https://github.com/signalwire/signalwire-js/commit/eb0d8f72a42342ddadadc83b9dfe5d3cc1602167) Thanks [@ayeminag](https://github.com/ayeminag)! - Temporarily disable status webhook callback tests
+
+- [#1218](https://github.com/signalwire/signalwire-js/pull/1218) [`d46203af06c672956fb4a69fa384d9f1d61768b6`](https://github.com/signalwire/signalwire-js/commit/d46203af06c672956fb4a69fa384d9f1d61768b6) Thanks [@ayeminag](https://github.com/ayeminag)! - Added call status webhook test in v2Webrtc suite
+
+- [#1204](https://github.com/signalwire/signalwire-js/pull/1204) [`ad803cb5ec225a776b1576ed035ab260bf243772`](https://github.com/signalwire/signalwire-js/commit/ad803cb5ec225a776b1576ed035ab260bf243772) Thanks [@ayeminag](https://github.com/ayeminag)! - Renabled callfabric/conversation.spec.ts test suite
+
+- [#1216](https://github.com/signalwire/signalwire-js/pull/1216) [`ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06`](https://github.com/signalwire/signalwire-js/commit/ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Fix CF network re-connections
+
+- [#1225](https://github.com/signalwire/signalwire-js/pull/1225) [`d042c35bc1575e2f0fe2dbc36e4fdc11420a4b01`](https://github.com/signalwire/signalwire-js/commit/d042c35bc1575e2f0fe2dbc36e4fdc11420a4b01) Thanks [@ayeminag](https://github.com/ayeminag)! - Re-enable v2WebrtcFromRest's status callback tests and added better error handling and retry logic for zrok process
+
 ## 0.0.19
 
 ### Patch Changes
