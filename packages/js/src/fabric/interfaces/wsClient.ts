@@ -1,4 +1,8 @@
-import { SessionOptions, UserOptions } from '@signalwire/core'
+import {
+  AudioCodecOptions,
+  SessionOptions,
+  UserOptions,
+} from '@signalwire/core'
 import {
   IncomingCallHandler,
   IncomingCallHandlers,
@@ -117,6 +121,8 @@ export interface CallParams extends DefaultCallParams {
   stopMicrophoneWhileMuted?: boolean
   /** Fabric address ID matching one of the subscriber’s addresses to attribute conversation API events in the INVITE. */
   fromFabricAddressId?: string
+  /** Audio codec with fmtp params */
+  audioCodecs?: AudioCodecOptions[]
 }
 
 export interface DialParams extends CallParams {
