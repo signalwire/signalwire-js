@@ -195,7 +195,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
       fromFabricAddressId: params.fromFabricAddressId,
-      audioCodecs: params.audioCodecs,
     })
 
     // WebRTC connection left the room.
@@ -233,7 +232,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       prevCallId: payload.callID,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
-      audioCodecs: params.audioCodecs
     })
 
     // WebRTC connection left the room.
