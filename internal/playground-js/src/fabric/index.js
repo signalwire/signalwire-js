@@ -311,6 +311,7 @@ window.dial = async ({ reattach = false } = {}) => {
     nodeId: steeringId,
     to: document.getElementById('destination').value,
     rootElement: document.getElementById('rootElement'),
+    fromFabricAddressId: document.getElementById('fromFabricAddressId').value,
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
   }
@@ -910,6 +911,8 @@ window.ready(async function () {
     localStorage.getItem('fabric.ws.token') || ''
   document.getElementById('destination').value =
     localStorage.getItem('fabric.ws.destination') || ''
+  document.getElementById('fromFabricAddressId').value =
+    localStorage.getItem('fabric.ws.fromFabricAddressId') || ''
   document.getElementById('audio').checked = true
   document.getElementById('video').checked =
     localStorage.getItem('fabric.ws.video') === 'true'

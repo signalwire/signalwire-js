@@ -7,10 +7,14 @@ import {
   RPCReauthenticateParams,
   SATAuthorization,
   UNIFIED_CONNECT_VERSION,
+  isConnectRequest,
+  getLogger,
+  isVertoInvite,
+  SYMBOL_EXECUTE_CONNECTION_CLOSED,
+  SYMBOL_EXECUTE_TIMEOUT,
 } from '@signalwire/core'
 import { JWTSession } from '../JWTSession'
 import { SATSessionOptions } from './interfaces'
-
 /**
  * SAT Session is for the Call Fabric SDK
  */
@@ -71,15 +75,24 @@ export class SATSession extends JWTSession {
 
   override async execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
     return asyncRetry({
-      asyncCallable: () => super.execute(msg),
+      asyncCallable: async () => {
+        await this._waitConnected() // avoid queuing a retry
+        return super.execute(msg)
+      },
       maxRetries: this.options.maxApiRequestRetries,
       delayFn: increasingDelay({
         initialDelay: this.options.apiRequestRetriesDelay,
         variation: this.options.apiRequestRetriesDelayIncrement,
       }),
       expectedErrorHandler: (error) => {
-        if (error?.message?.startsWith('Authentication failed')) {
-          // is expected to be handle by the app developer, skipping retries
+        getLogger().warn(error)
+        if (isConnectRequest(msg)) {
+          // `signalwire.connect` retries are handle by the connection
+          return true
+        }
+        if (isVertoInvite(msg) && ![SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(error)) {
+          // we can't retry verto.invites after errors on the transport layer
+          getLogger().debug('skip verto.invite retry on error:', error)
           return true
         }
         return false
