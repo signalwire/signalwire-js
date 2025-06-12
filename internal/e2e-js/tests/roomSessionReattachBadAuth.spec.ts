@@ -5,8 +5,8 @@ import {
   createTestRoomSession,
   createTestRoomSessionWithJWT,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSessionReattachBadAuth', () => {
@@ -30,7 +30,7 @@ test.describe('RoomSessionReattachBadAuth', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await expectRoomJoined(page)
+    const joinParams: any = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()

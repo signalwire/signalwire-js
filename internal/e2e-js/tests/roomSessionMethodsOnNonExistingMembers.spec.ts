@@ -4,8 +4,8 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession methods on non existing members', () => {
@@ -39,7 +39,7 @@ test.describe('RoomSession methods on non existing members', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await expectRoomJoined(page)
+    const joinParams: any = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()

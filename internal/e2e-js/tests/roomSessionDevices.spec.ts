@@ -4,7 +4,7 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSessionDevices', () => {
@@ -25,7 +25,7 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -79,7 +79,7 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -135,7 +135,7 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -200,7 +200,7 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
