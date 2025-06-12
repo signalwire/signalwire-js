@@ -36,9 +36,4 @@ public/
 .devcontainer/
 CLAUDE.md
 .claude/settings.local.json
-.my-notes/components.md
-.my-notes/ComponentRelations.md
-.my-notes/next-steps-protocol-exploration.md
-.my-notes/signalwire-protocol-documentation.md
-.my-notes/signalwire-protocol-exploration-plan.md
-.my-notes/websocket_reconnections.md
+.my-notes/
