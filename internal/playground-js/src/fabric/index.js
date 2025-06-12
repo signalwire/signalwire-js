@@ -307,20 +307,14 @@ window.dial = async ({ reattach = false } = {}) => {
 
   const dialer = reattach ? client.reattach : client.dial
 
-  const dialOptions = {
+  const call = await dialer({
     nodeId: steeringId,
     to: document.getElementById('destination').value,
     rootElement: document.getElementById('rootElement'),
     fromFabricAddressId: document.getElementById('fromFabricAddressId').value,
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
-  }
-
-  if (document.getElementById('audioCodec').value.trim().length) {
-    const userInput = document.getElementById('audioCodec').value.trim()
-    dialOptions.audioCodecs = userInput.split('\n').map((codec) => codec.trim())
-  }
-  const call = await dialer(dialOptions)
+  })
 
   window.__call = call
   roomObj = call
@@ -916,12 +910,6 @@ window.ready(async function () {
   document.getElementById('audio').checked = true
   document.getElementById('video').checked =
     localStorage.getItem('fabric.ws.video') === 'true'
-  document.getElementById('targetCodec').value =
-    localStorage.getItem('fabric.ws.targetCodec') || ''
-  document.getElementById('maxPlaybackRate').value =
-    localStorage.getItem('fabric.ws.maxPlaybackRate') || ''
-  document.getElementById('maxAverageBitrate').value =
-    localStorage.getItem('fabric.ws.maxAverageBitrate') || ''
 
   const urlParams = new URLSearchParams(window.location.search)
   const room = urlParams.get('room')
