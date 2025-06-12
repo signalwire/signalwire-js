@@ -3,12 +3,10 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectSDPDirection,
-  expectInteractivityMode,
   expectMemberId,
-  expectRoomJoined,
   expectMCUVisible,
   expectPageReceiveAudio,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession demote participant', () => {
@@ -43,16 +41,21 @@ test.describe('RoomSession demote participant', () => {
       createTestRoomSession(pageTwo, participant2Settings),
     ])
 
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined = await expectRoomJoined(pageTwo)
+    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo)
     const participant2Id = pageTwoRoomJoined.member_id
     await expectMemberId(pageTwo, participant2Id)
     await expectMCUVisible(pageTwo)
 
     // Wait five seconds before demoting
     await pageOne.waitForTimeout(5000)
+
+    const promiseAudienceRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
+      invokeJoin: false,
+      joinAs: 'audience',
+    })
 
     // Demote participant on pageTwo to audience from pageOne
     // and resolve on `member.left` amd `layout.changed` with
@@ -108,15 +111,11 @@ test.describe('RoomSession demote participant', () => {
       { demoteMemberId: participant2Id }
     )
 
-    const promiseAudienceRoomJoined = await expectRoomJoined(pageTwo, {
-      invokeJoin: false,
-    })
-
     // Expect same member ID as before demote
     await expectMemberId(pageTwo, participant2Id)
-    await expectMemberId(pageTwo, promiseAudienceRoomJoined.member_id)
-    await expectInteractivityMode(pageTwo, 'audience')
-    await expectSDPDirection(pageTwo, 'recvonly', true)
+
+    // Make sure the demoted user received room.joined with correct states
+    await promiseAudienceRoomJoined
 
     await expectPageReceiveAudio(pageTwo)
   })

@@ -4,8 +4,8 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession Raise/Lower hand', () => {
@@ -29,7 +29,7 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await createTestRoomSession(page, memberSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -84,7 +84,7 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await createTestRoomSession(page, memberSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
