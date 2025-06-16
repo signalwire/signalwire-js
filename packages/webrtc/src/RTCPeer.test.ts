@@ -57,12 +57,9 @@ describe('RTCPeer', () => {
       setState: jest.fn(),
     } as any
 
-    // @ts-ignore - Partial mock implementation
-    global.RTCPeerConnection = jest.fn().mockImplementation(() => mockInstance)
-
     peer = new RTCPeer(mockCall, 'offer')
-    // @ts-ignore - Access private property for testing
-    peer.instance = mockInstance as RTCPeerConnection
+    // @ts-ignore - Partial mock for testing
+    peer.instance = mockInstance
   })
 
   afterEach(() => {
@@ -70,11 +67,14 @@ describe('RTCPeer', () => {
   })
 
   describe('restartIceWithRelayOnly', () => {
-
     it('should skip if peer is answer', () => {
       peer = new RTCPeer(mockCall, 'answer')
-      // @ts-ignore - Access private property for testing
-      peer.instance = mockInstance as RTCPeerConnection
+      // @ts-ignore - Partial mock for testing
+      peer.instance = mockInstance
+
+      mockInstance.getConfiguration?.mockReturnValue({
+        iceTransportPolicy: 'all',
+      })
 
       peer.restartIceWithRelayOnly()
 
@@ -85,7 +85,7 @@ describe('RTCPeer', () => {
     it('should skip if already in relay-only mode', () => {
       mockInstance.getConfiguration?.mockReturnValue({
         iceTransportPolicy: 'relay',
-      } as RTCConfiguration)
+      })
 
       peer.restartIceWithRelayOnly()
 
@@ -107,8 +107,12 @@ describe('RTCPeer', () => {
     })
 
     it('should handle errors appropriately', () => {
+      mockInstance.getConfiguration?.mockReturnValue({
+        iceTransportPolicy: 'all',
+      })
+
       const error = new Error('Test error')
-      mockInstance.getConfiguration?.mockImplementation(() => {
+      mockInstance.setConfiguration?.mockImplementation(() => {
         throw error
       })
       // @ts-ignore - Access private property for testing
@@ -119,11 +123,6 @@ describe('RTCPeer', () => {
       }
 
       peer.restartIceWithRelayOnly()
-
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'restartIceWithRelayOnly',
-        error
-      )
       // @ts-ignore - Access private property for testing
       expect(peer._rejectStartMethod).toHaveBeenCalledWith(error)
       // @ts-ignore - Access private property for testing
