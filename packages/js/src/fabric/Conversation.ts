@@ -316,14 +316,15 @@ export class Conversation {
     params: JoinConversationParams
   ): Promise<JoinConversationResult> {
     try {
-      const { addressId } = params
+      const { fromAddressId, addressIds } = params
       const path = '/api/fabric/conversations/join'
       const { body } = await this.httpClient.fetch<JoinConversationResponse>(
         path,
         {
           method: 'POST',
           body: {
-            conversation_id: addressId,
+            from_fabric_address_id: fromAddressId,
+            fabric_address_ids: addressIds,
           },
         }
       )
