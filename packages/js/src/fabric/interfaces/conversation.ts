@@ -66,7 +66,8 @@ export type ConversationChatMessagesSubscribeResult =
   ConversationSubscribeResult
 
 export interface JoinConversationParams {
-  addressId: string
+  fromAddressId: string
+  addressIds: string[]
 }
 
 export interface JoinConversationResponse {
