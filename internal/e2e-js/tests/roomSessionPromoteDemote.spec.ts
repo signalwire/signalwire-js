@@ -8,11 +8,11 @@ import {
   expectMemberId,
   expectLayoutChanged,
   setLayoutOnPage,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -64,10 +64,12 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined = await expectRoomJoined(pageTwo)
+    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo, {
+      joinAs: 'audience',
+    })
     const audienceId = pageTwoRoomJoined.member_id
     await expectMCUVisibleForAudience(pageTwo)
     await expectPageReceiveAudio(pageTwo)
@@ -83,8 +85,13 @@ test.describe('RoomSession promote/demote methods', () => {
     ])
     expect(layoutChangedResults).toStrictEqual([true, true])
 
+    const promisePromotedRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
+      invokeJoin: false,
+      joinAs: 'member',
+    })
+
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
-    await pageOne.evaluate(
+    const promisePromoterMemberJoined = pageOne.evaluate(
       async ({ promoteMemberId }) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
@@ -109,22 +116,18 @@ test.describe('RoomSession promote/demote methods', () => {
       { promoteMemberId: audienceId }
     )
 
-    await pageTwo.waitForTimeout(2000)
-
-    await expectMemberId(pageTwo, audienceId)
-    await expectInteractivityMode(pageTwo, 'member')
-    await expectSDPDirection(pageTwo, 'sendrecv', true)
+    await Promise.all([promisePromoterMemberJoined, promisePromotedRoomJoined])
 
     // Promotion done.
-
     await pageTwo.waitForTimeout(2000)
 
     // Demote to audience again from pageOne
     // and resolve on `member.left`
     // and `layout.changed` with position off-canvas
 
-    const promiseAudienceRoomJoined = expectRoomJoined(pageTwo, {
+    const promiseDemotedRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
       invokeJoin: false,
+      joinAs: 'audience',
     })
 
     const promiseMemberWaitingForMemberLeft = pageOne.evaluate(
@@ -176,7 +179,7 @@ test.describe('RoomSession promote/demote methods', () => {
     )
 
     const [audienceRoomJoined, _] = await Promise.all([
-      promiseAudienceRoomJoined,
+      promiseDemotedRoomJoined,
       promiseMemberWaitingForMemberLeft,
     ])
 

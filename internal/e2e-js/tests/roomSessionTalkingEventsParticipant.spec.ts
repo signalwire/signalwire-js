@@ -2,9 +2,9 @@ import { test, expect } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   expectMCUVisible,
   expectMemberTalkingEvent,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession talking events to participant', () => {
@@ -43,13 +43,13 @@ test.describe('RoomSession talking events to participant', () => {
       createTestRoomSession(pageTwo, member2Settings),
     ])
 
-    await expectRoomJoined(pageTwo)
+    await expectRoomJoinWithDefaults(pageTwo)
 
     await expectMCUVisible(pageTwo)
 
     const talkingTruePromisePageTwo = expectMemberTalkingEvent(pageTwo)
 
-    const joinParams: any = await expectRoomJoined(pageOne)
+    const joinParams: any = await expectRoomJoinWithDefaults(pageOne)
 
     await expectMCUVisible(pageOne)
 
