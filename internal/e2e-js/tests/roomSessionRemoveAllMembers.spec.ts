@@ -3,10 +3,10 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   expectMCUVisible,
   expectPageReceiveAudio,
   randomizeRoomName,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession removeAllMembers method', () => {
@@ -41,7 +41,7 @@ test.describe('RoomSession removeAllMembers method', () => {
       })
     )
 
-    await Promise.all(allPages.map((page) => expectRoomJoined(page)))
+    await Promise.all(allPages.map((page) => expectRoomJoinWithDefaults(page)))
     await Promise.all(allPages.map((page) => expectMCUVisible(page)))
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
