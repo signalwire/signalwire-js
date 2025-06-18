@@ -20,10 +20,12 @@
     "rootDir": "packages",
     "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
-      "@signalwire/js": ["packages/js/src"],
+      "@signalwire/browser-common": ["packages/browser-common/src"],
+      "@signalwire/browser-js": ["packages/browser/src"],
       "@signalwire/core": ["packages/core/src"],
-      "@signalwire/webrtc": ["packages/webrtc/src"],
-      "@signalwire/node": ["packages/node/src"]
+      "@signalwire/js": ["packages/js/src"],
+      "@signalwire/node": ["packages/node/src"],
+      "@signalwire/webrtc": ["packages/webrtc/src"]
     },
     "composite": true,
     "declarationMap": true,
