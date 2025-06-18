@@ -29,6 +29,9 @@ export async function cli(args) {
   const packagesWithNoDeps = new Set()
 
   const buildTree = (tree, acc, ite = 1, processedPackages = []) => {
+    const currentLevelPackages = []
+    
+    // First pass: identify packages that can be built at this level
     tree.forEach((deps, key) => {
       if (
         deps.every(
@@ -36,12 +39,24 @@ export async function cli(args) {
             packagesWithNoDeps.has(dep) || processedPackages.includes(dep)
         )
       ) {
-        const list = acc.get(ite) || []
-        acc.set(ite, [...list, key])
-        processedPackages.push(key)
-        tree.delete(key)
+        currentLevelPackages.push(key)
       }
     })
+    
+    // Second pass: remove packages that have dependencies on other packages in current level
+    const finalLevelPackages = currentLevelPackages.filter(pkg => {
+      const deps = tree.get(pkg)
+      return !deps.some(dep => currentLevelPackages.includes(dep))
+    })
+    
+    // Add packages to the current level and mark as processed
+    if (finalLevelPackages.length > 0) {
+      acc.set(ite, finalLevelPackages)
+      finalLevelPackages.forEach(pkg => {
+        processedPackages.push(pkg)
+        tree.delete(pkg)
+      })
+    }
 
     if (tree.size > 0) {
       return buildTree(tree, acc, ite + 1, processedPackages)

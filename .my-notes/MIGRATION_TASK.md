@@ -13,12 +13,12 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Summary Dashboard
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
-| Infrastructure | 7 | 2 | 0 | 0 |
+| Infrastructure | 7 | 3 | 0 | 0 |
 | Phase 1 | 12 | 0 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **2** | **0** | **0** |
+| **Total** | **52** | **3** | **0** | **0** |
 
 ---
 
@@ -49,15 +49,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: None
 
 ### INF-003: Update sw-build-all Script
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/INF-003-build-order`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Modify scripts/sw-build-all.js to build browser-common before browser-js and js
 - **Test Plan**:
-  - [ ] Build order is: core → webrtc → browser-common → [browser-js, js]
-  - [ ] Parallel builds work correctly
-  - [ ] Build fails appropriately on errors
+  - [x] Build order is: core → webrtc → browser-common → [browser-js, js]
+  - [x] Parallel builds work correctly
+  - [x] Build fails appropriately on errors
 - **Dependencies**: INF-002
 
 ### INF-004: Create browser-common sw.config.js
