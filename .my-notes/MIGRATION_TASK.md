@@ -73,15 +73,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-002
 
 ### INF-005: Create browser-js sw.config.js
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/INF-005-browser-js-config`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Create build configuration for @signalwire/browser-js with UMD support
 - **Test Plan**:
-  - [ ] ESM, CJS, and UMD builds generate correctly
-  - [ ] UMD global is named 'SignalWire'
-  - [ ] External dependencies are properly configured
+  - [x] ESM, CJS, and UMD builds generate correctly
+  - [x] UMD global is named 'SignalWire'
+  - [x] External dependencies are properly configured
 - **Dependencies**: INF-002
 
 ### INF-006: Update GitHub Actions Workflows
