@@ -1,0 +1,33 @@
+{
+  "name": "@signalwire/browser-js",
+  "version": "0.0.0",
+  "description": "SignalWire Browser SDK for unified communication",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "echo 'Build not yet configured'",
+    "test": "echo 'Tests not yet configured'"
+  },
+  "dependencies": {
+    "@signalwire/browser-common": "*",
+    "@signalwire/core": "*",
+    "@signalwire/webrtc": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.2",
+    "jest": "^29.7.0",
+    "typescript": "^5.6.3"
+  }
+}
