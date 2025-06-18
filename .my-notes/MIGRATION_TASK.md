@@ -13,12 +13,12 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Summary Dashboard
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
-| Infrastructure | 7 | 3 | 0 | 0 |
+| Infrastructure | 7 | 4 | 0 | 0 |
 | Phase 1 | 12 | 0 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **3** | **0** | **0** |
+| **Total** | **52** | **4** | **0** | **0** |
 
 ---
 
@@ -61,15 +61,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-002
 
 ### INF-004: Create browser-common sw.config.js
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/INF-004-browser-common-config`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Create build configuration for @signalwire/browser-common
 - **Test Plan**:
-  - [ ] ESM build generates correctly
-  - [ ] CJS build generates correctly
-  - [ ] Type definitions are generated
+  - [x] ESM build generates correctly
+  - [x] CJS build generates correctly
+  - [x] Type definitions are generated
 - **Dependencies**: INF-002
 
 ### INF-005: Create browser-js sw.config.js

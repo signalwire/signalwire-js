@@ -4,20 +4,14 @@
   "description": "Common utilities for SignalWire browser SDKs",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/browser-common/src/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "echo 'Build not yet configured'",
+    "build": "tsc --project tsconfig.build.json && sw-build --web",
     "test": "echo 'Tests not yet configured'"
   },
   "dependencies": {
