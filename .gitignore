@@ -33,6 +33,7 @@ yarn-error.log*
 
 coverage/
 public/
+dist/
 .devcontainer/
 CLAUDE.md
 .claude/settings.local.json
