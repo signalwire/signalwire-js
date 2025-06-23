@@ -15,9 +15,9 @@
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --passWithNoTests"
   },
   "dependencies": {
-    "@signalwire/browser-common": "*",
-    "@signalwire/core": "*",
-    "@signalwire/webrtc": "*"
+    "@signalwire/browser-common": "0.0.0",
+    "@signalwire/core": "4.3.0-dev.202506111650.ad2f5be.0",
+    "@signalwire/webrtc": "3.14.0-dev.202506111650.ad2f5be.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",

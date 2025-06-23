@@ -8,6 +8,8 @@
     "@sw-internal/playground-realtime-api": "0.3.5",
     "@sw-internal/playground-swaig": "0.1.1",
     "@sw-internal/stack-tests": "1.0.5",
+    "@signalwire/browser-common": "0.0.0",
+    "@signalwire/browser-js": "0.0.0",
     "@signalwire/core": "4.2.1",
     "@signalwire/js": "3.28.1",
     "@signalwire/node": "3.0.3",

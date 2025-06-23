@@ -13,12 +13,12 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Summary Dashboard
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
-| Infrastructure | 7 | 5 | 0 | 0 |
+| Infrastructure | 7 | 6 | 0 | 0 |
 | Phase 1 | 12 | 0 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **5** | **0** | **0** |
+| **Total** | **52** | **6** | **0** | **0** |
 
 ---
 
@@ -97,15 +97,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-001, INF-002, INF-003
 
 ### INF-007: Setup Changesets for New Packages
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/INF-007-changesets`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Configure changesets to handle version management for new packages
 - **Test Plan**:
-  - [ ] Changesets recognize new packages
-  - [ ] Version bumps work correctly
-  - [ ] Release notes generation includes new packages
+  - [x] Changesets recognize new packages
+  - [x] Version bumps work correctly
+  - [x] Release notes generation includes new packages
 - **Dependencies**: INF-002
 
 ---
