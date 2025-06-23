@@ -7,7 +7,7 @@ import {
   BaseConnectionState,
 } from '@signalwire/core'
 import { BaseConnection, MediaEventNames } from '@signalwire/webrtc'
-import { RoomSessionDeviceMethods } from './utils/interfaces'
+import { RoomSessionDeviceMethods } from './interfaces'
 
 type RoomSessionDeviceEventsHandlerMap = Record<
   BaseConnectionState,

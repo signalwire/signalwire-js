@@ -7,7 +7,7 @@ import {
   BaseConnectionState,
 } from '@signalwire/core'
 import { BaseConnection, MediaEventNames } from '@signalwire/webrtc'
-import { RoomScreenShareMethods } from './utils/interfaces'
+import { RoomScreenShareMethods } from './interfaces'
 
 type RoomSessionScreenShareEventsHandlerMap = Record<
   BaseConnectionState,

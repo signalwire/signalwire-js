@@ -28,7 +28,7 @@ import {
   RoomSessionScreenShareAPI,
   RoomSessionScreenShareConnection,
   RoomSessionScreenShareEvents,
-} from '../../js/src/RoomSessionScreenShare'
+} from './RoomSessionScreenShare'
 import * as workers from '../../js/src/video/workers'
 
 export interface BaseRoomSession<
