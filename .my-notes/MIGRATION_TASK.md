@@ -356,7 +356,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-006: Create Call Type Definitions
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P2-006-call-types`
 - **PR**: Not Created
 - **Assignee**: TBD
