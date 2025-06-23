@@ -328,21 +328,21 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-004: Rename FabricRoomSession to CallSession
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-004-rename-call-session`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Rename FabricRoomSession class to CallSession with all references
 - **Test Plan**:
-  - [ ] Class renamed successfully
-  - [ ] All method references updated
-  - [ ] Event emitters use new name
-  - [ ] Tests updated and passing
+  - [x] Class renamed successfully
+  - [x] All method references updated
+  - [x] Event emitters use new name
+  - [x] Tests updated and passing
 - **Dependencies**: P2-003
 
 ### P2-005: Rename FabricRoomSessionMember to CallSessionMember
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P2-005-rename-call-member`
 - **PR**: Not Created
 - **Assignee**: TBD
