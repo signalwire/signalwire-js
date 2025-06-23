@@ -4,7 +4,6 @@ import {
   CallJoinedEventParams as InternalCallJoinedEventParams,
   VertoBye,
   VertoSubscribe,
-  VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
 import {
@@ -95,12 +94,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      * `join_audio_muted: true` we'll stop the streams
      * right away.
      */
-    const joinMutedHandler = (
-      params: InternalCallJoinedEventParams | VideoRoomSubscribedEventParams
-    ) => {
+    const joinMutedHandler = (params: InternalCallJoinedEventParams) => {
       const member = params.room_session.members?.find(
-        // @ts-expect-error FIXME:
-        (m) => m.id === room.memberId || m.member_id === room.memberId
+        (m) => m.member_id === room.memberId
       )
 
       if (member?.audio_muted) {

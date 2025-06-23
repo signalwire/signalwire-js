@@ -1,9 +1,11 @@
 import { SwEvent } from '.'
+import { toExternalJSON } from '..'
 import {
   CamelToSnakeCase,
   EntityUpdated,
   OnlyFunctionProperties,
   OnlyStateProperties,
+  SnakeToCamelCase,
 } from './utils'
 import {
   MemberJoined,
@@ -51,19 +53,40 @@ type FabricMemberBaseProps = Pick<
  * and generate `MEMBER_UPDATED_EVENTS` below.
  * `key`: `type`
  */
-const FABRIC_MEMBER_UPDATABLE_PROPS = {
-  audioMuted: true,
-  videoMuted: true,
+export const INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS = {
+  audio_muted: true,
+  video_muted: true,
   deaf: true,
   visible: true,
-  inputVolume: 1,
-  outputVolume: 1,
-  inputSensitivity: 1,
+  input_volume: 1,
+  output_volume: 1,
+  input_sensitivity: 1,
   handraised: true,
-  echoCancellation: true,
-  autoGain: true,
-  noiseSuppression: true,
+  echo_cancellation: true,
+  auto_gain: true,
+  noise_suppression: true,
 }
+
+export type InternalFabricMemberUpdatableProps =
+  typeof INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
+
+export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
+  INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
+).map((key) => {
+  return `member.updated.${
+    key as keyof InternalFabricMemberUpdatableProps
+  }` as const
+})
+
+export type InternalFabricMemberUpdatedEventNames =
+  (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
+
+export type FabricMemberUpdatableProps = {
+  [K in keyof InternalFabricMemberUpdatableProps as SnakeToCamelCase<K>]: InternalFabricMemberUpdatableProps[K]
+}
+
+export const FABRIC_MEMBER_UPDATABLE_PROPS: FabricMemberUpdatableProps =
+  toExternalJSON(INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS)
 
 export const FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
   FABRIC_MEMBER_UPDATABLE_PROPS
@@ -71,9 +94,7 @@ export const FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
   return `member.updated.${key as keyof FabricMemberUpdatableProps}` as const
 })
 
-export type FabricMemberUpdatableProps = typeof FABRIC_MEMBER_UPDATABLE_PROPS
-
-export type InternalFabricMemberUpdatedEventNames =
+export type FabricMemberUpdatedEventNames =
   (typeof FABRIC_MEMBER_UPDATED_EVENTS)[number]
 
 /**
