@@ -13,12 +13,12 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Summary Dashboard
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
-| Infrastructure | 7 | 6 | 0 | 0 |
-| Phase 1 | 12 | 0 | 0 | 0 |
+| Infrastructure | 7 | 7 | 0 | 0 |
+| Phase 1 | 12 | 1 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **6** | **0** | **0** |
+| **Total** | **52** | **8** | **0** | **0** |
 
 ---
 
@@ -113,16 +113,16 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Phase 1: Create Common Package
 
 ### P1-001: Create browser-common Package Structure
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-001-browser-common-structure`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Create packages/browser-common directory with package.json, tsconfig files, and jest config
 - **Test Plan**:
-  - [ ] Package.json has correct name and dependencies
-  - [ ] TypeScript config extends root config properly
-  - [ ] Jest config works with test files
-  - [ ] README.md explains package purpose
+  - [x] Package.json has correct name and dependencies
+  - [x] TypeScript config extends root config properly
+  - [x] Jest config works with test files
+  - [x] README.md explains package purpose
 - **Dependencies**: INF-001, INF-002, INF-004
 
 ### P1-002: Move BaseRoomSession to browser-common
