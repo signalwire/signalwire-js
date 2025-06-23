@@ -1,7 +1,7 @@
 import { createRoomObject, Room } from '../createRoomObject'
 import { createClient } from '../createClient'
 import { joinRoom } from '../joinRoom'
-import { MakeRoomOptions } from '../Client'
+import { MakeRoomOptions } from '@signalwire/browser-common'
 import { RoomSession, RoomSessionOptions } from './RoomSession'
 import { RoomSessionDevice, RoomDevice } from '../RoomSessionDevice'
 import {

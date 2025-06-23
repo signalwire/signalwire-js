@@ -13,7 +13,7 @@ import {
   SYMBOL_EXECUTE_CONNECTION_CLOSED,
   SYMBOL_EXECUTE_TIMEOUT,
 } from '@signalwire/core'
-import { JWTSession } from '../JWTSession'
+import { JWTSession } from '@signalwire/browser-common'
 import { SATSessionOptions } from './interfaces'
 /**
  * SAT Session is for the Call Fabric SDK

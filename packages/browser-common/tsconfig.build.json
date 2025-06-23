@@ -4,5 +4,6 @@
     "emitDeclarationOnly": true,
     "outDir": "dist"
   },
-  "include": ["src"]
+  "include": ["./src/**/*.ts", "../core/src/**/*.ts", "../webrtc/src/**/*.ts", "../js/src/**/*.ts"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "**/test/**/*", "**/__tests__/**/*", "**/tests/**/*", "**/*.stories.ts", "**/*.stories.tsx", "../js/src/cantina/VideoManager.test.ts"]
 }

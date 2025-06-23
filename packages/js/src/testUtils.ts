@@ -1,5 +1,5 @@
 import { configureStore, EventEmitter, actions } from '@signalwire/core'
-import { JWTSession } from './JWTSession'
+import { JWTSession } from '@signalwire/browser-common'
 
 const PROJECT_ID = '8f0a119a-cda7-4497-a47d-c81493b824d4'
 const TOKEN = '<VRT>'

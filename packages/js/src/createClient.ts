@@ -5,8 +5,8 @@ import {
   getEventEmitter,
   UserOptions,
 } from '@signalwire/core'
-import { ClientAPI, Client } from './Client'
-import { JWTSession } from './JWTSession'
+import { ClientAPI, Client } from '@signalwire/browser-common'
+import { JWTSession } from '@signalwire/browser-common'
 
 /**
  * With Video.createClient() you can establish a WebSocket connection

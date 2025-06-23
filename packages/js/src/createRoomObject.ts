@@ -1,7 +1,7 @@
 import { UserOptions, getLogger } from '@signalwire/core'
 import { createClient } from './createClient'
-import { MakeRoomOptions } from './Client'
-import { BaseRoomSession } from './BaseRoomSession'
+import { MakeRoomOptions } from '@signalwire/browser-common'
+import { BaseRoomSession } from '@signalwire/browser-common'
 
 /**
  * @internal

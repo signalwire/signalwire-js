@@ -16,7 +16,7 @@ import {
 import {
   BaseRoomSessionConnection,
   BaseRoomSessionOptions,
-} from '../BaseRoomSession'
+} from '@signalwire/browser-common'
 import {
   BaseRoomSessionContract,
   ExecuteMemberActionParams,
@@ -24,7 +24,7 @@ import {
   FabricRoomSessionEvents,
   RequestMemberParams,
 } from '../utils/interfaces'
-import { getStorage } from '../utils/storage'
+import { getStorage } from '@signalwire/browser-common'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { fabricWorker } from './workers'
 import { FabricRoomSessionMember } from './FabricRoomSessionMember'

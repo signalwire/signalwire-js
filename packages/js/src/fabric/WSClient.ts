@@ -26,7 +26,7 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { getStorage } from '../utils/storage'
+import { getStorage } from '@signalwire/browser-common'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {

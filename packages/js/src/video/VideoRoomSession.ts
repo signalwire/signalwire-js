@@ -13,7 +13,7 @@ import { BaseConnectionOptions } from '@signalwire/webrtc'
 import {
   BaseRoomSessionConnection,
   BaseRoomSessionOptions,
-} from '../BaseRoomSession'
+} from '@signalwire/browser-common'
 import {
   RoomSessionDevice,
   RoomSessionDeviceAPI,

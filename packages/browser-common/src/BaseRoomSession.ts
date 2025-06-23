@@ -14,22 +14,22 @@ import {
   supportsMediaOutput,
   MediaEventNames,
 } from '@signalwire/webrtc'
-import { LocalVideoOverlay, OverlayMap } from './VideoOverlays'
+import { LocalVideoOverlay, OverlayMap } from '../../js/src/VideoOverlays'
 import {
   AudioElement,
   BaseRoomSessionContract,
   StartScreenShareOptions,
-} from './utils/interfaces'
-import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
-import { addOverlayPrefix } from './utils/roomSession'
-import { audioSetSpeakerAction } from './features/actions'
+} from '../../js/src/utils/interfaces'
+import { SCREENSHARE_AUDIO_CONSTRAINTS } from '../../js/src/utils/constants'
+import { addOverlayPrefix } from '../../js/src/utils/roomSession'
+import { audioSetSpeakerAction } from '../../js/src/features/actions'
 import {
   RoomSessionScreenShare,
   RoomSessionScreenShareAPI,
   RoomSessionScreenShareConnection,
   RoomSessionScreenShareEvents,
-} from './RoomSessionScreenShare'
-import * as workers from './video/workers'
+} from '../../js/src/RoomSessionScreenShare'
+import * as workers from '../../js/src/video/workers'
 
 export interface BaseRoomSession<
   EventTypes extends EventEmitter.ValidEventTypes = BaseRoomSessionEvents

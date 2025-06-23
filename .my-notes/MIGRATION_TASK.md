@@ -126,7 +126,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-001, INF-002, INF-004
 
 ### P1-002: Move BaseRoomSession to browser-common
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P1-002-move-base-room-session`
 - **PR**: Not Created
 - **Assignee**: TBD
@@ -138,15 +138,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-003: Move Client Classes to browser-common
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-003-move-client-classes`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move Client.ts and JWTSession.ts to browser-common
 - **Test Plan**:
-  - [ ] Client initialization tests pass
-  - [ ] JWT session management works
-  - [ ] WebSocket connection tests pass
+  - [x] Client initialization tests pass
+  - [x] JWT session management works
+  - [x] WebSocket connection tests pass
 - **Dependencies**: P1-001
 
 ### P1-004: Move RoomSession Components to browser-common

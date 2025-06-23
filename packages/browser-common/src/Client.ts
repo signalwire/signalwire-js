@@ -8,17 +8,17 @@ import {
 } from '@signalwire/core'
 import type { CustomSaga } from '@signalwire/core'
 import { ConnectionOptions } from '@signalwire/webrtc'
-import { makeAudioElementSaga } from './features/mediaElements/mediaElementsSagas'
-import { VideoManager, createVideoManagerObject } from './cantina'
-import type { Client as ChatClient } from './chat/Client'
-import type { Client as PubSubClient } from './pubSub/Client'
-import type { RoomSession } from './video/RoomSession'
-import { buildVideoElement } from './buildVideoElement'
+import { makeAudioElementSaga } from '../../js/src/features/mediaElements/mediaElementsSagas'
+import { VideoManager, createVideoManagerObject } from '../../js/src/cantina'
+import type { Client as ChatClient } from '../../js/src/chat/Client'
+import type { Client as PubSubClient } from '../../js/src/pubSub/Client'
+import type { RoomSession } from '../../js/src/video/RoomSession'
+import { buildVideoElement } from '../../js/src/buildVideoElement'
 import {
   createVideoRoomSessionObject,
   VideoRoomSessionConnection,
-} from './video/VideoRoomSession'
-import { CallParams } from './fabric/interfaces'
+} from '../../js/src/video/VideoRoomSession'
+import { CallParams } from '../../js/src/fabric/interfaces'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {

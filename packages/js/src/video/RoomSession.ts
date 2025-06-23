@@ -6,12 +6,12 @@ import {
 } from '@signalwire/core'
 import { createClient } from '../createClient'
 import { checkMediaParams, getJoinMediaParams } from '../utils/roomSession'
-import type { MakeRoomOptions } from '../Client'
+import type { MakeRoomOptions } from '@signalwire/browser-common'
 import type {
   BaseRoomSessionJoinParams,
   RoomSessionObjectEvents,
 } from '../utils/interfaces'
-import { getStorage, sessionStorageManager } from '../utils/storage'
+import { getStorage, sessionStorageManager } from '@signalwire/browser-common'
 import { VideoRoomSession } from './VideoRoomSession'
 
 /**
