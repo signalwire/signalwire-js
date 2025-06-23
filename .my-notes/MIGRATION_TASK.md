@@ -315,7 +315,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-003: Move Fabric Directory Core
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P2-003-move-fabric-core`
 - **PR**: Not Created
 - **Assignee**: TBD
