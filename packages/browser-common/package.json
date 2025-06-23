@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "description": "Common utilities for SignalWire browser SDKs",
   "private": true,
-  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/browser-common/src/index.d.ts",
@@ -12,7 +11,7 @@
   ],
   "scripts": {
     "build": "tsc --project tsconfig.build.json && sw-build --web",
-    "test": "echo 'Tests not yet configured'"
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --passWithNoTests"
   },
   "dependencies": {
     "@signalwire/core": "*",

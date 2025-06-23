@@ -13,12 +13,12 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Summary Dashboard
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
-| Infrastructure | 7 | 4 | 0 | 0 |
+| Infrastructure | 7 | 5 | 0 | 0 |
 | Phase 1 | 12 | 0 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **4** | **0** | **0** |
+| **Total** | **52** | **5** | **0** | **0** |
 
 ---
 
@@ -85,15 +85,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-002
 
 ### INF-006: Update GitHub Actions Workflows
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/INF-006-github-actions`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Update CI/CD workflows to test and build new packages
 - **Test Plan**:
-  - [ ] CI runs tests for all packages
-  - [ ] Build artifacts are generated for new packages
-  - [ ] No regression in existing workflows
+  - [x] CI runs tests for all packages
+  - [x] Build artifacts are generated for new packages
+  - [x] No regression in existing workflows
 - **Dependencies**: INF-001, INF-002, INF-003
 
 ### INF-007: Setup Changesets for New Packages
