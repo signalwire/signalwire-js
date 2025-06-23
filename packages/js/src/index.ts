@@ -70,8 +70,8 @@ export * from './fabric'
  */
 export * as Video from './video'
 export { VideoRoomSession } from './video'
-export { RoomSessionScreenShare } from './RoomSessionScreenShare'
-export { RoomSessionDevice } from './RoomSessionDevice'
+export { RoomSessionScreenShare } from '@signalwire/browser-common'
+export { RoomSessionDevice } from '@signalwire/browser-common'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and

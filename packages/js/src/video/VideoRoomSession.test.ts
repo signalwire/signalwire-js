@@ -3,7 +3,7 @@ import {
   VideoRoomSession,
   createVideoRoomSessionObject,
 } from './VideoRoomSession'
-import { configureFullStack, dispatchMockedRoomSubscribed } from '../testUtils'
+import { configureFullStack, dispatchMockedRoomSubscribed } from '@signalwire/browser-common'
 
 describe('Room Object', () => {
   let store: any

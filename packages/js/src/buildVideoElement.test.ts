@@ -4,7 +4,7 @@ import {
   configureFullStack,
   dispatchMockedCallJoined,
   dispatchMockedRoomSubscribed,
-} from './testUtils'
+} from '@signalwire/browser-common'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
 import {
   FabricRoomSession,

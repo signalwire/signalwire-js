@@ -14,11 +14,11 @@ This document coordinates the development team's execution of the @signalwire/js
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
 | Infrastructure | 7 | 7 | 0 | 0 |
-| Phase 1 | 12 | 1 | 0 | 0 |
+| Phase 1 | 12 | 4 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **8** | **0** | **0** |
+| **Total** | **52** | **11** | **0** | **0** |
 
 ---
 
@@ -150,15 +150,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-004: Move RoomSession Components to browser-common
-- **Status**: 🔴 Not Started
-- **Branch**: `feat/P1-004-move-room-components`
+- **Status**: 🟢 Completed
+- **Branch**: `feat/P1-003-move-client-classes` (shared with P1-003)
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move RoomSessionDevice.ts and RoomSessionScreenShare.ts
 - **Test Plan**:
-  - [ ] Device management tests pass
-  - [ ] Screen share functionality tests pass
-  - [ ] Event handling works correctly
+  - [x] Device management tests pass
+  - [x] Screen share functionality tests pass
+  - [x] Event handling works correctly
 - **Dependencies**: P1-002
 
 ### P1-005: Move Video Building Utilities

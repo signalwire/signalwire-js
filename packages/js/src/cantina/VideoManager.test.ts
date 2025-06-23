@@ -1,4 +1,4 @@
-import { configureFullStack } from '../testUtils'
+import { configureFullStack } from '@signalwire/browser-common'
 import { VideoManager, createVideoManagerObject } from '.'
 import { actions } from '@signalwire/core'
 

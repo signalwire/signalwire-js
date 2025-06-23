@@ -3,11 +3,11 @@ import { createClient } from '../createClient'
 import { joinRoom } from '../joinRoom'
 import { MakeRoomOptions } from '@signalwire/browser-common'
 import { RoomSession, RoomSessionOptions } from './RoomSession'
-import { RoomSessionDevice, RoomDevice } from '../RoomSessionDevice'
+import { RoomSessionDevice, RoomDevice } from '@signalwire/browser-common'
 import {
   RoomSessionScreenShare,
   RoomScreenShare,
-} from '../RoomSessionScreenShare'
+} from '@signalwire/browser-common'
 
 export {
   RoomSession,

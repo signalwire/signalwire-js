@@ -19,7 +19,7 @@ import {
   RoomSessionDeviceAPI,
   RoomSessionDeviceConnection,
   RoomSessionDeviceEvents,
-} from '../RoomSessionDevice'
+} from '@signalwire/browser-common'
 import * as workers from './workers'
 import {
   AddCameraOptions,

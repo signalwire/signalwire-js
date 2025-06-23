@@ -4,7 +4,7 @@ import {
   actions,
   componentActions,
 } from '@signalwire/core'
-import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
+import { configureFullStack, dispatchMockedCallJoined } from '@signalwire/browser-common'
 import {
   FabricRoomSession,
   FabricRoomSessionConnection,
