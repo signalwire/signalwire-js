@@ -20,8 +20,8 @@ import {
 import {
   BaseRoomSessionContract,
   ExecuteMemberActionParams,
-  FabricRoomSessionContract,
-  FabricRoomSessionEvents,
+  CallSessionContract,
+  CallSessionEvents,
   RequestMemberParams,
 } from './utils/interfaces'
 import { getStorage } from '@signalwire/browser-common'
@@ -30,21 +30,21 @@ import { fabricWorker } from './workers'
 import { FabricRoomSessionMember } from './FabricRoomSessionMember'
 import { makeAudioElementSaga } from './features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
-import { createFabricRoomSessionValidateProxy } from './utils/validationProxy'
+import { createCallSessionValidateProxy } from './utils/validationProxy'
 
-export interface FabricRoomSession
-  extends FabricRoomSessionContract,
+export interface CallSession
+  extends CallSessionContract,
     FabricRoomSessionMethods,
     BaseRoomSessionContract,
-    BaseConnectionContract<FabricRoomSessionEvents>,
+    BaseConnectionContract<CallSessionEvents>,
     BaseComponentContract {}
 
-export interface FabricRoomSessionOptions
+export interface CallSessionOptions
   extends Omit<BaseRoomSessionOptions, 'customSagas'> {}
 
-export class FabricRoomSessionConnection
-  extends BaseRoomSessionConnection<FabricRoomSessionEvents>
-  implements FabricRoomSessionContract
+export class CallSessionConnection
+  extends BaseRoomSessionConnection<CallSessionEvents>
+  implements CallSessionContract
 {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
   private _self?: FabricRoomSessionMember
@@ -54,7 +54,7 @@ export class FabricRoomSessionConnection
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
 
-  constructor(options: FabricRoomSessionOptions) {
+  constructor(options: CallSessionOptions) {
     super(options)
 
     this.initWorker()
@@ -139,7 +139,7 @@ export class FabricRoomSessionConnection
         .prevCallId} - prevCallId: ${this.options.prevCallId}`
     )
 
-    return super.invite<FabricRoomSession>()
+    return super.invite<CallSession>()
   }
 
   private executeAction<
@@ -397,24 +397,24 @@ export class FabricRoomSessionConnection
   }
 }
 
-export const isFabricRoomSession = (
+export const isCallSession = (
   room: unknown
-): room is FabricRoomSession => {
-  return room instanceof FabricRoomSessionConnection
+): room is CallSession => {
+  return room instanceof CallSessionConnection
 }
 
 /** @internal */
-export const createFabricRoomSessionObject = (
-  params: FabricRoomSessionOptions
-): FabricRoomSession => {
+export const createCallSessionObject = (
+  params: CallSessionOptions
+): CallSession => {
   const room = connect<
-    FabricRoomSessionEvents,
-    FabricRoomSessionConnection,
-    FabricRoomSession
+    CallSessionEvents,
+    CallSessionConnection,
+    CallSession
   >({
     store: params.store,
-    Component: FabricRoomSessionConnection,
+    Component: CallSessionConnection,
   })(params)
 
-  return createFabricRoomSessionValidateProxy(room)
+  return createCallSessionValidateProxy(room)
 }

@@ -42,7 +42,7 @@ import {
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract } from '../../interfaces/capabilities'
-import { FabricRoomSession } from '../../FabricRoomSession'
+import { CallSession } from '../../CallSession'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -88,7 +88,7 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   > &
   Record<MediaEventNames, () => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<BaseConnectionState, (params: FabricRoomSession) => void> &
+  Record<BaseConnectionState, (params: CallSession) => void> &
   Record<CallJoined, (stream: CallJoinedEventParams) => void> &
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallLeft, (stream: CallLeftEventParams) => void> &
@@ -155,3 +155,12 @@ export interface FabricRoomSessionContract {
    */
   hangup(id?: string): Promise<void>
 }
+
+// CallSession types (new naming convention)
+export type CallSessionEventsHandlerMap = FabricRoomSessionEventsHandlerMap
+
+export type CallSessionEvents = {
+  [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]
+}
+
+export interface CallSessionContract extends FabricRoomSessionContract {}

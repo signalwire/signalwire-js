@@ -9,13 +9,13 @@ import type { SagaIterator, Task } from '@signalwire/core'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
 import { setAudioMediaTrack } from '@signalwire/browser-common'
 import { audioSetSpeakerAction } from '../actions'
-import { FabricRoomSessionConnection } from '../../FabricRoomSession'
+import { CallSessionConnection } from '../../CallSession'
 
 export const makeAudioElementSaga = ({ speakerId }: { speakerId?: string }) => {
   return function* audioElementSaga({
     instance: room,
     runSaga,
-  }: CustomSagaParams<FabricRoomSessionConnection>): SagaIterator {
+  }: CustomSagaParams<CallSessionConnection>): SagaIterator {
     if (typeof Audio === 'undefined') {
       getLogger().warn('`Audio` is not supported on this environment.')
       return
@@ -59,7 +59,7 @@ function* audioElementActionsWatcher({
   room,
 }: {
   element: HTMLAudioElement
-  room: FabricRoomSessionConnection
+  room: CallSessionConnection
 }): SagaIterator {
   // TODO: For now we're handling individual actions but in the future
   // we might want to have a single action per custom saga and use it
@@ -113,7 +113,7 @@ function* audioElementSetupWorker({
   track: MediaStreamTrack
   element: HTMLAudioElement
   speakerId?: string
-  room: FabricRoomSessionConnection
+  room: CallSessionConnection
 }): SagaIterator {
   setAudioMediaTrack({ track, element })
   if (speakerId) {

@@ -3,7 +3,7 @@ import {
   IncomingCallHandler,
   IncomingCallHandlers,
 } from './incomingCallManager'
-import { FabricRoomSession } from '../FabricRoomSession'
+import { CallSession } from '../CallSession'
 
 export interface WSClientContract {
   /**
@@ -14,16 +14,16 @@ export interface WSClientContract {
    * Dial a resource and connect the call
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link FabricRoomSession}.
+   * @returns A promise resolving to the session object {@link CallSession}.
    */
-  dial(params: DialParams): Promise<FabricRoomSession>
+  dial(params: DialParams): Promise<CallSession>
   /**
    * Reattach to the previous call if the previous call was not disconnected
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link FabricRoomSession}.
+   * @returns A promise resolving to the session object {@link CallSession}.
    */
-  reattach(params: DialParams): Promise<FabricRoomSession>
+  reattach(params: DialParams): Promise<CallSession>
   /**
    * Handles the incoming call via Push Notification
    *

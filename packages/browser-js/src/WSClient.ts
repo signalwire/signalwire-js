@@ -8,9 +8,9 @@ import {
 } from '@signalwire/core'
 import { MakeRoomOptions } from '@signalwire/browser-common'
 import {
-  createFabricRoomSessionObject,
-  FabricRoomSession,
-} from './FabricRoomSession'
+  createCallSessionObject,
+  CallSession,
+} from './CallSession'
 import { buildVideoElement } from '@signalwire/browser-common'
 import {
   CallParams,
@@ -67,7 +67,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       ...options
     } = makeRoomOptions
 
-    const room = createFabricRoomSessionObject({
+    const room = createCallSessionObject({
       ...options,
       store: this.store,
     })
@@ -309,7 +309,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public async dial(params: DialParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
+    return new Promise<CallSession>(async (resolve, reject) => {
       try {
         // in case the user left the previous call with hangup, and is not reattaching
         getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
@@ -323,7 +323,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public async reattach(params: ReattachParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
+    return new Promise<CallSession>(async (resolve, reject) => {
       try {
         const call = this.buildOutboundCall({ ...params, attach: true })
         resolve(call)

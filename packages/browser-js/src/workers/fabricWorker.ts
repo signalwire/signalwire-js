@@ -8,16 +8,16 @@ import {
   FabricAction,
   MapToPubSubShape,
 } from '@signalwire/core'
-import { FabricRoomSessionConnection } from '../FabricRoomSession'
+import { CallSessionConnection } from '../CallSession'
 import { createFabricRoomSessionMemberObject } from '../FabricRoomSessionMember'
 import { callSegmentWorker } from './callSegmentWorker'
 
 export type FabricWorkerParams<T> =
-  SDKWorkerParams<FabricRoomSessionConnection> & {
+  SDKWorkerParams<CallSessionConnection> & {
     action: MapToPubSubShape<T>
   }
 
-export const fabricWorker: SDKWorker<FabricRoomSessionConnection> = function* (
+export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
   options
 ): SagaIterator {
   getLogger().trace('fabricWorker started')
