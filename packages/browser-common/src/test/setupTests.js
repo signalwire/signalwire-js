@@ -25,7 +25,7 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
 })
 
 // Mock global browser APIs
-global.window = dom.window as any
+global.window = dom.window
 global.document = dom.window.document
 global.navigator = dom.window.navigator
 global.HTMLElement = dom.window.HTMLElement
@@ -35,27 +35,25 @@ global.HTMLMediaElement = dom.window.HTMLMediaElement
 
 // Enhanced MediaStreamTrack with real event listener functionality
 class MockMediaStreamTrack {
-  kind: string
-  private listeners: { [key: string]: Array<() => void> } = {}
-
-  constructor(kind: string = 'video') {
+  constructor(kind = 'video') {
     this.kind = kind
+    this.listeners = {}
   }
 
-  addEventListener(event: string, handler: () => void) {
+  addEventListener(event, handler) {
     if (!this.listeners[event]) {
       this.listeners[event] = []
     }
     this.listeners[event].push(handler)
   }
 
-  removeEventListener(event: string, handler: () => void) {
+  removeEventListener(event, handler) {
     if (!this.listeners[event]) return
     this.listeners[event] = this.listeners[event].filter((h) => h !== handler)
   }
 
   // Simulate event trigger for testing purposes
-  trigger(event: string) {
+  trigger(event) {
     if (this.listeners[event]) {
       this.listeners[event].forEach((handler) => handler())
     }
@@ -65,13 +63,11 @@ class MockMediaStreamTrack {
   clone = jest.fn()
 }
 
-global.MediaStreamTrack = MockMediaStreamTrack as any
+global.MediaStreamTrack = MockMediaStreamTrack
 
 // Enhanced MediaStream with proper track management
 class MockMediaStream {
-  private tracks: MediaStreamTrack[]
-  
-  constructor(tracks: MediaStreamTrack[] = []) {
+  constructor(tracks = []) {
     this.tracks = tracks
   }
   
@@ -87,46 +83,42 @@ class MockMediaStream {
     return this.tracks.filter((track) => track.kind === 'audio')
   }
   
-  addTrack(track: MediaStreamTrack) {
+  addTrack(track) {
     this.tracks.push(track)
   }
 
   removeTrack = jest.fn()
 }
 
-global.MediaStream = MockMediaStream as any
+global.MediaStream = MockMediaStream
 
 // Enhanced HTMLMediaElement with ready state support
 class MockHTMLMediaElement {
-  static HAVE_NOTHING = 0
-  static HAVE_METADATA = 1
-  static HAVE_CURRENT_DATA = 2
-  static HAVE_FUTURE_DATA = 3
-  static HAVE_ENOUGH_DATA = 4
-  
-  readyState: number = MockHTMLMediaElement.HAVE_NOTHING
-  
-  play = jest.fn()
-  pause = jest.fn()
-  load = jest.fn()
+  constructor() {
+    this.readyState = MockHTMLMediaElement.HAVE_NOTHING
+    this.play = jest.fn()
+    this.pause = jest.fn()
+    this.load = jest.fn()
+  }
 }
 
-global.HTMLMediaElement = MockHTMLMediaElement as any
+MockHTMLMediaElement.HAVE_NOTHING = 0
+MockHTMLMediaElement.HAVE_METADATA = 1
+MockHTMLMediaElement.HAVE_CURRENT_DATA = 2
+MockHTMLMediaElement.HAVE_FUTURE_DATA = 3
+MockHTMLMediaElement.HAVE_ENOUGH_DATA = 4
+
+global.HTMLMediaElement = MockHTMLMediaElement
 
 // Comprehensive ResizeObserver with proper callback handling
 class MockResizeObserver {
-  private callback: ResizeObserverCallback
-  private observedElements = new Map<
-    Element,
-    ResizeObserverEntry
-  >()
-
-  constructor(callback: ResizeObserverCallback) {
+  constructor(callback) {
     this.callback = callback
+    this.observedElements = new Map()
   }
 
-  observe(target: Element) {
-    const entry: ResizeObserverEntry = {
+  observe(target) {
+    const entry = {
       contentRect: target.getBoundingClientRect(),
       contentBoxSize: [
         { inlineSize: target.clientWidth, blockSize: target.clientHeight },
@@ -146,7 +138,7 @@ class MockResizeObserver {
     this.callback([entry], this)
   }
 
-  unobserve(target: Element) {
+  unobserve(target) {
     this.observedElements.delete(target)
   }
 
@@ -155,22 +147,19 @@ class MockResizeObserver {
   }
 }
 
-global.ResizeObserver = MockResizeObserver as any
+global.ResizeObserver = MockResizeObserver
 
 // Mock Audio constructor
 class MockAudio {
-  src: string
-  
-  constructor(src: string = '') {
+  constructor(src = '') {
     this.src = src
+    this.play = jest.fn()
+    this.pause = jest.fn()
+    this.load = jest.fn()
   }
-  
-  play = jest.fn()
-  pause = jest.fn()
-  load = jest.fn()
 }
 
-global.Audio = MockAudio as any
+global.Audio = MockAudio
 
 // Mock WebSocket with mock-socket for better testing
 global.WebSocket = WebSocket

@@ -3,6 +3,6 @@ module.exports = {
   transform: {
     '\\.[jt]sx?$': ['babel-jest', { configFile: './../../babel.config.js' }],
   },
-  setupFiles: ['./src/test/setupTests.ts'],
+  setupFiles: ['./src/test/setupTests.js'],
   testMatch: ['<rootDir>/src/**/*.test.ts'],
 }

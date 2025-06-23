@@ -223,7 +223,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-010: Update js Package Imports
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P1-010-update-js-imports`
 - **PR**: Not Created
 - **Assignee**: TBD
