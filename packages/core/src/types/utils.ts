@@ -78,16 +78,6 @@ export interface ConstructableType<T> {
   new (o?: any): T
 }
 
-export interface MemberCommandParams {
-  memberId?: string
-}
-export interface MemberCommandWithVolumeParams extends MemberCommandParams {
-  volume: number
-}
-export interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
-
 type IsAny<T> = 0 extends 1 & T ? true : false
 type IsUnknown<T> = IsAny<T> extends true
   ? false

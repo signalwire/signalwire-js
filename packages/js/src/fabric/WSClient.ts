@@ -123,7 +123,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     room.on('room.subscribed', joinMutedHandler)
 
     /**
-     * Stop and Restore outbound audio on audio_muted event
+     * Stop or Restore outbound audio on "member.updated" event
      */
     if (stopMicrophoneWhileMuted) {
       room.on('member.updated.audioMuted', ({ member }) => {
@@ -140,7 +140,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     }
 
     /**
-     * Stop and Restore outbound video on video_muted event
+     * Stop or Restore outbound video on "member.updated" event
      */
     if (stopCameraWhileMuted) {
       room.on('member.updated.videoMuted', ({ member }) => {

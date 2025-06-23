@@ -39,18 +39,23 @@ export interface FabricMemberContract
     | 'outputVolume'
     | 'inputSensitivity'
   > {
-  /** Unique id of this member. */
+  /** Provides the member id of the member itself, may be the same as call_id for call legs outside of a conference */
   memberId: string
-  /** The ID of the call that this member is associated with */
+  /** Provides the call id the member was created through */
   callId: string
-  /** The ID of the node that this member is associated with */
+  /** Provides the node id the member exists on */
   nodeId: string
-  /** The data associated to this member subscriber */
-  subscriberData?: {
-    fabricSubscriberName: string
-    fabricAddressId: string
-    fabricSubscriberId: string
-  }
+  /** Provides the subscriber ID for the member */
+  subscriberId: string
+  /** Provides the address ID for the member */
+  addressId: string
+  // TODO: Move the following properties to INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
+  /** Provides the echo cancellation state */
+  echoCancellation: boolean
+  /** Provides the auto gain state */
+  autoGain: boolean
+  /** Provides the noise supression state */
+  noiseSuppression: boolean
 }
 
 /**
@@ -58,7 +63,7 @@ export interface FabricMemberContract
  * and generate `MEMBER_UPDATED_EVENTS` below.
  * `key`: `type`
  */
-const INTERNAL_MEMBER_UPDATABLE_PROPS = {
+const INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS = {
   audioMuted: true,
   videoMuted: true,
   deaf: true,
@@ -68,8 +73,8 @@ const INTERNAL_MEMBER_UPDATABLE_PROPS = {
   inputSensitivity: 1,
 }
 
-export const INTERNAL_CALL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
-  INTERNAL_MEMBER_UPDATABLE_PROPS
+export const INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
+  INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
 ).map((key) => {
   return `member.updated.${
     key as keyof InternalFabricMemberUpdatableProps
@@ -77,10 +82,10 @@ export const INTERNAL_CALL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
 })
 
 export type InternalFabricMemberUpdatableProps =
-  typeof INTERNAL_MEMBER_UPDATABLE_PROPS
+  typeof INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
 
 export type InternalFabricMemberUpdatedEventNames =
-  (typeof INTERNAL_CALL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
+  (typeof INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
 
 /**
  * FabricMember properties

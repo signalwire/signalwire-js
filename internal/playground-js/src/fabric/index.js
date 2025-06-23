@@ -659,7 +659,12 @@ window.lowerHand = () => {
 }
 
 window.lockRoom = () => {
-  roomObj.lock()
+  // roomObj.lock()
+  roomObj.setAudioFlags({
+    echoCancellation: false,
+    autoGain: false,
+    noiseSuppression: false,
+  })
 }
 
 window.unlockRoom = () => {

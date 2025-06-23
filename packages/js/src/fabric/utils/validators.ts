@@ -208,3 +208,16 @@ export function validateUnlock(this: FabricRoomSessionConnection) {
     throw new CapabilityError('Missing unlock capability')
   }
 }
+
+export function validateSetAudioFlags(
+  this: FabricRoomSessionConnection,
+  params?: MemberCommandParams
+) {
+  const isSelf = isSelfMember(params, this)
+  const capability = isSelf
+    ? this.capabilities?.self.audioFlags
+    : this.capabilities?.member.audioFlags
+  if (!capability) {
+    throw new CapabilityError('Missing audio flags capability')
+  }
+}
