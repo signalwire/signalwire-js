@@ -14,11 +14,11 @@ This document coordinates the development team's execution of the @signalwire/js
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
 | Infrastructure | 7 | 7 | 0 | 0 |
-| Phase 1 | 12 | 9 | 0 | 0 |
+| Phase 1 | 12 | 10 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **16** | **0** | **0** |
+| **Total** | **52** | **17** | **0** | **0** |
 
 ---
 
@@ -223,16 +223,16 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-010: Update js Package Imports
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-010-update-js-imports`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Update all imports in @signalwire/js to use @signalwire/browser-common
 - **Test Plan**:
-  - [ ] All imports resolve correctly
-  - [ ] No TypeScript errors
-  - [ ] All js package tests pass
-  - [ ] Build succeeds
+  - [x] All imports resolve correctly
+  - [x] No TypeScript errors
+  - [x] All js package tests pass
+  - [x] Build succeeds
 - **Dependencies**: P1-002 through P1-009
 
 ### P1-011: Add browser-common Dependency to js
