@@ -14,11 +14,11 @@ This document coordinates the development team's execution of the @signalwire/js
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
 | Infrastructure | 7 | 7 | 0 | 0 |
-| Phase 1 | 12 | 10 | 0 | 0 |
+| Phase 1 | 12 | 11 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **17** | **0** | **0** |
+| **Total** | **52** | **18** | **0** | **0** |
 
 ---
 
@@ -236,15 +236,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-002 through P1-009
 
 ### P1-011: Add browser-common Dependency to js
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-011-add-common-dependency`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Update packages/js/package.json to depend on @signalwire/browser-common
 - **Test Plan**:
-  - [ ] Dependency is properly declared
-  - [ ] npm install works
-  - [ ] No version conflicts
+  - [x] Dependency is properly declared
+  - [x] npm install works
+  - [x] No version conflicts
 - **Dependencies**: P1-001
 
 ### P1-012: Verify browser-common Package
