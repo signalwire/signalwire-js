@@ -1,9 +1,11 @@
 # Migration Task Coordination Document
 
 ## Overview
+
 This document coordinates the development team's execution of the @signalwire/js package split migration plan. Each task is atomic, commitable, and testable.
 
 ## Task Status Legend
+
 - 🔴 **Not Started**
 - 🟡 **In Progress**
 - 🟢 **Completed**
@@ -11,20 +13,22 @@ This document coordinates the development team's execution of the @signalwire/js
 - ⚪ **Under Review**
 
 ## Summary Dashboard
-| Phase | Total Tasks | Completed | In Progress | Blocked |
-|-------|-------------|-----------|-------------|---------|
-| Infrastructure | 7 | 7 | 0 | 0 |
-| Phase 1 | 12 | 12 | 0 | 0 |
-| Phase 2 | 15 | 0 | 0 | 0 |
-| Phase 3 | 8 | 0 | 0 | 0 |
-| Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **19** | **0** | **0** |
+
+| Phase          | Total Tasks | Completed | In Progress | Blocked |
+| -------------- | ----------- | --------- | ----------- | ------- |
+| Infrastructure | 7           | 7         | 0           | 0       |
+| Phase 1        | 12          | 12        | 0           | 0       |
+| Phase 2        | 15          | 0         | 0           | 0       |
+| Phase 3        | 8           | 0         | 0           | 0       |
+| Phase 4        | 10          | 0         | 0           | 0       |
+| **Total**      | **52**      | **19**    | **0**       | **0**   |
 
 ---
 
 ## Infrastructure Tasks (Prerequisites)
 
 ### INF-001: Update Root tsconfig.json Path Mappings
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/INF-001-tsconfig-path-mappings`
 - **PR**: Not Created
@@ -37,6 +41,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: None
 
 ### INF-002: Update NPM Workspaces Configuration
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/INF-002-npm-workspaces`
 - **PR**: Not Created
@@ -49,6 +54,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: None
 
 ### INF-003: Update sw-build-all Script
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/INF-003-build-order`
 - **PR**: Not Created
@@ -61,6 +67,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-002
 
 ### INF-004: Create browser-common sw.config.js
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/INF-004-browser-common-config`
 - **PR**: Not Created
@@ -73,6 +80,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-002
 
 ### INF-005: Create browser-js sw.config.js
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/INF-005-browser-js-config`
 - **PR**: Not Created
@@ -85,6 +93,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-002
 
 ### INF-006: Update GitHub Actions Workflows
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/INF-006-github-actions`
 - **PR**: Not Created
@@ -97,6 +106,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-001, INF-002, INF-003
 
 ### INF-007: Setup Changesets for New Packages
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/INF-007-changesets`
 - **PR**: Not Created
@@ -113,6 +123,7 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Phase 1: Create Common Package
 
 ### P1-001: Create browser-common Package Structure
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-001-browser-common-structure`
 - **PR**: Not Created
@@ -126,6 +137,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-001, INF-002, INF-004
 
 ### P1-002: Move BaseRoomSession to browser-common
+
 - **Status**: 🟡 In Progress
 - **Branch**: `feat/P1-002-move-base-room-session`
 - **PR**: Not Created
@@ -138,6 +150,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-003: Move Client Classes to browser-common
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-003-move-client-classes`
 - **PR**: Not Created
@@ -150,6 +163,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-004: Move RoomSession Components to browser-common
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-003-move-client-classes` (shared with P1-003)
 - **PR**: Not Created
@@ -162,6 +176,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-002
 
 ### P1-005: Move Video Building Utilities
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-005-move-video-utils`
 - **PR**: Not Created
@@ -174,6 +189,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-006: Move Storage Utilities
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-006-move-storage-utils`
 - **PR**: Not Created
@@ -186,6 +202,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-007: Move Media Element Utilities
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-007-move-media-utils`
 - **PR**: Not Created
@@ -198,6 +215,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-008: Move Common Utilities
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-008-move-common-utils`
 - **PR**: Not Created
@@ -211,6 +229,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-009: Move Test Utilities
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-009-move-test-utils`
 - **PR**: Not Created
@@ -223,6 +242,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-010: Update js Package Imports
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-010-update-js-imports`
 - **PR**: Not Created
@@ -236,6 +256,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-002 through P1-009
 
 ### P1-011: Add browser-common Dependency to js
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-011-add-common-dependency`
 - **PR**: Not Created
@@ -248,6 +269,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-012: Verify browser-common Package
+
 - **Status**: 🟢 Completed
 - **Branch**: `feat/P1-012-verify-common-package`
 - **PR**: Not Created
@@ -265,11 +287,12 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Phase 2: Create Browser Package
 
 ### P2-001: Create browser-js Package Structure
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-001-browser-js-structure`
 - **PR**: Not Created
 - **Assignee**: TBD
-- **Description**: Create packages/browser directory with initial package setup
+- **Description**: Verify packages/browser-js directory with initial package setup
 - **Test Plan**:
   - [ ] Package.json configured correctly
   - [ ] TypeScript config works
@@ -278,7 +301,8 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-005, P1-012
 
 ### P2-002: Create Type Utilities Module
-- **Status**: 🔴 Not Started
+
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P2-002-type-utilities`
 - **PR**: Not Created
 - **Assignee**: TBD
@@ -290,11 +314,12 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-001
 
 ### P2-003: Move Fabric Directory Core
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-003-move-fabric-core`
 - **PR**: Not Created
 - **Assignee**: TBD
-- **Description**: Move SignalWire.ts, WSClient.ts, HTTPClient.ts from js/src/fabric
+- **Description**: Move SignalWire.ts, WSClient.ts, HTTPClient.ts from js/src/fabric to browser-js/src
 - **Test Plan**:
   - [ ] SignalWire client initialization works
   - [ ] WebSocket connections establish
@@ -302,6 +327,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-001
 
 ### P2-004: Rename FabricRoomSession to CallSession
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-004-rename-call-session`
 - **PR**: Not Created
@@ -315,6 +341,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-003
 
 ### P2-005: Rename FabricRoomSessionMember to CallSessionMember
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-005-rename-call-member`
 - **PR**: Not Created
@@ -328,6 +355,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-004
 
 ### P2-006: Create Call Type Definitions
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-006-call-types`
 - **PR**: Not Created
@@ -341,6 +369,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-002, P2-004, P2-005
 
 ### P2-007: Create Event Type Definitions
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-007-event-types`
 - **PR**: Not Created
@@ -353,6 +382,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-002, P2-006
 
 ### P2-008: Create Legacy Type Adapters
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-008-type-adapters`
 - **PR**: Not Created
@@ -365,6 +395,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-006, P2-007
 
 ### P2-009: Move Fabric Workers
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-009-move-workers`
 - **PR**: Not Created
@@ -378,6 +409,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-003
 
 ### P2-010: Move IncomingCallManager
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-010-incoming-call-manager`
 - **PR**: Not Created
@@ -390,6 +422,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-004
 
 ### P2-011: Move Conversation API
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-011-conversation-api`
 - **PR**: Not Created
@@ -403,6 +436,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-003
 
 ### P2-012: Move Addresses API
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-012-addresses-api`
 - **PR**: Not Created
@@ -415,6 +449,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-003
 
 ### P2-013: Setup Main Export File
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-013-main-exports`
 - **PR**: Not Created
@@ -428,6 +463,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-003 through P2-012
 
 ### P2-014: Add Dependencies and Build
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-014-dependencies-build`
 - **PR**: Not Created
@@ -441,6 +477,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-001 through P2-013
 
 ### P2-015: Create browser-js Tests
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P2-015-browser-js-tests`
 - **PR**: Not Created
@@ -458,6 +495,7 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Phase 3: Update Original Package
 
 ### P3-001: Remove Fabric Exports from index.ts
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-001-remove-fabric-exports`
 - **PR**: Not Created
@@ -470,6 +508,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-015
 
 ### P3-002: Add browser-js Dependency
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-002-add-browser-dependency`
 - **PR**: Not Created
@@ -482,6 +521,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P2-015
 
 ### P3-003: Create Deprecation Layer
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-003-deprecation-layer`
 - **PR**: Not Created
@@ -495,6 +535,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-002
 
 ### P3-004: Remove Fabric Source Code
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-004-remove-fabric-code`
 - **PR**: Not Created
@@ -508,6 +549,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-003
 
 ### P3-005: Remove Fabric Workers
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-005-remove-fabric-workers`
 - **PR**: Not Created
@@ -520,6 +562,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-004
 
 ### P3-006: Update js Package Tests
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-006-update-js-tests`
 - **PR**: Not Created
@@ -533,6 +576,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-004, P3-005
 
 ### P3-007: Update js Package Documentation
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-007-update-docs`
 - **PR**: Not Created
@@ -546,6 +590,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-001 through P3-006
 
 ### P3-008: Verify js Package Build
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P3-008-verify-js-build`
 - **PR**: Not Created
@@ -563,6 +608,7 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Phase 4: Testing & Validation
 
 ### P4-001: Update E2E Test Infrastructure
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-001-e2e-infrastructure`
 - **PR**: Not Created
@@ -575,6 +621,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-008
 
 ### P4-002: Create Fabric SDK E2E Tests
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-002-fabric-e2e-tests`
 - **PR**: Not Created
@@ -588,6 +635,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P4-001
 
 ### P4-003: Update Video SDK E2E Tests
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-003-video-e2e-tests`
 - **PR**: Not Created
@@ -601,6 +649,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P4-001
 
 ### P4-004: Update Playground Examples
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-004-playground-updates`
 - **PR**: Not Created
@@ -614,6 +663,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-008
 
 ### P4-005: Test Backward Compatibility
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-005-backward-compatibility`
 - **PR**: Not Created
@@ -627,6 +677,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-003
 
 ### P4-006: Performance Testing
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-006-performance-tests`
 - **PR**: Not Created
@@ -640,6 +691,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-008
 
 ### P4-007: Create Migration Guide
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-007-migration-guide`
 - **PR**: Not Created
@@ -653,6 +705,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-008
 
 ### P4-008: Update API Documentation
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-008-api-documentation`
 - **PR**: Not Created
@@ -666,6 +719,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P3-008
 
 ### P4-009: Final Integration Testing
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-009-integration-testing`
 - **PR**: Not Created
@@ -679,6 +733,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P4-001 through P4-008
 
 ### P4-010: Release Preparation
+
 - **Status**: 🔴 Not Started
 - **Branch**: `feat/P4-010-release-prep`
 - **PR**: Not Created
