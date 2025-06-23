@@ -14,7 +14,7 @@ import {
   supportsMediaOutput,
   MediaEventNames,
 } from '@signalwire/webrtc'
-import { LocalVideoOverlay, OverlayMap } from '../../js/src/VideoOverlays'
+import { LocalVideoOverlay, OverlayMap } from './VideoOverlays'
 import {
   AudioElement,
   BaseRoomSessionContract,

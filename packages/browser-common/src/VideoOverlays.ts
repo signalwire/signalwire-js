@@ -1,11 +1,11 @@
 import { FabricMemberUpdatedEventParams, getLogger } from '@signalwire/core'
-import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
+import { VideoRoomSession, isVideoRoomSession } from '../../js/src/video/VideoRoomSession'
 import {
   FabricRoomSession,
   isFabricRoomSession,
-} from './fabric/FabricRoomSession'
-import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
-import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/roomSession'
+} from '../../js/src/fabric/FabricRoomSession'
+import { VideoMemberUpdatedHandlerParams } from '../../js/src/utils/interfaces'
+import { OVERLAY_PREFIX, SDK_PREFIX } from '../../js/src/utils/roomSession'
 
 export type OverlayMap = Map<string, UserOverlay>
 

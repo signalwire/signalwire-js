@@ -48,6 +48,32 @@ export {
   RoomScreenShareMethods,
 } from './interfaces'
 
+// Video Building Utilities
+export {
+  buildVideoElement,
+  BuildVideoElementParams,
+  BuildVideoElementReturnType,
+} from './buildVideoElement'
+
+export {
+  OverlayMap,
+  UserOverlay,
+  LocalVideoOverlay,
+  OverlayStatus,
+} from './VideoOverlays'
+
+// Media Element Utilities
+export {
+  buildVideo,
+  cleanupElement,
+  createRootElementResizeObserver,
+  makeLayoutChangedHandler,
+  setVideoMediaTrack,
+  waitForVideoReady,
+} from './utils/videoElement'
+
+export { setAudioMediaTrack } from './utils/audioElement'
+
 // Utilities
 export { getStorage, sessionStorageManager } from './utils/storage'
 export { SwCloseEvent } from './utils/CloseEvent'

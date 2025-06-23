@@ -12,13 +12,13 @@ import {
   setVideoMediaTrack,
   waitForVideoReady,
 } from './utils/videoElement'
-import { addSDKPrefix } from './utils/roomSession'
+import { addSDKPrefix } from '../../js/src/utils/roomSession'
 import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
 import {
   FabricRoomSession,
   isFabricRoomSession,
-} from './fabric/FabricRoomSession'
-import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
+} from '../../js/src/fabric/FabricRoomSession'
+import { VideoRoomSession, isVideoRoomSession } from '../../js/src/video/VideoRoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean

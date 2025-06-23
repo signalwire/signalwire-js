@@ -7,7 +7,7 @@ import {
 } from '@signalwire/core'
 import type { SagaIterator, Task } from '@signalwire/core'
 import { setMediaElementSinkId } from '@signalwire/webrtc'
-import { setAudioMediaTrack } from '../../utils/audioElement'
+import { setAudioMediaTrack } from '@signalwire/browser-common'
 import { audioSetSpeakerAction } from '../actions'
 import { VideoRoomSessionConnection } from '../../video/VideoRoomSession'
 

@@ -13,7 +13,7 @@ import { VideoManager, createVideoManagerObject } from '../../js/src/cantina'
 import type { Client as ChatClient } from '../../js/src/chat/Client'
 import type { Client as PubSubClient } from '../../js/src/pubSub/Client'
 import type { RoomSession } from '../../js/src/video/RoomSession'
-import { buildVideoElement } from '../../js/src/buildVideoElement'
+import { buildVideoElement } from './buildVideoElement'
 import {
   createVideoRoomSessionObject,
   VideoRoomSessionConnection,

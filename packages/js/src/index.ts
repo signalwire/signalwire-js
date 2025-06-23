@@ -148,5 +148,5 @@ export type {
 /**
  * Build Video Element
  */
-export { buildVideoElement } from './buildVideoElement'
-export { LocalVideoOverlay, OverlayMap, UserOverlay } from './VideoOverlays'
+export { buildVideoElement } from '@signalwire/browser-common'
+export { LocalVideoOverlay, OverlayMap, UserOverlay } from '@signalwire/browser-common'

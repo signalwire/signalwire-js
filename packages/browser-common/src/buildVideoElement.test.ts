@@ -9,12 +9,12 @@ import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
 import {
   FabricRoomSession,
   createFabricRoomSessionObject,
-} from './fabric/FabricRoomSession'
+} from '../../js/src/fabric/FabricRoomSession'
 import {
   createVideoRoomSessionObject,
   VideoRoomSession,
-} from './video/VideoRoomSession'
-import { addOverlayPrefix, SDK_PREFIX } from './utils/roomSession'
+} from '../../js/src/video/VideoRoomSession'
+import { addOverlayPrefix, SDK_PREFIX } from '../../js/src/utils/roomSession'
 
 describe('buildVideoElement', () => {
   describe('with FabricRoomSession', () => {

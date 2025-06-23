@@ -6,7 +6,7 @@ import {
   uuid,
 } from '@signalwire/core'
 import { OverlayMap, LocalVideoOverlay, UserOverlay } from '../VideoOverlays'
-import { addOverlayPrefix } from './roomSession'
+import { addOverlayPrefix } from '../../../js/src/utils/roomSession'
 
 const buildVideo = () => {
   const video = document.createElement('video')

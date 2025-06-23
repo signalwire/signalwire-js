@@ -1,5 +1,5 @@
 import { RoomSessionScreenShare } from '@signalwire/browser-common'
-import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../VideoOverlays'
+import { LocalVideoOverlay, OverlayMap, UserOverlay } from '@signalwire/browser-common'
 import { StartScreenShareOptions } from './video'
 
 export interface BaseRoomSessionContract {

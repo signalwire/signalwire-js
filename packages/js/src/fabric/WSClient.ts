@@ -11,7 +11,7 @@ import {
   createFabricRoomSessionObject,
   FabricRoomSession,
 } from './FabricRoomSession'
-import { buildVideoElement } from '../buildVideoElement'
+import { buildVideoElement } from '@signalwire/browser-common'
 import {
   CallParams,
   DialParams,

@@ -14,11 +14,11 @@ This document coordinates the development team's execution of the @signalwire/js
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
 | Infrastructure | 7 | 7 | 0 | 0 |
-| Phase 1 | 12 | 4 | 0 | 0 |
+| Phase 1 | 12 | 7 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **11** | **0** | **0** |
+| **Total** | **52** | **14** | **0** | **0** |
 
 ---
 
@@ -162,39 +162,39 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-002
 
 ### P1-005: Move Video Building Utilities
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-005-move-video-utils`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move buildVideoElement.ts and VideoOverlays.ts
 - **Test Plan**:
-  - [ ] Video element creation works
-  - [ ] Overlay functionality tests pass
-  - [ ] No DOM manipulation issues
+  - [x] Video element creation works
+  - [x] Overlay functionality tests pass
+  - [x] No DOM manipulation issues
 - **Dependencies**: P1-001
 
 ### P1-006: Move Storage Utilities
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-006-move-storage-utils`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move utils/storage.ts to browser-common
 - **Test Plan**:
-  - [ ] LocalStorage operations work
-  - [ ] SessionStorage operations work
-  - [ ] Fallback mechanisms work when storage unavailable
+  - [x] LocalStorage operations work
+  - [x] SessionStorage operations work
+  - [x] Fallback mechanisms work when storage unavailable
 - **Dependencies**: P1-001
 
 ### P1-007: Move Media Element Utilities
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-007-move-media-utils`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move audioElement.ts and videoElement.ts utilities
 - **Test Plan**:
-  - [ ] Audio element manipulation works
-  - [ ] Video element manipulation works
-  - [ ] Media stream attachment works
+  - [x] Audio element manipulation works
+  - [x] Video element manipulation works
+  - [x] Media stream attachment works
 - **Dependencies**: P1-001
 
 ### P1-008: Move Common Utilities
