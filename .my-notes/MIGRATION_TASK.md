@@ -85,7 +85,7 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: INF-002
 
 ### INF-006: Update GitHub Actions Workflows
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/INF-006-github-actions`
 - **PR**: Not Created
 - **Assignee**: TBD
@@ -113,7 +113,7 @@ This document coordinates the development team's execution of the @signalwire/js
 ## Phase 1: Create Common Package
 
 ### P1-001: Create browser-common Package Structure
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P1-001-browser-common-structure`
 - **PR**: Not Created
 - **Assignee**: TBD
