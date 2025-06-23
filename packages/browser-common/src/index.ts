@@ -77,6 +77,8 @@ export { setAudioMediaTrack } from './utils/audioElement'
 // Utilities
 export { getStorage, sessionStorageManager } from './utils/storage'
 export { SwCloseEvent } from './utils/CloseEvent'
+export { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
+export { makeQueryParamsUrls } from './utils/makeQueryParamsUrl'
 
 // Test utilities
 export {

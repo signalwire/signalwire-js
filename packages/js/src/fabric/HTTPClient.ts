@@ -17,7 +17,7 @@ import type {
 } from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
-import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
+import { makeQueryParamsUrls } from '@signalwire/browser-common'
 import {
   isGetAddressByIdParams,
   isGetAddressByNameParams,

@@ -20,7 +20,7 @@ import {
   BaseRoomSessionContract,
   StartScreenShareOptions,
 } from '../../js/src/utils/interfaces'
-import { SCREENSHARE_AUDIO_CONSTRAINTS } from '../../js/src/utils/constants'
+import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
 import { addOverlayPrefix } from '../../js/src/utils/roomSession'
 import { audioSetSpeakerAction } from '../../js/src/features/actions'
 import {

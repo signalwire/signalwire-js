@@ -14,11 +14,11 @@ This document coordinates the development team's execution of the @signalwire/js
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
 | Infrastructure | 7 | 7 | 0 | 0 |
-| Phase 1 | 12 | 7 | 0 | 0 |
+| Phase 1 | 12 | 8 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **14** | **0** | **0** |
+| **Total** | **52** | **15** | **0** | **0** |
 
 ---
 
@@ -198,16 +198,16 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-008: Move Common Utilities
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-008-move-common-utils`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move constants.ts, CloseEvent.ts, makeQueryParamsUrl.ts, paginatedResult.ts
 - **Test Plan**:
-  - [ ] Constants are accessible
-  - [ ] URL building works correctly
-  - [ ] Pagination utilities work
-  - [ ] CloseEvent handling works
+  - [x] Constants are accessible
+  - [x] URL building works correctly
+  - [x] Pagination utilities work (kept in fabric)
+  - [x] CloseEvent handling works (already in browser-common)
 - **Dependencies**: P1-001
 
 ### P1-009: Move Test Utilities

@@ -28,7 +28,7 @@ import type {
 } from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
-import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
+import { makeQueryParamsUrls } from '@signalwire/browser-common'
 import { ConversationAPI } from './ConversationAPI'
 
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
