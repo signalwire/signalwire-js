@@ -46,6 +46,6 @@ export type {
 //
 // Legacy compatibility types (from future files):
 // export type { 
-//   FabricRoomSession, 
-//   FabricRoomSessionMember 
+//   CallSession, 
+//   CallSessionMember 
 // } from './adapters';

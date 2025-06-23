@@ -9,7 +9,7 @@ import {
   MapToPubSubShape,
 } from '@signalwire/core'
 import { CallSessionConnection } from '../CallSession'
-import { createFabricRoomSessionMemberObject } from '../FabricRoomSessionMember'
+import { createCallSessionMemberObject } from '../CallSessionMember'
 import { callSegmentWorker } from './callSegmentWorker'
 
 export type FabricWorkerParams<T> =
@@ -35,7 +35,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
         // we need to make sure we update the `cfRoomSession.selfMember`
         // in this worker or have a race condition.
         if (!cfRoomSession.selfMember) {
-          const memberInstance = createFabricRoomSessionMemberObject({
+          const memberInstance = createCallSessionMemberObject({
             store: cfRoomSession.store,
             payload: {
               member: action.payload.room_session.members.find(

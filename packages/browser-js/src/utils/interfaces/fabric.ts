@@ -164,3 +164,15 @@ export type CallSessionEvents = {
 }
 
 export interface CallSessionContract extends FabricRoomSessionContract {}
+
+// CallSessionMember types (new naming convention)
+export type CallSessionMemberEventsHandlerMap = import('../../CallSessionMember').CallSessionMemberEventsHandlerMap
+
+export type CallSessionMemberEvents = {
+  [k in keyof CallSessionMemberEventsHandlerMap]: CallSessionMemberEventsHandlerMap[k]
+}
+
+export interface CallSessionMemberContract {
+  /** Unique id of this member. */
+  id: string
+}

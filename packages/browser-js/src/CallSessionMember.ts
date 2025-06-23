@@ -16,14 +16,14 @@ import {
   BaseComponent,
 } from '@signalwire/core'
 
-export interface FabricRoomSessionMember extends FabricMemberContract {
+export interface CallSessionMember extends FabricMemberContract {
   /** Unique id of this member. */
   id: string
   setPayload(payload: FabricMemberEventParams): void
 }
 
-// TODO: Fabric Room Session Member instance does not emit any events yet
-export type FabricRoomSessionMemberEventsHandlerMap = Record<
+// TODO: Call Session Member instance does not emit any events yet
+export type CallSessionMemberEventsHandlerMap = Record<
   MemberJoined,
   (params: FabricMemberJoinedEventParams) => void
 > &
@@ -35,20 +35,20 @@ export type FabricRoomSessionMemberEventsHandlerMap = Record<
     (params: FabricMemberUpdatedEventParams) => void
   >
 
-export type FabricRoomSessionMemberEvents = {
-  [k in keyof FabricRoomSessionMemberEventsHandlerMap]: FabricRoomSessionMemberEventsHandlerMap[k]
+export type CallSessionMemberEvents = {
+  [k in keyof CallSessionMemberEventsHandlerMap]: CallSessionMemberEventsHandlerMap[k]
 }
 
-export interface FabricRoomSessionMemberOptions
+export interface CallSessionMemberOptions
   extends BaseComponentOptionsWithPayload<FabricMemberEventParamsExcludeTalking> {}
 
-export class FabricRoomSessionMemberAPI
-  extends BaseComponent<FabricRoomSessionMemberEvents>
+export class CallSessionMemberAPI
+  extends BaseComponent<CallSessionMemberEvents>
   implements FabricMemberContract
 {
   private _payload: FabricMemberEventParamsExcludeTalking
 
-  constructor(options: FabricRoomSessionMemberOptions) {
+  constructor(options: CallSessionMemberOptions) {
     super(options)
     this._payload = options.payload
   }
@@ -156,16 +156,16 @@ export class FabricRoomSessionMemberAPI
   }
 }
 
-export const createFabricRoomSessionMemberObject = (
-  params: FabricRoomSessionMemberOptions
-): FabricRoomSessionMember => {
+export const createCallSessionMemberObject = (
+  params: CallSessionMemberOptions
+): CallSessionMember => {
   const member = connect<
-    FabricRoomSessionMemberEventsHandlerMap,
-    FabricRoomSessionMemberAPI,
-    FabricRoomSessionMember
+    CallSessionMemberEventsHandlerMap,
+    CallSessionMemberAPI,
+    CallSessionMember
   >({
     store: params.store,
-    Component: FabricRoomSessionMemberAPI,
+    Component: CallSessionMemberAPI,
   })(params)
 
   return member
