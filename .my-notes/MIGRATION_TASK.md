@@ -14,11 +14,11 @@ This document coordinates the development team's execution of the @signalwire/js
 | Phase | Total Tasks | Completed | In Progress | Blocked |
 |-------|-------------|-----------|-------------|---------|
 | Infrastructure | 7 | 7 | 0 | 0 |
-| Phase 1 | 12 | 8 | 0 | 0 |
+| Phase 1 | 12 | 9 | 0 | 0 |
 | Phase 2 | 15 | 0 | 0 | 0 |
 | Phase 3 | 8 | 0 | 0 | 0 |
 | Phase 4 | 10 | 0 | 0 | 0 |
-| **Total** | **52** | **15** | **0** | **0** |
+| **Total** | **52** | **16** | **0** | **0** |
 
 ---
 
@@ -211,15 +211,15 @@ This document coordinates the development team's execution of the @signalwire/js
 - **Dependencies**: P1-001
 
 ### P1-009: Move Test Utilities
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P1-009-move-test-utils`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move setupTests.ts and testUtils.ts to browser-common/src/test
 - **Test Plan**:
-  - [ ] Test setup works in new location
-  - [ ] Mock utilities function correctly
-  - [ ] No test runner issues
+  - [x] Test setup works in new location
+  - [x] Mock utilities function correctly
+  - [x] No test runner issues
 - **Dependencies**: P1-001
 
 ### P1-010: Update js Package Imports
