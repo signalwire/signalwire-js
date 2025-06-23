@@ -20,5 +20,8 @@ export const WebRTC = {
 // Export default for UMD builds
 export default SignalWire
 
+// Export type utilities for advanced TypeScript users
+export type * from './types';
+
 // TODO: Re-export browser-common functionality once proper module resolution is configured
 // export * from '@signalwire/browser-common'
