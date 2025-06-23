@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../src/index.ts"],
-  "sourcesContent": ["/**\n * @signalwire/browser-common\n * \n * Common utilities for SignalWire browser SDKs.\n * This package provides shared functionality that can be used by both\n * the Video SDK and the Call Fabric SDK.\n */\n\n// Placeholder for browser-common exports\n// This will be populated with actual shared components during the migration\n\nexport const BROWSER_COMMON_VERSION = '0.0.0'\n\nexport type BrowserCommonConfig = {\n  // Placeholder type\n}"],
-  "mappings": ";AAWO,IAAM,yBAAyB;",
-  "names": []
-}
