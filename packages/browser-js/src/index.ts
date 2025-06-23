@@ -6,22 +6,21 @@
  * including audio/video calling, chat, and messaging capabilities.
  */
 
-// Placeholder for SignalWire namespace and main exports
-export const SignalWire = {
-  version: '0.0.0',
-  // Placeholder for SignalWire client and other exports
-}
+// Export the main SignalWire client
+export { SignalWire } from './SignalWire'
 
-// Placeholder for WebRTC utilities namespace
-export const WebRTC = {
-  // WebRTC utilities will be added here
-}
+// Export WebRTC utilities re-exported from @signalwire/webrtc
+export * as WebRTC from '@signalwire/webrtc'
+
+// Export core components
+export { WSClient } from './WSClient'
+export { HTTPClient } from './HTTPClient'
 
 // Export default for UMD builds
-export default SignalWire
+export { SignalWire as default } from './SignalWire'
 
 // Export type utilities for advanced TypeScript users
-export type * from './types';
+export type * from './types'
 
-// TODO: Re-export browser-common functionality once proper module resolution is configured
-// export * from '@signalwire/browser-common'
+// Export interfaces for TypeScript users
+export type * from './interfaces'

@@ -315,15 +315,15 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-003: Move Fabric Directory Core
 
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-003-move-fabric-core`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move SignalWire.ts, WSClient.ts, HTTPClient.ts from js/src/fabric to browser-js/src
 - **Test Plan**:
-  - [ ] SignalWire client initialization works
-  - [ ] WebSocket connections establish
-  - [ ] HTTP requests function correctly
+  - [x] SignalWire client initialization works
+  - [x] WebSocket connections establish
+  - [x] HTTP requests function correctly
 - **Dependencies**: P2-001
 
 ### P2-004: Rename FabricRoomSession to CallSession
