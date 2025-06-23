@@ -4,6 +4,7 @@ import {
   MemberCommandWithValueParams,
   MemberCommandWithVolumeParams,
   Rooms,
+  SetAudioFlagsParams,
 } from '@signalwire/core'
 import { FabricRoomSessionConnection } from '../FabricRoomSession'
 
@@ -211,7 +212,7 @@ export function validateUnlock(this: FabricRoomSessionConnection) {
 
 export function validateSetAudioFlags(
   this: FabricRoomSessionConnection,
-  params?: MemberCommandParams
+  params?: SetAudioFlagsParams
 ) {
   const isSelf = isSelfMember(params, this)
   const capability = isSelf
@@ -219,5 +220,16 @@ export function validateSetAudioFlags(
     : this.capabilities?.member.audioFlags
   if (!capability) {
     throw new CapabilityError('Missing audio flags capability')
+  }
+
+  const { echoCancellation, autoGain, noiseSupression } = params || {}
+  if (
+    echoCancellation === undefined &&
+    autoGain === undefined &&
+    noiseSupression === undefined
+  ) {
+    throw new TypeError(
+      'Invalid parameters: you must specify at least one of `echoCancellation`, `autoGain`, or `noiseSupression`'
+    )
   }
 }

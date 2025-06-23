@@ -19,26 +19,8 @@ import {
  * Public Contract for a FabricMember
  */
 export interface FabricMemberContract
-  extends Pick<
-    VideoMemberContract,
-    | 'roomSessionId'
-    | 'roomId'
-    | 'name'
-    | 'parentId'
-    | 'type'
-    | 'requestedPosition'
-    | 'currentPosition'
-    | 'meta'
-    | 'handraised'
-    | 'talking'
-    | 'audioMuted'
-    | 'videoMuted'
-    | 'deaf'
-    | 'visible'
-    | 'inputVolume'
-    | 'outputVolume'
-    | 'inputSensitivity'
-  > {
+  extends FabricMemberBaseProps,
+    FabricMemberUpdatableProps {
   /** Provides the member id of the member itself, may be the same as call_id for call legs outside of a conference */
   memberId: string
   /** Provides the call id the member was created through */
@@ -49,21 +31,27 @@ export interface FabricMemberContract
   subscriberId: string
   /** Provides the address ID for the member */
   addressId: string
-  // TODO: Move the following properties to INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
-  /** Provides the echo cancellation state */
-  echoCancellation: boolean
-  /** Provides the auto gain state */
-  autoGain: boolean
-  /** Provides the noise supression state */
-  noiseSuppression: boolean
 }
+
+type FabricMemberBaseProps = Pick<
+  VideoMemberContract,
+  | 'roomSessionId'
+  | 'roomId'
+  | 'name'
+  | 'parentId'
+  | 'type'
+  | 'requestedPosition'
+  | 'currentPosition'
+  | 'meta'
+  | 'talking'
+>
 
 /**
  * Used to not duplicate member fields across constants and types
  * and generate `MEMBER_UPDATED_EVENTS` below.
  * `key`: `type`
  */
-const INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS = {
+const FABRIC_MEMBER_UPDATABLE_PROPS = {
   audioMuted: true,
   videoMuted: true,
   deaf: true,
@@ -71,21 +59,22 @@ const INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS = {
   inputVolume: 1,
   outputVolume: 1,
   inputSensitivity: 1,
+  handraised: true,
+  echoCancellation: true,
+  autoGain: true,
+  noiseSuppression: true,
 }
 
-export const INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
-  INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
+export const FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
+  FABRIC_MEMBER_UPDATABLE_PROPS
 ).map((key) => {
-  return `member.updated.${
-    key as keyof InternalFabricMemberUpdatableProps
-  }` as const
+  return `member.updated.${key as keyof FabricMemberUpdatableProps}` as const
 })
 
-export type InternalFabricMemberUpdatableProps =
-  typeof INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
+export type FabricMemberUpdatableProps = typeof FABRIC_MEMBER_UPDATABLE_PROPS
 
 export type InternalFabricMemberUpdatedEventNames =
-  (typeof INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
+  (typeof FABRIC_MEMBER_UPDATED_EVENTS)[number]
 
 /**
  * FabricMember properties

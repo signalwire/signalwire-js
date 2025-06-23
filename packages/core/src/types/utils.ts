@@ -137,3 +137,11 @@ export type Promisify<T> = {
 export type Prettify<T> = NonNullable<unknown> & {
   [K in keyof T]: Prettify<T[K]>
 } & {}
+
+/**
+ * Construct a type that requires at least one property from `Keys` of `T`.
+ */
+export type AtLeastOne<T, Keys extends keyof T = keyof T> = {
+  [K in Keys]: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+}[Keys] &
+  Omit<T, Keys>

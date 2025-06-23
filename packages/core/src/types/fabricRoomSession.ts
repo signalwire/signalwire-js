@@ -12,6 +12,7 @@ import {
   CallState,
   CallPlay,
   CallConnect,
+  AtLeastOne,
 } from '..'
 
 /**
@@ -59,11 +60,12 @@ export interface CallDevicePhone {
 
 export type CallDevice = CallDeviceWebRTCOrSIP | CallDevicePhone
 
-export interface SetAudioFlagsParams extends MemberCommandParams {
-  echoCancellation?: boolean
-  autoGain?: boolean
-  noiseSupression?: boolean
-}
+export type SetAudioFlagsParams = MemberCommandParams &
+  AtLeastOne<{
+    echoCancellation?: boolean
+    autoGain?: boolean
+    noiseSupression?: boolean
+  }>
 
 /**
  * Public Contract for a FabricRoomSession
