@@ -56,15 +56,6 @@ export * as Chat from './chat'
 export * as PubSub from './pubSub'
 
 /**
- * The Fabric namespace contains the classes and functions that you need to
- * create a unified communication application that includes Audio/Video calling
- * with Chat/Messaging capabilties.
- */
-export * as Fabric from './fabric'
-export { SignalWire } from './fabric'
-export * from './fabric'
-
-/**
  * The Video namespace contains the classes and functions that you need to
  * create a video conferencing application.
  */
@@ -105,28 +96,6 @@ export type {
   InternalVideoLayoutLayer,
   VideoPosition,
   VideoPositions,
-  /**
-   * Call Fabric types
-   */
-  CallUpdatedEventParams,
-  CallLeftEventParams,
-  CallStateEventParams,
-  CallPlayEventParams,
-  CallConnectEventParams,
-  CallRoomEventParams,
-  FabricRoomEventParams,
-  FabricLayoutChangedEventParams,
-  FabricMemberJoinedEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberLeftEventParams,
-  FabricMemberTalkingEventParams,
-  FabricMemberEventParams,
-  FabricMemberEntity,
-  InternalFabricMemberEntity,
-  ConversationMessageEventName,
-  ConversationMessageEvent,
-  ConversationEventParams,
-  ConversationEvent,
 } from '@signalwire/core'
 
 export type {

@@ -496,15 +496,15 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P3-001: Remove Fabric Exports from index.ts
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P3-001-remove-fabric-exports`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Remove Fabric namespace and SignalWire exports from js/src/index.ts
 - **Test Plan**:
-  - [ ] Fabric exports removed
-  - [ ] SignalWire export removed
-  - [ ] Only Video, Chat, PubSub, WebRTC remain
+  - [x] Fabric exports removed
+  - [x] SignalWire export removed
+  - [x] Only Video, Chat, PubSub, WebRTC remain
 - **Dependencies**: P2-015
 
 ### P3-002: Add browser-js Dependency
