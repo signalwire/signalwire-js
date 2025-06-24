@@ -23,7 +23,7 @@ import {
   HandlePushNotificationResult,
 } from './interfaces'
 import { IncomingCallManager } from './IncomingCallManager'
-import { wsClientWorker } from './workers'
+import { wsClientWorker } from '@signalwire/browser-js/src/workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
 import { getStorage } from '@signalwire/browser-common'

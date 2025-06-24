@@ -21,7 +21,7 @@
     "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
       "@signalwire/browser-common": ["packages/browser-common/src"],
-      "@signalwire/browser-js": ["packages/browser/src"],
+      "@signalwire/browser-js": ["packages/browser-js/src"],
       "@signalwire/core": ["packages/core/src"],
       "@signalwire/js": ["packages/js/src"],
       "@signalwire/node": ["packages/node/src"],

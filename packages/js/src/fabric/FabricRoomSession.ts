@@ -26,7 +26,7 @@ import {
 } from '../utils/interfaces'
 import { getStorage } from '@signalwire/browser-common'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { fabricWorker } from './workers'
+import { fabricWorker } from '@signalwire/browser-js/src/workers'
 import { FabricRoomSessionMember } from './FabricRoomSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'

@@ -396,7 +396,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-009: Move Fabric Workers
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P2-009-move-workers`
 - **PR**: Not Created
 - **Assignee**: TBD

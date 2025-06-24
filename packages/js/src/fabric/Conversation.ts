@@ -26,7 +26,7 @@ import type {
   ConversationSubscribeResult,
   GetAddressResponse,
 } from './interfaces'
-import { conversationWorker } from './workers'
+import { conversationWorker } from '@signalwire/browser-js/src/workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '@signalwire/browser-common'
 import { ConversationAPI } from './ConversationAPI'
