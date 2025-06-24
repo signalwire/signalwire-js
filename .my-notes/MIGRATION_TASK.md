@@ -550,7 +550,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P3-005: Remove Fabric Workers
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P3-005-remove-fabric-workers`
 - **PR**: Not Created
 - **Assignee**: TBD
