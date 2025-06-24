@@ -72,20 +72,21 @@ export * as PubSub from './pubSub'
  * const client = await SignalWire({ token })
  * ```
  */
-export const Fabric = (() => {
-  console.warn(
-    '⚠️  DEPRECATION WARNING: Fabric namespace from @signalwire/js is deprecated.\n' +
-    '   Please migrate to @signalwire/browser-js:\n' +
-    '   \n' +
-    '   Before: import { Fabric } from \'@signalwire/js\'\n' +
-    '   After:  import { SignalWire } from \'@signalwire/browser-js\'\n' +
-    '   \n' +
-    '   See migration guide: https://docs.signalwire.com/js-sdk-migration'
-  )
-  
-  const browserJS = require('@signalwire/browser-js')
-  return browserJS
-})()
+export const Fabric = new Proxy({}, {
+  get(_target, _prop) {
+    console.warn(
+      '⚠️  DEPRECATION WARNING: Fabric namespace from @signalwire/js is deprecated.\n' +
+      '   Please migrate to @signalwire/browser-js:\n' +
+      '   \n' +
+      '   Before: import { Fabric } from \'@signalwire/js\'\n' +
+      '   After:  import { SignalWire } from \'@signalwire/browser-js\'\n' +
+      '   \n' +
+      '   See migration guide: https://docs.signalwire.com/js-sdk-migration'
+    )
+    
+    throw new Error('Fabric namespace has been moved to @signalwire/browser-js. Please update your imports.')
+  }
+})
 
 /**
  * @deprecated SignalWire export from @signalwire/js is deprecated. Please use @signalwire/browser-js instead.
@@ -104,7 +105,7 @@ export const Fabric = (() => {
  * const client = await SignalWire({ token })
  * ```
  */
-export const SignalWire = (() => {
+export const SignalWire = () => {
   console.warn(
     '⚠️  DEPRECATION WARNING: SignalWire from @signalwire/js is deprecated.\n' +
     '   Please migrate to @signalwire/browser-js:\n' +
@@ -115,9 +116,8 @@ export const SignalWire = (() => {
     '   See migration guide: https://docs.signalwire.com/js-sdk-migration'
   )
   
-  const browserJS = require('@signalwire/browser-js')
-  return browserJS.SignalWire
-})()
+  throw new Error('SignalWire has been moved to @signalwire/browser-js. Please update your imports.')
+}
 
 /**
  * The Video namespace contains the classes and functions that you need to
@@ -125,8 +125,8 @@ export const SignalWire = (() => {
  */
 export * as Video from './video'
 export { VideoRoomSession } from './video'
-export { RoomSessionScreenShare } from '@signalwire/browser-common'
-export { RoomSessionDevice } from '@signalwire/browser-common'
+export type { RoomSessionScreenShare } from '@signalwire/browser-common'
+export type { RoomSessionDevice } from '@signalwire/browser-common'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and
@@ -207,4 +207,5 @@ export type {
  * Build Video Element
  */
 export { buildVideoElement } from '@signalwire/browser-common'
-export { LocalVideoOverlay, OverlayMap, UserOverlay } from '@signalwire/browser-common'
+export { LocalVideoOverlay, UserOverlay } from '@signalwire/browser-common'
+export type { OverlayMap } from '@signalwire/browser-common'

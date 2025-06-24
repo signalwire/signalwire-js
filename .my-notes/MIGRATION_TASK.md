@@ -20,8 +20,8 @@ This document coordinates the development team's execution of the @signalwire/js
 | Phase 1        | 12          | 12        | 0           | 0       |
 | Phase 2        | 15          | 15        | 0           | 0       |
 | Phase 3        | 8           | 8         | 0           | 0       |
-| Phase 4        | 10          | 0         | 0           | 0       |
-| **Total**      | **52**      | **42**    | **0**       | **0**   |
+| Phase 4        | 10          | 1         | 0           | 0       |
+| **Total**      | **52**      | **43**    | **0**       | **0**   |
 
 ---
 
@@ -610,15 +610,15 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P4-001: Update E2E Test Infrastructure
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P4-001-e2e-infrastructure`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Update e2e-js test setup to support both packages
 - **Test Plan**:
-  - [ ] Test runner recognizes both packages
-  - [ ] Import paths work correctly
-  - [ ] Test utilities updated
+  - [x] Test runner recognizes both packages
+  - [x] Import paths work correctly
+  - [x] Test utilities updated
 - **Dependencies**: P3-008
 
 ### P4-002: Create Fabric SDK E2E Tests

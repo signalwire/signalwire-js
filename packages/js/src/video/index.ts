@@ -1,26 +1,26 @@
 import { createRoomObject, Room } from '../createRoomObject'
 import { createClient } from '../createClient'
 import { joinRoom } from '../joinRoom'
-import { MakeRoomOptions } from '@signalwire/browser-common'
+import type { MakeRoomOptions } from '@signalwire/browser-common'
 import { RoomSession, RoomSessionOptions } from './RoomSession'
-import { RoomSessionDevice, RoomDevice } from '@signalwire/browser-common'
-import {
+import type { RoomSessionDevice } from '@signalwire/browser-common'
+import type { RoomDevice } from '@signalwire/browser-common'
+import type {
   RoomSessionScreenShare,
-  RoomScreenShare,
 } from '@signalwire/browser-common'
+import type { RoomScreenShare } from '@signalwire/browser-common'
 
 export {
   RoomSession,
-  RoomSessionDevice,
-  RoomSessionScreenShare,
   // Just to keep backwards compatibility.
   createRoomObject,
   joinRoom,
   Room,
-  RoomDevice,
-  RoomScreenShare,
   createClient,
 }
+
+// Export interfaces as types
+export type { RoomDevice, RoomScreenShare, RoomSessionDevice, RoomSessionScreenShare }
 
 /** @ignore */
 export type { MakeRoomOptions, RoomSessionOptions }
