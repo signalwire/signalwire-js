@@ -550,15 +550,15 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P3-005: Remove Fabric Workers
 
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P3-005-remove-fabric-workers`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Remove all fabric-related workers from js package
 - **Test Plan**:
-  - [ ] Fabric workers removed
-  - [ ] No orphaned worker references
-  - [ ] Redux store updated
+  - [x] Fabric workers removed
+  - [x] No orphaned worker references
+  - [x] Redux store updated
 - **Dependencies**: P3-004
 
 ### P3-006: Update js Package Tests
