@@ -44,11 +44,50 @@ export type {
   CallLayout,
   CallLayoutLayer
 } from './call';
-// Event-related types (from future files):
-// export type { CallJoinedEvent, CallUpdatedEvent, CallLeftEvent } from './events';
-//
+
+// Event-related types (clean public API)
+export type {
+  // Call lifecycle events
+  CallJoinedEvent,
+  CallJoinedEventParams,
+  CallUpdatedEvent,
+  CallUpdatedEventParams,
+  CallLeftEvent,
+  CallLeftEventParams,
+  
+  // Call state events
+  CallStateEvent,
+  CallStateEventParams,
+  CallPlayEvent,
+  CallPlayEventParams,
+  CallConnectEvent,
+  CallConnectEventParams,
+  CallRoomEvent,
+  CallRoomEventParams,
+  
+  // Member events
+  CallMemberJoinedEvent,
+  CallMemberJoinedEventParams,
+  CallMemberUpdatedEvent,
+  CallMemberUpdatedEventParams,
+  CallMemberLeftEvent,
+  CallMemberLeftEventParams,
+  CallMemberTalkingEvent,
+  CallMemberTalkingEventParams,
+  
+  // Layout events
+  CallLayoutChangedEvent,
+  CallLayoutChangedEventParams,
+  
+  // Union types and utilities
+  CallEvent,
+  CallEventParams,
+  CallEventHandlers,
+  CallEventName
+} from './events';
+
 // Legacy compatibility types (from future files):
 // export type { 
-//   CallSession, 
-//   CallSessionMember 
+//   CallSession as FabricRoomSession, 
+//   CallSessionMember as FabricRoomSessionMember
 // } from './adapters';

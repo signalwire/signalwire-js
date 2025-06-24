@@ -370,7 +370,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-007: Create Event Type Definitions
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-007-event-types`
 - **PR**: Not Created
 - **Assignee**: TBD
