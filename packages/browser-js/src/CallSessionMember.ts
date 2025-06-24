@@ -170,3 +170,6 @@ export const createCallSessionMemberObject = (
 
   return member
 }
+
+// Export the factory function as CallSessionMember for the public API
+export { createCallSessionMemberObject as CallSessionMember }

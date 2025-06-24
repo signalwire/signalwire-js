@@ -418,3 +418,6 @@ export const createCallSessionObject = (
 
   return createCallSessionValidateProxy(room)
 }
+
+// Export the factory function as CallSession for the public API
+export { createCallSessionObject as CallSession }
