@@ -86,8 +86,55 @@ export type {
   CallEventName
 } from './events';
 
-// Legacy compatibility types (from future files):
-// export type { 
-//   CallSession as FabricRoomSession, 
-//   CallSessionMember as FabricRoomSessionMember
-// } from './adapters';
+// Legacy compatibility types (deprecated, use new Call types)
+export type {
+  // Core type adapters
+  FabricRoomSession,
+  FabricRoomSessionMember,
+  FabricRoomCapabilities,
+  FabricRoomLayout,
+  FabricRoomLayoutLayer,
+  
+  // Event type adapters - lifecycle
+  RoomJoinedEvent,
+  RoomJoinedEventParams,
+  RoomUpdatedEvent,
+  RoomUpdatedEventParams,
+  RoomLeftEvent,
+  RoomLeftEventParams,
+  
+  // Event type adapters - member events
+  MemberJoinedEvent,
+  MemberJoinedEventParams,
+  MemberUpdatedEvent,
+  MemberUpdatedEventParams,
+  MemberLeftEvent,
+  MemberLeftEventParams,
+  MemberTalkingEvent,
+  MemberTalkingEventParams,
+  
+  // Event type adapters - layout events
+  LayoutChangedEvent,
+  LayoutChangedEventParams,
+  
+  // Event type adapters - state events
+  RoomStateEvent,
+  RoomStateEventParams,
+  RoomPlayEvent,
+  RoomPlayEventParams,
+  RoomConnectEvent,
+  RoomConnectEventParams,
+  RoomEvent,
+  RoomEventParams,
+  
+  // Union type adapters
+  FabricRoomEvent,
+  FabricRoomEventParams,
+  FabricRoomEventHandlers,
+  FabricRoomEventName,
+  RoomEventHandlers,
+  
+  // Migration utilities
+  EventNameMigrationMap,
+  Legacy
+} from './adapters';

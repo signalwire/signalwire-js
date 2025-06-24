@@ -383,7 +383,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-008: Create Legacy Type Adapters
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-008-type-adapters`
 - **PR**: Not Created
 - **Assignee**: TBD
