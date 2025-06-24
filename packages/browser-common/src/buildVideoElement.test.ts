@@ -7,9 +7,8 @@ import {
 } from '@signalwire/browser-common'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
 import {
-  FabricRoomSession,
-  createFabricRoomSessionObject,
-} from '../../js/src/fabric/FabricRoomSession'
+  CallSession,
+} from '@signalwire/browser-js'
 import {
   createVideoRoomSessionObject,
   VideoRoomSession,
@@ -17,8 +16,8 @@ import {
 import { addOverlayPrefix, SDK_PREFIX } from '../../js/src/utils/roomSession'
 
 describe('buildVideoElement', () => {
-  describe('with FabricRoomSession', () => {
-    let room: FabricRoomSession
+  describe('with CallSession', () => {
+    let room: CallSession
     let stack: ReturnType<typeof configureFullStack>
     let store: any
     let jsdom: JSDOM
@@ -38,7 +37,7 @@ describe('buildVideoElement', () => {
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store
-      room = createFabricRoomSessionObject({
+      room = CallSession({
         store,
       })
       setupRoomForTests()

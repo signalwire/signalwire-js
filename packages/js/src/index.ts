@@ -190,7 +190,6 @@ export type {
 } from '@signalwire/webrtc'
 
 export type {
-  CallJoinedEventParams,
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,
   // Just to keep backwards compatibility.
@@ -199,6 +198,10 @@ export type {
   RoomEventNames,
   StartScreenShareOptions,
 } from './utils/interfaces'
+
+export type {
+  CallJoinedEventParams,
+} from '@signalwire/browser-js'
 
 /**
  * Build Video Element

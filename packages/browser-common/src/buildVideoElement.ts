@@ -15,16 +15,16 @@ import {
 import { addSDKPrefix } from '../../js/src/utils/roomSession'
 import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
 import {
-  FabricRoomSession,
-  isFabricRoomSession,
-} from '../../js/src/fabric/FabricRoomSession'
+  CallSession,
+  isCallSession,
+} from '@signalwire/browser-js'
 import { VideoRoomSession, isVideoRoomSession } from '../../js/src/video/VideoRoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: FabricRoomSession | VideoRoomSession
+  room: CallSession | VideoRoomSession
   rootElement?: HTMLElement
 }
 
@@ -140,7 +140,7 @@ export const buildVideoElement = async (
       cleanupElement(rootElement)
       overlayMap.clear() // Use "delete" rather than "clear" if we want to update the reference
       room.overlayMap = overlayMap
-      if (isFabricRoomSession(room)) {
+      if (isCallSession(room)) {
         room.off('track', trackHandler)
         room.off('layout.changed', layoutChangedHandler)
         room.off('destroy', unsubscribe)
@@ -157,7 +157,7 @@ export const buildVideoElement = async (
      * there are cases (promote/demote) where we need to handle multiple `track`
      * events and update the videoEl with the new track.
      */
-    if (isFabricRoomSession(room)) {
+    if (isCallSession(room)) {
       room.on('track', trackHandler)
       room.on('layout.changed', layoutChangedHandler)
       room.once('destroy', unsubscribe)

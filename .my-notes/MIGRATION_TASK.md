@@ -536,7 +536,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P3-004: Remove Fabric Source Code
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P3-004-remove-fabric-code`
 - **PR**: Not Created
 - **Assignee**: TBD

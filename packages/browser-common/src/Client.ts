@@ -18,7 +18,7 @@ import {
   createVideoRoomSessionObject,
   VideoRoomSessionConnection,
 } from '../../js/src/video/VideoRoomSession'
-import { CallParams } from '../../js/src/fabric/interfaces'
+import { CallParams } from '@signalwire/browser-js'
 
 export interface Client<RoomSessionType = RoomSession>
   extends ClientContract<Client<RoomSessionType>, ClientEvents> {
