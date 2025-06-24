@@ -464,16 +464,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-014: Add Dependencies and Build
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-014-dependencies-build`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Configure package.json dependencies and run full build
 - **Test Plan**:
-  - [ ] All dependencies declared
-  - [ ] Build succeeds for all formats
-  - [ ] UMD bundle works in browser
-  - [ ] Package size is reasonable
+  - [x] All dependencies declared
+  - [x] Build succeeds for all formats
+  - [x] UMD bundle works in browser
+  - [x] Package size is reasonable
 - **Dependencies**: P2-001 through P2-013
 
 ### P2-015: Create browser-js Tests
