@@ -563,16 +563,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P3-006: Update js Package Tests
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P3-006-update-js-tests`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Remove fabric tests and update remaining test suite
 - **Test Plan**:
-  - [ ] Fabric tests removed
-  - [ ] Video tests still pass
-  - [ ] Chat tests work
-  - [ ] PubSub tests work
+  - [x] Fabric tests removed
+  - [x] Video tests still pass
+  - [x] Chat tests work
+  - [x] PubSub tests work
 - **Dependencies**: P3-004, P3-005
 
 ### P3-007: Update js Package Documentation
