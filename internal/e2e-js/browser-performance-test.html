@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalWire SDK Browser Performance Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.5em; }
+    h2 { font-size: 1.2em; margin-top: 20px; }
+    .result { 
+      background: #f0f0f0; 
+      padding: 10px; 
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>SignalWire SDK Browser Performance Test</h1>
+  
+  <h2>1. Load Time Testing</h2>
+  <div id="loadTimeResults" class="result">Testing...</div>
+  
+  <h2>2. Memory Usage</h2>
+  <div id="memoryResults" class="result">Testing...</div>
+  
+  <h2>3. Bundle Size Impact</h2>
+  <div id="bundleSizeResults" class="result">
+    <table>
+      <tr>
+        <th>Package</th>
+        <th>Size (UMD)</th>
+        <th>Size (Gzipped)</th>
+      </tr>
+      <tr>
+        <td>@signalwire/js (Video SDK)</td>
+        <td>209.65 KB</td>
+        <td>~58.6 KB</td>
+      </tr>
+      <tr>
+        <td>@signalwire/browser-js (Fabric SDK)</td>
+        <td>227.49 KB</td>
+        <td>~61.0 KB</td>
+      </tr>
+    </table>
+  </div>
+  
+  <h2>4. API Availability Test</h2>
+  <div id="apiResults" class="result">Testing...</div>
+
+  <script>
+    // Performance test results container
+    const results = {
+      loadTimes: {},
+      memoryUsage: {},
+      apiAvailability: {}
+    };
+    
+    // Helper to measure load time
+    async function measureLoadTime(name, scriptSrc) {
+      const startTime = performance.now();
+      
+      return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = scriptSrc;
+        
+        script.onload = () => {
+          const loadTime = performance.now() - startTime;
+          results.loadTimes[name] = loadTime;
+          resolve({ name, loadTime, success: true });
+        };
+        
+        script.onerror = () => {
+          resolve({ name, loadTime: -1, success: false });
+        };
+        
+        document.head.appendChild(script);
+      });
+    }
+    
+    // Helper to check memory usage
+    function checkMemoryUsage() {
+      if (performance.memory) {
+        return {
+          usedJSHeapSize: (performance.memory.usedJSHeapSize / 1048576).toFixed(2) + ' MB',
+          totalJSHeapSize: (performance.memory.totalJSHeapSize / 1048576).toFixed(2) + ' MB',
+          jsHeapSizeLimit: (performance.memory.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB'
+        };
+      }
+      return { message: 'Memory API not available (requires Chrome with --enable-precise-memory-info)' };
+    }
+    
+    // Run tests
+    async function runTests() {
+      // 1. Load Time Tests
+      const loadTimeDiv = document.getElementById('loadTimeResults');
+      loadTimeDiv.innerHTML = '<p>Loading SDKs...</p>';
+      
+      // Load Video SDK
+      const videoResult = await measureLoadTime(
+        '@signalwire/js (Video SDK)',
+        '../../packages/js/dist/index.umd.development.js'
+      );
+      
+      // Load Fabric SDK
+      const fabricResult = await measureLoadTime(
+        '@signalwire/browser-js (Fabric SDK)',
+        '../../packages/browser-js/dist/index.umd.development.js'
+      );
+      
+      // Display load time results
+      loadTimeDiv.innerHTML = `
+        <table>
+          <tr>
+            <th>Package</th>
+            <th>Load Time</th>
+            <th>Status</th>
+          </tr>
+          <tr>
+            <td>${videoResult.name}</td>
+            <td>${videoResult.success ? videoResult.loadTime.toFixed(2) + ' ms' : 'N/A'}</td>
+            <td class="${videoResult.success ? 'success' : 'error'}">${videoResult.success ? '✓ Loaded' : '✗ Failed'}</td>
+          </tr>
+          <tr>
+            <td>${fabricResult.name}</td>
+            <td>${fabricResult.success ? fabricResult.loadTime.toFixed(2) + ' ms' : 'N/A'}</td>
+            <td class="${fabricResult.success ? 'success' : 'error'}">${fabricResult.success ? '✓ Loaded' : '✗ Failed'}</td>
+          </tr>
+        </table>
+      `;
+      
+      // 2. Memory Usage
+      const memoryDiv = document.getElementById('memoryResults');
+      const memoryInfo = checkMemoryUsage();
+      
+      if (memoryInfo.message) {
+        memoryDiv.innerHTML = `<p>${memoryInfo.message}</p>`;
+      } else {
+        memoryDiv.innerHTML = `
+          <table>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+              <td>Used JS Heap Size</td>
+              <td>${memoryInfo.usedJSHeapSize}</td>
+            </tr>
+            <tr>
+              <td>Total JS Heap Size</td>
+              <td>${memoryInfo.totalJSHeapSize}</td>
+            </tr>
+            <tr>
+              <td>JS Heap Size Limit</td>
+              <td>${memoryInfo.jsHeapSizeLimit}</td>
+            </tr>
+          </table>
+        `;
+      }
+      
+      // 4. API Availability Test
+      const apiDiv = document.getElementById('apiResults');
+      const apiTests = [];
+      
+      // Check Video SDK APIs
+      if (window.SignalWire) {
+        // Note: window.SignalWire is from the UMD build
+        const videoSDK = window.SignalWire;
+        apiTests.push({
+          api: 'Video.RoomSession',
+          available: !!(videoSDK.Video && videoSDK.Video.RoomSession)
+        });
+        apiTests.push({
+          api: 'Chat.Client',
+          available: !!(videoSDK.Chat && videoSDK.Chat.Client)
+        });
+        apiTests.push({
+          api: 'PubSub.Client',
+          available: !!(videoSDK.PubSub && videoSDK.PubSub.Client)
+        });
+        apiTests.push({
+          api: 'WebRTC.getUserMedia',
+          available: !!(videoSDK.WebRTC && videoSDK.WebRTC.getUserMedia)
+        });
+        apiTests.push({
+          api: 'buildVideoElement',
+          available: !!(videoSDK.buildVideoElement)
+        });
+        
+        // Check deprecated exports
+        apiTests.push({
+          api: 'Fabric (deprecated)',
+          available: !!(videoSDK.Fabric),
+          deprecated: true
+        });
+        apiTests.push({
+          api: 'SignalWire (deprecated)',
+          available: !!(videoSDK.SignalWire),
+          deprecated: true
+        });
+      }
+      
+      // Display API results
+      apiDiv.innerHTML = `
+        <table>
+          <tr>
+            <th>API</th>
+            <th>Status</th>
+          </tr>
+          ${apiTests.map(test => `
+            <tr>
+              <td>${test.api}</td>
+              <td class="${test.available ? 'success' : 'error'}">
+                ${test.available ? '✓ Available' : '✗ Not Found'}
+                ${test.deprecated ? ' (with deprecation warning)' : ''}
+              </td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+    }
+    
+    // Run tests when page loads
+    window.addEventListener('load', runTests);
+  </script>
+</body>
+</html>
