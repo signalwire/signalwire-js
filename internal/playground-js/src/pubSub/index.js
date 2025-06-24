@@ -1,4 +1,4 @@
-import { Chat as PubSub } from '@signalwire/js'
+import { PubSub } from '@signalwire/js'
 
 window.connect = async ({ channels, host, token }) => {
   const pubSubClient = new PubSub.Client({

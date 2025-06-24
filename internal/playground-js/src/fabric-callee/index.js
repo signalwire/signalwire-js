@@ -1,5 +1,5 @@
 import Pako from 'pako'
-import { SignalWire } from '@signalwire/js'
+import { SignalWire } from '@signalwire/browser-js'
 import {
   createMicrophoneAnalyzer,
   enumerateDevices,

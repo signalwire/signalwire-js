@@ -1,4 +1,5 @@
-import { SignalWire, buildVideoElement } from '@signalwire/js'
+import { SignalWire } from '@signalwire/browser-js'
+import { buildVideoElement } from '@signalwire/js'
 import {
   enumerateDevices,
   checkPermissions,

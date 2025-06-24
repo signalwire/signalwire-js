@@ -1,4 +1,4 @@
-import { SignalWire } from '@signalwire/js'
+import { SignalWire } from '@signalwire/browser-js'
 
 const searchInput = document.getElementById('searchInput')
 const searchType = document.getElementById('searchType')

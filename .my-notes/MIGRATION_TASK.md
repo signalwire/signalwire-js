@@ -651,16 +651,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P4-004: Update Playground Examples
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P4-004-playground-updates`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Update playground-js to demonstrate both SDKs
 - **Test Plan**:
-  - [ ] Fabric examples use browser-js
-  - [ ] Video examples use js
-  - [ ] All examples run correctly
-  - [ ] Clear separation of concerns
+  - [x] Fabric examples use browser-js
+  - [x] Video examples use js
+  - [x] All examples run correctly
+  - [x] Clear separation of concerns
 - **Dependencies**: P3-008
 
 ### P4-005: Test Backward Compatibility
