@@ -1,5 +1,5 @@
 import { HTTPClient } from './HTTPClient'
-import { Conversation } from './Conversation'
+import { Conversation } from '@signalwire/browser-js/src/Conversation'
 import { SignalWireClient, SignalWireClientParams } from './interfaces'
 import { WSClient } from './WSClient'
 import { DEFAULT_API_REQUEST_RETRIES, DEFAULT_API_REQUEST_RETRIES_DELAY, DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT } from './utils/constants'
@@ -20,7 +20,7 @@ export const SignalWire = (() => {
 
           const wsClient = new WSClient(options)
           const httpClient = new HTTPClient(options)
-          const conversation = new Conversation({ httpClient, wsClient })
+          const conversation = new Conversation({ httpClient: httpClient as any, wsClient: wsClient as any })
 
           // Connect the WebSocket and authenticate the user
           await wsClient.connect()

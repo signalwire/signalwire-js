@@ -1,11 +1,11 @@
 import { SignalWire } from './SignalWire'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
-import { Conversation } from './Conversation'
+import { Conversation } from '@signalwire/browser-js/src/Conversation'
 
 jest.mock('./HTTPClient')
 jest.mock('./WSClient')
-jest.mock('./Conversation')
+jest.mock('@signalwire/browser-js/src/Conversation')
 
 describe('SignalWire', () => {
   const mockParams = {

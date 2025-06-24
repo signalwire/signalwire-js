@@ -7,7 +7,7 @@
 export * from './SignalWire'
 export * from './interfaces/address'
 export * from './interfaces/capabilities'
-export * from './interfaces/conversation'
+export * from '@signalwire/browser-js/src/interfaces/conversation'
 export * from './interfaces/device'
 export * from '@signalwire/browser-js/src/interfaces/incomingCallManager'
 

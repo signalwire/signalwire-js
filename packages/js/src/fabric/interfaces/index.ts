@@ -1,4 +1,4 @@
-import { Conversation } from '../Conversation'
+import { Conversation } from '@signalwire/browser-js/src/Conversation'
 import { Address } from './address'
 import { HTTPClientContract } from './httpClient'
 import { WSClientContract, WSClientOptions } from './wsClient'
@@ -78,7 +78,7 @@ export type GetSubscriberInfoResult = GetSubscriberInfoResponse
 
 export * from './capabilities'
 export * from './address'
-export * from './conversation'
+export * from '@signalwire/browser-js/src/interfaces/conversation'
 export * from './device'
 export * from './httpClient'
 export * from './wsClient'

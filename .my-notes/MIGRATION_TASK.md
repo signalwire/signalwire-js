@@ -423,16 +423,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-011: Move Conversation API
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-011-conversation-api`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move conversation directory and all messaging functionality
 - **Test Plan**:
-  - [ ] Message sending works
-  - [ ] Message receiving works
-  - [ ] Conversation history loads
-  - [ ] All conversation tests pass
+  - [x] Message sending works
+  - [x] Message receiving works
+  - [x] Conversation history loads
+  - [x] All conversation tests pass
 - **Dependencies**: P2-003
 
 ### P2-012: Move Addresses API
