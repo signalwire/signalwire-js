@@ -1,8 +1,8 @@
 import { uuid } from '@signalwire/core'
-import {
+import type {
   SignalWireClient,
   ConversationMessageEventParams,
-} from '@signalwire/js'
+} from '@signalwire/browser-js'
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
 

@@ -1,4 +1,4 @@
-import { FabricRoomSession } from '@signalwire/js'
+import type { FabricRoomSession } from '@signalwire/browser-js'
 import { resolve } from 'node:path'
 import { constants, accessSync } from 'node:fs'
 import { test, expect } from '../../fixtures'

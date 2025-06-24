@@ -1,11 +1,11 @@
+import type { Video } from '@signalwire/js'
 import type {
   DialParams,
   FabricRoomSession,
   SignalWire,
   SignalWireClient,
   SignalWireContract,
-  Video,
-} from '@signalwire/js'
+} from '@signalwire/browser-js'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
@@ -19,9 +19,8 @@ import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { EventEmitter } from 'events'
 declare global {
   interface Window {
-    _SWJS: {
-      SignalWire: typeof SignalWire
-    }
+    _SWJS: typeof import('@signalwire/js')
+    _SWBROWSERJS: typeof import('@signalwire/browser-js')
     _client?: SignalWireClient
   }
 }
@@ -564,7 +563,7 @@ const createCFClientWithToken = async (
       }
 
       // @ts-expect-error
-      const SignalWire = window._SWJS.SignalWire
+      const SignalWire = window._SWBROWSERJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,

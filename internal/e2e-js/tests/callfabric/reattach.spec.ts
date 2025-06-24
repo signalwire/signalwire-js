@@ -6,11 +6,11 @@ import {
   dialAddress,
   expectMCUVisible,
 } from '../../utils'
-import {
+import type {
   CallJoinedEventParams,
   FabricRoomSession,
   SignalWireClient,
-} from '@signalwire/js'
+} from '@signalwire/browser-js'
 
 test.describe('CallFabric Reattach', () => {
   test('should join a room, reload and reattach', async ({

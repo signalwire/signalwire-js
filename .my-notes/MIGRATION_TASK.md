@@ -623,16 +623,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P4-002: Create Fabric SDK E2E Tests
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P4-002-fabric-e2e-tests`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Port and update fabric tests to use @signalwire/browser-js
 - **Test Plan**:
-  - [ ] Call initiation tests pass
-  - [ ] Call receiving tests work
-  - [ ] Media handling tests pass
-  - [ ] Error scenarios covered
+  - [x] Call initiation tests pass
+  - [x] Call receiving tests work
+  - [x] Media handling tests pass
+  - [x] Error scenarios covered
 - **Dependencies**: P4-001
 
 ### P4-003: Update Video SDK E2E Tests

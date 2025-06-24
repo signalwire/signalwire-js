@@ -10,7 +10,7 @@ import {
   expectMCUVisible,
   SERVER_URL,
 } from '../../utils'
-import { FabricRoomSession } from '@signalwire/js'
+import type { FabricRoomSession } from '@signalwire/browser-js'
 
 test.describe('CallFabric Video Room Layout', () => {
   test('should join a room and be able to change the layout', async ({

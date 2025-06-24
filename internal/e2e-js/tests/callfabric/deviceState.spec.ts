@@ -6,7 +6,7 @@ import {
   SERVER_URL,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
-import { FabricRoomSession } from '@signalwire/js'
+import type { FabricRoomSession } from '@signalwire/browser-js'
 
 type CameraTest = {
   stopCameraWhileMuted: boolean

@@ -1,4 +1,4 @@
-import { SignalWireClient } from '@signalwire/js'
+import type { SignalWireClient } from '@signalwire/browser-js'
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
 

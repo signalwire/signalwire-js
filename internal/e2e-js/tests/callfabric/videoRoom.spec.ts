@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { FabricRoomSession, CallJoinedEventParams } from '@signalwire/js'
+import type { FabricRoomSession, CallJoinedEventParams } from '@signalwire/browser-js'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,

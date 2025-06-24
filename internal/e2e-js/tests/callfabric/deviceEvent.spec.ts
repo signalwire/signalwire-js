@@ -1,6 +1,6 @@
 import { uuid } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
-import type { FabricRoomSession } from '@signalwire/js'
+import type { FabricRoomSession } from '@signalwire/browser-js'
 import {
   SERVER_URL,
   createCFClient,
