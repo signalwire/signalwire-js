@@ -637,16 +637,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P4-003: Update Video SDK E2E Tests
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P4-003-video-e2e-tests`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Ensure Video SDK tests still work with refactored package
 - **Test Plan**:
-  - [ ] Room joining works
-  - [ ] Screen sharing functions
-  - [ ] Member events fire correctly
-  - [ ] Layout changes work
+  - [x] Room joining works
+  - [x] Screen sharing functions
+  - [x] Member events fire correctly
+  - [x] Layout changes work
 - **Dependencies**: P4-001
 
 ### P4-004: Update Playground Examples
