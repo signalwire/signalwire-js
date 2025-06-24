@@ -478,7 +478,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-015: Create browser-js Tests
 
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-015-browser-js-tests`
 - **PR**: Not Created
 - **Assignee**: TBD
