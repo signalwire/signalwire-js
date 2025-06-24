@@ -36,11 +36,14 @@ export type {
   Brand,
 } from './utilities';
 
-// TODO: Future type exports will be added here as we implement the Call SDK
-// 
-// Call-related types (from future files):
-// export type { CallSession, CallSessionMember } from './call';
-//
+// Call-related types (clean public API)
+export type { 
+  CallSession, 
+  CallSessionMember,
+  CallCapabilities,
+  CallLayout,
+  CallLayoutLayer
+} from './call';
 // Event-related types (from future files):
 // export type { CallJoinedEvent, CallUpdatedEvent, CallLeftEvent } from './events';
 //
