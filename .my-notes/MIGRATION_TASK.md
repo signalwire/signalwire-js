@@ -18,10 +18,10 @@ This document coordinates the development team's execution of the @signalwire/js
 | -------------- | ----------- | --------- | ----------- | ------- |
 | Infrastructure | 7           | 7         | 0           | 0       |
 | Phase 1        | 12          | 12        | 0           | 0       |
-| Phase 2        | 15          | 1         | 0           | 0       |
+| Phase 2        | 15          | 2         | 0           | 0       |
 | Phase 3        | 8           | 0         | 0           | 0       |
 | Phase 4        | 10          | 0         | 0           | 0       |
-| **Total**      | **52**      | **20**    | **0**       | **0**   |
+| **Total**      | **52**      | **21**    | **0**       | **0**   |
 
 ---
 
@@ -396,29 +396,29 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-009: Move Fabric Workers
 
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-009-move-workers`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move all fabric-related workers from js package
 - **Test Plan**:
-  - [ ] Worker sagas function correctly
-  - [ ] Event handling works
-  - [ ] No Redux store issues
-  - [ ] All worker tests pass
+  - [x] Worker sagas function correctly
+  - [x] Event handling works
+  - [x] No Redux store issues
+  - [x] All worker tests pass
 - **Dependencies**: P2-003
 
 ### P2-010: Move IncomingCallManager
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-010-incoming-call-manager`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move IncomingCallManager.ts to browser-js package
 - **Test Plan**:
-  - [ ] Incoming call detection works
-  - [ ] Event firing correct
-  - [ ] Call answering functions
+  - [x] Incoming call detection works
+  - [x] Event firing correct
+  - [x] Call answering functions
 - **Dependencies**: P2-004
 
 ### P2-011: Move Conversation API

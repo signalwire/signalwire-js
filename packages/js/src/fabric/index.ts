@@ -9,7 +9,7 @@ export * from './interfaces/address'
 export * from './interfaces/capabilities'
 export * from './interfaces/conversation'
 export * from './interfaces/device'
-export * from './interfaces/incomingCallManager'
+export * from '@signalwire/browser-js/src/interfaces/incomingCallManager'
 
 export {
   OnlineParams,

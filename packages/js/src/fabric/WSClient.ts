@@ -16,13 +16,13 @@ import {
   CallParams,
   DialParams,
   ReattachParams,
-  IncomingInvite,
   OnlineParams,
   HandlePushNotificationParams,
   WSClientOptions,
   HandlePushNotificationResult,
 } from './interfaces'
-import { IncomingCallManager } from './IncomingCallManager'
+import { IncomingCallManager } from '@signalwire/browser-js/src/IncomingCallManager'
+import { IncomingInvite } from '@signalwire/browser-js/src/interfaces/incomingCallManager'
 import { wsClientWorker } from '@signalwire/browser-js/src/workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
@@ -38,7 +38,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     super(client)
 
     this._incomingCallManager = new IncomingCallManager({
-      client: this,
+      client: this as any,
       buildInboundCall: this.buildInboundCall.bind(this),
       executeVertoBye: this.executeVertoBye.bind(this),
     })

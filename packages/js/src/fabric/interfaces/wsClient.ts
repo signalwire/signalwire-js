@@ -2,7 +2,7 @@ import { SessionOptions, UserOptions } from '@signalwire/core'
 import {
   IncomingCallHandler,
   IncomingCallHandlers,
-} from './incomingCallManager'
+} from '@signalwire/browser-js/src/interfaces/incomingCallManager'
 import { FabricRoomSession } from '../FabricRoomSession'
 
 export interface WSClientContract {
