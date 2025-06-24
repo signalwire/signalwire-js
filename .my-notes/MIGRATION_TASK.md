@@ -665,16 +665,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P4-005: Test Backward Compatibility
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P4-005-backward-compatibility`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Verify deprecation layer works for existing code
 - **Test Plan**:
-  - [ ] Old imports still work
-  - [ ] Deprecation warnings show
-  - [ ] No functional regression
-  - [ ] Types resolve correctly
+  - [x] Old imports still work
+  - [x] Deprecation warnings show
+  - [x] No functional regression
+  - [x] Types resolve correctly
 - **Dependencies**: P3-003
 
 ### P4-006: Performance Testing
