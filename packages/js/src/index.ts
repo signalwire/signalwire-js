@@ -1,20 +1,20 @@
 /**
- * Welcome to the technical documentation for the JavaScript SDK.
+ * Welcome to the technical documentation for the SignalWire Video SDK.
  *
- * At the outer level, when you import the SignalWire JS library you get access
- * to three different namespaces:
+ * This package is focused on video conferencing functionality. At the outer level, 
+ * when you import the SignalWire Video SDK you get access to three main namespaces:
  *
- *  - {@link Video}
- *  - {@link Chat}
- *  - {@link WebRTC}
+ *  - {@link Video} - Video conferencing and room management
+ *  - {@link Chat} - Real-time chat functionality  
+ *  - {@link WebRTC} - Device and media management utilities
  *
- * Video gives you access to the classes and methods that let you
- * interface with the backend Video APIs. Chat gives you access to the classes and functions that you need to create a real-time chat application. WebRTC
- * contains several functions that are useful for interacting with the hardware of the user's device.
- *
+ * **Migration Notice**: Looking for Call Fabric functionality (calling phones, SIP endpoints)?
+ * That functionality has moved to `@signalwire/browser-js`. Please migrate to the new package
+ * for unified communications features.
  *
  * Don't know where to start? Create an instance of
- * {@link Video.RoomSession} to join a room, use the {@link Chat.Client} constructor to start a chat application, or take a look at [Getting Started
+ * {@link Video.RoomSession} to join a video room, use the {@link Chat.Client} constructor 
+ * to start a chat application, or take a look at [Getting Started
  * with the SignalWire Video
  * API](https://developer.signalwire.com/apis/docs/getting-started-with-the-signalwire-video-api-1).
  *

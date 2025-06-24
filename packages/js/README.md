@@ -1,10 +1,28 @@
 # @signalwire/js
 
-# RELAY Browser SDK
+# SignalWire Video SDK
 
 [![The build status of the package @signalwire/js.](https://ci.signalwire.com/api/badges/signalwire/signalwire-js/status.svg)](https://ci.signalwire.com/signalwire/signalwire-js) ![The NPM shield for the package @signalwire/js.](https://img.shields.io/npm/v/@signalwire/js.svg?color=brightgreen)
 
-The RELAY Browser SDK transforms your standard browser into a realtime media engine, enabling developers to directly make audio and video calls to phone numbers, SIP endpoints, and other browsers. Using the JavaScript SDK you can add immersive, scalable communication - from video conferences and softphones to click-to-call and mobile gaming - all available right in your own web pages and applications.
+The SignalWire Video SDK enables developers to build immersive video conferencing applications directly in the browser. Create scalable video rooms, manage participants, handle screen sharing, and control layouts - all with a simple JavaScript API.
+
+## ⚠️ Migration Notice
+
+**Looking for Call Fabric functionality?** The ability to make calls to phone numbers, SIP endpoints, and SWML applications has moved to [`@signalwire/browser-js`](https://www.npmjs.com/package/@signalwire/browser-js).
+
+### Migration Guide
+
+```typescript
+// Before (deprecated)
+import { Fabric, SignalWire } from '@signalwire/js'
+const client = await Fabric.SignalWire({ token })
+
+// After
+import { SignalWire } from '@signalwire/browser-js'
+const client = await SignalWire({ token })
+```
+
+For video conferencing, continue using this package. For unified communications (calling phones, SIP, etc.), please migrate to `@signalwire/browser-js`.
 
 SignalWire's simple and powerful authentication system, using JWT, allows you to set granular permissions, enabling some of your users to only join conference calls, while others could list on-going calls and jump in to assist from a support dashboard... the possibilities are endless.
 

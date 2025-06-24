@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/js",
-  "description": "SignalWire JS SDK",
+  "description": "SignalWire Video SDK for browser-based video conferencing",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
   "version": "3.29.0-dev.202506111650.ad2f5be.0",
@@ -20,8 +20,9 @@
     "rtc",
     "real time communication",
     "webrtc",
-    "relay",
-    "sip"
+    "conference",
+    "rooms",
+    "video conferencing"
   ],
   "repository": {
     "type": "git",
