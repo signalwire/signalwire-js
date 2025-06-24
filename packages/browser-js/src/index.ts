@@ -12,9 +12,12 @@ export { SignalWire } from './SignalWire'
 // Export WebRTC utilities re-exported from @signalwire/webrtc
 export * as WebRTC from '@signalwire/webrtc'
 
-// Export core components
+// Export core Call Fabric components
+export { CallSession } from './CallSession'
+export { CallSessionMember } from './CallSessionMember'
 export { WSClient } from './WSClient'
 export { HTTPClient } from './HTTPClient'
+export { Conversation } from './Conversation'
 
 // Export default for UMD builds
 export { SignalWire as default } from './SignalWire'

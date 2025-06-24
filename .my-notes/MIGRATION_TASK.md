@@ -450,16 +450,16 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-013: Setup Main Export File
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-013-main-exports`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Create src/index.ts with SignalWire and WebRTC namespaces
 - **Test Plan**:
-  - [ ] SignalWire namespace exports correctly
-  - [ ] WebRTC utilities accessible
-  - [ ] All types exported at top level
-  - [ ] No circular dependencies
+  - [x] SignalWire namespace exports correctly
+  - [x] WebRTC utilities accessible
+  - [x] All types exported at top level
+  - [x] No circular dependencies
 - **Dependencies**: P2-003 through P2-012
 
 ### P2-014: Add Dependencies and Build
