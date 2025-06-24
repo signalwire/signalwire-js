@@ -509,20 +509,20 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P3-002: Add browser-js Dependency
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P3-002-add-browser-dependency`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Add @signalwire/browser-js as dependency for compatibility layer
 - **Test Plan**:
-  - [ ] Dependency declared correctly
-  - [ ] Version constraints appropriate
-  - [ ] No circular dependencies
+  - [x] Dependency declared correctly
+  - [x] Version constraints appropriate
+  - [x] No circular dependencies
 - **Dependencies**: P2-015
 
 ### P3-003: Create Deprecation Layer
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P3-003-deprecation-layer`
 - **PR**: Not Created
 - **Assignee**: TBD

@@ -56,6 +56,70 @@ export * as Chat from './chat'
 export * as PubSub from './pubSub'
 
 /**
+ * @deprecated The Fabric namespace is deprecated. Please use @signalwire/browser-js instead.
+ * 
+ * Migration guide:
+ * 
+ * Before:
+ * ```typescript
+ * import { Fabric } from '@signalwire/js'
+ * const client = await Fabric.SignalWire({ token })
+ * ```
+ * 
+ * After:
+ * ```typescript
+ * import { SignalWire } from '@signalwire/browser-js'
+ * const client = await SignalWire({ token })
+ * ```
+ */
+export const Fabric = (() => {
+  console.warn(
+    '⚠️  DEPRECATION WARNING: Fabric namespace from @signalwire/js is deprecated.\n' +
+    '   Please migrate to @signalwire/browser-js:\n' +
+    '   \n' +
+    '   Before: import { Fabric } from \'@signalwire/js\'\n' +
+    '   After:  import { SignalWire } from \'@signalwire/browser-js\'\n' +
+    '   \n' +
+    '   See migration guide: https://docs.signalwire.com/js-sdk-migration'
+  )
+  
+  const browserJS = require('@signalwire/browser-js')
+  return browserJS
+})()
+
+/**
+ * @deprecated SignalWire export from @signalwire/js is deprecated. Please use @signalwire/browser-js instead.
+ * 
+ * Migration guide:
+ * 
+ * Before:
+ * ```typescript
+ * import { SignalWire } from '@signalwire/js'
+ * const client = await SignalWire({ token })
+ * ```
+ * 
+ * After:
+ * ```typescript
+ * import { SignalWire } from '@signalwire/browser-js'
+ * const client = await SignalWire({ token })
+ * ```
+ */
+export const SignalWire = (() => {
+  console.warn(
+    '⚠️  DEPRECATION WARNING: SignalWire from @signalwire/js is deprecated.\n' +
+    '   Please migrate to @signalwire/browser-js:\n' +
+    '   \n' +
+    '   Before: import { SignalWire } from \'@signalwire/js\'\n' +
+    '   After:  import { SignalWire } from \'@signalwire/browser-js\'\n' +
+    '   \n' +
+    '   See migration guide: https://docs.signalwire.com/js-sdk-migration'
+  )
+  
+  const browserJS = require('@signalwire/browser-js')
+  return browserJS.SignalWire
+})()
+
+/**
  * The Video namespace contains the classes and functions that you need to
  * create a video conferencing application.
  */
@@ -96,6 +160,28 @@ export type {
   InternalVideoLayoutLayer,
   VideoPosition,
   VideoPositions,
+  /**
+   * @deprecated Fabric types from @signalwire/js are deprecated. Please use @signalwire/browser-js instead.
+   */
+  CallUpdatedEventParams,
+  CallLeftEventParams,
+  CallStateEventParams,
+  CallPlayEventParams,
+  CallConnectEventParams,
+  CallRoomEventParams,
+  FabricRoomEventParams,
+  FabricLayoutChangedEventParams,
+  FabricMemberJoinedEventParams,
+  FabricMemberUpdatedEventParams,
+  FabricMemberLeftEventParams,
+  FabricMemberTalkingEventParams,
+  FabricMemberEventParams,
+  FabricMemberEntity,
+  InternalFabricMemberEntity,
+  ConversationMessageEventName,
+  ConversationMessageEvent,
+  ConversationEventParams,
+  ConversationEvent,
 } from '@signalwire/core'
 
 export type {
