@@ -437,7 +437,7 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-012: Move Addresses API
 
-- **Status**: 🔴 Not Started
+- **Status**: 🟡 In Progress
 - **Branch**: `feat/P2-012-addresses-api`
 - **PR**: Not Created
 - **Assignee**: TBD
