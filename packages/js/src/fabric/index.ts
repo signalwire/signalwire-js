@@ -5,7 +5,7 @@
  */
 
 export * from './SignalWire'
-export * from './interfaces/address'
+export * from '@signalwire/browser-js/src/interfaces/address'
 export * from './interfaces/capabilities'
 export * from '@signalwire/browser-js/src/interfaces/conversation'
 export * from './interfaces/device'

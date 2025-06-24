@@ -4,7 +4,7 @@ import {
   GetAddressesResult,
   GetAddressParams,
   GetAddressResult,
-} from './address'
+} from '@signalwire/browser-js/src/interfaces/address'
 import {
   RegisterDeviceParams,
   RegisterDeviceResult,

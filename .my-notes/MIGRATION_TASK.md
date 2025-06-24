@@ -437,15 +437,15 @@ This document coordinates the development team's execution of the @signalwire/js
 
 ### P2-012: Move Addresses API
 
-- **Status**: 🟡 In Progress
+- **Status**: 🟢 Completed
 - **Branch**: `feat/P2-012-addresses-api`
 - **PR**: Not Created
 - **Assignee**: TBD
 - **Description**: Move address resolution and management code
 - **Test Plan**:
-  - [ ] Address lookup works
-  - [ ] Address validation functions
-  - [ ] Call routing works correctly
+  - [x] Address lookup works
+  - [x] Address validation functions
+  - [x] Call routing works correctly
 - **Dependencies**: P2-003
 
 ### P2-013: Setup Main Export File

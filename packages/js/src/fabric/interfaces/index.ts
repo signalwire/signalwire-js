@@ -1,5 +1,5 @@
 import { Conversation } from '@signalwire/browser-js/src/Conversation'
-import { Address } from './address'
+import { Address } from '@signalwire/browser-js/src/interfaces/address'
 import { HTTPClientContract } from './httpClient'
 import { WSClientContract, WSClientOptions } from './wsClient'
 
@@ -77,7 +77,7 @@ export type GetSubscriberInfoResult = GetSubscriberInfoResponse
 // #endregion Subscriber info
 
 export * from './capabilities'
-export * from './address'
+export * from '@signalwire/browser-js/src/interfaces/address'
 export * from '@signalwire/browser-js/src/interfaces/conversation'
 export * from './device'
 export * from './httpClient'
