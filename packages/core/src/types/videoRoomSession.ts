@@ -11,10 +11,7 @@ import type {
   MemberCommandWithValueParams,
   MemberCommandWithVolumeParams,
 } from './common'
-import type {
-  InternalVideoMemberEntity,
-  InternalVideoMemberUpdatableProps,
-} from './videoMember'
+import type { InternalVideoMemberEntity } from './videoMember'
 import * as Rooms from '../rooms'
 import { MapToPubSubShape } from '../redux/interfaces'
 
@@ -126,7 +123,7 @@ export interface VideoRoomSessionContract {
    **/
   members?: InternalVideoMemberEntity[]
   /** Fields that have changed in this room session */
-  updated?: Array<keyof InternalVideoMemberUpdatableProps>
+  updated?: Array<Exclude<keyof VideoRoomSessionContract, 'updated'>>
   /** Whether the room is streaming */
   streaming: boolean
   /** List of active streams in the room session. */

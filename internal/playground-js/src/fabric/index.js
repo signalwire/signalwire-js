@@ -381,6 +381,33 @@ window.dial = async ({ reattach = false } = {}) => {
   roomObj.on('member.updated.videoMuted', (params) =>
     console.debug('>> member.updated.videoMuted', params)
   )
+  roomObj.on('member.updated.deaf', (params) =>
+    console.debug('>> member.updated.deaf', params)
+  )
+  roomObj.on('member.updated.visible', (params) =>
+    console.debug('>> member.updated.visible', params)
+  )
+  roomObj.on('member.updated.inputVolume', (params) =>
+    console.debug('>> member.updated.inputVolume', params)
+  )
+  roomObj.on('member.updated.outputVolume', (params) =>
+    console.debug('>> member.updated.outputVolume', params)
+  )
+  roomObj.on('member.updated.inputSensitivity', (params) =>
+    console.debug('>> member.updated.inputSensitivity', params)
+  )
+  roomObj.on('member.updated.handraised', (params) =>
+    console.debug('>> member.updated.handraised', params)
+  )
+  roomObj.on('member.updated.echoCancellation', (params) =>
+    console.debug('>> member.updated.echoCancellation', params)
+  )
+  roomObj.on('member.updated.autoGain', (params) =>
+    console.debug('>> member.updated.autoGain', params)
+  )
+  roomObj.on('member.updated.noiseSuppression', (params) =>
+    console.debug('>> member.updated.noiseSuppression', params)
+  )
   roomObj.on('member.left', (params) => console.debug('>> member.left', params))
   roomObj.on('member.talking', (params) =>
     console.debug('>> member.talking', params)

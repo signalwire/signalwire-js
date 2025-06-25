@@ -1,4 +1,6 @@
 import {
+  CallJoinedEvent,
+  CallJoinedEventParams,
   FabricLayoutChangedEvent,
   FabricMemberJoinedEvent,
   FabricMemberJoinedEventParams,
@@ -31,24 +33,8 @@ export const mapInternalFabricMemberToInternalVideoMemberEntity = (
   params: InternalFabricMemberEntity
 ): InternalVideoMemberEntity => {
   return {
+    ...params,
     id: params.member_id,
-    room_id: params.room_id,
-    room_session_id: params.room_session_id,
-    name: params.name,
-    type: params.type,
-    handraised: params.handraised,
-    visible: params.visible,
-    audio_muted: params.audio_muted,
-    video_muted: params.video_muted,
-    deaf: params.deaf,
-    input_volume: params.input_volume,
-    output_volume: params.output_volume,
-    input_sensitivity: params.input_sensitivity,
-    meta: params.meta,
-    talking: params.talking,
-    current_position: params.current_position,
-    requested_position: params.requested_position,
-    parent_id: params.parent_id,
   }
 }
 
@@ -63,6 +49,41 @@ export const mapInternalFabricMemberToInternalVideoMemberUpdatedEntity = (
     updated: params.updated.map((key) =>
       key === 'member_id' ? 'id' : (key as keyof InternalVideoMemberEntity)
     ),
+  }
+}
+
+/**
+ * Map the "call.joined" event params to "video.room.subscribed" event params
+ */
+export const mapCallJoinedToRoomSubscribedEventParams = (
+  params: CallJoinedEventParams
+) => {
+  return {
+    ...params,
+    room: {
+      ...params.room_session,
+      members: params.room_session.members.map(
+        mapInternalFabricMemberToInternalVideoMemberEntity
+      ),
+    },
+    room_session: {
+      ...params.room_session,
+      members: params.room_session.members.map(
+        mapInternalFabricMemberToInternalVideoMemberEntity
+      ),
+    },
+  }
+}
+
+/**
+ * Map the "call.joined" action to "video.room.subscribed" action
+ */
+export const mapCallJoinedToRoomSubscribedAction = (
+  action: MapToPubSubShape<CallJoinedEvent>
+) => {
+  return {
+    type: `video.room.subscribed`,
+    payload: mapCallJoinedToRoomSubscribedEventParams(action.payload),
   }
 }
 
@@ -132,8 +153,8 @@ export const mapFabricMemberToVideoMemberTalkingEventParams = (
     room_session_id: params.room_session_id,
     room_id: params.room_id,
     member: {
+      ...params.member,
       id: params.member.member_id,
-      talking: params.member.talking,
     },
   }
 }

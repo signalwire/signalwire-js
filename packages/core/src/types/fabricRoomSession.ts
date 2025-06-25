@@ -13,7 +13,6 @@ import {
   CallPlay,
   CallConnect,
   AtLeastOne,
-  InternalFabricMemberUpdatableProps,
 } from '..'
 
 /**
@@ -112,7 +111,7 @@ export interface FabricRoomSessionContract {
   /** List of active playbacks in the room */
   playbacks?: [] // TODO: Finalize the type when the feature is ready
   /** Fields that have changed in this room session */
-  updated?: Array<keyof InternalFabricMemberUpdatableProps>
+  updated?: Array<Exclude<keyof FabricRoomSessionContract, 'updated'>>
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio

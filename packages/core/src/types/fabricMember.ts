@@ -70,7 +70,7 @@ export const INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS = {
 export type InternalFabricMemberUpdatableProps =
   typeof INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
 
-export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
+export const INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
 ).map((key) => {
   return `member.updated.${
@@ -79,7 +79,7 @@ export const INTERNAL_MEMBER_UPDATED_EVENTS = Object.keys(
 })
 
 export type InternalFabricMemberUpdatedEventNames =
-  (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
+  (typeof INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
 
 export type FabricMemberUpdatableProps = {
   [K in keyof InternalFabricMemberUpdatableProps as SnakeToCamelCase<K>]: InternalFabricMemberUpdatableProps[K]
