@@ -46,5 +46,5 @@
   "devDependencies": {
     "@types/object-path": "^0.11.4"
   },
-  "types": "dist/js/src/index.d.ts"
+  "types": "dist/client/src/index.d.ts"
 }
