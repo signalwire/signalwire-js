@@ -138,9 +138,6 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
 }
 
 export const createTestSATToken = async () => {
-  console.log('Creating SAT token with reference:', process.env.SAT_REFERENCE)
-  console.log('Creating SAT token with BASIC_TOKEN:', BASIC_TOKEN)
-  console.log(`https://${process.env.API_HOST}/api/fabric/subscribers/tokens`)
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
     {
@@ -154,7 +151,6 @@ export const createTestSATToken = async () => {
       }),
     }
   )
-  console.log(JSON.stringify(response, null, 2))
   const data = await response.json()
   return data.token
 }
