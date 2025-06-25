@@ -5,9 +5,9 @@ import {
   createTestRoomSession,
   expectSDPDirection,
   expectInteractivityMode,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession demote method', () => {
@@ -46,13 +46,15 @@ test.describe('RoomSession demote method', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2st tab as audience and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined: any = await expectRoomJoined(pageTwo)
+    const pageTwoRoomJoined: any = await expectRoomJoinWithDefaults(pageTwo, {
+      joinAs: 'audience',
+    })
 
     // Checks that the video is visible on pageTwo
     await expectMCUVisibleForAudience(pageTwo)
