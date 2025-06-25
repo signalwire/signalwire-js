@@ -4,11 +4,11 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectPageReceiveMedia,
   expectMediaEvent,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 type Test = {
@@ -54,7 +54,9 @@ test.describe('roomSessionBadNetwork', () => {
       )
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoined(page)
+      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+        joinAs: row.join_as,
+      })
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()

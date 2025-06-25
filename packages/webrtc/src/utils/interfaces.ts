@@ -1,4 +1,4 @@
-import type { VideoPositions } from '@signalwire/core'
+import type { AudioCodecOptions, VideoPositions } from '@signalwire/core'
 import {
   BaseConnectionState,
   VideoRoomDeviceEventParams,
@@ -30,6 +30,8 @@ export interface ConnectionOptions {
   disableUdpIceServers?: boolean
   /** Audio constraints to use when joining the room. Default: `true`. */
   audio?: MediaStreamConstraints['audio']
+  /** audio codec with fmtp params */
+  audioCodecs?: AudioCodecOptions[]
   /** Video constraints to use when joining the room. Default: `true`. */
   video?: MediaStreamConstraints['video']
   /** @internal */
@@ -100,6 +102,7 @@ export interface ConnectionOptions {
   fromFabricAddressId?: string
 
   layout?: string
+
   positions?: VideoPositions
 }
 

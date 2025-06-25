@@ -147,3 +147,11 @@ export type Promisify<T> = {
 export type Prettify<T> = NonNullable<unknown> & {
   [K in keyof T]: Prettify<T[K]>
 } & {}
+
+export type AudioCodecOptions =
+  | `opus:${string}`
+  | `red:${string}`
+  | `G722:${string}`
+  | `PCMU:${string}`
+  | `PCMA:${string}`
+  | `telephone-event:${string}`

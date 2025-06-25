@@ -45,31 +45,41 @@ export const getMediaConstraints = async (
   options: ConnectionOptions
 ): Promise<MediaStreamConstraints> => {
   let audio = _getAudioConstraints(options)
-  const { micLabel = '', micId } = options
+  let video = _getVideoConstraints(options)
+
+  const { micLabel = '', micId, camLabel = '', camId, useStereo } = options
+
+  if (typeof audio === 'boolean' && audio) {
+    audio = {}
+  }
+
+  const channelCount = useStereo ? 2 : 1
+  if (
+    typeof audio === 'object' &&
+    useStereo !== undefined &&
+    !audio.channelCount
+  ) {
+    audio.channelCount = channelCount
+  }
+
+  if (typeof video === 'boolean' && video) {
+    video = {}
+  }
 
   if (micId && audio) {
     const newMicId = await assureDeviceId(micId, micLabel, 'microphone').catch(
       (_error) => null
     )
     if (newMicId) {
-      if (typeof audio === 'boolean') {
-        audio = {}
-      }
       audio.deviceId = { exact: newMicId }
     }
   }
-
-  let video = _getVideoConstraints(options)
-  const { camLabel = '', camId } = options
 
   if (camId && video) {
     const newCamId = await assureDeviceId(camId, camLabel, 'camera').catch(
       (_error) => null
     )
     if (newCamId) {
-      if (typeof video === 'boolean') {
-        video = {}
-      }
       video.deviceId = { exact: newCamId }
     }
   }

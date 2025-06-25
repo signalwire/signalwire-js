@@ -3,11 +3,11 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   expectMCUVisible,
   createRoom,
   randomizeRoomName,
   deleteRoom,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('Room Session Max Members', () => {
@@ -41,12 +41,14 @@ test.describe('Room Session Max Members', () => {
             permissions: ['room.stream'],
           },
           initialEvents: ['stream.started', 'stream.ended'],
-          expectToJoin: false,
         })
       })
     )
 
-    await Promise.all([expectRoomJoined(pageOne), expectRoomJoined(pageTwo)])
+    await Promise.all([
+      expectRoomJoinWithDefaults(pageOne),
+      expectRoomJoinWithDefaults(pageTwo),
+    ])
 
     await Promise.all([expectMCUVisible(pageOne), expectMCUVisible(pageTwo)])
 
