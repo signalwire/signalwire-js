@@ -4,7 +4,6 @@ import type {
   SignalWire,
   SignalWireClient,
   SignalWireContract,
-  Video,
 } from '@signalwire/client'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
@@ -12,7 +11,6 @@ import path from 'path'
 import { expect } from './fixtures'
 import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
-import { clearInterval } from 'timers'
 import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
@@ -140,6 +138,9 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
 }
 
 export const createTestSATToken = async () => {
+  console.log('Creating SAT token with reference:', process.env.SAT_REFERENCE)
+  console.log('Creating SAT token with BASIC_TOKEN:', BASIC_TOKEN)
+  console.log(`https://${process.env.API_HOST}/api/fabric/subscribers/tokens`)
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
     {
@@ -153,12 +154,13 @@ export const createTestSATToken = async () => {
       }),
     }
   )
+  console.log(JSON.stringify(response, null, 2))
   const data = await response.json()
   return data.token
 }
 
 interface GuestSATTokenRequest {
-  allowed_addresses: string[];
+  allowed_addresses: string[]
 }
 export const createGuestSATToken = async (bodyData: GuestSATTokenRequest) => {
   const response = await fetch(
@@ -191,7 +193,6 @@ export const getResourceAddresses = async (resource_id: string) => {
   return data
 }
 
-
 interface CreateTestCRTOptions {
   ttl: number
   member_id: string
@@ -219,164 +220,164 @@ export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
 
 // #region Utilities for RoomSession
 
-export const createTestRoomSession = async (
-  page: Page,
-  options: {
-    vrt: CreateTestVRTOptions
-    /** set of events to automatically subscribe before room.join() */
-    initialEvents?: string[]
-    expectToJoin?: boolean
-    roomSessionOptions?: Record<string, any>
-    shouldPassRootElement?: boolean
-    attachSagaMonitor?: boolean
-  }
-) => {
-  const vrt = await createTestVRTToken(options.vrt)
-  if (!vrt) {
-    console.error('Invalid VRT. Exiting..')
-    process.exit(4)
-  }
-  const roomSession: Video.RoomSession = await page.evaluate(
-    (options) => {
-      const _runningWorkers: any[] = []
-      // @ts-expect-error
-      window._runningWorkers = _runningWorkers
-      const addTask = (task: any) => {
-        if (!_runningWorkers.includes(task)) {
-          _runningWorkers.push(task)
-        }
-      }
-      const removeTask = (task: any) => {
-        const index = _runningWorkers.indexOf(task)
-        if (index > -1) {
-          _runningWorkers.splice(index, 1)
-        }
-      }
+// export const createTestRoomSession = async (
+//   page: Page,
+//   options: {
+//     vrt: CreateTestVRTOptions
+//     /** set of events to automatically subscribe before room.join() */
+//     initialEvents?: string[]
+//     expectToJoin?: boolean
+//     roomSessionOptions?: Record<string, any>
+//     shouldPassRootElement?: boolean
+//     attachSagaMonitor?: boolean
+//   }
+// ) => {
+//   const vrt = await createTestVRTToken(options.vrt)
+//   if (!vrt) {
+//     console.error('Invalid VRT. Exiting..')
+//     process.exit(4)
+//   }
+//   const roomSession: Video.RoomSession = await page.evaluate(
+//     (options) => {
+//       const _runningWorkers: any[] = []
+//       // @ts-expect-error
+//       window._runningWorkers = _runningWorkers
+//       const addTask = (task: any) => {
+//         if (!_runningWorkers.includes(task)) {
+//           _runningWorkers.push(task)
+//         }
+//       }
+//       const removeTask = (task: any) => {
+//         const index = _runningWorkers.indexOf(task)
+//         if (index > -1) {
+//           _runningWorkers.splice(index, 1)
+//         }
+//       }
 
-      const sagaMonitor = {
-        effectResolved: (_effectId: number, result: any) => {
-          if (result?.toPromise) {
-            addTask(result)
-            // Remove the task when it completes or is cancelled
-            result.toPromise().finally(() => {
-              removeTask(result)
-            })
-          }
-        },
-      }
+//       const sagaMonitor = {
+//         effectResolved: (_effectId: number, result: any) => {
+//           if (result?.toPromise) {
+//             addTask(result)
+//             // Remove the task when it completes or is cancelled
+//             result.toPromise().finally(() => {
+//               removeTask(result)
+//             })
+//           }
+//         },
+//       }
 
-      // @ts-expect-error
-      const Video = window._SWJS.Video
-      const roomSession = new Video.RoomSession({
-        host: options.RELAY_HOST,
-        token: options.API_TOKEN,
-        ...(options.shouldPassRootElement && {
-          rootElement: document.getElementById('rootElement'),
-        }),
-        logLevel: options.CI ? 'info' : 'debug',
-        debug: {
-          logWsTraffic: true, //Boolean(options.CI),
-        },
-        ...(options.attachSagaMonitor && { sagaMonitor }),
-        ...options.roomSessionOptions,
-      })
+//       // @ts-expect-error
+//       const Video = window._SWJS.Video
+//       const roomSession = new Video.RoomSession({
+//         host: options.RELAY_HOST,
+//         token: options.API_TOKEN,
+//         ...(options.shouldPassRootElement && {
+//           rootElement: document.getElementById('rootElement'),
+//         }),
+//         logLevel: options.CI ? 'info' : 'debug',
+//         debug: {
+//           logWsTraffic: true, //Boolean(options.CI),
+//         },
+//         ...(options.attachSagaMonitor && { sagaMonitor }),
+//         ...options.roomSessionOptions,
+//       })
 
-      options.initialEvents?.forEach((event) => {
-        roomSession.once(event, () => {})
-      })
+//       options.initialEvents?.forEach((event) => {
+//         roomSession.once(event, () => {})
+//       })
 
-      // @ts-expect-error
-      window.jwt_token = options.API_TOKEN
+//       // @ts-expect-error
+//       window.jwt_token = options.API_TOKEN
 
-      // @ts-expect-error
-      window._roomObj = roomSession
+//       // @ts-expect-error
+//       window._roomObj = roomSession
 
-      return Promise.resolve(roomSession)
-    },
-    {
-      RELAY_HOST:
-        options.vrt.join_as === 'audience'
-          ? process.env.RELAY_AUDIENCE_HOST
-          : process.env.RELAY_HOST,
-      API_TOKEN: vrt,
-      initialEvents: options.initialEvents,
-      CI: process.env.CI,
-      roomSessionOptions: options.roomSessionOptions,
-      shouldPassRootElement: options.shouldPassRootElement ?? true,
-      attachSagaMonitor: options.attachSagaMonitor ?? false,
-    }
-  )
+//       return Promise.resolve(roomSession)
+//     },
+//     {
+//       RELAY_HOST:
+//         options.vrt.join_as === 'audience'
+//           ? process.env.RELAY_AUDIENCE_HOST
+//           : process.env.RELAY_HOST,
+//       API_TOKEN: vrt,
+//       initialEvents: options.initialEvents,
+//       CI: process.env.CI,
+//       roomSessionOptions: options.roomSessionOptions,
+//       shouldPassRootElement: options.shouldPassRootElement ?? true,
+//       attachSagaMonitor: options.attachSagaMonitor ?? false,
+//     }
+//   )
 
-  if (options.expectToJoin !== false) {
-    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
-      await expectMemberId(page, params.member_id)
+//   if (options.expectToJoin !== false) {
+//     expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
+//       await expectMemberId(page, params.member_id)
 
-      const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
-      await expectSDPDirection(page, dir, true)
+//       const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
+//       await expectSDPDirection(page, dir, true)
 
-      const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
-      await expectInteractivityMode(page, mode)
-    })
-  }
+//       const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
+//       await expectInteractivityMode(page, mode)
+//     })
+//   }
 
-  return roomSession
-}
+//   return roomSession
+// }
 
-export const createTestRoomSessionWithJWT = async (
-  page: Page,
-  options: {
-    vrt: CreateTestVRTOptions
-    /** set of events to automatically subscribe before room.join() */
-    initialEvents?: string[]
-    roomSessionOptions?: Record<string, any>
-  },
-  jwt: string
-) => {
-  if (!jwt) {
-    console.error('Invalid JWT. Exiting..')
-    process.exit(4)
-  }
-  return page.evaluate(
-    (options) => {
-      // @ts-expect-error
-      const Video = window._SWJS.Video
-      const roomSession = new Video.RoomSession({
-        host: options.RELAY_HOST,
-        token: options.API_TOKEN,
-        rootElement: document.getElementById('rootElement'),
-        audio: true,
-        video: true,
-        logLevel: options.CI ? 'warn' : 'debug',
-        debug: {
-          logWsTraffic: !options.CI,
-        },
-        ...options.roomSessionOptions,
-      })
+// export const createTestRoomSessionWithJWT = async (
+//   page: Page,
+//   options: {
+//     vrt: CreateTestVRTOptions
+//     /** set of events to automatically subscribe before room.join() */
+//     initialEvents?: string[]
+//     roomSessionOptions?: Record<string, any>
+//   },
+//   jwt: string
+// ) => {
+//   if (!jwt) {
+//     console.error('Invalid JWT. Exiting..')
+//     process.exit(4)
+//   }
+//   return page.evaluate(
+//     (options) => {
+//       // @ts-expect-error
+//       const Video = window._SWJS.Video
+//       const roomSession = new Video.RoomSession({
+//         host: options.RELAY_HOST,
+//         token: options.API_TOKEN,
+//         rootElement: document.getElementById('rootElement'),
+//         audio: true,
+//         video: true,
+//         logLevel: options.CI ? 'warn' : 'debug',
+//         debug: {
+//           logWsTraffic: !options.CI,
+//         },
+//         ...options.roomSessionOptions,
+//       })
 
-      options.initialEvents?.forEach((event) => {
-        roomSession.once(event, () => {})
-      })
+//       options.initialEvents?.forEach((event) => {
+//         roomSession.once(event, () => {})
+//       })
 
-      // @ts-expect-error
-      window.jwt_token = options.API_TOKEN
+//       // @ts-expect-error
+//       window.jwt_token = options.API_TOKEN
 
-      // @ts-expect-error
-      window._roomObj = roomSession
+//       // @ts-expect-error
+//       window._roomObj = roomSession
 
-      return Promise.resolve(roomSession)
-    },
-    {
-      RELAY_HOST:
-        options.vrt.join_as === 'audience'
-          ? process.env.RELAY_AUDIENCE_HOST
-          : process.env.RELAY_HOST,
-      API_TOKEN: jwt,
-      initialEvents: options.initialEvents,
-      CI: process.env.CI,
-      roomSessionOptions: options.roomSessionOptions,
-    }
-  )
-}
+//       return Promise.resolve(roomSession)
+//     },
+//     {
+//       RELAY_HOST:
+//         options.vrt.join_as === 'audience'
+//           ? process.env.RELAY_AUDIENCE_HOST
+//           : process.env.RELAY_HOST,
+//       API_TOKEN: jwt,
+//       initialEvents: options.initialEvents,
+//       CI: process.env.CI,
+//       roomSessionOptions: options.roomSessionOptions,
+//     }
+//   )
+// }
 
 const getRoomByName = async (roomName: string) => {
   const response = await fetch(
@@ -481,7 +482,7 @@ export const deleteRoom = async (id: string) => {
 
 export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
-    const roomObj: Video.RoomSession | FabricRoomSession =
+    const roomObj: FabricRoomSession =
       // @ts-expect-error
       window._roomObj
     console.log('Fixture roomObj', roomObj)
@@ -509,8 +510,8 @@ export const createCFClient = async (
   page: Page,
   params?: CreateCFClientParams
 ) => {
-  const sat = await createTestSATToken();
-  return createCFClientWithToken(page, sat, params);
+  const sat = await createTestSATToken()
+  return createCFClientWithToken(page, sat, params)
 }
 
 export const createGuestCFClient = async (
@@ -518,8 +519,8 @@ export const createGuestCFClient = async (
   bodyData: GuestSATTokenRequest,
   params?: CreateCFClientParams
 ) => {
-  const sat = await createGuestSATToken(bodyData);
-  return createCFClientWithToken(page, sat, params);
+  const sat = await createGuestSATToken(bodyData)
+  return createCFClientWithToken(page, sat, params)
 }
 
 const createCFClientWithToken = async (
@@ -563,7 +564,6 @@ const createCFClientWithToken = async (
         },
       }
 
-      // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
@@ -572,7 +572,6 @@ const createCFClientWithToken = async (
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
-      // @ts-expect-error
       window._client = client
       return client
     },
@@ -715,7 +714,7 @@ interface GetStatsResult {
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
   return await page.evaluate<GetStatsResult>(async () => {
     // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+    const roomObj: FabricRoomSession = window._roomObj
     // @ts-expect-error
     const rtcPeer = roomObj.peer
 
@@ -858,7 +857,7 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 export const getAudioStats = async (page: Page) => {
   const audioStats = await page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+    const roomObj: FabricRoomSession = window._roomObj
 
     // @ts-expect-error
     const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
@@ -933,7 +932,7 @@ export const expectSDPDirection = async (
 ) => {
   const peerSDP = await page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+    const roomObj: FabricRoomSession = window._roomObj
     // @ts-expect-error
     return roomObj.peer.localSdp
   })
@@ -1403,7 +1402,7 @@ export class MockWebhookServer extends EventEmitter {
   constructor() {
     super()
     this.app = express()
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.urlencoded({ extended: true }))
     const self = this
     this.app.all('/', (req: Request, res: Response) => {
       self.emit('request', req)
@@ -1415,7 +1414,7 @@ export class MockWebhookServer extends EventEmitter {
   listen(port: number = 18989, startTunnel: boolean = false) {
     return new Promise<string>((resolve) => {
       this.server = this.app.listen(port, (err?: Error) => {
-        if(err) {
+        if (err) {
           console.error('Error Starting MockWebhookServer: ', err)
           process.exit(5)
         }
@@ -1424,7 +1423,7 @@ export class MockWebhookServer extends EventEmitter {
           return
         }
       })
-  
+
       if (startTunnel) {
         const MAX_RETRIES = 3
         const tunnel = (attempt = 0) => {
@@ -1436,13 +1435,13 @@ export class MockWebhookServer extends EventEmitter {
               'proxy',
               '--headless',
               '--insecure',
-              `${port}`
+              `${port}`,
             ])
             this.zrokProcess.on('error', (err) => {
-              console.error('zrok process error event: ', err);
+              console.error('zrok process error event: ', err)
             })
             this.zrokProcess.stdout.on('data', (data) => {
-              console.log(`zrok processs stdout: ${data}`);
+              console.log(`zrok processs stdout: ${data}`)
             })
             this.zrokProcess.stderr.on('data', (data) => {
               const dataStr = data.toString('utf-8')
@@ -1451,7 +1450,12 @@ export class MockWebhookServer extends EventEmitter {
                 const logObj = JSON.parse(dataStr)
                 if (logObj.level == 'info') {
                   console.log(`zrok process stdout: ${data}`)
-                  if (logObj.msg && logObj.msg.startsWith('access your zrok share at the following endpoints:')) {
+                  if (
+                    logObj.msg &&
+                    logObj.msg.startsWith(
+                      'access your zrok share at the following endpoints:'
+                    )
+                  ) {
                     const tunnelUrl = logObj.msg.split('\n')[1].trim()
                     resolve(tunnelUrl as string)
                   }
@@ -1462,23 +1466,23 @@ export class MockWebhookServer extends EventEmitter {
                 if (dataStr.startsWith('[ERROR]: unable to create share')) {
                   console.error('Error Starting Zrok Share: ', dataStr)
                   if (attempt < MAX_RETRIES) {
-                    console.log(`Retrying (attempt: ${attempt+1} `)
-                    tunnel(attempt+1)
+                    console.log(`Retrying (attempt: ${attempt + 1} `)
+                    tunnel(attempt + 1)
                   } else {
                     process.exit(5)
                   }
                 }
               }
             })
-          
+
             this.zrokProcess.on('close', (code) => {
-              console.log(`zrok process exited with code ${code}`);
+              console.log(`zrok process exited with code ${code}`)
             })
           } catch (err) {
             console.error('Error Starting Zrok Share: ', err)
             if (attempt < MAX_RETRIES) {
-              console.log(`Retrying (attempt: ${attempt+1} `)
-              tunnel(attempt+1)
+              console.log(`Retrying (attempt: ${attempt + 1} `)
+              tunnel(attempt + 1)
             } else {
               process.exit(5)
             }
@@ -1505,7 +1509,6 @@ export class MockWebhookServer extends EventEmitter {
     this.zrokProcess.kill('SIGKILL')
   }
 }
-
 
 // #endregion
 
@@ -1708,10 +1711,9 @@ export const expectCFInitialEvents = (
 ) => {
   const initialEvents = page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+    const roomObj: FabricRoomSession = window._roomObj
 
     const callCreated = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
       roomObj.on('call.state', (params: any) => {
         if (params.call_state === 'created') {
           resolve(true)
@@ -1719,7 +1721,6 @@ export const expectCFInitialEvents = (
       })
     })
     const callAnswered = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
       roomObj.on('call.state', (params: any) => {
         if (params.call_state === 'answered') {
           resolve(true)
@@ -1727,7 +1728,6 @@ export const expectCFInitialEvents = (
       })
     })
     const callJoined = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
       roomObj.on('call.joined', () => resolve(true))
     })
 
@@ -1742,7 +1742,7 @@ export const expectCFFinalEvents = (
 ) => {
   const finalEvents = page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+    const roomObj: FabricRoomSession = window._roomObj
 
     const callLeft = new Promise((resolve) => {
       roomObj.on('destroy', () => resolve(true))
@@ -1759,7 +1759,7 @@ export const expectLayoutChanged = (page: Page, layoutName: string) => {
     (options) => {
       return new Promise((resolve) => {
         // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj: FabricRoomSession = window._roomObj
         roomObj.on('layout.changed', ({ layout }: any) => {
           if (layout.name === options.layoutName) {
             resolve(true)
@@ -1778,7 +1778,7 @@ export const expectRoomJoined = (
   return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve, reject) => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: FabricRoomSession = window._roomObj
 
       roomObj.once('room.joined', (room) => {
         console.log('Room joined!')
@@ -1786,38 +1786,17 @@ export const expectRoomJoined = (
       })
 
       if (invokeJoin) {
-        await roomObj.join().catch(reject)
+        await roomObj.start().catch(reject)
       }
     })
   }, options)
-}
-
-export const expectRecordingStarted = (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
-      setTimeout(reject, 10000)
-      // At this point window.__roomObj might not have been set yet
-      // we have to pool it and check
-      const interval = setInterval(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        if (roomObj) {
-          clearInterval(interval)
-          roomObj.on(
-            'recording.started',
-            (recording: Video.RoomSessionRecording) => resolve(recording)
-          )
-        }
-      }, 100)
-    })
-  })
 }
 
 export const expectScreenShareJoined = async (page: Page) => {
   return page.evaluate(() => {
     return new Promise<any>(async (resolve) => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj: FabricRoomSession = window._roomObj
 
       roomObj.on('member.joined', (params: any) => {
         if (params.member.type === 'screen') {
