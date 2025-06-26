@@ -222,14 +222,14 @@ export function validateSetAudioFlags(
     throw new CapabilityError('Missing audio flags capability')
   }
 
-  const { echoCancellation, autoGain, noiseSupression } = params || {}
+  const { echoCancellation, autoGain, noiseSuppression } = params || {}
   if (
     echoCancellation === undefined &&
     autoGain === undefined &&
-    noiseSupression === undefined
+    noiseSuppression === undefined
   ) {
     throw new TypeError(
-      'Invalid parameters: you must specify at least one of `echoCancellation`, `autoGain`, or `noiseSupression`'
+      'Invalid parameters: you must specify at least one of `echoCancellation`, `autoGain`, or `noiseSuppression`'
     )
   }
 }

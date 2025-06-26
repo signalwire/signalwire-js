@@ -1,0 +1,145 @@
+import { uuid } from '@signalwire/core'
+import { FabricRoomSession, CallJoinedEventParams } from '@signalwire/js'
+import { test, expect } from '../../fixtures'
+import {
+  SERVER_URL,
+  createCFClient,
+  dialAddress,
+  expectMCUVisible,
+} from '../../utils'
+
+test.describe('CallFabric Audio Flags', () => {
+  test('should join a room, update audio flags for self member, reload and reattach with correct states', async ({
+    createCustomPage,
+    resource,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    await page.goto(SERVER_URL)
+
+    const roomName = `e2e-audio-flags-${uuid()}`
+    await resource.createVideoRoomResource(roomName)
+
+    await createCFClient(page)
+
+    // Dial an address and join a video room
+    const roomSessionBefore: CallJoinedEventParams = await dialAddress(page, {
+      address: `/public/${roomName}?channel=video`,
+    })
+    expect(roomSessionBefore.room_session).toBeDefined()
+    await expectMCUVisible(page)
+    const memberId = roomSessionBefore.member_id
+
+    // --------------- Set audio flags (self) ---------------
+    await test.step('set audio flags', async () => {
+      await page.evaluate(
+        async ({ memberId }) => {
+          // @ts-expect-error
+          const roomObj: FabricRoomSession = window._roomObj
+
+          const memberUpdatedEvent = new Promise((res) => {
+            roomObj.on('member.updated', (params) => {
+              if (
+                params.member.member_id === memberId &&
+                params.member.updated.includes('noise_suppression') &&
+                params.member.updated.includes('echo_cancellation') &&
+                params.member.updated.includes('auto_gain') &&
+                params.member.auto_gain === false &&
+                params.member.echo_cancellation === false &&
+                params.member.noise_suppression === false
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedAutoGainEvent = new Promise((res) => {
+            roomObj.on('member.updated.autoGain', (params) => {
+              if (
+                params.member.member_id === memberId &&
+                params.member.auto_gain === false
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedEchoCancellationEvent = new Promise((res) => {
+            roomObj.on('member.updated.echoCancellation', (params) => {
+              if (
+                params.member.member_id === memberId &&
+                params.member.echo_cancellation === false
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedNoiseSuppressionEvent = new Promise((res) => {
+            roomObj.on('member.updated.noiseSuppression', (params) => {
+              if (
+                params.member.member_id === memberId &&
+                params.member.noise_suppression === false
+              ) {
+                res(true)
+              }
+            })
+          })
+
+          await roomObj.setAudioFlags({
+            autoGain: false,
+            echoCancellation: false,
+            noiseSuppression: false,
+          })
+
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedAutoGainEvent,
+            memberUpdatedEchoCancellationEvent,
+            memberUpdatedNoiseSuppressionEvent,
+          ])
+        },
+        { memberId }
+      )
+    })
+
+    const roomSessionAfter =
+      await test.step('reload page and reattach', async () => {
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await createCFClient(page)
+
+        // Reattach to an address to join the same call session
+        const roomSession: CallJoinedEventParams = await page.evaluate(
+          async ({ roomName }) => {
+            return new Promise(async (resolve, _reject) => {
+              const client = window._client!
+
+              const call = await client.reattach({
+                to: `/public/${roomName}?channel=video`,
+                rootElement: document.getElementById('rootElement'),
+              })
+
+              call.on('call.joined', resolve)
+
+              // @ts-expect-error
+              window._roomObj = call
+              await call.start()
+            })
+          },
+          { roomName }
+        )
+
+        return roomSession
+      })
+
+    await test.step('assert room state', async () => {
+      expect(roomSessionAfter.room_session).toBeDefined()
+      expect(roomSessionAfter.call_id).toEqual(roomSessionBefore.call_id)
+
+      const selfMember = roomSessionAfter.room_session.members.find(
+        (member) => member.member_id === roomSessionAfter.member_id
+      )
+
+      expect(selfMember).toBeDefined()
+      expect(selfMember?.auto_gain).toBe(false)
+      expect(selfMember?.echo_cancellation).toBe(false)
+      expect(selfMember?.noise_suppression).toBe(false)
+    })
+  })
+})

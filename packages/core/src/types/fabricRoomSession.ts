@@ -64,7 +64,7 @@ export type SetAudioFlagsParams = MemberCommandParams &
   AtLeastOne<{
     echoCancellation?: boolean
     autoGain?: boolean
-    noiseSupression?: boolean
+    noiseSuppression?: boolean
   }>
 
 /**
@@ -475,7 +475,7 @@ export interface FabricRoomSessionContract {
    * @param params.memberId - id of the member to update; omit to apply to yourself
    * @param params.echoCancellation - whether to enable (true) or disable (false) echo cancellation
    * @param params.autoGain - whether to enable (true) or disable (false) automatic gain control
-   * @param params.noiseSupression - whether to enable (true) or disable (false) noise suppression
+   * @param params.noiseSuppression - whether to enable (true) or disable (false) noise suppression
    *
    * @capabilities
    * - `self.audioflags.set` – required to modify your own microphone constraints
@@ -487,7 +487,7 @@ export interface FabricRoomSessionContract {
    * await room.setAudioFlags({
    *   echoCancellation: true,
    *   autoGain: false,
-   *   noiseSupression: true
+   *   noiseSuppression: true
    * });
    *
    * // Disable automatic gain control for another participant

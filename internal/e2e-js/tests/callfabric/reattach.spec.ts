@@ -332,7 +332,6 @@ test.describe('CallFabric Reattach', () => {
       expect(roomSessionAfter.room_session).toBeDefined()
       expect(roomSessionAfter.call_id).toEqual(roomSessionBefore.call_id)
       expect(roomSessionAfter.room_session.locked).toBe(true)
-      expect(roomSessionAfter.room_session.members.length).toBeGreaterThan(0)
 
       const selfMember = roomSessionAfter.room_session.members.find(
         (member) => member.member_id === roomSessionAfter.member_id
