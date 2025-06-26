@@ -13,7 +13,7 @@ import type {
   RegisterDeviceResult,
   GetSubscriberInfoResponse,
   GetSubscriberInfoResult,
-  FabricUserOptions,
+  UnifiedCommunicationUserOptions,
 } from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -31,7 +31,7 @@ type JWTHeader = { ch?: string; typ?: string }
 export class HTTPClient implements HTTPClientContract {
   private httpClient: CreateHttpClient
 
-  constructor(public options: FabricUserOptions) {
+  constructor(public options: UnifiedCommunicationUserOptions) {
     this.httpClient = createHttpClient({
       baseUrl: `https://${this.httpHost}`,
       headers: {
@@ -39,7 +39,8 @@ export class HTTPClient implements HTTPClientContract {
       },
       maxApiRequestRetries: this.options.maxApiRequestRetries,
       apiRequestRetriesDelay: this.options.apiRequestRetriesDelay,
-      apiRequestRetriesDelayIncrement: this.options.apiRequestRetriesDelayIncrement
+      apiRequestRetriesDelayIncrement:
+        this.options.apiRequestRetriesDelayIncrement,
     })
   }
 

@@ -99,7 +99,7 @@ export const mapInternalFabricRoomToInternalVideoRoomEntity = (
 }
 
 /**
- * Map InternalUnifiedCommunicationSessionEntity to InternalVideoRoomSessionEntity
+ * Map InternalFabricRoomSessionEntity to InternalVideoRoomSessionEntity
  */
 export const mapInternalFabricRoomToInternalVideoRoomSessionEntity = (
   params: InternalFabricRoomSessionEntity

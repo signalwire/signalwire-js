@@ -142,13 +142,15 @@ export interface SATSessionOptions
   extends ApiRequestRetriesOptions,
     SessionOptions {}
 
-export type FabricUserOptions = Omit<
+export type UnifiedCommunicationUserOptions = Omit<
   UserOptions,
   'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
 > &
   SATSessionOptions
 
-export interface WSClientOptions extends DefaultCallParams, FabricUserOptions {
+export interface WSClientOptions
+  extends DefaultCallParams,
+    UnifiedCommunicationUserOptions {
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
 }

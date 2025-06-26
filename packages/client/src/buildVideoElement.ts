@@ -1,6 +1,5 @@
 import {
-  FabricLayoutChangedEventParams,
-  VideoLayoutChangedEventParams,
+  FabricLayoutChangedEventParams as UnifiedCommunicationLayoutChangedEventParams,
   getLogger,
   uuid,
 } from '@signalwire/core'
@@ -96,7 +95,7 @@ export const buildVideoElement = async (
     }
 
     const layoutChangedHandler = (
-      params: FabricLayoutChangedEventParams | VideoLayoutChangedEventParams
+      params: UnifiedCommunicationLayoutChangedEventParams
     ) => {
       getLogger().debug('Received layout.changed - videoTrack', hasVideoTrack)
       if (hasVideoTrack) {

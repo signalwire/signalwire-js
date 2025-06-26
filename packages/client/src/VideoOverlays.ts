@@ -1,4 +1,7 @@
-import { FabricMemberUpdatedEventParams, getLogger } from '@signalwire/core'
+import {
+  FabricMemberUpdatedEventParams as UnifiedCommunicationMemberUpdatedEventParams,
+  getLogger
+} from '@signalwire/core'
 import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
 import {
   UnifiedCommunicationSession,
@@ -135,7 +138,7 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private fabricMemberVideoMutedHandler(
-    params: FabricMemberUpdatedEventParams
+    params: UnifiedCommunicationMemberUpdatedEventParams
   ) {
     this.memberVideoMutedHandler(
       params.member.member_id,

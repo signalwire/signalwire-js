@@ -56,7 +56,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  private makeFabricObject(makeRoomOptions: MakeRoomOptions) {
+  private makeUnifiedCommunicationObject(makeRoomOptions: MakeRoomOptions) {
     const {
       rootElement,
       applyLocalVideoOverlay = true,
@@ -177,7 +177,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       }
     }
 
-    const call = this.makeFabricObject({
+    const call = this.makeUnifiedCommunicationObject({
       audio: params.audio ?? true,
       video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -216,7 +216,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    const call = this.makeFabricObject({
+    const call = this.makeUnifiedCommunicationObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: params.negotiateAudio ?? true,
