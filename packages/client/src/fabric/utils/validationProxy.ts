@@ -16,14 +16,14 @@ import {
   validateVideoUnmute,
 } from './validators'
 import {
-  FabricRoomSession,
-  FabricRoomSessionConnection,
-} from '../FabricRoomSession'
+  UnifiedCommunicationSession,
+  UnifiedCommunicationSessionConnection,
+} from '../UnifiedCommunicationSession'
 
 type ValidatorMap = Partial<
   Record<
-    keyof FabricRoomSession,
-    (this: FabricRoomSessionConnection, ...args: any[]) => void
+    keyof UnifiedCommunicationSession,
+    (this: UnifiedCommunicationSessionConnection, ...args: any[]) => void
   >
 >
 
@@ -46,26 +46,28 @@ export const validationsMap: ValidatorMap = {
 }
 
 /**
- * Wraps a FabricRoomSession instance with a Proxy that runs validation
+ * Wraps a UnifiedCommunicationSession instance with a Proxy that runs validation
  * functions (from validationsMap) before calling the original method.
  *
- * @param instance - The FabricRoomSession instance to wrap.
- * @returns The proxied FabricRoomSession.
+ * @param instance - The UnifiedCommunicationSession instance to wrap.
+ * @returns The proxied UnifiedCommunicationSession.
  */
-export function createFabricRoomSessionValidateProxy(
-  instance: FabricRoomSession
+export function createUnifiedCommunicationSessionValidateProxy(
+  instance: UnifiedCommunicationSession
 ) {
   return new Proxy(instance, {
-    get(target, prop: keyof FabricRoomSession, receiver) {
+    get(target, prop: keyof UnifiedCommunicationSession, receiver) {
       // Only intercept keys that have an associated validator
       if (typeof prop === 'string' && prop in validationsMap) {
-        const targetConn = target as unknown as FabricRoomSessionConnection
+        const targetConn =
+          target as unknown as UnifiedCommunicationSessionConnection
         const origMethod = targetConn[prop] as Function
         if (typeof origMethod === 'function') {
           // Wrap in a promise so validator runs asynchronously
           return async function (...args: unknown[]) {
             // Run the validator before calling the method
-            const validator = validationsMap[prop as keyof FabricRoomSession]
+            const validator =
+              validationsMap[prop as keyof UnifiedCommunicationSession]
             if (validator) {
               validator.apply(targetConn, args)
             }

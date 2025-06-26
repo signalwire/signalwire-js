@@ -78,7 +78,7 @@ export const mapInternalFabricMemberToInternalVideoMemberUpdatedEntity = (
 }
 
 /**
- * Map InternalFabricRoomSessionEntity to InternalVideoRoomEntity
+ * Map InternalUnifiedCommunicationSessionEntity to InternalVideoRoomEntity
  */
 export const mapInternalFabricRoomToInternalVideoRoomEntity = (
   params: InternalFabricRoomSessionEntity
@@ -99,7 +99,7 @@ export const mapInternalFabricRoomToInternalVideoRoomEntity = (
 }
 
 /**
- * Map InternalFabricRoomSessionEntity to InternalVideoRoomSessionEntity
+ * Map InternalUnifiedCommunicationSessionEntity to InternalVideoRoomSessionEntity
  */
 export const mapInternalFabricRoomToInternalVideoRoomSessionEntity = (
   params: InternalFabricRoomSessionEntity

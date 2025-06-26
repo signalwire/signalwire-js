@@ -6,7 +6,7 @@ import {
   expectMCUVisible,
   SERVER_URL,
 } from '../../utils'
-import { FabricRoomSession } from '@signalwire/client'
+import { UnifiedCommunicationSession } from '@signalwire/client'
 
 test.describe('CallFabric Raise/Lower Hand', () => {
   test("should join a room and be able to raise/lower self member's hand", async ({
@@ -39,7 +39,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await page.evaluate(
       async ({ roomSessionId }) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const roomObj: UnifiedCommunicationSession = window._roomObj
 
         const memberUpdated = new Promise((resolve) => {
           roomObj.on('member.updated', (params: any) => {
@@ -63,7 +63,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await page.evaluate(
       async ({ roomSessionId }) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const roomObj: UnifiedCommunicationSession = window._roomObj
 
         const memberUpdated = new Promise((resolve) => {
           roomObj.on('member.updated', (params: any) => {
@@ -133,7 +133,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await pageOne.evaluate(
       async ({ roomSessionTwoId, memberOneId }) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj // This is a roomSessionTwo object
+        const roomObj: UnifiedCommunicationSession = window._roomObj // This is a roomSessionTwo object
 
         const memberUpdated = new Promise((resolve) => {
           roomObj.on('member.updated', (params: any) => {
@@ -161,7 +161,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await pageOne.evaluate(
       async ({ roomSessionTwoId, memberOneId }) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj // This is a roomSessionTwo object
+        const roomObj: UnifiedCommunicationSession = window._roomObj // This is a roomSessionTwo object
 
         const memberUpdated = new Promise((resolve) => {
           roomObj.on('member.updated', (params: any) => {

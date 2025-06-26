@@ -6,14 +6,14 @@ import {
 } from '@signalwire/core'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
-  FabricRoomSession,
-  FabricRoomSessionConnection,
-  createFabricRoomSessionObject,
-} from './FabricRoomSession'
+  UnifiedCommunicationSession,
+  UnifiedCommunicationSessionConnection,
+  createUnifiedCommunicationSessionObject,
+} from './UnifiedCommunicationSession'
 
-describe('FabricRoomSession', () => {
+describe('UnifiedCommunicationSession', () => {
   let store: any
-  let room: FabricRoomSession & {
+  let room: UnifiedCommunicationSession & {
     execute: (params: any) => any
   }
   const callJoinedHandler = jest.fn()
@@ -37,7 +37,7 @@ describe('FabricRoomSession', () => {
     stack = configureFullStack()
     store = stack.store
     // @ts-expect-error
-    room = createFabricRoomSessionObject({
+    room = createUnifiedCommunicationSessionObject({
       store,
       // @ts-expect-error
       emitter: stack.emitter,
@@ -109,7 +109,7 @@ describe('FabricRoomSession', () => {
     callJoinedHandler.mockReset()
   })
 
-  describe('should use FabricRoomSessionConnection implementation', () => {
+  describe('should use UnifiedCommunicationSessionConnection implementation', () => {
     const actionParams = {
       self: {
         call_id: 'call-id-1',
@@ -124,7 +124,10 @@ describe('FabricRoomSession', () => {
     }
 
     test('audioMute implementation', async () => {
-      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'audioMute')
+      const spy = jest.spyOn(
+        UnifiedCommunicationSessionConnection.prototype,
+        'audioMute'
+      )
       await room.audioMute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -141,7 +144,7 @@ describe('FabricRoomSession', () => {
 
     test('audioUnmute implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'audioUnmute'
       )
       await room.audioUnmute({ memberId: 'member-id-2' })
@@ -159,7 +162,10 @@ describe('FabricRoomSession', () => {
     })
 
     test('videoMute implementation', async () => {
-      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'videoMute')
+      const spy = jest.spyOn(
+        UnifiedCommunicationSessionConnection.prototype,
+        'videoMute'
+      )
       await room.videoMute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -176,7 +182,7 @@ describe('FabricRoomSession', () => {
 
     test('videoUnmute implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'videoUnmute'
       )
       await room.videoUnmute({ memberId: 'member-id-2' })
@@ -194,7 +200,10 @@ describe('FabricRoomSession', () => {
     })
 
     test('deaf implementation', async () => {
-      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'deaf')
+      const spy = jest.spyOn(
+        UnifiedCommunicationSessionConnection.prototype,
+        'deaf'
+      )
       await room.deaf({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -209,7 +218,10 @@ describe('FabricRoomSession', () => {
     })
 
     test('undeaf implementation', async () => {
-      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'undeaf')
+      const spy = jest.spyOn(
+        UnifiedCommunicationSessionConnection.prototype,
+        'undeaf'
+      )
       await room.undeaf({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -225,7 +237,7 @@ describe('FabricRoomSession', () => {
 
     test('getLayouts implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'getLayouts'
       )
       await room.getLayouts()
@@ -243,7 +255,7 @@ describe('FabricRoomSession', () => {
 
     test('getMembers implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'getMembers'
       )
       await room.getMembers()
@@ -261,7 +273,7 @@ describe('FabricRoomSession', () => {
 
     test('removeMember implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'removeMember'
       )
       await room.removeMember({ memberId: 'member-id-1' })
@@ -283,7 +295,10 @@ describe('FabricRoomSession', () => {
     })
 
     test('setLayout implementation', async () => {
-      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'setLayout')
+      const spy = jest.spyOn(
+        UnifiedCommunicationSessionConnection.prototype,
+        'setLayout'
+      )
       await room.setLayout({ name: 'layout-1' })
       expect(spy).toHaveBeenCalledWith({ name: 'layout-1' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -300,7 +315,7 @@ describe('FabricRoomSession', () => {
 
     test('setInputVolume implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'setInputVolume'
       )
       await room.setInputVolume({ volume: 10 })
@@ -319,7 +334,7 @@ describe('FabricRoomSession', () => {
 
     test('setOutputVolume implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'setOutputVolume'
       )
       await room.setOutputVolume({ volume: 10 })
@@ -337,7 +352,10 @@ describe('FabricRoomSession', () => {
     })
 
     test('lock implementation', async () => {
-      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'lock')
+      const spy = jest.spyOn(
+        UnifiedCommunicationSessionConnection.prototype,
+        'lock'
+      )
       await room.lock()
       expect(spy).toHaveBeenCalledWith()
       expect(room.execute).toHaveBeenCalledWith(
@@ -352,7 +370,10 @@ describe('FabricRoomSession', () => {
     })
 
     test('unlock implementation', async () => {
-      const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'unlock')
+      const spy = jest.spyOn(
+        UnifiedCommunicationSessionConnection.prototype,
+        'unlock'
+      )
       await room.unlock()
       expect(spy).toHaveBeenCalledWith()
       expect(room.execute).toHaveBeenCalledWith(
@@ -368,7 +389,7 @@ describe('FabricRoomSession', () => {
 
     test('setInputSensitivity implementation', async () => {
       const spy = jest.spyOn(
-        FabricRoomSessionConnection.prototype,
+        UnifiedCommunicationSessionConnection.prototype,
         'setInputSensitivity'
       )
       await room.setInputSensitivity({ value: 10 })
@@ -482,7 +503,7 @@ describe('FabricRoomSession', () => {
       stack = configureFullStack()
       store = stack.store
       // @ts-expect-error
-      room = createFabricRoomSessionObject({
+      room = createUnifiedCommunicationSessionObject({
         store,
         // @ts-expect-error
         emitter: stack.emitter,

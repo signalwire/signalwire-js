@@ -1,5 +1,8 @@
 import { uuid } from '@signalwire/core'
-import { FabricRoomSession, CallJoinedEventParams } from '@signalwire/client'
+import {
+  UnifiedCommunicationSession,
+  CallJoinedEventParams,
+} from '@signalwire/client'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -44,7 +47,7 @@ test.describe('CallFabric VideoRoom', () => {
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const roomObj: UnifiedCommunicationSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
           const memberUpdatedEvent = new Promise((res) => {
@@ -114,7 +117,7 @@ test.describe('CallFabric VideoRoom', () => {
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const roomObj: UnifiedCommunicationSession = window._roomObj
 
         const memberUpdatedMuted = new Promise((resolve) => {
           const memberUpdatedEvent = new Promise((res) => {
@@ -189,7 +192,7 @@ test.describe('CallFabric VideoRoom', () => {
     // --------------- Screenshare ---------------
     await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj: UnifiedCommunicationSession = window._roomObj
 
       let screenMemberId: string | undefined
 
@@ -243,7 +246,7 @@ test.describe('CallFabric VideoRoom', () => {
       // @ts-expect-error
       async ({ roomSession }) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const roomObj: UnifiedCommunicationSession = window._roomObj
 
         const roomUpdatedLocked = new Promise((resolve) => {
           roomObj.on('room.updated', (params) => {

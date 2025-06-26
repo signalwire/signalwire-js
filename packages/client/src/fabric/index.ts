@@ -16,7 +16,7 @@ export {
   HandlePushNotificationParams,
   HandlePushNotificationResult,
   DialParams,
-  ReattachParams
+  ReattachParams,
 } from './interfaces/wsClient'
 export {
   SignalWireClient,
@@ -27,4 +27,7 @@ export {
   PaginatedResponse,
   PaginatedResult,
 } from './interfaces'
-export { FabricRoomSession, isFabricRoomSession } from './FabricRoomSession'
+export {
+  UnifiedCommunicationSession,
+  isUnifiedCommunicationSession,
+} from './UnifiedCommunicationSession'

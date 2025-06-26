@@ -1,9 +1,9 @@
 import { FabricMemberUpdatedEventParams, getLogger } from '@signalwire/core'
 import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
 import {
-  FabricRoomSession,
-  isFabricRoomSession,
-} from './fabric/FabricRoomSession'
+  UnifiedCommunicationSession,
+  isUnifiedCommunicationSession,
+} from './fabric/UnifiedCommunicationSession'
 import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
 import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/roomSession'
 
@@ -66,12 +66,12 @@ export class UserOverlay {
 interface LocalVideoOverlayOptions {
   id: string
   mirrorLocalVideoOverlay: boolean
-  room: FabricRoomSession | VideoRoomSession
+  room: UnifiedCommunicationSession | VideoRoomSession
 }
 
 export class LocalVideoOverlay extends UserOverlay {
   private _mirrored: boolean
-  private _room: FabricRoomSession | VideoRoomSession
+  private _room: UnifiedCommunicationSession | VideoRoomSession
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
@@ -96,7 +96,7 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
-    if (isFabricRoomSession(this._room)) {
+    if (isUnifiedCommunicationSession(this._room)) {
       this._room.on(
         'member.updated.videoMuted',
         this.fabricMemberVideoMutedHandler
@@ -111,7 +111,7 @@ export class LocalVideoOverlay extends UserOverlay {
 
   /** @internal */
   public detachListeners() {
-    if (isFabricRoomSession(this._room)) {
+    if (isUnifiedCommunicationSession(this._room)) {
       this._room.off(
         'member.updated.videoMuted',
         this.fabricMemberVideoMutedHandler

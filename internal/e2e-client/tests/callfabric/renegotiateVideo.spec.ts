@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { FabricRoomSession } from '@signalwire/client'
+import { UnifiedCommunicationSession } from '@signalwire/client'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -39,7 +39,7 @@ test.describe('CallFabric Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: FabricRoomSession = window._roomObj
+      const cfRoomSession: UnifiedCommunicationSession = window._roomObj
       await cfRoomSession.setVideoDirection('sendrecv')
     })
 
@@ -55,7 +55,7 @@ test.describe('CallFabric Video Renegotiation', () => {
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: FabricRoomSession = window._roomObj
+        const cfRoomSession: UnifiedCommunicationSession = window._roomObj
         await cfRoomSession.updateMedia({
           video: { direction: 'inactive' },
         })
@@ -98,7 +98,7 @@ test.describe('CallFabric Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: FabricRoomSession = window._roomObj
+      const cfRoomSession: UnifiedCommunicationSession = window._roomObj
       await cfRoomSession.setVideoDirection('sendonly')
     })
 
@@ -122,7 +122,7 @@ test.describe('CallFabric Video Renegotiation', () => {
     await test.step('it should disable the video with "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: FabricRoomSession = window._roomObj
+        const cfRoomSession: UnifiedCommunicationSession = window._roomObj
         await cfRoomSession.updateMedia({
           video: { direction: 'recvonly' },
         })
@@ -167,7 +167,7 @@ test.describe('CallFabric Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: FabricRoomSession = window._roomObj
+      const cfRoomSession: UnifiedCommunicationSession = window._roomObj
       await cfRoomSession.setVideoDirection('recvonly')
     })
 
@@ -187,7 +187,7 @@ test.describe('CallFabric Video Renegotiation', () => {
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: FabricRoomSession = window._roomObj
+        const cfRoomSession: UnifiedCommunicationSession = window._roomObj
         await cfRoomSession.updateMedia({
           video: { direction: 'inactive' },
         })

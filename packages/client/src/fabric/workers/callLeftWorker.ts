@@ -1,6 +1,6 @@
 import { getLogger, SagaIterator, CallLeftEvent } from '@signalwire/core'
 import { FabricWorkerParams } from './fabricWorker'
-import { FabricRoomSessionMemberAPI } from '../FabricRoomSessionMember'
+import { UnifiedCommunicationSessionMemberAPI } from '../UnifiedCommunicationSessionMember'
 
 export const callLeftWorker = function* (
   options: FabricWorkerParams<CallLeftEvent>
@@ -18,7 +18,7 @@ export const callLeftWorker = function* (
   // Remove all the member instance where roomSessionId matches
   instanceMap.getAll().forEach(([key, obj]) => {
     if (
-      obj instanceof FabricRoomSessionMemberAPI &&
+      obj instanceof UnifiedCommunicationSessionMemberAPI &&
       obj.roomSessionId === room_session_id
     ) {
       instanceMap.remove(key)

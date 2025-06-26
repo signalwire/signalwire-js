@@ -1,6 +1,6 @@
 import { uuid } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
-import type { FabricRoomSession } from '@signalwire/client'
+import type { UnifiedCommunicationSession } from '@signalwire/client'
 import {
   SERVER_URL,
   createCFClient,
@@ -32,7 +32,7 @@ test.describe('CallFabric Room Device', () => {
     // --------------- Change the microphone & camera ---------------
     const devices = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj: UnifiedCommunicationSession = window._roomObj
 
       const microphoneUpdated = new Promise((resolve) => {
         roomObj.on('microphone.updated', (payload) => {
@@ -84,7 +84,7 @@ test.describe('CallFabric Room Device', () => {
     // --------------- Change the microphone & camera ---------------
     const devices = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj: UnifiedCommunicationSession = window._roomObj
       const localAudioTrack = roomObj.localAudioTrack!
       const localVideoTrack = roomObj.localVideoTrack!
 
@@ -137,7 +137,7 @@ test.describe('CallFabric Room Device', () => {
     // --------------- Change the speaker ---------------
     const device = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj: UnifiedCommunicationSession = window._roomObj
 
       const speakerUpdated = new Promise((resolve) => {
         roomObj.on('speaker.updated', (payload) => {
@@ -199,7 +199,7 @@ test.describe('CallFabric Room Device', () => {
     // --------------- Change the speaker -------------
     const device = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj: UnifiedCommunicationSession = window._roomObj
 
       navigator.mediaDevices.enumerateDevices = async () => {
         return []

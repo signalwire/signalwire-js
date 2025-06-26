@@ -16,14 +16,15 @@ import {
   BaseComponent,
 } from '@signalwire/core'
 
-export interface FabricRoomSessionMember extends FabricMemberContract {
+export interface UnifiedCommunicationSessionMember
+  extends FabricMemberContract {
   /** Unique id of this member. */
   id: string
   setPayload(payload: FabricMemberEventParams): void
 }
 
 // TODO: Fabric Room Session Member instance does not emit any events yet
-export type FabricRoomSessionMemberEventsHandlerMap = Record<
+export type UnifiedCommunicationSessionMemberEventsHandlerMap = Record<
   MemberJoined,
   (params: FabricMemberJoinedEventParams) => void
 > &
@@ -35,20 +36,20 @@ export type FabricRoomSessionMemberEventsHandlerMap = Record<
     (params: FabricMemberUpdatedEventParams) => void
   >
 
-export type FabricRoomSessionMemberEvents = {
-  [k in keyof FabricRoomSessionMemberEventsHandlerMap]: FabricRoomSessionMemberEventsHandlerMap[k]
+export type UnifiedCommunicationSessionMemberEvents = {
+  [k in keyof UnifiedCommunicationSessionMemberEventsHandlerMap]: UnifiedCommunicationSessionMemberEventsHandlerMap[k]
 }
 
-export interface FabricRoomSessionMemberOptions
+export interface UnifiedCommunicationSessionMemberOptions
   extends BaseComponentOptionsWithPayload<FabricMemberEventParamsExcludeTalking> {}
 
-export class FabricRoomSessionMemberAPI
-  extends BaseComponent<FabricRoomSessionMemberEvents>
+export class UnifiedCommunicationSessionMemberAPI
+  extends BaseComponent<UnifiedCommunicationSessionMemberEvents>
   implements FabricMemberContract
 {
   private _payload: FabricMemberEventParamsExcludeTalking
 
-  constructor(options: FabricRoomSessionMemberOptions) {
+  constructor(options: UnifiedCommunicationSessionMemberOptions) {
     super(options)
     this._payload = options.payload
   }
@@ -156,16 +157,16 @@ export class FabricRoomSessionMemberAPI
   }
 }
 
-export const createFabricRoomSessionMemberObject = (
-  params: FabricRoomSessionMemberOptions
-): FabricRoomSessionMember => {
+export const createUnifiedCommunicationSessionMemberObject = (
+  params: UnifiedCommunicationSessionMemberOptions
+): UnifiedCommunicationSessionMember => {
   const member = connect<
-    FabricRoomSessionMemberEventsHandlerMap,
-    FabricRoomSessionMemberAPI,
-    FabricRoomSessionMember
+    UnifiedCommunicationSessionMemberEventsHandlerMap,
+    UnifiedCommunicationSessionMemberAPI,
+    UnifiedCommunicationSessionMember
   >({
     store: params.store,
-    Component: FabricRoomSessionMemberAPI,
+    Component: UnifiedCommunicationSessionMemberAPI,
   })(params)
 
   return member

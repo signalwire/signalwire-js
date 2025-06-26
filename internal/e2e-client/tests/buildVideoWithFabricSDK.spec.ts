@@ -1,7 +1,7 @@
 import {
   OverlayMap,
   LocalVideoOverlay,
-  FabricRoomSession,
+  UnifiedCommunicationSession,
 } from '@signalwire/client'
 import { test, expect, Page } from '../fixtures'
 import {
@@ -406,7 +406,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
       const [memberOneElement, memberTwoElement] = await pageOne.evaluate(
         ({ memberOneId, memberTwoId }) => {
           // @ts-expect-error
-          const room: FabricRoomSession = window._roomObj
+          const room: UnifiedCommunicationSession = window._roomObj
 
           return [
             room.getMemberOverlay(memberOneId),

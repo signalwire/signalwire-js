@@ -20,41 +20,41 @@ import {
 import {
   BaseRoomSessionContract,
   ExecuteMemberActionParams,
-  FabricRoomSessionContract,
-  FabricRoomSessionEvents,
+  UnifiedCommunicationSessionContract,
+  UnifiedCommunicationSessionEvents,
   RequestMemberParams,
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { fabricWorker } from './workers'
-import { FabricRoomSessionMember } from './FabricRoomSessionMember'
+import { UnifiedCommunicationSessionMember } from './UnifiedCommunicationSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
-import { createFabricRoomSessionValidateProxy } from './utils/validationProxy'
+import { createUnifiedCommunicationSessionValidateProxy } from './utils/validationProxy'
 
-export interface FabricRoomSession
-  extends FabricRoomSessionContract,
+export interface UnifiedCommunicationSession
+  extends UnifiedCommunicationSessionContract,
     FabricRoomSessionMethods,
     BaseRoomSessionContract,
-    BaseConnectionContract<FabricRoomSessionEvents>,
+    BaseConnectionContract<UnifiedCommunicationSessionEvents>,
     BaseComponentContract {}
 
-export interface FabricRoomSessionOptions
+export interface UnifiedCommunicationSessionOptions
   extends Omit<BaseRoomSessionOptions, 'customSagas'> {}
 
-export class FabricRoomSessionConnection
-  extends BaseRoomSessionConnection<FabricRoomSessionEvents>
-  implements FabricRoomSessionContract
+export class UnifiedCommunicationSessionConnection
+  extends BaseRoomSessionConnection<UnifiedCommunicationSessionEvents>
+  implements UnifiedCommunicationSessionContract
 {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
-  private _self?: FabricRoomSessionMember
+  private _self?: UnifiedCommunicationSessionMember
   // this is "the member" on the last/active call segment
-  private _member?: FabricRoomSessionMember
+  private _member?: UnifiedCommunicationSessionMember
   private _currentLayoutEvent: FabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
 
-  constructor(options: FabricRoomSessionOptions) {
+  constructor(options: UnifiedCommunicationSessionOptions) {
     super(options)
 
     this.initWorker()
@@ -70,7 +70,7 @@ export class FabricRoomSessionConnection
     params.dialogParams.reattaching = this.options.attach || this.resuming
     return params
   }
-  
+
   set currentLayoutEvent(event: FabricLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }
@@ -97,19 +97,19 @@ export class FabricRoomSessionConnection
     this._capabilities = capabilities
   }
 
-  get selfMember(): FabricRoomSessionMember | undefined {
+  get selfMember(): UnifiedCommunicationSessionMember | undefined {
     return this._self
   }
 
-  set selfMember(member: FabricRoomSessionMember | undefined) {
+  set selfMember(member: UnifiedCommunicationSessionMember | undefined) {
     this._self = member
   }
 
-  set member(member: FabricRoomSessionMember) {
+  set member(member: UnifiedCommunicationSessionMember) {
     this._member = member
   }
 
-  get member(): FabricRoomSessionMember {
+  get member(): UnifiedCommunicationSessionMember {
     return this._member!
   }
 
@@ -139,7 +139,7 @@ export class FabricRoomSessionConnection
         .prevCallId} - prevCallId: ${this.options.prevCallId}`
     )
 
-    return super.invite<FabricRoomSession>()
+    return super.invite<UnifiedCommunicationSession>()
   }
 
   private executeAction<
@@ -153,7 +153,7 @@ export class FabricRoomSessionConnection
     const { method, channel, memberId, extraParams = {} } = params
 
     const targetMember = memberId
-      ? this.instanceMap.get<FabricRoomSessionMember>(memberId)
+      ? this.instanceMap.get<UnifiedCommunicationSessionMember>(memberId)
       : this.member
     if (!targetMember) throw new Error('No target param found to execute')
 
@@ -353,7 +353,7 @@ export class FabricRoomSessionConnection
       const targetMember =
         key === 'self'
           ? this.member
-          : this.instanceMap.get<FabricRoomSessionMember>(key)
+          : this.instanceMap.get<UnifiedCommunicationSessionMember>(key)
 
       if (targetMember) {
         targets.push({
@@ -397,24 +397,24 @@ export class FabricRoomSessionConnection
   }
 }
 
-export const isFabricRoomSession = (
+export const isUnifiedCommunicationSession = (
   room: unknown
-): room is FabricRoomSession => {
-  return room instanceof FabricRoomSessionConnection
+): room is UnifiedCommunicationSession => {
+  return room instanceof UnifiedCommunicationSessionConnection
 }
 
 /** @internal */
-export const createFabricRoomSessionObject = (
-  params: FabricRoomSessionOptions
-): FabricRoomSession => {
+export const createUnifiedCommunicationSessionObject = (
+  params: UnifiedCommunicationSessionOptions
+): UnifiedCommunicationSession => {
   const room = connect<
-    FabricRoomSessionEvents,
-    FabricRoomSessionConnection,
-    FabricRoomSession
+    UnifiedCommunicationSessionEvents,
+    UnifiedCommunicationSessionConnection,
+    UnifiedCommunicationSession
   >({
     store: params.store,
-    Component: FabricRoomSessionConnection,
+    Component: UnifiedCommunicationSessionConnection,
   })(params)
 
-  return createFabricRoomSessionValidateProxy(room)
+  return createUnifiedCommunicationSessionValidateProxy(room)
 }

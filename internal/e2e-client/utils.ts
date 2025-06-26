@@ -1,6 +1,6 @@
 import type {
   DialParams,
-  FabricRoomSession,
+  UnifiedCommunicationSession,
   SignalWire,
   SignalWireClient,
   SignalWireContract,
@@ -478,7 +478,7 @@ export const deleteRoom = async (id: string) => {
 
 export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
-    const roomObj: FabricRoomSession =
+    const roomObj: UnifiedCommunicationSession =
       // @ts-expect-error
       window._roomObj
     console.log('Fixture roomObj', roomObj)
@@ -710,7 +710,7 @@ interface GetStatsResult {
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
   return await page.evaluate<GetStatsResult>(async () => {
     // @ts-expect-error
-    const roomObj: FabricRoomSession = window._roomObj
+    const roomObj: UnifiedCommunicationSession = window._roomObj
     // @ts-expect-error
     const rtcPeer = roomObj.peer
 
@@ -853,7 +853,7 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 export const getAudioStats = async (page: Page) => {
   const audioStats = await page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: FabricRoomSession = window._roomObj
+    const roomObj: UnifiedCommunicationSession = window._roomObj
 
     // @ts-expect-error
     const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
@@ -928,7 +928,7 @@ export const expectSDPDirection = async (
 ) => {
   const peerSDP = await page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: FabricRoomSession = window._roomObj
+    const roomObj: UnifiedCommunicationSession = window._roomObj
     // @ts-expect-error
     return roomObj.peer.localSdp
   })
@@ -1707,7 +1707,7 @@ export const expectCFInitialEvents = (
 ) => {
   const initialEvents = page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: FabricRoomSession = window._roomObj
+    const roomObj: UnifiedCommunicationSession = window._roomObj
 
     const callCreated = new Promise<boolean>((resolve) => {
       roomObj.on('call.state', (params: any) => {
@@ -1738,7 +1738,7 @@ export const expectCFFinalEvents = (
 ) => {
   const finalEvents = page.evaluate(async () => {
     // @ts-expect-error
-    const roomObj: FabricRoomSession = window._roomObj
+    const roomObj: UnifiedCommunicationSession = window._roomObj
 
     const callLeft = new Promise((resolve) => {
       roomObj.on('destroy', () => resolve(true))
@@ -1755,7 +1755,7 @@ export const expectLayoutChanged = (page: Page, layoutName: string) => {
     (options) => {
       return new Promise((resolve) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const roomObj: UnifiedCommunicationSession = window._roomObj
         roomObj.on('layout.changed', ({ layout }: any) => {
           if (layout.name === options.layoutName) {
             resolve(true)
@@ -1774,7 +1774,7 @@ export const expectRoomJoined = (
   return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve, reject) => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj: UnifiedCommunicationSession = window._roomObj
 
       roomObj.once('room.joined', (room) => {
         console.log('Room joined!')
@@ -1792,7 +1792,7 @@ export const expectScreenShareJoined = async (page: Page) => {
   return page.evaluate(() => {
     return new Promise<any>(async (resolve) => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj: UnifiedCommunicationSession = window._roomObj
 
       roomObj.on('member.joined', (params: any) => {
         if (params.member.type === 'screen') {
