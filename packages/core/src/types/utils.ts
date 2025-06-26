@@ -142,8 +142,12 @@ export type Promisify<T> = {
 }
 
 /*
- * Type Debug Helper
+ * Flattens object types for better IDE display while preserving function types
  */
-export type Prettify<T> = NonNullable<unknown> & {
-  [K in keyof T]: Prettify<T[K]>
-} & {}
+export type Prettify<T> = T extends (...args: any[]) => any
+  ? T  // Preserve function types as-is
+  : T extends object
+  ? {
+      [K in keyof T]: T[K]
+    } & {}
+  : T
