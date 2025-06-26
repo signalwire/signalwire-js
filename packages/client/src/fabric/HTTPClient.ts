@@ -14,6 +14,7 @@ import type {
   GetSubscriberInfoResponse,
   GetSubscriberInfoResult,
   UnifiedCommunicationUserOptions,
+  Address,
 } from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -117,6 +118,17 @@ export class HTTPClient implements HTTPClientContract {
     const { body } = await this.httpClient<GetAddressesResponse>(queryUrl)
 
     return buildPaginatedResult(body, this.httpClient)
+  }
+
+  public async getMyAddresses(): Promise<Address[]> {
+    let path = '/api/fabric/subscriber/info'
+
+    getLogger().debug(`[getMyAddresses] ${path}`)
+    const { body } = await this.httpClient<{ fabric_addresses: Address[] }>(
+      path
+    )
+
+    return body.fabric_addresses
   }
 
   public async registerDevice(

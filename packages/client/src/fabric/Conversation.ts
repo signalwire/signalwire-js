@@ -21,7 +21,6 @@ import type {
   ConversationChatMessagesSubscribeResult,
   GetConversationChatMessageResult,
   JoinConversationParams,
-  JoinConversationResponse,
   JoinConversationResult,
   ConversationSubscribeResult,
   GetAddressResponse,
@@ -30,6 +29,7 @@ import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
+
 
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 const CACHE_ITEM_EXPIRATION = 1000 * 60 * 3 // 3 minutes
@@ -65,7 +65,10 @@ export class Conversation {
   }
 
   private lookupUsername(addressId: string) {
-    if ((Date.now() - (this.lookupCache.get(addressId)?.lastRequested ?? 0)  >= CACHE_ITEM_EXPIRATION)) {
+    if (
+      Date.now() - (this.lookupCache.get(addressId)?.lastRequested ?? 0) >=
+      CACHE_ITEM_EXPIRATION
+    ) {
       this.lookupCache.set(addressId, {
         lastRequested: Date.now(),
         promise: this.httpClient.getAddress({
@@ -74,7 +77,8 @@ export class Conversation {
       })
     }
 
-    return async () => (await this.lookupCache.get(addressId)?.promise)?.display_name
+    return async () =>
+      (await this.lookupCache.get(addressId)?.promise)?.display_name
   }
 
   /** @internal */
@@ -97,14 +101,17 @@ export class Conversation {
     params: SendConversationMessageParams
   ): Promise<SendConversationMessageResult> {
     try {
-      const { addressId, text } = params
+      const { conversationId, fromAddressId, text } = params
       const path = '/api/fabric/messages'
       const { body } =
         await this.httpClient.fetch<SendConversationMessageResponse>(path, {
           method: 'POST',
           body: {
-            conversation_id: addressId,
+            group_id: conversationId,
             text,
+            from_address_id: fromAddressId,
+            metadata: params.metadata,
+            details: params.details,
           },
         })
       return body
@@ -125,8 +132,10 @@ export class Conversation {
         queryParams.append('page_size', pageSize.toString())
       }
 
+      const url = makeQueryParamsUrls(path, queryParams)
+      console.log(`[getConversations] query URL ${url}`)
       const { body } = await this.httpClient.fetch<GetConversationsResponse>(
-        makeQueryParamsUrls(path, queryParams)
+        url
       )
       const self = this
       const data = body.data.map(
@@ -154,9 +163,22 @@ export class Conversation {
         await this.httpClient.fetch<GetConversationMessagesResponse>(
           makeQueryParamsUrls(path, queryParams)
         )
+      
+      const mappedBody = {
+        ...body,
+        data: body.data.map((message: any) => {
+          const fromAddressId = message.from_address_id
+          delete message.from_address_id
+          const conversationMessage: ConversationMessage = {
+            ...message,
+            fromAddressId
+          }
+          return conversationMessage
+        })
+      }
 
       return buildPaginatedResult<ConversationMessage>(
-        body,
+        mappedBody,
         this.httpClient.fetch
       )
     } catch (error) {
@@ -201,8 +223,7 @@ export class Conversation {
       isDirectionNext = true
     ): Promise<GetConversationChatMessageResult> => {
       let chatMessages = [...cached]
-      const isValid = (item: ConversationMessage) =>
-        item.conversation_id === addressId && item.subtype === 'chat'
+      const isValid = (item: ConversationMessage) => item.subtype === 'chat'
 
       let conversationMessages: GetConversationChatMessageResult | undefined
       conversationMessages = await fetcherFn?.()
@@ -243,14 +264,14 @@ export class Conversation {
 
       chatMessages = await Promise.all(
         chatMessages.map(async (message) => {
-          if (!message.from_address_id) {
+          if (!message.fromAddressId) {
             // nothing to lookup
             return message
           }
 
           return {
             ...message,
-            user_name: await this.lookupUsername(message.from_address_id)(),
+            user_name: await this.lookupUsername(message.fromAddressId)(),
           }
         })
       )
@@ -316,18 +337,27 @@ export class Conversation {
     params: JoinConversationParams
   ): Promise<JoinConversationResult> {
     try {
-      const { addressId } = params
+      const { fromAddressId, addressIds } = params
       const path = '/api/fabric/conversations/join'
-      const { body } = await this.httpClient.fetch<JoinConversationResponse>(
+      const { body } = await this.httpClient.fetch<{
+        group_id: string
+        fabric_address_ids: string[]
+        from_fabric_address_id: string
+      }>(
         path,
         {
           method: 'POST',
           body: {
-            conversation_id: addressId,
+            from_fabric_address_id: fromAddressId,
+            fabric_address_ids: addressIds,
           },
         }
       )
-      return body
+      return {
+        conversationId: body.group_id,
+        addressIds: body.fabric_address_ids,
+        fromAddressId: body.from_fabric_address_id,
+      }
     } catch (error) {
       throw new Error('Error joining a conversation!', error)
     }

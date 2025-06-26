@@ -7,8 +7,8 @@ export interface SignalWireClientParams extends WSClientOptions {}
 
 export interface SignalWireContract
   extends WSClientContract,
-    Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
-  address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress'>
+    Omit<HTTPClientContract, 'getAddresses' | 'getAddress' | 'getMyAddresses'> {
+  address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress' | 'getMyAddresses'>
   conversation: {
     getConversations: Conversation['getConversations']
     getMessages: Conversation['getMessages']

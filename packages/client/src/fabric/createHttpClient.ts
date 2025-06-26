@@ -121,6 +121,18 @@ export const createHttpClient = (
     }
 
     try {
+      console.log(
+        `Request to ${path} with options:`,
+        JSON.stringify(
+          {
+            path,
+            baseUrl,
+            searchParams: options?.searchParams,
+          },
+          null,
+          2
+        )
+      )
       const response = await fetcher<T>(
         getUrl({
           path,
@@ -132,9 +144,13 @@ export const createHttpClient = (
         retriesDelay,
         retriesDelayIncrement
       )
-
+      console.log(
+        `Response from ${path}:`,
+        JSON.stringify(response.parsedBody, null, 2)
+      )
       return { body: response.parsedBody as T }
     } catch (e) {
+      console.log(`Error from ${path}:`, JSON.stringify(e, null, 2))
       throw e
     } finally {
       timerId && clearTimeout(timerId)
