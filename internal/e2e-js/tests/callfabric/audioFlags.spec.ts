@@ -186,6 +186,68 @@ test.describe('CallFabric Audio Flags', () => {
       (member) => member.member_id
     )
 
+    // --------------- Attach listeners on pageTwo ---------------
+    const waitForMemberUpdatedEvents = pageTwo.evaluate((memberId) => {
+      // @ts-expect-error
+      const roomObj: FabricRoomSession = window._roomObj
+
+      const memberUpdatedEvent = new Promise((res) => {
+        roomObj.on('member.updated', (params) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('noise_suppression') &&
+            params.member.updated.includes('echo_cancellation') &&
+            params.member.updated.includes('auto_gain') &&
+            params.member.auto_gain === false &&
+            params.member.echo_cancellation === false &&
+            params.member.noise_suppression === false
+          ) {
+            res(true)
+          }
+        })
+      })
+      const memberUpdatedAutoGainEvent = new Promise((res) => {
+        roomObj.on('member.updated.autoGain', (params) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('auto_gain') &&
+            params.member.auto_gain === false
+          ) {
+            res(true)
+          }
+        })
+      })
+      const memberUpdatedEchoCancellationEvent = new Promise((res) => {
+        roomObj.on('member.updated.echoCancellation', (params) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('echo_cancellation') &&
+            params.member.echo_cancellation === false
+          ) {
+            res(true)
+          }
+        })
+      })
+      const memberUpdatedNoiseSuppressionEvent = new Promise((res) => {
+        roomObj.on('member.updated.noiseSuppression', (params) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('noise_suppression') &&
+            params.member.noise_suppression === false
+          ) {
+            res(true)
+          }
+        })
+      })
+
+      return Promise.all([
+        memberUpdatedEvent,
+        memberUpdatedAutoGainEvent,
+        memberUpdatedEchoCancellationEvent,
+        memberUpdatedNoiseSuppressionEvent,
+      ])
+    }, memberTwoId)
+
     // --------------- Set audio flags (self) ---------------
     await test.step('[pageOne] change audio flags for memberTwo', async () => {
       await pageOne.evaluate(async (memberId) => {
@@ -256,6 +318,8 @@ test.describe('CallFabric Audio Flags', () => {
         ])
       }, memberTwoId)
     })
+
+    await waitForMemberUpdatedEvents
 
     const roomSessionTwoAfter =
       await test.step('[pageTwo] reload page and reattach', async () => {
