@@ -27,7 +27,4 @@ export {
   PaginatedResponse,
   PaginatedResult,
 } from './interfaces'
-export {
-  UnifiedCommunicationSession,
-  isUnifiedCommunicationSession,
-} from './UnifiedCommunicationSession'
+export { CallSession, isCallSession } from './CallSession'

@@ -3,8 +3,8 @@
  * @module
  */
 
-import { 
-  FabricRoomEventParams, 
+import {
+  FabricRoomEventParams,
   Prettify,
   BaseComponentOptions,
   BaseConnectionState,
@@ -36,19 +36,19 @@ import {
   ConversationMessageEvent,
   ConversationEventParams,
   ConversationEvent,
-  EventEmitter
+  EventEmitter,
 } from '@signalwire/core'
 import {
   BaseConnectionOptions,
   ConnectionOptions,
-  MicrophoneAnalyzer
+  MicrophoneAnalyzer,
 } from '@signalwire/webrtc'
 import {
   CallJoinedEventParams,
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,
   RoomEventNames,
-  StartScreenShareOptions
+  StartScreenShareOptions,
 } from './utils/interfaces'
 import {
   // From interfaces/address.ts
@@ -119,9 +119,8 @@ import {
   GetSubscriberInfoResponse,
   GetSubscriberInfoResult,
   PaginatedResponse,
-  PaginatedResult
+  PaginatedResult,
 } from './fabric'
-
 
 /**
  * The Fabric namespace contains the classes and functions that you need to
@@ -148,7 +147,8 @@ type ExternalFabricRoomEventParams = Prettify<FabricRoomEventParams>
 type ExternalBaseComponentOptions = Prettify<BaseComponentOptions>
 type ExternalBaseConnectionState = Prettify<BaseConnectionState>
 type ExternalClientEvents = Prettify<ClientEvents>
-type ExternalEmitterContract<EventTypes extends EventEmitter.ValidEventTypes> = Prettify<EmitterContract<EventTypes>>
+type ExternalEmitterContract<EventTypes extends EventEmitter.ValidEventTypes> =
+  Prettify<EmitterContract<EventTypes>>
 type ExternalRTCTrackEventName = Prettify<RTCTrackEventName>
 type ExternalUserOptions = Prettify<UserOptions>
 type ExternalSessionStatus = Prettify<SessionStatus>
@@ -163,15 +163,20 @@ type ExternalCallStateEventParams = Prettify<CallStateEventParams>
 type ExternalCallPlayEventParams = Prettify<CallPlayEventParams>
 type ExternalCallConnectEventParams = Prettify<CallConnectEventParams>
 type ExternalCallRoomEventParams = Prettify<CallRoomEventParams>
-type ExternalFabricLayoutChangedEventParams = Prettify<FabricLayoutChangedEventParams>
-type ExternalFabricMemberJoinedEventParams = Prettify<FabricMemberJoinedEventParams>
-type ExternalFabricMemberUpdatedEventParams = Prettify<FabricMemberUpdatedEventParams>
+type ExternalFabricLayoutChangedEventParams =
+  Prettify<FabricLayoutChangedEventParams>
+type ExternalFabricMemberJoinedEventParams =
+  Prettify<FabricMemberJoinedEventParams>
+type ExternalFabricMemberUpdatedEventParams =
+  Prettify<FabricMemberUpdatedEventParams>
 type ExternalFabricMemberLeftEventParams = Prettify<FabricMemberLeftEventParams>
-type ExternalFabricMemberTalkingEventParams = Prettify<FabricMemberTalkingEventParams>
+type ExternalFabricMemberTalkingEventParams =
+  Prettify<FabricMemberTalkingEventParams>
 type ExternalFabricMemberEventParams = Prettify<FabricMemberEventParams>
 type ExternalFabricMemberEntity = Prettify<FabricMemberEntity>
 type ExternalInternalFabricMemberEntity = Prettify<InternalFabricMemberEntity>
-type ExternalConversationMessageEventName = Prettify<ConversationMessageEventName>
+type ExternalConversationMessageEventName =
+  Prettify<ConversationMessageEventName>
 type ExternalConversationMessageEvent = Prettify<ConversationMessageEvent>
 type ExternalConversationEventParams = Prettify<ConversationEventParams>
 type ExternalConversationEvent = Prettify<ConversationEvent>
@@ -183,7 +188,8 @@ type ExternalMicrophoneAnalyzer = Prettify<MicrophoneAnalyzer>
 
 // Local interface types
 type ExternalCallJoinedEventParams = Prettify<CallJoinedEventParams>
-type ExternalRoomSessionObjectEventsHandlerMap = Prettify<RoomSessionObjectEventsHandlerMap>
+type ExternalRoomSessionObjectEventsHandlerMap =
+  Prettify<RoomSessionObjectEventsHandlerMap>
 type ExternalRoomSessionObjectEvents = Prettify<RoomSessionObjectEvents>
 type ExternalRoomEventNames = Prettify<RoomEventNames>
 type ExternalStartScreenShareOptions = Prettify<StartScreenShareOptions>
@@ -201,23 +207,30 @@ type ExternalGetAddressesResponse = Prettify<GetAddressesResponse>
 type ExternalGetAddressesResult = Prettify<GetAddressesResult>
 
 // Fabric types - Capabilities
-type ExternalCapabilityOnOffStateContract = Prettify<CapabilityOnOffStateContract>
+type ExternalCapabilityOnOffStateContract =
+  Prettify<CapabilityOnOffStateContract>
 type ExternalMemberCapabilityContract = Prettify<MemberCapabilityContract>
 type ExternalCallCapabilitiesContract = Prettify<CallCapabilitiesContract>
 
 // Fabric types - Conversation
 type ExternalConversationContract = Prettify<ConversationContract>
-type ExternalSendConversationMessageParams = Prettify<SendConversationMessageParams>
-type ExternalSendConversationMessageResponse = Prettify<SendConversationMessageResponse>
-type ExternalSendConversationMessageResult = Prettify<SendConversationMessageResult>
+type ExternalSendConversationMessageParams =
+  Prettify<SendConversationMessageParams>
+type ExternalSendConversationMessageResponse =
+  Prettify<SendConversationMessageResponse>
+type ExternalSendConversationMessageResult =
+  Prettify<SendConversationMessageResult>
 type ExternalGetConversationsParams = Prettify<GetConversationsParams>
 type ExternalConversationResponse = Prettify<ConversationResponse>
 type ExternalGetConversationsResponse = Prettify<GetConversationsResponse>
 type ExternalGetConversationsResult = Prettify<GetConversationsResult>
-type ExternalConversationSubscribeCallback = Prettify<ConversationSubscribeCallback>
+type ExternalConversationSubscribeCallback =
+  Prettify<ConversationSubscribeCallback>
 type ExternalConversationSubscribeResult = Prettify<ConversationSubscribeResult>
-type ExternalConversationChatMessagesSubscribeParams = Prettify<ConversationChatMessagesSubscribeParams>
-type ExternalConversationChatMessagesSubscribeResult = Prettify<ConversationChatMessagesSubscribeResult>
+type ExternalConversationChatMessagesSubscribeParams =
+  Prettify<ConversationChatMessagesSubscribeParams>
+type ExternalConversationChatMessagesSubscribeResult =
+  Prettify<ConversationChatMessagesSubscribeResult>
 type ExternalJoinConversationParams = Prettify<JoinConversationParams>
 type ExternalJoinConversationResponse = Prettify<JoinConversationResponse>
 type ExternalJoinConversationResult = Prettify<JoinConversationResult>
@@ -225,13 +238,20 @@ type ExternalGetMessagesParams = Prettify<GetMessagesParams>
 type ExternalConversationMessage = Prettify<ConversationMessage>
 type ExternalGetMessagesResult = Prettify<GetMessagesResult>
 type ExternalConversationChatMessage = Prettify<ConversationChatMessage>
-type ExternalGetConversationChatMessageParams = Prettify<GetConversationChatMessageParams>
-type ExternalGetConversationChatMessageResult = Prettify<GetConversationChatMessageResult>
-type ExternalGetConversationMessagesResponse = Prettify<GetConversationMessagesResponse>
-type ExternalGetConversationMessagesParams = Prettify<GetConversationMessagesParams>
-type ExternalGetConversationMessagesResult = Prettify<GetConversationMessagesResult>
-type ExternalConversationAPISendMessageParams = Prettify<ConversationAPISendMessageParams>
-type ExternalConversationAPIGetMessagesParams = Prettify<ConversationAPIGetMessagesParams>
+type ExternalGetConversationChatMessageParams =
+  Prettify<GetConversationChatMessageParams>
+type ExternalGetConversationChatMessageResult =
+  Prettify<GetConversationChatMessageResult>
+type ExternalGetConversationMessagesResponse =
+  Prettify<GetConversationMessagesResponse>
+type ExternalGetConversationMessagesParams =
+  Prettify<GetConversationMessagesParams>
+type ExternalGetConversationMessagesResult =
+  Prettify<GetConversationMessagesResult>
+type ExternalConversationAPISendMessageParams =
+  Prettify<ConversationAPISendMessageParams>
+type ExternalConversationAPIGetMessagesParams =
+  Prettify<ConversationAPIGetMessagesParams>
 
 // Fabric types - Device
 type ExternalRegisterDeviceType = Prettify<RegisterDeviceType>
@@ -250,8 +270,10 @@ type ExternalIncomingCallHandlers = Prettify<IncomingCallHandlers>
 
 // Fabric types - WSClient
 type ExternalOnlineParams = Prettify<OnlineParams>
-type ExternalHandlePushNotificationParams = Prettify<HandlePushNotificationParams>
-type ExternalHandlePushNotificationResult = Prettify<HandlePushNotificationResult>
+type ExternalHandlePushNotificationParams =
+  Prettify<HandlePushNotificationParams>
+type ExternalHandlePushNotificationResult =
+  Prettify<HandlePushNotificationResult>
 type ExternalDialParams = Prettify<DialParams>
 type ExternalReattachParams = Prettify<ReattachParams>
 
@@ -286,19 +308,19 @@ export {
   ExternalCallPlayEventParams as CallPlayEventParams,
   ExternalCallConnectEventParams as CallConnectEventParams,
   ExternalCallRoomEventParams as CallRoomEventParams,
-  ExternalFabricLayoutChangedEventParams as UnifiedCommunicationLayoutChangedEventParams,
-  ExternalFabricMemberJoinedEventParams as UnifiedCommunicationMemberJoinedEventParams,
-  ExternalFabricMemberUpdatedEventParams as UnifiedCommunicationMemberUpdatedEventParams,
-  ExternalFabricMemberLeftEventParams as UnifiedCommunicationMemberLeftEventParams,
-  ExternalFabricMemberTalkingEventParams as UnifiedCommunicationMemberTalkingEventParams,
-  ExternalFabricMemberEventParams as UnifiedCommunicationMemberEventParams,
-  ExternalFabricMemberEntity as UnifiedCommunicationMemberEntity,
-  ExternalInternalFabricMemberEntity as InternalUnifiedCommunicationMemberEntity,
+  ExternalFabricLayoutChangedEventParams as CallLayoutChangedEventParams,
+  ExternalFabricMemberJoinedEventParams as CallMemberJoinedEventParams,
+  ExternalFabricMemberUpdatedEventParams as CallMemberUpdatedEventParams,
+  ExternalFabricMemberLeftEventParams as CallMemberLeftEventParams,
+  ExternalFabricMemberTalkingEventParams as CallMemberTalkingEventParams,
+  ExternalFabricMemberEventParams as CallMemberEventParams,
+  ExternalFabricMemberEntity as CallMemberEntity,
+  ExternalInternalFabricMemberEntity as InternalCallMemberEntity,
   ExternalConversationMessageEventName as ConversationMessageEventName,
   ExternalConversationMessageEvent as ConversationMessageEvent,
   ExternalConversationEventParams as ConversationEventParams,
   ExternalConversationEvent as ConversationEvent,
-  ExternalFabricRoomEventParams as UnifiedCommunicationEventParams
+  ExternalFabricRoomEventParams as CallEventParams,
 }
 
 export {

@@ -10,7 +10,7 @@ import {
   expectMCUVisible,
   SERVER_URL,
 } from '../../utils'
-import { UnifiedCommunicationSession } from '@signalwire/client'
+import { CallSession } from '@signalwire/client'
 
 test.describe('CallFabric Video Room Layout', () => {
   test('should join a room and be able to change the layout', async ({
@@ -39,7 +39,7 @@ test.describe('CallFabric Video Room Layout', () => {
       async ({ roomSessionId }) => {
         const expectLayout = '8x8'
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const layoutUpdated = new Promise((resolve) => {
           roomObj.on('layout.changed', (params) => {
@@ -84,7 +84,7 @@ test.describe('CallFabric Video Room Layout', () => {
     // --------------- Assert the current layout and position ---------------
     const { currentLayout, currentPosition } = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: UnifiedCommunicationSession = window._roomObj
+      const roomObj: CallSession = window._roomObj
       return {
         currentLayout: roomObj.currentLayout,
         currentPosition: roomObj.currentPosition,
@@ -102,7 +102,7 @@ test.describe('CallFabric Video Room Layout', () => {
     await page.evaluate(
       async ({ roomSessionId, secondPosition }) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const memberUpdated = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
@@ -162,7 +162,7 @@ test.describe('CallFabric Video Room Layout', () => {
     const { currentLayout, currentPosition } = await pageTwo.evaluate(
       async () => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
         return {
           currentLayout: roomObj.currentLayout,
           currentPosition: roomObj.currentPosition,
@@ -191,7 +191,7 @@ test.describe('CallFabric Video Room Layout', () => {
     const pageOneRecievedEvent = pageTwo.evaluate(
       async ({ memberTwoId, roomSessionOneId }) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const memberUpdated = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {
@@ -216,7 +216,7 @@ test.describe('CallFabric Video Room Layout', () => {
     const pageTwoRecievedEvent = pageTwo.evaluate(
       async ({ memberTwoId, roomSessionTwoId }) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const memberUpdated = new Promise((resolve) => {
           roomObj.on('member.updated', (params) => {

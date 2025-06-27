@@ -6,7 +6,7 @@ import {
   SERVER_URL,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
-import { UnifiedCommunicationSession } from '@signalwire/client'
+import { CallSession } from '@signalwire/client'
 
 type CameraTest = {
   stopCameraWhileMuted: boolean
@@ -56,7 +56,7 @@ test.describe('CallFabric - Device State', () => {
       await test.step('mute the self video', async () => {
         await page.evaluate(async (memberId) => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
 
           const memberUpdatedMutedEvent = new Promise((res) => {
             roomObj.on('member.updated.videoMuted', (event) => {
@@ -79,7 +79,7 @@ test.describe('CallFabric - Device State', () => {
       }`, async () => {
         const cameraOn = await page.evaluate(() => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
           const localStreams = roomObj.localStream
           return Boolean(localStreams?.getVideoTracks()[0]?.enabled)
         })
@@ -117,7 +117,7 @@ test.describe('CallFabric - Device State', () => {
       await test.step('mute the self video', async () => {
         await page.evaluate(async (memberId) => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
 
           const memberUpdatedMutedEvent = new Promise((res) => {
             roomObj.on('member.updated.audioMuted', (event) => {
@@ -140,7 +140,7 @@ test.describe('CallFabric - Device State', () => {
       }`, async () => {
         const micOn = await page.evaluate(() => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
           const localStreams = roomObj.localStream
           return Boolean(localStreams?.getAudioTracks()[0]?.enabled)
         })

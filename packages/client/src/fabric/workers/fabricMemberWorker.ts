@@ -8,9 +8,9 @@ import {
 } from '@signalwire/core'
 import { FabricWorkerParams } from './fabricWorker'
 import {
-  createUnifiedCommunicationSessionMemberObject,
-  UnifiedCommunicationSessionMember,
-} from '../UnifiedCommunicationSessionMember'
+  createCallSessionMemberObject,
+  CallSessionMember,
+} from '../CallSessionMember'
 
 export const fabricMemberWorker = function* (
   options: FabricWorkerParams<FabricMemberEvent>
@@ -23,9 +23,9 @@ export const fabricMemberWorker = function* (
   } = options
 
   const memberId = payload.member.member_id
-  let memberInstance = get<UnifiedCommunicationSessionMember>(memberId)
+  let memberInstance = get<CallSessionMember>(memberId)
   if (!memberInstance && type !== 'member.talking') {
-    memberInstance = createUnifiedCommunicationSessionMemberObject({
+    memberInstance = createCallSessionMemberObject({
       store: roomSession.store,
       payload: payload,
     })
@@ -33,7 +33,7 @@ export const fabricMemberWorker = function* (
   if (memberInstance) {
     memberInstance.setPayload(payload)
   }
-  set<UnifiedCommunicationSessionMember>(memberId, memberInstance)
+  set<CallSessionMember>(memberId, memberInstance)
 
   if (type.startsWith('member.updated.')) {
     const clientType = fromSnakeToCamelCase(type) as MemberUpdatedEventNames
@@ -49,7 +49,7 @@ export const fabricMemberWorker = function* (
       break
     case 'member.left':
       roomSession.emit(type, payload)
-      remove<UnifiedCommunicationSessionMember>(memberId)
+      remove<CallSessionMember>(memberId)
       break
     case 'member.talking':
       roomSession.emit(type, payload)

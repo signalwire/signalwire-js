@@ -20,41 +20,41 @@ import {
 import {
   BaseRoomSessionContract,
   ExecuteMemberActionParams,
-  UnifiedCommunicationSessionContract,
-  UnifiedCommunicationSessionEvents,
+  CallSessionContract,
+  CallSessionEvents,
   RequestMemberParams,
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { fabricWorker } from './workers'
-import { UnifiedCommunicationSessionMember } from './UnifiedCommunicationSessionMember'
+import { CallSessionMember } from './CallSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
-import { createUnifiedCommunicationSessionValidateProxy } from './utils/validationProxy'
+import { createCallSessionValidateProxy } from './utils/validationProxy'
 
-export interface UnifiedCommunicationSession
-  extends UnifiedCommunicationSessionContract,
+export interface CallSession
+  extends CallSessionContract,
     FabricRoomSessionMethods,
     BaseRoomSessionContract,
-    BaseConnectionContract<UnifiedCommunicationSessionEvents>,
+    BaseConnectionContract<CallSessionEvents>,
     BaseComponentContract {}
 
-export interface UnifiedCommunicationSessionOptions
+export interface CallSessionOptions
   extends Omit<BaseRoomSessionOptions, 'customSagas'> {}
 
-export class UnifiedCommunicationSessionConnection
-  extends BaseRoomSessionConnection<UnifiedCommunicationSessionEvents>
-  implements UnifiedCommunicationSessionContract
+export class CallSessionConnection
+  extends BaseRoomSessionConnection<CallSessionEvents>
+  implements CallSessionContract
 {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
-  private _self?: UnifiedCommunicationSessionMember
+  private _self?: CallSessionMember
   // this is "the member" on the last/active call segment
-  private _member?: UnifiedCommunicationSessionMember
+  private _member?: CallSessionMember
   private _currentLayoutEvent: FabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
 
-  constructor(options: UnifiedCommunicationSessionOptions) {
+  constructor(options: CallSessionOptions) {
     super(options)
 
     this.initWorker()
@@ -97,19 +97,19 @@ export class UnifiedCommunicationSessionConnection
     this._capabilities = capabilities
   }
 
-  get selfMember(): UnifiedCommunicationSessionMember | undefined {
+  get selfMember(): CallSessionMember | undefined {
     return this._self
   }
 
-  set selfMember(member: UnifiedCommunicationSessionMember | undefined) {
+  set selfMember(member: CallSessionMember | undefined) {
     this._self = member
   }
 
-  set member(member: UnifiedCommunicationSessionMember) {
+  set member(member: CallSessionMember) {
     this._member = member
   }
 
-  get member(): UnifiedCommunicationSessionMember {
+  get member(): CallSessionMember {
     return this._member!
   }
 
@@ -139,7 +139,7 @@ export class UnifiedCommunicationSessionConnection
         .prevCallId} - prevCallId: ${this.options.prevCallId}`
     )
 
-    return super.invite<UnifiedCommunicationSession>()
+    return super.invite<CallSession>()
   }
 
   private executeAction<
@@ -153,7 +153,7 @@ export class UnifiedCommunicationSessionConnection
     const { method, channel, memberId, extraParams = {} } = params
 
     const targetMember = memberId
-      ? this.instanceMap.get<UnifiedCommunicationSessionMember>(memberId)
+      ? this.instanceMap.get<CallSessionMember>(memberId)
       : this.member
     if (!targetMember) throw new Error('No target param found to execute')
 
@@ -353,7 +353,7 @@ export class UnifiedCommunicationSessionConnection
       const targetMember =
         key === 'self'
           ? this.member
-          : this.instanceMap.get<UnifiedCommunicationSessionMember>(key)
+          : this.instanceMap.get<CallSessionMember>(key)
 
       if (targetMember) {
         targets.push({
@@ -397,24 +397,18 @@ export class UnifiedCommunicationSessionConnection
   }
 }
 
-export const isUnifiedCommunicationSession = (
-  room: unknown
-): room is UnifiedCommunicationSession => {
-  return room instanceof UnifiedCommunicationSessionConnection
+export const isCallSession = (room: unknown): room is CallSession => {
+  return room instanceof CallSessionConnection
 }
 
 /** @internal */
-export const createUnifiedCommunicationSessionObject = (
-  params: UnifiedCommunicationSessionOptions
-): UnifiedCommunicationSession => {
-  const room = connect<
-    UnifiedCommunicationSessionEvents,
-    UnifiedCommunicationSessionConnection,
-    UnifiedCommunicationSession
-  >({
+export const createCallSessionObject = (
+  params: CallSessionOptions
+): CallSession => {
+  const room = connect<CallSessionEvents, CallSessionConnection, CallSession>({
     store: params.store,
-    Component: UnifiedCommunicationSessionConnection,
+    Component: CallSessionConnection,
   })(params)
 
-  return createUnifiedCommunicationSessionValidateProxy(room)
+  return createCallSessionValidateProxy(room)
 }

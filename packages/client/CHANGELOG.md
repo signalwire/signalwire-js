@@ -41,7 +41,7 @@
 
   CF SDK:
 
-  - Introduces a validation proxy for the `UnifiedCommunicationSession` class.
+  - Introduces a validation proxy for the `CallSession` class.
   - Introduces a `CapabilityError` for the errors based on the missing capability.
   - Fixes the `setOutputVolume` API for Call Fabric.
   - Fixes the `setInputSensitivity` API param for Call Fabric.
@@ -72,7 +72,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- [#1089](https://github.com/signalwire/signalwire-js/pull/1089) [`d34f3360163292aedb3474ffc9f7e2017b9d0002`](https://github.com/signalwire/signalwire-js/commit/d34f3360163292aedb3474ffc9f7e2017b9d0002) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - ADD lock and unlock methods to CallUnifiedCommunicationSession
+- [#1089](https://github.com/signalwire/signalwire-js/pull/1089) [`d34f3360163292aedb3474ffc9f7e2017b9d0002`](https://github.com/signalwire/signalwire-js/commit/d34f3360163292aedb3474ffc9f7e2017b9d0002) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - ADD lock and unlock methods to CallCallSession
 
 - [#1130](https://github.com/signalwire/signalwire-js/pull/1130) [`fca4c09ac531ab88dec9d94f3a73d5cd06060d36`](https://github.com/signalwire/signalwire-js/commit/fca4c09ac531ab88dec9d94f3a73d5cd06060d36) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Introduce the set member position API
 
@@ -136,7 +136,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - [#1091](https://github.com/signalwire/signalwire-js/pull/1091) [`632ec5b53ad232c99368c3c59beb5d9cd7d14f61`](https://github.com/signalwire/signalwire-js/commit/632ec5b53ad232c99368c3c59beb5d9cd7d14f61) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Browser SDKs: Expose `enumerateDevicesByKind`
 
-- [#1083](https://github.com/signalwire/signalwire-js/pull/1083) [`2ef7d5eb845fa033c3c816ffc5e0c29a69a59335`](https://github.com/signalwire/signalwire-js/commit/2ef7d5eb845fa033c3c816ffc5e0c29a69a59335) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose CallUnifiedCommunicationSession type
+- [#1083](https://github.com/signalwire/signalwire-js/pull/1083) [`2ef7d5eb845fa033c3c816ffc5e0c29a69a59335`](https://github.com/signalwire/signalwire-js/commit/2ef7d5eb845fa033c3c816ffc5e0c29a69a59335) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose CallCallSession type
 
 - [#1104](https://github.com/signalwire/signalwire-js/pull/1104) [`d257907065d529c38a81f5484e33c01a9cfabea5`](https://github.com/signalwire/signalwire-js/commit/d257907065d529c38a81f5484e33c01a9cfabea5) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Expose the `addressId` from the Conversation contract
 

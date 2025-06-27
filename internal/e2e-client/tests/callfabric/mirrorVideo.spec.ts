@@ -1,4 +1,4 @@
-import { UnifiedCommunicationSession } from '@signalwire/client'
+import { CallSession } from '@signalwire/client'
 import { resolve } from 'node:path'
 import { constants, accessSync } from 'node:fs'
 import { test, expect } from '../../fixtures'
@@ -75,7 +75,7 @@ test.describe('CallFabric Mirror Video', () => {
       // Toggle the mirror state
       await page.evaluate((mirrored) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
         roomObj.localVideoOverlay?.setMirror(!mirrored)
       }, mirrored)
 

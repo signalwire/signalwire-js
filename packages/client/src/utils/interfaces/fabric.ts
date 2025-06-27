@@ -41,10 +41,7 @@ import {
   CallRoomEventParams,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-import {
-  CallCapabilitiesContract,
-  UnifiedCommunicationSession,
-} from '../../fabric'
+import { CallCapabilitiesContract, CallSession } from '../../fabric'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -80,7 +77,7 @@ export type CallJoinedEventParams = {
   capabilities: CallCapabilitiesContract
 } & Omit<InternalCallJoinedEventParams, 'capabilities'>
 
-export type UnifiedCommunicationSessionEventsHandlerMap = Record<
+export type CallSessionEventsHandlerMap = Record<
   VideoRoomDeviceUpdatedEventNames,
   (params: DeviceUpdatedEventParams) => void
 > &
@@ -90,7 +87,7 @@ export type UnifiedCommunicationSessionEventsHandlerMap = Record<
   > &
   Record<MediaEventNames, () => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<BaseConnectionState, (params: UnifiedCommunicationSession) => void> &
+  Record<BaseConnectionState, (params: CallSession) => void> &
   Record<CallJoined, (stream: CallJoinedEventParams) => void> &
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallLeft, (stream: CallLeftEventParams) => void> &
@@ -117,11 +114,11 @@ export type UnifiedCommunicationSessionEventsHandlerMap = Record<
     (params: FabricLayoutChangedEventParams) => void
   >
 
-export type UnifiedCommunicationSessionEvents = {
-  [k in keyof UnifiedCommunicationSessionEventsHandlerMap]: UnifiedCommunicationSessionEventsHandlerMap[k]
+export type CallSessionEvents = {
+  [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]
 }
 
-export interface UnifiedCommunicationSessionContract {
+export interface CallSessionContract {
   /** The `layout.changed` event based on the current room layout */
   currentLayoutEvent: FabricLayoutChangedEventParams
   /** The layout returned from the `layout.changed` event based on the current room layout */

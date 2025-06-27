@@ -13,7 +13,7 @@ import type {
   RegisterDeviceResult,
   GetSubscriberInfoResponse,
   GetSubscriberInfoResult,
-  UnifiedCommunicationUserOptions,
+  CallUserOptions,
 } from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -31,7 +31,7 @@ type JWTHeader = { ch?: string; typ?: string }
 export class HTTPClient implements HTTPClientContract {
   private httpClient: CreateHttpClient
 
-  constructor(public options: UnifiedCommunicationUserOptions) {
+  constructor(public options: CallUserOptions) {
     this.httpClient = createHttpClient({
       baseUrl: `https://${this.httpHost}`,
       headers: {

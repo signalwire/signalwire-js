@@ -16,15 +16,14 @@ import {
   BaseComponent,
 } from '@signalwire/core'
 
-export interface UnifiedCommunicationSessionMember
-  extends FabricMemberContract {
+export interface CallSessionMember extends FabricMemberContract {
   /** Unique id of this member. */
   id: string
   setPayload(payload: FabricMemberEventParams): void
 }
 
 // TODO: Fabric Room Session Member instance does not emit any events yet
-export type UnifiedCommunicationSessionMemberEventsHandlerMap = Record<
+export type CallSessionMemberEventsHandlerMap = Record<
   MemberJoined,
   (params: FabricMemberJoinedEventParams) => void
 > &
@@ -36,20 +35,20 @@ export type UnifiedCommunicationSessionMemberEventsHandlerMap = Record<
     (params: FabricMemberUpdatedEventParams) => void
   >
 
-export type UnifiedCommunicationSessionMemberEvents = {
-  [k in keyof UnifiedCommunicationSessionMemberEventsHandlerMap]: UnifiedCommunicationSessionMemberEventsHandlerMap[k]
+export type CallSessionMemberEvents = {
+  [k in keyof CallSessionMemberEventsHandlerMap]: CallSessionMemberEventsHandlerMap[k]
 }
 
-export interface UnifiedCommunicationSessionMemberOptions
+export interface CallSessionMemberOptions
   extends BaseComponentOptionsWithPayload<FabricMemberEventParamsExcludeTalking> {}
 
-export class UnifiedCommunicationSessionMemberAPI
-  extends BaseComponent<UnifiedCommunicationSessionMemberEvents>
+export class CallSessionMemberAPI
+  extends BaseComponent<CallSessionMemberEvents>
   implements FabricMemberContract
 {
   private _payload: FabricMemberEventParamsExcludeTalking
 
-  constructor(options: UnifiedCommunicationSessionMemberOptions) {
+  constructor(options: CallSessionMemberOptions) {
     super(options)
     this._payload = options.payload
   }
@@ -157,16 +156,16 @@ export class UnifiedCommunicationSessionMemberAPI
   }
 }
 
-export const createUnifiedCommunicationSessionMemberObject = (
-  params: UnifiedCommunicationSessionMemberOptions
-): UnifiedCommunicationSessionMember => {
+export const createCallSessionMemberObject = (
+  params: CallSessionMemberOptions
+): CallSessionMember => {
   const member = connect<
-    UnifiedCommunicationSessionMemberEventsHandlerMap,
-    UnifiedCommunicationSessionMemberAPI,
-    UnifiedCommunicationSessionMember
+    CallSessionMemberEventsHandlerMap,
+    CallSessionMemberAPI,
+    CallSessionMember
   >({
     store: params.store,
-    Component: UnifiedCommunicationSessionMemberAPI,
+    Component: CallSessionMemberAPI,
   })(params)
 
   return member

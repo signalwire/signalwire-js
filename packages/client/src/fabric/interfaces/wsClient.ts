@@ -3,7 +3,7 @@ import {
   IncomingCallHandler,
   IncomingCallHandlers,
 } from './incomingCallManager'
-import { UnifiedCommunicationSession } from '../UnifiedCommunicationSession'
+import { CallSession } from '../CallSession'
 
 export interface WSClientContract {
   /**
@@ -14,16 +14,16 @@ export interface WSClientContract {
    * Dial a resource and connect the call
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link UnifiedCommunicationSession}.
+   * @returns A promise resolving to the session object {@link CallSession}.
    */
-  dial(params: DialParams): Promise<UnifiedCommunicationSession>
+  dial(params: DialParams): Promise<CallSession>
   /**
    * Reattach to the previous call if the previous call was not disconnected
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link UnifiedCommunicationSession}.
+   * @returns A promise resolving to the session object {@link CallSession}.
    */
-  reattach(params: DialParams): Promise<UnifiedCommunicationSession>
+  reattach(params: DialParams): Promise<CallSession>
   /**
    * Handles the incoming call via Push Notification
    *
@@ -142,15 +142,13 @@ export interface SATSessionOptions
   extends ApiRequestRetriesOptions,
     SessionOptions {}
 
-export type UnifiedCommunicationUserOptions = Omit<
+export type CallUserOptions = Omit<
   UserOptions,
   'onRefreshToken' | 'topics' | 'sessionChannel' | 'instanceMap'
 > &
   SATSessionOptions
 
-export interface WSClientOptions
-  extends DefaultCallParams,
-    UnifiedCommunicationUserOptions {
+export interface WSClientOptions extends DefaultCallParams, CallUserOptions {
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
 }

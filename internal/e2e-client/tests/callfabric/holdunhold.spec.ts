@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { UnifiedCommunicationSession } from '@signalwire/client'
+import { CallSession } from '@signalwire/client'
 import { test, expect } from '../../fixtures'
 import {
   createCFClient,
@@ -51,7 +51,7 @@ test.describe('CallFabric Hold/Unhold Call', () => {
     await test.step('[page-one] should hold the call', async () => {
       await pageOne.evaluate(async () => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
         await roomObj.hold()
       })
     })
@@ -68,7 +68,7 @@ test.describe('CallFabric Hold/Unhold Call', () => {
     await test.step('[page-one] should uhold the call', async () => {
       await pageOne.evaluate(async () => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
         await roomObj.unhold()
       })
     })

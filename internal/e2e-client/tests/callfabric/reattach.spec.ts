@@ -8,7 +8,7 @@ import {
 } from '../../utils'
 import {
   CallJoinedEventParams,
-  UnifiedCommunicationSession,
+  CallSession,
   SignalWireClient,
 } from '@signalwire/client'
 
@@ -92,7 +92,7 @@ test.describe('CallFabric Reattach', () => {
     await test.step('mute the self video', async () => {
       await page.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.videoMuted', (event) => {
@@ -114,7 +114,7 @@ test.describe('CallFabric Reattach', () => {
     await test.step('mute the self audio', async () => {
       await page.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.audioMuted', (event) => {
@@ -138,7 +138,7 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         async ({ roomSession }) => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
 
           const roomUpdatedLocked = new Promise((res) => {
             roomObj.on('room.updated', (params) => {
@@ -160,7 +160,7 @@ test.describe('CallFabric Reattach', () => {
       await page.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
 
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
@@ -185,7 +185,7 @@ test.describe('CallFabric Reattach', () => {
       await page.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
 
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
@@ -211,7 +211,7 @@ test.describe('CallFabric Reattach', () => {
     //   await page.evaluate(
     //     async ({ memberId }) => {
     //       // @ts-expect-error
-    //       const roomObj: UnifiedCommunicationSession = window._roomObj
+    //       const roomObj: CallSession = window._roomObj
 
     //       const NOISE_SENSITIVITY = 10
     //       const memberUpdatedEvent = new Promise((res) => {
@@ -341,7 +341,7 @@ test.describe('CallFabric Reattach', () => {
     await test.step('[pageOne] mute video of memberTwo', async () => {
       await pageOne.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.videoMuted', (event) => {
@@ -363,7 +363,7 @@ test.describe('CallFabric Reattach', () => {
     await test.step('[pageOne] mute audio of memberTwo', async () => {
       await pageOne.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: UnifiedCommunicationSession = window._roomObj
+        const roomObj: CallSession = window._roomObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.audioMuted', (event) => {
@@ -386,7 +386,7 @@ test.describe('CallFabric Reattach', () => {
       await pageOne.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
 
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
@@ -410,7 +410,7 @@ test.describe('CallFabric Reattach', () => {
       await pageOne.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: UnifiedCommunicationSession = window._roomObj
+          const roomObj: CallSession = window._roomObj
 
           const memberUpdatedEvent = new Promise((res) => {
             roomObj.on('member.updated', (event) => {
