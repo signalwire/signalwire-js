@@ -44,7 +44,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._roomObj
+      const cfRoomSession: CallSession = window._callObj
       await cfRoomSession.setAudioDirection('sendrecv')
     })
 
@@ -72,7 +72,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._roomObj
+        const cfRoomSession: CallSession = window._callObj
         await cfRoomSession.updateMedia({
           audio: { direction: 'inactive' },
         })
@@ -129,7 +129,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._roomObj
+      const cfRoomSession: CallSession = window._callObj
       await cfRoomSession.setAudioDirection('sendonly')
     })
 
@@ -146,7 +146,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     await test.step('it should disable the audio with "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._roomObj
+        const cfRoomSession: CallSession = window._callObj
         await cfRoomSession.updateMedia({
           audio: { direction: 'recvonly' },
         })
@@ -198,7 +198,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._roomObj
+      const cfRoomSession: CallSession = window._callObj
       await cfRoomSession.setAudioDirection('recvonly')
     })
 
@@ -223,7 +223,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._roomObj
+        const cfRoomSession: CallSession = window._callObj
         await cfRoomSession.updateMedia({
           audio: { direction: 'inactive' },
         })

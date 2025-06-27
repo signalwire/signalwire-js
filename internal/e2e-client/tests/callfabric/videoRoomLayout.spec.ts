@@ -39,10 +39,10 @@ test.describe('CallFabric Video Room Layout', () => {
       async ({ roomSessionId }) => {
         const expectLayout = '8x8'
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const layoutUpdated = new Promise((resolve) => {
-          roomObj.on('layout.changed', (params) => {
+          callObj.on('layout.changed', (params) => {
             if (
               params.room_session_id === roomSessionId &&
               params.layout.id == expectLayout
@@ -52,7 +52,7 @@ test.describe('CallFabric Video Room Layout', () => {
           })
         })
 
-        await roomObj.setLayout({ name: expectLayout })
+        await callObj.setLayout({ name: expectLayout })
 
         return layoutUpdated
       },
@@ -84,10 +84,10 @@ test.describe('CallFabric Video Room Layout', () => {
     // --------------- Assert the current layout and position ---------------
     const { currentLayout, currentPosition } = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: CallSession = window._roomObj
+      const callObj: CallSession = window._callObj
       return {
-        currentLayout: roomObj.currentLayout,
-        currentPosition: roomObj.currentPosition,
+        currentLayout: callObj.currentLayout,
+        currentPosition: callObj.currentPosition,
       }
     })
     expect(currentLayout).toBeDefined()
@@ -102,10 +102,10 @@ test.describe('CallFabric Video Room Layout', () => {
     await page.evaluate(
       async ({ roomSessionId, secondPosition }) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdated = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          callObj.on('member.updated', (params) => {
             if (
               params.room_session_id === roomSessionId &&
               params.member.current_position === secondPosition
@@ -115,7 +115,7 @@ test.describe('CallFabric Video Room Layout', () => {
           })
         })
 
-        await roomObj.setPositions({
+        await callObj.setPositions({
           positions: { self: secondPosition as VideoPosition },
         })
 
@@ -162,10 +162,10 @@ test.describe('CallFabric Video Room Layout', () => {
     const { currentLayout, currentPosition } = await pageTwo.evaluate(
       async () => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
         return {
-          currentLayout: roomObj.currentLayout,
-          currentPosition: roomObj.currentPosition,
+          currentLayout: callObj.currentLayout,
+          currentPosition: callObj.currentPosition,
         }
       }
     )
@@ -191,10 +191,10 @@ test.describe('CallFabric Video Room Layout', () => {
     const pageOneRecievedEvent = pageTwo.evaluate(
       async ({ memberTwoId, roomSessionOneId }) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdated = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          callObj.on('member.updated', (params) => {
             if (
               params.room_session_id === roomSessionOneId &&
               params.member.member_id === memberTwoId &&
@@ -216,10 +216,10 @@ test.describe('CallFabric Video Room Layout', () => {
     const pageTwoRecievedEvent = pageTwo.evaluate(
       async ({ memberTwoId, roomSessionTwoId }) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdated = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          callObj.on('member.updated', (params) => {
             if (
               params.room_session_id === roomSessionTwoId &&
               params.member.member_id === memberTwoId &&
@@ -230,7 +230,7 @@ test.describe('CallFabric Video Room Layout', () => {
           })
         })
 
-        await roomObj.setPositions({
+        await callObj.setPositions({
           positions: { [memberTwoId]: 'playback' as VideoPosition },
         })
 

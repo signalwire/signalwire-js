@@ -39,10 +39,10 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await page.evaluate(
       async ({ roomSessionId }) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdated = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          callObj.on('member.updated', (params: any) => {
             if (
               params.room_session_id === roomSessionId &&
               params.member.handraised == true
@@ -52,7 +52,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
           })
         })
 
-        await roomObj.setRaisedHand()
+        await callObj.setRaisedHand()
 
         return memberUpdated
       },
@@ -63,10 +63,10 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await page.evaluate(
       async ({ roomSessionId }) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdated = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          callObj.on('member.updated', (params: any) => {
             if (
               params.room_session_id === roomSessionId &&
               params.member.handraised == false
@@ -76,7 +76,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
           })
         })
 
-        await roomObj.setRaisedHand({ raised: false })
+        await callObj.setRaisedHand({ raised: false })
 
         return memberUpdated
       },
@@ -133,10 +133,10 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await pageOne.evaluate(
       async ({ roomSessionTwoId, memberOneId }) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj // This is a roomSessionTwo object
+        const callObj: CallSession = window._callObj // This is a roomSessionTwo object
 
         const memberUpdated = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          callObj.on('member.updated', (params: any) => {
             if (
               params.room_session_id === roomSessionTwoId &&
               params.member.member_id === memberOneId &&
@@ -147,7 +147,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
           })
         })
 
-        await roomObj.setRaisedHand({ memberId: memberOneId })
+        await callObj.setRaisedHand({ memberId: memberOneId })
 
         return memberUpdated
       },
@@ -161,10 +161,10 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await pageOne.evaluate(
       async ({ roomSessionTwoId, memberOneId }) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj // This is a roomSessionTwo object
+        const callObj: CallSession = window._callObj // This is a roomSessionTwo object
 
         const memberUpdated = new Promise((resolve) => {
-          roomObj.on('member.updated', (params: any) => {
+          callObj.on('member.updated', (params: any) => {
             if (
               params.room_session_id === roomSessionTwoId &&
               params.member.member_id === memberOneId &&
@@ -175,7 +175,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
           })
         })
 
-        await roomObj.setRaisedHand({ raised: false, memberId: memberOneId })
+        await callObj.setRaisedHand({ raised: false, memberId: memberOneId })
 
         return memberUpdated
       },

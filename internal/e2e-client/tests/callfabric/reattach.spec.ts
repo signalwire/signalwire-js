@@ -53,7 +53,7 @@ test.describe('CallFabric Reattach', () => {
           call.on('call.joined', resolve)
 
           // @ts-expect-error
-          window._roomObj = call
+          window._callObj = call
           await call.start()
         })
       },
@@ -92,10 +92,10 @@ test.describe('CallFabric Reattach', () => {
     await test.step('mute the self video', async () => {
       await page.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
-          roomObj.on('member.updated.videoMuted', (event) => {
+          callObj.on('member.updated.videoMuted', (event) => {
             if (
               event.member.member_id === memberId &&
               event.member.video_muted === true
@@ -105,7 +105,7 @@ test.describe('CallFabric Reattach', () => {
           })
         })
 
-        await roomObj.videoMute()
+        await callObj.videoMute()
         await memberUpdatedMutedEvent
       }, memberId)
     })
@@ -114,10 +114,10 @@ test.describe('CallFabric Reattach', () => {
     await test.step('mute the self audio', async () => {
       await page.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
-          roomObj.on('member.updated.audioMuted', (event) => {
+          callObj.on('member.updated.audioMuted', (event) => {
             if (
               event.member.member_id === memberId &&
               event.member.audio_muted === true
@@ -127,7 +127,7 @@ test.describe('CallFabric Reattach', () => {
           })
         })
 
-        await roomObj.audioMute()
+        await callObj.audioMute()
         await memberUpdatedMutedEvent
       }, memberId)
     })
@@ -138,17 +138,17 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         async ({ roomSession }) => {
           // @ts-expect-error
-          const roomObj: CallSession = window._roomObj
+          const callObj: CallSession = window._callObj
 
           const roomUpdatedLocked = new Promise((res) => {
-            roomObj.on('room.updated', (params) => {
+            callObj.on('room.updated', (params) => {
               if (params.room_session.locked === true) {
                 res(true)
               }
             })
           })
 
-          await roomObj.lock()
+          await callObj.lock()
           await roomUpdatedLocked
         },
         { roomSession: roomSessionBefore }
@@ -160,10 +160,10 @@ test.describe('CallFabric Reattach', () => {
       await page.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: CallSession = window._roomObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedEvent = new Promise((res) => {
-            roomObj.on('member.updated', (event) => {
+            callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
                 event.member.input_volume === volume
@@ -173,7 +173,7 @@ test.describe('CallFabric Reattach', () => {
             })
           })
 
-          await roomObj.setInputVolume({ volume: volume })
+          await callObj.setInputVolume({ volume: volume })
           await memberUpdatedEvent
         },
         { volume: MIC_VOLUME, memberId }
@@ -185,10 +185,10 @@ test.describe('CallFabric Reattach', () => {
       await page.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: CallSession = window._roomObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedEvent = new Promise((res) => {
-            roomObj.on('member.updated', (event) => {
+            callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
                 event.member.output_volume === volume
@@ -198,7 +198,7 @@ test.describe('CallFabric Reattach', () => {
             })
           })
 
-          await roomObj.setOutputVolume({ volume: volume })
+          await callObj.setOutputVolume({ volume: volume })
           await memberUpdatedEvent
         },
         { volume: SPEAKER_VOLUME, memberId }
@@ -211,11 +211,11 @@ test.describe('CallFabric Reattach', () => {
     //   await page.evaluate(
     //     async ({ memberId }) => {
     //       // @ts-expect-error
-    //       const roomObj: CallSession = window._roomObj
+    //       const callObj: CallSession = window._callObj
 
     //       const NOISE_SENSITIVITY = 10
     //       const memberUpdatedEvent = new Promise((res) => {
-    //         roomObj.on('member.updated', (event) => {
+    //         callObj.on('member.updated', (event) => {
     //           if (
     //             event.member.member_id === memberId &&
     //             event.member.input_sensitivity === NOISE_SENSITIVITY
@@ -225,7 +225,7 @@ test.describe('CallFabric Reattach', () => {
     //         })
     //       })
 
-    //       await roomObj.setInputSensitivity({ value: NOISE_SENSITIVITY })
+    //       await callObj.setInputSensitivity({ value: NOISE_SENSITIVITY })
     //       await memberUpdatedEvent
     //     },
     //     { memberId }
@@ -251,7 +251,7 @@ test.describe('CallFabric Reattach', () => {
               call.on('call.joined', resolve)
 
               // @ts-expect-error
-              window._roomObj = call
+              window._callObj = call
               await call.start()
             })
           },
@@ -279,13 +279,13 @@ test.describe('CallFabric Reattach', () => {
 
       const localVideoTrack = await page.evaluate(
         // @ts-expect-error
-        () => window._roomObj.peer.localVideoTrack
+        () => window._callObj.peer.localVideoTrack
       )
       expect(localVideoTrack).toEqual({})
 
       const localAudioTrack = await page.evaluate(
         // @ts-expect-error
-        () => window._roomObj.peer.localAudioTrack
+        () => window._callObj.peer.localAudioTrack
       )
       expect(localAudioTrack).toEqual({})
     })
@@ -341,10 +341,10 @@ test.describe('CallFabric Reattach', () => {
     await test.step('[pageOne] mute video of memberTwo', async () => {
       await pageOne.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
-          roomObj.on('member.updated.videoMuted', (event) => {
+          callObj.on('member.updated.videoMuted', (event) => {
             if (
               event.member.member_id === memberId &&
               event.member.video_muted == true
@@ -354,7 +354,7 @@ test.describe('CallFabric Reattach', () => {
           })
         })
 
-        await roomObj.videoMute({ memberId })
+        await callObj.videoMute({ memberId })
         await memberUpdatedMutedEvent
       }, memberTwoId)
     })
@@ -363,10 +363,10 @@ test.describe('CallFabric Reattach', () => {
     await test.step('[pageOne] mute audio of memberTwo', async () => {
       await pageOne.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdatedMutedEvent = new Promise((res) => {
-          roomObj.on('member.updated.audioMuted', (event) => {
+          callObj.on('member.updated.audioMuted', (event) => {
             if (
               event.member.member_id === memberId &&
               event.member.audio_muted == true
@@ -376,7 +376,7 @@ test.describe('CallFabric Reattach', () => {
           })
         })
 
-        await roomObj.audioMute({ memberId })
+        await callObj.audioMute({ memberId })
         await memberUpdatedMutedEvent
       }, memberTwoId)
     })
@@ -386,10 +386,10 @@ test.describe('CallFabric Reattach', () => {
       await pageOne.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: CallSession = window._roomObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedEvent = new Promise((res) => {
-            roomObj.on('member.updated', (event) => {
+            callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
                 event.member.input_volume === volume
@@ -398,7 +398,7 @@ test.describe('CallFabric Reattach', () => {
             })
           })
 
-          await roomObj.setInputVolume({ volume, memberId })
+          await callObj.setInputVolume({ volume, memberId })
           await memberUpdatedEvent
         },
         { volume: MIC_VOLUME, memberId: memberTwoId }
@@ -410,10 +410,10 @@ test.describe('CallFabric Reattach', () => {
       await pageOne.evaluate(
         async ({ volume, memberId }) => {
           // @ts-expect-error
-          const roomObj: CallSession = window._roomObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedEvent = new Promise((res) => {
-            roomObj.on('member.updated', (event) => {
+            callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
                 event.member.output_volume === volume
@@ -422,7 +422,7 @@ test.describe('CallFabric Reattach', () => {
             })
           })
 
-          await roomObj.setOutputVolume({ volume, memberId })
+          await callObj.setOutputVolume({ volume, memberId })
           await memberUpdatedEvent
         },
         { volume: SPEAKER_VOLUME, memberId: memberTwoId }
@@ -451,7 +451,7 @@ test.describe('CallFabric Reattach', () => {
               call.on('call.joined', resolve)
 
               // @ts-expect-error
-              window._roomObj = call
+              window._callObj = call
               await call.start()
             })
           },
@@ -478,12 +478,12 @@ test.describe('CallFabric Reattach', () => {
 
       const localVideoTrack = await pageTwo.evaluate(
         // @ts-expect-error
-        () => window._roomObj.peer.localVideoTrack
+        () => window._callObj.peer.localVideoTrack
       )
       expect(localVideoTrack).toEqual({})
       const localAudioTrack = await pageTwo.evaluate(
         // @ts-expect-error
-        () => window._roomObj.peer.localAudioTrack
+        () => window._callObj.peer.localAudioTrack
       )
       expect(localAudioTrack).toEqual({})
     })
@@ -548,7 +548,7 @@ test.describe('CallFabric Reattach', () => {
   //         })
 
   //         // @ts-expect-error
-  //         window._roomObj = call
+  //         window._callObj = call
 
   //         await call.start()
   //       })
@@ -580,7 +580,7 @@ test.describe('CallFabric Reattach', () => {
   //         call.on('call.joined', resolve)
 
   //         // @ts-expect-error
-  //         window._roomObj = call
+  //         window._callObj = call
   //         await call.start()
   //       })
   //     },

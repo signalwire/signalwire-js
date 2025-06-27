@@ -75,8 +75,8 @@ test.describe('CallFabric Mirror Video', () => {
       // Toggle the mirror state
       await page.evaluate((mirrored) => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
-        roomObj.localVideoOverlay?.setMirror(!mirrored)
+        const callObj: CallSession = window._callObj
+        callObj.localVideoOverlay?.setMirror(!mirrored)
       }, mirrored)
 
       await expect(video).toHaveScreenshot(expectedAfterToggle)

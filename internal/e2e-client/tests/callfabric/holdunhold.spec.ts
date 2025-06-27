@@ -51,8 +51,8 @@ test.describe('CallFabric Hold/Unhold Call', () => {
     await test.step('[page-one] should hold the call', async () => {
       await pageOne.evaluate(async () => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
-        await roomObj.hold()
+        const callObj: CallSession = window._callObj
+        await callObj.hold()
       })
     })
 
@@ -68,8 +68,8 @@ test.describe('CallFabric Hold/Unhold Call', () => {
     await test.step('[page-one] should uhold the call', async () => {
       await pageOne.evaluate(async () => {
         // @ts-expect-error
-        const roomObj: CallSession = window._roomObj
-        await roomObj.unhold()
+        const callObj: CallSession = window._callObj
+        await callObj.unhold()
       })
     })
 

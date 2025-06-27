@@ -12,19 +12,19 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
   const getOverlayMap = (page: Page) =>
     page.evaluate<OverlayMap>(() => {
       // @ts-expect-error
-      return window._roomObj.overlayMap
+      return window._callObj.overlayMap
     })
 
   const getOverlayMapSize = (page: Page) =>
     page.evaluate<number>(() => {
       // @ts-expect-error
-      return window._roomObj.overlayMap.size
+      return window._callObj.overlayMap.size
     })
 
   const getLocalVideoOverlay = (page: Page) =>
     page.evaluate<LocalVideoOverlay>(() => {
       // @ts-expect-error
-      return window._roomObj.localVideoOverlay
+      return window._callObj.localVideoOverlay
     })
 
   test('should not render any video if rootElement is not passed', async ({
@@ -71,7 +71,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     const { element } = await page.evaluate(async () => {
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
-        const call = window._roomObj
+        const call = window._callObj
         // @ts-expect-error
         const { element } = await window._SWJS.buildVideoElement({
           room: call,
@@ -145,7 +145,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     // Create and expect only video overlay
     await page.evaluate(async () => {
       // @ts-expect-error
-      const room = window._roomObj
+      const room = window._callObj
 
       const rootElement = document.createElement('div')
       rootElement.id = 'rootElement2'
@@ -179,7 +179,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     // Create and expect only member overlay
     await page.evaluate(async () => {
       // @ts-expect-error
-      const room = window._roomObj
+      const room = window._callObj
 
       // @ts-expect-error
       const { element } = await window._SWJS.buildVideoElement({
@@ -274,7 +274,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
           call.on('room.joined', resolve)
 
           // @ts-expect-error
-          window._roomObj = call
+          window._callObj = call
 
           const rootElement = document.createElement('div')
           rootElement.id = 'rootElement2'
@@ -320,7 +320,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     // Create a video element with the same rootElement
     await page.evaluate(async () => {
       // @ts-expect-error
-      const call = window._roomObj
+      const call = window._callObj
 
       // @ts-expect-error
       await window._SWJS.buildVideoElement({
@@ -390,11 +390,11 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     await test.step('should return the element with getMemberOverlay', async () => {
       const memberOneId = await pageOne.evaluate(() => {
         // @ts-expect-error
-        return window._roomObj.memberId
+        return window._callObj.memberId
       })
       const memberTwoId = await pageTwo.evaluate(() => {
         // @ts-expect-error
-        return window._roomObj.memberId
+        return window._callObj.memberId
       })
       expect(memberOneId).toBeDefined()
       expect(memberTwoId).toBeDefined()
@@ -402,7 +402,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
       const [memberOneElement, memberTwoElement] = await pageOne.evaluate(
         ({ memberOneId, memberTwoId }) => {
           // @ts-expect-error
-          const room: CallSession = window._roomObj
+          const room: CallSession = window._callObj
 
           return [
             room.getMemberOverlay(memberOneId),
