@@ -1,8 +1,8 @@
+import { group } from 'console'
 import { PaginatedResponse, PaginatedResult } from '.'
 import type { ConversationEventParams } from '@signalwire/core'
 
 export interface ConversationContract {
-  readonly addressId: string
   readonly createdAt: number
   readonly id: string
   readonly lastMessageAt: number
@@ -17,18 +17,15 @@ export interface ConversationContract {
 }
 
 export interface SendConversationMessageParams {
+  conversationId: string
+  fromAddressId: string
   text: string
-  addressId: string
   metadata?: Record<string, any>
   details?: Record<string, any>
 }
 
-export interface SendConversationMessageResponse {
-  table: {
-    conversation_id: string
-    text: string
-  }
-}
+// TODO
+export type SendConversationMessageResponse = unknown
 
 export type SendConversationMessageResult = SendConversationMessageResponse
 
@@ -66,14 +63,14 @@ export type ConversationChatMessagesSubscribeResult =
   ConversationSubscribeResult
 
 export interface JoinConversationParams {
-  addressId: string
+  addressIds: string[]
+  fromAddressId: string
 }
 
 export interface JoinConversationResponse {
-  table: {
-    conversation_id: string
-    text: string
-  }
+  conversationId: string
+  addressIds: string[]
+  fromAddressId: string
 }
 
 export type JoinConversationResult = JoinConversationResponse
@@ -87,10 +84,7 @@ export interface GetMessagesParams {
 
 export interface ConversationMessage {
   id: string
-  address_id: string
-  conversation_id: string
-  user_id: string
-  from_address_id: string
+  fromAddressId: string
   ts: number
   metadata?: Record<string, any>
   details: Record<string, any>
@@ -129,6 +123,7 @@ export type GetConversationMessagesResult = PaginatedResult<ConversationMessage>
  * Conversation API
  */
 export interface ConversationAPISendMessageParams {
+  fromAddressId: string
   text: string
 }
 

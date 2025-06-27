@@ -16,9 +16,6 @@ export class ConversationAPI implements ConversationContract {
     return this.payload.id
   }
 
-  get addressId() {
-    return this.payload.address_id
-  }
 
   get createdAt() {
     return this.payload.created_at
@@ -38,7 +35,8 @@ export class ConversationAPI implements ConversationContract {
 
   sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({
-      addressId: this.id,
+      conversationId: this.id,
+      fromAddressId: params.fromAddressId,
       text: params.text,
     })
   }
