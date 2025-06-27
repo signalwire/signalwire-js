@@ -4,7 +4,6 @@
  */
 
 import {
-  FabricRoomEventParams,
   Prettify,
   BaseComponentOptions,
   BaseConnectionState,
@@ -24,20 +23,24 @@ import {
   CallPlayEventParams,
   CallConnectEventParams,
   CallRoomEventParams,
-  FabricLayoutChangedEventParams,
-  FabricMemberJoinedEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberLeftEventParams,
-  FabricMemberTalkingEventParams,
-  FabricMemberEventParams,
-  FabricMemberEntity,
-  InternalFabricMemberEntity,
   ConversationMessageEventName,
   ConversationMessageEvent,
   ConversationEventParams,
   ConversationEvent,
   EventEmitter,
 } from '@signalwire/core'
+import {
+  // FIXME: Importing from the core package
+  CallRoomEventParams as FabricCallRoomEventParams,
+  CallLayoutChangedEventParams,
+  CallMemberJoinedEventParams,
+  CallMemberUpdatedEventParams,
+  CallMemberLeftEventParams,
+  CallMemberTalkingEventParams,
+  CallMemberEventParams,
+  CallMemberEntity,
+  InternalCallMemberEntity,
+} from './utils/interfaces/fabric'
 import {
   BaseConnectionOptions,
   ConnectionOptions,
@@ -143,7 +146,7 @@ export { RoomSessionDevice } from './RoomSessionDevice'
  */
 export * as WebRTC from './webrtc'
 
-type ExternalFabricRoomEventParams = Prettify<FabricRoomEventParams>
+type ExternalFabricRoomEventParams = Prettify<FabricCallRoomEventParams>
 type ExternalBaseComponentOptions = Prettify<BaseComponentOptions>
 type ExternalBaseConnectionState = Prettify<BaseConnectionState>
 type ExternalClientEvents = Prettify<ClientEvents>
@@ -164,17 +167,17 @@ type ExternalCallPlayEventParams = Prettify<CallPlayEventParams>
 type ExternalCallConnectEventParams = Prettify<CallConnectEventParams>
 type ExternalCallRoomEventParams = Prettify<CallRoomEventParams>
 type ExternalFabricLayoutChangedEventParams =
-  Prettify<FabricLayoutChangedEventParams>
+  Prettify<CallLayoutChangedEventParams>
 type ExternalFabricMemberJoinedEventParams =
-  Prettify<FabricMemberJoinedEventParams>
+  Prettify<CallMemberJoinedEventParams>
 type ExternalFabricMemberUpdatedEventParams =
-  Prettify<FabricMemberUpdatedEventParams>
-type ExternalFabricMemberLeftEventParams = Prettify<FabricMemberLeftEventParams>
+  Prettify<CallMemberUpdatedEventParams>
+type ExternalFabricMemberLeftEventParams = Prettify<CallMemberLeftEventParams>
 type ExternalFabricMemberTalkingEventParams =
-  Prettify<FabricMemberTalkingEventParams>
-type ExternalFabricMemberEventParams = Prettify<FabricMemberEventParams>
-type ExternalFabricMemberEntity = Prettify<FabricMemberEntity>
-type ExternalInternalFabricMemberEntity = Prettify<InternalFabricMemberEntity>
+  Prettify<CallMemberTalkingEventParams>
+type ExternalFabricMemberEventParams = Prettify<CallMemberEventParams>
+type ExternalFabricMemberEntity = Prettify<CallMemberEntity>
+type ExternalInternalFabricMemberEntity = Prettify<InternalCallMemberEntity>
 type ExternalConversationMessageEventName =
   Prettify<ConversationMessageEventName>
 type ExternalConversationMessageEvent = Prettify<ConversationMessageEvent>

@@ -1,12 +1,4 @@
 import {
-  FabricMemberEventNames,
-  FabricMemberEventParams,
-  FabricMemberEventParamsExcludeTalking,
-  FabricMemberJoinedEventParams,
-  FabricMemberLeftEventParams,
-  FabricMemberTalkingEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberContract,
   connect,
   MemberJoined,
   MemberLeft,
@@ -15,24 +7,34 @@ import {
   BaseComponentOptionsWithPayload,
   BaseComponent,
 } from '@signalwire/core'
+import {
+  CallMemberEventNames,
+  CallMemberEventParams,
+  CallMemberEventParamsExcludeTalking,
+  CallMemberJoinedEventParams,
+  CallMemberLeftEventParams,
+  CallMemberTalkingEventParams,
+  CallMemberUpdatedEventParams,
+  CallMemberContract,
+} from '../utils/interfaces'
 
-export interface CallSessionMember extends FabricMemberContract {
+export interface CallSessionMember extends CallMemberContract {
   /** Unique id of this member. */
   id: string
-  setPayload(payload: FabricMemberEventParams): void
+  setPayload(payload: CallMemberEventParams): void
 }
 
 // TODO: Fabric Room Session Member instance does not emit any events yet
 export type CallSessionMemberEventsHandlerMap = Record<
   MemberJoined,
-  (params: FabricMemberJoinedEventParams) => void
+  (params: CallMemberJoinedEventParams) => void
 > &
-  Record<MemberUpdated, (params: FabricMemberUpdatedEventParams) => void> &
-  Record<MemberLeft, (params: FabricMemberLeftEventParams) => void> &
-  Record<MemberTalking, (params: FabricMemberTalkingEventParams) => void> &
+  Record<MemberUpdated, (params: CallMemberUpdatedEventParams) => void> &
+  Record<MemberLeft, (params: CallMemberLeftEventParams) => void> &
+  Record<MemberTalking, (params: CallMemberTalkingEventParams) => void> &
   Record<
-    Exclude<FabricMemberEventNames, MemberJoined | MemberLeft | MemberTalking>,
-    (params: FabricMemberUpdatedEventParams) => void
+    Exclude<CallMemberEventNames, MemberJoined | MemberLeft | MemberTalking>,
+    (params: CallMemberUpdatedEventParams) => void
   >
 
 export type CallSessionMemberEvents = {
@@ -40,13 +42,13 @@ export type CallSessionMemberEvents = {
 }
 
 export interface CallSessionMemberOptions
-  extends BaseComponentOptionsWithPayload<FabricMemberEventParamsExcludeTalking> {}
+  extends BaseComponentOptionsWithPayload<CallMemberEventParamsExcludeTalking> {}
 
 export class CallSessionMemberAPI
   extends BaseComponent<CallSessionMemberEvents>
-  implements FabricMemberContract
+  implements CallMemberContract
 {
-  private _payload: FabricMemberEventParamsExcludeTalking
+  private _payload: CallMemberEventParamsExcludeTalking
 
   constructor(options: CallSessionMemberOptions) {
     super(options)
@@ -142,7 +144,7 @@ export class CallSessionMemberAPI
   }
 
   /** @internal */
-  setPayload(payload: FabricMemberEventParams) {
+  setPayload(payload: CallMemberEventParams) {
     // Reshape the payload since the `member.talking` event does not return all the parameters of a member
     const newPayload = {
       ...this._payload,

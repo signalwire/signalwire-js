@@ -30,6 +30,18 @@ import type {
   VideoMemberEntity,
 } from '@signalwire/core'
 
+import type {
+  CallRoomEventParams,
+  CallLayoutChangedEventParams,
+  CallMemberJoinedEventParams,
+  CallMemberUpdatedEventParams,
+  CallMemberLeftEventParams,
+  CallMemberTalkingEventParams,
+  CallMemberEventParams,
+  CallMemberEntity,
+  InternalCallMemberEntity,
+} from '../client/src/utils/interfaces/fabric'
+
 /** @ignore @deprecated */
 export type RoomStartedEventName = RoomStarted
 /** @ignore @deprecated */
@@ -113,21 +125,24 @@ export type {
   CallStateEventParams,
   CallPlayEventParams,
   CallConnectEventParams,
-  CallRoomEventParams,
-  FabricRoomEventParams,
-  FabricLayoutChangedEventParams,
-  FabricMemberJoinedEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberLeftEventParams,
-  FabricMemberTalkingEventParams,
-  FabricMemberEventParams,
-  FabricMemberEntity,
-  InternalFabricMemberEntity,
   ConversationMessageEventName,
   ConversationMessageEvent,
   ConversationEventParams,
   ConversationEvent,
 } from '@signalwire/core'
+
+export type {
+  CallRoomEventParams,
+  CallRoomEventParams as FabricRoomEventParams,
+  CallLayoutChangedEventParams as FabricLayoutChangedEventParams,
+  CallMemberJoinedEventParams as FabricMemberJoinedEventParams,
+  CallMemberUpdatedEventParams as FabricMemberUpdatedEventParams,
+  CallMemberLeftEventParams as FabricMemberLeftEventParams,
+  CallMemberTalkingEventParams as FabricMemberTalkingEventParams,
+  CallMemberEventParams as FabricMemberEventParams,
+  CallMemberEntity as FabricMemberEntity,
+  InternalCallMemberEntity as InternalFabricMemberEntity,
+}
 
 export type {
   BaseConnectionOptions,
