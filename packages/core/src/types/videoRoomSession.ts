@@ -3,12 +3,14 @@ import type {
   CamelToSnakeCase,
   EntityUpdated,
   ToInternalVideoEvent,
-  MemberCommandParams,
-  MemberCommandWithValueParams,
-  MemberCommandWithVolumeParams,
   OnlyFunctionProperties,
   OnlyStateProperties,
 } from './utils'
+import type {
+  MemberCommandParams,
+  MemberCommandWithValueParams,
+  MemberCommandWithVolumeParams,
+} from './common'
 import type { InternalVideoMemberEntity } from './videoMember'
 import * as Rooms from '../rooms'
 import { MapToPubSubShape } from '../redux/interfaces'

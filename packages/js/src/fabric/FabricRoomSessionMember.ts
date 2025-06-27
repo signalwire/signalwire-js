@@ -81,6 +81,14 @@ export class FabricRoomSessionMemberAPI
     return this._payload.member.parent_id
   }
 
+  get subscriberId() {
+    return this._payload.member.subscriber_id
+  }
+
+  get addressId() {
+    return this._payload.member.address_id
+  }
+
   get name() {
     return this._payload.member.name
   }
@@ -137,8 +145,16 @@ export class FabricRoomSessionMemberAPI
     return this._payload.member.input_sensitivity
   }
 
-  get subscriberData() {
-    return this._payload.member.subscriber_data
+  get echoCancellation() {
+    return this._payload.member.echo_cancellation
+  }
+
+  get autoGain() {
+    return this._payload.member.auto_gain
+  }
+
+  get noiseSuppression() {
+    return this._payload.member.noise_suppression
   }
 
   /** @internal */

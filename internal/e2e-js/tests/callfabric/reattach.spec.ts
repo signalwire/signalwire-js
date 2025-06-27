@@ -71,6 +71,7 @@ test.describe('CallFabric Reattach', () => {
   }) => {
     const MIC_VOLUME = 10
     const SPEAKER_VOLUME = 10
+    const NOISE_SENSITIVITY = 10
 
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -94,10 +95,22 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const roomObj: FabricRoomSession = window._roomObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          roomObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
+              event.member.video_muted === true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedVideoMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.videoMuted', (event) => {
             if (
               event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
               event.member.video_muted === true
             ) {
               res(true)
@@ -106,7 +119,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await roomObj.videoMute()
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedVideoMutedEvent])
       }, memberId)
     })
 
@@ -116,10 +129,22 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const roomObj: FabricRoomSession = window._roomObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          roomObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
+              event.member.audio_muted === true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedAudioMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.audioMuted', (event) => {
             if (
               event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
               event.member.audio_muted === true
             ) {
               res(true)
@@ -128,7 +153,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await roomObj.audioMute()
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedAudioMutedEvent])
       }, memberId)
     })
 
@@ -166,6 +191,18 @@ test.describe('CallFabric Reattach', () => {
             roomObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
+                event.member.input_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputVolumeEvent = new Promise((res) => {
+            roomObj.on('member.updated.inputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
                 event.member.input_volume === volume
               ) {
                 res(true)
@@ -174,7 +211,10 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await roomObj.setInputVolume({ volume: volume })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputVolumeEvent,
+          ])
         },
         { volume: MIC_VOLUME, memberId }
       )
@@ -191,6 +231,18 @@ test.describe('CallFabric Reattach', () => {
             roomObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
+                event.member.output_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedOutputVolumeEvent = new Promise((res) => {
+            roomObj.on('member.updated.outputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
                 event.member.output_volume === volume
               ) {
                 res(true)
@@ -199,38 +251,53 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await roomObj.setOutputVolume({ volume: volume })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedOutputVolumeEvent,
+          ])
         },
         { volume: SPEAKER_VOLUME, memberId }
       )
     })
 
-    // --------------- Change Noise Gate ---------------
-    // TODO: Enable this when the server issue is fixed
-    // await test.step('change noise gate', async () => {
-    //   await page.evaluate(
-    //     async ({ memberId }) => {
-    //       // @ts-expect-error
-    //       const roomObj: FabricRoomSession = window._roomObj
+    // --------------- Change Noise Gate (self) ---------------
+    await test.step('change noise gate', async () => {
+      await page.evaluate(
+        async ({ sensitivity, memberId }) => {
+          // @ts-expect-error
+          const roomObj: FabricRoomSession = window._roomObj
 
-    //       const NOISE_SENSITIVITY = 10
-    //       const memberUpdatedEvent = new Promise((res) => {
-    //         roomObj.on('member.updated', (event) => {
-    //           if (
-    //             event.member.member_id === memberId &&
-    //             event.member.input_sensitivity === NOISE_SENSITIVITY
-    //           ) {
-    //             res(true)
-    //           }
-    //         })
-    //       })
+          const memberUpdatedEvent = new Promise((res) => {
+            roomObj.on('member.updated', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_sensitivity') &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputSensitivityEvent = new Promise((res) => {
+            roomObj.on('member.updated.inputSensitivity', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
 
-    //       await roomObj.setInputSensitivity({ value: NOISE_SENSITIVITY })
-    //       await memberUpdatedEvent
-    //     },
-    //     { memberId }
-    //   )
-    // })
+          await roomObj.setInputSensitivity({ value: sensitivity })
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputSensitivityEvent,
+          ])
+        },
+        { sensitivity: NOISE_SENSITIVITY, memberId }
+      )
+    })
 
     const roomSessionAfter =
       await test.step('reload page and reattach', async () => {
@@ -265,7 +332,6 @@ test.describe('CallFabric Reattach', () => {
       expect(roomSessionAfter.room_session).toBeDefined()
       expect(roomSessionAfter.call_id).toEqual(roomSessionBefore.call_id)
       expect(roomSessionAfter.room_session.locked).toBe(true)
-      expect(roomSessionAfter.room_session.members.length).toBeGreaterThan(0)
 
       const selfMember = roomSessionAfter.room_session.members.find(
         (member) => member.member_id === roomSessionAfter.member_id
@@ -276,6 +342,7 @@ test.describe('CallFabric Reattach', () => {
       expect(selfMember?.video_muted).toBe(true)
       expect(selfMember?.input_volume).toBe(MIC_VOLUME)
       expect(selfMember?.output_volume).toBe(SPEAKER_VOLUME)
+      expect(selfMember?.input_sensitivity).toBe(NOISE_SENSITIVITY)
 
       const localVideoTrack = await page.evaluate(
         // @ts-expect-error
@@ -297,6 +364,7 @@ test.describe('CallFabric Reattach', () => {
   }) => {
     const MIC_VOLUME = 10
     const SPEAKER_VOLUME = 10
+    const NOISE_SENSITIVITY = 10
 
     const pageOne = await createCustomPage({ name: '[pageOne]' })
     const pageTwo = await createCustomPage({ name: '[pageTwo]' })
@@ -343,10 +411,22 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const roomObj: FabricRoomSession = window._roomObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          roomObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
+              event.member.video_muted === true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedVideoMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.videoMuted', (event) => {
             if (
               event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
               event.member.video_muted == true
             ) {
               res(true)
@@ -355,7 +435,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await roomObj.videoMute({ memberId })
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedVideoMutedEvent])
       }, memberTwoId)
     })
 
@@ -365,10 +445,22 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const roomObj: FabricRoomSession = window._roomObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          roomObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
+              event.member.audio_muted === true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedAudioMutedEvent = new Promise((res) => {
           roomObj.on('member.updated.audioMuted', (event) => {
             if (
               event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
               event.member.audio_muted == true
             ) {
               res(true)
@@ -377,7 +469,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await roomObj.audioMute({ memberId })
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedAudioMutedEvent])
       }, memberTwoId)
     })
 
@@ -392,6 +484,18 @@ test.describe('CallFabric Reattach', () => {
             roomObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
+                event.member.input_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputVolumeEvent = new Promise((res) => {
+            roomObj.on('member.updated.inputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
                 event.member.input_volume === volume
               )
                 res(true)
@@ -399,7 +503,10 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await roomObj.setInputVolume({ volume, memberId })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputVolumeEvent,
+          ])
         },
         { volume: MIC_VOLUME, memberId: memberTwoId }
       )
@@ -416,6 +523,18 @@ test.describe('CallFabric Reattach', () => {
             roomObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
+                event.member.output_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedOutputVolumeEvent = new Promise((res) => {
+            roomObj.on('member.updated.outputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
                 event.member.output_volume === volume
               )
                 res(true)
@@ -423,14 +542,54 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await roomObj.setOutputVolume({ volume, memberId })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedOutputVolumeEvent,
+          ])
         },
         { volume: SPEAKER_VOLUME, memberId: memberTwoId }
       )
     })
 
-    // --------------- Change Noise Gate ---------------
-    // TODO: Add "setInputSensitivity" API test when the server issue is fixed
+    // --------------- Change Noise Gate (other member) ---------------
+    await test.step('[pageOne] change noise gate for memberTwo', async () => {
+      await pageOne.evaluate(
+        async ({ sensitivity, memberId }) => {
+          // @ts-expect-error
+          const roomObj: FabricRoomSession = window._roomObj
+
+          const memberUpdatedEvent = new Promise((res) => {
+            roomObj.on('member.updated', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_sensitivity') &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputSensitivityEvent = new Promise((res) => {
+            roomObj.on('member.updated.inputSensitivity', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_sensitivity') &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
+
+          await roomObj.setInputSensitivity({ value: sensitivity, memberId })
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputSensitivityEvent,
+          ])
+        },
+        { sensitivity: NOISE_SENSITIVITY, memberId: memberTwoId }
+      )
+    })
 
     const roomSessionTwoAfter =
       await test.step('[pageTwo] reload page and reattach', async () => {

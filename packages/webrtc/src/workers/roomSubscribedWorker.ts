@@ -15,7 +15,6 @@ import {
   RoomSessionRecording,
   CallJoinedEvent,
 } from '@signalwire/core'
-
 import { BaseConnection } from '../BaseConnection'
 
 type RoomSubscribedWorkerOnDone = (args: BaseConnection<any>) => void
@@ -67,7 +66,7 @@ export const roomSubscribedWorker: SDKWorker<
     yield sagaEffects.put(
       componentActions.upsert({
         id: action.payload.call_id,
-        roomId: action.payload.room_session.room_id,
+        roomId: action.payload.room_session?.room_id,
         roomSessionId: roomSessionId,
         memberId: action.payload.member_id,
         previewUrl: action.payload.room_session.preview_url,
