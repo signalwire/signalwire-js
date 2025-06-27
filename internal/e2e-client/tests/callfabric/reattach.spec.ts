@@ -26,12 +26,12 @@ test.describe('CallFabric Reattach', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    let roomSession = await dialAddress(page, {
+    let callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
 
-    expect(roomSession.room_session).toBeDefined()
-    const currentCallId = roomSession.call_id
+    expect(callSession.room_session).toBeDefined()
+    const currentCallId = callSession.call_id
 
     await expectMCUVisible(page)
 
@@ -39,7 +39,7 @@ test.describe('CallFabric Reattach', () => {
     await createCFClient(page)
 
     // Reattach to an address to join the same call session
-    roomSession = await page.evaluate(
+    callSession = await page.evaluate(
       async ({ roomName }) => {
         return new Promise(async (resolve, _reject) => {
           // @ts-expect-error
@@ -60,7 +60,7 @@ test.describe('CallFabric Reattach', () => {
       { roomName }
     )
 
-    expect(roomSession.call_id).toEqual(currentCallId)
+    expect(callSession.call_id).toEqual(currentCallId)
     // TODO the server is not sending a layout state on reattach
     // await expectMCUVisible(page)
   })
@@ -81,12 +81,12 @@ test.describe('CallFabric Reattach', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSessionBefore: CallJoinedEventParams = await dialAddress(page, {
+    const callSessionBefore: CallJoinedEventParams = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSessionBefore.room_session).toBeDefined()
+    expect(callSessionBefore.room_session).toBeDefined()
     await expectMCUVisible(page)
-    const memberId = roomSessionBefore.member_id
+    const memberId = callSessionBefore.member_id
 
     // --------------- Muting Video (self) ---------------
     await test.step('mute the self video', async () => {
@@ -136,7 +136,7 @@ test.describe('CallFabric Reattach', () => {
     await test.step('lock room', async () => {
       await page.evaluate(
         // @ts-expect-error
-        async ({ roomSession }) => {
+        async ({ callSession }) => {
           // @ts-expect-error
           const callObj: CallSession = window._callObj
 
@@ -151,7 +151,7 @@ test.describe('CallFabric Reattach', () => {
           await callObj.lock()
           await roomUpdatedLocked
         },
-        { roomSession: roomSessionBefore }
+        { callSession: callSessionBefore }
       )
     })
 
@@ -232,13 +232,13 @@ test.describe('CallFabric Reattach', () => {
     //   )
     // })
 
-    const roomSessionAfter =
+    const callSessionAfter =
       await test.step('reload page and reattach', async () => {
         await page.reload({ waitUntil: 'domcontentloaded' })
         await createCFClient(page)
 
         // Reattach to an address to join the same call session
-        const roomSession: CallJoinedEventParams = await page.evaluate(
+        const callSession: CallJoinedEventParams = await page.evaluate(
           async ({ roomName }) => {
             return new Promise(async (resolve, _reject) => {
               const client = window._client!
@@ -258,17 +258,17 @@ test.describe('CallFabric Reattach', () => {
           { roomName }
         )
 
-        return roomSession
+        return callSession
       })
 
     await test.step('assert room state', async () => {
-      expect(roomSessionAfter.room_session).toBeDefined()
-      expect(roomSessionAfter.call_id).toEqual(roomSessionBefore.call_id)
-      expect(roomSessionAfter.room_session.locked).toBe(true)
-      expect(roomSessionAfter.room_session.members.length).toBeGreaterThan(0)
+      expect(callSessionAfter.room_session).toBeDefined()
+      expect(callSessionAfter.call_id).toEqual(callSessionBefore.call_id)
+      expect(callSessionAfter.room_session.locked).toBe(true)
+      expect(callSessionAfter.room_session.members.length).toBeGreaterThan(0)
 
-      const selfMember = roomSessionAfter.room_session.members.find(
-        (member) => member.member_id === roomSessionAfter.member_id
+      const selfMember = callSessionAfter.room_session.members.find(
+        (member) => member.member_id === callSessionAfter.member_id
       )
 
       expect(selfMember).toBeDefined()
@@ -309,31 +309,31 @@ test.describe('CallFabric Reattach', () => {
     await test.step('[pageOne] create client and join a room', async () => {
       await createCFClient(pageOne)
       // Dial an address and join a video room
-      const roomSession: CallJoinedEventParams = await dialAddress(pageOne, {
+      const callSession: CallJoinedEventParams = await dialAddress(pageOne, {
         address: `/public/${roomName}?channel=video`,
       })
-      expect(roomSession.room_session).toBeDefined()
-      expect(roomSession.room_session.members).toBeDefined()
-      expect(roomSession.room_session.members).toHaveLength(1)
+      expect(callSession.room_session).toBeDefined()
+      expect(callSession.room_session.members).toBeDefined()
+      expect(callSession.room_session.members).toHaveLength(1)
       await expectMCUVisible(pageOne)
-      return roomSession
+      return callSession
     })
 
-    const roomSessionTwo =
+    const callSessionTwo =
       await test.step('[pageTwo] create client and join a room', async () => {
         await createCFClient(pageTwo)
         // Dial an address and join a video room
-        const roomSession: CallJoinedEventParams = await dialAddress(pageTwo, {
+        const callSession: CallJoinedEventParams = await dialAddress(pageTwo, {
           address: `/public/${roomName}?channel=video`,
         })
-        expect(roomSession.room_session).toBeDefined()
-        expect(roomSession.room_session.members).toBeDefined()
-        expect(roomSession.room_session.members).toHaveLength(2)
+        expect(callSession.room_session).toBeDefined()
+        expect(callSession.room_session.members).toBeDefined()
+        expect(callSession.room_session.members).toHaveLength(2)
         await expectMCUVisible(pageTwo)
-        return roomSession
+        return callSession
       })
 
-    const [_memberOneId, memberTwoId] = roomSessionTwo.room_session.members.map(
+    const [_memberOneId, memberTwoId] = callSessionTwo.room_session.members.map(
       (member) => member.member_id
     )
 
@@ -432,13 +432,13 @@ test.describe('CallFabric Reattach', () => {
     // --------------- Change Noise Gate ---------------
     // TODO: Add "setInputSensitivity" API test when the server issue is fixed
 
-    const roomSessionTwoAfter =
+    const callSessionTwoAfter =
       await test.step('[pageTwo] reload page and reattach', async () => {
         await pageTwo.reload({ waitUntil: 'domcontentloaded' })
         await createCFClient(pageTwo)
 
         // Reattach to an address to join the same call session
-        const roomSession: CallJoinedEventParams = await pageTwo.evaluate(
+        const callSession: CallJoinedEventParams = await pageTwo.evaluate(
           async ({ roomName }) => {
             return new Promise(async (resolve, _reject) => {
               const client = window._client!
@@ -458,16 +458,16 @@ test.describe('CallFabric Reattach', () => {
           { roomName }
         )
 
-        return roomSession
+        return callSession
       })
 
     await test.step('[pageTwo] assert room state', async () => {
-      expect(roomSessionTwoAfter.room_session).toBeDefined()
-      expect(roomSessionTwoAfter.call_id).toEqual(roomSessionTwo.call_id)
-      expect(roomSessionTwoAfter.room_session.members).toHaveLength(2)
+      expect(callSessionTwoAfter.room_session).toBeDefined()
+      expect(callSessionTwoAfter.call_id).toEqual(callSessionTwo.call_id)
+      expect(callSessionTwoAfter.room_session.members).toHaveLength(2)
 
-      const selfMember = roomSessionTwoAfter.room_session.members.find(
-        (member) => member.member_id === roomSessionTwoAfter.member_id
+      const selfMember = callSessionTwoAfter.room_session.members.find(
+        (member) => member.member_id === callSessionTwoAfter.member_id
       )
 
       expect(selfMember).toBeDefined()
@@ -528,7 +528,7 @@ test.describe('CallFabric Reattach', () => {
   //   await createCFClient(page)
 
   //   // Dial an address and join a video room
-  //   let roomSession = await page.evaluate(
+  //   let callSession = await page.evaluate(
   //     async ({ resourceName }) => {
   //       return new Promise<any>(async (resolve, _reject) => {
   //         // @ts-expect-error
@@ -556,8 +556,8 @@ test.describe('CallFabric Reattach', () => {
   //     { resourceName }
   //   )
 
-  //   expect(roomSession.room_session).toBeDefined()
-  //   const currentCallId = roomSession.call_id
+  //   expect(callSession.room_session).toBeDefined()
+  //   const currentCallId = callSession.call_id
 
   //   await expectMCUVisible(page)
 
@@ -566,7 +566,7 @@ test.describe('CallFabric Reattach', () => {
 
   //   // FIXME Server is not accepting the invite
   //   // Reattach to an address to join the same call session
-  //   roomSession = await page.evaluate(
+  //   callSession = await page.evaluate(
   //     async ({ resourceName }) => {
   //       return new Promise<any>(async (resolve, _reject) => {
   //         // @ts-expect-error
@@ -587,7 +587,7 @@ test.describe('CallFabric Reattach', () => {
   //     { resourceName }
   //   )
 
-  //   expect(roomSession.call_id).toEqual(currentCallId)
+  //   expect(callSession.call_id).toEqual(currentCallId)
   //   // TODO the server is not sending a layout state on reattach
   //   // await expectMCUVisible(page)
   // })

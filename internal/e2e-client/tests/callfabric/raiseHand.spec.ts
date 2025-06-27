@@ -22,14 +22,14 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
 
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
     expect(
-      roomSession.room_session.members.some(
-        (member: any) => member.member_id === roomSession.member_id
+      callSession.room_session.members.some(
+        (member: any) => member.member_id === callSession.member_id
       )
     ).toBeTruthy()
 
@@ -37,14 +37,14 @@ test.describe('CallFabric Raise/Lower Hand', () => {
 
     // --------------- Raise a self member hand ---------------
     await page.evaluate(
-      async ({ roomSessionId }) => {
+      async ({ callSessionId }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
         const memberUpdated = new Promise((resolve) => {
           callObj.on('member.updated', (params: any) => {
             if (
-              params.room_session_id === roomSessionId &&
+              params.room_session_id === callSessionId &&
               params.member.handraised == true
             ) {
               resolve(true)
@@ -56,19 +56,19 @@ test.describe('CallFabric Raise/Lower Hand', () => {
 
         return memberUpdated
       },
-      { roomSessionId: roomSession.room_session.room_session_id }
+      { callSessionId: callSession.room_session.room_session_id }
     )
 
     // --------------- Lower a self member hand ---------------
     await page.evaluate(
-      async ({ roomSessionId }) => {
+      async ({ callSessionId }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
         const memberUpdated = new Promise((resolve) => {
           callObj.on('member.updated', (params: any) => {
             if (
-              params.room_session_id === roomSessionId &&
+              params.room_session_id === callSessionId &&
               params.member.handraised == false
             ) {
               resolve(true)
@@ -80,7 +80,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
 
         return memberUpdated
       },
-      { roomSessionId: roomSession.room_session.room_session_id }
+      { callSessionId: callSession.room_session.room_session_id }
     )
   })
 
@@ -98,14 +98,14 @@ test.describe('CallFabric Raise/Lower Hand', () => {
 
     // Create client, dial an address and join a video room from page-one
     await createCFClient(pageOne)
-    const roomSessionOne = await dialAddress(pageOne, {
+    const callSessionOne = await dialAddress(pageOne, {
       address: `/public/${roomName}?channel=video`,
     })
 
-    expect(roomSessionOne.room_session).toBeDefined()
+    expect(callSessionOne.room_session).toBeDefined()
     expect(
-      roomSessionOne.room_session.members.some(
-        (member: any) => member.member_id === roomSessionOne.member_id
+      callSessionOne.room_session.members.some(
+        (member: any) => member.member_id === callSessionOne.member_id
       )
     ).toBeTruthy()
 
@@ -113,32 +113,32 @@ test.describe('CallFabric Raise/Lower Hand', () => {
 
     // Create client, dial an address and join a video room from page-two
     await createCFClient(pageTwo)
-    const roomSessionTwo = await dialAddress(pageTwo, {
+    const callSessionTwo = await dialAddress(pageTwo, {
       address: `/public/${roomName}?channel=video`,
     })
 
-    expect(roomSessionTwo.room_session).toBeDefined()
+    expect(callSessionTwo.room_session).toBeDefined()
     expect(
-      roomSessionTwo.room_session.members.some(
-        (member: any) => member.member_id === roomSessionTwo.member_id
+      callSessionTwo.room_session.members.some(
+        (member: any) => member.member_id === callSessionTwo.member_id
       )
     ).toBeTruthy()
 
     await expectMCUVisible(pageTwo)
 
-    const members = roomSessionTwo.room_session.members
+    const members = callSessionTwo.room_session.members
     expect(members).toHaveLength(2)
 
     // --------------- Raise other member's hand ---------------
     await pageOne.evaluate(
-      async ({ roomSessionTwoId, memberOneId }) => {
+      async ({ callSessionTwoId, memberOneId }) => {
         // @ts-expect-error
-        const callObj: CallSession = window._callObj // This is a roomSessionTwo object
+        const callObj: CallSession = window._callObj // This is a callSessionTwo object
 
         const memberUpdated = new Promise((resolve) => {
           callObj.on('member.updated', (params: any) => {
             if (
-              params.room_session_id === roomSessionTwoId &&
+              params.room_session_id === callSessionTwoId &&
               params.member.member_id === memberOneId &&
               params.member.handraised == true
             ) {
@@ -152,21 +152,21 @@ test.describe('CallFabric Raise/Lower Hand', () => {
         return memberUpdated
       },
       {
-        roomSessionTwoId: roomSessionTwo.room_session.room_session_id,
+        callSessionTwoId: callSessionTwo.room_session.room_session_id,
         memberOneId: members[0].member_id,
       }
     )
 
     // --------------- Lower other member's hand ---------------
     await pageOne.evaluate(
-      async ({ roomSessionTwoId, memberOneId }) => {
+      async ({ callSessionTwoId, memberOneId }) => {
         // @ts-expect-error
-        const callObj: CallSession = window._callObj // This is a roomSessionTwo object
+        const callObj: CallSession = window._callObj // This is a callSessionTwo object
 
         const memberUpdated = new Promise((resolve) => {
           callObj.on('member.updated', (params: any) => {
             if (
-              params.room_session_id === roomSessionTwoId &&
+              params.room_session_id === callSessionTwoId &&
               params.member.member_id === memberOneId &&
               params.member.handraised == false
             ) {
@@ -180,7 +180,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
         return memberUpdated
       },
       {
-        roomSessionTwoId: roomSessionTwo.room_session.room_session_id,
+        callSessionTwoId: callSessionTwo.room_session.room_session_id,
         memberOneId: members[0].member_id,
       }
     )

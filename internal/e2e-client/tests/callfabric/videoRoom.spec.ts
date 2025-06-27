@@ -25,16 +25,16 @@ test.describe('CallFabric VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession: CallJoinedEventParams = await dialAddress(page, {
+    const callSession: CallJoinedEventParams = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
 
-    expect(roomSession.room_session).toBeDefined()
-    expect(roomSession.room_session.name).toBeDefined()
-    expect(roomSession.room_session.display_name).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
+    expect(callSession.room_session.name).toBeDefined()
+    expect(callSession.room_session.display_name).toBeDefined()
     expect(
-      roomSession.room_session.members.some(
-        (member) => member.member_id === roomSession.member_id
+      callSession.room_session.members.some(
+        (member) => member.member_id === callSession.member_id
       )
     ).toBeTruthy()
 
@@ -42,7 +42,7 @@ test.describe('CallFabric VideoRoom', () => {
 
     // --------------- Muting Audio (self) ---------------
     await page.evaluate(
-      async ({ roomSession }) => {
+      async ({ callSession }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
@@ -50,7 +50,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedEvent = new Promise((res) => {
             callObj.on('member.updated', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.updated.includes('audio_muted') &&
                 params.member.audio_muted === true
               ) {
@@ -61,7 +61,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedMutedEvent = new Promise((res) => {
             callObj.on('member.updated.audioMuted', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.audio_muted === true
               ) {
                 res(true)
@@ -78,7 +78,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedEvent = new Promise((res) => {
             callObj.on('member.updated', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.updated.includes('audio_muted') &&
                 params.member.audio_muted === false
               ) {
@@ -89,7 +89,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedMutedEvent = new Promise((res) => {
             callObj.on('member.updated.audioMuted', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.audio_muted === false
               ) {
                 res(true)
@@ -107,12 +107,12 @@ test.describe('CallFabric VideoRoom', () => {
 
         return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
-      { roomSession }
+      { callSession }
     )
 
     // --------------- Muting Video (self) ---------------
     await page.evaluate(
-      async ({ roomSession }) => {
+      async ({ callSession }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
@@ -120,7 +120,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedEvent = new Promise((res) => {
             callObj.on('member.updated', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.updated.includes('video_muted') &&
                 params.member.updated.includes('visible') &&
                 params.member.video_muted === true &&
@@ -133,7 +133,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedMutedEvent = new Promise((res) => {
             callObj.on('member.updated.videoMuted', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.video_muted === true &&
                 params.member.visible === false
               ) {
@@ -151,7 +151,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedEvent = new Promise((res) => {
             callObj.on('member.updated', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.updated.includes('video_muted') &&
                 params.member.updated.includes('visible') &&
                 params.member.video_muted === false &&
@@ -164,7 +164,7 @@ test.describe('CallFabric VideoRoom', () => {
           const memberUpdatedMutedEvent = new Promise((res) => {
             callObj.on('member.updated.videoMuted', (params) => {
               if (
-                params.member.member_id === roomSession.member_id &&
+                params.member.member_id === callSession.member_id &&
                 params.member.video_muted === false &&
                 params.member.visible === true
               ) {
@@ -183,7 +183,7 @@ test.describe('CallFabric VideoRoom', () => {
 
         return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
-      { roomSession }
+      { callSession }
     )
 
     // --------------- Screenshare ---------------
@@ -241,7 +241,7 @@ test.describe('CallFabric VideoRoom', () => {
     // --------------- Room lock/unlock ---------------
     await page.evaluate(
       // @ts-expect-error
-      async ({ roomSession }) => {
+      async ({ callSession }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
@@ -267,7 +267,7 @@ test.describe('CallFabric VideoRoom', () => {
         await callObj.unlock()
         await roomUpdatedUnlocked
       },
-      { roomSession }
+      { callSession }
     )
 
     // --------------- Set layout ---------------
@@ -374,7 +374,7 @@ test.describe('CallFabric VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await page.evaluate(async () => {
+    const callSession = await page.evaluate(async () => {
       try {
         const client = window._client!
 
@@ -394,7 +394,7 @@ test.describe('CallFabric VideoRoom', () => {
       }
     })
 
-    expect(roomSession.success).toBe(false)
+    expect(callSession.success).toBe(false)
   })
 
   test('should handle joining a room with audio channel only', async ({
@@ -410,14 +410,14 @@ test.describe('CallFabric VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address with audio only channel
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=audio`,
     })
 
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
     expect(
-      roomSession.room_session.members.some(
-        (member: any) => member.member_id === roomSession.member_id
+      callSession.room_session.members.some(
+        (member: any) => member.member_id === callSession.member_id
       )
     ).toBeTruthy()
 

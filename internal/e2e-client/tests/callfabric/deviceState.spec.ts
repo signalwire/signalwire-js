@@ -42,13 +42,13 @@ test.describe('CallFabric - Device State', () => {
       await createCFClient(page)
 
       // Dial an address and join a video room
-      const roomSession = await dialAddress(page, {
+      const callSession = await dialAddress(page, {
         address: `/public/${roomName}?channel=video`,
         dialOptions: {
           stopCameraWhileMuted,
         },
       })
-      const memberId = roomSession.member_id
+      const memberId = callSession.member_id
 
       await expectMCUVisible(page)
 
@@ -103,13 +103,13 @@ test.describe('CallFabric - Device State', () => {
       await createCFClient(page)
 
       // Dial an address and join a video room
-      const roomSession = await dialAddress(page, {
+      const callSession = await dialAddress(page, {
         address: `/public/${roomName}?channel=video`,
         dialOptions: {
           stopMicrophoneWhileMuted,
         },
       })
-      const memberId = roomSession.member_id
+      const memberId = callSession.member_id
 
       await expectMCUVisible(page)
 

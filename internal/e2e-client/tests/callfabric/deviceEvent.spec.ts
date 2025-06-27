@@ -22,10 +22,10 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
@@ -74,10 +74,10 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
@@ -127,10 +127,10 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
@@ -189,10 +189,10 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
