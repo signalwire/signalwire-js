@@ -117,9 +117,9 @@ test.describe('Clean up', () => {
             clientWorkersLength: client.__wsClient._runningWorkers.length,
 
             // @ts-expect-error
-            callListeners: window._roomObj.eventNames().length,
+            callListeners: window._callObj.eventNames().length,
             // @ts-expect-error
-            callWorkersLength: window._roomObj._runningWorkers.length,
+            callWorkersLength: window._callObj._runningWorkers.length,
 
             // @ts-expect-error
             globalWorkersLength: window._runningWorkers.length,
@@ -151,9 +151,9 @@ test.describe('Clean up', () => {
           clientWorkersLength: client.__wsClient._runningWorkers.length,
 
           // @ts-expect-error
-          callListeners: window._roomObj.eventNames().length,
+          callListeners: window._callObj.eventNames().length,
           // @ts-expect-error
-          callWorkersLength: window._roomObj._runningWorkers.length,
+          callWorkersLength: window._callObj._runningWorkers.length,
 
           // @ts-expect-error
           globalWorkersLength: window._runningWorkers.length,
@@ -180,9 +180,9 @@ test.describe('Clean up', () => {
           clientWorkersLength: client.__wsClient._runningWorkers.length,
 
           // @ts-expect-error
-          callListeners: window._roomObj.eventNames().length,
+          callListeners: window._callObj.eventNames().length,
           // @ts-expect-error
-          callWorkersLength: window._roomObj._runningWorkers.length,
+          callWorkersLength: window._callObj._runningWorkers.length,
 
           // @ts-expect-error
           globalWorkersLength: window._runningWorkers.length,

@@ -1,6 +1,6 @@
 import { uuid } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
-import type { FabricRoomSession } from '@signalwire/client'
+import type { CallSession } from '@signalwire/client'
 import {
   SERVER_URL,
   createCFClient,
@@ -22,32 +22,32 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
     // --------------- Change the microphone & camera ---------------
     const devices = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const callObj: CallSession = window._callObj
 
       const microphoneUpdated = new Promise((resolve) => {
-        roomObj.on('microphone.updated', (payload) => {
+        callObj.on('microphone.updated', (payload) => {
           resolve(payload)
         })
       })
 
       const cameraUpdated = new Promise((resolve) => {
-        roomObj.on('camera.updated', (payload) => {
+        callObj.on('camera.updated', (payload) => {
           resolve(payload)
         })
       })
 
-      await roomObj.updateMicrophone({ deviceId: 'test-mic-id' })
-      await roomObj.updateCamera({ deviceId: 'test-camera-id' })
+      await callObj.updateMicrophone({ deviceId: 'test-mic-id' })
+      await callObj.updateCamera({ deviceId: 'test-camera-id' })
 
       return Promise.all([microphoneUpdated, cameraUpdated])
     })
@@ -74,22 +74,22 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
     // --------------- Change the microphone & camera ---------------
     const devices = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
-      const localAudioTrack = roomObj.localAudioTrack!
-      const localVideoTrack = roomObj.localVideoTrack!
+      const callObj: CallSession = window._callObj
+      const localAudioTrack = callObj.localAudioTrack!
+      const localVideoTrack = callObj.localVideoTrack!
 
       const microphoneDisconnected = new Promise((resolve) => {
-        roomObj.on('microphone.disconnected', (payload) => {
+        callObj.on('microphone.disconnected', (payload) => {
           resolve(payload)
         })
         const endedEvent = new Event('ended')
@@ -97,7 +97,7 @@ test.describe('CallFabric Room Device', () => {
       })
 
       const cameraDisconnected = new Promise((resolve) => {
-        roomObj.on('camera.disconnected', (payload) => {
+        callObj.on('camera.disconnected', (payload) => {
           resolve(payload)
         })
         const endedEvent = new Event('ended')
@@ -127,20 +127,20 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
     // --------------- Change the speaker ---------------
     const device = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const callObj: CallSession = window._callObj
 
       const speakerUpdated = new Promise((resolve) => {
-        roomObj.on('speaker.updated', (payload) => {
+        callObj.on('speaker.updated', (payload) => {
           resolve(payload)
         })
       })
@@ -152,7 +152,7 @@ test.describe('CallFabric Room Device', () => {
         )
         .map((device) => device.deviceId)[0]
 
-      await roomObj.updateSpeaker({ deviceId: speakerId })
+      await callObj.updateSpeaker({ deviceId: speakerId })
 
       return await speakerUpdated
     })
@@ -189,24 +189,24 @@ test.describe('CallFabric Room Device', () => {
     await createCFClient(page)
 
     // Dial an address and join a video room
-    const roomSession = await dialAddress(page, {
+    const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
     })
-    expect(roomSession.room_session).toBeDefined()
+    expect(callSession.room_session).toBeDefined()
 
     await expectMCUVisible(page)
 
     // --------------- Change the speaker -------------
     const device = await page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const callObj: CallSession = window._callObj
 
       navigator.mediaDevices.enumerateDevices = async () => {
         return []
       }
 
       const speakerDisconnected = new Promise((resolve) => {
-        roomObj.on('speaker.disconnected', (payload) => {
+        callObj.on('speaker.disconnected', (payload) => {
           resolve(payload)
         })
         const event = new Event('devicechange')

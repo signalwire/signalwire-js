@@ -7,10 +7,7 @@ import {
   VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
-import {
-  createFabricRoomSessionObject,
-  FabricRoomSession,
-} from './FabricRoomSession'
+import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
@@ -56,7 +53,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  private makeFabricObject(makeRoomOptions: MakeRoomOptions) {
+  private makeCallObject(makeRoomOptions: MakeRoomOptions) {
     const {
       rootElement,
       applyLocalVideoOverlay = true,
@@ -67,7 +64,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       ...options
     } = makeRoomOptions
 
-    const room = createFabricRoomSessionObject({
+    const room = createCallSessionObject({
       ...options,
       store: this.store,
     })
@@ -177,7 +174,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       }
     }
 
-    const call = this.makeFabricObject({
+    const call = this.makeCallObject({
       audio: params.audio ?? true,
       video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -216,7 +213,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    const call = this.makeFabricObject({
+    const call = this.makeCallObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -309,7 +306,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public async dial(params: DialParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
+    return new Promise<CallSession>(async (resolve, reject) => {
       try {
         // in case the user left the previous call with hangup, and is not reattaching
         getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
@@ -323,7 +320,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public async reattach(params: ReattachParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
+    return new Promise<CallSession>(async (resolve, reject) => {
       try {
         const call = this.buildOutboundCall({ ...params, attach: true })
         resolve(call)
