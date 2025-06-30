@@ -1,9 +1,13 @@
+import { GetConversationChatMessageResult } from 'packages/client/dist/client/src'
 import { Conversation } from './Conversation'
 import {
   ConversationAPIGetMessagesParams,
   ConversationAPISendMessageParams,
   ConversationContract,
   ConversationResponse,
+  GetConversationMessagesResult,
+  PaginatedResponse,
+  SendConversationMessageResponse,
 } from './interfaces'
 
 export class ConversationAPI implements ConversationContract {
@@ -36,17 +40,15 @@ export class ConversationAPI implements ConversationContract {
     return this.payload.name
   }
 
-  sendMessage(params: ConversationAPISendMessageParams) {
-    return this.conversation.sendMessage({
-      addressId: this.id,
-      text: params.text,
-    })
+  sendMessage(_params: ConversationAPISendMessageParams): Promise<SendConversationMessageResponse> {
+    throw new Error(
+      'This version ConversationAPI.sendMessage is unsupported by the backend. Use @signalwire/client instead.'
+    )
   }
 
-  getMessages(params?: ConversationAPIGetMessagesParams) {
-    return this.conversation.getConversationMessages({
-      addressId: this.id,
-      ...params,
-    })
+  getMessages(_params?: ConversationAPIGetMessagesParams): Promise<GetConversationMessagesResult> {
+    throw new Error(
+      'This version ConversationAPI.sendMessage is unsupported by the backend. Use @signalwire/client instead.'
+    )
   }
 }

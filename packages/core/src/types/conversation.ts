@@ -3,8 +3,7 @@ import { SwEvent } from '..'
 export type ConversationMessageEventName = 'conversation.message'
 
 export interface ConversationMessageEventParams {
-  conversation_id: string
-  conversation_name: string
+  group_id: string
   details: Record<string, unknown>
   hidden: boolean
   id: string
@@ -14,9 +13,6 @@ export interface ConversationMessageEventParams {
   text?: string
   ts: number
   type: string
-  user_id: string
-  user_name: string
-  address_id: string
   from_address_id: string
 }
 

@@ -84,7 +84,7 @@ export class Conversation {
   /** @internal */
   handleEvent(event: ConversationEventParams) {
     if (event.subtype === 'chat') {
-      const chatCallbacks = this.chatSubscriptions[event.conversation_id]
+      const chatCallbacks = this.chatSubscriptions[event.group_id]
       if (chatCallbacks?.size) {
         chatCallbacks.forEach((cb) => cb(event))
       }
@@ -101,13 +101,13 @@ export class Conversation {
     params: SendConversationMessageParams
   ): Promise<SendConversationMessageResult> {
     try {
-      const { conversationId, fromAddressId, text } = params
+      const { groupId, fromAddressId, text } = params
       const path = '/api/fabric/messages'
       const { body } =
         await this.httpClient.fetch<SendConversationMessageResponse>(path, {
           method: 'POST',
           body: {
-            group_id: conversationId,
+            group_id: groupId,
             text,
             from_address_id: fromAddressId,
             metadata: params.metadata,
@@ -190,9 +190,9 @@ export class Conversation {
     params: GetConversationMessagesParams
   ): Promise<GetConversationMessagesResult> {
     try {
-      const { addressId, pageSize } = params || {}
+      const { groupId, pageSize } = params || {}
 
-      const path = `/api/fabric/conversations/${addressId}/messages`
+      const path = `/api/fabric/conversations/${groupId}/messages`
       const queryParams = new URLSearchParams()
       if (pageSize) {
         queryParams.append('page_size', pageSize.toString())
@@ -215,7 +215,7 @@ export class Conversation {
   public async getChatMessages(
     params: GetConversationChatMessageParams
   ): Promise<GetConversationChatMessageResult> {
-    const { addressId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
+    const { groupId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
 
     const fetchChatMessagesPage = async (
       fetcherFn?: () => Promise<GetConversationChatMessageResult | undefined>,
@@ -302,7 +302,7 @@ export class Conversation {
     return fetchChatMessagesPage(
       () =>
         this.getConversationMessages({
-          addressId,
+          groupId,
           pageSize,
         }) as Promise<GetConversationChatMessageResult>
     )
@@ -354,7 +354,7 @@ export class Conversation {
         }
       )
       return {
-        conversationId: body.group_id,
+        groupId: body.group_id,
         addressIds: body.fabric_address_ids,
         fromAddressId: body.from_fabric_address_id,
       }
