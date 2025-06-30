@@ -48,7 +48,7 @@ export class ConversationAPI implements ConversationContract {
 
   getMessages(_params?: ConversationAPIGetMessagesParams): Promise<GetConversationMessagesResult> {
     throw new Error(
-      'This version ConversationAPI.sendMessage is unsupported by the backend. Use @signalwire/client instead.'
+      'This version ConversationAPI.getMessages is unsupported by the backend. Use @signalwire/client instead.'
     )
   }
 }
