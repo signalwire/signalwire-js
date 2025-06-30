@@ -46,7 +46,7 @@ export class ConversationAPI implements ConversationContract {
 
   getMessages(params?: ConversationAPIGetMessagesParams) {
     return this.conversation.getConversationMessages({
-      groupId: this.id,
+      groupId: this.groupId,
       ...params,
     })
   }
