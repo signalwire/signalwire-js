@@ -63,74 +63,71 @@ import { CallCapabilitiesContract, CallSession } from '../../fabric'
 // }
 // to stop TS inference to resolve original types
 export type InternalCallMemberEntity = InternalFabricMemberEntity & {
-  tshack?: undefined
+  _?: undefined
 }
 export type InternalCallMemberEntityUpdated =
   InternalFabricMemberEntityUpdated & {
-    tshack?: undefined
+    _?: undefined
   }
-export type CallMemberEventNames = FabricMemberEventNames & {
-  tshack?: undefined
-}
-export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames & {
-  tshack?: undefined
-}
+export type CallMemberEventNames = FabricMemberEventNames
+export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames
+
 export type CallMemberEventParams = FabricMemberEventParams & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberEventParamsExcludeTalking =
   FabricMemberEventParamsExcludeTalking & {
-    tshack?: undefined
+    _?: undefined
   }
 export type CallMemberContract = FabricMemberContract & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallLayoutChangedEvent = FabricLayoutChangedEvent & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallLayoutChangedEventParams = FabricLayoutChangedEventParams & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberJoinedEvent = FabricMemberJoinedEvent & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberLeftEvent = FabricMemberLeftEvent & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberTalkingEvent = FabricMemberTalkingEvent & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberUpdatedEvent = FabricMemberUpdatedEvent & {
-  tshack?: undefined
+  _?: undefined
 }
 export type InternalCallRoomSessionEntity = InternalFabricRoomSessionEntity & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberEvent = FabricMemberEvent & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallAction = FabricAction & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallRoomSessionMethods = FabricRoomSessionMethods
 export type CallMemberEntity = FabricMemberEntity & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallRoomEventParams = FabricRoomEventParams & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberJoinedEventParams = FabricMemberJoinedEventParams & {
-  tshack?: undefined
+  _?: undefined
 }
 
 export type CallMemberUpdatedEventParams = FabricMemberUpdatedEventParams & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberLeftEventParams = FabricMemberLeftEventParams & {
-  tshack?: undefined
+  _?: undefined
 }
 export type CallMemberTalkingEventParams = FabricMemberTalkingEventParams & {
-  tshack?: undefined
+  _?: undefined
 }
 
 export interface ExecuteActionParams {
