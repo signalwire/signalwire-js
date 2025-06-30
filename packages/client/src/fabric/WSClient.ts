@@ -4,7 +4,6 @@ import {
   CallJoinedEventParams as InternalCallJoinedEventParams,
   VertoBye,
   VertoSubscribe,
-  VideoRoomSubscribedEventParams,
 } from '@signalwire/core'
 import { MakeRoomOptions } from '../video'
 import { createCallSessionObject, CallSession } from './CallSession'
@@ -25,6 +24,7 @@ import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { CallMemberUpdatedEventParams } from '../utils/interfaces'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -92,12 +92,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      * `join_audio_muted: true` we'll stop the streams
      * right away.
      */
-    const joinMutedHandler = (
-      params: InternalCallJoinedEventParams | VideoRoomSubscribedEventParams
-    ) => {
+    const joinMutedHandler = (params: InternalCallJoinedEventParams) => {
       const member = params.room_session.members?.find(
-        // @ts-expect-error FIXME:
-        (m) => m.id === room.memberId || m.member_id === room.memberId
+        (m) => m.member_id === room.memberId
       )
 
       if (member?.audio_muted) {
@@ -120,37 +117,44 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     room.on('room.subscribed', joinMutedHandler)
 
     /**
-     * Stop and Restore outbound audio on audio_muted event
+     * Stop or Restore outbound audio on "member.updated" event
      */
     if (stopMicrophoneWhileMuted) {
-      room.on('member.updated.audioMuted', ({ member }) => {
-        try {
-          if (member.member_id === room.memberId && 'audio_muted' in member) {
-            member.audio_muted
-              ? room.stopOutboundAudio()
-              : room.restoreOutboundAudio()
+      room.on(
+        'member.updated.audioMuted',
+        (params: CallMemberUpdatedEventParams) => {
+          const { member } = params
+          try {
+            if (member.member_id === room.memberId && 'audio_muted' in member) {
+              member.audio_muted
+                ? room.stopOutboundAudio()
+                : room.restoreOutboundAudio()
+            }
+          } catch (error) {
+            this.logger.error('Error handling audio_muted', error)
           }
-        } catch (error) {
-          this.logger.error('Error handling audio_muted', error)
         }
-      })
+      )
     }
 
     /**
-     * Stop and Restore outbound video on video_muted event
+     * Stop or Restore outbound video on "member.updated" event
      */
     if (stopCameraWhileMuted) {
-      room.on('member.updated.videoMuted', ({ member }) => {
-        try {
-          if (member.member_id === room.memberId && 'video_muted' in member) {
-            member.video_muted
-              ? room.stopOutboundVideo()
-              : room.restoreOutboundVideo()
+      room.on(
+        'member.updated.videoMuted',
+        ({ member }: CallMemberUpdatedEventParams) => {
+          try {
+            if (member.member_id === room.memberId && 'video_muted' in member) {
+              member.video_muted
+                ? room.stopOutboundVideo()
+                : room.restoreOutboundVideo()
+            }
+          } catch (error) {
+            this.logger.error('Error handling video_muted', error)
           }
-        } catch (error) {
-          this.logger.error('Error handling video_muted', error)
         }
-      })
+      )
     }
 
     return room

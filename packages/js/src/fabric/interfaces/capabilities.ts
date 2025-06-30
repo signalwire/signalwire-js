@@ -1,4 +1,3 @@
-
 export interface CapabilityOnOffStateContract {
   on: boolean
   off: boolean
@@ -15,6 +14,7 @@ export interface MemberCapabilityContract {
   position: boolean
   meta: boolean
   remove: boolean
+  audioFlags: boolean
 }
 
 export interface CallCapabilitiesContract {

@@ -12,8 +12,8 @@ import {
 } from '../CallSessionMember'
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
-import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/eventMappers'
 import { mapCapabilityPayload } from '../utils/capabilitiesHelpers'
+import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/eventMappers'
 
 export const callJoinWorker = function* (
   options: FabricWorkerParams<CallJoinedEvent>

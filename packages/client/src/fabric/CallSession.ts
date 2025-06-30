@@ -10,6 +10,8 @@ import {
   MemberCommandParams,
   MemberCommandWithVolumeParams,
   MemberCommandWithValueParams,
+  SetAudioFlagsParams,
+  toSnakeCaseKeys,
 } from '@signalwire/core'
 import {
   BaseRoomSessionConnection,
@@ -393,6 +395,15 @@ export class CallSessionConnection
   public async unlock() {
     return this.executeAction<BaseRPCResult>({
       method: 'call.unlock',
+    })
+  }
+
+  public async setAudioFlags(params: SetAudioFlagsParams) {
+    const { memberId, ...rest } = params
+    return this.executeAction<BaseRPCResult>({
+      method: 'call.audioflags.set',
+      memberId,
+      extraParams: toSnakeCaseKeys(rest),
     })
   }
 }

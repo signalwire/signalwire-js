@@ -4,6 +4,7 @@ import {
   MemberCommandWithValueParams,
   MemberCommandWithVolumeParams,
   Rooms,
+  SetAudioFlagsParams,
 } from '@signalwire/core'
 import { CallSessionConnection } from '../CallSession'
 
@@ -206,5 +207,29 @@ export function validateLock(this: CallSessionConnection) {
 export function validateUnlock(this: CallSessionConnection) {
   if (!this.capabilities?.lock.off) {
     throw new CapabilityError('Missing unlock capability')
+  }
+}
+
+export function validateSetAudioFlags(
+  this: CallSessionConnection,
+  params?: SetAudioFlagsParams
+) {
+  const isSelf = isSelfMember(params, this)
+  const capability = isSelf
+    ? this.capabilities?.self.audioFlags
+    : this.capabilities?.member.audioFlags
+  if (!capability) {
+    throw new CapabilityError('Missing audio flags capability')
+  }
+
+  const { echoCancellation, autoGain, noiseSuppression } = params || {}
+  if (
+    echoCancellation === undefined &&
+    autoGain === undefined &&
+    noiseSuppression === undefined
+  ) {
+    throw new TypeError(
+      'Invalid parameters: you must specify at least one of `echoCancellation`, `autoGain`, or `noiseSuppression`'
+    )
   }
 }

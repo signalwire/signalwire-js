@@ -1,9 +1,10 @@
-import {
-  getLogger,
-} from '@signalwire/core'
+import { getLogger } from '@signalwire/core'
 import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
 import { CallSession, isCallSession } from './fabric/CallSession'
-import { VideoMemberUpdatedHandlerParams, CallMemberUpdatedEventParams } from './utils/interfaces'
+import {
+  VideoMemberUpdatedHandlerParams,
+  CallMemberUpdatedEventParams,
+} from './utils/interfaces'
 import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/roomSession'
 export type OverlayMap = Map<string, UserOverlay>
 

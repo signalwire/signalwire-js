@@ -5,7 +5,6 @@ import {
   InternalFabricMemberEntityUpdated,
   MemberListUpdated,
   MemberUpdated,
-  MemberUpdatedEventNames,
   RoomJoined,
   RoomLeft,
   RoomSubscribed,
@@ -38,6 +37,7 @@ import {
   CallConnect,
   CallConnectEventParams,
   CallRoom,
+  FabricMemberUpdatedEventNames,
   FabricMemberEventNames,
   FabricMemberEventParams,
   FabricMemberEventParamsExcludeTalking,
@@ -60,7 +60,7 @@ import { CallCapabilitiesContract, CallSession } from '../../fabric'
 // exporting aliases from the core package with  & {
 //  tshack?: undefined
 // }
-// to stop TS inference to resolve original types 
+// to stop TS inference to resolve original types
 export type InternalCallMemberEntity = InternalFabricMemberEntity & {
   tshack?: undefined
 }
@@ -69,6 +69,9 @@ export type InternalCallMemberEntityUpdated =
     tshack?: undefined
   }
 export type CallMemberEventNames = FabricMemberEventNames & {
+  tshack?: undefined
+}
+export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames & {
   tshack?: undefined
 }
 export type CallMemberEventParams = FabricMemberEventParams & {
@@ -118,6 +121,7 @@ export type CallRoomEventParams = FabricRoomEventParams & {
 export type CallMemberJoinedEventParams = FabricMemberJoinedEventParams & {
   tshack?: undefined
 }
+
 export type CallMemberUpdatedEventParams = FabricMemberUpdatedEventParams & {
   tshack?: undefined
 }
@@ -188,7 +192,7 @@ export type CallSessionEventsHandlerMap = Record<
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
   Record<MemberJoined, (params: CallMemberJoinedEventParams) => void> &
   Record<
-    MemberUpdated | MemberUpdatedEventNames,
+    MemberUpdated | CallMemberUpdatedEventNames,
     (params: CallMemberUpdatedEventParams) => void
   > &
   Record<MemberListUpdated, (params: CallMemberListUpdatedParams) => void> &
