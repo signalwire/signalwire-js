@@ -5,7 +5,6 @@ import {
   InternalFabricMemberEntityUpdated,
   MemberListUpdated,
   MemberUpdated,
-  MemberUpdatedEventNames,
   RoomJoined,
   RoomLeft,
   RoomSubscribed,
@@ -39,6 +38,7 @@ import {
   CallConnectEventParams,
   CallRoom,
   CallRoomEventParams,
+  FabricMemberUpdatedEventNames,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract, FabricRoomSession } from '../../fabric'
@@ -103,7 +103,7 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
   Record<MemberJoined, (params: FabricMemberJoinedEventParams) => void> &
   Record<
-    MemberUpdated | MemberUpdatedEventNames,
+    MemberUpdated | FabricMemberUpdatedEventNames,
     (params: FabricMemberUpdatedEventParams) => void
   > &
   Record<MemberListUpdated, (params: FabricMemberListUpdatedParams) => void> &

@@ -355,6 +355,7 @@ export type FabricMethod =
   | 'call.unlock'
   | 'call.raisehand'
   | 'call.lowerhand'
+  | 'call.audioflags.set'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']
