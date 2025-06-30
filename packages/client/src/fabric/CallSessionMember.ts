@@ -1,12 +1,4 @@
 import {
-  FabricMemberEventNames,
-  FabricMemberEventParams,
-  FabricMemberEventParamsExcludeTalking,
-  FabricMemberJoinedEventParams,
-  FabricMemberLeftEventParams,
-  FabricMemberTalkingEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberContract,
   connect,
   MemberJoined,
   MemberLeft,
@@ -15,41 +7,50 @@ import {
   BaseComponentOptionsWithPayload,
   BaseComponent,
 } from '@signalwire/core'
+import {
+  CallMemberEventNames,
+  CallMemberEventParams,
+  CallMemberEventParamsExcludeTalking,
+  CallMemberJoinedEventParams,
+  CallMemberLeftEventParams,
+  CallMemberTalkingEventParams,
+  CallMemberUpdatedEventParams,
+  CallMemberContract,
+} from '../utils/interfaces'
 
-export interface UnifiedCommunicationSessionMember
-  extends FabricMemberContract {
+export interface CallSessionMember extends CallMemberContract {
   /** Unique id of this member. */
   id: string
-  setPayload(payload: FabricMemberEventParams): void
+  setPayload(payload: CallMemberEventParams): void
 }
 
 // TODO: Fabric Room Session Member instance does not emit any events yet
-export type UnifiedCommunicationSessionMemberEventsHandlerMap = Record<
+export type CallSessionMemberEventsHandlerMap = Record<
   MemberJoined,
-  (params: FabricMemberJoinedEventParams) => void
+  (params: CallMemberJoinedEventParams) => void
 > &
-  Record<MemberUpdated, (params: FabricMemberUpdatedEventParams) => void> &
-  Record<MemberLeft, (params: FabricMemberLeftEventParams) => void> &
-  Record<MemberTalking, (params: FabricMemberTalkingEventParams) => void> &
+  Record<MemberUpdated, (params: CallMemberUpdatedEventParams) => void> &
+  Record<MemberLeft, (params: CallMemberLeftEventParams) => void> &
+  Record<MemberTalking, (params: CallMemberTalkingEventParams) => void> &
   Record<
-    Exclude<FabricMemberEventNames, MemberJoined | MemberLeft | MemberTalking>,
-    (params: FabricMemberUpdatedEventParams) => void
+    Exclude<CallMemberEventNames, MemberJoined | MemberLeft | MemberTalking>,
+    (params: CallMemberUpdatedEventParams) => void
   >
 
-export type UnifiedCommunicationSessionMemberEvents = {
-  [k in keyof UnifiedCommunicationSessionMemberEventsHandlerMap]: UnifiedCommunicationSessionMemberEventsHandlerMap[k]
+export type CallSessionMemberEvents = {
+  [k in keyof CallSessionMemberEventsHandlerMap]: CallSessionMemberEventsHandlerMap[k]
 }
 
-export interface UnifiedCommunicationSessionMemberOptions
-  extends BaseComponentOptionsWithPayload<FabricMemberEventParamsExcludeTalking> {}
+export interface CallSessionMemberOptions
+  extends BaseComponentOptionsWithPayload<CallMemberEventParamsExcludeTalking> {}
 
-export class UnifiedCommunicationSessionMemberAPI
-  extends BaseComponent<UnifiedCommunicationSessionMemberEvents>
-  implements FabricMemberContract
+export class CallSessionMemberAPI
+  extends BaseComponent<CallSessionMemberEvents>
+  implements CallMemberContract
 {
-  private _payload: FabricMemberEventParamsExcludeTalking
+  private _payload: CallMemberEventParamsExcludeTalking
 
-  constructor(options: UnifiedCommunicationSessionMemberOptions) {
+  constructor(options: CallSessionMemberOptions) {
     super(options)
     this._payload = options.payload
   }
@@ -80,6 +81,14 @@ export class UnifiedCommunicationSessionMemberAPI
 
   get parentId() {
     return this._payload.member.parent_id
+  }
+
+  get subscriberId() {
+    return this._payload.member.subscriber_id
+  }
+
+  get addressId() {
+    return this._payload.member.address_id
   }
 
   get name() {
@@ -138,12 +147,20 @@ export class UnifiedCommunicationSessionMemberAPI
     return this._payload.member.input_sensitivity
   }
 
-  get subscriberData() {
-    return this._payload.member.subscriber_data
+  get echoCancellation() {
+    return this._payload.member.echo_cancellation
+  }
+
+  get autoGain() {
+    return this._payload.member.auto_gain
+  }
+
+  get noiseSuppression() {
+    return this._payload.member.noise_suppression
   }
 
   /** @internal */
-  setPayload(payload: FabricMemberEventParams) {
+  setPayload(payload: CallMemberEventParams) {
     // Reshape the payload since the `member.talking` event does not return all the parameters of a member
     const newPayload = {
       ...this._payload,
@@ -157,16 +174,16 @@ export class UnifiedCommunicationSessionMemberAPI
   }
 }
 
-export const createUnifiedCommunicationSessionMemberObject = (
-  params: UnifiedCommunicationSessionMemberOptions
-): UnifiedCommunicationSessionMember => {
+export const createCallSessionMemberObject = (
+  params: CallSessionMemberOptions
+): CallSessionMember => {
   const member = connect<
-    UnifiedCommunicationSessionMemberEventsHandlerMap,
-    UnifiedCommunicationSessionMemberAPI,
-    UnifiedCommunicationSessionMember
+    CallSessionMemberEventsHandlerMap,
+    CallSessionMemberAPI,
+    CallSessionMember
   >({
     store: params.store,
-    Component: UnifiedCommunicationSessionMemberAPI,
+    Component: CallSessionMemberAPI,
   })(params)
 
   return member

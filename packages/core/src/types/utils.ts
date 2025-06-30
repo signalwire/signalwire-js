@@ -78,16 +78,6 @@ export interface ConstructableType<T> {
   new (o?: any): T
 }
 
-export interface MemberCommandParams {
-  memberId?: string
-}
-export interface MemberCommandWithVolumeParams extends MemberCommandParams {
-  volume: number
-}
-export interface MemberCommandWithValueParams extends MemberCommandParams {
-  value: number
-}
-
 type IsAny<T> = 0 extends 1 & T ? true : false
 type IsUnknown<T> = IsAny<T> extends true
   ? false
@@ -145,9 +135,17 @@ export type Promisify<T> = {
  * Flattens object types for better IDE display while preserving function types
  */
 export type Prettify<T> = T extends (...args: any[]) => any
-  ? T  // Preserve function types as-is
-  : T extends object
-  ? {
-      [K in keyof T]: T[K]
-    } & {}
-  : T
+? T  // Preserve function types as-is
+: T extends object
+? {
+    [K in keyof T]: T[K]
+} & {}
+: T
+
+/**
+ * Construct a type that requires at least one property from `Keys` of `T`.
+ */
+export type AtLeastOne<T, Keys extends keyof T = keyof T> = {
+  [K in Keys]: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+}[Keys] &
+  Omit<T, Keys>

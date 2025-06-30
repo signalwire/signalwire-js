@@ -1,24 +1,8 @@
 import {
   CallJoinedEvent,
   CallJoinedEventParams,
-  CallUpdatedEvent,
-  CallUpdatedEventParams,
-  FabricLayoutChangedEvent,
-  FabricMemberJoinedEvent,
-  FabricMemberJoinedEventParams,
-  FabricMemberLeftEvent,
-  FabricMemberLeftEventParams,
-  FabricMemberTalkingEvent,
-  FabricMemberTalkingEventParams,
-  FabricMemberUpdatedEvent,
-  FabricMemberUpdatedEventParams,
-  InternalFabricMemberEntity,
-  InternalFabricMemberEntityUpdated,
-  InternalFabricRoomSessionEntity,
   InternalVideoMemberEntity,
   InternalVideoMemberEntityUpdated,
-  InternalVideoRoomEntity,
-  InternalVideoRoomSessionEntity,
   MapToPubSubShape,
   VideoLayoutChangedEvent,
   VideoMemberJoinedEvent,
@@ -29,45 +13,38 @@ import {
   VideoMemberTalkingEventParams,
   VideoMemberUpdatedEvent,
   VideoMemberUpdatedEventParams,
-  VideoRoomSubscribedEvent,
-  VideoRoomSubscribedEventParams,
-  VideoRoomUpdatedEvent,
-  VideoRoomUpdatedEventParams,
 } from '@signalwire/core'
+import {
+  InternalCallMemberEntity,
+  InternalCallMemberEntityUpdated,
+  CallLayoutChangedEvent,
+  CallMemberJoinedEvent,
+  CallMemberJoinedEventParams,
+  CallMemberLeftEvent,
+  CallMemberLeftEventParams,
+  CallMemberTalkingEvent,
+  CallMemberTalkingEventParams,
+  CallMemberUpdatedEvent,
+  CallMemberUpdatedEventParams,
+} from '../../utils/interfaces/fabric'
 
 /**
- * Map the InternalFabricMemberEntity to InternalVideoMemberEntity
+ * Map the InternalCallMemberEntity to InternalVideoMemberEntity
  */
 export const mapInternalFabricMemberToInternalVideoMemberEntity = (
-  params: InternalFabricMemberEntity
+  params: InternalCallMemberEntity
 ): InternalVideoMemberEntity => {
   return {
+    ...params,
     id: params.member_id,
-    room_id: params.room_id,
-    room_session_id: params.room_session_id,
-    name: params.name,
-    type: params.type,
-    handraised: params.handraised,
-    visible: params.visible,
-    audio_muted: params.audio_muted,
-    video_muted: params.video_muted,
-    deaf: params.deaf,
-    input_volume: params.input_volume,
-    output_volume: params.output_volume,
-    input_sensitivity: params.input_sensitivity,
-    meta: params.meta,
-    talking: params.talking,
-    current_position: params.current_position,
-    requested_position: params.requested_position,
-    parent_id: params.parent_id,
   }
 }
 
 /**
- * Map the InternalFabricMemberEntityUpdated to InternalVideoMemberEntityUpdated
+ * Map the InternalCallMemberEntityUpdated to InternalVideoMemberEntityUpdated
  */
 export const mapInternalFabricMemberToInternalVideoMemberUpdatedEntity = (
-  params: InternalFabricMemberEntityUpdated
+  params: InternalCallMemberEntityUpdated
 ): InternalVideoMemberEntityUpdated => {
   return {
     ...mapInternalFabricMemberToInternalVideoMemberEntity(params),
@@ -78,76 +55,21 @@ export const mapInternalFabricMemberToInternalVideoMemberUpdatedEntity = (
 }
 
 /**
- * Map InternalUnifiedCommunicationSessionEntity to InternalVideoRoomEntity
- */
-export const mapInternalFabricRoomToInternalVideoRoomEntity = (
-  params: InternalFabricRoomSessionEntity
-): InternalVideoRoomEntity => {
-  return {
-    room_id: params.room_id,
-    room_session_id: params.room_session_id,
-    event_channel: params.event_channel,
-    name: params.name,
-    recording: params.recording,
-    hide_video_muted: params.hide_video_muted,
-    preview_url: params.preview_url,
-    recordings: params.recordings,
-    playbacks: params.playbacks,
-    streams: params.streams,
-    prioritize_handraise: params.prioritize_handraise,
-  }
-}
-
-/**
- * Map InternalFabricRoomSessionEntity to InternalVideoRoomSessionEntity
- */
-export const mapInternalFabricRoomToInternalVideoRoomSessionEntity = (
-  params: InternalFabricRoomSessionEntity
-): InternalVideoRoomSessionEntity => {
-  return {
-    id: params.id,
-    display_name: params.display_name,
-    room_id: params.room_id,
-    room_session_id: params.room_session_id,
-    event_channel: params.event_channel,
-    name: params.name,
-    recording: params.recording,
-    recordings: params.recordings,
-    playbacks: params.playbacks,
-    hide_video_muted: params.hide_video_muted,
-    preview_url: params.preview_url,
-    layout_name: params.layout_name,
-    locked: params.locked,
-    meta: params.meta,
-    members: params.members.map(
-      mapInternalFabricMemberToInternalVideoMemberEntity
-    ),
-    streaming: params.streaming,
-    streams: params.streams,
-    prioritize_handraise: params.prioritize_handraise,
-    updated: params.updated,
-  }
-}
-
-/**
  * Map the "call.joined" event params to "video.room.subscribed" event params
  */
 export const mapCallJoinedToRoomSubscribedEventParams = (
   params: CallJoinedEventParams
-): VideoRoomSubscribedEventParams => {
+) => {
   return {
-    call_id: params.call_id,
-    member_id: params.member_id,
+    ...params,
     room: {
-      ...mapInternalFabricRoomToInternalVideoRoomEntity(params.room_session),
+      ...params.room_session,
       members: params.room_session.members.map(
         mapInternalFabricMemberToInternalVideoMemberEntity
       ),
     },
     room_session: {
-      ...mapInternalFabricRoomToInternalVideoRoomSessionEntity(
-        params.room_session
-      ),
+      ...params.room_session,
       members: params.room_session.members.map(
         mapInternalFabricMemberToInternalVideoMemberEntity
       ),
@@ -160,38 +82,10 @@ export const mapCallJoinedToRoomSubscribedEventParams = (
  */
 export const mapCallJoinedToRoomSubscribedAction = (
   action: MapToPubSubShape<CallJoinedEvent>
-): MapToPubSubShape<VideoRoomSubscribedEvent> => {
+) => {
   return {
     type: `video.room.subscribed`,
     payload: mapCallJoinedToRoomSubscribedEventParams(action.payload),
-  }
-}
-
-/**
- * Map the "call.updated" event params to "video.room.updated" event params
- */
-export const mapCallUpdatedToRoomUpdatedEventParams = (
-  params: CallUpdatedEventParams
-): VideoRoomUpdatedEventParams => {
-  return {
-    room_id: params.room_id,
-    room_session_id: params.room_session_id,
-    room: mapInternalFabricRoomToInternalVideoRoomEntity(params.room_session),
-    room_session: mapInternalFabricRoomToInternalVideoRoomSessionEntity(
-      params.room_session
-    ),
-  }
-}
-
-/**
- * Map the "call.updated" action to "video.room.updated" action
- */
-export const mapCallUpdatedToRoomUpdatedEventAction = (
-  action: MapToPubSubShape<CallUpdatedEvent>
-): MapToPubSubShape<VideoRoomUpdatedEvent> => {
-  return {
-    type: `video.room.updated`,
-    payload: mapCallUpdatedToRoomUpdatedEventParams(action.payload),
   }
 }
 
@@ -200,7 +94,7 @@ export const mapCallUpdatedToRoomUpdatedEventAction = (
  * to "video.member.joined" and "video.member.left"  event params
  */
 export const mapFabricMemberToVideoMemberJoinAndLeftEventParams = (
-  params: FabricMemberJoinedEventParams | FabricMemberLeftEventParams
+  params: CallMemberJoinedEventParams | CallMemberLeftEventParams
 ): VideoMemberJoinedEventParams | VideoMemberLeftEventParams => {
   return {
     room_session_id: params.room_session_id,
@@ -214,7 +108,7 @@ export const mapFabricMemberToVideoMemberJoinAndLeftEventParams = (
  * to "video.member.joined" and "video.member.left"  actions
  */
 export const mapFabricMemberActionToVideoMemberJoinAndLeftAction = (
-  action: MapToPubSubShape<FabricMemberJoinedEvent | FabricMemberLeftEvent>
+  action: MapToPubSubShape<CallMemberJoinedEvent | CallMemberLeftEvent>
 ): MapToPubSubShape<VideoMemberJoinedEvent | VideoMemberLeftEvent> => {
   return {
     type: `video.${action.type}`,
@@ -226,7 +120,7 @@ export const mapFabricMemberActionToVideoMemberJoinAndLeftAction = (
  * Map the "member.updated" event params to "video.member.updated"  event params
  */
 export const mapFabricMemberEventToVideoMemberUpdatedEventParams = (
-  params: FabricMemberUpdatedEventParams
+  params: CallMemberUpdatedEventParams
 ): VideoMemberUpdatedEventParams => {
   return {
     room_session_id: params.room_session_id,
@@ -241,10 +135,10 @@ export const mapFabricMemberEventToVideoMemberUpdatedEventParams = (
  * Map the "member.updated" action to "video.member.updated"  action
  */
 export const mapFabricMemberActionToVideoMemberUpdatedAction = (
-  action: MapToPubSubShape<FabricMemberUpdatedEvent>
+  action: MapToPubSubShape<CallMemberUpdatedEvent>
 ): MapToPubSubShape<VideoMemberUpdatedEvent> => {
   return {
-    type: `video.${action.type}`,
+    type: `video.${action.type}` as 'video.member.updated',
     payload: mapFabricMemberEventToVideoMemberUpdatedEventParams(
       action.payload
     ),
@@ -255,14 +149,14 @@ export const mapFabricMemberActionToVideoMemberUpdatedAction = (
  * Map the "member.talking" event params to "video.member.talking"  event params
  */
 export const mapFabricMemberToVideoMemberTalkingEventParams = (
-  params: FabricMemberTalkingEventParams
+  params: CallMemberTalkingEventParams
 ): VideoMemberTalkingEventParams => {
   return {
     room_session_id: params.room_session_id,
     room_id: params.room_id,
     member: {
+      ...params.member,
       id: params.member.member_id,
-      talking: params.member.talking,
     },
   }
 }
@@ -271,7 +165,7 @@ export const mapFabricMemberToVideoMemberTalkingEventParams = (
  * Map the "member.talking" action to "video.member.talking"  action
  */
 export const mapFabricMemberActionToVideoMemberTalkingAction = (
-  action: MapToPubSubShape<FabricMemberTalkingEvent>
+  action: MapToPubSubShape<CallMemberTalkingEvent>
 ): MapToPubSubShape<VideoMemberTalkingEvent> => {
   return {
     type: `video.${action.type}`,
@@ -283,7 +177,7 @@ export const mapFabricMemberActionToVideoMemberTalkingAction = (
  * Map the "layout.changed" action to "video.layout.changed"  action
  */
 export const mapFabricLayoutActionToVideoLayoutAction = (
-  action: MapToPubSubShape<FabricLayoutChangedEvent>
+  action: MapToPubSubShape<CallLayoutChangedEvent>
 ): MapToPubSubShape<VideoLayoutChangedEvent> => {
   return {
     type: `video.${action.type}`,

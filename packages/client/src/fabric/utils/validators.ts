@@ -4,18 +4,19 @@ import {
   MemberCommandWithValueParams,
   MemberCommandWithVolumeParams,
   Rooms,
+  SetAudioFlagsParams,
 } from '@signalwire/core'
-import { UnifiedCommunicationSessionConnection } from '../UnifiedCommunicationSession'
+import { CallSessionConnection } from '../CallSession'
 
 const isSelfMember = (
   params: MemberCommandParams | undefined,
-  ctx: UnifiedCommunicationSessionConnection
+  ctx: CallSessionConnection
 ) => {
   return !params?.memberId || params.memberId === ctx.member.id
 }
 
 export function validateAudioMute(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -28,7 +29,7 @@ export function validateAudioMute(
 }
 
 export function validateAudioUnmute(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -41,7 +42,7 @@ export function validateAudioUnmute(
 }
 
 export function validateVideoMute(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -54,7 +55,7 @@ export function validateVideoMute(
 }
 
 export function validateVideoUnmute(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -67,7 +68,7 @@ export function validateVideoUnmute(
 }
 
 export function validateDeaf(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -80,7 +81,7 @@ export function validateDeaf(
 }
 
 export function validateUndeaf(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -93,7 +94,7 @@ export function validateUndeaf(
 }
 
 export function validateRemoveMember(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params: Required<MemberCommandParams>
 ) {
   if (!params?.memberId) {
@@ -106,7 +107,7 @@ export function validateRemoveMember(
 }
 
 export function validateSetRaiseHand(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params?: Rooms.SetRaisedHandRoomParams
 ) {
   const { raised = true } = params || {}
@@ -125,14 +126,14 @@ export function validateSetRaiseHand(
   }
 }
 
-export function validateSetLayout(this: UnifiedCommunicationSessionConnection) {
+export function validateSetLayout(this: CallSessionConnection) {
   if (!this.capabilities?.setLayout) {
     throw new CapabilityError('Missing setLayout capability')
   }
 }
 
 export function validateSetInputVolume(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params: MemberCommandWithVolumeParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -148,7 +149,7 @@ export function validateSetInputVolume(
 }
 
 export function validateSetOutputVolume(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params: MemberCommandWithVolumeParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -164,7 +165,7 @@ export function validateSetOutputVolume(
 }
 
 export function validateSetInputSensitivity(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params: MemberCommandWithValueParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -180,7 +181,7 @@ export function validateSetInputSensitivity(
 }
 
 export function validateSetPositions(
-  this: UnifiedCommunicationSessionConnection,
+  this: CallSessionConnection,
   params: Rooms.SetPositionsParams
 ) {
   if (params.positions && !Object.keys(params.positions).length) {
@@ -197,14 +198,38 @@ export function validateSetPositions(
   }
 }
 
-export function validateLock(this: UnifiedCommunicationSessionConnection) {
+export function validateLock(this: CallSessionConnection) {
   if (!this.capabilities?.lock.on) {
     throw new CapabilityError('Missing lock capability')
   }
 }
 
-export function validateUnlock(this: UnifiedCommunicationSessionConnection) {
+export function validateUnlock(this: CallSessionConnection) {
   if (!this.capabilities?.lock.off) {
     throw new CapabilityError('Missing unlock capability')
+  }
+}
+
+export function validateSetAudioFlags(
+  this: CallSessionConnection,
+  params?: SetAudioFlagsParams
+) {
+  const isSelf = isSelfMember(params, this)
+  const capability = isSelf
+    ? this.capabilities?.self.audioFlags
+    : this.capabilities?.member.audioFlags
+  if (!capability) {
+    throw new CapabilityError('Missing audio flags capability')
+  }
+
+  const { echoCancellation, autoGain, noiseSuppression } = params || {}
+  if (
+    echoCancellation === undefined &&
+    autoGain === undefined &&
+    noiseSuppression === undefined
+  ) {
+    throw new TypeError(
+      'Invalid parameters: you must specify at least one of `echoCancellation`, `autoGain`, or `noiseSuppression`'
+    )
   }
 }

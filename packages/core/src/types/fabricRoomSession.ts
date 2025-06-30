@@ -12,6 +12,7 @@ import {
   CallState,
   CallPlay,
   CallConnect,
+  AtLeastOne,
 } from '..'
 
 /**
@@ -58,6 +59,13 @@ export interface CallDevicePhone {
 }
 
 export type CallDevice = CallDeviceWebRTCOrSIP | CallDevicePhone
+
+export type SetAudioFlagsParams = MemberCommandParams &
+  AtLeastOne<{
+    echoCancellation?: boolean
+    autoGain?: boolean
+    noiseSuppression?: boolean
+  }>
 
 /**
  * Public Contract for a FabricRoomSession
@@ -447,8 +455,10 @@ export interface FabricRoomSessionContract {
    * @param params.raised boolean flag to raise or lower the hand
    *
    * @capabilities
-   *  - `video.member.raisehand`: to raise a hand
-   *  - `video.member.lowerhand`: to lower a hand
+   *  - `video.self.raisehand` - required to raise a hand
+   *  - `video.self.lowerhand` - required to lower a hand
+   *  - `video.member.raisehand` - required to raise a hand for another member’s
+   *  - `video.member.lowerhand` - required to lower a hand for another member’s
    *
    * @example
    * ```typescript
@@ -457,6 +467,38 @@ export interface FabricRoomSessionContract {
    * ```
    */
   setRaisedHand(params?: Rooms.SetRaisedHandRoomParams): Rooms.SetRaisedHand
+  /**
+   * Update audio processing flags (echo cancellation, automatic gain control, noise suppression)
+   * for yourself or another participant in the room.
+   *
+   * @param params
+   * @param params.memberId - id of the member to update; omit to apply to yourself
+   * @param params.echoCancellation - whether to enable (true) or disable (false) echo cancellation
+   * @param params.autoGain - whether to enable (true) or disable (false) automatic gain control
+   * @param params.noiseSuppression - whether to enable (true) or disable (false) noise suppression
+   *
+   * @capabilities
+   * - `self.audioflags.set` – required to modify your own microphone constraints
+   * - `member.audioflags.set` – required to modify another member’s microphone constraints
+   *
+   * @example
+   * ```typescript
+   * // Enable echo cancellation and noise suppression for yourself
+   * await room.setAudioFlags({
+   *   echoCancellation: true,
+   *   autoGain: false,
+   *   noiseSuppression: true
+   * });
+   *
+   * // Disable automatic gain control for another participant
+   * const otherId = 'de550c0c-3fac-4efd-b06f-b5b8614b8966';
+   * await room.setAudioFlags({
+   *   memberId: otherId,
+   *   autoGain: false
+   * });
+   * ```
+   */
+  setAudioFlags(params: SetAudioFlagsParams): Rooms.SetRaisedHand
 }
 
 /**
@@ -496,6 +538,75 @@ export type InternalFabricRoomSessionEntity = {
  */
 
 /**
+ * List of possible capabilities returned by the server
+ */
+export type Capability =
+  // Self
+  | 'self'
+  | 'self.mute'
+  | 'self.mute.audio'
+  | 'self.mute.audio.on'
+  | 'self.mute.audio.off'
+  | 'self.mute.video'
+  | 'self.mute.video.on'
+  | 'self.mute.video.off'
+  | 'self.deaf'
+  | 'self.deaf.on'
+  | 'self.deaf.off'
+  | 'self.microphone'
+  | 'self.microphone.volume.set'
+  | 'self.microphone.sensitivity.set'
+  | 'self.speaker'
+  | 'self.speaker.volume.set'
+  | 'self.position.set'
+  | 'self.meta'
+  | 'self.audioflags.set'
+
+  // Member
+  | 'member'
+  | 'member.mute'
+  | 'member.mute.audio'
+  | 'member.mute.audio.on'
+  | 'member.mute.audio.off'
+  | 'member.mute.video'
+  | 'member.mute.video.on'
+  | 'member.mute.video.off'
+  | 'member.deaf'
+  | 'member.deaf.on'
+  | 'member.deaf.off'
+  | 'member.microphone'
+  | 'member.microphone.volume.set'
+  | 'member.microphone.sensitivity.set'
+  | 'member.speaker'
+  | 'member.speaker.volume.set'
+  | 'member.position.set'
+  | 'member.meta'
+  | 'member.audioflags.set'
+
+  // Layout
+  | 'layout'
+  | 'layout.set'
+
+  // Digit
+  | 'digit'
+  | 'digit.send'
+
+  // Vmuted
+  | 'vmuted'
+  | 'vmuted.hide'
+  | 'vmuted.hide.on'
+  | 'vmuted.hide.off'
+
+  // Lock
+  | 'lock'
+  | 'lock.on'
+  | 'lock.off'
+
+  // Device & Screenshare
+  | 'device'
+  | 'screenshare'
+
+/**
  * 'call.joined'
  */
 export interface CallJoinedEventParams {
@@ -506,7 +617,7 @@ export interface CallJoinedEventParams {
   member_id: string
   node_id?: string
   origin_call_id: string
-  capabilities: string[] // TODO: More stronger type is required through server
+  capabilities: Capability[]
 }
 
 export interface CallJoinedEvent extends SwEvent {

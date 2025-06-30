@@ -4,6 +4,7 @@ import {
   validateDeaf,
   validateLock,
   validateRemoveMember,
+  validateSetAudioFlags,
   validateSetInputSensitivity,
   validateSetInputVolume,
   validateSetLayout,
@@ -43,6 +44,7 @@ export const validationsMap: ValidatorMap = {
   setPositions: validateSetPositions,
   lock: validateLock,
   unlock: validateUnlock,
+  setAudioFlags: validateSetAudioFlags,
 }
 
 /**

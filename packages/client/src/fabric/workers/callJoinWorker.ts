@@ -7,13 +7,13 @@ import {
   stripNamespacePrefix,
 } from '@signalwire/core'
 import {
-  createUnifiedCommunicationSessionMemberObject,
-  UnifiedCommunicationSessionMember,
-} from '../UnifiedCommunicationSessionMember'
+  createCallSessionMemberObject,
+  CallSessionMember,
+} from '../CallSessionMember'
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
-import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/eventMappers'
 import { mapCapabilityPayload } from '../utils/capabilitiesHelpers'
+import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/eventMappers'
 
 export const callJoinWorker = function* (
   options: FabricWorkerParams<CallJoinedEvent>
@@ -53,11 +53,9 @@ export const callJoinWorker = function* (
   })
 
   payload.room_session.members?.forEach((member: any) => {
-    let memberInstance = get<UnifiedCommunicationSessionMember>(
-      member.member_id!
-    )
+    let memberInstance = get<CallSessionMember>(member.member_id!)
     if (!memberInstance) {
-      memberInstance = createUnifiedCommunicationSessionMemberObject({
+      memberInstance = createCallSessionMemberObject({
         store: cfRoomSession.store,
         payload: {
           member: member,
@@ -72,12 +70,10 @@ export const callJoinWorker = function* (
         room_session_id: payload.room_session_id,
       })
     }
-    set<UnifiedCommunicationSessionMember>(member.member_id, memberInstance)
+    set<CallSessionMember>(member.member_id, memberInstance)
   })
 
-  cfRoomSession.member = get<UnifiedCommunicationSessionMember>(
-    payload.member_id
-  )
+  cfRoomSession.member = get<CallSessionMember>(payload.member_id)
   // the server send the capabilities payload as an array of string
   cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities)
 

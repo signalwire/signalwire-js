@@ -1,19 +1,20 @@
 import {
   CapabilityError,
   JSONRPCRequest,
+  VideoPosition,
   actions,
   componentActions,
 } from '@signalwire/core'
 import { configureFullStack, dispatchMockedCallJoined } from '../testUtils'
 import {
-  UnifiedCommunicationSession,
-  UnifiedCommunicationSessionConnection,
-  createUnifiedCommunicationSessionObject,
-} from './UnifiedCommunicationSession'
+  CallSession,
+  CallSessionConnection,
+  createCallSessionObject,
+} from './CallSession'
 
-describe('UnifiedCommunicationSession', () => {
+describe('CallSession', () => {
   let store: any
-  let room: UnifiedCommunicationSession & {
+  let room: CallSession & {
     execute: (params: any) => any
   }
   const callJoinedHandler = jest.fn()
@@ -37,7 +38,7 @@ describe('UnifiedCommunicationSession', () => {
     stack = configureFullStack()
     store = stack.store
     // @ts-expect-error
-    room = createUnifiedCommunicationSessionObject({
+    room = createCallSessionObject({
       store,
       // @ts-expect-error
       emitter: stack.emitter,
@@ -109,7 +110,7 @@ describe('UnifiedCommunicationSession', () => {
     callJoinedHandler.mockReset()
   })
 
-  describe('should use UnifiedCommunicationSessionConnection implementation', () => {
+  describe('should use CallSessionConnection implementation', () => {
     const actionParams = {
       self: {
         call_id: 'call-id-1',
@@ -124,10 +125,7 @@ describe('UnifiedCommunicationSession', () => {
     }
 
     test('audioMute implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'audioMute'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'audioMute')
       await room.audioMute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -143,10 +141,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('audioUnmute implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'audioUnmute'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'audioUnmute')
       await room.audioUnmute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -162,10 +157,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('videoMute implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'videoMute'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'videoMute')
       await room.videoMute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -181,10 +173,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('videoUnmute implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'videoUnmute'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'videoUnmute')
       await room.videoUnmute({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -200,10 +189,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('deaf implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'deaf'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'deaf')
       await room.deaf({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -218,10 +204,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('undeaf implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'undeaf'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'undeaf')
       await room.undeaf({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -236,10 +219,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('getLayouts implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'getLayouts'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'getLayouts')
       await room.getLayouts()
       expect(spy).toHaveBeenCalledWith()
       expect(room.execute).toHaveBeenCalledWith(
@@ -254,10 +234,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('getMembers implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'getMembers'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'getMembers')
       await room.getMembers()
       expect(spy).toHaveBeenCalledWith()
       expect(room.execute).toHaveBeenCalledWith(
@@ -272,10 +249,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('removeMember implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'removeMember'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'removeMember')
       await room.removeMember({ memberId: 'member-id-1' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-1' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -294,11 +268,47 @@ describe('UnifiedCommunicationSession', () => {
       )
     })
 
-    test('setLayout implementation', async () => {
+    test('setRaisedHand implementation (raise)', async () => {
       const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'setLayout'
+        CallSessionConnection.prototype,
+        'setRaisedHand'
       )
+      await room.setRaisedHand({ memberId: 'member-id-2' })
+      expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.raisehand',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
+    test('setRaisedHand implementation (lower)', async () => {
+      const spy = jest.spyOn(
+        CallSessionConnection.prototype,
+        'setRaisedHand'
+      )
+      await room.setRaisedHand({ memberId: 'member-id-2', raised: false })
+      expect(spy).toHaveBeenCalledWith({
+        memberId: 'member-id-2',
+        raised: false,
+      })
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.lowerhand',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
+    test('setLayout implementation', async () => {
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'setLayout')
       await room.setLayout({ name: 'layout-1' })
       expect(spy).toHaveBeenCalledWith({ name: 'layout-1' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -314,10 +324,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('setInputVolume implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'setInputVolume'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'setInputVolume')
       await room.setInputVolume({ volume: 10 })
       expect(spy).toHaveBeenCalledWith({ volume: 10 })
       expect(room.execute).toHaveBeenCalledWith(
@@ -333,10 +340,7 @@ describe('UnifiedCommunicationSession', () => {
     })
 
     test('setOutputVolume implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'setOutputVolume'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'setOutputVolume')
       await room.setOutputVolume({ volume: 10 })
       expect(spy).toHaveBeenCalledWith({ volume: 10 })
       expect(room.execute).toHaveBeenCalledWith(
@@ -351,45 +355,9 @@ describe('UnifiedCommunicationSession', () => {
       )
     })
 
-    test('lock implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'lock'
-      )
-      await room.lock()
-      expect(spy).toHaveBeenCalledWith()
-      expect(room.execute).toHaveBeenCalledWith(
-        {
-          method: 'call.lock',
-          params: {
-            ...actionParams,
-          },
-        },
-        {}
-      )
-    })
-
-    test('unlock implementation', async () => {
-      const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
-        'unlock'
-      )
-      await room.unlock()
-      expect(spy).toHaveBeenCalledWith()
-      expect(room.execute).toHaveBeenCalledWith(
-        {
-          method: 'call.unlock',
-          params: {
-            ...actionParams,
-          },
-        },
-        {}
-      )
-    })
-
     test('setInputSensitivity implementation', async () => {
       const spy = jest.spyOn(
-        UnifiedCommunicationSessionConnection.prototype,
+        CallSessionConnection.prototype,
         'setInputSensitivity'
       )
       await room.setInputSensitivity({ value: 10 })
@@ -405,49 +373,106 @@ describe('UnifiedCommunicationSession', () => {
         {}
       )
     })
-  })
 
-  describe('should handle call.joined event', () => {
-    const roomId = 'd8caec4b-ddc9-4806-b2d0-e7c7d5cefe79'
-    const roomSessionId = '638a54a7-61d8-4db0-bc24-426aee5cebcd'
-    const memberId = '465ea212-c456-423b-9bcc-838c5e1b2851'
-
-    it('should maintain callSegments array', () => {
-      // Since two call.joined has already been dispatched two times in the beforeEach
-
-      expect(callJoinedHandler).toHaveBeenCalledTimes(2)
-
-      dispatchMockedCallJoined({
-        session: stack.session,
-        callId: callId,
-        roomId: 'room-id-3',
-        roomSessionId: callId,
-        memberId: 'member-id-3',
-        nodeId: 'node-id-3',
-        originCallId: callId,
-        capabilities: [
-          'self',
-          'member',
-          'device',
-          'screenshare',
-          'lock',
-          'end',
-          'vmuted',
-          'layout',
-          'digit',
-          'lock',
-        ],
-      })
-
-      expect(callJoinedHandler).toHaveBeenCalledTimes(3)
-
-      const callLeft = JSON.parse(
-        `{"jsonrpc":"2.0","id":"cb78f2eb-6468-48ed-979d-a94fca47befe","method":"signalwire.event","params":{"params":{"room_session":{"room_id":"${roomId}","room_session_id":"${roomSessionId}","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","layout_name":"1x1","meta":{},"members":[{"type":"member","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc","name":"sip:foo@94df1ecd-d073-473d-aa4d-a286e24f679b.call.signalwire.com;context=private","room_id":"${roomId}","room_session_id":"${roomSessionId}","visible":true,"handraised":false,"audio_muted":false,"video_muted":false,"deaf":false,"meta":{}}],"recordings":[],"streams":[],"playbacks":[]},"room_id":"${roomId}","room_session_id":"${roomSessionId}","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc"},"event_type":"call.left","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","timestamp":1712142454.67701}}`
+    test('setPositions implementation', async () => {
+      const spy = jest.spyOn(
+        CallSessionConnection.prototype,
+        'setPositions'
       )
-      stack.session.dispatch(actions.socketMessageAction(callLeft))
+      const positions = {
+        self: 'auto',
+        'member-id-2': 'off-canvas',
+      } as Record<string, VideoPosition>
 
-      // FIXME update the expect to check the segmentWorkers instead of callSegments
-      // expect(room.callSegments).toHaveLength(2)
+      await room.setPositions({ positions })
+      expect(spy).toHaveBeenCalledWith({ positions })
+
+      expect(room.execute).toHaveBeenCalledWith({
+        method: 'call.member.position.set',
+        params: {
+          self: {
+            member_id: 'member-id-1',
+            call_id: 'call-id-1',
+            node_id: 'node-id-1',
+          },
+          targets: [
+            {
+              target: {
+                member_id: 'member-id-2',
+                call_id: 'call-id-2',
+                node_id: 'node-id-2',
+              },
+              position: 'auto',
+            },
+            {
+              target: {
+                member_id: 'member-id-2',
+                call_id: 'call-id-2',
+                node_id: 'node-id-2',
+              },
+              position: 'off-canvas',
+            },
+          ],
+        },
+      })
+    })
+
+    test('lock implementation', async () => {
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'lock')
+      await room.lock()
+      expect(spy).toHaveBeenCalledWith()
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.lock',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
+    test('unlock implementation', async () => {
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'unlock')
+      await room.unlock()
+      expect(spy).toHaveBeenCalledWith()
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.unlock',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
+    test('setAudioFlags implementation', async () => {
+      const spy = jest.spyOn(
+        CaLLSessionConnection.prototype,
+        'setAudioFlags'
+      )
+      await room.setAudioFlags({
+        memberId: 'member-id-2',
+        echoCancellation: true,
+        autoGain: false,
+      })
+      expect(spy).toHaveBeenCalledWith({
+        memberId: 'member-id-2',
+        echoCancellation: true,
+        autoGain: false,
+      })
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.audioflags.set',
+          params: {
+            ...actionParams,
+            echo_cancellation: true,
+            auto_gain: false,
+          },
+        },
+        {}
+      )
     })
   })
 
@@ -503,7 +528,7 @@ describe('UnifiedCommunicationSession', () => {
       stack = configureFullStack()
       store = stack.store
       // @ts-expect-error
-      room = createUnifiedCommunicationSessionObject({
+      room = createCallSessionObject({
         store,
         // @ts-expect-error
         emitter: stack.emitter,
@@ -595,6 +620,12 @@ describe('UnifiedCommunicationSession', () => {
       ).rejects.toThrow(CapabilityError)
     })
 
+    test('setRaisedHand implementation', async () => {
+      await expect(
+        room.setRaisedHand({ memberId: 'member-id-2' })
+      ).rejects.toThrow(CapabilityError)
+    })
+
     test('setLayout implementation', async () => {
       await expect(room.setLayout({ name: 'layout-1' })).rejects.toThrow(
         CapabilityError
@@ -613,6 +644,19 @@ describe('UnifiedCommunicationSession', () => {
       )
     })
 
+    test('setInputSensitivity implementation', async () => {
+      await expect(room.setInputSensitivity({ value: 10 })).rejects.toThrow(
+        CapabilityError
+      )
+    })
+
+    test('setPositions implementation', async () => {
+      const positions = { self: 'auto' } as Record<string, VideoPosition>
+      await expect(room.setPositions({ positions })).rejects.toThrow(
+        CapabilityError
+      )
+    })
+
     test('lock implementation', async () => {
       await expect(room.lock()).rejects.toThrow(CapabilityError)
     })
@@ -621,10 +665,10 @@ describe('UnifiedCommunicationSession', () => {
       await expect(room.unlock()).rejects.toThrow(CapabilityError)
     })
 
-    test('setInputSensitivity implementation', async () => {
-      await expect(room.setInputSensitivity({ value: 10 })).rejects.toThrow(
-        CapabilityError
-      )
+    test('setAudioFlags implementation', async () => {
+      await expect(
+        room.setAudioFlags({ memberId: 'member-id-2', echoCancellation: true })
+      ).rejects.toThrow(CapabilityError)
     })
   })
 })

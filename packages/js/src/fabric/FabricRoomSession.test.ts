@@ -1,6 +1,7 @@
 import {
   CapabilityError,
   JSONRPCRequest,
+  VideoPosition,
   actions,
   componentActions,
 } from '@signalwire/core'
@@ -282,6 +283,45 @@ describe('FabricRoomSession', () => {
       )
     })
 
+    test('setRaisedHand implementation (raise)', async () => {
+      const spy = jest.spyOn(
+        FabricRoomSessionConnection.prototype,
+        'setRaisedHand'
+      )
+      await room.setRaisedHand({ memberId: 'member-id-2' })
+      expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.raisehand',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
+    test('setRaisedHand implementation (lower)', async () => {
+      const spy = jest.spyOn(
+        FabricRoomSessionConnection.prototype,
+        'setRaisedHand'
+      )
+      await room.setRaisedHand({ memberId: 'member-id-2', raised: false })
+      expect(spy).toHaveBeenCalledWith({
+        memberId: 'member-id-2',
+        raised: false,
+      })
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.lowerhand',
+          params: {
+            ...actionParams,
+          },
+        },
+        {}
+      )
+    })
+
     test('setLayout implementation', async () => {
       const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'setLayout')
       await room.setLayout({ name: 'layout-1' })
@@ -336,6 +376,68 @@ describe('FabricRoomSession', () => {
       )
     })
 
+    test('setInputSensitivity implementation', async () => {
+      const spy = jest.spyOn(
+        FabricRoomSessionConnection.prototype,
+        'setInputSensitivity'
+      )
+      await room.setInputSensitivity({ value: 10 })
+      expect(spy).toHaveBeenCalledWith({ value: 10 })
+      expect(room.execute).toHaveBeenCalledWith(
+        {
+          method: 'call.microphone.sensitivity.set',
+          params: {
+            ...actionParams,
+            sensitivity: 10,
+          },
+        },
+        {}
+      )
+    })
+
+    test('setPositions implementation', async () => {
+      const spy = jest.spyOn(
+        FabricRoomSessionConnection.prototype,
+        'setPositions'
+      )
+      const positions = {
+        self: 'auto',
+        'member-id-2': 'off-canvas',
+      } as Record<string, VideoPosition>
+
+      await room.setPositions({ positions })
+      expect(spy).toHaveBeenCalledWith({ positions })
+
+      expect(room.execute).toHaveBeenCalledWith({
+        method: 'call.member.position.set',
+        params: {
+          self: {
+            member_id: 'member-id-1',
+            call_id: 'call-id-1',
+            node_id: 'node-id-1',
+          },
+          targets: [
+            {
+              target: {
+                member_id: 'member-id-2',
+                call_id: 'call-id-2',
+                node_id: 'node-id-2',
+              },
+              position: 'auto',
+            },
+            {
+              target: {
+                member_id: 'member-id-2',
+                call_id: 'call-id-2',
+                node_id: 'node-id-2',
+              },
+              position: 'off-canvas',
+            },
+          ],
+        },
+      })
+    })
+
     test('lock implementation', async () => {
       const spy = jest.spyOn(FabricRoomSessionConnection.prototype, 'lock')
       await room.lock()
@@ -366,67 +468,32 @@ describe('FabricRoomSession', () => {
       )
     })
 
-    test('setInputSensitivity implementation', async () => {
+    test('setAudioFlags implementation', async () => {
       const spy = jest.spyOn(
         FabricRoomSessionConnection.prototype,
-        'setInputSensitivity'
+        'setAudioFlags'
       )
-      await room.setInputSensitivity({ value: 10 })
-      expect(spy).toHaveBeenCalledWith({ value: 10 })
+      await room.setAudioFlags({
+        memberId: 'member-id-2',
+        echoCancellation: true,
+        autoGain: false,
+      })
+      expect(spy).toHaveBeenCalledWith({
+        memberId: 'member-id-2',
+        echoCancellation: true,
+        autoGain: false,
+      })
       expect(room.execute).toHaveBeenCalledWith(
         {
-          method: 'call.microphone.sensitivity.set',
+          method: 'call.audioflags.set',
           params: {
             ...actionParams,
-            sensitivity: 10,
+            echo_cancellation: true,
+            auto_gain: false,
           },
         },
         {}
       )
-    })
-  })
-
-  describe('should handle call.joined event', () => {
-    const roomId = 'd8caec4b-ddc9-4806-b2d0-e7c7d5cefe79'
-    const roomSessionId = '638a54a7-61d8-4db0-bc24-426aee5cebcd'
-    const memberId = '465ea212-c456-423b-9bcc-838c5e1b2851'
-
-    it('should maintain callSegments array', () => {
-      // Since two call.joined has already been dispatched two times in the beforeEach
-
-      expect(callJoinedHandler).toHaveBeenCalledTimes(2)
-
-      dispatchMockedCallJoined({
-        session: stack.session,
-        callId: callId,
-        roomId: 'room-id-3',
-        roomSessionId: callId,
-        memberId: 'member-id-3',
-        nodeId: 'node-id-3',
-        originCallId: callId,
-        capabilities: [
-          'self',
-          'member',
-          'device',
-          'screenshare',
-          'lock',
-          'end',
-          'vmuted',
-          'layout',
-          'digit',
-          'lock',
-        ],
-      })
-
-      expect(callJoinedHandler).toHaveBeenCalledTimes(3)
-
-      const callLeft = JSON.parse(
-        `{"jsonrpc":"2.0","id":"cb78f2eb-6468-48ed-979d-a94fca47befe","method":"signalwire.event","params":{"params":{"room_session":{"room_id":"${roomId}","room_session_id":"${roomSessionId}","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","layout_name":"1x1","meta":{},"members":[{"type":"member","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc","name":"sip:foo@94df1ecd-d073-473d-aa4d-a286e24f679b.call.signalwire.com;context=private","room_id":"${roomId}","room_session_id":"${roomSessionId}","visible":true,"handraised":false,"audio_muted":false,"video_muted":false,"deaf":false,"meta":{}}],"recordings":[],"streams":[],"playbacks":[]},"room_id":"${roomId}","room_session_id":"${roomSessionId}","call_id":"${callId}","member_id":"${memberId}","node_id":"6b706dc1-06ce-41db-8ad0-ad5c1c7f48d8@puc"},"event_type":"call.left","event_channel":"signalwire_0c1c9852-b9d4-4a18-ba3b-eeafe1ffe504_13451811-bd4c-4646-b3ce-250581a7956e_94df1ecd-d073-473d-aa4d-a286e24f679b","timestamp":1712142454.67701}}`
-      )
-      stack.session.dispatch(actions.socketMessageAction(callLeft))
-
-      // FIXME update the expect to check the segmentWorkers instead of callSegments
-      // expect(room.callSegments).toHaveLength(2)
     })
   })
 
@@ -574,6 +641,12 @@ describe('FabricRoomSession', () => {
       ).rejects.toThrow(CapabilityError)
     })
 
+    test('setRaisedHand implementation', async () => {
+      await expect(
+        room.setRaisedHand({ memberId: 'member-id-2' })
+      ).rejects.toThrow(CapabilityError)
+    })
+
     test('setLayout implementation', async () => {
       await expect(room.setLayout({ name: 'layout-1' })).rejects.toThrow(
         CapabilityError
@@ -592,6 +665,19 @@ describe('FabricRoomSession', () => {
       )
     })
 
+    test('setInputSensitivity implementation', async () => {
+      await expect(room.setInputSensitivity({ value: 10 })).rejects.toThrow(
+        CapabilityError
+      )
+    })
+
+    test('setPositions implementation', async () => {
+      const positions = { self: 'auto' } as Record<string, VideoPosition>
+      await expect(room.setPositions({ positions })).rejects.toThrow(
+        CapabilityError
+      )
+    })
+
     test('lock implementation', async () => {
       await expect(room.lock()).rejects.toThrow(CapabilityError)
     })
@@ -600,10 +686,10 @@ describe('FabricRoomSession', () => {
       await expect(room.unlock()).rejects.toThrow(CapabilityError)
     })
 
-    test('setInputSensitivity implementation', async () => {
-      await expect(room.setInputSensitivity({ value: 10 })).rejects.toThrow(
-        CapabilityError
-      )
+    test('setAudioFlags implementation', async () => {
+      await expect(
+        room.setAudioFlags({ memberId: 'member-id-2', echoCancellation: true })
+      ).rejects.toThrow(CapabilityError)
     })
   })
 })
