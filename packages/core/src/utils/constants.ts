@@ -56,3 +56,9 @@ export const PRODUCT_PREFIXES = [
 export const INTERNAL_GLOBAL_VIDEO_EVENTS = GLOBAL_VIDEO_EVENTS.map(
   (event) => `${PRODUCT_PREFIX_VIDEO}.${event}` as const
 )
+
+export const SYMBOL_EXECUTE_CONNECTION_CLOSED = Symbol.for(
+  'sw-execute-connection-closed'
+)
+export const SYMBOL_EXECUTE_TIMEOUT = Symbol.for('sw-execute-timeout')
+export const SYMBOL_CONNECT_ERROR = Symbol.for('sw-connect-error')

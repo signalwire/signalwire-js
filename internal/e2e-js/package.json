@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/e2e-js",
-  "version": "0.0.19",
+  "version": "0.0.20-dev.202506111650.ad2f5be.0",
   "private": true,
   "main": "index.js",
   "scripts": {

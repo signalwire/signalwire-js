@@ -3,7 +3,7 @@
   "description": "SignalWire Node.js SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.0.3",
+  "version": "3.0.4-dev.202506111650.ad2f5be.0",
   "main": "dist/index.node.js",
   "exports": {
     "require": "./dist/index.node.js",
@@ -37,8 +37,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@signalwire/realtime-api": "^4.0.1",
-    "@signalwire/web-api": "^3.1.2"
+    "@signalwire/realtime-api": "^4.1.2-dev.202506111650.ad2f5be.0",
+    "@signalwire/web-api": "^3.1.4-dev.202506111650.ad2f5be.0"
   },
   "types": "dist/node/src/index.d.ts"
 }
