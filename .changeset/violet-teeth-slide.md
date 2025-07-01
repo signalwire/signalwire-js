@@ -15,5 +15,5 @@ await audioUnute({ memberId: "all" })
 await videoMute({ memberId: "all" })
 
 // Unmute all members’ video
-await videoMute({ memberId: "all" })
+await videoUnmute({ memberId: "all" })
 ```
