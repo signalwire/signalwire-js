@@ -130,6 +130,14 @@ class MemberCapability implements MemberCapabilityContract {
         flag.startsWith(`${this._memberType}.remove`)
     )
   }
+
+  get audioFlags() {
+    return this._flags.some(
+      (flag) =>
+        flag === this._memberType ||
+        flag.startsWith(`${this._memberType}.audioflags.set`)
+    )
+  }
 }
 
 export class CallCapabilities implements CallCapabilitiesContract {
