@@ -58,13 +58,18 @@ import {
 import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract, CallSession } from '../../fabric'
 
+const BrandTypeId: unique symbol = Symbol.for('sw/client')
+
+interface Brand<in out ID extends string | symbol> {
+  readonly [BrandTypeId]?: {
+    readonly [id in ID]: ID
+  }
+}
 // exporting aliases from the core package with  & {
 //  tshack?: undefined
 // }
 // to stop TS inference to resolve original types
-export type InternalCallMemberEntity = InternalFabricMemberEntity & {
-  _?: undefined
-}
+export type InternalCallMemberEntity = InternalFabricMemberEntity
 export type InternalCallMemberEntityUpdated =
   InternalFabricMemberEntityUpdated & {
     _?: undefined
@@ -72,9 +77,8 @@ export type InternalCallMemberEntityUpdated =
 export type CallMemberEventNames = FabricMemberEventNames
 export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames
 
-export type CallMemberEventParams = FabricMemberEventParams & {
-  _?: undefined
-}
+export type CallMemberEventParams = FabricMemberEventParams &
+  Brand<'CallMemberEventParams'>
 export type CallMemberEventParamsExcludeTalking =
   FabricMemberEventParamsExcludeTalking & {
     _?: undefined
