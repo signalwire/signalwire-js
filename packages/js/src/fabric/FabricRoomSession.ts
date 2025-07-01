@@ -70,7 +70,7 @@ export class FabricRoomSessionConnection
     params.dialogParams.reattaching = this.options.attach || this.resuming
     return params
   }
-  
+
   set currentLayoutEvent(event: FabricLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }
@@ -152,10 +152,18 @@ export class FabricRoomSessionConnection
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    const targetMember = memberId
-      ? this.instanceMap.get<FabricRoomSessionMember>(memberId)
-      : this.member
-    if (!targetMember) throw new Error('No target param found to execute')
+    const targetMember =
+      !memberId || memberId === 'all'
+        ? this.member
+        : this.instanceMap.get<FabricRoomSessionMember>(memberId)
+
+    if (!targetMember) {
+      throw new Error(
+        memberId && memberId !== 'all'
+          ? `Member ${memberId} not found`
+          : 'No target member available'
+      )
+    }
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
@@ -168,7 +176,7 @@ export class FabricRoomSessionConnection
             node_id: this.selfMember?.nodeId,
           },
           target: {
-            member_id: targetMember.id,
+            member_id: memberId === 'all' ? memberId : targetMember.id,
             call_id: targetMember.callId,
             node_id: targetMember.nodeId,
           },
