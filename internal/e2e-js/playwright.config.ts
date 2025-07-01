@@ -45,6 +45,7 @@ const callfabricTests = [
   'deviceState.spec.ts',
   'holdunhold.spec.ts',
   'mirrorVideo.spec.ts',
+  'muteUnmuteAll.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
   'relayApp.spec.ts',

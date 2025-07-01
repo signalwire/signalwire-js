@@ -92,12 +92,33 @@ const waitForMutedChange = (
 
 test.describe('CallFabric - Mute/Unmute All', () => {
   const scenarios = [
-    { name: 'Audio-only', channel: 'audio' },
-    { name: 'Video', channel: 'video' },
+    {
+      name: 'Audio-only',
+      channel: 'audio',
+      methods: ['audioMute', 'audioUnmute'],
+      field: 'audio_muted',
+    },
+    {
+      name: 'Video (audio)',
+      channel: 'video',
+      methods: ['audioMute', 'audioUnmute'],
+      field: 'audio_muted',
+    },
+    {
+      name: 'Video (video)',
+      channel: 'video',
+      methods: ['videoMute', 'videoUnmute'],
+      field: 'video_muted',
+    },
   ] as const
 
-  for (const { name, channel } of scenarios) {
-    test(`${name} room: audio mute/unmute persists across reload & reattach`, async ({
+  for (const {
+    name,
+    channel,
+    methods: [muteFn, unmuteFn],
+    field,
+  } of scenarios) {
+    test(`${name} room: ${channel} mute/unmute persists across reload & reattach`, async ({
       createCustomPage,
       resource,
     }) => {
@@ -114,15 +135,15 @@ test.describe('CallFabric - Mute/Unmute All', () => {
 
       // --------------- Attach listeners on all pages ---------------
       const muteListeners = allPages.map(({ page }, i) =>
-        waitForMutedChange(page, roomSessions[i].member_id, 'audio_muted', true)
+        waitForMutedChange(page, roomSessions[i].member_id, field, true)
       )
 
-      // ----------------- Mute Audio (pageOne) ----------------------
-      await test.step('[pageOne] mute all members audio', async () => {
-        await pageOne.evaluate(async () => {
+      // ----------------- Mute Audio/Video (pageOne) ----------------------
+      await test.step(`[pageOne] mute all members ${channel}`, async () => {
+        await pageOne.evaluate(async (fn) => {
           // @ts-expect-error
-          await window._roomObj.audioMute({ memberId: 'all' })
-        })
+          await window._roomObj[fn]({ memberId: 'all' })
+        }, muteFn)
       })
 
       await test.step('all pages should receive the memeber.updated events for mute', async () => {
@@ -143,26 +164,21 @@ test.describe('CallFabric - Mute/Unmute All', () => {
         // Expect all members are muted
         roomSessionTwoAfter.room_session.members.forEach((member) => {
           expect(member).toBeDefined()
-          expect(member.audio_muted).toBe(true)
+          expect(member[field]).toBe(true)
         })
       })
 
       // --------------- Attach listeners on all pages ---------------
       const unmuteListeners = allPages.map(({ page }, i) =>
-        waitForMutedChange(
-          page,
-          roomSessions[i].member_id,
-          'audio_muted',
-          false
-        )
+        waitForMutedChange(page, roomSessions[i].member_id, field, false)
       )
 
-      // ----------------- Unmute Audio (pageThree) ---------------------
-      await test.step('[pageThree] unmute all members audio', async () => {
-        await pageThree.evaluate(async () => {
+      // ----------------- Unmute Audio/Video (pageThree) ---------------------
+      await test.step(`[pageThree] unmute all members ${channel}`, async () => {
+        await pageThree.evaluate(async (fn) => {
           // @ts-expect-error
-          await window._roomObj.audioUnmute({ memberId: 'all' })
-        })
+          await window._roomObj[fn]({ memberId: 'all' })
+        }, unmuteFn)
       })
 
       await test.step('all pages should receive the memeber.updated events for unmute', async () => {
@@ -183,93 +199,9 @@ test.describe('CallFabric - Mute/Unmute All', () => {
         // Expect all members are unmuted
         roomSessionFourAfter.room_session.members.forEach((member) => {
           expect(member).toBeDefined()
-          expect(member.audio_muted).toBe(false)
+          expect(member[field]).toBe(false)
         })
       })
     })
   }
-
-  test('Video room: video mute/unmute persists across reload & reattach', async ({
-    createCustomPage,
-    resource,
-  }) => {
-    const { allPages, roomSessions, address } = await joinAllPages(
-      'video',
-      createCustomPage,
-      resource
-    )
-    expect(roomSessions).toHaveLength(4)
-
-    const [pageOne, pageTwo, pageThree, pageFour] = allPages.map((p) => p.page)
-
-    // --------------- Attach listeners on all pages ---------------
-    const muteListeners = allPages.map(({ page }, i) =>
-      waitForMutedChange(page, roomSessions[i].member_id, 'video_muted', true)
-    )
-
-    // ----------------- Mute Video (pageOne) ----------------------
-    await test.step('[pageOne] mute all members video', async () => {
-      await pageOne.evaluate(async () => {
-        // @ts-expect-error
-        await window._roomObj.videoMute({ memberId: 'all' })
-      })
-    })
-
-    await test.step('all pages should receive the memeber.updated events for mute', async () => {
-      await Promise.all(muteListeners)
-    })
-
-    // --------------- Reload and Reattach (pageTwo) ----------------
-    const roomSessionTwoAfter: CallJoinedEventParams =
-      await test.step('[pageTwo] reload page and reattach', async () => {
-        return reloadAndReattachAddress(pageTwo, { address })
-      })
-
-    await test.step('[pageTwo] assert room state', async () => {
-      expect(roomSessionTwoAfter.room_session).toBeDefined()
-      expect(roomSessionTwoAfter.call_id).toEqual(roomSessions[1].call_id)
-      expect(roomSessionTwoAfter.room_session.members).toHaveLength(4)
-
-      // Expect all members are muted
-      roomSessionTwoAfter.room_session.members.forEach((member) => {
-        expect(member).toBeDefined()
-        expect(member.video_muted).toBe(true)
-      })
-    })
-
-    // --------------- Attach listeners on all pages ---------------
-    const unmuteListeners = allPages.map(({ page }, i) =>
-      waitForMutedChange(page, roomSessions[i].member_id, 'video_muted', false)
-    )
-
-    // ----------------- Unmute Video (pageThree) ---------------------
-    await test.step('[pageThree] unmute all members video', async () => {
-      await pageThree.evaluate(async () => {
-        // @ts-expect-error
-        await window._roomObj.videoUnmute({ memberId: 'all' })
-      })
-    })
-
-    await test.step('all pages should receive the memeber.updated events for unmute', async () => {
-      await Promise.all(unmuteListeners)
-    })
-
-    // --------------- Reload and Reattach (pageFour) ----------------
-    const roomSessionFourAfter: CallJoinedEventParams =
-      await test.step('[pageFour] reload page and reattach', async () => {
-        return reloadAndReattachAddress(pageFour, { address })
-      })
-
-    await test.step('[pageFour] assert room state', async () => {
-      expect(roomSessionFourAfter.room_session).toBeDefined()
-      expect(roomSessionFourAfter.call_id).toEqual(roomSessions[3].call_id)
-      expect(roomSessionFourAfter.room_session.members).toHaveLength(4)
-
-      // Expect all members are unmuted
-      roomSessionFourAfter.room_session.members.forEach((member) => {
-        expect(member).toBeDefined()
-        expect(member.video_muted).toBe(false)
-      })
-    })
-  })
 })
