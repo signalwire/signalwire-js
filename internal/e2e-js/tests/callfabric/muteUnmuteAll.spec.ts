@@ -93,19 +93,19 @@ const waitForMutedChange = (
 test.describe('CallFabric - Mute/Unmute All', () => {
   const scenarios = [
     {
-      name: 'Audio-only',
+      name: 'Audio-only room: audio',
       channel: 'audio',
       methods: ['audioMute', 'audioUnmute'],
       field: 'audio_muted',
     },
     {
-      name: 'Video (audio)',
+      name: 'Video room: audio',
       channel: 'video',
       methods: ['audioMute', 'audioUnmute'],
       field: 'audio_muted',
     },
     {
-      name: 'Video (video)',
+      name: 'Video room: video',
       channel: 'video',
       methods: ['videoMute', 'videoUnmute'],
       field: 'video_muted',
@@ -118,7 +118,7 @@ test.describe('CallFabric - Mute/Unmute All', () => {
     methods: [muteFn, unmuteFn],
     field,
   } of scenarios) {
-    test(`${name} room: ${channel} mute/unmute persists across reload & reattach`, async ({
+    test(`${name} should persist mute/unmute of all members across reload and reattach`, async ({
       createCustomPage,
       resource,
     }) => {

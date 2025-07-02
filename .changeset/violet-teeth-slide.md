@@ -5,15 +5,15 @@
 [CF SDK]: Support muting/unmuting audio and video for all participants
 
 ```ts
-// Mute all members’ audio
+// Mute audio for all participants in the room
 await audioMute({ memberId: "all" })
 
-// Unmute all members’ audio
+// Unmute audio for all participants in the room
 await audioUnmute({ memberId: "all" })
 
-// Mute all members’ video
+// Mute video for all participants in the room
 await videoMute({ memberId: "all" })
 
-// Unmute all members’ video
+// Unmute video for all participants in the room
 await videoUnmute({ memberId: "all" })
 ```
