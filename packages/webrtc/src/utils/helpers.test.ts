@@ -1,4 +1,9 @@
-import { getMediaConstraints } from '../utils/helpers'
+import {
+  getMediaConstraints,
+  candidatePriority,
+  getBestCandidate,
+  findBetterCandidates,
+} from '../utils/helpers'
 
 jest.mock('../utils/deviceHelpers', () => ({
     assureDeviceId: jest.fn().mockImplementation(async(p:any)=> Promise.resolve(p))
@@ -129,5 +134,142 @@ describe('Helpers functions', () => {
                 expect(mediaConstraints.video).toEqual({deviceId: { exact: "abcd" }})
             })
         })
+    })
+
+    describe('candidatePriority()', () => {
+      it('should return 4 for relay candidates', () => {
+        const candidate = { type: 'relay' } as RTCIceCandidate
+        expect(candidatePriority(candidate)).toBe(4)
+      })
+
+      it('should return 3 for srflx candidates', () => {
+        const candidate = { type: 'srflx' } as RTCIceCandidate
+        expect(candidatePriority(candidate)).toBe(3)
+      })
+
+      it('should return 2 for prflx candidates', () => {
+        const candidate = { type: 'prflx' } as RTCIceCandidate
+        expect(candidatePriority(candidate)).toBe(2)
+      })
+
+      it('should return 1 for host candidates', () => {
+        const candidate = { type: 'host' } as RTCIceCandidate
+        expect(candidatePriority(candidate)).toBe(1)
+      })
+
+      it('should return 0 for unknown candidate types', () => {
+        //@ts-ignore
+        const candidate = { type: undefined } as RTCIceCandidate
+        expect(candidatePriority(candidate)).toBe(0)
+      })
+
+      it('should return 0 for other candidate types', () => {
+        const candidate = { type: 'unknown' as any } as RTCIceCandidate
+        expect(candidatePriority(candidate)).toBe(0)
+      })
+    })
+
+    describe('getBestCandidate()', () => {
+      it('should return undefined for empty array', () => {
+        expect(getBestCandidate([])).toBeUndefined()
+      })
+
+      it('should return the only candidate when array has one element', () => {
+        const candidate = { type: 'host' } as RTCIceCandidate
+        expect(getBestCandidate([candidate])).toBe(candidate)
+      })
+
+      it('should return relay candidate when it exists', () => {
+        const hostCandidate = { type: 'host' } as RTCIceCandidate
+        const srflxCandidate = { type: 'srflx' } as RTCIceCandidate
+        const relayCandidate = { type: 'relay' } as RTCIceCandidate
+        
+        const candidates = [hostCandidate, srflxCandidate, relayCandidate]
+        expect(getBestCandidate(candidates)).toBe(relayCandidate)
+      })
+
+      it('should return first relay candidate when multiple relay candidates exist', () => {
+        const relay1 = { type: 'relay', foundation: '1' } as RTCIceCandidate
+        const relay2 = { type: 'relay', foundation: '2' } as RTCIceCandidate
+        
+        const candidates = [relay1, relay2]
+        expect(getBestCandidate(candidates)).toBe(relay1)
+      })
+
+      it('should handle mixed candidate types correctly', () => {
+        const host = { type: 'host' } as RTCIceCandidate
+        const prflx = { type: 'prflx' } as RTCIceCandidate
+        const srflx = { type: 'srflx' } as RTCIceCandidate
+        
+        const candidates = [host, prflx, srflx]
+        expect(getBestCandidate(candidates)).toBe(srflx)
+      })
+    })
+
+    describe('findBetterCandidates()', () => {
+      it('should return empty array when currentCandidates is empty', () => {
+        const newCandidates = [{ type: 'relay' } as RTCIceCandidate]
+        expect(findBetterCandidates([], newCandidates)).toEqual([])
+      })
+
+      it('should return empty array when newCandidates is empty', () => {
+        const currentCandidates = [{ type: 'host' } as RTCIceCandidate]
+        expect(findBetterCandidates(currentCandidates, [])).toEqual([])
+      })
+
+      it('should return empty array when both arrays are empty', () => {
+        expect(findBetterCandidates([], [])).toEqual([])
+      })
+
+      it('should return better candidates when they exist', () => {
+        const hostCandidate = { type: 'host', foundation: '1' } as RTCIceCandidate
+        const srflxCandidate = { type: 'srflx', foundation: '2' } as RTCIceCandidate
+        const relayCandidate = { type: 'relay', foundation: '3' } as RTCIceCandidate
+        
+        const currentCandidates = [hostCandidate]
+        const newCandidates = [srflxCandidate, relayCandidate]
+        
+        const result = findBetterCandidates(currentCandidates, newCandidates)
+        expect(result).toEqual([srflxCandidate, relayCandidate])
+      })
+
+      it('should return empty array when no better candidates exist', () => {
+        const relayCandidate = { type: 'relay' } as RTCIceCandidate
+        const hostCandidate = { type: 'host' } as RTCIceCandidate
+        const srflxCandidate = { type: 'srflx' } as RTCIceCandidate
+        
+        const currentCandidates = [relayCandidate]
+        const newCandidates = [hostCandidate, srflxCandidate]
+        
+        expect(findBetterCandidates(currentCandidates, newCandidates)).toEqual([])
+      })
+
+      it('should handle mixed current candidates correctly', () => {
+        const host1 = { type: 'host', foundation: '1' } as RTCIceCandidate
+        const host2 = { type: 'host', foundation: '2' } as RTCIceCandidate
+        const srflx = { type: 'srflx', foundation: '3' } as RTCIceCandidate
+        const relay = { type: 'relay', foundation: '4' } as RTCIceCandidate
+        
+        // Current candidates include a srflx (priority 3)
+        const currentCandidates = [host1, host2, srflx]
+        // New candidate is relay (priority 4)
+        const newCandidates = [relay]
+        
+        const result = findBetterCandidates(currentCandidates, newCandidates)
+        expect(result).toEqual([relay])
+      })
+
+      it('should filter out candidates with same or lower priority', () => {
+        const srflx1 = { type: 'srflx', foundation: '1' } as RTCIceCandidate
+        const srflx2 = { type: 'srflx', foundation: '2' } as RTCIceCandidate
+        const host = { type: 'host', foundation: '3' } as RTCIceCandidate
+        const relay = { type: 'relay', foundation: '4' } as RTCIceCandidate
+        
+        const currentCandidates = [srflx1]
+        const newCandidates = [host, srflx2, relay]
+        
+        const result = findBetterCandidates(currentCandidates, newCandidates)
+        expect(result).toEqual([relay])
+      })
     })
 })

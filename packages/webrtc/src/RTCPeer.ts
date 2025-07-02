@@ -3,6 +3,7 @@ import {
   getUserMedia,
   getMediaConstraints,
   filterIceServers,
+  findBetterCandidates,
 } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -34,6 +35,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _connectionStateTimer: ReturnType<typeof setTimeout>
   private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
+  private _firstNonHostCandidateReceived = false
+  private _candidatesSnapshot: RTCIceCandidate[] = []
+  private _allCandidates: RTCIceCandidate[] = []
+  private _processingLocalSDP = false
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -516,6 +521,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       this.resetNeedResume()
+      setTimeout(() => this._afterProcessingRemoteSDP(), 0)
     } catch (error) {
       this.logger.error(
         `Error handling remote SDP on call ${this.call.id}:`,
@@ -684,12 +690,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private async _sdpReady() {
-    clearTimeout(this._iceTimeout)
+    if (!this._processingLocalSDP) {
+      this._processingLocalSDP = true
+      clearTimeout(this._iceTimeout)
 
-    if (!this.instance.localDescription) {
-      this.logger.error('Missing localDescription', this.instance)
-      return
-    }
+      if (!this.instance.localDescription) {
+        this.logger.error('Missing localDescription', this.instance)
+        return
+      }
     const { sdp } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
       this.logger.debug('No candidate - retry \n')
@@ -703,11 +711,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
 
-    this.instance.removeEventListener('icecandidate', this._onIce)
+    // this.instance.removeEventListener('icecandidate', this._onIce)
 
     try {
       await this.call.onLocalSDPReady(this)
-
+      this._processingLocalSDP = false
       if (this.isAnswer) {
         this._resolveStartMethod()
         this._pendingNegotiationPromise?.resolve()
@@ -715,6 +723,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     } catch (error) {
       this._rejectStartMethod(error)
       this._pendingNegotiationPromise?.reject(error)
+    }
     }
   }
 
@@ -771,9 +780,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
      */
     if (!event.candidate) {
       this.instance.removeEventListener('icecandidate', this._onIce)
-      this._sdpReady()
+      if (!this._firstNonHostCandidateReceived) {
+        this._sdpReady()
+      }
       return
     }
+
+    // Store all candidates
+    this._allCandidates.push(event.candidate)
 
     this.logger.debug('RTCPeer Candidate:', event.candidate)
     if (event.candidate.type === 'host') {
@@ -788,15 +802,62 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }, this.options.maxIceGatheringTimeout)
     } else {
       /**
-       * With `srflx`, `prflx` or `relay` candidates
-       * set timeout to iceGatheringTimeout and then invoke
-       * _sdpReady since at least one candidate is valid.
+       * With the first non-HOST candidate (srflx, prflx or relay)
+       * immediately call _sdpReady and take a snapshot of candidates
        */
-      this._iceTimeout = setTimeout(() => {
-        this.instance.removeEventListener('icecandidate', this._onIce)
-        this._sdpReady()
-      }, this.options.iceGatheringTimeout)
+      if (!this._firstNonHostCandidateReceived) {
+        this._firstNonHostCandidateReceived = true
+        this._candidatesSnapshot = [...this._allCandidates]
+        this.logger.debug(
+          'First non-HOST candidate received, calling _sdpReady immediately'
+        )
+        setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+      }
     }
+  }
+
+  private _afterProcessingRemoteSDP() {
+    this.logger.debug('ICE gathering complete')
+
+    // Check if we have better candidates now than when we first sent SDP
+    const hasBetterCandidates = this._checkForBetterCandidates()
+
+    if (hasBetterCandidates) {
+      this.logger.info(
+        'Better candidates found after ICE gathering complete, triggering renegotiation'
+      )
+      // Reset negotiation state to allow new negotiation
+      this._negotiating = false
+      this._firstNonHostCandidateReceived = false
+      this._candidatesSnapshot = []
+      this._allCandidates = []
+      // Start negotiation with force=true
+      this.startNegotiation(true)
+    }
+  }
+
+  private _checkForBetterCandidates(): boolean {
+    // Get candidates that were added after the snapshot
+    const newCandidates = this._allCandidates.slice(
+      this._candidatesSnapshot.length
+    )
+
+    if (newCandidates.length === 0) {
+      return false
+    }
+
+    // Find candidates that are better than the best snapshot candidate
+    const betterCandidates = findBetterCandidates(
+      this._candidatesSnapshot,
+      newCandidates
+    )
+
+    if (betterCandidates.length > 0) {
+      this.logger.debug('Found better candidates:', betterCandidates)
+      return true
+    }
+
+    return false
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
@@ -880,6 +941,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           break
         case 'have-local-offer': {
           if (this.instance.iceGatheringState === 'complete') {
+            this.instance.removeEventListener('icecandidate', this._onIce)
             this._sdpReady()
           }
           break
