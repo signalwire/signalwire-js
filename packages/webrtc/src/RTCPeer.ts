@@ -523,6 +523,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.resetNeedResume()
       setTimeout(() => this._afterProcessingRemoteSDP(), 0)
     } catch (error) {
+      this._processingRemoteSDP = false
       this.logger.error(
         `Error handling remote SDP on call ${this.call.id}:`,
         error
@@ -698,32 +699,32 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.logger.error('Missing localDescription', this.instance)
         return
       }
-    const { sdp } = this.instance.localDescription
-    if (sdp.indexOf('candidate') === -1) {
-      this.logger.debug('No candidate - retry \n')
-      this.startNegotiation(true)
-      return
-    }
-
-    if (!this._sdpIsValid()) {
-      this.logger.info('SDP ready but not valid')
-      this._onIceTimeout()
-      return
-    }
-
-    // this.instance.removeEventListener('icecandidate', this._onIce)
-
-    try {
-      await this.call.onLocalSDPReady(this)
-      this._processingLocalSDP = false
-      if (this.isAnswer) {
-        this._resolveStartMethod()
-        this._pendingNegotiationPromise?.resolve()
+      const { sdp } = this.instance.localDescription
+      if (sdp.indexOf('candidate') === -1) {
+        this.logger.debug('No candidate - retry \n')
+        this.startNegotiation(true)
+        return
       }
-    } catch (error) {
-      this._rejectStartMethod(error)
-      this._pendingNegotiationPromise?.reject(error)
-    }
+
+      if (!this._sdpIsValid()) {
+        this.logger.info('SDP ready but not valid')
+        this._onIceTimeout()
+        return
+      }
+
+      // this.instance.removeEventListener('icecandidate', this._onIce)
+
+      try {
+        await this.call.onLocalSDPReady(this)
+        this._processingLocalSDP = false
+        if (this.isAnswer) {
+          this._resolveStartMethod()
+          this._pendingNegotiationPromise?.resolve()
+        }
+      } catch (error) {
+        this._rejectStartMethod(error)
+        this._pendingNegotiationPromise?.reject(error)
+      }
     }
   }
 
