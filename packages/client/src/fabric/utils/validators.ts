@@ -6,17 +6,17 @@ import {
   Rooms,
   SetAudioFlagsParams,
 } from '@signalwire/core'
-import { FabricRoomSessionConnection } from '../FabricRoomSession'
+import { CallSessionConnection } from '../CallSession'
 
 const isSelfMember = (
   params: MemberCommandParams | undefined,
-  ctx: FabricRoomSessionConnection
+  ctx: CallSessionConnection
 ) => {
   return !params?.memberId || params.memberId === ctx.member.id
 }
 
 export function validateAudioMute(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -29,7 +29,7 @@ export function validateAudioMute(
 }
 
 export function validateAudioUnmute(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -42,7 +42,7 @@ export function validateAudioUnmute(
 }
 
 export function validateVideoMute(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -55,7 +55,7 @@ export function validateVideoMute(
 }
 
 export function validateVideoUnmute(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -68,7 +68,7 @@ export function validateVideoUnmute(
 }
 
 export function validateDeaf(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -81,7 +81,7 @@ export function validateDeaf(
 }
 
 export function validateUndeaf(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: MemberCommandParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -94,7 +94,7 @@ export function validateUndeaf(
 }
 
 export function validateRemoveMember(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params: Required<MemberCommandParams>
 ) {
   if (!params?.memberId) {
@@ -107,7 +107,7 @@ export function validateRemoveMember(
 }
 
 export function validateSetRaiseHand(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: Rooms.SetRaisedHandRoomParams
 ) {
   const { raised = true } = params || {}
@@ -126,14 +126,14 @@ export function validateSetRaiseHand(
   }
 }
 
-export function validateSetLayout(this: FabricRoomSessionConnection) {
+export function validateSetLayout(this: CallSessionConnection) {
   if (!this.capabilities?.setLayout) {
     throw new CapabilityError('Missing setLayout capability')
   }
 }
 
 export function validateSetInputVolume(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params: MemberCommandWithVolumeParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -149,7 +149,7 @@ export function validateSetInputVolume(
 }
 
 export function validateSetOutputVolume(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params: MemberCommandWithVolumeParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -165,7 +165,7 @@ export function validateSetOutputVolume(
 }
 
 export function validateSetInputSensitivity(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params: MemberCommandWithValueParams
 ) {
   const isSelf = isSelfMember(params, this)
@@ -181,7 +181,7 @@ export function validateSetInputSensitivity(
 }
 
 export function validateSetPositions(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params: Rooms.SetPositionsParams
 ) {
   if (params.positions && !Object.keys(params.positions).length) {
@@ -198,20 +198,20 @@ export function validateSetPositions(
   }
 }
 
-export function validateLock(this: FabricRoomSessionConnection) {
+export function validateLock(this: CallSessionConnection) {
   if (!this.capabilities?.lock.on) {
     throw new CapabilityError('Missing lock capability')
   }
 }
 
-export function validateUnlock(this: FabricRoomSessionConnection) {
+export function validateUnlock(this: CallSessionConnection) {
   if (!this.capabilities?.lock.off) {
     throw new CapabilityError('Missing unlock capability')
   }
 }
 
 export function validateSetAudioFlags(
-  this: FabricRoomSessionConnection,
+  this: CallSessionConnection,
   params?: SetAudioFlagsParams
 ) {
   const isSelf = isSelfMember(params, this)

@@ -12,6 +12,7 @@ import {
   VideoLayoutEventNames,
   VideoRoomDeviceDisconnectedEventNames,
   VideoRoomDeviceUpdatedEventNames,
+  MemberUpdatedEventNames,
   CallJoined,
   CallJoinedEventParams as InternalCallJoinedEventParams,
   CallState,
@@ -37,11 +38,97 @@ import {
   CallConnect,
   CallConnectEventParams,
   CallRoom,
-  CallRoomEventParams,
   FabricMemberUpdatedEventNames,
+  FabricMemberEventNames,
+  FabricMemberEventParams,
+  FabricMemberEventParamsExcludeTalking,
+  FabricMemberContract,
+  FabricLayoutChangedEvent,
+  FabricMemberJoinedEvent,
+  FabricMemberLeftEvent,
+  FabricMemberTalkingEvent,
+  FabricMemberUpdatedEvent,
+  InternalFabricRoomSessionEntity,
+  FabricMemberEvent,
+  FabricAction,
+  FabricRoomSessionMethods,
+  FabricMemberEntity,
+  FabricRoomEventParams,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-import { CallCapabilitiesContract, FabricRoomSession } from '../../fabric'
+import { CallCapabilitiesContract, CallSession } from '../../fabric'
+
+// exporting aliases from the core package with  & {
+//  tshack?: undefined
+// }
+// to stop TS inference to resolve original types
+export type InternalCallMemberEntity = InternalFabricMemberEntity & {
+  _?: undefined
+}
+export type InternalCallMemberEntityUpdated =
+  InternalFabricMemberEntityUpdated & {
+    _?: undefined
+  }
+export type CallMemberEventNames = FabricMemberEventNames
+export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames
+
+export type CallMemberEventParams = FabricMemberEventParams & {
+  _?: undefined
+}
+export type CallMemberEventParamsExcludeTalking =
+  FabricMemberEventParamsExcludeTalking & {
+    _?: undefined
+  }
+export type CallMemberContract = FabricMemberContract & {
+  _?: undefined
+}
+export type CallLayoutChangedEvent = FabricLayoutChangedEvent & {
+  _?: undefined
+}
+export type CallLayoutChangedEventParams = FabricLayoutChangedEventParams & {
+  _?: undefined
+}
+export type CallMemberJoinedEvent = FabricMemberJoinedEvent & {
+  _?: undefined
+}
+export type CallMemberLeftEvent = FabricMemberLeftEvent & {
+  _?: undefined
+}
+export type CallMemberTalkingEvent = FabricMemberTalkingEvent & {
+  _?: undefined
+}
+export type CallMemberUpdatedEvent = FabricMemberUpdatedEvent & {
+  _?: undefined
+}
+export type InternalCallRoomSessionEntity = InternalFabricRoomSessionEntity & {
+  _?: undefined
+}
+export type CallMemberEvent = FabricMemberEvent & {
+  _?: undefined
+}
+export type CallAction = FabricAction & {
+  _?: undefined
+}
+export type CallRoomSessionMethods = FabricRoomSessionMethods
+export type CallMemberEntity = FabricMemberEntity & {
+  _?: undefined
+}
+export type CallRoomEventParams = FabricRoomEventParams & {
+  _?: undefined
+}
+export type CallMemberJoinedEventParams = FabricMemberJoinedEventParams & {
+  _?: undefined
+}
+
+export type CallMemberUpdatedEventParams = FabricMemberUpdatedEventParams & {
+  _?: undefined
+}
+export type CallMemberLeftEventParams = FabricMemberLeftEventParams & {
+  _?: undefined
+}
+export type CallMemberTalkingEventParams = FabricMemberTalkingEventParams & {
+  _?: undefined
+}
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -59,25 +146,25 @@ export interface RequestMemberParams {
   call_id: string
 }
 
-export type FabricMemberHandlerParams = {
-  member: InternalFabricMemberEntity
+export type CallMemberHandlerParams = {
+  member: InternalCallMemberEntity
 }
 
-export type FabricMemberUpdatedHandlerParams = {
-  member: InternalFabricMemberEntityUpdated
+export type CallMemberUpdatedHandlerParams = {
+  member: InternalCallMemberEntityUpdated
   room_id?: string
   room_session_id?: string
 }
 
-export type FabricMemberListUpdatedParams = {
-  members: InternalFabricMemberEntity[]
+export type CallMemberListUpdatedParams = {
+  members: InternalCallMemberEntity[]
 }
 
 export type CallJoinedEventParams = {
   capabilities: CallCapabilitiesContract
 } & Omit<InternalCallJoinedEventParams, 'capabilities'>
 
-export type FabricRoomSessionEventsHandlerMap = Record<
+export type CallSessionEventsHandlerMap = Record<
   VideoRoomDeviceUpdatedEventNames,
   (params: DeviceUpdatedEventParams) => void
 > &
@@ -87,7 +174,7 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   > &
   Record<MediaEventNames, () => void> &
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<BaseConnectionState, (params: FabricRoomSession) => void> &
+  Record<BaseConnectionState, (params: CallSession) => void> &
   Record<CallJoined, (stream: CallJoinedEventParams) => void> &
   Record<CallUpdated, (stream: CallUpdatedEventParams) => void> &
   Record<CallLeft, (stream: CallLeftEventParams) => void> &
@@ -101,28 +188,25 @@ export type FabricRoomSessionEventsHandlerMap = Record<
   > &
   Record<RoomUpdated, (params: CallUpdatedEventParams) => void> &
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
-  Record<MemberJoined, (params: FabricMemberJoinedEventParams) => void> &
+  Record<MemberJoined, (params: CallMemberJoinedEventParams) => void> &
   Record<
-    MemberUpdated | FabricMemberUpdatedEventNames,
-    (params: FabricMemberUpdatedEventParams) => void
+    MemberUpdated | MemberUpdatedEventNames,
+    (params: CallMemberUpdatedEventParams) => void
   > &
-  Record<MemberListUpdated, (params: FabricMemberListUpdatedParams) => void> &
-  Record<MemberLeft, (params: FabricMemberLeftEventParams) => void> &
-  Record<MemberTalking, (params: FabricMemberTalkingEventParams) => void> &
-  Record<
-    VideoLayoutEventNames,
-    (params: FabricLayoutChangedEventParams) => void
-  >
+  Record<MemberListUpdated, (params: CallMemberListUpdatedParams) => void> &
+  Record<MemberLeft, (params: CallMemberLeftEventParams) => void> &
+  Record<MemberTalking, (params: CallMemberTalkingEventParams) => void> &
+  Record<VideoLayoutEventNames, (params: CallLayoutChangedEventParams) => void>
 
-export type FabricRoomSessionEvents = {
-  [k in keyof FabricRoomSessionEventsHandlerMap]: FabricRoomSessionEventsHandlerMap[k]
+export type CallSessionEvents = {
+  [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]
 }
 
-export interface FabricRoomSessionContract {
+export interface CallSessionContract {
   /** The `layout.changed` event based on the current room layout */
-  currentLayoutEvent: FabricLayoutChangedEventParams
+  currentLayoutEvent: CallLayoutChangedEventParams
   /** The layout returned from the `layout.changed` event based on the current room layout */
-  currentLayout: FabricLayoutChangedEventParams['layout']
+  currentLayout: CallLayoutChangedEventParams['layout']
   /** The current position of the member returned from the `layout.changed` event */
   currentPosition: VideoPosition | undefined
   /**

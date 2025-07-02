@@ -11,9 +11,7 @@ import {
   VideoRoomDeviceEventNames,
   BaseConnectionState,
 } from '@signalwire/core'
-import { videoStreamWorker } from './videoStreamWorker'
-import { videoRecordWorker } from './videoRecordWorker'
-import { videoPlaybackWorker } from './videoPlaybackWorker'
+
 import { VideoRoomSessionConnection } from '../VideoRoomSession'
 import { MediaEventNames } from '@signalwire/webrtc'
 
@@ -44,25 +42,16 @@ export const videoWorker: SDKWorker<VideoRoomSessionConnection> = function* (
       case 'video.playback.started':
       case 'video.playback.updated':
       case 'video.playback.ended':
-        yield sagaEffects.fork(videoPlaybackWorker, {
-          action,
-          ...options,
-        })
+        // TODO
         return // Return since we don't need to handle the raw event for this
       case 'video.recording.started':
       case 'video.recording.updated':
       case 'video.recording.ended':
-        yield sagaEffects.fork(videoRecordWorker, {
-          action,
-          ...options,
-        })
+        // TODO
         return
       case 'video.stream.ended':
       case 'video.stream.started':
-        yield sagaEffects.fork(videoStreamWorker, {
-          action,
-          ...options,
-        })
+        // TODO
         return
       case 'video.room.audience_count': {
         roomSession.emit('room.audienceCount', payload)
