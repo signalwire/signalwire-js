@@ -139,7 +139,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      * Stop or Restore outbound video on "member.updated" event
      */
     if (stopCameraWhileMuted) {
-      room.on('member.updated.videoMuted', ({ member }:) => {
+      room.on('member.updated.videoMuted', ({ member }) => {
         try {
           if (member.member_id === room.memberId && 'video_muted' in member) {
             member.video_muted
