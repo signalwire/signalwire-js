@@ -4,7 +4,6 @@ import {
   getBestCandidate,
   findBetterCandidates,
   filterIceServers, 
-  getMediaConstraints, 
   getUserMedia 
 } from './helpers'
 import { getUserMedia as _getUserMedia } from './getUserMedia'
