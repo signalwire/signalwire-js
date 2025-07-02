@@ -729,6 +729,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     // this.instance.removeEventListener('icecandidate', this._onIce)
+    // Commented out because the listener removal is currently handled elsewhere in the code.
+    // If this changes in the future, ensure proper cleanup to avoid memory leaks.
 
     try {
       await this.call.onLocalSDPReady(this)
