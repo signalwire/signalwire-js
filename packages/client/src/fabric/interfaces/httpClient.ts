@@ -1,5 +1,6 @@
 import { GetSubscriberInfoResult } from '.'
 import {
+  Address,
   GetAddressesParams,
   GetAddressesResult,
   GetAddressParams,
@@ -27,6 +28,13 @@ export interface HTTPClientContract {
    * @returns A promise that resolves to the list of resources {@link GetAddressesResult}.
    */
   getAddresses(params?: GetAddressesParams): Promise<GetAddressesResult>
+
+  /**
+   * Retrieve all addresses associated with the current subscriber.
+   *
+   * @returns A promise that resolves to an array of addresses {@link Address[]}.
+   */
+  getMyAddresses(): Promise<Address[]>
   /**
    * Register a device to receive incoming call requests.
    *

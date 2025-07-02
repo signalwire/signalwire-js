@@ -2,7 +2,6 @@ import { PaginatedResponse, PaginatedResult } from '.'
 import type { ConversationEventParams } from '@signalwire/core'
 
 export interface ConversationContract {
-  readonly addressId: string
   readonly createdAt: number
   readonly id: string
   readonly lastMessageAt: number
@@ -17,18 +16,15 @@ export interface ConversationContract {
 }
 
 export interface SendConversationMessageParams {
+  groupId: string
+  fromAddressId: string
   text: string
-  addressId: string
   metadata?: Record<string, any>
   details?: Record<string, any>
 }
 
-export interface SendConversationMessageResponse {
-  table: {
-    conversation_id: string
-    text: string
-  }
-}
+// TODO
+export type SendConversationMessageResponse = unknown
 
 export type SendConversationMessageResult = SendConversationMessageResponse
 
@@ -38,6 +34,7 @@ export interface GetConversationsParams {
 
 export interface ConversationResponse {
   address_id: string
+  group_id: string
   created_at: number
   id: string
   last_message_at: number
@@ -66,14 +63,14 @@ export type ConversationChatMessagesSubscribeResult =
   ConversationSubscribeResult
 
 export interface JoinConversationParams {
-  addressId: string
+  addressIds: string[]
+  fromAddressId: string
 }
 
 export interface JoinConversationResponse {
-  table: {
-    conversation_id: string
-    text: string
-  }
+  groupId: string
+  addressIds: string[]
+  fromAddressId: string
 }
 
 export type JoinConversationResult = JoinConversationResponse
@@ -87,10 +84,8 @@ export interface GetMessagesParams {
 
 export interface ConversationMessage {
   id: string
-  address_id: string
-  conversation_id: string
-  user_id: string
-  from_address_id: string
+  fromAddressId: string
+  groupId: string
   ts: number
   metadata?: Record<string, any>
   details: Record<string, any>
@@ -108,7 +103,7 @@ export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
 }
 
 export interface GetConversationChatMessageParams {
-  addressId: string
+  groupId: string
   pageSize?: number
 }
 
@@ -119,7 +114,7 @@ export interface GetConversationMessagesResponse
   extends PaginatedResponse<ConversationMessage> {}
 
 export interface GetConversationMessagesParams {
-  addressId: string
+  groupId: string
   pageSize?: number
 }
 
@@ -129,6 +124,8 @@ export type GetConversationMessagesResult = PaginatedResult<ConversationMessage>
  * Conversation API
  */
 export interface ConversationAPISendMessageParams {
+  groupId: string
+  fromAddressId: string
   text: string
 }
 

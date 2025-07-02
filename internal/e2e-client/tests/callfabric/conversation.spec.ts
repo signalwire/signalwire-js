@@ -2,6 +2,7 @@ import { uuid } from '@signalwire/core'
 import {
   SignalWireClient,
   ConversationMessageEventParams,
+  Address,
 } from '@signalwire/client'
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
@@ -24,16 +25,28 @@ test.describe('Conversation Room', () => {
     const roomName = `e2e-client-convo-room_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    const firstMsgEvent = await page.evaluate(
-      ({ roomName }) => {
-        return new Promise<ConversationMessageEventParams>(async (resolve) => {
+    const roomAddress = await page.evaluate(({ roomName }) => {
+        return new Promise<Address>(async (resolve) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
           const addresses = await client.address.getAddresses({
             displayName: roomName,
           })
-          const roomAddress = addresses.data[0]
+          resolve(addresses.data[0])
+        })
+      }, {roomName})
+
+    const firstMsgEvent = await page.evaluate(
+      ({ roomAddress }) => {
+        return new Promise<ConversationMessageEventParams>(async (resolve) => {
+          // @ts-expect-error
+          const client: SignalWireClient = window._client
+          
+          const fromAddressId = (await client.address.getMyAddresses())[0].id
+          console.log('fromAddressId:', fromAddressId)
+
           const addressId = roomAddress.id
+          let joinResponse
           // Note: subscribe will trigger for call logs too
           // we need to make sure call logs don't resolve promise
           client.conversation.subscribe((event) => {
@@ -41,18 +54,25 @@ test.describe('Conversation Room', () => {
               resolve(event)
             }
           })
+
+          joinResponse = await client.conversation.join({
+            addressIds: [addressId, fromAddressId],
+            fromAddressId,
+          })
+
           client.conversation.sendMessage({
+            groupId: joinResponse.groupId,
             text: '1st message from 1st subscriber',
-            addressId,
+            fromAddressId,
           })
         })
       },
-      { roomName }
+      { roomAddress }
     )
 
     expect(firstMsgEvent.type).toBe('message')
-
-    const addressId = firstMsgEvent.address_id
+    console.log('firstMsgEvent:', firstMsgEvent)
+    const groupId = firstMsgEvent.group_id
 
     const secondMsgEventPromiseFromPage1 = page.evaluate(() => {
       return new Promise<ConversationMessageEventParams>((resolve) => {
@@ -70,10 +90,11 @@ test.describe('Conversation Room', () => {
     })
 
     const firstMsgEventFromPage2 = await page2.evaluate(
-      ({ addressId }) => {
+      ({ roomAddress }) => {
         return new Promise<ConversationMessageEventParams>(async (resolve) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
+          const fromAddressId = (await client.address.getMyAddresses())[0].id
           // Note: subscribe will trigger for call logs too
           // we need to make sure call logs don't resolve promise
           client.conversation.subscribe((event) => {
@@ -81,14 +102,19 @@ test.describe('Conversation Room', () => {
               resolve(event)
             }
           })
-          const result = await client.conversation.getConversations()
-          const convo = result.data.filter((c) => c.id == addressId)[0]
-          convo.sendMessage({
+          const joinResponse = await client.conversation.join({
+            addressIds: [roomAddress.id, fromAddressId],
+            fromAddressId,
+          })
+
+          client.conversation.sendMessage({
+            groupId: joinResponse.groupId,
             text: '1st message from 2nd subscriber',
+            fromAddressId,
           })
         })
       },
-      { addressId }
+      { roomAddress }
     )
 
     const secondMsgEventFromPage1 = await secondMsgEventPromiseFromPage1
@@ -101,14 +127,14 @@ test.describe('Conversation Room', () => {
     expect(firstMsgEventFromPage2.type).toBe('message')
 
     const messages = await page.evaluate(
-      async ({ addressId }) => {
+      async ({ groupId }) => {
         // @ts-expect-error
         const client: SignalWireClient = window._client
-        const result = await client.conversation.getConversations()
-        const convo = result.data.filter((c) => c.id == addressId)[0]
-        return await convo.getMessages({})
+        return await client.conversation.getConversationMessages({
+          groupId: groupId,
+        })
       },
-      { addressId }
+      { groupId }
     )
 
     expect(messages).not.toBeUndefined()
@@ -120,7 +146,6 @@ test.describe('Conversation Room', () => {
     expect(messages.data).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          conversation_id: addressId,
           details: {},
           id: expect.anything(),
           kind: null,
@@ -128,10 +153,9 @@ test.describe('Conversation Room', () => {
           text: '1st message from 2nd subscriber',
           ts: expect.anything(),
           type: 'message',
-          user_id: expect.anything(),
+          from_address_id: expect.anything(),
         }),
         expect.objectContaining({
-          conversation_id: addressId,
           details: {},
           id: expect.anything(),
           kind: null,
@@ -139,7 +163,7 @@ test.describe('Conversation Room', () => {
           text: '1st message from 1st subscriber',
           ts: expect.anything(),
           type: 'message',
-          user_id: expect.anything(),
+          from_address_id: expect.anything(),
         }),
       ])
     )
