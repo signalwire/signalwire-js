@@ -5,6 +5,7 @@ import {
   findBetterCandidates,
   filterIceServers,
   getUserMedia,
+  isSingleMediaNegotiation,
 } from './helpers'
 import { getUserMedia as _getUserMedia } from './getUserMedia'
 import { assureDeviceId } from './deviceHelpers'
@@ -317,6 +318,114 @@ describe('Helpers functions', () => {
 
         const result = findBetterCandidates(currentCandidates, newCandidates)
         expect(result).toEqual([relay])
+      })
+    })
+
+    describe('isSingleMediaNegotiation()', () => {
+      it('should return true for audio-only with audio: true', () => {
+        expect(isSingleMediaNegotiation({ audio: true })).toBe(true)
+      })
+
+      it('should return true for audio-only with audio: object', () => {
+        expect(isSingleMediaNegotiation({ audio: { deviceId: 'test' } })).toBe(true)
+      })
+
+      it('should return true for video-only with video: true', () => {
+        expect(isSingleMediaNegotiation({ video: true })).toBe(true)
+      })
+
+      it('should return true for video-only with video: object', () => {
+        expect(isSingleMediaNegotiation({ video: { width: 1280 } })).toBe(true)
+      })
+
+      it('should return true for audio-only using negotiateAudio', () => {
+        expect(isSingleMediaNegotiation({ negotiateAudio: true })).toBe(true)
+      })
+
+      it('should return true for video-only using negotiateVideo', () => {
+        expect(isSingleMediaNegotiation({ negotiateVideo: true })).toBe(true)
+      })
+
+      it('should return false for both audio and video', () => {
+        expect(isSingleMediaNegotiation({ audio: true, video: true })).toBe(false)
+      })
+
+      it('should return false for both using negotiate flags', () => {
+        expect(isSingleMediaNegotiation({ negotiateAudio: true, negotiateVideo: true })).toBe(false)
+      })
+
+      it('should return false when mixing regular and negotiate flags', () => {
+        expect(isSingleMediaNegotiation({ audio: true, negotiateVideo: true })).toBe(false)
+        expect(isSingleMediaNegotiation({ negotiateAudio: true, video: true })).toBe(false)
+      })
+
+      it('should return false when neither audio nor video is enabled', () => {
+        expect(isSingleMediaNegotiation({})).toBe(false)
+        expect(isSingleMediaNegotiation({ audio: false, video: false })).toBe(false)
+      })
+
+      it('should return true when audio is true but video is false', () => {
+        expect(isSingleMediaNegotiation({ audio: true, video: false })).toBe(true)
+      })
+
+      it('should return true when video is true but audio is false', () => {
+        expect(isSingleMediaNegotiation({ audio: false, video: true })).toBe(true)
+      })
+
+      it('should handle complex audio constraints', () => {
+        expect(isSingleMediaNegotiation({ 
+          audio: { 
+            echoCancellation: true,
+            noiseSuppression: true,
+            deviceId: { exact: 'test' }
+          } 
+        })).toBe(true)
+      })
+
+      it('should handle complex video constraints', () => {
+        expect(isSingleMediaNegotiation({ 
+          video: { 
+            width: { min: 640, max: 1920 },
+            height: { min: 480, max: 1080 },
+            frameRate: 30
+          } 
+        })).toBe(true)
+      })
+
+      it('should prioritize regular flags over negotiate flags', () => {
+        // If both audio and negotiateAudio are present, audio takes precedence
+        expect(isSingleMediaNegotiation({ 
+          audio: true, 
+          negotiateAudio: false, 
+          video: false 
+        })).toBe(true)
+        
+        expect(isSingleMediaNegotiation({ 
+          audio: false, 
+          negotiateAudio: true, 
+          video: true 
+        })).toBe(false)
+      })
+
+      it('should handle all flags being false', () => {
+        expect(isSingleMediaNegotiation({ 
+          audio: false, 
+          video: false,
+          negotiateAudio: false,
+          negotiateVideo: false
+        })).toBe(false)
+      })
+
+      it('should handle negotiate flags with regular flags undefined', () => {
+        expect(isSingleMediaNegotiation({ 
+          negotiateAudio: true,
+          negotiateVideo: false
+        })).toBe(true)
+        
+        expect(isSingleMediaNegotiation({ 
+          negotiateAudio: false,
+          negotiateVideo: true
+        })).toBe(true)
       })
     })
   })

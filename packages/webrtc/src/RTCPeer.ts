@@ -4,6 +4,7 @@ import {
   getMediaConstraints,
   filterIceServers,
   findBetterCandidates,
+  isSingleMediaNegotiation,
 } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -740,6 +741,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       } catch (error) {
         this._rejectStartMethod(error)
         this._pendingNegotiationPromise?.reject(error)
+        this._processingLocalSDP = false
       }
     }
   }
@@ -797,7 +799,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
      */
     if (!event.candidate) {
       this.instance.removeEventListener('icecandidate', this._onIce)
-      if (!this._firstNonHostCandidateReceived) {
+      if (
+        !this._firstNonHostCandidateReceived ||
+        !isSingleMediaNegotiation(this.options)
+      ) {
+        this.logger.debug('No more candidates, calling _sdpReady')
         this._sdpReady()
       }
       return
@@ -828,7 +834,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.logger.debug(
           'First non-HOST candidate received, calling _sdpReady immediately'
         )
-        setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+        if (isSingleMediaNegotiation(this.options)) {
+          setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+        }
       }
     }
   }
