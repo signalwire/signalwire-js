@@ -110,11 +110,12 @@ export interface SessionOptions {
   // From `LogLevelDesc` of loglevel to simplify our docs
   /** logging level */
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  /** The SDK invokes this method and uses the new token to re-auth. */
+  /** Callback invoked by the SDK to fetch a new token for re-authentication */
   onRefreshToken?(): Promise<string>
   sessionChannel?: SessionChannel
   instanceMap?: InstanceMap
 }
+
 export interface UserOptions extends SessionOptions {
   /** @internal */
   devTools?: boolean
@@ -349,10 +350,12 @@ export type FabricMethod =
   | 'call.layout.set'
   | 'call.microphone.volume.set'
   | 'call.microphone.sensitivity.set'
+  | 'call.speaker.volume.set'
   | 'call.lock'
   | 'call.unlock'
   | 'call.raisehand'
   | 'call.lowerhand'
+  | 'call.audioflags.set'
 
 export interface WebSocketClient {
   addEventListener: WebSocket['addEventListener']

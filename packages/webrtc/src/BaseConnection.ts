@@ -20,6 +20,10 @@ import {
   VertoAnswer,
   UpdateMediaParams,
   UpdateMediaDirection,
+  asyncRetry,
+  constDelay,
+  SYMBOL_EXECUTE_CONNECTION_CLOSED,
+  SYMBOL_EXECUTE_TIMEOUT,
 } from '@signalwire/core'
 import type { ReduxComponent, VertoModifyResponse } from '@signalwire/core'
 import RTCPeer from './RTCPeer'
@@ -96,6 +100,10 @@ export class BaseConnection<
     return this.state === 'active'
   }
 
+  get requesting() {
+    return this.state === 'requesting'
+  }
+
   get trying() {
     return this.state === 'trying'
   }
@@ -163,12 +171,20 @@ export class BaseConnection<
     return this.peer ? this.peer.getDeviceLabel('video') : null
   }
 
+  get cameraConstraints() {
+    return this.peer ? this.peer.getTrackConstraints('video') : null
+  }
+
   get microphoneId() {
     return this.peer ? this.peer.getDeviceId('audio') : null
   }
 
   get microphoneLabel() {
     return this.peer ? this.peer.getDeviceLabel('audio') : null
+  }
+
+  get microphoneConstraints() {
+    return this.peer ? this.peer.getTrackConstraints('audio') : null
   }
 
   get withAudio() {
@@ -234,8 +250,7 @@ export class BaseConnection<
     return super.emit(event, ...args)
   }
 
-  /** @internal */
-  dialogParams(rtcPeerId: string) {
+  protected dialogParams(rtcPeerId: string) {
     const {
       destinationNumber,
       attach,
@@ -246,6 +261,7 @@ export class BaseConnection<
       userVariables,
       screenShare,
       additionalDevice,
+      fromFabricAddressId,
       pingSupported = true,
     } = this.options
 
@@ -262,11 +278,14 @@ export class BaseConnection<
         userVariables,
         screenShare,
         additionalDevice,
+        fromFabricAddressId,
         pingSupported,
         version: INVITE_VERSION,
       },
     }
   }
+
+  private _myWorkers: Task[] = []
 
   getRTCPeerById(rtcPeerId: string) {
     return this.rtcPeerMap.get(rtcPeerId)
@@ -274,6 +293,10 @@ export class BaseConnection<
 
   appendRTCPeer(rtcPeer: RTCPeer<EventTypes>) {
     return this.rtcPeerMap.set(rtcPeer.uuid, rtcPeer)
+  }
+
+  removeRTCPeer(rtcPeerId: string) {
+    return this.rtcPeerMap.delete(rtcPeerId)
   }
 
   setActiveRTCPeer(rtcPeerId: string) {
@@ -347,8 +370,8 @@ export class BaseConnection<
 
   /** @internal */
   _getRPCMethod(): WebRTCMethod {
-    const authState = this.select(selectors.getAuthState)
-    if (authState && isSATAuth(authState)) {
+    const authorization = this.select(selectors.getAuthorization)
+    if (authorization && isSATAuth(authorization)) {
       return 'webrtc.verto'
     }
     return 'video.message'
@@ -732,38 +755,80 @@ export class BaseConnection<
   }
 
   runRTCPeerWorkers(rtcPeerId: string) {
-    this.runWorker('vertoEventWorker', {
+    const vertoWorker = this.runWorker('vertoEventWorker', {
       worker: workers.vertoEventWorker,
       initialState: { rtcPeerId },
     })
+    this._myWorkers.push(vertoWorker)
 
     const main = !(this.options.additionalDevice || this.options.screenShare)
 
     if (main) {
-      this.runWorker('roomSubscribedWorker', {
+      const subscribedWorker = this.runWorker('roomSubscribedWorker', {
         worker: workers.roomSubscribedWorker,
         initialState: { rtcPeerId },
       })
+      this._myWorkers.push(subscribedWorker)
 
-      this.runWorker('promoteDemoteWorker', {
+      const promoteDemoteWorker = this.runWorker('promoteDemoteWorker', {
         worker: workers.promoteDemoteWorker,
         initialState: { rtcPeerId },
       })
+      this._myWorkers.push(promoteDemoteWorker)
+    }
+  }
+
+  removeRTCWorkers() {
+    for (const task of this._myWorkers) {
+      this.cancelWorker(task)
+    }
+    this._myWorkers = []
+  }
+
+  private _destroyPeer() {
+    if (this.peer) {
+      //clean up previous attempt
+      this.peer.detachAndStop()
+      this.removeRTCWorkers()
+      this.removeRTCPeer(this.peer.uuid)
+      this.peer = undefined
     }
   }
 
   /** @internal */
   invite<T>(): Promise<T> {
-    return new Promise(async (resolve, reject) => {
-      this.direction = 'outbound'
-      this.peer = this._buildPeer('offer')
-      try {
-        await this.peer.start()
-        resolve(this as any as T)
-      } catch (error) {
-        this.logger.error('Invite error', error)
-        reject(error)
-      }
+    return asyncRetry({
+      asyncCallable: async () => {
+        return new Promise(async (resolve, reject) => {
+          await this._waitUntilSessionAuthorized()
+          this.direction = 'outbound'
+          this.peer = this._buildPeer('offer')
+          try {
+            await this.peer.start()
+            resolve(this as any as T)
+          } catch (error) {
+            this.logger.error('Invite error', error)
+            this._destroyPeer()
+            reject(error)
+          }
+        })
+      },
+      maxRetries: 5,
+      delayFn: constDelay({ initialDelay: 0 }),
+      expectedErrorHandler: (error) => {
+        if (
+          this.requesting &&
+          [SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(
+            error
+          )
+        ) {
+          // eslint-disable-line max-len, no-nested-ternaryerror === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
+          this.logger.debug('Retrying verto.invite with new RTCPeer')
+          return false // we should retry
+        }
+        // other case are expected to be handle upstream
+        return true
+      },
     })
   }
 
@@ -785,7 +850,7 @@ export class BaseConnection<
   }
 
   /** @internal */
-  onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
+  async onLocalSDPReady(rtcPeer: RTCPeer<EventTypes>) {
     if (!rtcPeer.instance.localDescription) {
       this.logger.error('Missing localDescription', rtcPeer)
       throw new Error('Invalid RTCPeerConnection localDescription')
@@ -890,6 +955,10 @@ export class BaseConnection<
         node_id: nodeId ?? this.options.nodeId,
         subscribe,
       })
+      if (this.state === 'requesting') {
+        // The Server Created the call, and now is trying to connect us to the destination
+        this.setState('trying')
+      }
       this.logger.debug('Invite response', response)
 
       this.resuming = false
@@ -1252,7 +1321,7 @@ export class BaseConnection<
       }
 
       // Check if the peer is already negotiating
-      if (this.peer?.isNegotiating) {
+      if (this.peer.isNegotiating) {
         throw new Error('The peer is already negotiating the media!')
       }
 
@@ -1358,9 +1427,7 @@ export class BaseConnection<
     }
 
     return this.updateMedia({
-      audio: {
-        direction,
-      },
+      audio: { direction },
     })
   }
 
@@ -1376,9 +1443,7 @@ export class BaseConnection<
     }
 
     return this.updateMedia({
-      video: {
-        direction,
-      },
+      video: { direction },
     })
   }
 

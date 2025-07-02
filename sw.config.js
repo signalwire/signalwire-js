@@ -7,6 +7,7 @@ module.exports = {
     byName: {
       '@signalwire/realtime-api': 'nodejs/realtime-api',
       '@signalwire/js': 'js/browser',
+      '@signalwire/client': 'js/client',
       '@signalwire/web-api': 'nodejs/web-api',
       '@signalwire/node': 'nodejs/node',
       '@signalwire/swaig': 'nodejs/swaig',
