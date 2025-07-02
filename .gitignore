@@ -34,3 +34,7 @@ yarn-error.log*
 coverage/
 public/
 .devcontainer/
+.claude
+.my-notes
+.last-run.json
+CLAUDE.md
