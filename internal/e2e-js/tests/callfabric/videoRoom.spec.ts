@@ -110,7 +110,7 @@ test.describe('CallFabric VideoRoom', () => {
       { roomSession }
     )
 
-    // // --------------- Muting Video (self) ---------------
+    // --------------- Muting Video (self) ---------------
     await page.evaluate(
       async ({ roomSession }) => {
         // @ts-expect-error
@@ -376,8 +376,7 @@ test.describe('CallFabric VideoRoom', () => {
     // Dial an address and join a video room
     const roomSession = await page.evaluate(async () => {
       try {
-        // @ts-expect-error
-        const client = window._client
+        const client = window._client!
 
         const call = await client.dial({
           to: `/public/invalid-address?channel=video`,

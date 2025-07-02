@@ -20,7 +20,18 @@ import {
   stripNamespacePrefix,
   isJSONRPCRequest,
   isJSONRPCResponse,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay,
+  isConnectRequest,
+  isVertoInvite,
 } from './utils'
+import {
+  SYMBOL_CONNECT_ERROR,
+  SYMBOL_EXECUTE_CONNECTION_CLOSED,
+  SYMBOL_EXECUTE_TIMEOUT,
+} from './utils/constants'
 import { WEBRTC_EVENT_TYPES, isWebrtcEventType } from './utils/common'
 import { BaseSession } from './BaseSession'
 import { BaseJWTSession } from './BaseJWTSession'
@@ -30,7 +41,6 @@ import { BaseComponent } from './BaseComponent'
 import { BaseConsumer } from './BaseConsumer'
 import { EventEmitter, getEventEmitter } from './utils/EventEmitter'
 import * as sessionSelectors from './redux/features/session/sessionSelectors'
-import { findNamespaceInPayload } from './redux/features/shared/namespace'
 import { GLOBAL_VIDEO_EVENTS } from './utils/constants'
 import {
   MEMBER_UPDATED_EVENTS,
@@ -63,7 +73,6 @@ export {
   GLOBAL_VIDEO_EVENTS,
   MEMBER_UPDATED_EVENTS,
   INTERNAL_MEMBER_UPDATED_EVENTS,
-  findNamespaceInPayload,
   timeoutPromise,
   debounce,
   SWCloseEvent,
@@ -72,8 +81,17 @@ export {
   isSATAuth,
   isJSONRPCRequest,
   isJSONRPCResponse,
+  isConnectRequest,
+  isVertoInvite,
   LOCAL_EVENT_PREFIX,
   stripNamespacePrefix,
+  asyncRetry,
+  increasingDelay,
+  decreasingDelay,
+  constDelay,
+  SYMBOL_CONNECT_ERROR,
+  SYMBOL_EXECUTE_CONNECTION_CLOSED,
+  SYMBOL_EXECUTE_TIMEOUT,
 }
 
 export * from './redux/features/component/componentSlice'

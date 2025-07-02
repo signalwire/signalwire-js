@@ -5,9 +5,9 @@ const UPPERCASE_REGEX = /[A-Z]/g
  * Converts values from camelCase to snake_case
  * @internal
  */
-export const fromCamelToSnakeCase = <T>(event: T): T => {
+export const fromCamelToSnakeCase = <T>(value: T): T => {
   // @ts-ignore
-  return event.replace(UPPERCASE_REGEX, (letter) => {
+  return value.replace(UPPERCASE_REGEX, (letter) => {
     return `_${letter.toLowerCase()}`
   }) as T
 }

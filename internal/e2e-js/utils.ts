@@ -1,5 +1,8 @@
 import type {
+  DialParams,
   FabricRoomSession,
+  SignalWire,
+  SignalWireClient,
   SignalWireContract,
   Video,
 } from '@signalwire/js'
@@ -10,6 +13,18 @@ import { expect } from './fixtures'
 import { Page } from '@playwright/test'
 import { v4 as uuid } from 'uuid'
 import { clearInterval } from 'timers'
+import express, { Express, Request, Response } from 'express'
+import { Server } from 'http'
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import { EventEmitter } from 'events'
+declare global {
+  interface Window {
+    _SWJS: {
+      SignalWire: typeof SignalWire
+    }
+    _client?: SignalWireClient
+  }
+}
 
 // #region Utilities for Playwright test server & fixture
 
@@ -140,6 +155,40 @@ export const createTestSATToken = async () => {
   )
   const data = await response.json()
   return data.token
+}
+
+interface GuestSATTokenRequest {
+  allowed_addresses: string[]
+}
+export const createGuestSATToken = async (bodyData: GuestSATTokenRequest) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/guests/tokens`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(bodyData),
+    }
+  )
+  const data = await response.json()
+  return data.token
+}
+
+export const getResourceAddresses = async (resource_id: string) => {
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/${resource_id}/addresses`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+    }
+  )
+  const data = await response.json()
+  return data
 }
 
 interface CreateTestCRTOptions {
@@ -460,6 +509,23 @@ export const createCFClient = async (
   params?: CreateCFClientParams
 ) => {
   const sat = await createTestSATToken()
+  return createCFClientWithToken(page, sat, params)
+}
+
+export const createGuestCFClient = async (
+  page: Page,
+  bodyData: GuestSATTokenRequest,
+  params?: CreateCFClientParams
+) => {
+  const sat = await createGuestSATToken(bodyData)
+  return createCFClientWithToken(page, sat, params)
+}
+
+const createCFClientWithToken = async (
+  page: Page,
+  sat: string | null,
+  params?: CreateCFClientParams
+) => {
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
     process.exit(4)
@@ -496,7 +562,6 @@ export const createCFClient = async (
         },
       }
 
-      // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
@@ -505,7 +570,6 @@ export const createCFClient = async (
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
-      // @ts-expect-error
       window._client = client
       return client
     },
@@ -521,7 +585,7 @@ export const createCFClient = async (
 
 interface DialAddressParams {
   address: string
-  dialOptions?: Record<string, any>
+  dialOptions?: Partial<DialParams>
   reattach?: boolean
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
@@ -546,8 +610,12 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldWaitForJoin,
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
-        // @ts-expect-error
-        const client: SignalWireContract = window._client
+        const client = window._client
+
+        if (!client) {
+          console.error('Client not defined!')
+          return
+        }
 
         const dialer = reattach ? client.reattach : client.dial
 
@@ -556,7 +624,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
-          ...dialOptions,
+          ...JSON.parse(dialOptions),
         })
 
         if (shouldWaitForJoin) {
@@ -577,13 +645,23 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     },
     {
       address,
-      dialOptions,
+      dialOptions: JSON.stringify(dialOptions),
       reattach,
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
     }
   )
+}
+
+export const reloadAndReattachAddress = async (
+  page: Page,
+  params: Omit<DialAddressParams, 'reattach'>
+) => {
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await createCFClient(page)
+
+  return dialAddress(page, { ...params, reattach: true })
 }
 
 export const disconnectClient = (page: Page) => {
@@ -990,10 +1068,15 @@ export async function expectStatWithPolling(
 
 // #region Utilities for v2 WebRTC testing
 
+export type StatusEvents = 'initiated' | 'ringing' | 'answered' | 'completed'
+
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
-  codecs?: string | undefined
+  codecs?: string | undefined,
+  statusCallbackUrl?: string | undefined,
+  statusEvents?: StatusEvents[] | undefined,
+  statusCallBackMethod: 'GET' | 'POST' = 'POST'
 ) => {
   const data = new URLSearchParams()
 
@@ -1014,6 +1097,14 @@ export const createCallWithCompatibilityApi = async (
   data.append('Record', 'true')
   data.append('RecordingChannels', 'dual')
   data.append('Trim', 'do-not-trim')
+
+  if (statusCallbackUrl && statusEvents) {
+    data.append('StatusCallback', statusCallbackUrl)
+    for (const event of statusEvents) {
+      data.append('StatusCallbackEvent', event)
+    }
+    data.append('StatusCallbackMethod', statusCallBackMethod)
+  }
 
   console.log(
     'REST API URL: ',
@@ -1315,6 +1406,122 @@ export const expectRelayConnected = async (
   await expect(startCall).toBeEnabled()
 }
 
+export class MockWebhookServer extends EventEmitter {
+  private app: Express
+  private server: Server
+  private zrokProcess: ChildProcessWithoutNullStreams
+
+  constructor() {
+    super()
+    this.app = express()
+    this.app.use(express.urlencoded({ extended: true }))
+    const self = this
+    this.app.all('/', (req: Request, res: Response) => {
+      self.emit('request', req)
+      console.log('request body: ', req.body)
+      res.status(204).end()
+    })
+  }
+
+  listen(port: number = 18989, startTunnel: boolean = false) {
+    return new Promise<string>((resolve) => {
+      this.server = this.app.listen(port, (err?: Error) => {
+        if (err) {
+          console.error('Error Starting MockWebhookServer: ', err)
+          process.exit(5)
+        }
+        if (startTunnel == false) {
+          resolve('Started without tunnel')
+          return
+        }
+      })
+
+      if (startTunnel) {
+        const MAX_RETRIES = 3
+        const tunnel = (attempt = 0) => {
+          try {
+            this.zrokProcess = spawn('zrok', [
+              'share',
+              'public',
+              '--backend-mode',
+              'proxy',
+              '--headless',
+              '--insecure',
+              `${port}`,
+            ])
+            this.zrokProcess.on('error', (err) => {
+              console.error('zrok process error event: ', err)
+            })
+            this.zrokProcess.stdout.on('data', (data) => {
+              console.log(`zrok processs stdout: ${data}`)
+            })
+            this.zrokProcess.stderr.on('data', (data) => {
+              const dataStr = data.toString('utf-8')
+              // zrok is writing only to std error for every logs
+              try {
+                const logObj = JSON.parse(dataStr)
+                if (logObj.level == 'info') {
+                  console.log(`zrok process stdout: ${data}`)
+                  if (
+                    logObj.msg &&
+                    logObj.msg.startsWith(
+                      'access your zrok share at the following endpoints:'
+                    )
+                  ) {
+                    const tunnelUrl = logObj.msg.split('\n')[1].trim()
+                    resolve(tunnelUrl as string)
+                  }
+                } else {
+                  console.error(`zrok process stderr: ${data}`)
+                }
+              } catch (e) {
+                if (dataStr.startsWith('[ERROR]: unable to create share')) {
+                  console.error('Error Starting Zrok Share: ', dataStr)
+                  if (attempt < MAX_RETRIES) {
+                    console.log(`Retrying (attempt: ${attempt + 1} `)
+                    tunnel(attempt + 1)
+                  } else {
+                    process.exit(5)
+                  }
+                }
+              }
+            })
+
+            this.zrokProcess.on('close', (code) => {
+              console.log(`zrok process exited with code ${code}`)
+            })
+          } catch (err) {
+            console.error('Error Starting Zrok Share: ', err)
+            if (attempt < MAX_RETRIES) {
+              console.log(`Retrying (attempt: ${attempt + 1} `)
+              tunnel(attempt + 1)
+            } else {
+              process.exit(5)
+            }
+          }
+        }
+
+        tunnel()
+      }
+    })
+  }
+
+  waitFor(status: StatusEvents) {
+    return new Promise((resolve) => {
+      this.on('request', (req: Request) => {
+        if (req.body.CallStatus === status) {
+          resolve(req.body)
+        }
+      })
+    })
+  }
+
+  close() {
+    this.server.close()
+    this.zrokProcess.kill('SIGKILL')
+  }
+}
+
 // #endregion
 
 // #region Utilities for Resources CRUD operations
@@ -1325,11 +1532,18 @@ export interface Resource {
   type: string
   display_name: string
   created_at: string
+  cxml_script?: CXMLApplication
+  cxml_webhook?: CXMLApplication
+}
+
+export interface CXMLApplication {
+  id: string
+  // and other things
 }
 
 export const createVideoRoomResource = async (name?: string) => {
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/video_rooms`,
+    `https://${process.env.API_HOST}/api/fabric/resources/conference_rooms`,
     {
       method: 'POST',
       headers: {
@@ -1355,7 +1569,7 @@ export const createSWMLAppResource = async ({
   contents,
 }: CreateSWMLAppResourceParams) => {
   const response = await fetch(
-    `https://${process.env.API_HOST}/api/fabric/resources/swml_applications`,
+    `https://${process.env.API_HOST}/api/fabric/resources/swml_scripts`,
     {
       method: 'POST',
       headers: {
@@ -1364,13 +1578,74 @@ export const createSWMLAppResource = async ({
       },
       body: JSON.stringify({
         name: name ?? `e2e-swml-app_${uuid()}`,
-        handle_calls_using: 'script',
-        call_handler_script: JSON.stringify(contents),
+        contents: JSON.stringify(contents),
       }),
     }
   )
   const data = (await response.json()) as Resource
   console.log('>> Resource SWML App created:', data.id)
+  return data
+}
+
+export interface CreatecXMLScriptParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createcXMLScriptResource = async ({
+  name,
+  contents,
+}: CreatecXMLScriptParams) => {
+  const requestBody = {
+    name: name ?? `e2e-cxml-script_${uuid()}`,
+    contents: contents.call_handler_script,
+  }
+  console.log('-----> request body (script):', requestBody)
+
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_scripts`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(requestBody),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('----> data:', data)
+  console.log('>> Resource cXML Script created:', data.id)
+  return data
+}
+
+export interface CreatecXMLExternalURLParams {
+  name?: string
+  contents: Record<any, any>
+}
+export const createcXMLExternalURLResource = async ({
+  name,
+  contents,
+}: CreatecXMLExternalURLParams) => {
+  const requestBody = {
+    name: name ?? `e2e-cxml-ext-url_${uuid()}`,
+    primary_request_url: contents.primary_request_url,
+  }
+  console.log('-----> request body (external URL):', requestBody)
+
+  const response = await fetch(
+    `https://${process.env.API_HOST}/api/fabric/resources/cxml_webhooks`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${BASIC_TOKEN}`,
+      },
+      body: JSON.stringify(requestBody),
+    }
+  )
+  const data = (await response.json()) as Resource
+  console.log('----> data:', data)
+  console.log('>> Resource cXML External URL created:', data.id)
   return data
 }
 
@@ -1537,13 +1812,16 @@ export const expectRecordingStarted = (page: Page) => {
     return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
       setTimeout(reject, 10000)
       // At this point window.__roomObj might not have been set yet
-      // we have to pool it and check 
+      // we have to pool it and check
       const interval = setInterval(() => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         if (roomObj) {
           clearInterval(interval)
-          roomObj.on('recording.started', (recording: Video.RoomSessionRecording) => resolve(recording))
+          roomObj.on(
+            'recording.started',
+            (recording: Video.RoomSessionRecording) => resolve(recording)
+          )
         }
       }, 100)
     })

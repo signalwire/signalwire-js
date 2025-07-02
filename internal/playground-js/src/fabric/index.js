@@ -311,6 +311,7 @@ window.dial = async ({ reattach = false } = {}) => {
     nodeId: steeringId,
     to: document.getElementById('destination').value,
     rootElement: document.getElementById('rootElement'),
+    fromFabricAddressId: document.getElementById('fromFabricAddressId').value,
     video: document.getElementById('video').checked,
     audio: document.getElementById('audio').checked,
   })
@@ -323,6 +324,15 @@ window.dial = async ({ reattach = false } = {}) => {
   })
   roomObj.on('call.joined', (params) => {
     console.debug('>> call.joined', params)
+
+    const selfMember = params.room_session.members.find(
+      (member) => member.member_id === params.member_id
+    )
+    if (selfMember) {
+      microphoneVolume.value = selfMember.input_volume
+      speakerVolume.value = selfMember.output_volume
+      inputSensitivity.value = selfMember.input_sensitivity
+    }
   })
   roomObj.on('call.updated', (params) => {
     console.debug('>> call.updated', params)
@@ -370,6 +380,33 @@ window.dial = async ({ reattach = false } = {}) => {
   )
   roomObj.on('member.updated.videoMuted', (params) =>
     console.debug('>> member.updated.videoMuted', params)
+  )
+  roomObj.on('member.updated.deaf', (params) =>
+    console.debug('>> member.updated.deaf', params)
+  )
+  roomObj.on('member.updated.visible', (params) =>
+    console.debug('>> member.updated.visible', params)
+  )
+  roomObj.on('member.updated.inputVolume', (params) =>
+    console.debug('>> member.updated.inputVolume', params)
+  )
+  roomObj.on('member.updated.outputVolume', (params) =>
+    console.debug('>> member.updated.outputVolume', params)
+  )
+  roomObj.on('member.updated.inputSensitivity', (params) =>
+    console.debug('>> member.updated.inputSensitivity', params)
+  )
+  roomObj.on('member.updated.handraised', (params) =>
+    console.debug('>> member.updated.handraised', params)
+  )
+  roomObj.on('member.updated.echoCancellation', (params) =>
+    console.debug('>> member.updated.echoCancellation', params)
+  )
+  roomObj.on('member.updated.autoGain', (params) =>
+    console.debug('>> member.updated.autoGain', params)
+  )
+  roomObj.on('member.updated.noiseSuppression', (params) =>
+    console.debug('>> member.updated.noiseSuppression', params)
   )
   roomObj.on('member.left', (params) => console.debug('>> member.left', params))
   roomObj.on('member.talking', (params) =>
@@ -426,6 +463,16 @@ window.dial = async ({ reattach = false } = {}) => {
   roomObj.on('destroy', () => {
     console.debug('>> destroy')
     restoreUI()
+  })
+
+  roomObj.on('microphone.updated', (params) => {
+    console.debug('>> microphone.updated', params)
+  })
+  roomObj.on('camera.updated', (params) => {
+    console.debug('>> camera.updated', params)
+  })
+  roomObj.on('speaker.updated', (params) => {
+    console.debug('>> speaker.updated', params)
   })
 
   await call.start()
@@ -639,7 +686,12 @@ window.lowerHand = () => {
 }
 
 window.lockRoom = () => {
-  roomObj.lock()
+  // roomObj.lock()
+  roomObj.setAudioFlags({
+    echoCancellation: false,
+    autoGain: false,
+    noiseSuppression: false,
+  })
 }
 
 window.unlockRoom = () => {
@@ -696,10 +748,10 @@ window.changeSpeaker = (select) => {
 window.rangeInputHandler = (range) => {
   switch (range.id) {
     case 'microphoneVolume':
-      roomObj.setMicrophoneVolume({ volume: range.value })
+      roomObj.setInputVolume({ volume: range.value })
       break
     case 'speakerVolume':
-      roomObj.setSpeakerVolume({ volume: range.value })
+      roomObj.setOutputVolume({ volume: range.value })
       break
     case 'inputSensitivity':
       roomObj.setInputSensitivity({ value: range.value })
@@ -885,6 +937,8 @@ window.ready(async function () {
     localStorage.getItem('fabric.ws.token') || ''
   document.getElementById('destination').value =
     localStorage.getItem('fabric.ws.destination') || ''
+  document.getElementById('fromFabricAddressId').value =
+    localStorage.getItem('fabric.ws.fromFabricAddressId') || ''
   document.getElementById('audio').checked = true
   document.getElementById('video').checked =
     localStorage.getItem('fabric.ws.video') === 'true'

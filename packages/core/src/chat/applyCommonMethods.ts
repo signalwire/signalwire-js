@@ -7,21 +7,25 @@ import { toExternalJSON } from '../utils'
 import { BaseRPCResult } from '../utils/interfaces'
 import { isValidChannels, toInternalChatChannels } from './utils'
 
-export interface GetMembersInput extends BaseRPCResult {
-  members: InternalChatMemberEntity[]
+export interface GetMembersInput {
+  channel: string
 }
 
-export interface GetMessagesInput extends BaseRPCResult {
-  messages: InternalChatMessageEntity[]
-  cursor: PaginationCursor
+export interface GetMessagesInput {
+  channel: string
 }
 
 interface ChatMemberMethodParams extends Record<string, unknown> {
   memberId?: string
 }
 
-interface GetMemberStateOutput {
-  channels: any
+interface GetMembersOutput extends BaseRPCResult {
+  members: InternalChatMemberEntity[]
+}
+
+export interface GetMessagesOutput extends BaseRPCResult {
+  messages: InternalChatMessageEntity[]
+  cursor: PaginationCursor
 }
 
 const transformParamChannels = (params: ChatMemberMethodParams) => {
@@ -48,7 +52,7 @@ export function applyCommonMethods<T extends new (...args: any[]) => any>(
           params,
         },
         {
-          transformResolve: (payload: GetMembersInput) => ({
+          transformResolve: (payload: GetMembersOutput) => ({
             members: payload.members.map((member) => toExternalJSON(member)),
           }),
         }
@@ -62,7 +66,7 @@ export function applyCommonMethods<T extends new (...args: any[]) => any>(
           params,
         },
         {
-          transformResolve: (payload: GetMessagesInput) => ({
+          transformResolve: (payload: GetMessagesOutput) => ({
             messages: payload.messages.map((message) =>
               toExternalJSON(message)
             ),
@@ -98,7 +102,7 @@ export function applyCommonMethods<T extends new (...args: any[]) => any>(
           },
         },
         {
-          transformResolve: (payload: GetMemberStateOutput) => ({
+          transformResolve: (payload: GetMembersOutput) => ({
             channels: payload.channels,
           }),
           transformParams: transformParamChannels,

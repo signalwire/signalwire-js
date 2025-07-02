@@ -1,9 +1,11 @@
 import { SwEvent } from '.'
+import { toExternalJSON } from '..'
 import {
   CamelToSnakeCase,
   EntityUpdated,
   OnlyFunctionProperties,
   OnlyStateProperties,
+  SnakeToCamelCase,
 } from './utils'
 import {
   MemberJoined,
@@ -19,68 +21,81 @@ import {
  * Public Contract for a FabricMember
  */
 export interface FabricMemberContract
-  extends Pick<
-    VideoMemberContract,
-    | 'roomSessionId'
-    | 'roomId'
-    | 'name'
-    | 'parentId'
-    | 'type'
-    | 'requestedPosition'
-    | 'currentPosition'
-    | 'meta'
-    | 'handraised'
-    | 'talking'
-    | 'audioMuted'
-    | 'videoMuted'
-    | 'deaf'
-    | 'visible'
-    | 'inputVolume'
-    | 'outputVolume'
-    | 'inputSensitivity'
-  > {
-  /** Unique id of this member. */
+  extends FabricMemberBaseProps,
+    FabricMemberUpdatableProps {
+  /** Provides the member id of the member itself, may be the same as call_id for call legs outside of a conference */
   memberId: string
-  /** The ID of the call that this member is associated with */
+  /** Provides the call id the member was created through */
   callId: string
-  /** The ID of the node that this member is associated with */
+  /** Provides the node id the member exists on */
   nodeId: string
-  /** The data associated to this member subscriber */
-  subscriberData?: {
-    fabricSubscriberName: string
-    fabricAddressId: string
-    fabricSubscriberId: string
-  }
+  /** Provides the subscriber ID for the member */
+  subscriberId: string
+  /** Provides the address ID for the member */
+  addressId: string
 }
+
+type FabricMemberBaseProps = Pick<
+  VideoMemberContract,
+  | 'roomSessionId'
+  | 'roomId'
+  | 'name'
+  | 'parentId'
+  | 'type'
+  | 'requestedPosition'
+  | 'currentPosition'
+  | 'meta'
+  | 'talking'
+>
 
 /**
  * Used to not duplicate member fields across constants and types
  * and generate `MEMBER_UPDATED_EVENTS` below.
  * `key`: `type`
  */
-const INTERNAL_MEMBER_UPDATABLE_PROPS = {
-  audioMuted: true,
-  videoMuted: true,
+export const INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS = {
+  audio_muted: true,
+  video_muted: true,
   deaf: true,
   visible: true,
-  inputVolume: 1,
-  outputVolume: 1,
-  inputSensitivity: 1,
+  input_volume: 1,
+  output_volume: 1,
+  input_sensitivity: 1,
+  handraised: true,
+  echo_cancellation: true,
+  auto_gain: true,
+  noise_suppression: true,
 }
 
-export const INTERNAL_CALL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
-  INTERNAL_MEMBER_UPDATABLE_PROPS
+export type InternalFabricMemberUpdatableProps =
+  typeof INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
+
+export const INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
+  INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
 ).map((key) => {
   return `member.updated.${
     key as keyof InternalFabricMemberUpdatableProps
   }` as const
 })
 
-export type InternalFabricMemberUpdatableProps =
-  typeof INTERNAL_MEMBER_UPDATABLE_PROPS
-
 export type InternalFabricMemberUpdatedEventNames =
-  (typeof INTERNAL_CALL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
+  (typeof INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
+
+export type FabricMemberUpdatableProps = {
+  [K in keyof InternalFabricMemberUpdatableProps as SnakeToCamelCase<K>]: InternalFabricMemberUpdatableProps[K]
+}
+
+export const FABRIC_MEMBER_UPDATABLE_PROPS: FabricMemberUpdatableProps =
+  toExternalJSON(INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS)
+
+export const FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
+  FABRIC_MEMBER_UPDATABLE_PROPS
+).map((key) => {
+  return `member.updated.${key as keyof FabricMemberUpdatableProps}` as const
+})
+
+export type FabricMemberUpdatedEventNames =
+  (typeof FABRIC_MEMBER_UPDATED_EVENTS)[number]
 
 /**
  * FabricMember properties
