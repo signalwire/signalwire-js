@@ -26,7 +26,7 @@ class ConnectionPoolManagerSingleton {
     
     this.manager = new RTCPeerConnectionManager(
       rtcConfig,
-      options.poolSize ?? 3
+      options.poolSize ?? 2
     )
 
     await this.manager.initializePool()

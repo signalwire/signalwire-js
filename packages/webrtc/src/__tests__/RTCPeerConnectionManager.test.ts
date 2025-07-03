@@ -255,10 +255,10 @@ describe('RTCPeerConnectionManager', () => {
       jest.advanceTimersByTime(150)
       await initPromise
       
-      // Mock the connection to be in have-local-offer state
+      // Mock the connection to be in closed state
       const { RTCPeerConnection } = require('../utils/primitives')
       const mockPc = RTCPeerConnection.mock.results[0].value
-      mockPc.signalingState = 'have-local-offer'
+      mockPc.signalingState = 'closed'
       
       const connection = manager.getConnection()
       

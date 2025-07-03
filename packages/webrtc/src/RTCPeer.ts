@@ -3,7 +3,6 @@ import {
   getUserMedia,
   getMediaConstraints,
   filterIceServers,
-  findBetterCandidates,
   isSingleMediaNegotiation,
 } from './utils/helpers'
 import {
@@ -313,6 +312,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           'Skip restartIceWithRelayOnly since we need to generate answer'
         )
       }
+      
       const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
@@ -539,7 +539,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       this.resetNeedResume()
-      setTimeout(() => this._afterProcessingRemoteSDP(), 0)
     } catch (error) {
       this._processingRemoteSDP = false
       this.logger.error(
@@ -996,13 +995,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  private _afterProcessingRemoteSDP() {
+  private _retryWithMoreCandidates() {
     this.logger.debug('ICE gathering complete')
 
     // Check if we have better candidates now than when we first sent SDP
-    const hasBetterCandidates = this._checkForBetterCandidates()
+    const hasMoreCandidates = this._hasMoreCandidates()
 
-    if (hasBetterCandidates) {
+    if (hasMoreCandidates) {
       this.logger.info(
         'Better candidates found after ICE gathering complete, triggering renegotiation'
       )
@@ -1016,28 +1015,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  private _checkForBetterCandidates(): boolean {
-    // Get candidates that were added after the snapshot
-    const newCandidates = this._allCandidates.slice(
-      this._candidatesSnapshot.length
-    )
-
-    if (newCandidates.length === 0) {
-      return false
-    }
-
-    // Find candidates that are better than the best snapshot candidate
-    const betterCandidates = findBetterCandidates(
-      this._candidatesSnapshot,
-      newCandidates
-    )
-
-    if (betterCandidates.length > 0) {
-      this.logger.debug('Found better candidates:', betterCandidates)
-      return true
-    }
-
-    return false
+  private _hasMoreCandidates(): boolean {
+    return this._allCandidates.length > this._candidatesSnapshot.length
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
@@ -1144,6 +1123,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         case 'connecting':
           this._connectionStateTimer = setTimeout(() => {
             this.logger.warn('connectionState timed out')
+            setTimeout(() => this._retryWithMoreCandidates(), 0)
             this.restartIceWithRelayOnly()
           }, this.options.maxConnectionStateTimeout)
           break
