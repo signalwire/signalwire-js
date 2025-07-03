@@ -138,16 +138,17 @@ export class RTCPeerConnectionManager {
       const audioSender = pc.addTrack(audioTrack)
       senders.push(audioSender)
 
-      // // Add video track if available (not Safari)
-      // let videoSender: RTCRtpSender | null = null
-      // if (videoTrack) {
-      //   videoSender = pc.addTrack(videoTrack)
-      //   senders.push(videoSender)
-      // }
+      // Add video track if available (not Safari)
+      let videoSender: RTCRtpSender | null = null
+      if (videoTrack) {
+        videoSender = pc.addTrack(videoTrack)
+        senders.push(videoSender)
+      }
 
       // Create offer to start ICE gathering
       const offer = await pc.createOffer({
         offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
       })
       await pc.setLocalDescription(offer)
 

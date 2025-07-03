@@ -10,3 +10,6 @@ Changes:
 - Modified RTCPeer.start() to check for and reuse existing transceivers when adding real tracks
 - Updated _checkMediaToNegotiate() to reuse existing transceivers instead of creating duplicates
 - Properly updates transceiver direction and parameters when reusing
+- Added logic to set unused transceivers to 'inactive' direction based on actual media needs
+- When making audio-only calls, video transceivers are set to 'inactive'
+- When making video-only calls, audio transceivers are set to 'inactive'
