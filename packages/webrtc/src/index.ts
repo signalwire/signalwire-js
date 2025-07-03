@@ -41,3 +41,4 @@ export {
 } from './utils'
 export * from './utils/interfaces'
 export { BaseConnection, BaseConnectionOptions } from './BaseConnection'
+export { sessionConnectionPoolWorker } from './workers/sessionConnectionPoolWorker'
