@@ -1020,7 +1020,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     if (hasMoreCandidates) {
       this.logger.info(
-        'Better candidates found after ICE gathering complete, triggering renegotiation'
+        'More candidates found after ICE gathering complete, triggering renegotiation'
       )
       // Reset negotiation state to allow new negotiation
       this._negotiating = false
@@ -1140,8 +1140,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         case 'connecting':
           this._connectionStateTimer = setTimeout(() => {
             this.logger.warn('connectionState timed out')
-            setTimeout(() => this._retryWithMoreCandidates(), 0)
-            this.restartIceWithRelayOnly()
+            if (this._hasMoreCandidates()) {
+              this._retryWithMoreCandidates()
+            } else {
+              this.restartIceWithRelayOnly()
+            }
           }, this.options.maxConnectionStateTimeout)
           break
         case 'connected':
