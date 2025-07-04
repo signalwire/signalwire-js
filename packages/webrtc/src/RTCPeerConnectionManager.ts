@@ -7,6 +7,9 @@ import {
   cleanupMockVideoTrack,
 } from './utils/mockTracks'
 
+const maxPoolSize = 4
+const maxIceCandidatePoolSize = 20
+
 interface PooledConnection {
   id: string
   pc: RTCPeerConnection
@@ -24,17 +27,23 @@ export class RTCPeerConnectionManager {
   private pool: Map<string, PooledConnection> = new Map()
   private config: RTCConfiguration
   private poolSize: number
+  private forceRefresh: boolean
   private turnRefreshInterval: number = 240000 // 4 minutes
   private refreshTimer?: ReturnType<typeof setInterval>
   private logger = getLogger()
 
-  constructor(config: RTCConfiguration, poolSize: number = 3) {
+  constructor(config: RTCConfiguration, poolSize = 3, forceRefresh = false) {
+    const iceCandidatePoolSize = config.iceCandidatePoolSize || 10
     this.config = {
       ...config,
       // Ensure iceCandidatePoolSize is set for candidate reuse
-      iceCandidatePoolSize: config.iceCandidatePoolSize || 10,
+      iceCandidatePoolSize:
+        iceCandidatePoolSize > maxIceCandidatePoolSize
+          ? maxIceCandidatePoolSize
+          : iceCandidatePoolSize,
     }
-    this.poolSize = poolSize
+    this.poolSize = poolSize > maxPoolSize ? maxPoolSize : poolSize
+    this.forceRefresh = forceRefresh
   }
 
   /**
@@ -59,8 +68,13 @@ export class RTCPeerConnectionManager {
 
     this.logger.info(`Pool initialized with ${this.pool.size} connections`)
 
-    // Start maintenance worker for TURN refresh
-    this.startMaintenanceWorker()
+    if (this.forceRefresh) {
+      this.logger.info(
+        'Manual force refresh mode enabled, TURN allocations will not be refreshed by this manager.'
+      )
+      // Start maintenance worker for TURN refresh
+      this.startMaintenanceWorker()
+    }
   }
 
   /**
@@ -313,7 +327,7 @@ export class RTCPeerConnectionManager {
 
     // Check TURN allocation age (refresh every 4 minutes)
     const age = Date.now() - conn.lastRefreshed
-    if (age > this.turnRefreshInterval) {
+    if (this.forceRefresh && age > this.turnRefreshInterval) {
       this.logger.debug(
         `Pooled connection ${conn.id} is not valid: TURN allocation age ${age}`
       )
@@ -365,7 +379,7 @@ export class RTCPeerConnectionManager {
     for (const [id, conn] of this.pool.entries()) {
       const age = now - conn.lastRefreshed
 
-      // Refresh if older than 4 minutes (before 5-minute TURN timeout)
+      // Refresh if older than 4 minutes (before automatic reallocation)
       if (age > this.turnRefreshInterval) {
         try {
           await this.refreshConnection(conn)

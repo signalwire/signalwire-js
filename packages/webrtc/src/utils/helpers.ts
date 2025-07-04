@@ -76,65 +76,6 @@ export const filterIceServers = (
   }))
 }
 
-/**
- * Get the priority value for an ICE candidate based on its type.
- * Higher values indicate better network paths.
- * Priority order: relay (4) > srflx (3) > prflx (2) > host (1) > others (0)
- */
-export const candidatePriority = (candidate: RTCIceCandidate): number => {
-  switch (candidate.type) {
-    case 'relay':
-      return 4
-    case 'srflx':
-      return 3
-    case 'prflx':
-      return 2
-    case 'host':
-      return 1
-    default:
-      return 0
-  }
-}
-
-/**
- * Find the best candidate from an array based on priority.
- * Returns undefined if the array is empty.
- */
-export const getBestCandidate = (
-  candidates: RTCIceCandidate[]
-): RTCIceCandidate | undefined => {
-  if (candidates.length === 0) {
-    return undefined
-  }
-
-  return candidates.reduce((best, current) => {
-    return candidatePriority(current) > candidatePriority(best) ? current : best
-  }, candidates[0])
-}
-
-/**
- * Find candidates from newCandidates that have better priority than the best candidate in currentCandidates.
- * Returns an empty array if no better candidates are found.
- */
-export const findBetterCandidates = (
-  currentCandidates: RTCIceCandidate[],
-  newCandidates: RTCIceCandidate[]
-): RTCIceCandidate[] => {
-  if (currentCandidates.length === 0 || newCandidates.length === 0) {
-    return []
-  }
-
-  const bestCurrentCandidate = getBestCandidate(currentCandidates)
-  if (!bestCurrentCandidate) {
-    return []
-  }
-
-  const bestCurrentPriority = candidatePriority(bestCurrentCandidate)
-  
-  return newCandidates.filter(
-    (candidate) => candidatePriority(candidate) > bestCurrentPriority
-  )
-}
 
 /**
  * Check if the negotiation is single media (audio or video only).
