@@ -1,5 +1,13 @@
 # @signalwire/js
 
+## 0.0.1
+
+### Patch Changes
+
+- Updated dependencies [[`bb4b96f96315a9e89ae8df147ca4d1c9650e0944`](https://github.com/signalwire/signalwire-js/commit/bb4b96f96315a9e89ae8df147ca4d1c9650e0944), [`6831a0a7eb15a5f65b29f73c8737ba108ac58cb6`](https://github.com/signalwire/signalwire-js/commit/6831a0a7eb15a5f65b29f73c8737ba108ac58cb6), [`b1d63f14c5dabbf0f26fb894ab0bb474a62c5767`](https://github.com/signalwire/signalwire-js/commit/b1d63f14c5dabbf0f26fb894ab0bb474a62c5767), [`22eba1aee0f30986a041203156cd43e00736d107`](https://github.com/signalwire/signalwire-js/commit/22eba1aee0f30986a041203156cd43e00736d107), [`6831a0a7eb15a5f65b29f73c8737ba108ac58cb6`](https://github.com/signalwire/signalwire-js/commit/6831a0a7eb15a5f65b29f73c8737ba108ac58cb6), [`ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06`](https://github.com/signalwire/signalwire-js/commit/ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06), [`3c389671b35d1a57fd6be3f8c793be36f8294795`](https://github.com/signalwire/signalwire-js/commit/3c389671b35d1a57fd6be3f8c793be36f8294795), [`b999b0bf8502b3e72ef2412a7f5d435f2791dc45`](https://github.com/signalwire/signalwire-js/commit/b999b0bf8502b3e72ef2412a7f5d435f2791dc45), [`3d01d9663a4994c8cf42b2a1fac3bd2ca5371687`](https://github.com/signalwire/signalwire-js/commit/3d01d9663a4994c8cf42b2a1fac3bd2ca5371687), [`42ebbf935141f3a306f4d1993ab41ada69b932d9`](https://github.com/signalwire/signalwire-js/commit/42ebbf935141f3a306f4d1993ab41ada69b932d9), [`56161b3a1fb00131083bdbec6d231295d41f19ad`](https://github.com/signalwire/signalwire-js/commit/56161b3a1fb00131083bdbec6d231295d41f19ad), [`ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06`](https://github.com/signalwire/signalwire-js/commit/ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06)]:
+  - @signalwire/core@4.3.0
+  - @signalwire/webrtc@3.15.0
+
 ## 3.29.0-dev.202506111650.ad2f5be.0
 
 ### Minor Changes
