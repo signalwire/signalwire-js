@@ -3,6 +3,7 @@ import {
   getUserMedia,
   getMediaConstraints,
   filterIceServers,
+  isSingleMediaNegotiation,
 } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -18,7 +19,7 @@ import {
   stopTrack,
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
-
+import { connectionPoolManager } from './connectionPoolManager'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -34,6 +35,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _connectionStateTimer: ReturnType<typeof setTimeout>
   private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
+  private _firstNonHostCandidateReceived = false
+  private _candidatesSnapshot: RTCIceCandidate[] = []
+  private _allCandidates: RTCIceCandidate[] = []
+  private _processingLocalSDP = false
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -307,6 +312,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           'Skip restartIceWithRelayOnly since we need to generate answer'
         )
       }
+
       const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
@@ -534,6 +540,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
       this.resetNeedResume()
     } catch (error) {
+      this._processingRemoteSDP = false
       this.logger.error(
         `Error handling remote SDP on call ${this.call.id}:`,
         error
@@ -546,7 +553,34 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private _setupRTCPeerConnection() {
     if (!this.instance) {
-      this.instance = RTCPeerConnection(this.config)
+      // Try to get a pre-warmed connection from session-level pool
+      let pooledConnection: RTCPeerConnection | null = null
+
+      try {
+        pooledConnection = connectionPoolManager.getConnection()
+      } catch (error) {
+        this.logger.debug('Could not access session connection pool', error)
+      }
+
+      if (pooledConnection) {
+        this.logger.info(
+          'Using pre-warmed connection from session pool with ICE candidates ready'
+        )
+        this.instance = pooledConnection
+
+        // The connection is already clean:
+        // - Mock tracks have been stopped and removed
+        // - ICE candidates are gathered and ready
+        // - TURN allocation is fresh
+        // - All event listeners have been removed
+      } else {
+        // Fallback to creating new connection
+        this.logger.debug(
+          'Creating new RTCPeerConnection (no pooled connection available)'
+        )
+        this.instance = RTCPeerConnection(this.config)
+      }
+
       this._attachListeners()
     }
   }
@@ -593,8 +627,39 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             'Applying audioTransceiverParams',
             audioTransceiverParams
           )
-          audioTracks.forEach((track) => {
-            this.instance.addTransceiver(track, audioTransceiverParams)
+
+          // Reuse existing audio transceivers from pooled connections
+          const existingAudioTransceivers = this.instance
+            .getTransceivers()
+            .filter(
+              (t) =>
+                t.receiver.track?.kind === 'audio' ||
+                (!t.sender.track &&
+                  !t.receiver.track &&
+                  t.mid?.includes('audio'))
+            )
+
+          audioTracks.forEach((track, index) => {
+            if (index < existingAudioTransceivers.length) {
+              // Reuse existing transceiver
+              const transceiver = existingAudioTransceivers[index]
+              this.logger.debug(
+                'Reusing existing audio transceiver',
+                transceiver.mid
+              )
+              transceiver.sender.replaceTrack(track)
+              transceiver.direction =
+                audioTransceiverParams.direction || 'sendrecv'
+              // Add stream association
+              if (audioTransceiverParams.streams?.[0]) {
+                // @ts-ignore - streams is a valid property but not in TS types
+                transceiver.sender.streams = audioTransceiverParams.streams
+              }
+            } else {
+              // Create new transceiver only if needed
+              this.logger.debug('Creating new audio transceiver')
+              this.instance.addTransceiver(track, audioTransceiverParams)
+            }
           })
 
           const videoTransceiverParams: RTCRtpTransceiverInit = {
@@ -613,8 +678,45 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             'Applying videoTransceiverParams',
             videoTransceiverParams
           )
-          videoTracks.forEach((track) => {
-            this.instance.addTransceiver(track, videoTransceiverParams)
+
+          // Reuse existing video transceivers from pooled connections
+          const existingVideoTransceivers = this.instance
+            .getTransceivers()
+            .filter(
+              (t) =>
+                t.receiver.track?.kind === 'video' ||
+                (!t.sender.track &&
+                  !t.receiver.track &&
+                  t.mid?.includes('video'))
+            )
+
+          videoTracks.forEach((track, index) => {
+            if (index < existingVideoTransceivers.length) {
+              // Reuse existing transceiver
+              const transceiver = existingVideoTransceivers[index]
+              this.logger.debug(
+                'Reusing existing video transceiver',
+                transceiver.mid
+              )
+              transceiver.sender.replaceTrack(track)
+              transceiver.direction =
+                videoTransceiverParams.direction || 'sendrecv'
+              // Add stream association
+              if (videoTransceiverParams.streams?.[0]) {
+                // @ts-ignore - streams is a valid property but not in TS types
+                transceiver.sender.streams = videoTransceiverParams.streams
+              }
+              // Apply simulcast encodings if needed
+              if (videoTransceiverParams.sendEncodings) {
+                const params = transceiver.sender.getParameters()
+                params.encodings = videoTransceiverParams.sendEncodings
+                transceiver.sender.setParameters(params)
+              }
+            } else {
+              // Create new transceiver only if needed
+              this.logger.debug('Creating new video transceiver')
+              this.instance.addTransceiver(track, videoTransceiverParams)
+            }
           })
 
           if (this.isSfu) {
@@ -639,11 +741,60 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       if (this.isOffer) {
+        // Handle unused transceivers from pooled connections
+        if (this.instance.signalingState === 'have-local-offer') {
+          // We're reusing a pooled connection
+          this.logger.debug('Reusing pooled connection, managing transceivers')
+
+          // Get local tracks to determine what transceivers we need
+          const localAudioTracks = this._localStream?.getAudioTracks() || []
+          const localVideoTracks = this._localStream?.getVideoTracks() || []
+
+          // Set unused transceivers to inactive
+          const transceivers = this.instance.getTransceivers()
+          transceivers.forEach((transceiver) => {
+            const isAudioTransceiver =
+              transceiver.receiver.track?.kind === 'audio' ||
+              (!transceiver.sender.track &&
+                !transceiver.receiver.track &&
+                transceiver.mid?.includes('audio'))
+            const isVideoTransceiver =
+              transceiver.receiver.track?.kind === 'video' ||
+              (!transceiver.sender.track &&
+                !transceiver.receiver.track &&
+                transceiver.mid?.includes('video'))
+
+            // If we don't have audio tracks and this is an audio transceiver, set to inactive
+            if (isAudioTransceiver && localAudioTracks.length === 0) {
+              this.logger.debug(
+                'Setting unused audio transceiver to inactive',
+                transceiver.mid
+              )
+              transceiver.direction = 'inactive'
+            }
+
+            // If we don't have video tracks and this is a video transceiver, set to inactive
+            if (isVideoTransceiver && localVideoTracks.length === 0) {
+              this.logger.debug(
+                'Setting unused video transceiver to inactive',
+                transceiver.mid
+              )
+              transceiver.direction = 'inactive'
+            }
+          })
+        }
+
         if (this.options.negotiateAudio) {
           this._checkMediaToNegotiate('audio')
         }
         if (this.options.negotiateVideo) {
           this._checkMediaToNegotiate('video')
+        }
+
+        if (this.instance.signalingState === 'have-local-offer') {
+          // we are reusing a pooled connection
+          this.logger.debug('Reusing pooled connection with local offer')
+          this.startNegotiation(true)
         }
 
         /**
@@ -693,14 +844,44 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
     if (!sender && this._supportsAddTransceiver()) {
-      const transceiver = this.instance.addTransceiver(kind, {
-        direction: 'recvonly',
-      })
-      this.logger.debug('Add transceiver', kind, transceiver)
+      // Check if we already have a transceiver for this kind (from pooled connection)
+      const existingTransceiver = this.instance
+        .getTransceivers()
+        .find(
+          (t) =>
+            t.receiver.track?.kind === kind ||
+            (!t.sender.track && !t.receiver.track && t.mid?.includes(kind))
+        )
+
+      if (existingTransceiver) {
+        this.logger.debug(
+          'Found existing transceiver for',
+          kind,
+          existingTransceiver.mid
+        )
+        // Update direction if needed
+        if (
+          existingTransceiver.direction === 'inactive' ||
+          existingTransceiver.direction === 'sendonly'
+        ) {
+          existingTransceiver.direction = 'recvonly'
+        }
+      } else {
+        const transceiver = this.instance.addTransceiver(kind, {
+          direction: 'recvonly',
+        })
+        this.logger.debug('Add transceiver', kind, transceiver)
+      }
     }
   }
 
   private async _sdpReady() {
+    if (this._processingLocalSDP) {
+      this.logger.debug('Already processing local SDP, skipping')
+      return
+    }
+
+    this._processingLocalSDP = true
     clearTimeout(this._iceTimeout)
 
     if (!this.instance.localDescription) {
@@ -710,21 +891,21 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     const { sdp } = this.instance.localDescription
     if (sdp.indexOf('candidate') === -1) {
       this.logger.debug('No candidate - retry \n')
+      this._processingLocalSDP = false
       this.startNegotiation(true)
       return
     }
 
     if (!this._sdpIsValid()) {
       this.logger.info('SDP ready but not valid')
+      this._processingLocalSDP = false
       this._onIceTimeout()
       return
     }
 
-    this.instance.removeEventListener('icecandidate', this._onIce)
-
     try {
       await this.call.onLocalSDPReady(this)
-
+      this._processingLocalSDP = false
       if (this.isAnswer) {
         this._resolveStartMethod()
         this._pendingNegotiationPromise?.resolve()
@@ -732,6 +913,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     } catch (error) {
       this._rejectStartMethod(error)
       this._pendingNegotiationPromise?.reject(error)
+      this._processingLocalSDP = false
     }
   }
 
@@ -788,9 +970,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
      */
     if (!event.candidate) {
       this.instance.removeEventListener('icecandidate', this._onIce)
-      this._sdpReady()
+      if (
+        !this._firstNonHostCandidateReceived ||
+        !isSingleMediaNegotiation(this.options)
+      ) {
+        this.logger.debug('No more candidates, calling _sdpReady')
+        this._sdpReady()
+      }
       return
     }
+
+    // Store all candidates
+    this._allCandidates.push(event.candidate)
 
     this.logger.debug('RTCPeer Candidate:', event.candidate)
     if (event.candidate.type === 'host') {
@@ -805,15 +996,44 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }, this.options.maxIceGatheringTimeout)
     } else {
       /**
-       * With `srflx`, `prflx` or `relay` candidates
-       * set timeout to iceGatheringTimeout and then invoke
-       * _sdpReady since at least one candidate is valid.
+       * With the first non-HOST candidate (srflx, prflx or relay)
+       * immediately call _sdpReady and take a snapshot of candidates
        */
-      this._iceTimeout = setTimeout(() => {
-        this.instance.removeEventListener('icecandidate', this._onIce)
-        this._sdpReady()
-      }, this.options.iceGatheringTimeout)
+      if (!this._firstNonHostCandidateReceived) {
+        this._firstNonHostCandidateReceived = true
+        this._candidatesSnapshot = [...this._allCandidates]
+        this.logger.debug(
+          'First non-HOST candidate received, calling _sdpReady immediately'
+        )
+        if (isSingleMediaNegotiation(this.options)) {
+          setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+        }
+      }
     }
+  }
+
+  private _retryWithMoreCandidates() {
+    this.logger.debug('ICE gathering complete')
+
+    // Check if we have better candidates now than when we first sent SDP
+    const hasMoreCandidates = this._hasMoreCandidates()
+
+    if (hasMoreCandidates) {
+      this.logger.info(
+        'More candidates found after ICE gathering complete, triggering renegotiation'
+      )
+      // Reset negotiation state to allow new negotiation
+      this._negotiating = false
+      this._firstNonHostCandidateReceived = false
+      this._candidatesSnapshot = []
+      this._allCandidates = []
+      // Start negotiation with force=true
+      this.startNegotiation(true)
+    }
+  }
+
+  private _hasMoreCandidates(): boolean {
+    return this._allCandidates.length > this._candidatesSnapshot.length
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
@@ -897,6 +1117,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           break
         case 'have-local-offer': {
           if (this.instance.iceGatheringState === 'complete') {
+            this.instance.removeEventListener('icecandidate', this._onIce)
             this._sdpReady()
           }
           break
@@ -919,7 +1140,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         case 'connecting':
           this._connectionStateTimer = setTimeout(() => {
             this.logger.warn('connectionState timed out')
-            this.restartIceWithRelayOnly()
+            if (this._hasMoreCandidates()) {
+              this._retryWithMoreCandidates()
+            } else {
+              this.restartIceWithRelayOnly()
+            }
           }, this.options.maxConnectionStateTimeout)
           break
         case 'connected':
@@ -949,6 +1174,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     this.instance.addEventListener('icegatheringstatechange', () => {
       this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
+      if (this.instance.iceGatheringState === 'complete') {
+        this.logger.debug('ICE gathering complete')
+        void this._sdpReady()
+      }
     })
 
     // this.instance.addEventListener('icecandidateerror', (event) => {

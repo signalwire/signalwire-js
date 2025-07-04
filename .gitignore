@@ -34,11 +34,7 @@ yarn-error.log*
 coverage/
 public/
 .devcontainer/
+.claude
+.my-notes
+.last-run.json
 CLAUDE.md
-.claude/settings.local.json
-.my-notes/components.md
-.my-notes/ComponentRelations.md
-.my-notes/next-steps-protocol-exploration.md
-.my-notes/signalwire-protocol-documentation.md
-.my-notes/signalwire-protocol-exploration-plan.md
-.my-notes/websocket_reconnections.md
