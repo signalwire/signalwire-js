@@ -312,7 +312,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           'Skip restartIceWithRelayOnly since we need to generate answer'
         )
       }
-      
+
       const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
@@ -745,33 +745,45 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         if (this.instance.signalingState === 'have-local-offer') {
           // We're reusing a pooled connection
           this.logger.debug('Reusing pooled connection, managing transceivers')
-          
+
           // Get local tracks to determine what transceivers we need
           const localAudioTracks = this._localStream?.getAudioTracks() || []
           const localVideoTracks = this._localStream?.getVideoTracks() || []
-          
+
           // Set unused transceivers to inactive
           const transceivers = this.instance.getTransceivers()
           transceivers.forEach((transceiver) => {
-            const isAudioTransceiver = transceiver.receiver.track?.kind === 'audio' || 
-                                     (!transceiver.sender.track && !transceiver.receiver.track && transceiver.mid?.includes('audio'))
-            const isVideoTransceiver = transceiver.receiver.track?.kind === 'video' || 
-                                     (!transceiver.sender.track && !transceiver.receiver.track && transceiver.mid?.includes('video'))
-            
+            const isAudioTransceiver =
+              transceiver.receiver.track?.kind === 'audio' ||
+              (!transceiver.sender.track &&
+                !transceiver.receiver.track &&
+                transceiver.mid?.includes('audio'))
+            const isVideoTransceiver =
+              transceiver.receiver.track?.kind === 'video' ||
+              (!transceiver.sender.track &&
+                !transceiver.receiver.track &&
+                transceiver.mid?.includes('video'))
+
             // If we don't have audio tracks and this is an audio transceiver, set to inactive
             if (isAudioTransceiver && localAudioTracks.length === 0) {
-              this.logger.debug('Setting unused audio transceiver to inactive', transceiver.mid)
+              this.logger.debug(
+                'Setting unused audio transceiver to inactive',
+                transceiver.mid
+              )
               transceiver.direction = 'inactive'
             }
-            
+
             // If we don't have video tracks and this is a video transceiver, set to inactive
             if (isVideoTransceiver && localVideoTracks.length === 0) {
-              this.logger.debug('Setting unused video transceiver to inactive', transceiver.mid)
+              this.logger.debug(
+                'Setting unused video transceiver to inactive',
+                transceiver.mid
+              )
               transceiver.direction = 'inactive'
             }
           })
         }
-        
+
         if (this.options.negotiateAudio) {
           this._checkMediaToNegotiate('audio')
         }
@@ -864,39 +876,44 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private async _sdpReady() {
-    if (!this._processingLocalSDP) {
-      this._processingLocalSDP = true
-      clearTimeout(this._iceTimeout)
+    if (this._processingLocalSDP) {
+      this.logger.debug('Already processing local SDP, skipping')
+      return
+    }
 
-      if (!this.instance.localDescription) {
-        this.logger.error('Missing localDescription', this.instance)
-        return
-      }
-      const { sdp } = this.instance.localDescription
-      if (sdp.indexOf('candidate') === -1) {
-        this.logger.debug('No candidate - retry \n')
-        this.startNegotiation(true)
-        return
-      }
+    this._processingLocalSDP = true
+    clearTimeout(this._iceTimeout)
 
-      if (!this._sdpIsValid()) {
-        this.logger.info('SDP ready but not valid')
-        this._onIceTimeout()
-        return
-      }
+    if (!this.instance.localDescription) {
+      this.logger.error('Missing localDescription', this.instance)
+      return
+    }
+    const { sdp } = this.instance.localDescription
+    if (sdp.indexOf('candidate') === -1) {
+      this.logger.debug('No candidate - retry \n')
+      this._processingLocalSDP = false
+      this.startNegotiation(true)
+      return
+    }
 
-      try {
-        await this.call.onLocalSDPReady(this)
-        this._processingLocalSDP = false
-        if (this.isAnswer) {
-          this._resolveStartMethod()
-          this._pendingNegotiationPromise?.resolve()
-        }
-      } catch (error) {
-        this._rejectStartMethod(error)
-        this._pendingNegotiationPromise?.reject(error)
-        this._processingLocalSDP = false
+    if (!this._sdpIsValid()) {
+      this.logger.info('SDP ready but not valid')
+      this._processingLocalSDP = false
+      this._onIceTimeout()
+      return
+    }
+
+    try {
+      await this.call.onLocalSDPReady(this)
+      this._processingLocalSDP = false
+      if (this.isAnswer) {
+        this._resolveStartMethod()
+        this._pendingNegotiationPromise?.resolve()
       }
+    } catch (error) {
+      this._rejectStartMethod(error)
+      this._pendingNegotiationPromise?.reject(error)
+      this._processingLocalSDP = false
     }
   }
 
@@ -1154,6 +1171,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     this.instance.addEventListener('icegatheringstatechange', () => {
       this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
+      if (this.instance.iceGatheringState === 'complete') {
+        this.logger.debug('ICE gathering complete')
+        void this._sdpReady()
+      }
     })
 
     // this.instance.addEventListener('icecandidateerror', (event) => {
