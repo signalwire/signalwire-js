@@ -80,59 +80,29 @@ export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames
 export type CallMemberEventParams = FabricMemberEventParams &
   Brand<'CallMemberEventParams'>
 export type CallMemberEventParamsExcludeTalking =
-  FabricMemberEventParamsExcludeTalking & {
-    _?: undefined
-  }
-export type CallMemberContract = FabricMemberContract & {
-  _?: undefined
-}
-export type CallLayoutChangedEvent = FabricLayoutChangedEvent & {
-  _?: undefined
-}
-export type CallLayoutChangedEventParams = FabricLayoutChangedEventParams & {
-  _?: undefined
-}
-export type CallMemberJoinedEvent = FabricMemberJoinedEvent & {
-  _?: undefined
-}
-export type CallMemberLeftEvent = FabricMemberLeftEvent & {
-  _?: undefined
-}
-export type CallMemberTalkingEvent = FabricMemberTalkingEvent & {
-  _?: undefined
-}
-export type CallMemberUpdatedEvent = FabricMemberUpdatedEvent & {
-  _?: undefined
-}
-export type InternalCallRoomSessionEntity = InternalFabricRoomSessionEntity & {
-  _?: undefined
-}
-export type CallMemberEvent = FabricMemberEvent & {
-  _?: undefined
-}
-export type CallAction = FabricAction & {
-  _?: undefined
-}
+  FabricMemberEventParamsExcludeTalking &
+    Brand<'CallMemberEventParamsExcludeTalking'>
+export type CallMemberContract = FabricMemberContract &
+  Brand<'CallMemberContract'>
+export type CallLayoutChangedEvent = FabricLayoutChangedEvent &
+  Brand<'CallLayoutChangedEvent'>
+export type CallLayoutChangedEventParams = FabricLayoutChangedEventParams &
+  Brand<'CallLayoutChangedEventParams'>
+export type CallMemberJoinedEvent = FabricMemberJoinedEvent & Brand<'CallMemberJoinedEvent'>
+export type CallMemberLeftEvent = FabricMemberLeftEvent & Brand<'CallMemberLeftEvent'>
+export type CallMemberTalkingEvent = FabricMemberTalkingEvent & Brand<'CallMemberTalkingEvent'>
+export type CallMemberUpdatedEvent = FabricMemberUpdatedEvent & Brand<'CallMemberUpdatedEvent'>
+export type InternalCallRoomSessionEntity = InternalFabricRoomSessionEntity & Brand<'InternalCallRoomSessionEntity'>
+export type CallMemberEvent = FabricMemberEvent & Brand<'CallMemberEvent'>
+export type CallAction = FabricAction & Brand<'CallAction'>
 export type CallRoomSessionMethods = FabricRoomSessionMethods
-export type CallMemberEntity = FabricMemberEntity & {
-  _?: undefined
-}
-export type CallRoomEventParams = FabricRoomEventParams & {
-  _?: undefined
-}
-export type CallMemberJoinedEventParams = FabricMemberJoinedEventParams & {
-  _?: undefined
-}
+export type CallMemberEntity = FabricMemberEntity & Brand<'CallMemberEntity'>
+export type CallRoomEventParams = FabricRoomEventParams & Brand<'CallRoomEventParams'>
+export type CallMemberJoinedEventParams = FabricMemberJoinedEventParams & Brand<'CallMemberJoinedEventParams'>
 
-export type CallMemberUpdatedEventParams = FabricMemberUpdatedEventParams & {
-  _?: undefined
-}
-export type CallMemberLeftEventParams = FabricMemberLeftEventParams & {
-  _?: undefined
-}
-export type CallMemberTalkingEventParams = FabricMemberTalkingEventParams & {
-  _?: undefined
-}
+export type CallMemberUpdatedEventParams = FabricMemberUpdatedEventParams & Brand<'CallMemberUpdatedEventParams'>
+export type CallMemberLeftEventParams = FabricMemberLeftEventParams & Brand<'CallMemberLeftEventParams'>  
+export type CallMemberTalkingEventParams = FabricMemberTalkingEventParams & Brand<'CallMemberTalkingEventParams'>
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
