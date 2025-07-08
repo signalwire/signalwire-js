@@ -154,10 +154,18 @@ export class CallSessionConnection
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    const targetMember = memberId
-      ? this.instanceMap.get<CallSessionMember>(memberId)
-      : this.member
-    if (!targetMember) throw new Error('No target param found to execute')
+    const targetMember =
+      !memberId || memberId === 'all'
+        ? this.member
+        : this.instanceMap.get<CallSessionMember>(memberId)
+
+    if (!targetMember) {
+      throw new Error(
+        memberId && memberId !== 'all'
+          ? `Member ${memberId} not found`
+          : 'No target member available'
+      )
+    }
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
@@ -170,7 +178,7 @@ export class CallSessionConnection
             node_id: this.selfMember?.nodeId,
           },
           target: {
-            member_id: targetMember.id,
+            member_id: memberId === 'all' ? memberId : targetMember.id,
             call_id: targetMember.callId,
             node_id: targetMember.nodeId,
           },

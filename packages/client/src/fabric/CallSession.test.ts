@@ -449,7 +449,7 @@ describe('CallSession', () => {
 
     test('setAudioFlags implementation', async () => {
       const spy = jest.spyOn(
-        CaLLSessionConnection.prototype,
+        CallSessionConnection.prototype,
         'setAudioFlags'
       )
       await room.setAudioFlags({
