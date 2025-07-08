@@ -7,7 +7,7 @@ import {
   expectMCUVisible,
   reloadAndReattachAddress,
 } from '../../utils'
-import { CallJoinedEventParams, FabricRoomSession } from '@signalwire/client'
+import { CallJoinedEventParams, CallSession } from '@signalwire/client'
 
 type NamedPage = { name: string; page: Page }
 const pageNames = [
@@ -66,10 +66,10 @@ const waitForMutedChange = (
       const eventSuffix = field === 'audio_muted' ? 'audioMuted' : 'videoMuted'
 
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const callObj: CallSession = window._callObj
 
       const p1 = new Promise<boolean>((resolve) => {
-        roomObj.on('member.updated', (e) => {
+        callObj.on('member.updated', (e) => {
           if (e.member.member_id === memberId && e.member[field] === expected) {
             resolve(true)
           }
@@ -77,7 +77,7 @@ const waitForMutedChange = (
       })
 
       const p2 = new Promise<boolean>((resolve) => {
-        roomObj.on(`member.updated.${eventSuffix}`, (e) => {
+        callObj.on(`member.updated.${eventSuffix}`, (e) => {
           if (e.member.member_id === memberId && e.member[field] === expected) {
             resolve(true)
           }
@@ -142,7 +142,7 @@ test.describe('CallFabric - Mute/Unmute All', () => {
       await test.step(`[pageOne] mute all members ${channel}`, async () => {
         await pageOne.evaluate(async (fn) => {
           // @ts-expect-error
-          await window._roomObj[fn]({ memberId: 'all' })
+          await window._callObj[fn]({ memberId: 'all' })
         }, muteFn)
       })
 
@@ -177,7 +177,7 @@ test.describe('CallFabric - Mute/Unmute All', () => {
       await test.step(`[pageThree] unmute all members ${channel}`, async () => {
         await pageThree.evaluate(async (fn) => {
           // @ts-expect-error
-          await window._roomObj[fn]({ memberId: 'all' })
+          await window._callObj[fn]({ memberId: 'all' })
         }, unmuteFn)
       })
 

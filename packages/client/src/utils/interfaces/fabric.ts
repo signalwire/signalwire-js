@@ -12,7 +12,6 @@ import {
   VideoLayoutEventNames,
   VideoRoomDeviceDisconnectedEventNames,
   VideoRoomDeviceUpdatedEventNames,
-  MemberUpdatedEventNames,
   CallJoined,
   CallJoinedEventParams as InternalCallJoinedEventParams,
   CallState,
@@ -164,7 +163,7 @@ export type CallSessionEventsHandlerMap = Record<
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
   Record<MemberJoined, (params: CallMemberJoinedEventParams) => void> &
   Record<
-    MemberUpdated | MemberUpdatedEventNames,
+    MemberUpdated | CallMemberUpdatedEventNames,
     (params: CallMemberUpdatedEventParams) => void
   > &
   Record<MemberListUpdated, (params: CallMemberListUpdatedParams) => void> &

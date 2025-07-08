@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { FabricRoomSession, CallJoinedEventParams } from '@signalwire/client'
+import { CallSession, CallJoinedEventParams } from '@signalwire/client'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -33,10 +33,10 @@ test.describe('CallFabric Audio Flags', () => {
     await test.step('change audio flags', async () => {
       await page.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdatedEvent = new Promise((res) => {
-          roomObj.on('member.updated', (params) => {
+          callObj.on('member.updated', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('noise_suppression') &&
@@ -51,7 +51,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
         const memberUpdatedAutoGainEvent = new Promise((res) => {
-          roomObj.on('member.updated.autoGain', (params) => {
+          callObj.on('member.updated.autoGain', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('auto_gain') &&
@@ -62,7 +62,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
         const memberUpdatedEchoCancellationEvent = new Promise((res) => {
-          roomObj.on('member.updated.echoCancellation', (params) => {
+          callObj.on('member.updated.echoCancellation', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('echo_cancellation') &&
@@ -73,7 +73,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
         const memberUpdatedNoiseSuppressionEvent = new Promise((res) => {
-          roomObj.on('member.updated.noiseSuppression', (params) => {
+          callObj.on('member.updated.noiseSuppression', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('noise_suppression') &&
@@ -84,7 +84,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
 
-        await roomObj.setAudioFlags({
+        await callObj.setAudioFlags({
           autoGain: false,
           echoCancellation: false,
           noiseSuppression: false,
@@ -118,7 +118,7 @@ test.describe('CallFabric Audio Flags', () => {
               call.on('call.joined', resolve)
 
               // @ts-expect-error
-              window._roomObj = call
+              window._callObj = call
               await call.start()
             })
           },
@@ -189,10 +189,10 @@ test.describe('CallFabric Audio Flags', () => {
     // --------------- Attach listeners on pageTwo ---------------
     const waitForMemberUpdatedEvents = pageTwo.evaluate((memberId) => {
       // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const callObj: CallSession = window._callObj
 
       const memberUpdatedEvent = new Promise((res) => {
-        roomObj.on('member.updated', (params) => {
+        callObj.on('member.updated', (params) => {
           if (
             params.member.member_id === memberId &&
             params.member.updated.includes('noise_suppression') &&
@@ -207,7 +207,7 @@ test.describe('CallFabric Audio Flags', () => {
         })
       })
       const memberUpdatedAutoGainEvent = new Promise((res) => {
-        roomObj.on('member.updated.autoGain', (params) => {
+        callObj.on('member.updated.autoGain', (params) => {
           if (
             params.member.member_id === memberId &&
             params.member.updated.includes('auto_gain') &&
@@ -218,7 +218,7 @@ test.describe('CallFabric Audio Flags', () => {
         })
       })
       const memberUpdatedEchoCancellationEvent = new Promise((res) => {
-        roomObj.on('member.updated.echoCancellation', (params) => {
+        callObj.on('member.updated.echoCancellation', (params) => {
           if (
             params.member.member_id === memberId &&
             params.member.updated.includes('echo_cancellation') &&
@@ -229,7 +229,7 @@ test.describe('CallFabric Audio Flags', () => {
         })
       })
       const memberUpdatedNoiseSuppressionEvent = new Promise((res) => {
-        roomObj.on('member.updated.noiseSuppression', (params) => {
+        callObj.on('member.updated.noiseSuppression', (params) => {
           if (
             params.member.member_id === memberId &&
             params.member.updated.includes('noise_suppression') &&
@@ -252,10 +252,10 @@ test.describe('CallFabric Audio Flags', () => {
     await test.step('[pageOne] change audio flags for memberTwo', async () => {
       await pageOne.evaluate(async (memberId) => {
         // @ts-expect-error
-        const roomObj: FabricRoomSession = window._roomObj
+        const callObj: CallSession = window._callObj
 
         const memberUpdatedEvent = new Promise((res) => {
-          roomObj.on('member.updated', (params) => {
+          callObj.on('member.updated', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('noise_suppression') &&
@@ -270,7 +270,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
         const memberUpdatedAutoGainEvent = new Promise((res) => {
-          roomObj.on('member.updated.autoGain', (params) => {
+          callObj.on('member.updated.autoGain', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('auto_gain') &&
@@ -281,7 +281,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
         const memberUpdatedEchoCancellationEvent = new Promise((res) => {
-          roomObj.on('member.updated.echoCancellation', (params) => {
+          callObj.on('member.updated.echoCancellation', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('echo_cancellation') &&
@@ -292,7 +292,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
         const memberUpdatedNoiseSuppressionEvent = new Promise((res) => {
-          roomObj.on('member.updated.noiseSuppression', (params) => {
+          callObj.on('member.updated.noiseSuppression', (params) => {
             if (
               params.member.member_id === memberId &&
               params.member.updated.includes('noise_suppression') &&
@@ -303,7 +303,7 @@ test.describe('CallFabric Audio Flags', () => {
           })
         })
 
-        await roomObj.setAudioFlags({
+        await callObj.setAudioFlags({
           autoGain: false,
           echoCancellation: false,
           noiseSuppression: false,
@@ -340,7 +340,7 @@ test.describe('CallFabric Audio Flags', () => {
               call.on('call.joined', resolve)
 
               // @ts-expect-error
-              window._roomObj = call
+              window._callObj = call
               await call.start()
             })
           },
