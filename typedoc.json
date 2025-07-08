@@ -1,0 +1,47 @@
+{
+  "entryPoints": [
+    "packages/js/src/index.ts",
+    "packages/core/src/index.ts",
+    "packages/webrtc/src/index.ts",
+    "packages/node/src/index.ts",
+    "packages/web-api/src/index.ts",
+    "packages/realtime-api/src/index.ts",
+    "packages/client/src/index.ts",
+    "packages/swaig/src/index.ts",
+    "packages/compatibility-api/src/index.ts"
+  ],
+  "out": "docs",
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.js",
+    "**/*.spec.ts",
+    "**/*.spec.js",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/test/**",
+    "**/internal/**"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "includeVersion": true,
+  "theme": "default",
+  "name": "SignalWire JS SDK Documentation",
+  "readme": "README.md",
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Core",
+    "Client",
+    "WebRTC",
+    "Node",
+    "Web API",
+    "Realtime API",
+    "SWAIG",
+    "Compatibility API",
+    "*"
+  ],
+  "defaultCategory": "Other",
+  "plugin": [],
+  "tsconfig": "tsconfig.docs.json",
+  "skipErrorChecking": true
+}
