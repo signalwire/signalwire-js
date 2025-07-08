@@ -10,6 +10,7 @@ import {
   sdpBitrateHack,
   sdpMediaOrderHack,
   sdpHasValidCandidates,
+  sdpHasCandidatesForEachMedia,
 } from './utils/sdpHelpers'
 import { BaseConnection } from './BaseConnection'
 import {
@@ -889,8 +890,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
     const { sdp } = this.instance.localDescription
-    if (sdp.indexOf('candidate') === -1) {
-      this.logger.debug('No candidate - retry \n')
+    if (!sdpHasCandidatesForEachMedia(sdp)) {
+      this.logger.info('No candidate - retry \n')
       this._processingLocalSDP = false
       this.startNegotiation(true)
       return
@@ -1013,8 +1014,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _retryWithMoreCandidates() {
-    this.logger.debug('ICE gathering complete')
-
     // Check if we have better candidates now than when we first sent SDP
     const hasMoreCandidates = this._hasMoreCandidates()
 
