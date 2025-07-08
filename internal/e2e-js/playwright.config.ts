@@ -45,6 +45,7 @@ const callfabricTests = [
   'deviceState.spec.ts',
   'holdunhold.spec.ts',
   'mirrorVideo.spec.ts',
+  'muteUnmuteAll.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
   'relayApp.spec.ts',
@@ -77,7 +78,9 @@ const useDesktopChrome: PlaywrightTestConfig['use'] = {
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
-  reporter: process.env.CI ? 'github' : 'list',
+  reporter: process.env.CI 
+    ? [['github'], ['./test-reporter.ts']] 
+    : [['list'], ['./test-reporter.ts']],
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,

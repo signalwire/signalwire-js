@@ -158,7 +158,7 @@ export const createTestSATToken = async () => {
 }
 
 interface GuestSATTokenRequest {
-  allowed_addresses: string[];
+  allowed_addresses: string[]
 }
 export const createGuestSATToken = async (bodyData: GuestSATTokenRequest) => {
   const response = await fetch(
@@ -190,7 +190,6 @@ export const getResourceAddresses = async (resource_id: string) => {
   const data = await response.json()
   return data
 }
-
 
 interface CreateTestCRTOptions {
   ttl: number
@@ -509,8 +508,8 @@ export const createCFClient = async (
   page: Page,
   params?: CreateCFClientParams
 ) => {
-  const sat = await createTestSATToken();
-  return createCFClientWithToken(page, sat, params);
+  const sat = await createTestSATToken()
+  return createCFClientWithToken(page, sat, params)
 }
 
 export const createGuestCFClient = async (
@@ -518,8 +517,8 @@ export const createGuestCFClient = async (
   bodyData: GuestSATTokenRequest,
   params?: CreateCFClientParams
 ) => {
-  const sat = await createGuestSATToken(bodyData);
-  return createCFClientWithToken(page, sat, params);
+  const sat = await createGuestSATToken(bodyData)
+  return createCFClientWithToken(page, sat, params)
 }
 
 const createCFClientWithToken = async (
@@ -563,7 +562,6 @@ const createCFClientWithToken = async (
         },
       }
 
-      // @ts-expect-error
       const SignalWire = window._SWJS.SignalWire
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
@@ -572,7 +570,6 @@ const createCFClientWithToken = async (
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
-      // @ts-expect-error
       window._client = client
       return client
     },
@@ -613,8 +610,12 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldWaitForJoin,
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
-        // @ts-expect-error
-        const client: SignalWireContract = window._client
+        const client = window._client
+
+        if (!client) {
+          console.error('Client not defined!')
+          return
+        }
 
         const dialer = reattach ? client.reattach : client.dial
 
@@ -651,6 +652,16 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldWaitForJoin,
     }
   )
+}
+
+export const reloadAndReattachAddress = async (
+  page: Page,
+  params: Omit<DialAddressParams, 'reattach'>
+) => {
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await createCFClient(page)
+
+  return dialAddress(page, { ...params, reattach: true })
 }
 
 export const disconnectClient = (page: Page) => {
@@ -1403,7 +1414,7 @@ export class MockWebhookServer extends EventEmitter {
   constructor() {
     super()
     this.app = express()
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.urlencoded({ extended: true }))
     const self = this
     this.app.all('/', (req: Request, res: Response) => {
       self.emit('request', req)
@@ -1415,7 +1426,7 @@ export class MockWebhookServer extends EventEmitter {
   listen(port: number = 18989, startTunnel: boolean = false) {
     return new Promise<string>((resolve) => {
       this.server = this.app.listen(port, (err?: Error) => {
-        if(err) {
+        if (err) {
           console.error('Error Starting MockWebhookServer: ', err)
           process.exit(5)
         }
@@ -1424,7 +1435,7 @@ export class MockWebhookServer extends EventEmitter {
           return
         }
       })
-  
+
       if (startTunnel) {
         const MAX_RETRIES = 3
         const tunnel = (attempt = 0) => {
@@ -1436,13 +1447,13 @@ export class MockWebhookServer extends EventEmitter {
               'proxy',
               '--headless',
               '--insecure',
-              `${port}`
+              `${port}`,
             ])
             this.zrokProcess.on('error', (err) => {
-              console.error('zrok process error event: ', err);
+              console.error('zrok process error event: ', err)
             })
             this.zrokProcess.stdout.on('data', (data) => {
-              console.log(`zrok processs stdout: ${data}`);
+              console.log(`zrok processs stdout: ${data}`)
             })
             this.zrokProcess.stderr.on('data', (data) => {
               const dataStr = data.toString('utf-8')
@@ -1451,7 +1462,12 @@ export class MockWebhookServer extends EventEmitter {
                 const logObj = JSON.parse(dataStr)
                 if (logObj.level == 'info') {
                   console.log(`zrok process stdout: ${data}`)
-                  if (logObj.msg && logObj.msg.startsWith('access your zrok share at the following endpoints:')) {
+                  if (
+                    logObj.msg &&
+                    logObj.msg.startsWith(
+                      'access your zrok share at the following endpoints:'
+                    )
+                  ) {
                     const tunnelUrl = logObj.msg.split('\n')[1].trim()
                     resolve(tunnelUrl as string)
                   }
@@ -1462,23 +1478,23 @@ export class MockWebhookServer extends EventEmitter {
                 if (dataStr.startsWith('[ERROR]: unable to create share')) {
                   console.error('Error Starting Zrok Share: ', dataStr)
                   if (attempt < MAX_RETRIES) {
-                    console.log(`Retrying (attempt: ${attempt+1} `)
-                    tunnel(attempt+1)
+                    console.log(`Retrying (attempt: ${attempt + 1} `)
+                    tunnel(attempt + 1)
                   } else {
                     process.exit(5)
                   }
                 }
               }
             })
-          
+
             this.zrokProcess.on('close', (code) => {
-              console.log(`zrok process exited with code ${code}`);
+              console.log(`zrok process exited with code ${code}`)
             })
           } catch (err) {
             console.error('Error Starting Zrok Share: ', err)
             if (attempt < MAX_RETRIES) {
-              console.log(`Retrying (attempt: ${attempt+1} `)
-              tunnel(attempt+1)
+              console.log(`Retrying (attempt: ${attempt + 1} `)
+              tunnel(attempt + 1)
             } else {
               process.exit(5)
             }
@@ -1505,7 +1521,6 @@ export class MockWebhookServer extends EventEmitter {
     this.zrokProcess.kill('SIGKILL')
   }
 }
-
 
 // #endregion
 

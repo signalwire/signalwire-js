@@ -1,14 +1,16 @@
 # @signalwire/core
 
-## 4.3.0-dev.202506111650.ad2f5be.0
+## [4.3.0] - 2025-07-04
 
-### Minor Changes
+### Added
 
 - [#1180](https://github.com/signalwire/signalwire-js/pull/1180) [`bb4b96f96315a9e89ae8df147ca4d1c9650e0944`](https://github.com/signalwire/signalwire-js/commit/bb4b96f96315a9e89ae8df147ca4d1c9650e0944) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Added API request retries by default
 
+- [#1243](https://github.com/signalwire/signalwire-js/pull/1243) [`22eba1aee0f30986a041203156cd43e00736d107`](https://github.com/signalwire/signalwire-js/commit/22eba1aee0f30986a041203156cd43e00736d107) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Introduce `setAudioFlags` API to update microphone constraints
+
 - [#1216](https://github.com/signalwire/signalwire-js/pull/1216) [`ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06`](https://github.com/signalwire/signalwire-js/commit/ad2f5be0cb97b3d3325ba11a0b3a9fb0e2970f06) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - CHANGED improved the handling of WebSockets reconnections.
 
-### Patch Changes
+### Changed
 
 - [#1201](https://github.com/signalwire/signalwire-js/pull/1201) [`b1d63f14c5dabbf0f26fb894ab0bb474a62c5767`](https://github.com/signalwire/signalwire-js/commit/b1d63f14c5dabbf0f26fb894ab0bb474a62c5767) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Video & CF SDK:
 
@@ -39,11 +41,6 @@
 - [#1200](https://github.com/signalwire/signalwire-js/pull/1200) [`3d01d9663a4994c8cf42b2a1fac3bd2ca5371687`](https://github.com/signalwire/signalwire-js/commit/3d01d9663a4994c8cf42b2a1fac3bd2ca5371687) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Fix the `getAddresses` TS contract with internal refactoring
 
 - [#1198](https://github.com/signalwire/signalwire-js/pull/1198) [`42ebbf935141f3a306f4d1993ab41ada69b932d9`](https://github.com/signalwire/signalwire-js/commit/42ebbf935141f3a306f4d1993ab41ada69b932d9) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - CF SDK: Changed the type of the error param for the `expectedErrorHandler` internal handler
-
-All notable changes to this project will be documented in this file.
-
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [4.2.1] - 2025-03-04
 
 ### Added

@@ -190,6 +190,33 @@ export const sdpHasValidCandidates = (sdp: string) => {
 }
 
 /**
+ * Check for ice candidates
+ *
+ * @param sdp string
+ * @returns boolean
+ */
+export const sdpHasCandidatesForEachMedia = (sdp: string) => {
+  console.log('sdpHasCandidatesForEachMedia', sdp)
+  try {
+    const sections = SDPUtils.getMediaSections(sdp)
+    for (const section of sections) {
+      const lines = SDPUtils.splitLines(section)
+      const valid = lines.some((line) => {
+        return line.indexOf('a=candidate') === 0
+      })
+      if (!valid) {
+        return false
+      }
+    }
+
+    return true
+  } catch (error) {
+    getLogger().error('Error checking SDP', error)
+    return false
+  }
+}
+
+/**
  * Remove "a=candidate" lines with local candidates
  * https://bloggeek.me/psa-mdns-and-local-ice-candidates-are-coming/
  */

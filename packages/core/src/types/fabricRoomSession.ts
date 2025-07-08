@@ -498,7 +498,7 @@ export interface FabricRoomSessionContract {
    * });
    * ```
    */
-  setAudioFlags(params: SetAudioFlagsParams): Rooms.SetRaisedHand
+  setAudioFlags(params: SetAudioFlagsParams): Promise<void>
 }
 
 /**

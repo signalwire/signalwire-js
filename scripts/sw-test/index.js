@@ -91,10 +91,26 @@ const runTests = (mode, config) => {
 }
 
 exports.cli = (args) => {
-  const config = JSON.parse(process.env.SW_TEST_CONFIG)
-  if (!config) {
-    throw 'Missing ENV variable: "SW_TEST_CONFIG"'
+  const raw = process.env.SW_TEST_CONFIG
+
+  if (!raw) {
+    console.error('❌ Missing required ENV variable: "SW_TEST_CONFIG"')
+    process.exit(1)
   }
+
+  let config
+  try {
+    config = JSON.parse(raw)
+  } catch (err) {
+    console.error('❌ Invalid JSON in SW_TEST_CONFIG:', err.message)
+    process.exit(1)
+  }
+
+  if (typeof config !== 'object' || config === null) {
+    console.error('❌ SW_TEST_CONFIG did not parse to an object')
+    process.exit(1)
+  }
+
   injectEnvVariables(config.env)
   const flags = args.slice(2)
   const mode = getMode(flags)

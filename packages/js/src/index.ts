@@ -127,6 +127,7 @@ export type {
   ConversationMessageEvent,
   ConversationEventParams,
   ConversationEvent,
+  SetAudioFlagsParams,
 } from '@signalwire/core'
 
 export type {

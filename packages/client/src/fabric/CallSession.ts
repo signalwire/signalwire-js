@@ -135,11 +135,11 @@ export class CallSessionConnection
     if (this.options.attach) {
       this.options.prevCallId =
         getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+      this.logger.debug(
+        `Tying to reattach to previuos call? ${!!this.options
+          .prevCallId} - prevCallId: ${this.options.prevCallId}`
+      )
     }
-    this.logger.debug(
-      `Tying to reattach to previuos call? ${!!this.options
-        .prevCallId} - prevCallId: ${this.options.prevCallId}`
-    )
 
     return super.invite<CallSession>()
   }

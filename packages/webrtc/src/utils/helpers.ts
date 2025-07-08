@@ -75,3 +75,17 @@ export const filterIceServers = (
     urls: disableUdpIceServers ? filterOutUdpUrls(server.urls) : server.urls,
   }))
 }
+
+
+/**
+ * Check if the negotiation is single media (audio or video only).
+ * This is used to determine if we should handle SDP negotiation differently.
+ */
+export const isSingleMediaNegotiation = (
+  options: ConnectionOptions
+): boolean => { 
+  const { audio, video, negotiateAudio, negotiateVideo } = options
+  const hasAudio = Boolean(audio || negotiateAudio)
+  const hasVideo = Boolean(video || negotiateVideo)
+  return (hasAudio && !hasVideo) || (!hasAudio && hasVideo)
+}

@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/e2e-js",
-  "version": "0.0.20-dev.202506111650.ad2f5be.0",
+  "version": "0.0.20",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,6 @@
     "@playwright/test": "^1.52.0",
     "@types/express": "^5.0.1",
     "playwrigth-ws-inspector": "^1.0.0",
-    "vite": "^6.2.0"
+    "vite": "^7.0.0"
   }
 }
