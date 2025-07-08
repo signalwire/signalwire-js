@@ -162,14 +162,14 @@ export class CallSessionMemberAPI
   /** @internal */
   setPayload(payload: CallMemberEventParams) {
     // Reshape the payload since the `member.talking` event does not return all the parameters of a member
-    const newPayload = {
+    const newPayload: CallMemberEventParamsExcludeTalking = {
       ...this._payload,
       ...payload,
       member: {
         ...this._payload.member,
         ...payload.member,
       },
-    }
+    } as CallMemberEventParamsExcludeTalking
     this._payload = newPayload
   }
 }

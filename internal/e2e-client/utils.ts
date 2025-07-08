@@ -648,6 +648,16 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
   )
 }
 
+export const reloadAndReattachAddress = async (
+  page: Page,
+  params: Omit<DialAddressParams, 'reattach'>
+) => {
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await createCFClient(page)
+
+  return dialAddress(page, { ...params, reattach: true })
+}
+
 export const disconnectClient = (page: Page) => {
   return page.evaluate(async () => {
     // @ts-expect-error

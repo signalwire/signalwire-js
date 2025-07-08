@@ -28,6 +28,7 @@ import {
   ConversationEventParams,
   ConversationEvent,
   EventEmitter,
+  SetAudioFlagsParams,
 } from '@signalwire/core'
 import {
   // FIXME: Importing from the core package
@@ -183,6 +184,7 @@ type ExternalConversationMessageEventName =
 type ExternalConversationMessageEvent = Prettify<ConversationMessageEvent>
 type ExternalConversationEventParams = Prettify<ConversationEventParams>
 type ExternalConversationEvent = Prettify<ConversationEvent>
+type ExternalSetAudioFlagsParams = Prettify<SetAudioFlagsParams>
 
 // WebRTC types
 type ExternalBaseConnectionOptions = Prettify<BaseConnectionOptions>
@@ -324,6 +326,7 @@ export {
   ExternalConversationEventParams as ConversationEventParams,
   ExternalConversationEvent as ConversationEvent,
   ExternalFabricRoomEventParams as CallEventParams,
+  ExternalSetAudioFlagsParams as SetAudioFlagsParams,
 }
 
 export {

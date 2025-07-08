@@ -135,11 +135,11 @@ export class FabricRoomSessionConnection
     if (this.options.attach) {
       this.options.prevCallId =
         getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+      this.logger.debug(
+        `Tying to reattach to previuos call? ${!!this.options
+          .prevCallId} - prevCallId: ${this.options.prevCallId}`
+      )
     }
-    this.logger.debug(
-      `Tying to reattach to previuos call? ${!!this.options
-        .prevCallId} - prevCallId: ${this.options.prevCallId}`
-    )
 
     return super.invite<FabricRoomSession>()
   }
@@ -154,10 +154,18 @@ export class FabricRoomSessionConnection
   ) {
     const { method, channel, memberId, extraParams = {} } = params
 
-    const targetMember = memberId
-      ? this.instanceMap.get<FabricRoomSessionMember>(memberId)
-      : this.member
-    if (!targetMember) throw new Error('No target param found to execute')
+    const targetMember =
+      !memberId || memberId === 'all'
+        ? this.member
+        : this.instanceMap.get<FabricRoomSessionMember>(memberId)
+
+    if (!targetMember) {
+      throw new Error(
+        memberId && memberId !== 'all'
+          ? `Member ${memberId} not found`
+          : 'No target member available'
+      )
+    }
 
     return this.execute<InputType, OutputType, ParamsType>(
       {
@@ -170,7 +178,7 @@ export class FabricRoomSessionConnection
             node_id: this.selfMember?.nodeId,
           },
           target: {
-            member_id: targetMember.id,
+            member_id: memberId === 'all' ? memberId : targetMember.id,
             call_id: targetMember.callId,
             node_id: targetMember.nodeId,
           },

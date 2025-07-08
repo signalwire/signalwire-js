@@ -5,6 +5,7 @@ import {
   VertoBye,
   VertoSubscribe,
 } from '@signalwire/core'
+import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
 import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
@@ -51,6 +52,10 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         },
       },
     })
+
+    // Initialize the session-level connection pool
+    // This will start pre-warming connections as soon as the session is authorized
+    this.initializeSessionConnectionPool()
   }
 
   private makeCallObject(makeRoomOptions: MakeRoomOptions) {
@@ -412,6 +417,19 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return this.execute<unknown, void>({
       method: 'subscriber.offline',
       params: {},
+    })
+  }
+
+  /**
+   * Initialize the session-level connection pool
+   */
+  private initializeSessionConnectionPool() {
+    this.runWorker('sessionConnectionPoolWorker', {
+      worker: sessionConnectionPoolWorker,
+      initialState: {
+        poolSize: 3,
+        iceCandidatePoolSize: 10,
+      },
     })
   }
 }

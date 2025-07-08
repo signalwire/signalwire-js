@@ -5,6 +5,7 @@ import {
   VertoBye,
   VertoSubscribe,
 } from '@signalwire/core'
+import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
 import {
   createFabricRoomSessionObject,
@@ -53,6 +54,10 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         },
       },
     })
+
+    // Initialize the session-level connection pool
+    // This will start pre-warming connections as soon as the session is authorized
+    this.initializeSessionConnectionPool()
   }
 
   private makeFabricObject(makeRoomOptions: MakeRoomOptions) {
@@ -139,7 +144,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      * Stop or Restore outbound video on "member.updated" event
      */
     if (stopCameraWhileMuted) {
-      room.on('member.updated.videoMuted', ({ member }:) => {
+      room.on('member.updated.videoMuted', ({ member }) => {
         try {
           if (member.member_id === room.memberId && 'video_muted' in member) {
             member.video_muted
@@ -407,6 +412,19 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return this.execute<unknown, void>({
       method: 'subscriber.offline',
       params: {},
+    })
+  }
+
+  /**
+   * Initialize the session-level connection pool
+   */
+  private initializeSessionConnectionPool() {
+    this.runWorker('sessionConnectionPoolWorker', {
+      worker: sessionConnectionPoolWorker,
+      initialState: {
+        poolSize: 3,
+        iceCandidatePoolSize: 10,
+      },
     })
   }
 }

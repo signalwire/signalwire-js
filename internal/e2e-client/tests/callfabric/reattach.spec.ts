@@ -71,6 +71,7 @@ test.describe('CallFabric Reattach', () => {
   }) => {
     const MIC_VOLUME = 10
     const SPEAKER_VOLUME = 10
+    const NOISE_SENSITIVITY = 10
 
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
@@ -94,10 +95,22 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          callObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
+              event.member.video_muted === true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedVideoMutedEvent = new Promise((res) => {
           callObj.on('member.updated.videoMuted', (event) => {
             if (
               event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
               event.member.video_muted === true
             ) {
               res(true)
@@ -106,7 +119,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await callObj.videoMute()
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedVideoMutedEvent])
       }, memberId)
     })
 
@@ -116,10 +129,22 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          callObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
+              event.member.audio_muted === true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedAudioMutedEvent = new Promise((res) => {
           callObj.on('member.updated.audioMuted', (event) => {
             if (
               event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
               event.member.audio_muted === true
             ) {
               res(true)
@@ -128,7 +153,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await callObj.audioMute()
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedAudioMutedEvent])
       }, memberId)
     })
 
@@ -166,6 +191,18 @@ test.describe('CallFabric Reattach', () => {
             callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
+                event.member.input_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputVolumeEvent = new Promise((res) => {
+            callObj.on('member.updated.inputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
                 event.member.input_volume === volume
               ) {
                 res(true)
@@ -174,7 +211,10 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await callObj.setInputVolume({ volume: volume })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputVolumeEvent,
+          ])
         },
         { volume: MIC_VOLUME, memberId }
       )
@@ -191,6 +231,18 @@ test.describe('CallFabric Reattach', () => {
             callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
+                event.member.output_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedOutputVolumeEvent = new Promise((res) => {
+            callObj.on('member.updated.outputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
                 event.member.output_volume === volume
               ) {
                 res(true)
@@ -199,38 +251,56 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await callObj.setOutputVolume({ volume: volume })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedOutputVolumeEvent,
+          ])
         },
         { volume: SPEAKER_VOLUME, memberId }
       )
     })
 
-    // --------------- Change Noise Gate ---------------
-    // TODO: Enable this when the server issue is fixed
-    // await test.step('change noise gate', async () => {
-    //   await page.evaluate(
-    //     async ({ memberId }) => {
-    //       // @ts-expect-error
-    //       const callObj: CallSession = window._callObj
+    // --------------- Change Noise Gate (self) ---------------
+    await test.step('change noise gate', async () => {
+      await page.evaluate(
+        async ({ sensitivity, memberId }) => {
+          // @ts-expect-error
+          const callObj: FabricRoomSession = window._callObj
 
-    //       const NOISE_SENSITIVITY = 10
-    //       const memberUpdatedEvent = new Promise((res) => {
-    //         callObj.on('member.updated', (event) => {
-    //           if (
-    //             event.member.member_id === memberId &&
-    //             event.member.input_sensitivity === NOISE_SENSITIVITY
-    //           ) {
-    //             res(true)
-    //           }
-    //         })
-    //       })
+          const memberUpdatedEvent = new Promise((res) => {
+            // @ts-ignore
+            callObj.on('member.updated', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_sensitivity') &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputSensitivityEvent = new Promise((res) => {
+            // @ts-ignore
+            callObj.on('member.updated.inputSensitivity', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_sensitivity') &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
 
-    //       await callObj.setInputSensitivity({ value: NOISE_SENSITIVITY })
-    //       await memberUpdatedEvent
-    //     },
-    //     { memberId }
-    //   )
-    // })
+          await callObj.setInputSensitivity({ value: sensitivity })
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputSensitivityEvent,
+          ])
+        },
+        { sensitivity: NOISE_SENSITIVITY, memberId }
+      )
+    })
 
     const callSessionAfter =
       await test.step('reload page and reattach', async () => {
@@ -297,6 +367,7 @@ test.describe('CallFabric Reattach', () => {
   }) => {
     const MIC_VOLUME = 10
     const SPEAKER_VOLUME = 10
+    const NOISE_SENSITIVITY = 10
 
     const pageOne = await createCustomPage({ name: '[pageOne]' })
     const pageTwo = await createCustomPage({ name: '[pageTwo]' })
@@ -343,11 +414,23 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          callObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
+              event.member.video_muted === true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedVideoMutedEvent = new Promise((res) => {
           callObj.on('member.updated.videoMuted', (event) => {
             if (
               event.member.member_id === memberId &&
-              event.member.video_muted == true
+              event.member.updated.includes('video_muted') &&
+              event.member.video_muted === true
             ) {
               res(true)
             }
@@ -355,7 +438,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await callObj.videoMute({ memberId })
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedVideoMutedEvent])
       }, memberTwoId)
     })
 
@@ -365,10 +448,22 @@ test.describe('CallFabric Reattach', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const memberUpdatedMutedEvent = new Promise((res) => {
+        const memberUpdatedEvent = new Promise((res) => {
+          callObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
+              event.member.audio_muted == true
+            ) {
+              res(true)
+            }
+          })
+        })
+        const memberUpdatedAudioMutedEvent = new Promise((res) => {
           callObj.on('member.updated.audioMuted', (event) => {
             if (
               event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
               event.member.audio_muted == true
             ) {
               res(true)
@@ -377,7 +472,7 @@ test.describe('CallFabric Reattach', () => {
         })
 
         await callObj.audioMute({ memberId })
-        await memberUpdatedMutedEvent
+        return Promise.all([memberUpdatedEvent, memberUpdatedAudioMutedEvent])
       }, memberTwoId)
     })
 
@@ -392,6 +487,18 @@ test.describe('CallFabric Reattach', () => {
             callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
+                event.member.input_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputVolumeEvent = new Promise((res) => {
+            callObj.on('member.updated.inputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
                 event.member.input_volume === volume
               )
                 res(true)
@@ -399,7 +506,10 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await callObj.setInputVolume({ volume, memberId })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputVolumeEvent,
+          ])
         },
         { volume: MIC_VOLUME, memberId: memberTwoId }
       )
@@ -416,6 +526,18 @@ test.describe('CallFabric Reattach', () => {
             callObj.on('member.updated', (event) => {
               if (
                 event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
+                event.member.output_volume === volume
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedOutputVolumeEvent = new Promise((res) => {
+            callObj.on('member.updated.outputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('output_volume') &&
                 event.member.output_volume === volume
               )
                 res(true)
@@ -423,14 +545,56 @@ test.describe('CallFabric Reattach', () => {
           })
 
           await callObj.setOutputVolume({ volume, memberId })
-          await memberUpdatedEvent
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedOutputVolumeEvent,
+          ])
         },
         { volume: SPEAKER_VOLUME, memberId: memberTwoId }
       )
     })
 
-    // --------------- Change Noise Gate ---------------
-    // TODO: Add "setInputSensitivity" API test when the server issue is fixed
+    // --------------- Change Noise Gate (other member) ---------------
+    await test.step('[pageOne] change noise gate for memberTwo', async () => {
+      await pageOne.evaluate(
+        async ({ sensitivity, memberId }) => {
+          // @ts-expect-error
+          const callObj: FabricRoomSession = window._callObj
+
+          const memberUpdatedEvent = new Promise((res) => {
+            // @ts-ignore
+            callObj.on('member.updated', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_sensitivity') &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
+          const memberUpdatedInputSensitivityEvent = new Promise((res) => {
+            // @ts-ignore
+            callObj.on('member.updated.inputSensitivity', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_sensitivity') &&
+                event.member.input_sensitivity === sensitivity
+              ) {
+                res(true)
+              }
+            })
+          })
+
+          await callObj.setInputSensitivity({ value: sensitivity, memberId })
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputSensitivityEvent,
+          ])
+        },
+        { sensitivity: NOISE_SENSITIVITY, memberId: memberTwoId }
+      )
+    })
 
     const callSessionTwoAfter =
       await test.step('[pageTwo] reload page and reattach', async () => {
