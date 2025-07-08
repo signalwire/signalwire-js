@@ -42,6 +42,11 @@ for remote in $( \
     && cp -R internal/playground-js/dist/* "public/$branch/"; } \
     || { echo "Playground build failed for '$branch', skipping"; continue; }
 
+  echo "Building docs for $branch"
+  { npm run docs \
+    && cp -R docs "public/$branch/docs"; } \
+    || { echo "Docs build failed for '$branch', skipping docs"; }
+
 
   echo "Completed $branch"
   echo "\n"

@@ -16,7 +16,9 @@
     "release:dev": "sw-release --development",
     "release:beta": "sw-release --beta",
     "prepare:prod": "sw-release --prepare-prod",
-    "release:prod": "sw-release --production"
+    "release:prod": "sw-release --production",
+    "docs": "npm run docs:clean && typedoc --out docs/html && typedoc --plugin typedoc-plugin-markdown --out docs/md",
+    "docs:clean": "rimraf docs"
   },
   "dependencies": {
     "@babel/core": "^7.26.0",
@@ -40,7 +42,10 @@
     "dotenv": "^16.3.1",
     "jest-websocket-mock": "^2.5.0",
     "mock-socket": "^9.3.1",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.2.5",
+    "typedoc": "^0.28.7",
+    "typedoc-plugin-markdown": "^4.7.0",
     "typescript": "^5.6.3"
   }
 }
