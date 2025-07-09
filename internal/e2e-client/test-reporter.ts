@@ -1,6 +1,10 @@
 import { Reporter, TestCase, TestResult, TestError } from '@playwright/test/reporter'
 
 class TestNameReporter implements Reporter {
+  printsToStdio() {
+    return false
+  }
+  
   onTestBegin(test: TestCase) {
     const timestamp = new Date().toISOString()
     console.log('\n' + '='.repeat(80))
