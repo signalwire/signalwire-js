@@ -78,9 +78,9 @@ const useDesktopChrome: PlaywrightTestConfig['use'] = {
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
-  reporter: process.env.CI 
-    ? [['github'], ['./test-reporter.ts']] 
-    : [['list'], ['./test-reporter.ts']],
+  reporter: process.env.CI
+    ? [['github'], [require.resolve('./test-reporter.ts')]]
+    : [['list'], [require.resolve('./test-reporter.ts')]],
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
