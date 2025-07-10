@@ -59,20 +59,16 @@ import { CallCapabilitiesContract, CallSession } from '../../fabric'
 
 const BrandTypeId: unique symbol = Symbol.for('sw/client')
 
+  // exporting aliases from the core package with  & Brand<'XXX'> to ensure that the types are branded to client SDK types
 interface Brand<in out ID extends string | symbol> {
   readonly [BrandTypeId]?: {
     readonly [id in ID]: ID
   }
 }
-// exporting aliases from the core package with  & {
-//  tshack?: undefined
-// }
-// to stop TS inference to resolve original types
+
 export type InternalCallMemberEntity = InternalFabricMemberEntity
 export type InternalCallMemberEntityUpdated =
-  InternalFabricMemberEntityUpdated & {
-    _?: undefined
-  }
+  InternalFabricMemberEntityUpdated & Brand<'InternalCallMemberEntityUpdated'>
 export type CallMemberEventNames = FabricMemberEventNames
 export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames
 
