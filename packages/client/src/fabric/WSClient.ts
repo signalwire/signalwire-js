@@ -427,7 +427,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     this.runWorker('sessionConnectionPoolWorker', {
       worker: sessionConnectionPoolWorker,
       initialState: {
-        poolSize: 3,
+        poolSize: 1, // Only one connection per session is required
         iceCandidatePoolSize: 10,
       },
     })
