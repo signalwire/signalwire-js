@@ -8,7 +8,7 @@ import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
 
 // FIXME: Enable this test once the issue with conversation APIs is resolved
-test.describe.skip('Conversation Room', () => {
+test.describe('Conversation Room', () => {
   test('send message in a room conversation', async ({
     createCustomPage,
     resource,

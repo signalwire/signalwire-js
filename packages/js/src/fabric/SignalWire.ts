@@ -1,8 +1,11 @@
 import { HTTPClient } from './HTTPClient'
-import { Conversation } from './Conversation'
 import { SignalWireClient, SignalWireClientParams } from './interfaces'
 import { WSClient } from './WSClient'
-import { DEFAULT_API_REQUEST_RETRIES, DEFAULT_API_REQUEST_RETRIES_DELAY, DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT } from './utils/constants'
+import {
+  DEFAULT_API_REQUEST_RETRIES,
+  DEFAULT_API_REQUEST_RETRIES_DELAY,
+  DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT,
+} from './utils/constants'
 
 export const SignalWire = (() => {
   let instance: Promise<SignalWireClient> | null = null
@@ -14,13 +17,20 @@ export const SignalWire = (() => {
           const options = {
             maxApiRequestRetries: DEFAULT_API_REQUEST_RETRIES,
             apiRequestRetriesDelay: DEFAULT_API_REQUEST_RETRIES_DELAY,
-            apiRequestRetriesDelayIncrement: DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT,
-            ...params
+            apiRequestRetriesDelayIncrement:
+              DEFAULT_API_REQUEST_RETRIES_DELAY_INCREMENT,
+            ...params,
           }
 
           const wsClient = new WSClient(options)
           const httpClient = new HTTPClient(options)
-          const conversation = new Conversation({ httpClient, wsClient })
+          const conversationError = (method: string) => {
+            return () => {
+              throw new Error(
+                `This version Conversation.${method} is unsupported by the backend. Use @signalwire/client instead.`
+              )
+            }
+          }
 
           // Connect the WebSocket and authenticate the user
           await wsClient.connect()
@@ -45,20 +55,28 @@ export const SignalWire = (() => {
               getAddress: httpClient.getAddress.bind(httpClient),
             },
             conversation: {
-              getConversations:
-                conversation.getConversations.bind(conversation),
-              getMessages: conversation.getMessages.bind(conversation),
-              getConversationMessages:
-                conversation.getConversationMessages.bind(conversation),
-              subscribe: conversation.subscribe.bind(conversation),
-              sendMessage: conversation.sendMessage.bind(conversation),
-              join: conversation.joinConversation.bind(conversation),
+              getConversations: conversationError(
+                'getConversations'),
+              getMessages: conversationError(
+                'getMessages'),
+              getConversationMessages: conversationError(
+                'getConversationMessages'),
+              subscribe: conversationError(
+                'subscribe'),
+              sendMessage: conversationError(
+                'sendMessage'),
+              join: conversationError(
+                'join'),
             },
             chat: {
-              getMessages: conversation.getChatMessages.bind(conversation),
-              subscribe: conversation.subscribeChatMessages.bind(conversation),
-              sendMessage: conversation.sendMessage.bind(conversation),
-              join: conversation.joinConversation.bind(conversation),
+              getMessages: conversationError(
+                'getMessages'),
+              subscribe: conversationError(
+                'subscribe'),
+              sendMessage: conversationError(
+                'sendMessage'),
+              join: conversationError(
+                'join'),
             },
             // @ts-expect-error For debugging purposes
             on: wsClient.on.bind(wsClient),
