@@ -26,6 +26,7 @@ export interface SignalWireContract
   extends WSClientContract,
     Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
   address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress'>
+  /** @deprecated */
   conversation: {
     getConversations: (
       _params?: GetConversationsParams
@@ -42,6 +43,7 @@ export interface SignalWireContract
     ) => Promise<SendConversationMessageResult>
     join: (_params: JoinConversationParams) => Promise<JoinConversationResult>
   }
+  /** @deprecated */
   chat: {
     getMessages: (
       _params: GetConversationChatMessageParams
