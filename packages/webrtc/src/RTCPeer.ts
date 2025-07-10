@@ -1018,15 +1018,20 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        * candidates for all media sections to support early invite
        */
       if (this.instance.localDescription?.sdp) {
-        if (sdpHasCandidatesForEachMedia(this.instance.localDescription.sdp)) {
+        if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
           // Take a snapshot of candidates at this point
           if (this._candidatesSnapshot.length === 0) {
             this._candidatesSnapshot = [...this._allCandidates]
-            this.logger.debug(
+            this.logger.info(
               'SDP has candidates for all media sections, calling _sdpReady for early invite'
             )
             setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
           }
+        } else {
+          this.logger.info(
+            'SDP does not have candidates for all media sections, waiting for more candidates'
+          )
+          this.logger.debug(this.instance.localDescription?.sdp)
         }
       }
     }
