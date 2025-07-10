@@ -26,7 +26,8 @@ test.describe('Conversation Room', () => {
     const roomName = `e2e-client-convo-room_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
-    const roomAddress = await page.evaluate(({ roomName }) => {
+    const roomAddress = await page.evaluate(
+      ({ roomName }) => {
         return new Promise<Address>(async (resolve) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
@@ -35,19 +36,20 @@ test.describe('Conversation Room', () => {
           })
           resolve(addresses.data[0])
         })
-      }, {roomName})
+      },
+      { roomName }
+    )
 
     const firstMsgEvent = await page.evaluate(
       ({ roomAddress }) => {
         return new Promise<ConversationMessageEventParams>(async (resolve) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
-          
-          const fromAddressId = (await client.address.getMyAddresses())[0].id
-          console.log('fromAddressId:', fromAddressId)
+
+          const from_address_id = (await client.address.getMyAddresses())[0].id
+          console.log('from_address_id:', from_address_id)
 
           const addressId = roomAddress.id
-          let joinResponse
           // Note: subscribe will trigger for call logs too
           // we need to make sure call logs don't resolve promise
           client.conversation.subscribe((event) => {
@@ -56,15 +58,15 @@ test.describe('Conversation Room', () => {
             }
           })
 
-          joinResponse = await client.conversation.join({
-            addressIds: [addressId, fromAddressId],
-            fromAddressId,
+          const joinResponse = await client.conversation.join({
+            addressIds: [addressId, from_address_id],
+            from_address_id,
           })
 
           client.conversation.sendMessage({
-            groupId: joinResponse.groupId,
+            group_id: joinResponse.group_id,
             text: '1st message from 1st subscriber',
-            fromAddressId,
+            from_address_id,
           })
         })
       },
@@ -73,7 +75,7 @@ test.describe('Conversation Room', () => {
 
     expect(firstMsgEvent.type).toBe('message')
     console.log('firstMsgEvent:', firstMsgEvent)
-    const groupId = firstMsgEvent.group_id
+    const group_id = firstMsgEvent.group_id
 
     const secondMsgEventPromiseFromPage1 = page.evaluate(() => {
       return new Promise<ConversationMessageEventParams>((resolve) => {
@@ -95,7 +97,7 @@ test.describe('Conversation Room', () => {
         return new Promise<ConversationMessageEventParams>(async (resolve) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
-          const fromAddressId = (await client.address.getMyAddresses())[0].id
+          const from_address_id = (await client.address.getMyAddresses())[0].id
           // Note: subscribe will trigger for call logs too
           // we need to make sure call logs don't resolve promise
           client.conversation.subscribe((event) => {
@@ -104,14 +106,14 @@ test.describe('Conversation Room', () => {
             }
           })
           const joinResponse = await client.conversation.join({
-            addressIds: [roomAddress.id, fromAddressId],
-            fromAddressId,
+            addressIds: [roomAddress.id, from_address_id],
+            from_address_id,
           })
 
           client.conversation.sendMessage({
-            groupId: joinResponse.groupId,
+            group_id: joinResponse.group_id,
             text: '1st message from 2nd subscriber',
-            fromAddressId,
+            from_address_id,
           })
         })
       },
@@ -128,14 +130,14 @@ test.describe('Conversation Room', () => {
     expect(firstMsgEventFromPage2.type).toBe('message')
 
     const messages = await page.evaluate(
-      async ({ groupId }) => {
+      async ({ group_id }) => {
         // @ts-expect-error
         const client: SignalWireClient = window._client
         return await client.conversation.getConversationMessages({
-          groupId: groupId,
+          group_id,
         })
       },
-      { groupId }
+      { group_id }
     )
 
     expect(messages).not.toBeUndefined()

@@ -30,7 +30,6 @@ import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
 
-
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 const CACHE_ITEM_EXPIRATION = 1000 * 60 * 3 // 3 minutes
 interface ConversationOptions {
@@ -101,15 +100,15 @@ export class Conversation {
     params: SendConversationMessageParams
   ): Promise<SendConversationMessageResult> {
     try {
-      const { groupId, fromAddressId, text } = params
+      const { group_id, from_address_id, text } = params
       const path = '/api/fabric/messages'
       const { body } =
         await this.httpClient.fetch<SendConversationMessageResponse>(path, {
           method: 'POST',
           body: {
-            group_id: groupId,
+            group_id,
             text,
-            from_address_id: fromAddressId,
+            from_address_id,
             metadata: params.metadata,
             details: params.details,
           },
@@ -163,22 +162,10 @@ export class Conversation {
         await this.httpClient.fetch<GetConversationMessagesResponse>(
           makeQueryParamsUrls(path, queryParams)
         )
-      
-      const mappedBody = {
-        ...body,
-        data: body.data.map((message: any) => {
-          const fromAddressId = message.from_address_id
-          delete message.from_address_id
-          const conversationMessage: ConversationMessage = {
-            ...message,
-            fromAddressId
-          }
-          return conversationMessage
-        })
-      }
+
 
       return buildPaginatedResult<ConversationMessage>(
-        mappedBody,
+        body,
         this.httpClient.fetch
       )
     } catch (error) {
@@ -190,9 +177,9 @@ export class Conversation {
     params: GetConversationMessagesParams
   ): Promise<GetConversationMessagesResult> {
     try {
-      const { groupId, pageSize } = params || {}
+      const { group_id, pageSize } = params || {}
 
-      const path = `/api/fabric/conversations/${groupId}/messages`
+      const path = `/api/fabric/conversations/${group_id}/messages`
       const queryParams = new URLSearchParams()
       if (pageSize) {
         queryParams.append('page_size', pageSize.toString())
@@ -215,7 +202,7 @@ export class Conversation {
   public async getChatMessages(
     params: GetConversationChatMessageParams
   ): Promise<GetConversationChatMessageResult> {
-    const { groupId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
+    const { group_id, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
 
     const fetchChatMessagesPage = async (
       fetcherFn?: () => Promise<GetConversationChatMessageResult | undefined>,
@@ -264,14 +251,14 @@ export class Conversation {
 
       chatMessages = await Promise.all(
         chatMessages.map(async (message) => {
-          if (!message.fromAddressId) {
+          if (!message.from_address_id) {
             // nothing to lookup
             return message
           }
 
           return {
             ...message,
-            user_name: await this.lookupUsername(message.fromAddressId)(),
+            user_name: await this.lookupUsername(message.from_address_id)(),
           }
         })
       )
@@ -302,7 +289,7 @@ export class Conversation {
     return fetchChatMessagesPage(
       () =>
         this.getConversationMessages({
-          groupId,
+          group_id,
           pageSize,
         }) as Promise<GetConversationChatMessageResult>
     )
@@ -337,26 +324,23 @@ export class Conversation {
     params: JoinConversationParams
   ): Promise<JoinConversationResult> {
     try {
-      const { fromAddressId, addressIds } = params
+      const { from_address_id, addressIds } = params
       const path = '/api/fabric/conversations/join'
       const { body } = await this.httpClient.fetch<{
         group_id: string
         fabric_address_ids: string[]
         from_fabric_address_id: string
-      }>(
-        path,
-        {
-          method: 'POST',
-          body: {
-            from_fabric_address_id: fromAddressId,
-            fabric_address_ids: addressIds,
-          },
-        }
-      )
+      }>(path, {
+        method: 'POST',
+        body: {
+          from_fabric_address_id: from_address_id,
+          fabric_address_ids: addressIds,
+        },
+      })
       return {
-        groupId: body.group_id,
+        group_id: body.group_id,
         addressIds: body.fabric_address_ids,
-        fromAddressId: body.from_fabric_address_id,
+        from_address_id: body.from_fabric_address_id,
       }
     } catch (error) {
       throw new Error('Error joining a conversation!', error)

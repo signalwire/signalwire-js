@@ -6,7 +6,7 @@ import { uuid } from '@signalwire/core'
 
 const displayName = 'subscriber-name'
 const mock_getAddressSpy = jest.fn(() =>
-  Promise.resolve({ 
+  Promise.resolve({
     display_name: displayName,
     id: 'addr-id',
     name: 'Address Name',
@@ -14,7 +14,7 @@ const mock_getAddressSpy = jest.fn(() =>
     type: 'type' as any,
     channels: [],
     cover_url: '',
-    preview_url: ''
+    preview_url: '',
   })
 )
 
@@ -119,7 +119,7 @@ describe('Conversation', () => {
         body: {
           data: [
             { text: 'message1', from_address_id: 'addr1' },
-            { text: 'message2', from_address_id: 'addr2' }
+            { text: 'message2', from_address_id: 'addr2' },
           ],
           links: {
             next: 'http://next.url',
@@ -130,8 +130,8 @@ describe('Conversation', () => {
 
       const result = await conversation.getMessages()
       expect(result.data).toEqual([
-        { text: 'message1', fromAddressId: 'addr1' },
-        { text: 'message2', fromAddressId: 'addr2' }
+        { text: 'message1', from_address_id: 'addr1' },
+        { text: 'message2', from_address_id: 'addr2' },
       ])
       expect(result.hasNext).toBe(true)
       expect(result.hasPrev).toBe(true)
@@ -168,7 +168,7 @@ describe('Conversation', () => {
       })
 
       const result = await conversation.getConversationMessages({
-        groupId: '1234',
+        group_id: '1234',
       })
       expect(result.data).toEqual(['message1', 'message2'])
       expect(result.hasNext).toBe(true)
@@ -185,7 +185,7 @@ describe('Conversation', () => {
 
       try {
         await conversation.getConversationMessages({
-          groupId: '1234',
+          group_id: '1234',
         })
         fail('Expected getConversationMessages to throw an error.')
       } catch (error) {
@@ -197,13 +197,13 @@ describe('Conversation', () => {
 
   describe('sendMessage', () => {
     it('should create a conversation message', async () => {
-      const groupId = uuid()
-      const fromAddressId = uuid()
+      const group_id = uuid()
+      const from_address_id = uuid()
       const text = 'test message'
       const expectedResponse = {
         table: {
           text,
-          conversation_id: groupId,
+          conversation_id: group_id,
         },
       }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
@@ -212,8 +212,8 @@ describe('Conversation', () => {
 
       // TODO: Test with payload
       const result = await conversation.sendMessage({
-        groupId,
-        fromAddressId,
+        group_id,
+        from_address_id,
         text,
       })
 
@@ -221,8 +221,8 @@ describe('Conversation', () => {
       expect(httpClient.fetch).toHaveBeenCalledWith('/api/fabric/messages', {
         method: 'POST',
         body: {
-          group_id: groupId,
-          from_address_id: fromAddressId,
+          group_id,
+          from_address_id,
           text,
           metadata: undefined,
           details: undefined,
@@ -238,8 +238,8 @@ describe('Conversation', () => {
       try {
         await conversation.sendMessage({
           text: 'text message',
-          groupId: uuid(),
-          fromAddressId: uuid(),
+          group_id: uuid(),
+          from_address_id: uuid(),
         })
         fail('Expected sendMessage to throw error.')
       } catch (error) {
@@ -251,34 +251,34 @@ describe('Conversation', () => {
 
   describe('joinConversation', () => {
     it('should join a conversation', async () => {
-      const fromAddressId = uuid()
+      const from_address_id = uuid()
       const addressIds = [uuid(), uuid()]
-      const groupId = uuid()
+      const group_id = uuid()
       const expectedResponse = {
-        group_id: groupId,
+        group_id,
         fabric_address_ids: addressIds,
-        from_fabric_address_id: fromAddressId,
+        from_fabric_address_id: from_address_id,
       }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: expectedResponse,
       })
 
       const result = await conversation.joinConversation({
-        fromAddressId,
+        from_address_id,
         addressIds,
       })
 
       expect(result).toEqual({
-        groupId,
+        group_id,
         addressIds,
-        fromAddressId,
+        from_address_id,
       })
       expect(httpClient.fetch).toHaveBeenCalledWith(
         '/api/fabric/conversations/join',
         {
           method: 'POST',
           body: {
-            from_fabric_address_id: fromAddressId,
+            from_fabric_address_id: from_address_id,
             fabric_address_ids: addressIds,
           },
         }
@@ -292,7 +292,7 @@ describe('Conversation', () => {
 
       try {
         await conversation.joinConversation({
-          fromAddressId: uuid(),
+          from_address_id: uuid(),
           addressIds: [uuid()],
         })
         fail('Expected joinConversation to throw error.')
@@ -366,9 +366,9 @@ describe('Conversation', () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', groupId: 'abc' } as any,
-          { subtype: 'chat', groupId: 'abc' } as any,
-          { subtype: 'chat', groupId: 'abc' } as any,
+          { subtype: 'log', group_id: 'abc' } as any,
+          { subtype: 'chat', group_id: 'abc' } as any,
+          { subtype: 'chat', group_id: 'abc' } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -378,31 +378,33 @@ describe('Conversation', () => {
         firstPage: jest.fn(),
       })
 
-      const groupId = 'abc'
-      const messages = await conversation.getChatMessages({ groupId })
+      const group_id = 'abc'
+      const messages = await conversation.getChatMessages({ group_id })
 
       expect(messages.data).toHaveLength(2)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(0)
       // Check if messages have the expected structure
       expect(messages.data[0]).toHaveProperty('subtype', 'chat')
-      expect(messages.data.every((item) => item.groupId === groupId)).toBe(true)
+      expect(messages.data.every((item) => item.group_id === group_id)).toBe(
+        true
+      )
     })
 
     it('Should return 10(default page) adresss chat messages only', async () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
+          { subtype: 'log', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -412,15 +414,15 @@ describe('Conversation', () => {
         firstPage: jest.fn(),
       })
 
-      const groupId = 'abc'
-      const messages = await conversation.getChatMessages({ groupId })
+      const group_id = 'abc'
+      const messages = await conversation.getChatMessages({ group_id })
 
       expect(messages.data).toHaveLength(10)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(1) // since all message are from same address
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
-      expect(
-        messages.data.every((item) => item.groupId === groupId)
-      ).toBe(true)
+      expect(messages.data.every((item) => item.group_id === group_id)).toBe(
+        true
+      )
       expect(
         messages.data.every((item) => item.user_name === displayName)
       ).toBe(true)
@@ -430,17 +432,17 @@ describe('Conversation', () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa2' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa3' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa2' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa3' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa2' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa3' } as any,
-          { subtype: 'chat', groupId: 'abc', fromAddressId: 'fa1' } as any,
+          { subtype: 'log', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa2' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa3' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa2' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa3' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa2' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa3' } as any,
+          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -450,36 +452,35 @@ describe('Conversation', () => {
         firstPage: jest.fn(),
       })
 
-      const groupId = 'abc'
-      let messages = await conversation.getChatMessages({ groupId })
+      const group_id = 'abc'
+      let messages = await conversation.getChatMessages({ group_id })
 
       expect(messages.data).toHaveLength(10)
 
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(3) // since we have 3 distinct from
 
-
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
-      expect(
-        messages.data.every((item) => item.groupId === groupId)
-      ).toBe(true)
+      expect(messages.data.every((item) => item.group_id === group_id)).toBe(
+        true
+      )
 
       //@ts-ignore
       messages = await messages.nextPage()
       expect(messages.data).toHaveLength(10)
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
-      expect(
-        messages.data.every((item) => item.groupId === groupId)
-      ).toBe(true)
+      expect(messages.data.every((item) => item.group_id === group_id)).toBe(
+        true
+      )
     })
 
     it('Should return 3 adresses chat messages only', async () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', groupId: 'abc' } as any,
-          { subtype: 'chat', groupId: 'abc' } as any,
-          { subtype: 'chat', groupId: 'abc' } as any,
-          { subtype: 'chat', groupId: 'abc' } as any,
+          { subtype: 'log', group_id: 'abc' } as any,
+          { subtype: 'chat', group_id: 'abc' } as any,
+          { subtype: 'chat', group_id: 'abc' } as any,
+          { subtype: 'chat', group_id: 'abc' } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -489,40 +490,42 @@ describe('Conversation', () => {
         firstPage: jest.fn(),
       })
 
-      const groupId = 'abc'
+      const group_id = 'abc'
       const messages = await conversation.getChatMessages({
-        groupId,
+        group_id,
         pageSize: 3,
       })
 
       expect(messages.data).toHaveLength(3)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(0) // messages without from_address_id should not try to resolve the address
 
-
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
-      expect(
-        messages.data.every((item) => item.groupId === groupId)
-      ).toBe(true)
+      expect(messages.data.every((item) => item.group_id === group_id)).toBe(
+        true
+      )
     })
 
     it('Should return 3 adresss chat messages only', async () => {
       let count = 0
-      const mockGetConversationMessages = jest.spyOn(conversation, 'getConversationMessages')
+      const mockGetConversationMessages = jest.spyOn(
+        conversation,
+        'getConversationMessages'
+      )
       mockGetConversationMessages.mockImplementation(() => {
         ++count
         if (count === 1) {
           return Promise.resolve({
             data: [
-              { subtype: 'log', groupId: 'abc' } as any,
+              { subtype: 'log', group_id: 'abc' } as any,
               {
                 subtype: 'chat',
-                groupId: 'abc',
-                fromAddressId: 'fa1',
+                group_id: 'abc',
+                from_address_id: 'fa1',
               } as any,
               {
                 subtype: 'chat',
-                groupId: 'abc',
-                fromAddressId: 'fa1',
+                group_id: 'abc',
+                from_address_id: 'fa1',
               } as any,
             ],
             hasNext: true,
@@ -531,8 +534,8 @@ describe('Conversation', () => {
               data: [
                 {
                   subtype: 'chat',
-                  groupId: 'abc',
-                  fromAddressId: 'fa1',
+                  group_id: 'abc',
+                  from_address_id: 'fa1',
                 } as any,
               ],
               hasNext: false,
@@ -551,8 +554,8 @@ describe('Conversation', () => {
             data: [
               {
                 subtype: 'chat',
-                groupId: 'abc',
-                fromAddressId: 'fa1',
+                group_id: 'abc',
+                from_address_id: 'fa1',
               } as any,
             ],
             hasNext: false,
@@ -565,18 +568,17 @@ describe('Conversation', () => {
         }
       })
 
-      const groupId = 'abc'
-      const messages = await conversation.getChatMessages({ groupId })
+      const group_id = 'abc'
+      const messages = await conversation.getChatMessages({ group_id })
 
       expect(messages.data).toHaveLength(3)
 
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(1) // since all messages are from same address
 
-
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
-      expect(
-        messages.data.every((item) => item.groupId === groupId)
-      ).toBe(true)
+      expect(messages.data.every((item) => item.group_id === group_id)).toBe(
+        true
+      )
     })
 
     it('should get only address chat event', async () => {
@@ -852,19 +854,19 @@ describe('Conversation', () => {
       const page1 = {
         data: [
           {
-            groupId: 'address1',
+            group_id: 'address1',
             subtype: 'chat',
-            fromAddressId: '1',
+            from_address_id: '1',
           },
           {
-            groupId: 'address1',
+            group_id: 'address1',
             subtype: 'log',
-            fromAddressId: '2',
+            from_address_id: '2',
           },
           {
-            groupId: 'address1',
+            group_id: 'address1',
             subtype: 'chat',
-            fromAddressId: '3',
+            from_address_id: '3',
           },
         ],
         hasNext: true,
@@ -878,14 +880,14 @@ describe('Conversation', () => {
       const page2 = {
         data: [
           {
-            groupId: 'address1',
+            group_id: 'address1',
             subtype: 'chat',
-            fromAddressId: '4',
+            from_address_id: '4',
           },
           {
-            groupId: 'address1',
+            group_id: 'address1',
             subtype: 'chat',
-            fromAddressId: '5',
+            from_address_id: '5',
           },
         ],
         hasNext: false,
@@ -900,19 +902,19 @@ describe('Conversation', () => {
       conversation.getConversationMessages = jest.fn().mockResolvedValue(page1)
 
       const result = await conversation.getChatMessages({
-        groupId: 'address1',
+        group_id: 'address1',
         pageSize: 3,
       })
 
       expect(result.data).toHaveLength(3)
-      expect(result.data[0].fromAddressId).toBe('1')
-      expect(result.data[1].fromAddressId).toBe('3')
-      expect(result.data[2].fromAddressId).toBe('4')
+      expect(result.data[0].from_address_id).toBe('1')
+      expect(result.data[1].from_address_id).toBe('3')
+      expect(result.data[2].from_address_id).toBe('4')
       expect(result.hasNext).toBe(true)
 
       const nextResult = await result.nextPage()
       expect(nextResult?.data).toHaveLength(1)
-      expect(nextResult?.data[0].fromAddressId).toBe('5')
+      expect(nextResult?.data[0].from_address_id).toBe('5')
     })
   })
 })
