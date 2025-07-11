@@ -26,7 +26,7 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const topic = `e2e_{uuid()}`
+    const topic = `e2e_${uuid()}`
     await resource.createRelayAppResource({
       name: topic,
       topic,
@@ -135,7 +135,7 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const topic = `e2e_{uuid()}`
+    const topic = `e2e_${uuid()}`
     await resource.createRelayAppResource({
       name: topic,
       topic,
@@ -249,7 +249,7 @@ test.describe('CallFabric Relay Application', () => {
       },
     })
 
-    const topic = `e2e_{uuid()}`
+    const topic = `e2e_${uuid()}`
     await resource.createRelayAppResource({
       name: topic,
       topic,

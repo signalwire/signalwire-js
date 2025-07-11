@@ -20,7 +20,7 @@ test.describe('CallFabric Video Room Layout', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e_{uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -67,7 +67,7 @@ test.describe('CallFabric Video Room Layout', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e_{uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -139,7 +139,7 @@ test.describe('CallFabric Video Room Layout', () => {
     await pageOne.goto(SERVER_URL)
     await pageTwo.goto(SERVER_URL)
 
-    const roomName = `e2e_{uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     // Create client for pageOne and Dial an address to join a video room

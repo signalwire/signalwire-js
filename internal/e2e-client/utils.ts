@@ -1386,7 +1386,7 @@ export const createVideoRoomResource = async (name?: string) => {
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name: name ?? `e2e_{uuid()}`,
+        name: name ?? `e2e_${uuid()}`,
       }),
     }
   )
@@ -1415,7 +1415,7 @@ export const createSWMLAppResource = async ({
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name: name ?? `e2e_{uuid()}`,
+        name: name ?? `e2e_${uuid()}`,
         contents: JSON.stringify(contents),
       }),
     }
@@ -1437,7 +1437,7 @@ export const createcXMLScriptResource = async ({
   contents,
 }: CreatecXMLScriptParams) => {
   const requestBody = {
-    name: name ?? `e2e_{uuid()}`,
+    name: name ?? `e2e_${uuid()}`,
     contents: contents.call_handler_script,
   }
   console.log('-----> request body (script):', requestBody)
@@ -1471,7 +1471,7 @@ export const createcXMLExternalURLResource = async ({
   contents,
 }: CreatecXMLExternalURLParams) => {
   const requestBody = {
-    name: name ?? `e2e_{uuid()}`,
+    name: name ?? `e2e_${uuid()}`,
     primary_request_url: contents.primary_request_url,
   }
   console.log('-----> request body (external URL):', requestBody)
@@ -1513,7 +1513,7 @@ export const createRelayAppResource = async ({
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name: name ?? `e2e_{uuid()}`,
+        name: name ?? `e2e_${uuid()}`,
         topic,
       }),
     }
