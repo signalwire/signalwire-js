@@ -135,7 +135,6 @@ export * as Fabric from './fabric'
 export { SignalWire } from './fabric'
 export * from './fabric'
 
-// export { VideoRoomSession } from './video'
 export { RoomSessionScreenShare } from './RoomSessionScreenShare'
 export { RoomSessionDevice } from './RoomSessionDevice'
 
