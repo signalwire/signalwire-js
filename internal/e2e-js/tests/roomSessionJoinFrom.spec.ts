@@ -6,7 +6,7 @@ import {
   createOrUpdateRoom,
   deleteRoom,
   randomizeRoomName,
-  expectRoomJoined,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 interface TestConfig {
@@ -41,7 +41,7 @@ test.describe('RoomSession join_from', () => {
     test(`should not be possible to join a room before the join_from [${row.testName}]`, async ({
       createCustomPage,
     }) => {
-      const buildRoomSession = (opts = { expectToJoin: true }) => {
+      const buildRoomSession = () => {
         return createTestRoomSession(page, {
           vrt: {
             room_name: row.roomName,
@@ -51,7 +51,6 @@ test.describe('RoomSession join_from', () => {
             join_from: row.autoCreateRoom ? joinFrom : undefined,
           },
           initialEvents: [],
-          expectToJoin: opts.expectToJoin,
         })
       }
       let roomData: any = {}
@@ -68,7 +67,7 @@ test.describe('RoomSession join_from', () => {
         })
       }
 
-      await buildRoomSession({ expectToJoin: false })
+      await buildRoomSession()
 
       // --------------- Joining the room and expect an error ---------------
       const joinError: any = await page.evaluate(async () => {
@@ -88,7 +87,7 @@ test.describe('RoomSession join_from', () => {
       await buildRoomSession()
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoined(page)
+      const joinParams: any = await expectRoomJoinWithDefaults(page)
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()

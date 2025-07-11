@@ -3,18 +3,18 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   expectMCUVisible,
   createRoom,
   createStreamForRoom,
   randomizeRoomName,
   deleteRoom,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('Room Session Auto Stream', () => {
   const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 
-  test('Should Join a Room with existing stream', async ({
+  test('should join a room with existing stream', async ({
     createCustomPage,
   }) => {
     const roomName = randomizeRoomName('auto-stream-e2e')
@@ -36,8 +36,7 @@ test.describe('Room Session Auto Stream', () => {
     await createStreamForRoom(roomName, streamingURL)
 
     await createTestRoomSession(pageOne, connectionSettings)
-
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
 
     await expectMCUVisible(pageOne)
 
