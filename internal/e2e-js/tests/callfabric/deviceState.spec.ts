@@ -36,7 +36,7 @@ test.describe('CallFabric - Device State', () => {
       const page = await createCustomPage({ name: '[page]' })
       await page.goto(SERVER_URL)
 
-      const roomName = `e2e-video-room-${uuid()}`
+      const roomName = `e2e_${uuid()}`
       await resource.createVideoRoomResource(roomName)
 
       await createCFClient(page)
@@ -97,7 +97,7 @@ test.describe('CallFabric - Device State', () => {
       const page = await createCustomPage({ name: '[page]' })
       await page.goto(SERVER_URL)
 
-      const roomName = `e2e-video-room-${uuid()}`
+      const roomName = `e2e_${uuid()}`
       await resource.createVideoRoomResource(roomName)
 
       await createCFClient(page)

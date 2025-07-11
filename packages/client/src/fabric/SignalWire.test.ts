@@ -44,6 +44,7 @@ describe('SignalWire', () => {
       getSubscriberInfo: jest.fn(),
       getAddresses: jest.fn(),
       getAddress: jest.fn(),
+      getMyAddresses: jest.fn(),
     }))
 
     // Mock Conversation behavior

@@ -1,11 +1,9 @@
 import { SignalWire } from './SignalWire'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
-import { Conversation } from './Conversation'
 
 jest.mock('./HTTPClient')
 jest.mock('./WSClient')
-jest.mock('./Conversation')
 
 describe('SignalWire', () => {
   const mockParams = {
@@ -45,18 +43,6 @@ describe('SignalWire', () => {
       getAddresses: jest.fn(),
       getAddress: jest.fn(),
     }))
-
-    // Mock Conversation behavior
-    ;(Conversation as jest.Mock).mockImplementation(() => ({
-      getConversations: jest.fn(),
-      getMessages: jest.fn(),
-      getConversationMessages: jest.fn(),
-      subscribe: jest.fn(),
-      sendMessage: jest.fn(),
-      joinConversation: jest.fn(),
-      getChatMessages: jest.fn(),
-      subscribeChatMessages: jest.fn(),
-    }))
   })
 
   it('should create a single instance on the first call', async () => {
@@ -67,7 +53,6 @@ describe('SignalWire', () => {
 
     expect(WSClient).toHaveBeenCalledTimes(1)
     expect(HTTPClient).toHaveBeenCalledTimes(1)
-    expect(Conversation).toHaveBeenCalledTimes(1)
     expect(mockConnect).toHaveBeenCalledTimes(1)
 
     await client1.disconnect()
@@ -84,7 +69,6 @@ describe('SignalWire', () => {
 
     expect(WSClient).toHaveBeenCalledTimes(2)
     expect(HTTPClient).toHaveBeenCalledTimes(2)
-    expect(Conversation).toHaveBeenCalledTimes(2)
     expect(mockConnect).toHaveBeenCalledTimes(2)
 
     await client.disconnect()
@@ -99,15 +83,32 @@ describe('SignalWire', () => {
 
     expect(WSClient).toHaveBeenCalledTimes(1)
     expect(HTTPClient).toHaveBeenCalledTimes(1)
-    expect(Conversation).toHaveBeenCalledTimes(1)
     expect(mockConnect).toHaveBeenCalledTimes(1)
 
     const client = await SignalWire(mockParams)
     expect(client).toBeDefined()
     expect(WSClient).toHaveBeenCalledTimes(2)
     expect(HTTPClient).toHaveBeenCalledTimes(2)
-    expect(Conversation).toHaveBeenCalledTimes(2)
     expect(mockConnect).toHaveBeenCalledTimes(2)
+
+    await client.disconnect()
+  })
+
+  it('should throw error for conversation methods', async () => {
+    const client = await SignalWire(mockParams)
+
+    await expect(() => client.conversation.getConversations()).toThrow(
+      'This version Conversation.getConversations is unsupported by the backend. Use @signalwire/client instead.'
+    )
+    await expect(() => client.conversation.getMessages()).toThrow(
+      'This version Conversation.getMessages is unsupported by the backend. Use @signalwire/client instead.'
+    )
+    await expect(() => client.conversation.sendMessage()).toThrow(
+      'This version Conversation.sendMessage is unsupported by the backend. Use @signalwire/client instead.'
+    )
+    await expect(() => client.chat.getMessages()).toThrow(
+      'This version Conversation.getMessages is unsupported by the backend. Use @signalwire/client instead.'
+    )
 
     await client.disconnect()
   })
