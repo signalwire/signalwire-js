@@ -1561,14 +1561,14 @@ export const expectCFInitialEvents = (
     const callObj: CallSession = window._callObj
 
     const callCreated = new Promise<boolean>((resolve) => {
-      callObj.on('call.state', (params: any) => {
+      callObj.on('call.state', (params) => {
         if (params.call_state === 'created') {
           resolve(true)
         }
       })
     })
     const callAnswered = new Promise<boolean>((resolve) => {
-      callObj.on('call.state', (params: any) => {
+      callObj.on('call.state', (params) => {
         if (params.call_state === 'answered') {
           resolve(true)
         }
@@ -1645,7 +1645,7 @@ export const expectScreenShareJoined = async (page: Page) => {
       // @ts-expect-error
       const callObj: CallSession = window._callObj
 
-      callObj.on('member.joined', (params: any) => {
+      callObj.on('member.joined', (params) => {
         if (params.member.type === 'screen') {
           resolve(true)
         }
