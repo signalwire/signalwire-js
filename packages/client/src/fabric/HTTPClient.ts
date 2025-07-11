@@ -121,14 +121,8 @@ export class HTTPClient implements HTTPClientContract {
   }
 
   public async getMyAddresses(): Promise<Address[]> {
-    let path = '/api/fabric/subscriber/info'
 
-    getLogger().debug(`[getMyAddresses] ${path}`)
-    const { body } = await this.httpClient<{ fabric_addresses: Address[] }>(
-      path
-    )
-
-    return body.fabric_addresses
+    return (await this.getSubscriberInfo()).fabric_addresses
   }
 
   public async registerDevice(
