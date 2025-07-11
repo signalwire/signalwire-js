@@ -21,7 +21,7 @@ test.describe('CallFabric Hold/Unhold Call', () => {
     await pageOne.goto(SERVER_URL)
     await pageTwo.goto(SERVER_URL)
 
-    const roomName = `e2e-hold-unhold_${uuid()}`
+    const roomName = `e2e_{uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await test.step('[page-one] should create a client and dial a call', async () => {

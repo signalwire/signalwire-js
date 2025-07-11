@@ -1545,12 +1545,15 @@ export const createVideoRoomResource = async (name?: string) => {
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name: name ?? `e2e-test-room_${uuid()}`,
+        name: name ?? `e2e_{uuid()}`,
       }),
     }
   )
   const data = (await response.json()) as Resource
   console.log('>> Resource VideoRoom created:', data.id, name)
+  if (!data.id) {
+    throw new Error('Failed to create Video Room resource')
+  }
   return data
 }
 
@@ -1571,13 +1574,16 @@ export const createSWMLAppResource = async ({
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name: name ?? `e2e-swml-app_${uuid()}`,
+        name: name ?? `e2e_{uuid()}`,
         contents: JSON.stringify(contents),
       }),
     }
   )
   const data = (await response.json()) as Resource
   console.log('>> Resource SWML App created:', data.id)
+  if (!data.id) {
+    throw new Error('Failed to create SWML App resource')
+  }
   return data
 }
 
@@ -1590,7 +1596,7 @@ export const createcXMLScriptResource = async ({
   contents,
 }: CreatecXMLScriptParams) => {
   const requestBody = {
-    name: name ?? `e2e-cxml-script_${uuid()}`,
+    name: name ?? `e2e_{uuid()}`,
     contents: contents.call_handler_script,
   }
   console.log('-----> request body (script):', requestBody)
@@ -1609,6 +1615,9 @@ export const createcXMLScriptResource = async ({
   const data = (await response.json()) as Resource
   console.log('----> data:', data)
   console.log('>> Resource cXML Script created:', data.id)
+  if (!data.id) {
+    throw new Error('Failed to create cXML Script resource')
+  }
   return data
 }
 
@@ -1621,7 +1630,7 @@ export const createcXMLExternalURLResource = async ({
   contents,
 }: CreatecXMLExternalURLParams) => {
   const requestBody = {
-    name: name ?? `e2e-cxml-ext-url_${uuid()}`,
+    name: name ?? `e2e_{uuid()}`,
     primary_request_url: contents.primary_request_url,
   }
   console.log('-----> request body (external URL):', requestBody)
@@ -1640,6 +1649,9 @@ export const createcXMLExternalURLResource = async ({
   const data = (await response.json()) as Resource
   console.log('----> data:', data)
   console.log('>> Resource cXML External URL created:', data.id)
+  if (!data.id) {
+    throw new Error('Failed to create cXML External URL resource')
+  }
   return data
 }
 
@@ -1660,13 +1672,16 @@ export const createRelayAppResource = async ({
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        name: name ?? `e2e-relay-app_${uuid()}`,
+        name: name ?? `e2e_{uuid()}`,
         topic,
       }),
     }
   )
   const data = (await response.json()) as Resource
   console.log('>> Resource Relay App created:', data.id)
+  if (!data.id) {
+    throw new Error('Failed to create Relay App resource')
+  }
   return data
 }
 

@@ -659,7 +659,7 @@ test.describe('CallFabric Reattach', () => {
 
   //   const roomName = `e2e-video-room-${uuid()}`
   //   await resource.createVideoRoomResource(roomName)
-  //   const resourceName = `e2e-swml-app_${uuid()}`
+  //   const resourceName = `e2e_{uuid()}`
   //   await resource.createSWMLAppResource({
   //     name: resourceName,
   //     contents: {

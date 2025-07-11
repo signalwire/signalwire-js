@@ -23,7 +23,7 @@ test.describe('Conversation Room', () => {
     await createCFClient(page)
     await createCFClient(page2)
 
-    const roomName = `e2e-client-convo-room_${uuid()}`
+    const roomName = `e2e_{uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     const roomAddress = await page.evaluate(

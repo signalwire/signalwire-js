@@ -49,7 +49,7 @@ test.describe('CallFabric SWML', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const resourceName = `e2e-swml-app_${uuid()}`
+    const resourceName = `e2e_{uuid()}`
     await resource.createSWMLAppResource({
       name: resourceName,
       contents: swmlTTS,
@@ -97,7 +97,7 @@ test.describe('CallFabric SWML', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const resourceName = `e2e-swml-app_${uuid()}`
+    const resourceName = `e2e_{uuid()}`
     await resource.createSWMLAppResource({
       name: resourceName,
       contents: swmlHangup,
