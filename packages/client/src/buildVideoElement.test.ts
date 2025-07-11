@@ -6,10 +6,7 @@ import {
   dispatchMockedRoomSubscribed,
 } from './testUtils'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
-import {
-  FabricRoomSession,
-  createFabricRoomSessionObject,
-} from './fabric/FabricRoomSession'
+import { CallSession, createCallSessionObject } from './fabric/CallSession'
 import {
   createVideoRoomSessionObject,
   VideoRoomSession,
@@ -17,8 +14,8 @@ import {
 import { addOverlayPrefix, SDK_PREFIX } from './utils/roomSession'
 
 describe('buildVideoElement', () => {
-  describe('with FabricRoomSession', () => {
-    let room: FabricRoomSession
+  describe('with CallSession', () => {
+    let room: CallSession
     let stack: ReturnType<typeof configureFullStack>
     let store: any
     let jsdom: JSDOM
@@ -38,7 +35,7 @@ describe('buildVideoElement', () => {
     beforeEach(() => {
       stack = configureFullStack()
       store = stack.store
-      room = createFabricRoomSessionObject({
+      room = createCallSessionObject({
         store,
       })
       setupRoomForTests()

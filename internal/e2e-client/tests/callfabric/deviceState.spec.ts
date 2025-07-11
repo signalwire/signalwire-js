@@ -6,7 +6,7 @@ import {
   SERVER_URL,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
-import { FabricRoomSession } from '@signalwire/client'
+import { CallSession } from '@signalwire/client'
 
 type CameraTest = {
   stopCameraWhileMuted: boolean
@@ -42,13 +42,13 @@ test.describe('CallFabric - Device State', () => {
       await createCFClient(page)
 
       // Dial an address and join a video room
-      const roomSession = await dialAddress(page, {
+      const callSession = await dialAddress(page, {
         address: `/public/${roomName}?channel=video`,
         dialOptions: {
           stopCameraWhileMuted,
         },
       })
-      const memberId = roomSession.member_id
+      const memberId = callSession.member_id
 
       await expectMCUVisible(page)
 
@@ -56,10 +56,10 @@ test.describe('CallFabric - Device State', () => {
       await test.step('mute the self video', async () => {
         await page.evaluate(async (memberId) => {
           // @ts-expect-error
-          const roomObj: FabricRoomSession = window._roomObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedMutedEvent = new Promise((res) => {
-            roomObj.on('member.updated.videoMuted', (event) => {
+            callObj.on('member.updated.videoMuted', (event) => {
               if (
                 event.member.member_id === memberId &&
                 event.member.video_muted === true
@@ -69,7 +69,7 @@ test.describe('CallFabric - Device State', () => {
             })
           })
 
-          await roomObj.videoMute()
+          await callObj.videoMute()
           await memberUpdatedMutedEvent
         }, memberId)
       })
@@ -79,8 +79,8 @@ test.describe('CallFabric - Device State', () => {
       }`, async () => {
         const cameraOn = await page.evaluate(() => {
           // @ts-expect-error
-          const roomObj: FabricRoomSession = window._roomObj
-          const localStreams = roomObj.localStream
+          const callObj: CallSession = window._callObj
+          const localStreams = callObj.localStream
           return Boolean(localStreams?.getVideoTracks()[0]?.enabled)
         })
         expect(cameraOn).toBe(!stopCameraWhileMuted)
@@ -103,13 +103,13 @@ test.describe('CallFabric - Device State', () => {
       await createCFClient(page)
 
       // Dial an address and join a video room
-      const roomSession = await dialAddress(page, {
+      const callSession = await dialAddress(page, {
         address: `/public/${roomName}?channel=video`,
         dialOptions: {
           stopMicrophoneWhileMuted,
         },
       })
-      const memberId = roomSession.member_id
+      const memberId = callSession.member_id
 
       await expectMCUVisible(page)
 
@@ -117,10 +117,10 @@ test.describe('CallFabric - Device State', () => {
       await test.step('mute the self video', async () => {
         await page.evaluate(async (memberId) => {
           // @ts-expect-error
-          const roomObj: FabricRoomSession = window._roomObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedMutedEvent = new Promise((res) => {
-            roomObj.on('member.updated.audioMuted', (event) => {
+            callObj.on('member.updated.audioMuted', (event) => {
               if (
                 event.member.member_id === memberId &&
                 event.member.audio_muted === true
@@ -130,7 +130,7 @@ test.describe('CallFabric - Device State', () => {
             })
           })
 
-          await roomObj.audioMute()
+          await callObj.audioMute()
           await memberUpdatedMutedEvent
         }, memberId)
       })
@@ -140,8 +140,8 @@ test.describe('CallFabric - Device State', () => {
       }`, async () => {
         const micOn = await page.evaluate(() => {
           // @ts-expect-error
-          const roomObj: FabricRoomSession = window._roomObj
-          const localStreams = roomObj.localStream
+          const callObj: CallSession = window._callObj
+          const localStreams = callObj.localStream
           return Boolean(localStreams?.getAudioTracks()[0]?.enabled)
         })
         expect(micOn).toBe(!stopMicrophoneWhileMuted)

@@ -5,11 +5,9 @@ import {
   VertoBye,
   VertoSubscribe,
 } from '@signalwire/core'
+import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
-import {
-  createFabricRoomSessionObject,
-  FabricRoomSession,
-} from './FabricRoomSession'
+import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
@@ -27,6 +25,7 @@ import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { CallMemberUpdatedEventParams } from '../utils/interfaces'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -53,9 +52,13 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         },
       },
     })
+
+    // Initialize the session-level connection pool
+    // This will start pre-warming connections as soon as the session is authorized
+    this.initializeSessionConnectionPool()
   }
 
-  private makeFabricObject(makeRoomOptions: MakeRoomOptions) {
+  private makeCallObject(makeRoomOptions: MakeRoomOptions) {
     const {
       rootElement,
       applyLocalVideoOverlay = true,
@@ -66,7 +69,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       ...options
     } = makeRoomOptions
 
-    const room = createFabricRoomSessionObject({
+    const room = createCallSessionObject({
       ...options,
       store: this.store,
     })
@@ -122,34 +125,41 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      * Stop or Restore outbound audio on "member.updated" event
      */
     if (stopMicrophoneWhileMuted) {
-      room.on('member.updated.audioMuted', ({ member }) => {
-        try {
-          if (member.member_id === room.memberId && 'audio_muted' in member) {
-            member.audio_muted
-              ? room.stopOutboundAudio()
-              : room.restoreOutboundAudio()
+      room.on(
+        'member.updated.audioMuted',
+        (params: CallMemberUpdatedEventParams) => {
+          const { member } = params
+          try {
+            if (member.member_id === room.memberId && 'audio_muted' in member) {
+              member.audio_muted
+                ? room.stopOutboundAudio()
+                : room.restoreOutboundAudio()
+            }
+          } catch (error) {
+            this.logger.error('Error handling audio_muted', error)
           }
-        } catch (error) {
-          this.logger.error('Error handling audio_muted', error)
         }
-      })
+      )
     }
 
     /**
      * Stop or Restore outbound video on "member.updated" event
      */
     if (stopCameraWhileMuted) {
-      room.on('member.updated.videoMuted', ({ member }) => {
-        try {
-          if (member.member_id === room.memberId && 'video_muted' in member) {
-            member.video_muted
-              ? room.stopOutboundVideo()
-              : room.restoreOutboundVideo()
+      room.on(
+        'member.updated.videoMuted',
+        ({ member }: CallMemberUpdatedEventParams) => {
+          try {
+            if (member.member_id === room.memberId && 'video_muted' in member) {
+              member.video_muted
+                ? room.stopOutboundVideo()
+                : room.restoreOutboundVideo()
+            }
+          } catch (error) {
+            this.logger.error('Error handling video_muted', error)
           }
-        } catch (error) {
-          this.logger.error('Error handling video_muted', error)
         }
-      })
+      )
     }
 
     return room
@@ -173,7 +183,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       }
     }
 
-    const call = this.makeFabricObject({
+    const call = this.makeCallObject({
       audio: params.audio ?? true,
       video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -212,7 +222,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    const call = this.makeFabricObject({
+    const call = this.makeCallObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
       negotiateAudio: params.negotiateAudio ?? true,
@@ -305,7 +315,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public async dial(params: DialParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
+    return new Promise<CallSession>(async (resolve, reject) => {
       try {
         // in case the user left the previous call with hangup, and is not reattaching
         getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
@@ -319,7 +329,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public async reattach(params: ReattachParams) {
-    return new Promise<FabricRoomSession>(async (resolve, reject) => {
+    return new Promise<CallSession>(async (resolve, reject) => {
       try {
         const call = this.buildOutboundCall({ ...params, attach: true })
         resolve(call)
@@ -407,6 +417,19 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return this.execute<unknown, void>({
       method: 'subscriber.offline',
       params: {},
+    })
+  }
+
+  /**
+   * Initialize the session-level connection pool
+   */
+  private initializeSessionConnectionPool() {
+    this.runWorker('sessionConnectionPoolWorker', {
+      worker: sessionConnectionPoolWorker,
+      initialState: {
+        poolSize: 1, // Only one connection per session is required
+        iceCandidatePoolSize: 10,
+      },
     })
   }
 }

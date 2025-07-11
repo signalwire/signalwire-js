@@ -66,9 +66,9 @@ test.describe('CallFabric SWML', () => {
 
     const callPlayStarted = page.evaluate(async () => {
       // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const callObj: Video.RoomSession = window._callObj
       return new Promise<boolean>((resolve) => {
-        roomObj.on('call.play', (params: any) => {
+        callObj.on('call.play', (params: any) => {
           if (params.state === 'playing') resolve(true)
         })
       })
@@ -78,7 +78,7 @@ test.describe('CallFabric SWML', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const call = window._roomObj
+      const call = window._callObj
 
       await call.start()
     })
@@ -117,7 +117,7 @@ test.describe('CallFabric SWML', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const call = window._roomObj
+      const call = window._callObj
 
       await call.start()
     })

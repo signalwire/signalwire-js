@@ -1,4 +1,4 @@
-import { FabricRoomSession } from '../FabricRoomSession'
+import { CallSession } from '../CallSession'
 import { CallParams } from './wsClient'
 
 export type IncomingInviteSource = 'websocket' | 'pushNotification'
@@ -21,7 +21,7 @@ export interface IncomingInviteWithSource extends IncomingInvite {
 export interface IncomingCallNotification {
   invite: {
     details: IncomingInvite
-    accept: (param: CallParams) => Promise<FabricRoomSession>
+    accept: (param: CallParams) => Promise<CallSession>
     reject: () => Promise<void>
   }
 }

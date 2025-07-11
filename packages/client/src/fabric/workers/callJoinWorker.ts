@@ -7,9 +7,9 @@ import {
   stripNamespacePrefix,
 } from '@signalwire/core'
 import {
-  createFabricRoomSessionMemberObject,
-  FabricRoomSessionMember,
-} from '../FabricRoomSessionMember'
+  createCallSessionMemberObject,
+  CallSessionMember,
+} from '../CallSessionMember'
 import { FabricWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
 import { mapCapabilityPayload } from '../utils/capabilitiesHelpers'
@@ -53,9 +53,9 @@ export const callJoinWorker = function* (
   })
 
   payload.room_session.members?.forEach((member: any) => {
-    let memberInstance = get<FabricRoomSessionMember>(member.member_id!)
+    let memberInstance = get<CallSessionMember>(member.member_id!)
     if (!memberInstance) {
-      memberInstance = createFabricRoomSessionMemberObject({
+      memberInstance = createCallSessionMemberObject({
         store: cfRoomSession.store,
         payload: {
           member: member,
@@ -70,10 +70,10 @@ export const callJoinWorker = function* (
         room_session_id: payload.room_session_id,
       })
     }
-    set<FabricRoomSessionMember>(member.member_id, memberInstance)
+    set<CallSessionMember>(member.member_id, memberInstance)
   })
 
-  cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
+  cfRoomSession.member = get<CallSessionMember>(payload.member_id)
   // the server send the capabilities payload as an array of string
   cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities)
 
