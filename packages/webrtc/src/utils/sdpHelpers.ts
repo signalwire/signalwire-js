@@ -196,7 +196,6 @@ export const sdpHasValidCandidates = (sdp: string) => {
  * @returns boolean
  */
 export const sdpHasCandidatesForEachMedia = (sdp: string) => {
-  console.log('sdpHasCandidatesForEachMedia', sdp)
   try {
     const sections = SDPUtils.getMediaSections(sdp)
     for (const section of sections) {

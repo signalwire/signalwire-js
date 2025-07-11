@@ -3,7 +3,6 @@ import {
   getUserMedia,
   getMediaConstraints,
   filterIceServers,
-  isSingleMediaNegotiation,
 } from './utils/helpers'
 import {
   sdpStereoHack,
@@ -36,7 +35,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _connectionStateTimer: ReturnType<typeof setTimeout>
   private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
-  private _firstNonHostCandidateReceived = false
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
@@ -489,9 +487,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       /**
-       * ReactNative Workaround
+       * ReactNative and Early invite Workaround
        */
-      if (force) {
+      if (force && this.instance.signalingState === 'have-local-offer') {
         this._sdpReady()
       }
 
@@ -525,8 +523,17 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
-      this._processingRemoteSDP = true
       const type = this.isOffer ? 'answer' : 'offer'
+      if (
+        type === 'answer' &&
+        this.instance.signalingState !== 'have-local-offer'
+      ) {
+        this.logger.warn(
+          'Ignoring offer SDP as signaling state is not have-local-offer'
+        )
+        return
+      }
+      this._processingRemoteSDP = true
       await this._setRemoteDescription({ sdp, type })
       this._processingRemoteSDP = false
 
@@ -882,6 +889,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
 
+    // Check if we're still in the right state
+    if (
+      !['have-local-offer', 'have-local-pranswer'].includes(
+        this.instance.signalingState
+      )
+    ) {
+      this.logger.warn(
+        `_sdpReady called in wrong state: ${this.instance.signalingState}`
+      )
+      return
+    }
+
     this._processingLocalSDP = true
     clearTimeout(this._iceTimeout)
 
@@ -971,10 +990,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
      */
     if (!event.candidate) {
       this.instance.removeEventListener('icecandidate', this._onIce)
-      if (
-        !this._firstNonHostCandidateReceived ||
-        !isSingleMediaNegotiation(this.options)
-      ) {
+      // not call _sdpReady if an early invite has been sent
+      if (this._candidatesSnapshot.length > 0) {
         this.logger.debug('No more candidates, calling _sdpReady')
         this._sdpReady()
       }
@@ -997,17 +1014,24 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }, this.options.maxIceGatheringTimeout)
     } else {
       /**
-       * With the first non-HOST candidate (srflx, prflx or relay)
-       * immediately call _sdpReady and take a snapshot of candidates
+       * With non-HOST candidate (srflx, prflx or relay), check if we have
+       * candidates for all media sections to support early invite
        */
-      if (!this._firstNonHostCandidateReceived) {
-        this._firstNonHostCandidateReceived = true
-        this._candidatesSnapshot = [...this._allCandidates]
-        this.logger.debug(
-          'First non-HOST candidate received, calling _sdpReady immediately'
-        )
-        if (isSingleMediaNegotiation(this.options)) {
-          setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+      if (this.instance.localDescription?.sdp) {
+        if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
+          // Take a snapshot of candidates at this point
+          if (this._candidatesSnapshot.length === 0) {
+            this._candidatesSnapshot = [...this._allCandidates]
+            this.logger.info(
+              'SDP has candidates for all media sections, calling _sdpReady for early invite'
+            )
+            setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+          }
+        } else {
+          this.logger.info(
+            'SDP does not have candidates for all media sections, waiting for more candidates'
+          )
+          this.logger.debug(this.instance.localDescription?.sdp)
         }
       }
     }
@@ -1017,17 +1041,26 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // Check if we have better candidates now than when we first sent SDP
     const hasMoreCandidates = this._hasMoreCandidates()
 
-    if (hasMoreCandidates) {
+    if (hasMoreCandidates && this.instance.connectionState !== 'connected') {
       this.logger.info(
         'More candidates found after ICE gathering complete, triggering renegotiation'
       )
       // Reset negotiation state to allow new negotiation
       this._negotiating = false
-      this._firstNonHostCandidateReceived = false
       this._candidatesSnapshot = []
       this._allCandidates = []
+
+      // set the SDP type to 'offer' since the client is initiating a new negotiation
+      this.type = 'offer'
       // Start negotiation with force=true
-      this.startNegotiation(true)
+      if (this.instance.signalingState === 'stable') {
+        this.startNegotiation(true)
+      } else {
+        this.logger.warn(
+          'Signaling state is not stable, cannot start negotiation immediately'
+        )
+        this.restartIce()
+      }
     }
   }
 
