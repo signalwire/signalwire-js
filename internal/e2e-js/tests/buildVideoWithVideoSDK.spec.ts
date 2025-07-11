@@ -54,7 +54,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = randomizeRoomName('build-video-element')
+    const roomName = randomizeRoomName('bld-vd-el')
 
     await createRoomSession(page, {
       roomName,
@@ -74,7 +74,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = randomizeRoomName('build-video-element')
+    const roomName = randomizeRoomName('bld-vd-el')
 
     await createRoomSession(page, {
       roomName,
@@ -133,7 +133,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = randomizeRoomName('build-video-element')
+    const roomName = randomizeRoomName('bld-vd-el')
 
     await createTestRoomSession(page, {
       vrt: {
@@ -285,7 +285,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = randomizeRoomName('build-video-element')
+    const roomName = randomizeRoomName('bld-vd-el')
 
     await createRoomSession(page, {
       roomName,
@@ -324,7 +324,7 @@ test.describe('buildVideoElement with Video SDK', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = randomizeRoomName('build-video-element')
+    const roomName = randomizeRoomName('bld-vd-el')
 
     await createRoomSession(page, {
       roomName,
@@ -363,7 +363,7 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     await Promise.all([pageOne.goto(SERVER_URL), pageTwo.goto(SERVER_URL)])
 
-    const roomName = randomizeRoomName('build-video-element')
+    const roomName = randomizeRoomName('bld-vd-el')
 
     await createRoomSession(pageOne, {
       roomName,
