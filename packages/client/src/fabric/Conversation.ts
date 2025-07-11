@@ -132,7 +132,6 @@ export class Conversation {
       }
 
       const url = makeQueryParamsUrls(path, queryParams)
-      console.log(`[getConversations] query URL ${url}`)
       const { body } = await this.httpClient.fetch<GetConversationsResponse>(
         url
       )

@@ -1,6 +1,7 @@
 import {
   asyncRetry,
   AuthError,
+  getLogger,
   HttpError,
   increasingDelay,
 } from '@signalwire/core'
@@ -121,18 +122,17 @@ export const createHttpClient = (
     }
 
     try {
-      console.log(
-        `Request to ${path} with options:`,
-        JSON.stringify(
-          {
-            path,
-            baseUrl,
-            searchParams: options?.searchParams,
-          },
-          null,
-          2
-        )
-      )
+      //using wsTraffic to log the request in the e2e tests
+      getLogger().wsTraffic({
+        type: 'http',
+        payload: {
+          type: 'request',
+          path,
+          baseUrl,
+          options,
+        },
+      })
+
       const response = await fetcher<T>(
         getUrl({
           path,
@@ -144,13 +144,23 @@ export const createHttpClient = (
         retriesDelay,
         retriesDelayIncrement
       )
-      console.log(
-        `Response from ${path}:`,
-        JSON.stringify(response.parsedBody, null, 2)
-      )
+      //using wsTraffic to log the request in the e2e tests
+      getLogger().wsTraffic({
+        type: 'http',
+        payload: {
+          type: 'response',
+          response: {
+            headers: response.headers,
+            url: response.url,
+            status: response.status,
+            statusText: response.statusText,
+            body: response.parsedBody,
+          },
+        },
+      })
       return { body: response.parsedBody as T }
     } catch (e) {
-      console.log(`Error from ${path}:`, JSON.stringify(e, null, 2))
+      getLogger().error(`Error from ${path}:`, JSON.stringify(e, null, 2))
       throw e
     } finally {
       timerId && clearTimeout(timerId)
