@@ -196,7 +196,7 @@ test.describe(agent_customer_external_url_desc, () => {
     const customer_page = await createCustomPage({ name: '[customer_page]' })
     await customer_page.goto(SERVER_URL)
 
-    const customerResourceName = `${test_uuid}_e2e_{uuid()}`
+    const customerResourceName = `${test_uuid}_e2e_${uuid()}`
     const customer_resource_data = await resource.createcXMLExternalURLResource(
       {
         name: customerResourceName,
