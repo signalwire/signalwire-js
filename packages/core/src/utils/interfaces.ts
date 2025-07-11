@@ -501,7 +501,7 @@ export interface SDKLogger {
 
 export interface WsTrafficOptions {
   type: 'send' | 'recv' | 'http'
-  payload: JSONRPCResponse | JSONRPCRequest | unknown
+  payload: JSONRPCResponse | JSONRPCRequest | any
 }
 
 export interface InternalSDKLogger extends SDKLogger {
