@@ -791,7 +791,7 @@ export const expectSDPDirection = async (
 export const getRemoteMediaIP = async (page: Page) => {
   const remoteIP: string = await page.evaluate(() => {
     // @ts-expect-error
-    const peer: Video.RoomSessionPeer = window._callObj.peer
+    const peer = window._callObj.peer
     const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
     const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
     return ipLine?.split(' ')[2]
@@ -1533,7 +1533,7 @@ export const expectMemberTalkingEvent = (page: Page) => {
   return page.evaluate(async () => {
     return new Promise((resolve) => {
       // @ts-expect-error
-      const callObj: Video.RoomSession = window._callObj
+      const callObj = window._callObj
       callObj.on('member.talking', resolve)
     })
   })
@@ -1544,7 +1544,7 @@ export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
     ({ event }) => {
       return new Promise<void>((resolve) => {
         // @ts-expect-error
-        const callObj: Video.RoomSession = window._callObj
+        const callObj = window._callObj
         callObj.on(event, resolve)
       })
     },
@@ -1667,7 +1667,7 @@ export const expectInteractivityMode = async (
 ) => {
   const interactivityMode = await page.evaluate(async () => {
     // @ts-expect-error
-    const callObj: Video.RoomSession = window._callObj
+    const callObj = window._callObj
     return callObj.interactivityMode
   })
 
@@ -1678,7 +1678,7 @@ export const setLayoutOnPage = (page: Page, layoutName: string) => {
   return page.evaluate(
     async (options) => {
       // @ts-expect-error
-      const callObj: Video.RoomSession = window._callObj
+      const callObj = window._callObj
       return await callObj.setLayout({ name: options.layoutName })
     },
     { layoutName }
@@ -1692,7 +1692,7 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 export const expectMemberId = async (page: Page, memberId: string) => {
   const roomMemberId = await page.evaluate(async () => {
     // @ts-expect-error
-    const callObj: Video.RoomSession = window._callObj
+    const callObj = window._callObj
     return callObj.memberId
   })
 
