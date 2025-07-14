@@ -134,13 +134,13 @@ export type Promisify<T> = {
 /*
  * Flattens object types for better IDE display while preserving function types
  */
-export type Prettify<T> = T extends (...args: any[]) => any
-? T  // Preserve function types as-is
-: T extends object
-? {
-    [K in keyof T]: T[K]
-} & {}
-: T
+export type Prettify<T> = T extends { (...args: any[]): any }
+  ? T  // Preserve callable objects (functions with properties, overloads, etc.)
+  : T extends object
+  ? {
+      [K in keyof T]: T[K]
+    } & {}
+  : T
 
 /**
  * Construct a type that requires at least one property from `Keys` of `T`.
