@@ -153,7 +153,7 @@ test.describe(agent_customer_external_url_desc, () => {
     primary_request_url: external_url_for_cxml,
   }
 
-  const test_uuid = `${uuid()}`
+  // const test_uuid = `${uuid()}`
 
   test('agent and customer should dial an address linked to a cXML script with external URL and expect to join a Conference', async ({
     createCustomPage,
@@ -163,7 +163,7 @@ test.describe(agent_customer_external_url_desc, () => {
     const agent_page = await createCustomPage({ name: '[agent_page]' })
     await agent_page.goto(SERVER_URL)
 
-    const agentResourceName = `${test_uuid}_e2e_${uuid()}`
+    const agentResourceName = `e2e_${uuid()}`
     const agent_resource_data = await resource.createcXMLExternalURLResource({
       name: agentResourceName,
       contents: cXMLExternalURLAgent,
@@ -196,7 +196,7 @@ test.describe(agent_customer_external_url_desc, () => {
     const customer_page = await createCustomPage({ name: '[customer_page]' })
     await customer_page.goto(SERVER_URL)
 
-    const customerResourceName = `${test_uuid}_e2e_${uuid()}`
+    const customerResourceName = `e2e_${uuid()}`
     const customer_resource_data = await resource.createcXMLExternalURLResource(
       {
         name: customerResourceName,
