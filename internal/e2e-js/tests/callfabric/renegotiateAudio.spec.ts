@@ -19,7 +19,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-room-audio-reneg-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -104,7 +104,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-room-audio-reneg-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -173,7 +173,7 @@ test.describe('CallFabric Audio Renegotiation', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-room-audio-reneg-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)

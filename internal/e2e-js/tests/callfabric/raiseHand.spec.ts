@@ -16,7 +16,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-hand-raise_${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -93,7 +93,7 @@ test.describe('CallFabric Raise/Lower Hand', () => {
     await pageOne.goto(SERVER_URL)
     await pageTwo.goto(SERVER_URL)
 
-    const roomName = `e2e-hand-raise_${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     // Create client, dial an address and join a video room from page-one

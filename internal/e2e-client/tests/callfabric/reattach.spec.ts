@@ -20,7 +20,7 @@ test.describe('CallFabric Reattach', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room-reattach-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -76,7 +76,7 @@ test.describe('CallFabric Reattach', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -374,7 +374,7 @@ test.describe('CallFabric Reattach', () => {
     await pageOne.goto(SERVER_URL)
     await pageTwo.goto(SERVER_URL)
 
-    const roomName = `e2e-video-room-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await test.step('[pageOne] create client and join a room', async () => {
@@ -662,9 +662,9 @@ test.describe('CallFabric Reattach', () => {
   //   const page = await createCustomPage({ name: '[page]' })
   //   await page.goto(SERVER_URL)
 
-  //   const roomName = `e2e-video-room-${uuid()}`
+  //   const roomName = `e2e_${uuid()}`
   //   await resource.createVideoRoomResource(roomName)
-  //   const resourceName = `e2e-swml-app_${uuid()}`
+  //   const resourceName = `e2e_${uuid()}`
   //   await resource.createSWMLAppResource({
   //     name: resourceName,
   //     contents: {

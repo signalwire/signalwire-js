@@ -95,7 +95,7 @@ test.describe('Clean up', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-cleanup_${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page, { attachSagaMonitor: true })

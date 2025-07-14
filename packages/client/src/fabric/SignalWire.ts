@@ -43,6 +43,7 @@ export const SignalWire = (() => {
             address: {
               getAddresses: httpClient.getAddresses.bind(httpClient),
               getAddress: httpClient.getAddress.bind(httpClient),
+              getMyAddresses: httpClient.getMyAddresses.bind(httpClient),
             },
             conversation: {
               getConversations:

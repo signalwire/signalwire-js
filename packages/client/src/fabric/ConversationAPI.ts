@@ -16,8 +16,8 @@ export class ConversationAPI implements ConversationContract {
     return this.payload.id
   }
 
-  get addressId() {
-    return this.payload.address_id
+  get group_id() {
+    return this.payload.group_id
   }
 
   get createdAt() {
@@ -38,14 +38,15 @@ export class ConversationAPI implements ConversationContract {
 
   sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({
-      addressId: this.id,
+      group_id: this.group_id,
+      from_address_id: params.from_address_id,
       text: params.text,
     })
   }
 
   getMessages(params?: ConversationAPIGetMessagesParams) {
     return this.conversation.getConversationMessages({
-      addressId: this.id,
+      group_id: this.group_id,
       ...params,
     })
   }

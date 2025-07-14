@@ -1,4 +1,21 @@
-import { Conversation } from '../Conversation'
+import {
+  ConversationChatMessagesSubscribeParams,
+  ConversationChatMessagesSubscribeResult,
+  ConversationSubscribeCallback,
+  ConversationSubscribeResult,
+  GetConversationChatMessageParams,
+  GetConversationChatMessageResult,
+  GetConversationMessagesParams,
+  GetConversationMessagesResult,
+  GetConversationsParams,
+  GetConversationsResult,
+  GetMessagesParams,
+  GetMessagesResult,
+  JoinConversationParams,
+  JoinConversationResult,
+  SendConversationMessageParams,
+  SendConversationMessageResult,
+} from './conversation'
 import { Address } from './address'
 import { HTTPClientContract } from './httpClient'
 import { WSClientContract, WSClientOptions } from './wsClient'
@@ -9,19 +26,35 @@ export interface SignalWireContract
   extends WSClientContract,
     Omit<HTTPClientContract, 'getAddresses' | 'getAddress'> {
   address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress'>
+  /** @deprecated */
   conversation: {
-    getConversations: Conversation['getConversations']
-    getMessages: Conversation['getMessages']
-    getConversationMessages: Conversation['getConversationMessages']
-    subscribe: Conversation['subscribe']
-    sendMessage: Conversation['sendMessage']
-    join: Conversation['joinConversation']
+    getConversations: (
+      _params?: GetConversationsParams
+    ) => Promise<GetConversationsResult>
+    getMessages: (_params?: GetMessagesParams) => Promise<GetMessagesResult>
+    getConversationMessages: (
+      _params: GetConversationMessagesParams
+    ) => Promise<GetConversationMessagesResult>
+    subscribe: (
+      _callback: ConversationSubscribeCallback
+    ) => Promise<ConversationSubscribeResult>
+    sendMessage: (
+      params: SendConversationMessageParams
+    ) => Promise<SendConversationMessageResult>
+    join: (_params: JoinConversationParams) => Promise<JoinConversationResult>
   }
+  /** @deprecated */
   chat: {
-    getMessages: Conversation['getChatMessages']
-    subscribe: Conversation['subscribeChatMessages']
-    sendMessage: Conversation['sendMessage']
-    join: Conversation['joinConversation']
+    getMessages: (
+      _params: GetConversationChatMessageParams
+    ) => Promise<GetConversationChatMessageResult>
+    subscribe: (
+      _params: ConversationChatMessagesSubscribeParams
+    ) => Promise<ConversationChatMessagesSubscribeResult>
+    sendMessage: (
+      params: SendConversationMessageParams
+    ) => Promise<SendConversationMessageResult>
+    join: (_params: JoinConversationParams) => Promise<JoinConversationResult>
   }
 }
 

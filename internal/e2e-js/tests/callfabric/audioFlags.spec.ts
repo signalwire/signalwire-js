@@ -16,7 +16,7 @@ test.describe('CallFabric Audio Flags', () => {
     const page = await createCustomPage({ name: '[page]' })
     await page.goto(SERVER_URL)
 
-    const roomName = `e2e-audio-flags-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await createCFClient(page)
@@ -152,7 +152,7 @@ test.describe('CallFabric Audio Flags', () => {
     await pageOne.goto(SERVER_URL)
     await pageTwo.goto(SERVER_URL)
 
-    const roomName = `e2e-audio-flags-${uuid()}`
+    const roomName = `e2e_${uuid()}`
     await resource.createVideoRoomResource(roomName)
 
     await test.step('[pageOne] create client and join a room', async () => {

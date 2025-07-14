@@ -15,7 +15,7 @@ import {
 const agent_customer_static_scripts_desc =
   'CallFabric Agent/Customer interaction, static cXML scripts'
 test.describe(agent_customer_static_scripts_desc, () => {
-  const conference_name = `e2e-cxml-script-conference_${uuid()}`
+  const conference_name = `e2e_${uuid()}`
 
   const cXMLScriptAgentContent = {
     call_handler_script: `<?xml version="1.0" encoding="UTF-8"?><Response><Dial><Conference>${conference_name}</Conference></Dial></Response>`,
@@ -32,7 +32,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
     const agent_page = await createCustomPage({ name: '[agent_page]' })
     await agent_page.goto(SERVER_URL)
 
-    const agentResourceName = `e2e-cxml-script-agent_${uuid()}`
+    const agentResourceName = `e2e_${uuid()}`
     const agent_resource_data = await resource.createcXMLScriptResource({
       name: agentResourceName,
       contents: cXMLScriptAgentContent,
@@ -65,7 +65,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
     const customer_page = await createCustomPage({ name: '[customer_page]' })
     await customer_page.goto(SERVER_URL)
 
-    const customerResourceName = `e2e-cxml-script-customer_${uuid()}`
+    const customerResourceName = `e2e_${uuid()}`
     const customer_resource_data = await resource.createcXMLScriptResource({
       name: customerResourceName,
       contents: cXMLScriptCustomerContent,
@@ -153,7 +153,7 @@ test.describe(agent_customer_external_url_desc, () => {
     primary_request_url: external_url_for_cxml,
   }
 
-  const test_uuid = `${uuid()}`
+  // const test_uuid = `${uuid()}`
 
   test('agent and customer should dial an address linked to a cXML script with external URL and expect to join a Conference', async ({
     createCustomPage,
@@ -163,7 +163,7 @@ test.describe(agent_customer_external_url_desc, () => {
     const agent_page = await createCustomPage({ name: '[agent_page]' })
     await agent_page.goto(SERVER_URL)
 
-    const agentResourceName = `${test_uuid}_e2e-cxml-ext-url-agent_${uuid()}`
+    const agentResourceName = `e2e_${uuid()}`
     const agent_resource_data = await resource.createcXMLExternalURLResource({
       name: agentResourceName,
       contents: cXMLExternalURLAgent,
@@ -196,7 +196,7 @@ test.describe(agent_customer_external_url_desc, () => {
     const customer_page = await createCustomPage({ name: '[customer_page]' })
     await customer_page.goto(SERVER_URL)
 
-    const customerResourceName = `${test_uuid}_e2e-cxml-ext-url-customer_${uuid()}`
+    const customerResourceName = `e2e_${uuid()}`
     const customer_resource_data = await resource.createcXMLExternalURLResource(
       {
         name: customerResourceName,
@@ -281,7 +281,7 @@ test.describe(agent_customer_external_url_desc, () => {
 //     resource,
 //   }) => {
 
-//     const conference_name = `e2e-cxml-customer-stream_${uuid()}`
+//     const conference_name = `e2e_${uuid()}`
 //     const stream_url = `${process.env.CXML_STREAM_URL}`
 
 //     const cXMLScriptCustomerContent = {
@@ -293,7 +293,7 @@ test.describe(agent_customer_external_url_desc, () => {
 //     const customer_page = await createCustomPage({ name: '[customer_page]' })
 //     await customer_page.goto(SERVER_URL)
 
-//     const customerResourceName = `e2e-cxml-customer-stream_${uuid()}`
+//     const customerResourceName = `e2e_${uuid()}`
 //     const customer_resource_data = await resource.createcXMLScriptResource({
 //       name: customerResourceName,
 //       contents: cXMLScriptCustomerContent,

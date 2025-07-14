@@ -14,6 +14,7 @@ import type {
   GetSubscriberInfoResponse,
   GetSubscriberInfoResult,
   CallUserOptions,
+  Address,
 } from './interfaces'
 import { CreateHttpClient, createHttpClient } from './createHttpClient'
 import { buildPaginatedResult } from '../utils/paginatedResult'
@@ -117,6 +118,11 @@ export class HTTPClient implements HTTPClientContract {
     const { body } = await this.httpClient<GetAddressesResponse>(queryUrl)
 
     return buildPaginatedResult(body, this.httpClient)
+  }
+
+  public async getMyAddresses(): Promise<Address[]> {
+
+    return (await this.getSubscriberInfo()).fabric_addresses
   }
 
   public async registerDevice(
