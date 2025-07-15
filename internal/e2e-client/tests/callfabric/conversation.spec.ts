@@ -60,13 +60,13 @@ test.describe('Conversation Room', () => {
 
           const joinResponse = await client.conversation.join({
             addressIds: [addressId, from_address_id],
-            from_address_id,
+            fromAddressId: from_address_id,
           })
 
           client.conversation.sendMessage({
-            group_id: joinResponse.group_id,
+            groupId: joinResponse.group_id,
             text: '1st message from 1st subscriber',
-            from_address_id,
+            fromAddressId: from_address_id,
           })
         })
       },
@@ -107,13 +107,13 @@ test.describe('Conversation Room', () => {
           })
           const joinResponse = await client.conversation.join({
             addressIds: [roomAddress.id, from_address_id],
-            from_address_id,
+            fromAddressId: from_address_id,
           })
 
           client.conversation.sendMessage({
-            group_id: joinResponse.group_id,
+            groupId: joinResponse.group_id,
             text: '1st message from 2nd subscriber',
-            from_address_id,
+            fromAddressId: from_address_id,
           })
         })
       },
@@ -134,7 +134,7 @@ test.describe('Conversation Room', () => {
         // @ts-expect-error
         const client: SignalWireClient = window._client
         return await client.conversation.getConversationMessages({
-          group_id,
+          groupId: group_id,
         })
       },
       { group_id }
