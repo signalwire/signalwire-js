@@ -30,3 +30,4 @@ export {
   stopTrack,
   createMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
+export type { MicrophoneAnalyzer } from '@signalwire/webrtc'

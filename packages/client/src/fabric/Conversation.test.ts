@@ -168,7 +168,7 @@ describe('Conversation', () => {
       })
 
       const result = await conversation.getConversationMessages({
-        group_id: '1234',
+        groupId: '1234',
       })
       expect(result.data).toEqual(['message1', 'message2'])
       expect(result.hasNext).toBe(true)
@@ -185,7 +185,7 @@ describe('Conversation', () => {
 
       try {
         await conversation.getConversationMessages({
-          group_id: '1234',
+          groupId: '1234',
         })
         fail('Expected getConversationMessages to throw an error.')
       } catch (error) {
@@ -212,8 +212,8 @@ describe('Conversation', () => {
 
       // TODO: Test with payload
       const result = await conversation.sendMessage({
-        group_id,
-        from_address_id,
+        groupId: group_id,
+        fromAddressId: from_address_id,
         text,
       })
 
@@ -238,8 +238,8 @@ describe('Conversation', () => {
       try {
         await conversation.sendMessage({
           text: 'text message',
-          group_id: uuid(),
-          from_address_id: uuid(),
+          groupId: uuid(),
+          fromAddressId: uuid(),
         })
         fail('Expected sendMessage to throw error.')
       } catch (error) {
@@ -264,7 +264,7 @@ describe('Conversation', () => {
       })
 
       const result = await conversation.joinConversation({
-        from_address_id,
+        fromAddressId: from_address_id,
         addressIds,
       })
 
@@ -292,7 +292,7 @@ describe('Conversation', () => {
 
       try {
         await conversation.joinConversation({
-          from_address_id: uuid(),
+          fromAddressId: uuid(),
           addressIds: [uuid()],
         })
         fail('Expected joinConversation to throw error.')
@@ -379,7 +379,7 @@ describe('Conversation', () => {
       })
 
       const group_id = 'abc'
-      const messages = await conversation.getChatMessages({ group_id })
+      const messages = await conversation.getChatMessages({ groupId: group_id })
 
       expect(messages.data).toHaveLength(2)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(0)
@@ -415,7 +415,7 @@ describe('Conversation', () => {
       })
 
       const group_id = 'abc'
-      const messages = await conversation.getChatMessages({ group_id })
+      const messages = await conversation.getChatMessages({ groupId: group_id })
 
       expect(messages.data).toHaveLength(10)
       expect(mock_getAddressSpy).toHaveBeenCalledTimes(1) // since all message are from same address
@@ -453,7 +453,7 @@ describe('Conversation', () => {
       })
 
       const group_id = 'abc'
-      let messages = await conversation.getChatMessages({ group_id })
+      let messages = await conversation.getChatMessages({ groupId: group_id })
 
       expect(messages.data).toHaveLength(10)
 
@@ -569,7 +569,7 @@ describe('Conversation', () => {
       })
 
       const group_id = 'abc'
-      const messages = await conversation.getChatMessages({ group_id })
+      const messages = await conversation.getChatMessages({ groupId: group_id })
 
       expect(messages.data).toHaveLength(3)
 

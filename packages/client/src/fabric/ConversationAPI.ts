@@ -38,15 +38,15 @@ export class ConversationAPI implements ConversationContract {
 
   sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({
-      group_id: this.group_id,
-      from_address_id: params.from_address_id,
+      groupId: this.group_id,
+      fromAddressId: params.fromAddressId,
       text: params.text,
     })
   }
 
   getMessages(params?: ConversationAPIGetMessagesParams) {
     return this.conversation.getConversationMessages({
-      group_id: this.group_id,
+      groupId: this.group_id,
       ...params,
     })
   }

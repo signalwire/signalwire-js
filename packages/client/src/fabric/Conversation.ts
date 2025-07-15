@@ -100,15 +100,15 @@ export class Conversation {
     params: SendConversationMessageParams
   ): Promise<SendConversationMessageResult> {
     try {
-      const { group_id, from_address_id, text } = params
+      const { groupId, fromAddressId, text } = params
       const path = '/api/fabric/messages'
       const { body } =
         await this.httpClient.fetch<SendConversationMessageResponse>(path, {
           method: 'POST',
           body: {
-            group_id,
+            group_id: groupId,
             text,
-            from_address_id,
+            from_address_id: fromAddressId,
             metadata: params.metadata,
             details: params.details,
           },
@@ -176,9 +176,9 @@ export class Conversation {
     params: GetConversationMessagesParams
   ): Promise<GetConversationMessagesResult> {
     try {
-      const { group_id, pageSize } = params || {}
+      const { groupId, pageSize } = params || {}
 
-      const path = `/api/fabric/conversations/${group_id}/messages`
+      const path = `/api/fabric/conversations/${groupId}/messages`
       const queryParams = new URLSearchParams()
       if (pageSize) {
         queryParams.append('page_size', pageSize.toString())
@@ -201,7 +201,7 @@ export class Conversation {
   public async getChatMessages(
     params: GetConversationChatMessageParams
   ): Promise<GetConversationChatMessageResult> {
-    const { group_id, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
+    const { groupId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
 
     const fetchChatMessagesPage = async (
       fetcherFn?: () => Promise<GetConversationChatMessageResult | undefined>,
@@ -288,7 +288,7 @@ export class Conversation {
     return fetchChatMessagesPage(
       () =>
         this.getConversationMessages({
-          group_id,
+          groupId,
           pageSize,
         }) as Promise<GetConversationChatMessageResult>
     )
@@ -323,7 +323,7 @@ export class Conversation {
     params: JoinConversationParams
   ): Promise<JoinConversationResult> {
     try {
-      const { from_address_id, addressIds } = params
+      const { fromAddressId, addressIds } = params
       const path = '/api/fabric/conversations/join'
       const { body } = await this.httpClient.fetch<{
         group_id: string
@@ -332,7 +332,7 @@ export class Conversation {
       }>(path, {
         method: 'POST',
         body: {
-          from_fabric_address_id: from_address_id,
+          from_fabric_address_id: fromAddressId,
           fabric_address_ids: addressIds,
         },
       })

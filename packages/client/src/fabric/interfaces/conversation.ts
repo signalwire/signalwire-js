@@ -16,8 +16,8 @@ export interface ConversationContract {
 }
 
 export interface SendConversationMessageParams {
-  group_id: string
-  from_address_id: string
+  groupId: string
+  fromAddressId: string
   text: string
   metadata?: Record<string, any>
   details?: Record<string, any>
@@ -68,7 +68,7 @@ export type ConversationChatMessagesSubscribeResult =
 
 export interface JoinConversationParams {
   addressIds: string[]
-  from_address_id: string
+  fromAddressId: string
 }
 
 export interface JoinConversationResponse {
@@ -107,7 +107,7 @@ export type ConversationChatMessage = Omit<ConversationMessage, 'kind'> & {
 }
 
 export interface GetConversationChatMessageParams {
-  group_id: string
+  groupId: string
   pageSize?: number
 }
 
@@ -118,7 +118,7 @@ export interface GetConversationMessagesResponse
   extends PaginatedResponse<ConversationMessage> {}
 
 export interface GetConversationMessagesParams {
-  group_id: string
+  groupId: string
   pageSize?: number
 }
 
@@ -128,8 +128,7 @@ export type GetConversationMessagesResult = PaginatedResult<ConversationMessage>
  * Conversation API
  */
 export interface ConversationAPISendMessageParams {
-  group_id: string
-  from_address_id: string
+  fromAddressId: string
   text: string
 }
 
