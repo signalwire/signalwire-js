@@ -65,14 +65,16 @@ describe('Conversation', () => {
     it('should fetch conversations', async () => {
       const conversations = [
         {
-          id: uuid(),
+          group_id: uuid(),
+          from_address_id: uuid(),
           last_message_at: Date.now(),
           created_at: Date.now(),
           metadata: {},
           name: 'convo 1',
         },
         {
-          id: uuid(),
+          group_id: uuid(),
+          from_address_id: uuid(),
           last_message_at: Date.now(),
           created_at: Date.now(),
           metadata: {},
@@ -86,7 +88,7 @@ describe('Conversation', () => {
       const result = await conversation.getConversations()
       result.data.forEach((item, index) => {
         expect(item).toBeInstanceOf(ConversationAPI)
-        expect(item.id).toEqual(conversations[index].id)
+        expect(item.groupId).toEqual(conversations[index].group_id)
         expect(item.name).toEqual(conversations[index].name)
       })
       expect(result.hasNext).toBe(false)
@@ -594,6 +596,7 @@ describe('Conversation', () => {
         subtype: 'chat' as const,
         group_id: 'abc',
         text: 'text',
+        user_name: 'user_name',
         id: 'msg1',
         ts: Date.now(),
         details: {},

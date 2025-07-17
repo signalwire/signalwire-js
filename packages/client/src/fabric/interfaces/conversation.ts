@@ -1,9 +1,12 @@
 import { PaginatedResponse, PaginatedResult } from '.'
-import type { ConversationEventParams, ConversationChatEventParams } from '@signalwire/core'
+import type {
+  ConversationEventParams,
+  ConversationChatEventParams,
+} from '@signalwire/core'
 
 export interface ConversationContract {
   readonly createdAt: number
-  readonly id: string
+  readonly groupId: string
   readonly lastMessageAt: number
   readonly metadata: Record<string, any>
   readonly name: string
@@ -37,10 +40,9 @@ export interface GetConversationsParams {
 }
 
 export interface ConversationResponse {
-  address_id: string
   group_id: string
   created_at: number
-  id: string
+  from_address_id: string
   last_message_at: number
   metadata: Record<string, any>
   name: string
@@ -64,7 +66,7 @@ export interface ConversationSubscribeResult {
 
 export interface ConversationChatMessagesSubscribeParams {
   addressId: string
-  onMessage: ConversationSubscribeCallback
+  onMessage: ConversationChatSubscribeCallback
 }
 
 export type ConversationChatMessagesSubscribeResult =
