@@ -4,7 +4,6 @@
  */
 
 import {
-  Prettify,
   BaseComponentOptions,
   BaseConnectionState,
   ClientEvents,
@@ -30,6 +29,8 @@ import {
   EventEmitter,
   SetAudioFlagsParams,
 } from '@signalwire/core'
+import { A } from 'ts-toolbelt'
+import { ShallowCompute } from './utils/typeUtils'
 import {
   // FIXME: Importing from the core package
   CallRoomEventParams as FabricCallRoomEventParams,
@@ -146,149 +147,149 @@ export { RoomSessionDevice } from './RoomSessionDevice'
  */
 export * as WebRTC from './webrtc'
 
-type ExternalFabricRoomEventParams = Prettify<FabricCallRoomEventParams>
-type ExternalBaseComponentOptions = Prettify<BaseComponentOptions>
-type ExternalBaseConnectionState = Prettify<BaseConnectionState>
-type ExternalClientEvents = Prettify<ClientEvents>
+type ExternalFabricRoomEventParams = A.Compute<FabricCallRoomEventParams, 'deep'>
+type ExternalBaseComponentOptions = A.Compute<BaseComponentOptions, 'deep'>
+type ExternalBaseConnectionState = A.Compute<BaseConnectionState, 'deep'>
+type ExternalClientEvents = A.Compute<ClientEvents, 'deep'>
 type ExternalEmitterContract<EventTypes extends EventEmitter.ValidEventTypes> =
-  Prettify<EmitterContract<EventTypes>>
-type ExternalRTCTrackEventName = Prettify<RTCTrackEventName>
-type ExternalUserOptions = Prettify<UserOptions>
-type ExternalSessionStatus = Prettify<SessionStatus>
-type ExternalSessionEvents = Prettify<SessionEvents>
-type ExternalVideoLayout = Prettify<VideoLayout>
-type ExternalInternalVideoLayout = Prettify<InternalVideoLayout>
-type ExternalVideoPosition = Prettify<VideoPosition>
-type ExternalVideoPositions = Prettify<VideoPositions>
-type ExternalCallUpdatedEventParams = Prettify<CallUpdatedEventParams>
-type ExternalCallLeftEventParams = Prettify<CallLeftEventParams>
-type ExternalCallStateEventParams = Prettify<CallStateEventParams>
-type ExternalCallPlayEventParams = Prettify<CallPlayEventParams>
-type ExternalCallConnectEventParams = Prettify<CallConnectEventParams>
-type ExternalCallRoomEventParams = Prettify<CallRoomEventParams>
+  ShallowCompute<EmitterContract<EventTypes>>
+type ExternalRTCTrackEventName = A.Compute<RTCTrackEventName, 'deep'>
+type ExternalUserOptions = A.Compute<UserOptions, 'deep'>
+type ExternalSessionStatus = A.Compute<SessionStatus, 'deep'>
+type ExternalSessionEvents = A.Compute<SessionEvents, 'deep'>
+type ExternalVideoLayout = A.Compute<VideoLayout, 'deep'>
+type ExternalInternalVideoLayout = A.Compute<InternalVideoLayout, 'deep'>
+type ExternalVideoPosition = A.Compute<VideoPosition, 'deep'>
+type ExternalVideoPositions = A.Compute<VideoPositions, 'deep'>
+type ExternalCallUpdatedEventParams = A.Compute<CallUpdatedEventParams, 'deep'>
+type ExternalCallLeftEventParams = A.Compute<CallLeftEventParams, 'deep'>
+type ExternalCallStateEventParams = A.Compute<CallStateEventParams, 'deep'>
+type ExternalCallPlayEventParams = A.Compute<CallPlayEventParams, 'deep'>
+type ExternalCallConnectEventParams = A.Compute<CallConnectEventParams, 'deep'>
+type ExternalCallRoomEventParams = A.Compute<CallRoomEventParams, 'deep'>
 type ExternalFabricLayoutChangedEventParams =
-  Prettify<CallLayoutChangedEventParams>
+  A.Compute<CallLayoutChangedEventParams, 'deep'>
 type ExternalFabricMemberJoinedEventParams =
-  Prettify<CallMemberJoinedEventParams>
+  A.Compute<CallMemberJoinedEventParams, 'deep'>
 type ExternalFabricMemberUpdatedEventParams =
-  Prettify<CallMemberUpdatedEventParams>
-type ExternalFabricMemberLeftEventParams = Prettify<CallMemberLeftEventParams>
+  A.Compute<CallMemberUpdatedEventParams, 'deep'>
+type ExternalFabricMemberLeftEventParams = A.Compute<CallMemberLeftEventParams, 'deep'>
 type ExternalFabricMemberTalkingEventParams =
-  Prettify<CallMemberTalkingEventParams>
-type ExternalFabricMemberEventParams = Prettify<CallMemberEventParams>
-type ExternalFabricMemberEntity = Prettify<CallMemberEntity>
-type ExternalInternalFabricMemberEntity = Prettify<InternalCallMemberEntity>
+  A.Compute<CallMemberTalkingEventParams, 'deep'>
+type ExternalFabricMemberEventParams = A.Compute<CallMemberEventParams, 'deep'>
+type ExternalFabricMemberEntity = A.Compute<CallMemberEntity, 'deep'>
+type ExternalInternalFabricMemberEntity = A.Compute<InternalCallMemberEntity, 'deep'>
 type ExternalConversationMessageEventName =
-  Prettify<ConversationMessageEventName>
-type ExternalConversationMessageEvent = Prettify<ConversationMessageEvent>
-type ExternalConversationEventParams = Prettify<ConversationEventParams>
-type ExternalConversationEvent = Prettify<ConversationEvent>
-type ExternalSetAudioFlagsParams = Prettify<SetAudioFlagsParams>
+  A.Compute<ConversationMessageEventName, 'deep'>
+type ExternalConversationMessageEvent = A.Compute<ConversationMessageEvent, 'deep'>
+type ExternalConversationEventParams = A.Compute<ConversationEventParams, 'deep'>
+type ExternalConversationEvent = A.Compute<ConversationEvent, 'deep'>
+type ExternalSetAudioFlagsParams = A.Compute<SetAudioFlagsParams, 'deep'>
 
 // WebRTC types
-type ExternalBaseConnectionOptions = Prettify<BaseConnectionOptions>
-type ExternalConnectionOptions = Prettify<ConnectionOptions>
-type ExternalMicrophoneAnalyzer = Prettify<MicrophoneAnalyzer>
+type ExternalBaseConnectionOptions = A.Compute<BaseConnectionOptions, 'deep'>
+type ExternalConnectionOptions = A.Compute<ConnectionOptions, 'deep'>
+type ExternalMicrophoneAnalyzer = A.Compute<MicrophoneAnalyzer, 'deep'>
 
 // Local interface types
-type ExternalCallJoinedEventParams = Prettify<CallJoinedEventParams>
+type ExternalCallJoinedEventParams = A.Compute<CallJoinedEventParams, 'deep'>
 type ExternalRoomSessionObjectEventsHandlerMap =
-  Prettify<RoomSessionObjectEventsHandlerMap>
-type ExternalRoomSessionObjectEvents = Prettify<RoomSessionObjectEvents>
-type ExternalRoomEventNames = Prettify<RoomEventNames>
-type ExternalStartScreenShareOptions = Prettify<StartScreenShareOptions>
+  A.Compute<RoomSessionObjectEventsHandlerMap, 'deep'>
+type ExternalRoomSessionObjectEvents = A.Compute<RoomSessionObjectEvents, 'deep'>
+type ExternalRoomEventNames = A.Compute<RoomEventNames, 'deep'>
+type ExternalStartScreenShareOptions = A.Compute<StartScreenShareOptions, 'deep'>
 
 // Fabric types - Address
-type ExternalResourceType = Prettify<ResourceType>
-type ExternalGetAddressResponse = Prettify<GetAddressResponse>
-type ExternalAddress = Prettify<Address>
-type ExternalGetAddressesParams = Prettify<GetAddressesParams>
-type ExternalGetAddressByIdParams = Prettify<GetAddressByIdParams>
-type ExternalGetAddressByNameParams = Prettify<GetAddressByNameParams>
-type ExternalGetAddressParams = Prettify<GetAddressParams>
-type ExternalGetAddressResult = Prettify<GetAddressResult>
-type ExternalGetAddressesResponse = Prettify<GetAddressesResponse>
-type ExternalGetAddressesResult = Prettify<GetAddressesResult>
+type ExternalResourceType = A.Compute<ResourceType, 'deep'>
+type ExternalGetAddressResponse = A.Compute<GetAddressResponse, 'deep'>
+type ExternalAddress = A.Compute<Address, 'deep'>
+type ExternalGetAddressesParams = A.Compute<GetAddressesParams, 'deep'>
+type ExternalGetAddressByIdParams = A.Compute<GetAddressByIdParams, 'deep'>
+type ExternalGetAddressByNameParams = A.Compute<GetAddressByNameParams, 'deep'>
+type ExternalGetAddressParams = A.Compute<GetAddressParams, 'deep'>
+type ExternalGetAddressResult = A.Compute<GetAddressResult, 'deep'>
+type ExternalGetAddressesResponse = A.Compute<GetAddressesResponse, 'deep'>
+type ExternalGetAddressesResult = A.Compute<GetAddressesResult, 'deep'>
 
 // Fabric types - Capabilities
 type ExternalCapabilityOnOffStateContract =
-  Prettify<CapabilityOnOffStateContract>
-type ExternalMemberCapabilityContract = Prettify<MemberCapabilityContract>
-type ExternalCallCapabilitiesContract = Prettify<CallCapabilitiesContract>
+  A.Compute<CapabilityOnOffStateContract, 'deep'>
+type ExternalMemberCapabilityContract = ShallowCompute<MemberCapabilityContract>
+type ExternalCallCapabilitiesContract = ShallowCompute<CallCapabilitiesContract>
 
 // Fabric types - Conversation
-type ExternalConversationContract = Prettify<ConversationContract>
+type ExternalConversationContract = ShallowCompute<ConversationContract>
 type ExternalSendConversationMessageParams =
-  Prettify<SendConversationMessageParams>
+  A.Compute<SendConversationMessageParams, 'deep'>
 type ExternalSendConversationMessageResponse =
-  Prettify<SendConversationMessageResponse>
+  A.Compute<SendConversationMessageResponse, 'deep'>
 type ExternalSendConversationMessageResult =
-  Prettify<SendConversationMessageResult>
-type ExternalGetConversationsParams = Prettify<GetConversationsParams>
-type ExternalConversationResponse = Prettify<ConversationResponse>
-type ExternalGetConversationsResponse = Prettify<GetConversationsResponse>
-type ExternalGetConversationsResult = Prettify<GetConversationsResult>
+  A.Compute<SendConversationMessageResult, 'deep'>
+type ExternalGetConversationsParams = A.Compute<GetConversationsParams, 'deep'>
+type ExternalConversationResponse = A.Compute<ConversationResponse, 'deep'>
+type ExternalGetConversationsResponse = A.Compute<GetConversationsResponse, 'deep'>
+type ExternalGetConversationsResult = A.Compute<GetConversationsResult, 'deep'>
 type ExternalConversationSubscribeCallback =
-  Prettify<ConversationSubscribeCallback>
-type ExternalConversationSubscribeResult = Prettify<ConversationSubscribeResult>
+  ShallowCompute<ConversationSubscribeCallback>
+type ExternalConversationSubscribeResult = A.Compute<ConversationSubscribeResult, 'deep'>
 type ExternalConversationChatMessagesSubscribeParams =
-  Prettify<ConversationChatMessagesSubscribeParams>
+  A.Compute<ConversationChatMessagesSubscribeParams, 'deep'>
 type ExternalConversationChatMessagesSubscribeResult =
-  Prettify<ConversationChatMessagesSubscribeResult>
-type ExternalJoinConversationParams = Prettify<JoinConversationParams>
-type ExternalJoinConversationResponse = Prettify<JoinConversationResponse>
-type ExternalJoinConversationResult = Prettify<JoinConversationResult>
-type ExternalGetMessagesParams = Prettify<GetMessagesParams>
-type ExternalConversationMessage = Prettify<ConversationMessage>
-type ExternalGetMessagesResult = Prettify<GetMessagesResult>
-type ExternalConversationChatMessage = Prettify<ConversationChatMessage>
+  A.Compute<ConversationChatMessagesSubscribeResult, 'deep'>
+type ExternalJoinConversationParams = A.Compute<JoinConversationParams, 'deep'>
+type ExternalJoinConversationResponse = A.Compute<JoinConversationResponse, 'deep'>
+type ExternalJoinConversationResult = A.Compute<JoinConversationResult, 'deep'>
+type ExternalGetMessagesParams = A.Compute<GetMessagesParams, 'deep'>
+type ExternalConversationMessage = A.Compute<ConversationMessage, 'deep'>
+type ExternalGetMessagesResult = A.Compute<GetMessagesResult, 'deep'>
+type ExternalConversationChatMessage = A.Compute<ConversationChatMessage, 'deep'>
 type ExternalGetConversationChatMessageParams =
-  Prettify<GetConversationChatMessageParams>
+  A.Compute<GetConversationChatMessageParams, 'deep'>
 type ExternalGetConversationChatMessageResult =
-  Prettify<GetConversationChatMessageResult>
+  A.Compute<GetConversationChatMessageResult, 'deep'>
 type ExternalGetConversationMessagesResponse =
-  Prettify<GetConversationMessagesResponse>
+  A.Compute<GetConversationMessagesResponse, 'deep'>
 type ExternalGetConversationMessagesParams =
-  Prettify<GetConversationMessagesParams>
+  A.Compute<GetConversationMessagesParams, 'deep'>
 type ExternalGetConversationMessagesResult =
-  Prettify<GetConversationMessagesResult>
+  A.Compute<GetConversationMessagesResult, 'deep'>
 type ExternalConversationAPISendMessageParams =
-  Prettify<ConversationAPISendMessageParams>
+  A.Compute<ConversationAPISendMessageParams, 'deep'>
 type ExternalConversationAPIGetMessagesParams =
-  Prettify<ConversationAPIGetMessagesParams>
+  A.Compute<ConversationAPIGetMessagesParams, 'deep'>
 
 // Fabric types - Device
-type ExternalRegisterDeviceType = Prettify<RegisterDeviceType>
-type ExternalRegisterDeviceParams = Prettify<RegisterDeviceParams>
-type ExternalUnregisterDeviceParams = Prettify<UnregisterDeviceParams>
-type ExternalRegisterDeviceResponse = Prettify<RegisterDeviceResponse>
-type ExternalRegisterDeviceResult = Prettify<RegisterDeviceResult>
+type ExternalRegisterDeviceType = A.Compute<RegisterDeviceType, 'deep'>
+type ExternalRegisterDeviceParams = A.Compute<RegisterDeviceParams, 'deep'>
+type ExternalUnregisterDeviceParams = A.Compute<UnregisterDeviceParams, 'deep'>
+type ExternalRegisterDeviceResponse = A.Compute<RegisterDeviceResponse, 'deep'>
+type ExternalRegisterDeviceResult = A.Compute<RegisterDeviceResult, 'deep'>
 
 // Fabric types - IncomingCallManager
-type ExternalIncomingInviteSource = Prettify<IncomingInviteSource>
-type ExternalIncomingInvite = Prettify<IncomingInvite>
-type ExternalIncomingInviteWithSource = Prettify<IncomingInviteWithSource>
-type ExternalIncomingCallNotification = Prettify<IncomingCallNotification>
-type ExternalIncomingCallHandler = Prettify<IncomingCallHandler>
-type ExternalIncomingCallHandlers = Prettify<IncomingCallHandlers>
+type ExternalIncomingInviteSource = A.Compute<IncomingInviteSource, 'deep'>
+type ExternalIncomingInvite = A.Compute<IncomingInvite, 'deep'>
+type ExternalIncomingInviteWithSource = A.Compute<IncomingInviteWithSource, 'deep'>
+type ExternalIncomingCallNotification = A.Compute<IncomingCallNotification, 'deep'>
+type ExternalIncomingCallHandler = ShallowCompute<IncomingCallHandler>
+type ExternalIncomingCallHandlers = ShallowCompute<IncomingCallHandlers>
 
 // Fabric types - WSClient
-type ExternalOnlineParams = Prettify<OnlineParams>
+type ExternalOnlineParams = A.Compute<OnlineParams, 'deep'>
 type ExternalHandlePushNotificationParams =
-  Prettify<HandlePushNotificationParams>
+  A.Compute<HandlePushNotificationParams, 'deep'>
 type ExternalHandlePushNotificationResult =
-  Prettify<HandlePushNotificationResult>
-type ExternalDialParams = Prettify<DialParams>
-type ExternalReattachParams = Prettify<ReattachParams>
+  A.Compute<HandlePushNotificationResult, 'deep'>
+type ExternalDialParams = A.Compute<DialParams, 'deep'>
+type ExternalReattachParams = A.Compute<ReattachParams, 'deep'>
 
 // Fabric types - Main interfaces
-type ExternalSignalWireClient = Prettify<SignalWireClient>
-type ExternalSignalWireContract = Prettify<SignalWireContract>
-type ExternalSignalWireClientParams = Prettify<SignalWireClientParams>
-type ExternalGetSubscriberInfoResponse = Prettify<GetSubscriberInfoResponse>
-type ExternalGetSubscriberInfoResult = Prettify<GetSubscriberInfoResult>
-type ExternalPaginatedResponse<T> = Prettify<PaginatedResponse<T>>
-type ExternalPaginatedResult<T> = Prettify<PaginatedResult<T>>
+type ExternalSignalWireClient = ShallowCompute<SignalWireClient>
+type ExternalSignalWireContract = ShallowCompute<SignalWireContract>
+type ExternalSignalWireClientParams = A.Compute<SignalWireClientParams, 'deep'>
+type ExternalGetSubscriberInfoResponse = A.Compute<GetSubscriberInfoResponse, 'deep'>
+type ExternalGetSubscriberInfoResult = A.Compute<GetSubscriberInfoResult, 'deep'>
+type ExternalPaginatedResponse<T> = ShallowCompute<PaginatedResponse<T>>
+type ExternalPaginatedResult<T> = ShallowCompute<PaginatedResult<T>>
 
 export {
   ExternalBaseComponentOptions as BaseComponentOptions,
