@@ -11,9 +11,10 @@ import { CallAction } from '../../utils/interfaces'
 import { CallSessionConnection } from '../CallSession'
 import { createCallSessionMemberObject } from '../CallSessionMember'
 import { callSegmentWorker } from './callSegmentWorker'
+import { ShallowCompute } from '../../utils/typeUtils'
 
 export type FabricWorkerParams<T> = SDKWorkerParams<CallSessionConnection> & {
-  action: MapToPubSubShape<T>
+  action: ShallowCompute<MapToPubSubShape<T>>
 }
 
 export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
@@ -39,7 +40,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
             payload: {
               member: action.payload.room_session.members.find(
                 (m) => m.member_id === action.payload.member_id
-              )!,
+              )! as any,
               room_id: action.payload.room_id,
               room_session_id: action.payload.room_session_id,
             },
@@ -48,7 +49,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
         }
 
         // Segment worker for each call_id
-        yield sagaEffects.fork(callSegmentWorker, {
+        yield sagaEffects.fork(callSegmentWorker as any, {
           ...options,
           instance: cfRoomSession,
           action,

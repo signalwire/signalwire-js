@@ -4,127 +4,127 @@
  */
 
 import {
-  BaseComponentOptions,
-  BaseConnectionState,
-  ClientEvents,
-  EmitterContract,
-  RTCTrackEventName,
-  UserOptions,
-  SessionStatus,
-  SessionEvents,
-  VideoLayout,
-  InternalVideoLayout,
-  VideoPosition,
-  VideoPositions,
-  CallUpdatedEventParams,
-  CallLeftEventParams,
-  CallStateEventParams,
-  CallPlayEventParams,
-  CallConnectEventParams,
-  CallRoomEventParams,
-  ConversationMessageEventName,
-  ConversationMessageEvent,
-  ConversationEventParams,
-  ConversationEvent,
+  BaseComponentOptions as CoreBaseComponentOptions,
+  BaseConnectionState as CoreBaseConnectionState,
+  ClientEvents as CoreClientEvents,
+  EmitterContract as CoreEmitterContract,
+  RTCTrackEventName as CoreRTCTrackEventName,
+  UserOptions as CoreUserOptions,
+  SessionStatus as CoreSessionStatus,
+  SessionEvents as CoreSessionEvents,
+  VideoLayout as CoreVideoLayout,
+  InternalVideoLayout as CoreInternalVideoLayout,
+  VideoPosition as CoreVideoPosition,
+  VideoPositions as CoreVideoPositions,
+  CallUpdatedEventParams as CoreCallUpdatedEventParams,
+  CallLeftEventParams as CoreCallLeftEventParams,
+  CallStateEventParams as CoreCallStateEventParams,
+  CallPlayEventParams as CoreCallPlayEventParams,
+  CallConnectEventParams as CoreCallConnectEventParams,
+  CallRoomEventParams as CoreCallRoomEventParams,
+  ConversationMessageEventName as CoreConversationMessageEventName,
+  ConversationMessageEvent as CoreConversationMessageEvent,
+  ConversationEventParams as CoreConversationEventParams,
+  ConversationEvent as CoreConversationEvent,
   EventEmitter,
-  SetAudioFlagsParams,
+  SetAudioFlagsParams as CoreSetAudioFlagsParams,
 } from '@signalwire/core'
 import { A } from 'ts-toolbelt'
 import { ShallowCompute } from './utils/typeUtils'
 import {
   // FIXME: Importing from the core package
   CallRoomEventParams as FabricCallRoomEventParams,
-  CallLayoutChangedEventParams,
-  CallMemberJoinedEventParams,
-  CallMemberUpdatedEventParams,
-  CallMemberLeftEventParams,
-  CallMemberTalkingEventParams,
-  CallMemberEventParams,
-  CallMemberEntity,
-  InternalCallMemberEntity,
+  CallLayoutChangedEventParams as FabricCallLayoutChangedEventParams,
+  CallMemberJoinedEventParams as FabricCallMemberJoinedEventParams,
+  CallMemberUpdatedEventParams as FabricCallMemberUpdatedEventParams,
+  CallMemberLeftEventParams as FabricCallMemberLeftEventParams,
+  CallMemberTalkingEventParams as FabricCallMemberTalkingEventParams,
+  CallMemberEventParams as FabricCallMemberEventParams,
+  CallMemberEntity as FabricCallMemberEntity,
+  InternalCallMemberEntity as FabricInternalCallMemberEntity,
 } from './utils/interfaces/fabric'
 import {
-  BaseConnectionOptions,
-  ConnectionOptions,
-  MicrophoneAnalyzer,
+  BaseConnectionOptions as WebRTCBaseConnectionOptions,
+  ConnectionOptions as WebRTCConnectionOptions,
+  MicrophoneAnalyzer as WebRTCMicrophoneAnalyzer,
 } from '@signalwire/webrtc'
 import {
-  CallJoinedEventParams,
-  RoomSessionObjectEventsHandlerMap,
-  RoomSessionObjectEvents,
-  RoomEventNames,
-  StartScreenShareOptions,
+  CallJoinedEventParams as LocalCallJoinedEventParams,
+  RoomSessionObjectEventsHandlerMap as LocalRoomSessionObjectEventsHandlerMap,
+  RoomSessionObjectEvents as LocalRoomSessionObjectEvents,
+  RoomEventNames as LocalRoomEventNames,
+  StartScreenShareOptions as LocalStartScreenShareOptions,
 } from './utils/interfaces'
 import {
   // From interfaces/address.ts
-  ResourceType,
-  GetAddressResponse,
-  Address,
-  GetAddressesParams,
-  GetAddressByIdParams,
-  GetAddressByNameParams,
-  GetAddressParams,
-  GetAddressResult,
-  GetAddressesResponse,
-  GetAddressesResult,
+  ResourceType as FabricResourceType,
+  GetAddressResponse as FabricGetAddressResponse,
+  Address as FabricAddress,
+  GetAddressesParams as FabricGetAddressesParams,
+  GetAddressByIdParams as FabricGetAddressByIdParams,
+  GetAddressByNameParams as FabricGetAddressByNameParams,
+  GetAddressParams as FabricGetAddressParams,
+  GetAddressResult as FabricGetAddressResult,
+  GetAddressesResponse as FabricGetAddressesResponse,
+  GetAddressesResult as FabricGetAddressesResult,
   // From interfaces/capabilities.ts
-  CapabilityOnOffStateContract,
-  MemberCapabilityContract,
-  CallCapabilitiesContract,
+  CapabilityOnOffStateContract as FabricCapabilityOnOffStateContract,
+  MemberCapabilityContract as FabricMemberCapabilityContract,
+  CallCapabilitiesContract as FabricCallCapabilitiesContract,
   // From interfaces/conversation.ts
-  ConversationContract,
-  SendConversationMessageParams,
-  SendConversationMessageResponse,
-  SendConversationMessageResult,
-  GetConversationsParams,
-  ConversationResponse,
-  GetConversationsResponse,
-  GetConversationsResult,
-  ConversationSubscribeCallback,
-  ConversationSubscribeResult,
-  ConversationChatMessagesSubscribeParams,
-  ConversationChatMessagesSubscribeResult,
-  JoinConversationParams,
-  JoinConversationResponse,
-  JoinConversationResult,
-  GetMessagesParams,
-  ConversationMessage,
-  GetMessagesResult,
-  ConversationChatMessage,
-  GetConversationChatMessageParams,
-  GetConversationChatMessageResult,
-  GetConversationMessagesResponse,
-  GetConversationMessagesParams,
-  GetConversationMessagesResult,
-  ConversationAPISendMessageParams,
-  ConversationAPIGetMessagesParams,
+  ConversationContract as FabricConversationContract,
+  SendConversationMessageParams as FabricSendConversationMessageParams,
+  SendConversationMessageResponse as FabricSendConversationMessageResponse,
+  SendConversationMessageResult as FabricSendConversationMessageResult,
+  GetConversationsParams as FabricGetConversationsParams,
+  ConversationResponse as FabricConversationResponse,
+  GetConversationsResponse as FabricGetConversationsResponse,
+  GetConversationsResult as FabricGetConversationsResult,
+  ConversationSubscribeCallback as FabricConversationSubscribeCallback,
+  ConversationSubscribeResult as FabricConversationSubscribeResult,
+  ConversationChatMessagesSubscribeParams as FabricConversationChatMessagesSubscribeParams,
+  ConversationChatMessagesSubscribeResult as FabricConversationChatMessagesSubscribeResult,
+  JoinConversationParams as FabricJoinConversationParams,
+  JoinConversationResponse as FabricJoinConversationResponse,
+  JoinConversationResult as FabricJoinConversationResult,
+  GetMessagesParams as FabricGetMessagesParams,
+  ConversationMessage as FabricConversationMessage,
+  GetMessagesResult as FabricGetMessagesResult,
+  ConversationChatMessage as FabricConversationChatMessage,
+  GetConversationChatMessageParams as FabricGetConversationChatMessageParams,
+  GetConversationChatMessageResult as FabricGetConversationChatMessageResult,
+  GetConversationMessagesResponse as FabricGetConversationMessagesResponse,
+  GetConversationMessagesParams as FabricGetConversationMessagesParams,
+  GetConversationMessagesResult as FabricGetConversationMessagesResult,
+  ConversationAPISendMessageParams as FabricConversationAPISendMessageParams,
+  ConversationAPIGetMessagesParams as FabricConversationAPIGetMessagesParams,
   // From interfaces/device.ts
-  RegisterDeviceType,
-  RegisterDeviceParams,
-  UnregisterDeviceParams,
-  RegisterDeviceResponse,
-  RegisterDeviceResult,
+  RegisterDeviceType as FabricRegisterDeviceType,
+  RegisterDeviceParams as FabricRegisterDeviceParams,
+  UnregisterDeviceParams as FabricUnregisterDeviceParams,
+  RegisterDeviceResponse as FabricRegisterDeviceResponse,
+  RegisterDeviceResult as FabricRegisterDeviceResult,
   // From interfaces/incomingCallManager.ts
-  IncomingInviteSource,
-  IncomingInvite,
-  IncomingInviteWithSource,
-  IncomingCallNotification,
-  IncomingCallHandler,
-  IncomingCallHandlers,
+  IncomingInviteSource as FabricIncomingInviteSource,
+  IncomingInvite as FabricIncomingInvite,
+  IncomingInviteWithSource as FabricIncomingInviteWithSource,
+  IncomingCallNotification as FabricIncomingCallNotification,
+  IncomingCallHandler as FabricIncomingCallHandler,
+  IncomingCallHandlers as FabricIncomingCallHandlers,
   // From interfaces/wsClient.ts
-  OnlineParams,
-  HandlePushNotificationParams,
-  HandlePushNotificationResult,
-  DialParams,
-  ReattachParams,
+  OnlineParams as FabricOnlineParams,
+  HandlePushNotificationParams as FabricHandlePushNotificationParams,
+  HandlePushNotificationResult as FabricHandlePushNotificationResult,
+  DialParams as FabricDialParams,
+  ReattachParams as FabricReattachParams,
   // From interfaces/index.ts
-  SignalWireClient,
-  SignalWireContract,
-  SignalWireClientParams,
-  GetSubscriberInfoResponse,
-  GetSubscriberInfoResult,
-  PaginatedResponse,
-  PaginatedResult,
+  SignalWireClient as FabricSignalWireClient,
+  SignalWireContract as FabricSignalWireContract,
+  SignalWireClientParams as FabricSignalWireClientParams,
+  GetSubscriberInfoResponse as FabricGetSubscriberInfoResponse,
+  GetSubscriberInfoResult as FabricGetSubscriberInfoResult,
+  PaginatedResponse as FabricPaginatedResponse,
+  PaginatedResult as FabricPaginatedResult,
 } from './fabric'
 
 /**
@@ -147,274 +147,132 @@ export { RoomSessionDevice } from './RoomSessionDevice'
  */
 export * as WebRTC from './webrtc'
 
-type ExternalFabricRoomEventParams = A.Compute<FabricCallRoomEventParams, 'deep'>
-type ExternalBaseComponentOptions = A.Compute<BaseComponentOptions, 'deep'>
-type ExternalBaseConnectionState = A.Compute<BaseConnectionState, 'deep'>
-type ExternalClientEvents = A.Compute<ClientEvents, 'deep'>
-type ExternalEmitterContract<EventTypes extends EventEmitter.ValidEventTypes> =
-  ShallowCompute<EmitterContract<EventTypes>>
-type ExternalRTCTrackEventName = A.Compute<RTCTrackEventName, 'deep'>
-type ExternalUserOptions = A.Compute<UserOptions, 'deep'>
-type ExternalSessionStatus = A.Compute<SessionStatus, 'deep'>
-type ExternalSessionEvents = A.Compute<SessionEvents, 'deep'>
-type ExternalVideoLayout = A.Compute<VideoLayout, 'deep'>
-type ExternalInternalVideoLayout = A.Compute<InternalVideoLayout, 'deep'>
-type ExternalVideoPosition = A.Compute<VideoPosition, 'deep'>
-type ExternalVideoPositions = A.Compute<VideoPositions, 'deep'>
-type ExternalCallUpdatedEventParams = A.Compute<CallUpdatedEventParams, 'deep'>
-type ExternalCallLeftEventParams = A.Compute<CallLeftEventParams, 'deep'>
-type ExternalCallStateEventParams = A.Compute<CallStateEventParams, 'deep'>
-type ExternalCallPlayEventParams = A.Compute<CallPlayEventParams, 'deep'>
-type ExternalCallConnectEventParams = A.Compute<CallConnectEventParams, 'deep'>
-type ExternalCallRoomEventParams = A.Compute<CallRoomEventParams, 'deep'>
-type ExternalFabricLayoutChangedEventParams =
-  A.Compute<CallLayoutChangedEventParams, 'deep'>
-type ExternalFabricMemberJoinedEventParams =
-  A.Compute<CallMemberJoinedEventParams, 'deep'>
-type ExternalFabricMemberUpdatedEventParams =
-  A.Compute<CallMemberUpdatedEventParams, 'deep'>
-type ExternalFabricMemberLeftEventParams = A.Compute<CallMemberLeftEventParams, 'deep'>
-type ExternalFabricMemberTalkingEventParams =
-  A.Compute<CallMemberTalkingEventParams, 'deep'>
-type ExternalFabricMemberEventParams = A.Compute<CallMemberEventParams, 'deep'>
-type ExternalFabricMemberEntity = A.Compute<CallMemberEntity, 'deep'>
-type ExternalInternalFabricMemberEntity = A.Compute<InternalCallMemberEntity, 'deep'>
-type ExternalConversationMessageEventName =
-  A.Compute<ConversationMessageEventName, 'deep'>
-type ExternalConversationMessageEvent = A.Compute<ConversationMessageEvent, 'deep'>
-type ExternalConversationEventParams = A.Compute<ConversationEventParams, 'deep'>
-type ExternalConversationEvent = A.Compute<ConversationEvent, 'deep'>
-type ExternalSetAudioFlagsParams = A.Compute<SetAudioFlagsParams, 'deep'>
+// Core types exports
+export type BaseComponentOptions = A.Compute<CoreBaseComponentOptions, 'deep'>
+export type BaseConnectionState = A.Compute<CoreBaseConnectionState, 'deep'>
+export type ClientEvents = A.Compute<CoreClientEvents, 'deep'>
+export type EmitterContract<EventTypes extends EventEmitter.ValidEventTypes> = ShallowCompute<CoreEmitterContract<EventTypes>>
+export type RTCTrackEventName = A.Compute<CoreRTCTrackEventName, 'deep'>
+export type UserOptions = A.Compute<CoreUserOptions, 'deep'>
+export type SessionStatus = A.Compute<CoreSessionStatus, 'deep'>
+export type SessionEvents = A.Compute<CoreSessionEvents, 'deep'>
+export type VideoLayout = A.Compute<CoreVideoLayout, 'deep'>
+export type InternalVideoLayout = A.Compute<CoreInternalVideoLayout, 'deep'>
+export type VideoPosition = A.Compute<CoreVideoPosition, 'deep'>
+export type VideoPositions = A.Compute<CoreVideoPositions, 'deep'>
+
+/**
+ * Call Fabric types
+ */
+export type CallUpdatedEventParams = A.Compute<CoreCallUpdatedEventParams, 'deep'>
+export type CallLeftEventParams = A.Compute<CoreCallLeftEventParams, 'deep'>
+export type CallStateEventParams = A.Compute<CoreCallStateEventParams, 'deep'>
+export type CallPlayEventParams = A.Compute<CoreCallPlayEventParams, 'deep'>
+export type CallConnectEventParams = A.Compute<CoreCallConnectEventParams, 'deep'>
+export type CallRoomEventParams = A.Compute<CoreCallRoomEventParams, 'deep'>
+export type CallLayoutChangedEventParams = A.Compute<FabricCallLayoutChangedEventParams, 'deep'>
+export type CallMemberJoinedEventParams = A.Compute<FabricCallMemberJoinedEventParams, 'deep'>
+export type CallMemberUpdatedEventParams = A.Compute<FabricCallMemberUpdatedEventParams, 'deep'>
+export type CallMemberLeftEventParams = A.Compute<FabricCallMemberLeftEventParams, 'deep'>
+export type CallMemberTalkingEventParams = A.Compute<FabricCallMemberTalkingEventParams, 'deep'>
+export type CallMemberEventParams = A.Compute<FabricCallMemberEventParams, 'deep'>
+export type CallMemberEntity = A.Compute<FabricCallMemberEntity, 'deep'>
+export type InternalCallMemberEntity = A.Compute<FabricInternalCallMemberEntity, 'deep'>
+export type ConversationMessageEventName = A.Compute<CoreConversationMessageEventName, 'deep'>
+export type ConversationMessageEvent = A.Compute<CoreConversationMessageEvent, 'deep'>
+export type ConversationEventParams = A.Compute<CoreConversationEventParams, 'deep'>
+export type ConversationEvent = A.Compute<CoreConversationEvent, 'deep'>
+export type CallEventParams = A.Compute<FabricCallRoomEventParams, 'deep'>
+export type SetAudioFlagsParams = A.Compute<CoreSetAudioFlagsParams, 'deep'>
 
 // WebRTC types
-type ExternalBaseConnectionOptions = A.Compute<BaseConnectionOptions, 'deep'>
-type ExternalConnectionOptions = A.Compute<ConnectionOptions, 'deep'>
-type ExternalMicrophoneAnalyzer = A.Compute<MicrophoneAnalyzer, 'deep'>
+export type BaseConnectionOptions = A.Compute<WebRTCBaseConnectionOptions, 'deep'>
+export type ConnectionOptions = A.Compute<WebRTCConnectionOptions, 'deep'>
+export type MicrophoneAnalyzer = A.Compute<WebRTCMicrophoneAnalyzer, 'deep'>
 
 // Local interface types
-type ExternalCallJoinedEventParams = A.Compute<CallJoinedEventParams, 'deep'>
-type ExternalRoomSessionObjectEventsHandlerMap =
-  A.Compute<RoomSessionObjectEventsHandlerMap, 'deep'>
-type ExternalRoomSessionObjectEvents = A.Compute<RoomSessionObjectEvents, 'deep'>
-type ExternalRoomEventNames = A.Compute<RoomEventNames, 'deep'>
-type ExternalStartScreenShareOptions = A.Compute<StartScreenShareOptions, 'deep'>
+export type CallJoinedEventParams = A.Compute<LocalCallJoinedEventParams, 'deep'>
+export type RoomSessionObjectEventsHandlerMap = A.Compute<LocalRoomSessionObjectEventsHandlerMap, 'deep'>
+export type RoomSessionObjectEvents = A.Compute<LocalRoomSessionObjectEvents, 'deep'>
+export type RoomEventNames = A.Compute<LocalRoomEventNames, 'deep'>
+export type StartScreenShareOptions = A.Compute<LocalStartScreenShareOptions, 'deep'>
 
-// Fabric types - Address
-type ExternalResourceType = A.Compute<ResourceType, 'deep'>
-type ExternalGetAddressResponse = A.Compute<GetAddressResponse, 'deep'>
-type ExternalAddress = A.Compute<Address, 'deep'>
-type ExternalGetAddressesParams = A.Compute<GetAddressesParams, 'deep'>
-type ExternalGetAddressByIdParams = A.Compute<GetAddressByIdParams, 'deep'>
-type ExternalGetAddressByNameParams = A.Compute<GetAddressByNameParams, 'deep'>
-type ExternalGetAddressParams = A.Compute<GetAddressParams, 'deep'>
-type ExternalGetAddressResult = A.Compute<GetAddressResult, 'deep'>
-type ExternalGetAddressesResponse = A.Compute<GetAddressesResponse, 'deep'>
-type ExternalGetAddressesResult = A.Compute<GetAddressesResult, 'deep'>
+// Export fabric types
+// Address types
+export type ResourceType = A.Compute<FabricResourceType, 'deep'>
+export type GetAddressResponse = A.Compute<FabricGetAddressResponse, 'deep'>
+export type Address = A.Compute<FabricAddress, 'deep'>
+export type GetAddressesParams = A.Compute<FabricGetAddressesParams, 'deep'>
+export type GetAddressByIdParams = A.Compute<FabricGetAddressByIdParams, 'deep'>
+export type GetAddressByNameParams = A.Compute<FabricGetAddressByNameParams, 'deep'>
+export type GetAddressParams = A.Compute<FabricGetAddressParams, 'deep'>
+export type GetAddressResult = A.Compute<FabricGetAddressResult, 'deep'>
+export type GetAddressesResponse = A.Compute<FabricGetAddressesResponse, 'deep'>
+export type GetAddressesResult = A.Compute<FabricGetAddressesResult, 'deep'>
 
-// Fabric types - Capabilities
-type ExternalCapabilityOnOffStateContract =
-  A.Compute<CapabilityOnOffStateContract, 'deep'>
-type ExternalMemberCapabilityContract = ShallowCompute<MemberCapabilityContract>
-type ExternalCallCapabilitiesContract = ShallowCompute<CallCapabilitiesContract>
+// Capabilities types
+export type CapabilityOnOffStateContract = A.Compute<FabricCapabilityOnOffStateContract, 'deep'>
+export type MemberCapabilityContract = ShallowCompute<FabricMemberCapabilityContract>
+export type CallCapabilitiesContract = ShallowCompute<FabricCallCapabilitiesContract>
 
-// Fabric types - Conversation
-type ExternalConversationContract = ShallowCompute<ConversationContract>
-type ExternalSendConversationMessageParams =
-  A.Compute<SendConversationMessageParams, 'deep'>
-type ExternalSendConversationMessageResponse =
-  A.Compute<SendConversationMessageResponse, 'deep'>
-type ExternalSendConversationMessageResult =
-  A.Compute<SendConversationMessageResult, 'deep'>
-type ExternalGetConversationsParams = A.Compute<GetConversationsParams, 'deep'>
-type ExternalConversationResponse = A.Compute<ConversationResponse, 'deep'>
-type ExternalGetConversationsResponse = A.Compute<GetConversationsResponse, 'deep'>
-type ExternalGetConversationsResult = A.Compute<GetConversationsResult, 'deep'>
-type ExternalConversationSubscribeCallback =
-  ShallowCompute<ConversationSubscribeCallback>
-type ExternalConversationSubscribeResult = A.Compute<ConversationSubscribeResult, 'deep'>
-type ExternalConversationChatMessagesSubscribeParams =
-  A.Compute<ConversationChatMessagesSubscribeParams, 'deep'>
-type ExternalConversationChatMessagesSubscribeResult =
-  A.Compute<ConversationChatMessagesSubscribeResult, 'deep'>
-type ExternalJoinConversationParams = A.Compute<JoinConversationParams, 'deep'>
-type ExternalJoinConversationResponse = A.Compute<JoinConversationResponse, 'deep'>
-type ExternalJoinConversationResult = A.Compute<JoinConversationResult, 'deep'>
-type ExternalGetMessagesParams = A.Compute<GetMessagesParams, 'deep'>
-type ExternalConversationMessage = A.Compute<ConversationMessage, 'deep'>
-type ExternalGetMessagesResult = A.Compute<GetMessagesResult, 'deep'>
-type ExternalConversationChatMessage = A.Compute<ConversationChatMessage, 'deep'>
-type ExternalGetConversationChatMessageParams =
-  A.Compute<GetConversationChatMessageParams, 'deep'>
-type ExternalGetConversationChatMessageResult =
-  A.Compute<GetConversationChatMessageResult, 'deep'>
-type ExternalGetConversationMessagesResponse =
-  A.Compute<GetConversationMessagesResponse, 'deep'>
-type ExternalGetConversationMessagesParams =
-  A.Compute<GetConversationMessagesParams, 'deep'>
-type ExternalGetConversationMessagesResult =
-  A.Compute<GetConversationMessagesResult, 'deep'>
-type ExternalConversationAPISendMessageParams =
-  A.Compute<ConversationAPISendMessageParams, 'deep'>
-type ExternalConversationAPIGetMessagesParams =
-  A.Compute<ConversationAPIGetMessagesParams, 'deep'>
+// Conversation types
+export type ConversationContract = ShallowCompute<FabricConversationContract>
+export type SendConversationMessageParams = A.Compute<FabricSendConversationMessageParams, 'deep'>
+export type SendConversationMessageResponse = A.Compute<FabricSendConversationMessageResponse, 'deep'>
+export type SendConversationMessageResult = A.Compute<FabricSendConversationMessageResult, 'deep'>
+export type GetConversationsParams = A.Compute<FabricGetConversationsParams, 'deep'>
+export type ConversationResponse = A.Compute<FabricConversationResponse, 'deep'>
+export type GetConversationsResponse = A.Compute<FabricGetConversationsResponse, 'deep'>
+export type GetConversationsResult = A.Compute<FabricGetConversationsResult, 'deep'>
+export type ConversationSubscribeCallback = ShallowCompute<FabricConversationSubscribeCallback>
+export type ConversationSubscribeResult = A.Compute<FabricConversationSubscribeResult, 'deep'>
+export type ConversationChatMessagesSubscribeParams = A.Compute<FabricConversationChatMessagesSubscribeParams, 'deep'>
+export type ConversationChatMessagesSubscribeResult = A.Compute<FabricConversationChatMessagesSubscribeResult, 'deep'>
+export type JoinConversationParams = A.Compute<FabricJoinConversationParams, 'deep'>
+export type JoinConversationResponse = A.Compute<FabricJoinConversationResponse, 'deep'>
+export type JoinConversationResult = A.Compute<FabricJoinConversationResult, 'deep'>
+export type GetMessagesParams = A.Compute<FabricGetMessagesParams, 'deep'>
+export type ConversationMessage = A.Compute<FabricConversationMessage, 'deep'>
+export type GetMessagesResult = A.Compute<FabricGetMessagesResult, 'deep'>
+export type ConversationChatMessage = A.Compute<FabricConversationChatMessage, 'deep'>
+export type GetConversationChatMessageParams = A.Compute<FabricGetConversationChatMessageParams, 'deep'>
+export type GetConversationChatMessageResult = A.Compute<FabricGetConversationChatMessageResult, 'deep'>
+export type GetConversationMessagesResponse = A.Compute<FabricGetConversationMessagesResponse, 'deep'>
+export type GetConversationMessagesParams = A.Compute<FabricGetConversationMessagesParams, 'deep'>
+export type GetConversationMessagesResult = A.Compute<FabricGetConversationMessagesResult, 'deep'>
+export type ConversationAPISendMessageParams = A.Compute<FabricConversationAPISendMessageParams, 'deep'>
+export type ConversationAPIGetMessagesParams = A.Compute<FabricConversationAPIGetMessagesParams, 'deep'>
 
-// Fabric types - Device
-type ExternalRegisterDeviceType = A.Compute<RegisterDeviceType, 'deep'>
-type ExternalRegisterDeviceParams = A.Compute<RegisterDeviceParams, 'deep'>
-type ExternalUnregisterDeviceParams = A.Compute<UnregisterDeviceParams, 'deep'>
-type ExternalRegisterDeviceResponse = A.Compute<RegisterDeviceResponse, 'deep'>
-type ExternalRegisterDeviceResult = A.Compute<RegisterDeviceResult, 'deep'>
+// Device types
+export type RegisterDeviceType = A.Compute<FabricRegisterDeviceType, 'deep'>
+export type RegisterDeviceParams = A.Compute<FabricRegisterDeviceParams, 'deep'>
+export type UnregisterDeviceParams = A.Compute<FabricUnregisterDeviceParams, 'deep'>
+export type RegisterDeviceResponse = A.Compute<FabricRegisterDeviceResponse, 'deep'>
+export type RegisterDeviceResult = A.Compute<FabricRegisterDeviceResult, 'deep'>
 
-// Fabric types - IncomingCallManager
-type ExternalIncomingInviteSource = A.Compute<IncomingInviteSource, 'deep'>
-type ExternalIncomingInvite = A.Compute<IncomingInvite, 'deep'>
-type ExternalIncomingInviteWithSource = A.Compute<IncomingInviteWithSource, 'deep'>
-type ExternalIncomingCallNotification = A.Compute<IncomingCallNotification, 'deep'>
-type ExternalIncomingCallHandler = ShallowCompute<IncomingCallHandler>
-type ExternalIncomingCallHandlers = ShallowCompute<IncomingCallHandlers>
+// IncomingCallManager types
+export type IncomingInviteSource = A.Compute<FabricIncomingInviteSource, 'deep'>
+export type IncomingInvite = A.Compute<FabricIncomingInvite, 'deep'>
+export type IncomingInviteWithSource = A.Compute<FabricIncomingInviteWithSource, 'deep'>
+export type IncomingCallNotification = A.Compute<FabricIncomingCallNotification, 'deep'>
+export type IncomingCallHandler = ShallowCompute<FabricIncomingCallHandler>
+export type IncomingCallHandlers = ShallowCompute<FabricIncomingCallHandlers>
 
-// Fabric types - WSClient
-type ExternalOnlineParams = A.Compute<OnlineParams, 'deep'>
-type ExternalHandlePushNotificationParams =
-  A.Compute<HandlePushNotificationParams, 'deep'>
-type ExternalHandlePushNotificationResult =
-  A.Compute<HandlePushNotificationResult, 'deep'>
-type ExternalDialParams = A.Compute<DialParams, 'deep'>
-type ExternalReattachParams = A.Compute<ReattachParams, 'deep'>
+// WSClient types
+export type OnlineParams = A.Compute<FabricOnlineParams, 'deep'>
+export type HandlePushNotificationParams = A.Compute<FabricHandlePushNotificationParams, 'deep'>
+export type HandlePushNotificationResult = A.Compute<FabricHandlePushNotificationResult, 'deep'>
+export type DialParams = A.Compute<FabricDialParams, 'deep'>
+export type ReattachParams = A.Compute<FabricReattachParams, 'deep'>
 
-// Fabric types - Main interfaces
-type ExternalSignalWireClient = ShallowCompute<SignalWireClient>
-type ExternalSignalWireContract = ShallowCompute<SignalWireContract>
-type ExternalSignalWireClientParams = A.Compute<SignalWireClientParams, 'deep'>
-type ExternalGetSubscriberInfoResponse = A.Compute<GetSubscriberInfoResponse, 'deep'>
-type ExternalGetSubscriberInfoResult = A.Compute<GetSubscriberInfoResult, 'deep'>
-type ExternalPaginatedResponse<T> = ShallowCompute<PaginatedResponse<T>>
-type ExternalPaginatedResult<T> = ShallowCompute<PaginatedResult<T>>
-
-export {
-  ExternalBaseComponentOptions as BaseComponentOptions,
-  ExternalBaseConnectionState as BaseConnectionState,
-  ExternalClientEvents as ClientEvents,
-  ExternalEmitterContract as EmitterContract,
-  ExternalRTCTrackEventName as RTCTrackEventName,
-  ExternalUserOptions as UserOptions,
-  ExternalSessionStatus as SessionStatus,
-  ExternalSessionEvents as SessionEvents,
-  ExternalVideoLayout as VideoLayout,
-  ExternalInternalVideoLayout as InternalVideoLayout,
-  ExternalVideoPosition as VideoPosition,
-  ExternalVideoPositions as VideoPositions,
-  /**
-   * Call Fabric types
-   */
-  ExternalCallUpdatedEventParams as CallUpdatedEventParams,
-  ExternalCallLeftEventParams as CallLeftEventParams,
-  ExternalCallStateEventParams as CallStateEventParams,
-  ExternalCallPlayEventParams as CallPlayEventParams,
-  ExternalCallConnectEventParams as CallConnectEventParams,
-  ExternalCallRoomEventParams as CallRoomEventParams,
-  ExternalFabricLayoutChangedEventParams as CallLayoutChangedEventParams,
-  ExternalFabricMemberJoinedEventParams as CallMemberJoinedEventParams,
-  ExternalFabricMemberUpdatedEventParams as CallMemberUpdatedEventParams,
-  ExternalFabricMemberLeftEventParams as CallMemberLeftEventParams,
-  ExternalFabricMemberTalkingEventParams as CallMemberTalkingEventParams,
-  ExternalFabricMemberEventParams as CallMemberEventParams,
-  ExternalFabricMemberEntity as CallMemberEntity,
-  ExternalInternalFabricMemberEntity as InternalCallMemberEntity,
-  ExternalConversationMessageEventName as ConversationMessageEventName,
-  ExternalConversationMessageEvent as ConversationMessageEvent,
-  ExternalConversationEventParams as ConversationEventParams,
-  ExternalConversationEvent as ConversationEvent,
-  ExternalFabricRoomEventParams as CallEventParams,
-  ExternalSetAudioFlagsParams as SetAudioFlagsParams,
-}
-
-export {
-  ExternalBaseConnectionOptions as BaseConnectionOptions,
-  ExternalConnectionOptions as ConnectionOptions,
-  ExternalMicrophoneAnalyzer as MicrophoneAnalyzer,
-}
-
-export {
-  ExternalCallJoinedEventParams as CallJoinedEventParams,
-  ExternalRoomSessionObjectEventsHandlerMap as RoomSessionObjectEventsHandlerMap,
-  ExternalRoomSessionObjectEvents as RoomSessionObjectEvents,
-  ExternalRoomEventNames as RoomEventNames,
-  ExternalStartScreenShareOptions as StartScreenShareOptions,
-}
-
-// Export prettified fabric types
-export {
-  // Address types
-  ExternalResourceType as ResourceType,
-  ExternalGetAddressResponse as GetAddressResponse,
-  ExternalAddress as Address,
-  ExternalGetAddressesParams as GetAddressesParams,
-  ExternalGetAddressByIdParams as GetAddressByIdParams,
-  ExternalGetAddressByNameParams as GetAddressByNameParams,
-  ExternalGetAddressParams as GetAddressParams,
-  ExternalGetAddressResult as GetAddressResult,
-  ExternalGetAddressesResponse as GetAddressesResponse,
-  ExternalGetAddressesResult as GetAddressesResult,
-  // Capabilities types
-  ExternalCapabilityOnOffStateContract as CapabilityOnOffStateContract,
-  ExternalMemberCapabilityContract as MemberCapabilityContract,
-  ExternalCallCapabilitiesContract as CallCapabilitiesContract,
-  // Conversation types
-  ExternalConversationContract as ConversationContract,
-  ExternalSendConversationMessageParams as SendConversationMessageParams,
-  ExternalSendConversationMessageResponse as SendConversationMessageResponse,
-  ExternalSendConversationMessageResult as SendConversationMessageResult,
-  ExternalGetConversationsParams as GetConversationsParams,
-  ExternalConversationResponse as ConversationResponse,
-  ExternalGetConversationsResponse as GetConversationsResponse,
-  ExternalGetConversationsResult as GetConversationsResult,
-  ExternalConversationSubscribeCallback as ConversationSubscribeCallback,
-  ExternalConversationSubscribeResult as ConversationSubscribeResult,
-  ExternalConversationChatMessagesSubscribeParams as ConversationChatMessagesSubscribeParams,
-  ExternalConversationChatMessagesSubscribeResult as ConversationChatMessagesSubscribeResult,
-  ExternalJoinConversationParams as JoinConversationParams,
-  ExternalJoinConversationResponse as JoinConversationResponse,
-  ExternalJoinConversationResult as JoinConversationResult,
-  ExternalGetMessagesParams as GetMessagesParams,
-  ExternalConversationMessage as ConversationMessage,
-  ExternalGetMessagesResult as GetMessagesResult,
-  ExternalConversationChatMessage as ConversationChatMessage,
-  ExternalGetConversationChatMessageParams as GetConversationChatMessageParams,
-  ExternalGetConversationChatMessageResult as GetConversationChatMessageResult,
-  ExternalGetConversationMessagesResponse as GetConversationMessagesResponse,
-  ExternalGetConversationMessagesParams as GetConversationMessagesParams,
-  ExternalGetConversationMessagesResult as GetConversationMessagesResult,
-  ExternalConversationAPISendMessageParams as ConversationAPISendMessageParams,
-  ExternalConversationAPIGetMessagesParams as ConversationAPIGetMessagesParams,
-  // Device types
-  ExternalRegisterDeviceType as RegisterDeviceType,
-  ExternalRegisterDeviceParams as RegisterDeviceParams,
-  ExternalUnregisterDeviceParams as UnregisterDeviceParams,
-  ExternalRegisterDeviceResponse as RegisterDeviceResponse,
-  ExternalRegisterDeviceResult as RegisterDeviceResult,
-  // IncomingCallManager types
-  ExternalIncomingInviteSource as IncomingInviteSource,
-  ExternalIncomingInvite as IncomingInvite,
-  ExternalIncomingInviteWithSource as IncomingInviteWithSource,
-  ExternalIncomingCallNotification as IncomingCallNotification,
-  ExternalIncomingCallHandler as IncomingCallHandler,
-  ExternalIncomingCallHandlers as IncomingCallHandlers,
-  // WSClient types
-  ExternalOnlineParams as OnlineParams,
-  ExternalHandlePushNotificationParams as HandlePushNotificationParams,
-  ExternalHandlePushNotificationResult as HandlePushNotificationResult,
-  ExternalDialParams as DialParams,
-  ExternalReattachParams as ReattachParams,
-  // Main interface types
-  ExternalSignalWireClient as SignalWireClient,
-  ExternalSignalWireContract as SignalWireContract,
-  ExternalSignalWireClientParams as SignalWireClientParams,
-  ExternalGetSubscriberInfoResponse as GetSubscriberInfoResponse,
-  ExternalGetSubscriberInfoResult as GetSubscriberInfoResult,
-  ExternalPaginatedResponse as PaginatedResponse,
-  ExternalPaginatedResult as PaginatedResult,
-}
+// Main interface types
+export type SignalWireClient = ShallowCompute<FabricSignalWireClient>
+export type SignalWireContract = ShallowCompute<FabricSignalWireContract>
+export type SignalWireClientParams = A.Compute<FabricSignalWireClientParams, 'deep'>
+export type GetSubscriberInfoResponse = A.Compute<FabricGetSubscriberInfoResponse, 'deep'>
+export type GetSubscriberInfoResult = A.Compute<FabricGetSubscriberInfoResult, 'deep'>
+export type PaginatedResponse<T> = ShallowCompute<FabricPaginatedResponse<T>>
+export type PaginatedResult<T> = ShallowCompute<FabricPaginatedResult<T>>
 
 /**
  * Build Video Element

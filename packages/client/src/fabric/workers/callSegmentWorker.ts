@@ -32,7 +32,7 @@ export const callSegmentWorker = function* (
   )
 
   // Handles the `call.joined` event before the worker loop
-  yield sagaEffects.fork(callJoinWorker, {
+  yield sagaEffects.fork(callJoinWorker as any, {
     ...options,
     action,
   })
@@ -46,7 +46,7 @@ export const callSegmentWorker = function* (
         break
       case 'call.left':
         // Wait for the `callLeftWorker` to finish and then stop this particular segment worker
-        yield sagaEffects.call(callLeftWorker, {
+        yield sagaEffects.call(callLeftWorker as any, {
           ...options,
           action,
         })
@@ -81,19 +81,19 @@ export const callSegmentWorker = function* (
        */
       case 'member.joined':
       case 'member.left': {
-        yield sagaEffects.fork(fabricMemberWorker, {
+        yield sagaEffects.fork(fabricMemberWorker as any, {
           ...options,
           action,
         })
         const videoAction =
-          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
-        yield sagaEffects.put(swEventChannel, videoAction)
+          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action as any)
+        yield sagaEffects.put(swEventChannel, videoAction as any)
         break
       }
       case 'member.updated': {
         const videoAction =
-          mapFabricMemberActionToVideoMemberUpdatedAction(action)
-        yield sagaEffects.put(swEventChannel, videoAction)
+          mapFabricMemberActionToVideoMemberUpdatedAction(action as any)
+        yield sagaEffects.put(swEventChannel, videoAction as any)
         break
       }
       case 'layout.changed': {
@@ -101,11 +101,11 @@ export const callSegmentWorker = function* (
         cfRoomSession.currentLayoutEvent = action.payload
         cfRoomSession.emit(type, payload)
         const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
-        yield sagaEffects.put(swEventChannel, videoAction)
+        yield sagaEffects.put(swEventChannel, videoAction as any)
         break
       }
       case 'member.talking': {
-        yield sagaEffects.fork(fabricMemberWorker, {
+        yield sagaEffects.fork(fabricMemberWorker as any, {
           ...options,
           action,
         })

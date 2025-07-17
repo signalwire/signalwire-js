@@ -63,6 +63,7 @@ Meanwhile, simpler types continue to use 'deep' mode for complete type resolutio
 ## Testing
 
 After implementing these changes:
+
 - ✅ Build passes successfully
 - ✅ No TypeScript errors
 - ✅ All packages compile correctly

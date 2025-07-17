@@ -17,7 +17,7 @@ import {
   CallState,
   CallStateEventParams,
   CallUpdated,
-  CallUpdatedEventParams,
+  CallUpdatedEventParams as CoreCallUpdatedEventParams,
   CallLeft,
   JSONRPCMethod,
   FabricLayoutChangedEventParams,
@@ -89,10 +89,10 @@ export type InternalCallRoomSessionEntity = A.Compute<
   'deep'
 >
 export type CallMemberEvent = A.Compute<FabricMemberEvent, 'deep'>
-export type CallAction = A.Compute<FabricAction, 'deep'>
+export type CallAction = ShallowCompute<FabricAction>
 export type CallRoomSessionMethods = FabricRoomSessionMethods
 export type CallMemberEntity = A.Compute<FabricMemberEntity, 'deep'>
-export type CallRoomEventParams = A.Compute<FabricRoomEventParams, 'deep'>
+export type CallRoomEventParams = ShallowCompute<FabricRoomEventParams>
 export type CallMemberJoinedEventParams = A.Compute<
   FabricMemberJoinedEventParams,
   'deep'
@@ -105,7 +105,7 @@ export type CallMemberUpdatedEventParams = A.Compute<
 export type CallMemberLeftEventParams = A.Compute<
   FabricMemberLeftEventParams,
   'deep'
->  
+>
 export type CallMemberTalkingEventParams = A.Compute<
   FabricMemberTalkingEventParams,
   'deep'
@@ -140,6 +140,9 @@ export type CallMemberUpdatedHandlerParams = {
 export type CallMemberListUpdatedParams = {
   members: InternalCallMemberEntity[]
 }
+
+// Create type aliases that preserve literal array types
+export type CallUpdatedEventParams = ShallowCompute<CoreCallUpdatedEventParams>
 
 export type CallJoinedEventParams = {
   capabilities: CallCapabilitiesContract
