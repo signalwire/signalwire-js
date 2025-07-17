@@ -1,4 +1,7 @@
-import { type ConversationEventParams } from '@signalwire/core'
+import type {
+  ConversationChatEventParams,
+  ConversationEventParams,
+} from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import type {
@@ -24,17 +27,30 @@ import type {
   JoinConversationResult,
   ConversationSubscribeResult,
   GetAddressResponse,
+  ConversationChatSubscribeCallback,
 } from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
-
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 const CACHE_ITEM_EXPIRATION = 1000 * 60 * 3 // 3 minutes
 interface ConversationOptions {
   httpClient: HTTPClient
   wsClient: WSClient
+}
+
+const isConversationChatEventParams = (
+  event: unknown
+): event is ConversationChatEventParams => {
+  return (
+    typeof event === 'object' &&
+    event !== null &&
+    'subtype' in event &&
+    event.subtype === 'chat' &&
+    'user_name' in event &&
+    'text' in event
+  )
 }
 
 // TODO: Implement a TS contract
@@ -44,7 +60,7 @@ export class Conversation {
   private callbacks = new Set<ConversationSubscribeCallback>()
   private chatSubscriptions: Record<
     string,
-    Set<ConversationSubscribeCallback>
+    Set<ConversationChatSubscribeCallback>
   > = {}
   private lookupCache = new Map<
     string,
@@ -82,10 +98,13 @@ export class Conversation {
 
   /** @internal */
   handleEvent(event: ConversationEventParams) {
-    if (event.subtype === 'chat') {
+    if (isConversationChatEventParams(event)) {
       const chatCallbacks = this.chatSubscriptions[event.group_id]
       if (chatCallbacks?.size) {
-        chatCallbacks.forEach((cb) => cb(event))
+        // the backend includes the user_name if is chat event
+        chatCallbacks.forEach((cb) =>
+          cb(event as unknown as ConversationChatEventParams)
+        )
       }
     }
 
@@ -161,8 +180,8 @@ export class Conversation {
         await this.httpClient.fetch<GetConversationMessagesResponse>(
           makeQueryParamsUrls(path, queryParams)
         )
-
-
+      
+      
       return buildPaginatedResult<ConversationMessage>(
         body,
         this.httpClient.fetch
