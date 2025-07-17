@@ -1,5 +1,5 @@
 import { PaginatedResponse, PaginatedResult } from '.'
-import type { ConversationEventParams } from '@signalwire/core'
+import type { ConversationEventParams, ConversationChatEventParams } from '@signalwire/core'
 
 export interface ConversationContract {
   readonly createdAt: number
@@ -52,6 +52,10 @@ export type GetConversationsResult = PaginatedResult<ConversationContract>
 
 export type ConversationSubscribeCallback = (
   event: ConversationEventParams
+) => unknown
+
+export type ConversationChatSubscribeCallback = (
+  event: ConversationChatEventParams
 ) => unknown
 
 export interface ConversationSubscribeResult {
