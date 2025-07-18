@@ -17,8 +17,8 @@ export type ShallowCompute<T> = A.Compute<T, 'flat'>
 export type DeepCompute<T> = A.Compute<T, 'deep'>
 
 /**
- * Selective compute - allows choosing computation depth based on type complexity
- * This is a placeholder for future enhancements if needed
+ * Selective compute - allows choosing computation depth ('flat' or 'deep')
+ * Useful for controlling type computation based on complexity requirements
  */
 export type SelectiveCompute<
   T,
