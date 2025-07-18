@@ -6,8 +6,8 @@ import {
   randomizeRoomName,
   setLayoutOnPage,
   expectLayoutChanged,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -62,7 +62,7 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -628,7 +628,7 @@ test.describe('RoomSession', () => {
     ])
 
     // --------------- Joining the 1st room ---------------
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
 
     // Checks that the video is visible
     await expectMCUVisible(pageOne)
@@ -668,7 +668,7 @@ test.describe('RoomSession', () => {
     )
 
     // --------------- Joining the 2nd room ---------------
-    await expectRoomJoined(pageTwo)
+    await expectRoomJoinWithDefaults(pageTwo)
 
     // Checks that the video is visible
     await expectMCUVisible(pageTwo)
