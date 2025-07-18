@@ -1,11 +1,17 @@
 import {
   CallJoinedEvent,
+  MapToPubSubShape,
   SDKActions,
   SagaIterator,
   getLogger,
   sagaEffects,
 } from '@signalwire/core'
-import { CallAction } from '../../utils/interfaces/fabric'
+import {
+  CallAction,
+  CallMemberJoinedEvent,
+  CallMemberLeftEvent,
+  CallMemberUpdatedEvent,
+} from '../../utils/interfaces/fabric'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { FabricWorkerParams } from './fabricWorker'
@@ -32,7 +38,7 @@ export const callSegmentWorker = function* (
   )
 
   // Handles the `call.joined` event before the worker loop
-  yield sagaEffects.fork(callJoinWorker as any, {
+  yield sagaEffects.fork(callJoinWorker, {
     ...options,
     action,
   })
@@ -46,7 +52,7 @@ export const callSegmentWorker = function* (
         break
       case 'call.left':
         // Wait for the `callLeftWorker` to finish and then stop this particular segment worker
-        yield sagaEffects.call(callLeftWorker as any, {
+        yield sagaEffects.call(callLeftWorker, {
           ...options,
           action,
         })
@@ -81,19 +87,28 @@ export const callSegmentWorker = function* (
        */
       case 'member.joined':
       case 'member.left': {
-        yield sagaEffects.fork(fabricMemberWorker as any, {
+        yield sagaEffects.fork(fabricMemberWorker, {
           ...options,
-          action,
+          // TS is complaining {[x: string]: {}} in assignable to Record<string, unknown>
+          action: action as unknown as MapToPubSubShape<
+            CallMemberJoinedEvent | CallMemberLeftEvent
+          >,
         })
-        const videoAction =
-          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action as any)
-        yield sagaEffects.put(swEventChannel, videoAction as any)
+        const videoAction = mapFabricMemberActionToVideoMemberJoinAndLeftAction(
+          // TS is complaining {[x: string]: {}} in assignable to Record<string, unknown>
+          action as unknown as MapToPubSubShape<
+            CallMemberJoinedEvent | CallMemberLeftEvent
+          >
+        )
+        yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
       case 'member.updated': {
-        const videoAction =
-          mapFabricMemberActionToVideoMemberUpdatedAction(action as any)
-        yield sagaEffects.put(swEventChannel, videoAction as any)
+        const videoAction = mapFabricMemberActionToVideoMemberUpdatedAction(
+          // TS is complaining {[x: string]: {}} in assignable to Record<string, unknown>
+          action as unknown as MapToPubSubShape<CallMemberUpdatedEvent>
+        )
+        yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
       case 'layout.changed': {
@@ -101,11 +116,11 @@ export const callSegmentWorker = function* (
         cfRoomSession.currentLayoutEvent = action.payload
         cfRoomSession.emit(type, payload)
         const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
-        yield sagaEffects.put(swEventChannel, videoAction as any)
+        yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
       case 'member.talking': {
-        yield sagaEffects.fork(fabricMemberWorker as any, {
+        yield sagaEffects.fork(fabricMemberWorker, {
           ...options,
           action,
         })
