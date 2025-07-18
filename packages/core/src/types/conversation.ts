@@ -16,11 +16,25 @@ export interface ConversationMessageEventParams {
   from_address_id: string
 }
 
+export type ConversationChatMessageEventParams = Omit<
+  ConversationMessageEventParams,
+  'kind' | 'hidden' | 'metadata'
+> & {
+  text: string
+  user_name: string
+}
+
 export interface ConversationMessageEvent extends SwEvent {
   event_type: ConversationMessageEventName
   params: ConversationMessageEventParams
 }
 
+export interface ConversationChatMessageEvent extends SwEvent {
+  event_type: ConversationMessageEventName
+  params: ConversationChatMessageEventParams
+}
+
 export type ConversationEvent = ConversationMessageEvent
 
 export type ConversationEventParams = ConversationMessageEventParams
+export type ConversationChatEventParams = ConversationChatMessageEventParams

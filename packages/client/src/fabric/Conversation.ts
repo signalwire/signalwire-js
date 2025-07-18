@@ -1,4 +1,7 @@
-import { type ConversationEventParams } from '@signalwire/core'
+import type {
+  ConversationChatEventParams,
+  ConversationEventParams,
+} from '@signalwire/core'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
 import type {
@@ -24,17 +27,30 @@ import type {
   JoinConversationResult,
   ConversationSubscribeResult,
   GetAddressResponse,
+  ConversationChatSubscribeCallback,
 } from './interfaces'
 import { conversationWorker } from './workers'
 import { buildPaginatedResult } from '../utils/paginatedResult'
 import { makeQueryParamsUrls } from '../utils/makeQueryParamsUrl'
 import { ConversationAPI } from './ConversationAPI'
-
 const DEFAULT_CHAT_MESSAGES_PAGE_SIZE = 10
 const CACHE_ITEM_EXPIRATION = 1000 * 60 * 3 // 3 minutes
 interface ConversationOptions {
   httpClient: HTTPClient
   wsClient: WSClient
+}
+
+const isConversationChatEventParams = (
+  event: unknown
+): event is ConversationChatEventParams => {
+  return (
+    typeof event === 'object' &&
+    event !== null &&
+    'subtype' in event &&
+    event.subtype === 'chat' &&
+    'user_name' in event &&
+    'text' in event
+  )
 }
 
 // TODO: Implement a TS contract
@@ -44,7 +60,7 @@ export class Conversation {
   private callbacks = new Set<ConversationSubscribeCallback>()
   private chatSubscriptions: Record<
     string,
-    Set<ConversationSubscribeCallback>
+    Set<ConversationChatSubscribeCallback>
   > = {}
   private lookupCache = new Map<
     string,
@@ -82,10 +98,13 @@ export class Conversation {
 
   /** @internal */
   handleEvent(event: ConversationEventParams) {
-    if (event.subtype === 'chat') {
+    if (isConversationChatEventParams(event)) {
       const chatCallbacks = this.chatSubscriptions[event.group_id]
       if (chatCallbacks?.size) {
-        chatCallbacks.forEach((cb) => cb(event))
+        // the backend includes the user_name if is chat event
+        chatCallbacks.forEach((cb) =>
+          cb(event as unknown as ConversationChatEventParams)
+        )
       }
     }
 
@@ -100,15 +119,15 @@ export class Conversation {
     params: SendConversationMessageParams
   ): Promise<SendConversationMessageResult> {
     try {
-      const { group_id, from_address_id, text } = params
+      const { groupId, fromAddressId, text } = params
       const path = '/api/fabric/messages'
       const { body } =
         await this.httpClient.fetch<SendConversationMessageResponse>(path, {
           method: 'POST',
           body: {
-            group_id,
+            group_id: groupId,
             text,
-            from_address_id,
+            from_address_id: fromAddressId,
             metadata: params.metadata,
             details: params.details,
           },
@@ -161,8 +180,8 @@ export class Conversation {
         await this.httpClient.fetch<GetConversationMessagesResponse>(
           makeQueryParamsUrls(path, queryParams)
         )
-
-
+      
+      
       return buildPaginatedResult<ConversationMessage>(
         body,
         this.httpClient.fetch
@@ -176,9 +195,9 @@ export class Conversation {
     params: GetConversationMessagesParams
   ): Promise<GetConversationMessagesResult> {
     try {
-      const { group_id, pageSize } = params || {}
+      const { groupId, pageSize } = params || {}
 
-      const path = `/api/fabric/conversations/${group_id}/messages`
+      const path = `/api/fabric/conversations/${groupId}/messages`
       const queryParams = new URLSearchParams()
       if (pageSize) {
         queryParams.append('page_size', pageSize.toString())
@@ -201,7 +220,7 @@ export class Conversation {
   public async getChatMessages(
     params: GetConversationChatMessageParams
   ): Promise<GetConversationChatMessageResult> {
-    const { group_id, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
+    const { groupId, pageSize = DEFAULT_CHAT_MESSAGES_PAGE_SIZE } = params
 
     const fetchChatMessagesPage = async (
       fetcherFn?: () => Promise<GetConversationChatMessageResult | undefined>,
@@ -288,7 +307,7 @@ export class Conversation {
     return fetchChatMessagesPage(
       () =>
         this.getConversationMessages({
-          group_id,
+          groupId,
           pageSize,
         }) as Promise<GetConversationChatMessageResult>
     )
@@ -323,7 +342,7 @@ export class Conversation {
     params: JoinConversationParams
   ): Promise<JoinConversationResult> {
     try {
-      const { from_address_id, addressIds } = params
+      const { fromAddressId, addressIds } = params
       const path = '/api/fabric/conversations/join'
       const { body } = await this.httpClient.fetch<{
         group_id: string
@@ -332,7 +351,7 @@ export class Conversation {
       }>(path, {
         method: 'POST',
         body: {
-          from_fabric_address_id: from_address_id,
+          from_fabric_address_id: fromAddressId,
           fabric_address_ids: addressIds,
         },
       })
