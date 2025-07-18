@@ -47,9 +47,7 @@ const isConversationChatEventParams = (
     typeof event === 'object' &&
     event !== null &&
     'subtype' in event &&
-    event.subtype === 'chat' &&
-    'user_name' in event &&
-    'text' in event
+    event.subtype === 'chat'
   )
 }
 
@@ -103,7 +101,7 @@ export class Conversation {
       if (chatCallbacks?.size) {
         // the backend includes the user_name if is chat event
         chatCallbacks.forEach((cb) =>
-          cb(event as unknown as ConversationChatEventParams)
+          cb(event)
         )
       }
     }
@@ -180,8 +178,7 @@ export class Conversation {
         await this.httpClient.fetch<GetConversationMessagesResponse>(
           makeQueryParamsUrls(path, queryParams)
         )
-      
-      
+
       return buildPaginatedResult<ConversationMessage>(
         body,
         this.httpClient.fetch

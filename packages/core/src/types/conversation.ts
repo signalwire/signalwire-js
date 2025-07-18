@@ -22,6 +22,7 @@ export type ConversationChatMessageEventParams = Omit<
 > & {
   text: string
   user_name: string
+  subtype: 'chat'
 }
 
 export interface ConversationMessageEvent extends SwEvent {
