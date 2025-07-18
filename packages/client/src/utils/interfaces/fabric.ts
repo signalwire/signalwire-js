@@ -58,58 +58,33 @@ import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract, CallSession } from '../../fabric'
 
 // Import ts-toolbelt for type computation
-import { A } from 'ts-toolbelt'
-import { ShallowCompute } from '../typeUtils'
+import { ShallowCompute, DeepCompute } from '../typeUtils'
 
 export type InternalCallMemberEntity = InternalFabricMemberEntity
-export type InternalCallMemberEntityUpdated = A.Compute<
-  InternalFabricMemberEntityUpdated,
-  'deep'
->
+export type InternalCallMemberEntityUpdated = DeepCompute<InternalFabricMemberEntityUpdated>
 export type CallMemberEventNames = FabricMemberEventNames
 export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames
 
-export type CallMemberEventParams = A.Compute<FabricMemberEventParams, 'deep'>
-export type CallMemberEventParamsExcludeTalking = A.Compute<
-  FabricMemberEventParamsExcludeTalking,
-  'deep'
->
+export type CallMemberEventParams = DeepCompute<FabricMemberEventParams>
+export type CallMemberEventParamsExcludeTalking = DeepCompute<FabricMemberEventParamsExcludeTalking>
 export type CallMemberContract = ShallowCompute<FabricMemberContract>
-export type CallLayoutChangedEvent = A.Compute<FabricLayoutChangedEvent, 'deep'>
-export type CallLayoutChangedEventParams = A.Compute<
-  FabricLayoutChangedEventParams,
-  'deep'
->
-export type CallMemberJoinedEvent = A.Compute<FabricMemberJoinedEvent, 'deep'>
-export type CallMemberLeftEvent = A.Compute<FabricMemberLeftEvent, 'deep'>
-export type CallMemberTalkingEvent = A.Compute<FabricMemberTalkingEvent, 'deep'>
-export type CallMemberUpdatedEvent = A.Compute<FabricMemberUpdatedEvent, 'deep'>
-export type InternalCallRoomSessionEntity = A.Compute<
-  InternalFabricRoomSessionEntity,
-  'deep'
->
-export type CallMemberEvent = A.Compute<FabricMemberEvent, 'deep'>
+export type CallLayoutChangedEvent = DeepCompute<FabricLayoutChangedEvent>
+export type CallLayoutChangedEventParams = DeepCompute<FabricLayoutChangedEventParams>
+export type CallMemberJoinedEvent = DeepCompute<FabricMemberJoinedEvent>
+export type CallMemberLeftEvent = DeepCompute<FabricMemberLeftEvent>
+export type CallMemberTalkingEvent = DeepCompute<FabricMemberTalkingEvent>
+export type CallMemberUpdatedEvent = DeepCompute<FabricMemberUpdatedEvent>
+export type InternalCallRoomSessionEntity = DeepCompute<InternalFabricRoomSessionEntity>
+export type CallMemberEvent = DeepCompute<FabricMemberEvent>
 export type CallAction = ShallowCompute<FabricAction>
 export type CallRoomSessionMethods = FabricRoomSessionMethods
-export type CallMemberEntity = A.Compute<FabricMemberEntity, 'deep'>
+export type CallMemberEntity = DeepCompute<FabricMemberEntity>
 export type CallRoomEventParams = ShallowCompute<FabricRoomEventParams>
-export type CallMemberJoinedEventParams = A.Compute<
-  FabricMemberJoinedEventParams,
-  'deep'
->
+export type CallMemberJoinedEventParams = DeepCompute<FabricMemberJoinedEventParams>
 
-export type CallMemberUpdatedEventParams = A.Compute<
-  FabricMemberUpdatedEventParams,
-  'deep'
->
-export type CallMemberLeftEventParams = A.Compute<
-  FabricMemberLeftEventParams,
-  'deep'
->
-export type CallMemberTalkingEventParams = A.Compute<
-  FabricMemberTalkingEventParams,
-  'deep'
->
+export type CallMemberUpdatedEventParams = DeepCompute<FabricMemberUpdatedEventParams>
+export type CallMemberLeftEventParams = DeepCompute<FabricMemberLeftEventParams>
+export type CallMemberTalkingEventParams = DeepCompute<FabricMemberTalkingEventParams>
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod

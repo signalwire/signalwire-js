@@ -29,8 +29,7 @@ import {
   EventEmitter,
   SetAudioFlagsParams as CoreSetAudioFlagsParams,
 } from '@signalwire/core'
-import { A } from 'ts-toolbelt'
-import { ShallowCompute } from './utils/typeUtils'
+import { ShallowCompute, DeepCompute } from './utils/typeUtils'
 import {
   // FIXME: Importing from the core package
   CallRoomEventParams as FabricCallRoomEventParams,
@@ -148,129 +147,129 @@ export { RoomSessionDevice } from './RoomSessionDevice'
 export * as WebRTC from './webrtc'
 
 // Core types exports
-export type BaseComponentOptions = A.Compute<CoreBaseComponentOptions, 'deep'>
-export type BaseConnectionState = A.Compute<CoreBaseConnectionState, 'deep'>
-export type ClientEvents = A.Compute<CoreClientEvents, 'deep'>
+export type BaseComponentOptions = DeepCompute<CoreBaseComponentOptions>
+export type BaseConnectionState = DeepCompute<CoreBaseConnectionState>
+export type ClientEvents = DeepCompute<CoreClientEvents>
 export type EmitterContract<EventTypes extends EventEmitter.ValidEventTypes> = ShallowCompute<CoreEmitterContract<EventTypes>>
-export type RTCTrackEventName = A.Compute<CoreRTCTrackEventName, 'deep'>
-export type UserOptions = A.Compute<CoreUserOptions, 'deep'>
-export type SessionStatus = A.Compute<CoreSessionStatus, 'deep'>
-export type SessionEvents = A.Compute<CoreSessionEvents, 'deep'>
-export type VideoLayout = A.Compute<CoreVideoLayout, 'deep'>
-export type InternalVideoLayout = A.Compute<CoreInternalVideoLayout, 'deep'>
-export type VideoPosition = A.Compute<CoreVideoPosition, 'deep'>
-export type VideoPositions = A.Compute<CoreVideoPositions, 'deep'>
+export type RTCTrackEventName = DeepCompute<CoreRTCTrackEventName>
+export type UserOptions = DeepCompute<CoreUserOptions>
+export type SessionStatus = DeepCompute<CoreSessionStatus>
+export type SessionEvents = DeepCompute<CoreSessionEvents>
+export type VideoLayout = DeepCompute<CoreVideoLayout>
+export type InternalVideoLayout = DeepCompute<CoreInternalVideoLayout>
+export type VideoPosition = DeepCompute<CoreVideoPosition>
+export type VideoPositions = DeepCompute<CoreVideoPositions>
 
 /**
  * Call Fabric types
  */
-export type CallUpdatedEventParams = A.Compute<CoreCallUpdatedEventParams, 'deep'>
-export type CallLeftEventParams = A.Compute<CoreCallLeftEventParams, 'deep'>
-export type CallStateEventParams = A.Compute<CoreCallStateEventParams, 'deep'>
-export type CallPlayEventParams = A.Compute<CoreCallPlayEventParams, 'deep'>
-export type CallConnectEventParams = A.Compute<CoreCallConnectEventParams, 'deep'>
-export type CallRoomEventParams = A.Compute<CoreCallRoomEventParams, 'deep'>
-export type CallLayoutChangedEventParams = A.Compute<FabricCallLayoutChangedEventParams, 'deep'>
-export type CallMemberJoinedEventParams = A.Compute<FabricCallMemberJoinedEventParams, 'deep'>
-export type CallMemberUpdatedEventParams = A.Compute<FabricCallMemberUpdatedEventParams, 'deep'>
-export type CallMemberLeftEventParams = A.Compute<FabricCallMemberLeftEventParams, 'deep'>
-export type CallMemberTalkingEventParams = A.Compute<FabricCallMemberTalkingEventParams, 'deep'>
-export type CallMemberEventParams = A.Compute<FabricCallMemberEventParams, 'deep'>
-export type CallMemberEntity = A.Compute<FabricCallMemberEntity, 'deep'>
-export type InternalCallMemberEntity = A.Compute<FabricInternalCallMemberEntity, 'deep'>
-export type ConversationMessageEventName = A.Compute<CoreConversationMessageEventName, 'deep'>
-export type ConversationMessageEvent = A.Compute<CoreConversationMessageEvent, 'deep'>
-export type ConversationEventParams = A.Compute<CoreConversationEventParams, 'deep'>
-export type ConversationEvent = A.Compute<CoreConversationEvent, 'deep'>
-export type CallEventParams = A.Compute<FabricCallRoomEventParams, 'deep'>
-export type SetAudioFlagsParams = A.Compute<CoreSetAudioFlagsParams, 'deep'>
+export type CallUpdatedEventParams = DeepCompute<CoreCallUpdatedEventParams>
+export type CallLeftEventParams = DeepCompute<CoreCallLeftEventParams>
+export type CallStateEventParams = DeepCompute<CoreCallStateEventParams>
+export type CallPlayEventParams = DeepCompute<CoreCallPlayEventParams>
+export type CallConnectEventParams = DeepCompute<CoreCallConnectEventParams>
+export type CallRoomEventParams = DeepCompute<CoreCallRoomEventParams>
+export type CallLayoutChangedEventParams = DeepCompute<FabricCallLayoutChangedEventParams>
+export type CallMemberJoinedEventParams = DeepCompute<FabricCallMemberJoinedEventParams>
+export type CallMemberUpdatedEventParams = DeepCompute<FabricCallMemberUpdatedEventParams>
+export type CallMemberLeftEventParams = DeepCompute<FabricCallMemberLeftEventParams>
+export type CallMemberTalkingEventParams = DeepCompute<FabricCallMemberTalkingEventParams>
+export type CallMemberEventParams = DeepCompute<FabricCallMemberEventParams>
+export type CallMemberEntity = DeepCompute<FabricCallMemberEntity>
+export type InternalCallMemberEntity = DeepCompute<FabricInternalCallMemberEntity>
+export type ConversationMessageEventName = DeepCompute<CoreConversationMessageEventName>
+export type ConversationMessageEvent = DeepCompute<CoreConversationMessageEvent>
+export type ConversationEventParams = DeepCompute<CoreConversationEventParams>
+export type ConversationEvent = DeepCompute<CoreConversationEvent>
+export type CallEventParams = DeepCompute<FabricCallRoomEventParams>
+export type SetAudioFlagsParams = DeepCompute<CoreSetAudioFlagsParams>
 
 // WebRTC types
-export type BaseConnectionOptions = A.Compute<WebRTCBaseConnectionOptions, 'deep'>
-export type ConnectionOptions = A.Compute<WebRTCConnectionOptions, 'deep'>
-export type MicrophoneAnalyzer = A.Compute<WebRTCMicrophoneAnalyzer, 'deep'>
+export type BaseConnectionOptions = DeepCompute<WebRTCBaseConnectionOptions>
+export type ConnectionOptions = DeepCompute<WebRTCConnectionOptions>
+export type MicrophoneAnalyzer = DeepCompute<WebRTCMicrophoneAnalyzer>
 
 // Local interface types
-export type CallJoinedEventParams = A.Compute<LocalCallJoinedEventParams, 'deep'>
-export type RoomSessionObjectEventsHandlerMap = A.Compute<LocalRoomSessionObjectEventsHandlerMap, 'deep'>
-export type RoomSessionObjectEvents = A.Compute<LocalRoomSessionObjectEvents, 'deep'>
-export type RoomEventNames = A.Compute<LocalRoomEventNames, 'deep'>
-export type StartScreenShareOptions = A.Compute<LocalStartScreenShareOptions, 'deep'>
+export type CallJoinedEventParams = DeepCompute<LocalCallJoinedEventParams>
+export type RoomSessionObjectEventsHandlerMap = DeepCompute<LocalRoomSessionObjectEventsHandlerMap>
+export type RoomSessionObjectEvents = DeepCompute<LocalRoomSessionObjectEvents>
+export type RoomEventNames = DeepCompute<LocalRoomEventNames>
+export type StartScreenShareOptions = DeepCompute<LocalStartScreenShareOptions>
 
 // Export fabric types
 // Address types
-export type ResourceType = A.Compute<FabricResourceType, 'deep'>
-export type GetAddressResponse = A.Compute<FabricGetAddressResponse, 'deep'>
-export type Address = A.Compute<FabricAddress, 'deep'>
-export type GetAddressesParams = A.Compute<FabricGetAddressesParams, 'deep'>
-export type GetAddressByIdParams = A.Compute<FabricGetAddressByIdParams, 'deep'>
-export type GetAddressByNameParams = A.Compute<FabricGetAddressByNameParams, 'deep'>
-export type GetAddressParams = A.Compute<FabricGetAddressParams, 'deep'>
-export type GetAddressResult = A.Compute<FabricGetAddressResult, 'deep'>
-export type GetAddressesResponse = A.Compute<FabricGetAddressesResponse, 'deep'>
-export type GetAddressesResult = A.Compute<FabricGetAddressesResult, 'deep'>
+export type ResourceType = DeepCompute<FabricResourceType>
+export type GetAddressResponse = DeepCompute<FabricGetAddressResponse>
+export type Address = DeepCompute<FabricAddress>
+export type GetAddressesParams = DeepCompute<FabricGetAddressesParams>
+export type GetAddressByIdParams = DeepCompute<FabricGetAddressByIdParams>
+export type GetAddressByNameParams = DeepCompute<FabricGetAddressByNameParams>
+export type GetAddressParams = DeepCompute<FabricGetAddressParams>
+export type GetAddressResult = DeepCompute<FabricGetAddressResult>
+export type GetAddressesResponse = DeepCompute<FabricGetAddressesResponse>
+export type GetAddressesResult = DeepCompute<FabricGetAddressesResult>
 
 // Capabilities types
-export type CapabilityOnOffStateContract = A.Compute<FabricCapabilityOnOffStateContract, 'deep'>
+export type CapabilityOnOffStateContract = DeepCompute<FabricCapabilityOnOffStateContract>
 export type MemberCapabilityContract = ShallowCompute<FabricMemberCapabilityContract>
 export type CallCapabilitiesContract = ShallowCompute<FabricCallCapabilitiesContract>
 
 // Conversation types
 export type ConversationContract = ShallowCompute<FabricConversationContract>
-export type SendConversationMessageParams = A.Compute<FabricSendConversationMessageParams, 'deep'>
-export type SendConversationMessageResponse = A.Compute<FabricSendConversationMessageResponse, 'deep'>
-export type SendConversationMessageResult = A.Compute<FabricSendConversationMessageResult, 'deep'>
-export type GetConversationsParams = A.Compute<FabricGetConversationsParams, 'deep'>
-export type ConversationResponse = A.Compute<FabricConversationResponse, 'deep'>
-export type GetConversationsResponse = A.Compute<FabricGetConversationsResponse, 'deep'>
-export type GetConversationsResult = A.Compute<FabricGetConversationsResult, 'deep'>
+export type SendConversationMessageParams = DeepCompute<FabricSendConversationMessageParams>
+export type SendConversationMessageResponse = DeepCompute<FabricSendConversationMessageResponse>
+export type SendConversationMessageResult = DeepCompute<FabricSendConversationMessageResult>
+export type GetConversationsParams = DeepCompute<FabricGetConversationsParams>
+export type ConversationResponse = DeepCompute<FabricConversationResponse>
+export type GetConversationsResponse = DeepCompute<FabricGetConversationsResponse>
+export type GetConversationsResult = DeepCompute<FabricGetConversationsResult>
 export type ConversationSubscribeCallback = ShallowCompute<FabricConversationSubscribeCallback>
-export type ConversationSubscribeResult = A.Compute<FabricConversationSubscribeResult, 'deep'>
-export type ConversationChatMessagesSubscribeParams = A.Compute<FabricConversationChatMessagesSubscribeParams, 'deep'>
-export type ConversationChatMessagesSubscribeResult = A.Compute<FabricConversationChatMessagesSubscribeResult, 'deep'>
-export type JoinConversationParams = A.Compute<FabricJoinConversationParams, 'deep'>
-export type JoinConversationResponse = A.Compute<FabricJoinConversationResponse, 'deep'>
-export type JoinConversationResult = A.Compute<FabricJoinConversationResult, 'deep'>
-export type GetMessagesParams = A.Compute<FabricGetMessagesParams, 'deep'>
-export type ConversationMessage = A.Compute<FabricConversationMessage, 'deep'>
-export type GetMessagesResult = A.Compute<FabricGetMessagesResult, 'deep'>
-export type ConversationChatMessage = A.Compute<FabricConversationChatMessage, 'deep'>
-export type GetConversationChatMessageParams = A.Compute<FabricGetConversationChatMessageParams, 'deep'>
-export type GetConversationChatMessageResult = A.Compute<FabricGetConversationChatMessageResult, 'deep'>
-export type GetConversationMessagesResponse = A.Compute<FabricGetConversationMessagesResponse, 'deep'>
-export type GetConversationMessagesParams = A.Compute<FabricGetConversationMessagesParams, 'deep'>
-export type GetConversationMessagesResult = A.Compute<FabricGetConversationMessagesResult, 'deep'>
-export type ConversationAPISendMessageParams = A.Compute<FabricConversationAPISendMessageParams, 'deep'>
-export type ConversationAPIGetMessagesParams = A.Compute<FabricConversationAPIGetMessagesParams, 'deep'>
+export type ConversationSubscribeResult = DeepCompute<FabricConversationSubscribeResult>
+export type ConversationChatMessagesSubscribeParams = DeepCompute<FabricConversationChatMessagesSubscribeParams>
+export type ConversationChatMessagesSubscribeResult = DeepCompute<FabricConversationChatMessagesSubscribeResult>
+export type JoinConversationParams = DeepCompute<FabricJoinConversationParams>
+export type JoinConversationResponse = DeepCompute<FabricJoinConversationResponse>
+export type JoinConversationResult = DeepCompute<FabricJoinConversationResult>
+export type GetMessagesParams = DeepCompute<FabricGetMessagesParams>
+export type ConversationMessage = DeepCompute<FabricConversationMessage>
+export type GetMessagesResult = DeepCompute<FabricGetMessagesResult>
+export type ConversationChatMessage = DeepCompute<FabricConversationChatMessage>
+export type GetConversationChatMessageParams = DeepCompute<FabricGetConversationChatMessageParams>
+export type GetConversationChatMessageResult = DeepCompute<FabricGetConversationChatMessageResult>
+export type GetConversationMessagesResponse = DeepCompute<FabricGetConversationMessagesResponse>
+export type GetConversationMessagesParams = DeepCompute<FabricGetConversationMessagesParams>
+export type GetConversationMessagesResult = DeepCompute<FabricGetConversationMessagesResult>
+export type ConversationAPISendMessageParams = DeepCompute<FabricConversationAPISendMessageParams>
+export type ConversationAPIGetMessagesParams = DeepCompute<FabricConversationAPIGetMessagesParams>
 
 // Device types
-export type RegisterDeviceType = A.Compute<FabricRegisterDeviceType, 'deep'>
-export type RegisterDeviceParams = A.Compute<FabricRegisterDeviceParams, 'deep'>
-export type UnregisterDeviceParams = A.Compute<FabricUnregisterDeviceParams, 'deep'>
-export type RegisterDeviceResponse = A.Compute<FabricRegisterDeviceResponse, 'deep'>
-export type RegisterDeviceResult = A.Compute<FabricRegisterDeviceResult, 'deep'>
+export type RegisterDeviceType = DeepCompute<FabricRegisterDeviceType>
+export type RegisterDeviceParams = DeepCompute<FabricRegisterDeviceParams>
+export type UnregisterDeviceParams = DeepCompute<FabricUnregisterDeviceParams>
+export type RegisterDeviceResponse = DeepCompute<FabricRegisterDeviceResponse>
+export type RegisterDeviceResult = DeepCompute<FabricRegisterDeviceResult>
 
 // IncomingCallManager types
-export type IncomingInviteSource = A.Compute<FabricIncomingInviteSource, 'deep'>
-export type IncomingInvite = A.Compute<FabricIncomingInvite, 'deep'>
-export type IncomingInviteWithSource = A.Compute<FabricIncomingInviteWithSource, 'deep'>
-export type IncomingCallNotification = A.Compute<FabricIncomingCallNotification, 'deep'>
+export type IncomingInviteSource = DeepCompute<FabricIncomingInviteSource>
+export type IncomingInvite = DeepCompute<FabricIncomingInvite>
+export type IncomingInviteWithSource = DeepCompute<FabricIncomingInviteWithSource>
+export type IncomingCallNotification = DeepCompute<FabricIncomingCallNotification>
 export type IncomingCallHandler = ShallowCompute<FabricIncomingCallHandler>
 export type IncomingCallHandlers = ShallowCompute<FabricIncomingCallHandlers>
 
 // WSClient types
-export type OnlineParams = A.Compute<FabricOnlineParams, 'deep'>
-export type HandlePushNotificationParams = A.Compute<FabricHandlePushNotificationParams, 'deep'>
-export type HandlePushNotificationResult = A.Compute<FabricHandlePushNotificationResult, 'deep'>
-export type DialParams = A.Compute<FabricDialParams, 'deep'>
-export type ReattachParams = A.Compute<FabricReattachParams, 'deep'>
+export type OnlineParams = DeepCompute<FabricOnlineParams>
+export type HandlePushNotificationParams = DeepCompute<FabricHandlePushNotificationParams>
+export type HandlePushNotificationResult = DeepCompute<FabricHandlePushNotificationResult>
+export type DialParams = DeepCompute<FabricDialParams>
+export type ReattachParams = DeepCompute<FabricReattachParams>
 
 // Main interface types
 export type SignalWireClient = ShallowCompute<FabricSignalWireClient>
 export type SignalWireContract = ShallowCompute<FabricSignalWireContract>
-export type SignalWireClientParams = A.Compute<FabricSignalWireClientParams, 'deep'>
-export type GetSubscriberInfoResponse = A.Compute<FabricGetSubscriberInfoResponse, 'deep'>
-export type GetSubscriberInfoResult = A.Compute<FabricGetSubscriberInfoResult, 'deep'>
+export type SignalWireClientParams = DeepCompute<FabricSignalWireClientParams>
+export type GetSubscriberInfoResponse = DeepCompute<FabricGetSubscriberInfoResponse>
+export type GetSubscriberInfoResult = DeepCompute<FabricGetSubscriberInfoResult>
 export type PaginatedResponse<T> = ShallowCompute<FabricPaginatedResponse<T>>
 export type PaginatedResult<T> = ShallowCompute<FabricPaginatedResult<T>>
 
