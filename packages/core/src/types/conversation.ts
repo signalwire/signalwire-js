@@ -9,16 +9,17 @@ export interface ConversationMessageEventParams {
   id: string
   kind?: string
   metadata: Record<string, unknown>
-  subtype: string
+  subtype: 'chat' | 'update'
   text?: string
   ts: number
   type: string
   from_address_id: string
+  user_name?: string
 }
 
 export type ConversationChatMessageEventParams = Omit<
   ConversationMessageEventParams,
-  'kind' | 'hidden' | 'metadata'
+  'kind'
 > & {
   text: string
   user_name: string
