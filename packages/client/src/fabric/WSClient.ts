@@ -2,7 +2,7 @@ import {
   actions,
   BaseClient,
   CallJoinedEventParams as InternalCallJoinedEventParams,
-  FabricMemberUpdatedEventParams,
+  MemberUpdatedEventParams,
   VertoBye,
   VertoSubscribe,
 } from '@signalwire/core'
@@ -127,7 +127,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     if (stopMicrophoneWhileMuted) {
       room.on(
         'member.updated.audioMuted',
-        (params: FabricMemberUpdatedEventParams) => {
+        (params: MemberUpdatedEventParams) => {
           const { member } = params
           try {
             if (member.member_id === room.memberId && 'audio_muted' in member) {
@@ -148,7 +148,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     if (stopCameraWhileMuted) {
       room.on(
         'member.updated.videoMuted',
-        ({ member }: FabricMemberUpdatedEventParams) => {
+        ({ member }: MemberUpdatedEventParams) => {
           try {
             if (member.member_id === room.memberId && 'video_muted' in member) {
               member.video_muted

@@ -5,9 +5,9 @@ import {
   FabricLayoutEventParams,
 } from './fabricLayout'
 import {
-  FabricMemberEvent,
-  FabricMemberEventNames,
-  FabricMemberEventParams,
+  MemberEvent,
+  MemberEventNames,
+  MemberEventParams,
 } from './fabricMember'
 import {
   FabricRoomEvent,
@@ -24,17 +24,14 @@ export * from './fabricLayout'
  */
 export type FabricEventNames =
   | FabricRoomEventNames
-  | FabricMemberEventNames
+  | MemberEventNames
   | FabricLayoutEventNames
 
-export type FabricEvent =
-  | FabricRoomEvent
-  | FabricMemberEvent
-  | FabricLayoutEvent
+export type FabricEvent = FabricRoomEvent | MemberEvent | FabricLayoutEvent
 
 export type FabricEventParams =
   | FabricRoomEventParams
-  | FabricMemberEventParams
+  | MemberEventParams
   | FabricLayoutEventParams
 
 export type FabricAction = MapToPubSubShape<FabricEvent>

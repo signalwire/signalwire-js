@@ -30,19 +30,18 @@ import {
   CallConnect,
   CallConnectEventParams,
   CallRoom,
-  InternalFabricMemberEntity,
-  InternalFabricMemberEntityUpdated,
-  FabricMemberJoinedEventParams,
+  InternalMemberEntity,
+  InternalMemberEntityUpdated,
+  MemberJoinedEventParams,
   FabricLayoutChangedEventParams,
-  FabricMemberTalkingEventParams,
-  FabricMemberLeftEventParams,
+  MemberTalkingEventParams,
+  MemberLeftEventParams,
   FabricRoomEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberUpdatedEventNames,
+  MemberUpdatedEventParams,
+  MemberUpdatedEventNames,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract, CallSession } from '../../fabric'
-
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -61,17 +60,17 @@ export interface RequestMemberParams {
 }
 
 export type CallMemberHandlerParams = {
-  member: InternalFabricMemberEntity
+  member: InternalMemberEntity
 }
 
 export type CallMemberUpdatedHandlerParams = {
-  member: InternalFabricMemberEntityUpdated
+  member: InternalMemberEntityUpdated
   room_id?: string
   room_session_id?: string
 }
 
 export type CallMemberListUpdatedParams = {
-  members: InternalFabricMemberEntity[]
+  members: InternalMemberEntity[]
 }
 
 export type CallJoinedEventParams = {
@@ -102,15 +101,18 @@ export type CallSessionEventsHandlerMap = Record<
   > &
   Record<RoomUpdated, (params: CallUpdatedEventParams) => void> &
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
-  Record<MemberJoined, (params: FabricMemberJoinedEventParams) => void> &
+  Record<MemberJoined, (params: MemberJoinedEventParams) => void> &
   Record<
-    MemberUpdated | FabricMemberUpdatedEventNames,
-    (params: FabricMemberUpdatedEventParams) => void
+    MemberUpdated | MemberUpdatedEventNames,
+    (params: MemberUpdatedEventParams) => void
   > &
   Record<MemberListUpdated, (params: CallMemberListUpdatedParams) => void> &
-  Record<MemberLeft, (params: FabricMemberLeftEventParams) => void> &
-  Record<MemberTalking, (params: FabricMemberTalkingEventParams) => void> &
-  Record<VideoLayoutEventNames, (params: FabricLayoutChangedEventParams) => void>
+  Record<MemberLeft, (params: MemberLeftEventParams) => void> &
+  Record<MemberTalking, (params: MemberTalkingEventParams) => void> &
+  Record<
+    VideoLayoutEventNames,
+    (params: FabricLayoutChangedEventParams) => void
+  >
 
 export type CallSessionEvents = {
   [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]

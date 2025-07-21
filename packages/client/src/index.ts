@@ -30,13 +30,13 @@ export {
   SetAudioFlagsParams,
   FabricRoomEventParams,
   FabricLayoutChangedEventParams,
-  FabricMemberJoinedEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberLeftEventParams,
-  FabricMemberTalkingEventParams,
-  FabricMemberEventParams,
-  FabricMemberEntity,
-  InternalFabricMemberEntity
+  MemberJoinedEventParams,
+  MemberUpdatedEventParams,
+  MemberLeftEventParams,
+  MemberTalkingEventParams,
+  MemberEventParams,
+  MemberEntity,
+  InternalMemberEntity,
 } from '@signalwire/core'
 
 export {

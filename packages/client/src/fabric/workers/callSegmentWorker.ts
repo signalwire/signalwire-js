@@ -4,15 +4,15 @@ import {
   SagaIterator,
   getLogger,
   sagaEffects,
-  FabricAction
+  FabricAction,
 } from '@signalwire/core'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { FabricWorkerParams } from './fabricWorker'
 import {
   mapFabricLayoutActionToVideoLayoutAction,
-  mapFabricMemberActionToVideoMemberJoinAndLeftAction,
-  mapFabricMemberActionToVideoMemberUpdatedAction,
+  mapMemberActionToVideoMemberJoinAndLeftAction,
+  mapMemberActionToVideoMemberUpdatedAction,
 } from '../utils/eventMappers'
 import { fabricMemberWorker } from './fabricMemberWorker'
 
@@ -86,13 +86,12 @@ export const callSegmentWorker = function* (
           action,
         })
         const videoAction =
-          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
+          mapMemberActionToVideoMemberJoinAndLeftAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
       case 'member.updated': {
-        const videoAction =
-          mapFabricMemberActionToVideoMemberUpdatedAction(action)
+        const videoAction = mapMemberActionToVideoMemberUpdatedAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }

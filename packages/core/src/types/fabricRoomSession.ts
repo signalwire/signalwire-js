@@ -3,7 +3,7 @@ import {
   EntityUpdated,
   OnlyFunctionProperties,
   OnlyStateProperties,
-  InternalFabricMemberEntity,
+  InternalMemberEntity,
   MemberCommandParams,
   Rooms,
   MemberCommandWithVolumeParams,
@@ -103,7 +103,7 @@ export interface FabricRoomSessionContract {
   /** Metadata associated to this room session. */
   meta: Record<string, unknown>
   /** List of members that are part of this room session */
-  members: InternalFabricMemberEntity[]
+  members: InternalMemberEntity[]
   /** List of active recordings in the room */
   recordings?: [] // TODO: Finalize the type when the feature is ready
   /** List of active streamings in the room */

@@ -1,6 +1,6 @@
 import { fork } from '@redux-saga/core/effects'
 import {
-  InternalMemberUpdatedEventNames,
+  InternalCoreMemberUpdatedEventNames,
   InternalVideoMemberEntity,
   MapToPubSubShape,
   sagaEffects,
@@ -130,7 +130,7 @@ export function* memberUpdatedWorker({
   memberList.set(memberId, memberUpdatedPayload)
 
   for (const key of updated) {
-    const type = `${action.type}.${key}` as InternalMemberUpdatedEventNames
+    const type = `${action.type}.${key}` as InternalCoreMemberUpdatedEventNames
     yield dispatcher?.(type, memberUpdatedPayload, instance)
   }
 
