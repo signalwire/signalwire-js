@@ -214,9 +214,9 @@ export const createTestRunner = ({
       let domainApp: DomainApp | null = null
       let relayApp: Resource | null = null
       const id = uuid
-      const domainAppName = `e2e-rt-domain-app-${id}`
-      const relayAppName = `e2e-rt-relay-app-${id}`
-      const context = `e2e-rt-ctx-${id}`
+      const domainAppName = `e2e-${id}`
+      const relayAppName = `e2e-${id}`
+      const context = `ctx-${id}`
       const params: TestHandlerParams = {}
 
       try {
