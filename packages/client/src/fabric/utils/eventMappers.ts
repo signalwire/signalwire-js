@@ -13,26 +13,26 @@ import {
   VideoMemberTalkingEventParams,
   VideoMemberUpdatedEvent,
   VideoMemberUpdatedEventParams,
+  InternalFabricMemberEntity,
+  InternalFabricMemberEntityUpdated,
+  FabricLayoutChangedEvent,
+  FabricMemberJoinedEvent,
+  FabricMemberJoinedEventParams,
+  FabricMemberLeftEvent,
+  FabricMemberLeftEventParams,
+  FabricMemberTalkingEvent,
+  FabricMemberTalkingEventParams,
+  FabricMemberUpdatedEvent,
+  FabricMemberUpdatedEventParams,
 } from '@signalwire/core'
 import {
-  InternalCallMemberEntity,
-  InternalCallMemberEntityUpdated,
-  CallLayoutChangedEvent,
-  CallMemberJoinedEvent,
-  CallMemberJoinedEventParams,
-  CallMemberLeftEvent,
-  CallMemberLeftEventParams,
-  CallMemberTalkingEvent,
-  CallMemberTalkingEventParams,
-  CallMemberUpdatedEvent,
-  CallMemberUpdatedEventParams,
 } from '../../utils/interfaces/fabric'
 
 /**
- * Map the InternalCallMemberEntity to InternalVideoMemberEntity
+ * Map the InternalFabricMemberEntity to InternalVideoMemberEntity
  */
 export const mapInternalFabricMemberToInternalVideoMemberEntity = (
-  params: InternalCallMemberEntity
+  params: InternalFabricMemberEntity
 ): InternalVideoMemberEntity => {
   return {
     ...params,
@@ -41,10 +41,10 @@ export const mapInternalFabricMemberToInternalVideoMemberEntity = (
 }
 
 /**
- * Map the InternalCallMemberEntityUpdated to InternalVideoMemberEntityUpdated
+ * Map the InternalFabricMemberEntityUpdated to InternalVideoMemberEntityUpdated
  */
 export const mapInternalFabricMemberToInternalVideoMemberUpdatedEntity = (
-  params: InternalCallMemberEntityUpdated
+  params: InternalFabricMemberEntityUpdated
 ): InternalVideoMemberEntityUpdated => {
   return {
     ...mapInternalFabricMemberToInternalVideoMemberEntity(params),
@@ -94,7 +94,7 @@ export const mapCallJoinedToRoomSubscribedAction = (
  * to "video.member.joined" and "video.member.left"  event params
  */
 export const mapFabricMemberToVideoMemberJoinAndLeftEventParams = (
-  params: CallMemberJoinedEventParams | CallMemberLeftEventParams
+  params: FabricMemberJoinedEventParams | FabricMemberLeftEventParams
 ): VideoMemberJoinedEventParams | VideoMemberLeftEventParams => {
   return {
     room_session_id: params.room_session_id,
@@ -108,7 +108,7 @@ export const mapFabricMemberToVideoMemberJoinAndLeftEventParams = (
  * to "video.member.joined" and "video.member.left"  actions
  */
 export const mapFabricMemberActionToVideoMemberJoinAndLeftAction = (
-  action: MapToPubSubShape<CallMemberJoinedEvent | CallMemberLeftEvent>
+  action: MapToPubSubShape<FabricMemberJoinedEvent | FabricMemberLeftEvent>
 ): MapToPubSubShape<VideoMemberJoinedEvent | VideoMemberLeftEvent> => {
   return {
     type: `video.${action.type}`,
@@ -120,7 +120,7 @@ export const mapFabricMemberActionToVideoMemberJoinAndLeftAction = (
  * Map the "member.updated" event params to "video.member.updated"  event params
  */
 export const mapFabricMemberEventToVideoMemberUpdatedEventParams = (
-  params: CallMemberUpdatedEventParams
+  params: FabricMemberUpdatedEventParams
 ): VideoMemberUpdatedEventParams => {
   return {
     room_session_id: params.room_session_id,
@@ -135,7 +135,7 @@ export const mapFabricMemberEventToVideoMemberUpdatedEventParams = (
  * Map the "member.updated" action to "video.member.updated"  action
  */
 export const mapFabricMemberActionToVideoMemberUpdatedAction = (
-  action: MapToPubSubShape<CallMemberUpdatedEvent>
+  action: MapToPubSubShape<FabricMemberUpdatedEvent>
 ): MapToPubSubShape<VideoMemberUpdatedEvent> => {
   return {
     type: `video.${action.type}` as 'video.member.updated',
@@ -149,7 +149,7 @@ export const mapFabricMemberActionToVideoMemberUpdatedAction = (
  * Map the "member.talking" event params to "video.member.talking"  event params
  */
 export const mapFabricMemberToVideoMemberTalkingEventParams = (
-  params: CallMemberTalkingEventParams
+  params: FabricMemberTalkingEventParams
 ): VideoMemberTalkingEventParams => {
   return {
     room_session_id: params.room_session_id,
@@ -165,7 +165,7 @@ export const mapFabricMemberToVideoMemberTalkingEventParams = (
  * Map the "member.talking" action to "video.member.talking"  action
  */
 export const mapFabricMemberActionToVideoMemberTalkingAction = (
-  action: MapToPubSubShape<CallMemberTalkingEvent>
+  action: MapToPubSubShape<FabricMemberTalkingEvent>
 ): MapToPubSubShape<VideoMemberTalkingEvent> => {
   return {
     type: `video.${action.type}`,
@@ -177,7 +177,7 @@ export const mapFabricMemberActionToVideoMemberTalkingAction = (
  * Map the "layout.changed" action to "video.layout.changed"  action
  */
 export const mapFabricLayoutActionToVideoLayoutAction = (
-  action: MapToPubSubShape<CallLayoutChangedEvent>
+  action: MapToPubSubShape<FabricLayoutChangedEvent>
 ): MapToPubSubShape<VideoLayoutChangedEvent> => {
   return {
     type: `video.${action.type}`,

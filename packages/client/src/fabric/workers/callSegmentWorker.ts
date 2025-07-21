@@ -4,8 +4,8 @@ import {
   SagaIterator,
   getLogger,
   sagaEffects,
+  FabricAction
 } from '@signalwire/core'
-import { CallAction } from '../../utils/interfaces/fabric'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { FabricWorkerParams } from './fabricWorker'
@@ -37,7 +37,7 @@ export const callSegmentWorker = function* (
     action,
   })
 
-  function* worker(action: CallAction) {
+  function* worker(action: FabricAction) {
     const { type, payload } = action
 
     switch (type) {
@@ -120,7 +120,7 @@ export const callSegmentWorker = function* (
   }
 
   const isSegmentEvent = (action: SDKActions) => {
-    const { type, payload } = action as CallAction
+    const { type, payload } = action as FabricAction
     const shouldWatch =
       type.startsWith('call.') ||
       type.startsWith('member.') ||
@@ -138,7 +138,7 @@ export const callSegmentWorker = function* (
   }
 
   while (true) {
-    const action: CallAction = yield sagaEffects.take(
+    const action: FabricAction = yield sagaEffects.take(
       swEventChannel,
       isSegmentEvent
     )

@@ -85,7 +85,7 @@ export type OnMemberListUpdated = 'onMemberListUpdated'
 /**
  * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
  */
-export type MemberUpdatedEventNames = (typeof MEMBER_UPDATED_EVENTS)[number]
+export type CoreMemberUpdatedEventNames = (typeof MEMBER_UPDATED_EVENTS)[number]
 export type MemberTalkingStarted = 'member.talking.started'
 export type MemberTalkingEnded = 'member.talking.ended'
 
@@ -129,7 +129,7 @@ export type VideoMemberEventNames =
   | MemberJoined
   | MemberLeft
   | MemberUpdated
-  | MemberUpdatedEventNames
+  | CoreMemberUpdatedEventNames
   | MemberTalkingEventNames
   | MemberListUpdated
 

@@ -12,6 +12,8 @@ import {
   MemberCommandWithValueParams,
   SetAudioFlagsParams,
   toSnakeCaseKeys,
+  FabricLayoutChangedEventParams,
+  FabricRoomSessionMethods,
 } from '@signalwire/core'
 import {
   BaseRoomSessionConnection,
@@ -23,8 +25,6 @@ import {
   CallSessionContract,
   CallSessionEvents,
   RequestMemberParams,
-  CallRoomSessionMethods,
-  CallLayoutChangedEventParams,
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
@@ -36,7 +36,7 @@ import { createCallSessionValidateProxy } from './utils/validationProxy'
 
 export interface CallSession
   extends CallSessionContract,
-    CallRoomSessionMethods,
+    FabricRoomSessionMethods,
     BaseRoomSessionContract,
     BaseConnectionContract<CallSessionEvents>,
     BaseComponentContract {}
@@ -52,7 +52,7 @@ export class CallSessionConnection
   private _self?: CallSessionMember
   // this is "the member" on the last/active call segment
   private _member?: CallSessionMember
-  private _currentLayoutEvent: CallLayoutChangedEventParams
+  private _currentLayoutEvent: FabricLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
 
@@ -73,7 +73,7 @@ export class CallSessionConnection
     return params
   }
 
-  set currentLayoutEvent(event: CallLayoutChangedEventParams) {
+  set currentLayoutEvent(event: FabricLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }
 

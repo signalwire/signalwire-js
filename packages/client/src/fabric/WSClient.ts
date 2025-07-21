@@ -2,6 +2,7 @@ import {
   actions,
   BaseClient,
   CallJoinedEventParams as InternalCallJoinedEventParams,
+  FabricMemberUpdatedEventParams,
   VertoBye,
   VertoSubscribe,
 } from '@signalwire/core'
@@ -25,7 +26,6 @@ import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallMemberUpdatedEventParams } from '../utils/interfaces'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -127,7 +127,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     if (stopMicrophoneWhileMuted) {
       room.on(
         'member.updated.audioMuted',
-        (params: CallMemberUpdatedEventParams) => {
+        (params: FabricMemberUpdatedEventParams) => {
           const { member } = params
           try {
             if (member.member_id === room.memberId && 'audio_muted' in member) {
@@ -148,7 +148,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     if (stopCameraWhileMuted) {
       room.on(
         'member.updated.videoMuted',
-        ({ member }: CallMemberUpdatedEventParams) => {
+        ({ member }: FabricMemberUpdatedEventParams) => {
           try {
             if (member.member_id === room.memberId && 'video_muted' in member) {
               member.video_muted

@@ -13,7 +13,7 @@ import {
   MemberListUpdated,
   MemberTalking,
   MemberUpdated,
-  MemberUpdatedEventNames,
+  CoreMemberUpdatedEventNames,
   VideoMemberContract,
 } from './videoMember'
 
@@ -141,7 +141,7 @@ export interface InternalFabricMemberListUpdatedEvent extends SwEvent {
 }
 
 export type InternalFabricMemberEventNames =
-  | MemberUpdatedEventNames
+  | CoreMemberUpdatedEventNames
   | MemberListUpdated
 
 export type InternalFabricMemberEvent =
