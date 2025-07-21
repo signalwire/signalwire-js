@@ -90,7 +90,7 @@ const waitForMutedChange = (
   )
 }
 
-test.describe('CallFabric - Mute/Unmute All', () => {
+test.describe('CallProgrammableCalls - Mute/Unmute All', () => {
   const scenarios = [
     {
       name: 'Audio-only room: audio',

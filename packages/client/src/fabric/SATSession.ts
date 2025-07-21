@@ -16,7 +16,7 @@ import {
 import { JWTSession } from '../JWTSession'
 import { SATSessionOptions } from './interfaces'
 /**
- * SAT Session is for the Call Fabric SDK
+ * SAT Session is for the Call ProgrammableCalls SDK
  */
 export class SATSession extends JWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
@@ -37,7 +37,7 @@ export class SATSession extends JWTSession {
     /**
      * noop
      *
-     * The Call Fabric SDK does not attach any timer and
+     * The Call ProgrammableCalls SDK does not attach any timer and
      * does not emit any events to inform the user about the token expiry.
      */
   }
@@ -90,7 +90,12 @@ export class SATSession extends JWTSession {
           // `signalwire.connect` retries are handle by the connection
           return true
         }
-        if (isVertoInvite(msg) && ![SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(error)) {
+        if (
+          isVertoInvite(msg) &&
+          ![SYMBOL_EXECUTE_CONNECTION_CLOSED, SYMBOL_EXECUTE_TIMEOUT].includes(
+            error
+          )
+        ) {
           // we can't retry verto.invites after errors on the transport layer
           getLogger().debug('skip verto.invite retry on error:', error)
           return true

@@ -8,7 +8,7 @@ import {
   expectMCUVisible,
 } from '../../utils'
 
-test.describe('CallFabric Room Device', () => {
+test.describe('CallProgrammableCalls Room Device', () => {
   test('should emit the microphone, and camera updated event', async ({
     createCustomPage,
     resource,

@@ -12,7 +12,7 @@ import {
   SignalWireClient,
 } from '@signalwire/client'
 
-test.describe('CallFabric Reattach', () => {
+test.describe('CallProgrammableCalls Reattach', () => {
   test('should join a room, reload and reattach', async ({
     createCustomPage,
     resource,
@@ -265,7 +265,7 @@ test.describe('CallFabric Reattach', () => {
       await page.evaluate(
         async ({ sensitivity, memberId }) => {
           // @ts-expect-error
-          const callObj: FabricRoomSession = window._callObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedEvent = new Promise((res) => {
             // @ts-ignore
@@ -559,7 +559,7 @@ test.describe('CallFabric Reattach', () => {
       await pageOne.evaluate(
         async ({ sensitivity, memberId }) => {
           // @ts-expect-error
-          const callObj: FabricRoomSession = window._callObj
+          const callObj: CallSession = window._callObj
 
           const memberUpdatedEvent = new Promise((res) => {
             // @ts-ignore

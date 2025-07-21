@@ -7,14 +7,14 @@ import {
   MemberUpdatedEventParams,
 } from '@signalwire/core'
 import {} from '../../utils/interfaces/fabric'
-import { FabricWorkerParams } from './fabricWorker'
+import { ProgrammableCallsWorkerParams } from './fabricWorker'
 import {
   createCallSessionMemberObject,
   CallSessionMember,
 } from '../CallSessionMember'
 
 export const fabricMemberWorker = function* (
-  options: FabricWorkerParams<MemberEvent>
+  options: ProgrammableCallsWorkerParams<MemberEvent>
 ): SagaIterator {
   getLogger().trace('fabricMemberWorker started')
   const {

@@ -1,5 +1,5 @@
 /**
- * Welcome to the technical documentation for the Unified Client JavaScript SDK(a.k.a Fabric SDK).
+ * Welcome to the technical documentation for the Unified Client JavaScript SDK(a.k.a ProgrammableCalls SDK).
  * @module
  */
 
@@ -28,8 +28,8 @@ export {
   ConversationEvent,
   // EventEmitter,
   SetAudioFlagsParams,
-  FabricRoomEventParams,
-  FabricLayoutChangedEventParams,
+  CallSessionEventParams,
+  ProgrammableCallsLayoutChangedEventParams,
   MemberJoinedEventParams,
   MemberUpdatedEventParams,
   MemberLeftEventParams,
@@ -124,11 +124,11 @@ export {
 } from './fabric'
 
 /**
- * The Fabric namespace contains the classes and functions that you need to
+ * The ProgrammableCalls namespace contains the classes and functions that you need to
  * create a unified communication application that includes Audio/Video calling
  * with Chat/Messaging capabilties.
  */
-export * as Fabric from './fabric'
+export * as ProgrammableCalls from './fabric'
 export { SignalWire } from './fabric'
 export * from './fabric'
 

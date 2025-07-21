@@ -33,10 +33,10 @@ import {
   InternalMemberEntity,
   InternalMemberEntityUpdated,
   MemberJoinedEventParams,
-  FabricLayoutChangedEventParams,
+  ProgrammableCallsLayoutChangedEventParams,
   MemberTalkingEventParams,
   MemberLeftEventParams,
-  FabricRoomEventParams,
+  CallSessionEventParams,
   MemberUpdatedEventParams,
   MemberUpdatedEventNames,
 } from '@signalwire/core'
@@ -94,7 +94,7 @@ export type CallSessionEventsHandlerMap = Record<
   Record<CallState, (stream: CallStateEventParams) => void> &
   Record<CallPlay, (stream: CallPlayEventParams) => void> &
   Record<CallConnect, (stream: CallConnectEventParams) => void> &
-  Record<CallRoom, (stream: FabricRoomEventParams) => void> &
+  Record<CallRoom, (stream: CallSessionEventParams) => void> &
   Record<
     RoomJoined | RoomSubscribed,
     (params: InternalCallJoinedEventParams) => void
@@ -111,7 +111,7 @@ export type CallSessionEventsHandlerMap = Record<
   Record<MemberTalking, (params: MemberTalkingEventParams) => void> &
   Record<
     VideoLayoutEventNames,
-    (params: FabricLayoutChangedEventParams) => void
+    (params: ProgrammableCallsLayoutChangedEventParams) => void
   >
 
 export type CallSessionEvents = {
@@ -120,9 +120,9 @@ export type CallSessionEvents = {
 
 export interface CallSessionContract {
   /** The `layout.changed` event based on the current room layout */
-  currentLayoutEvent: FabricLayoutChangedEventParams
+  currentLayoutEvent: ProgrammableCallsLayoutChangedEventParams
   /** The layout returned from the `layout.changed` event based on the current room layout */
-  currentLayout: FabricLayoutChangedEventParams['layout']
+  currentLayout: ProgrammableCallsLayoutChangedEventParams['layout']
   /** The current position of the member returned from the `layout.changed` event */
   currentPosition: VideoPosition | undefined
   /**

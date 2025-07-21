@@ -17,22 +17,22 @@ import {
 
 /**
  * Public event types
- * Intentionally not declaring common events with voice APIs (or should we declare these types with a Fabric prefix?)
+ * Intentionally not declaring common events with voice APIs (or should we declare these types with a ProgrammableCalls prefix?)
  */
 export type CallJoined = 'call.joined'
 export type CallUpdated = 'call.updated'
 export type CallLeft = 'call.left'
 export type CallRoom = 'call.room'
 
-export type FabricCallConnectState = 'connecting' | 'connected'
-export type FabricCallState =
+export type ProgrammableCallsCallConnectState = 'connecting' | 'connected'
+export type ProgrammableCallsCallState =
   | 'created'
   | 'ringing'
   | 'answered'
   | 'ending'
   | 'ended'
-export type FabricCallDirection = 'inbound' | 'outbound'
-export type FabricCallPlayState = 'playing' | 'paused' | 'finished'
+export type ProgrammableCallsCallDirection = 'inbound' | 'outbound'
+export type ProgrammableCallsCallPlayState = 'playing' | 'paused' | 'finished'
 
 interface CallDeviceCommonParams {
   headers?: any[]
@@ -68,12 +68,12 @@ export type SetAudioFlagsParams = MemberCommandParams &
   }>
 
 /**
- * Public Contract for a FabricRoomSession
+ * Public Contract for a CallSession
  * List of all the properties we receive from the server for the room session
  * Plus the fabric room methods
  * We do not use this contract anywhere directly.
  */
-export interface FabricRoomSessionContract {
+export interface CallSessionContract {
   /** Id of the room associated to this room session */
   roomSessionId: string
   /** Id of the room associated to this room session */
@@ -111,7 +111,7 @@ export interface FabricRoomSessionContract {
   /** List of active playbacks in the room */
   playbacks?: [] // TODO: Finalize the type when the feature is ready
   /** Fields that have changed in this room session */
-  updated?: Array<Exclude<keyof FabricRoomSessionContract, 'updated'>>
+  updated?: Array<Exclude<keyof CallSessionContract, 'updated'>>
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -502,31 +502,28 @@ export interface FabricRoomSessionContract {
 }
 
 /**
- * FabricRoomSession properties
+ * CallSession properties
  */
-export type FabricRoomSessionEntity =
-  OnlyStateProperties<FabricRoomSessionContract>
+export type CallSessionEntity = OnlyStateProperties<CallSessionContract>
 
 /**
- * FabricRoomSession methods
+ * CallSession methods
  */
-export type FabricRoomSessionMethods =
-  OnlyFunctionProperties<FabricRoomSessionContract>
+export type CallSessionMethods = OnlyFunctionProperties<CallSessionContract>
 
 /**
- * FabricRoomSessionEntity plus `updated` field
+ * CallSessionEntity plus `updated` field
  */
-export type FabricRoomSessionEntityUpdated =
-  EntityUpdated<FabricRoomSessionEntity>
+export type CallSessionEntityUpdated = EntityUpdated<CallSessionEntity>
 
 /**
- * FabricRoomSessionEntity for internal usage (converted to snake_case)
+ * CallSessionEntity for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalFabricRoomSessionEntity = {
+export type InternalCallSessionEntity = {
   [K in NonNullable<
-    keyof FabricRoomSessionEntity
-  > as CamelToSnakeCase<K>]: FabricRoomSessionEntity[K]
+    keyof CallSessionEntity
+  > as CamelToSnakeCase<K>]: CallSessionEntity[K]
 }
 
 /**
@@ -610,7 +607,7 @@ export type Capability =
  * 'call.joined'
  */
 export interface CallJoinedEventParams {
-  room_session: InternalFabricRoomSessionEntity
+  room_session: InternalCallSessionEntity
   room_id: string
   room_session_id: string
   call_id: string
@@ -629,7 +626,7 @@ export interface CallJoinedEvent extends SwEvent {
  * call.updated
  */
 export interface CallUpdatedEventParams {
-  room_session: InternalFabricRoomSessionEntity
+  room_session: InternalCallSessionEntity
   room_id: string
   room_session_id: string
 }
@@ -643,7 +640,7 @@ export interface CallUpdatedEvent extends SwEvent {
  * call.left
  */
 export interface CallLeftEventParams {
-  room_session: InternalFabricRoomSessionEntity
+  room_session: InternalCallSessionEntity
   room_id: string
   room_session_id: string
   call_id: string
@@ -664,8 +661,8 @@ export interface CallStateEventParams {
   call_id: string
   node_id: string
   segment_id: string
-  call_state: FabricCallState
-  direction: FabricCallDirection
+  call_state: ProgrammableCallsCallState
+  direction: ProgrammableCallsCallDirection
   device: CallDevice
   start_time: number
   answer_time: number
@@ -685,7 +682,7 @@ export interface CallPlayEventParams {
   control_id: string
   call_id: string
   node_id: string
-  state: FabricCallPlayState
+  state: ProgrammableCallsCallPlayState
   room_session_id: string
 }
 
@@ -698,7 +695,7 @@ export interface CallPlayEvent extends SwEvent {
  * call.connect
  */
 export interface CallConnectEventParams {
-  connect_state: FabricCallConnectState
+  connect_state: ProgrammableCallsCallConnectState
   call_id: string
   node_id: string
   segment_id: string
@@ -731,7 +728,7 @@ export interface CallRoomEvent extends SwEvent {
   params: CallRoomEventParams
 }
 
-export type FabricRoomEventNames =
+export type CallSessionEventNames =
   | CallJoined
   | CallUpdated
   | CallLeft
@@ -740,7 +737,7 @@ export type FabricRoomEventNames =
   | CallConnect
   | CallRoom
 
-export type FabricRoomEvent =
+export type CallSessionEvent =
   | CallJoinedEvent
   | CallUpdatedEvent
   | CallLeftEvent
@@ -749,7 +746,7 @@ export type FabricRoomEvent =
   | CallConnectEvent
   | CallRoomEvent
 
-export type FabricRoomEventParams =
+export type CallSessionEventParams =
   | CallJoinedEventParams
   | CallUpdatedEventParams
   | CallLeftEventParams

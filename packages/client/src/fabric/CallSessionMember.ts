@@ -23,7 +23,7 @@ export interface CallSessionMember extends MemberContract {
   setPayload(payload: MemberEventParams): void
 }
 
-// TODO: Fabric Room Session Member instance does not emit any events yet
+// TODO: ProgrammableCalls Room Session Member instance does not emit any events yet
 export type CallSessionMemberEventsHandlerMap = Record<
   MemberJoined,
   (params: MemberJoinedEventParams) => void

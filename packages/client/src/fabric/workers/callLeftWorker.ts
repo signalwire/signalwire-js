@@ -1,9 +1,9 @@
 import { getLogger, SagaIterator, CallLeftEvent } from '@signalwire/core'
-import { FabricWorkerParams } from './fabricWorker'
+import { ProgrammableCallsWorkerParams } from './fabricWorker'
 import { CallSessionMemberAPI } from '../CallSessionMember'
 
 export const callLeftWorker = function* (
-  options: FabricWorkerParams<CallLeftEvent>
+  options: ProgrammableCallsWorkerParams<CallLeftEvent>
 ): SagaIterator {
   getLogger().trace('callLeftWorker started')
 

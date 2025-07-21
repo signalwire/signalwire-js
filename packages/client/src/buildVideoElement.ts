@@ -1,5 +1,5 @@
 import {
-  FabricLayoutChangedEventParams as CallLayoutChangedEventParams,
+  ProgrammableCallsLayoutChangedEventParams as CallLayoutChangedEventParams,
   getLogger,
   uuid,
 } from '@signalwire/core'

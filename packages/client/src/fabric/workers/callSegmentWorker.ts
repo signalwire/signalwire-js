@@ -4,20 +4,20 @@ import {
   SagaIterator,
   getLogger,
   sagaEffects,
-  FabricAction,
+  ProgrammableCallsAction,
 } from '@signalwire/core'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
-import { FabricWorkerParams } from './fabricWorker'
+import { ProgrammableCallsWorkerParams } from './fabricWorker'
 import {
-  mapFabricLayoutActionToVideoLayoutAction,
+  mapProgrammableCallsLayoutActionToVideoLayoutAction,
   mapMemberActionToVideoMemberJoinAndLeftAction,
   mapMemberActionToVideoMemberUpdatedAction,
 } from '../utils/eventMappers'
 import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callSegmentWorker = function* (
-  options: FabricWorkerParams<CallJoinedEvent>
+  options: ProgrammableCallsWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   const {
     action,
@@ -37,7 +37,7 @@ export const callSegmentWorker = function* (
     action,
   })
 
-  function* worker(action: FabricAction) {
+  function* worker(action: ProgrammableCallsAction) {
     const { type, payload } = action
 
     switch (type) {
@@ -99,7 +99,8 @@ export const callSegmentWorker = function* (
         // We need to update the layout event which is needed for rootElement.
         cfRoomSession.currentLayoutEvent = action.payload
         cfRoomSession.emit(type, payload)
-        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
+        const videoAction =
+          mapProgrammableCallsLayoutActionToVideoLayoutAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
@@ -119,7 +120,7 @@ export const callSegmentWorker = function* (
   }
 
   const isSegmentEvent = (action: SDKActions) => {
-    const { type, payload } = action as FabricAction
+    const { type, payload } = action as ProgrammableCallsAction
     const shouldWatch =
       type.startsWith('call.') ||
       type.startsWith('member.') ||
@@ -137,7 +138,7 @@ export const callSegmentWorker = function* (
   }
 
   while (true) {
-    const action: FabricAction = yield sagaEffects.take(
+    const action: ProgrammableCallsAction = yield sagaEffects.take(
       swEventChannel,
       isSegmentEvent
     )

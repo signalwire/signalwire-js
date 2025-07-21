@@ -200,7 +200,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       attach: params.attach ?? false,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
-      fromFabricAddressId: params.fromFabricAddressId,
+      fromProgrammableCallsAddressId: params.fromProgrammableCallsAddressId,
     })
 
     // WebRTC connection left the room.

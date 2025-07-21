@@ -16,7 +16,7 @@ type MicrophoneTest = {
   stopMicrophoneWhileMuted: boolean
 }
 
-test.describe('CallFabric - Device State', () => {
+test.describe('CallProgrammableCalls - Device State', () => {
   const cameraTests: CameraTest[] = [
     { stopCameraWhileMuted: false },
     { stopCameraWhileMuted: true },
