@@ -121,16 +121,16 @@ export {
   GetSubscriberInfoResult,
   PaginatedResponse,
   PaginatedResult,
-} from './fabric'
+} from './unified'
 
 /**
  * The ProgrammableCalls namespace contains the classes and functions that you need to
  * create a unified communication application that includes Audio/Video calling
  * with Chat/Messaging capabilties.
  */
-export * as ProgrammableCalls from './fabric'
-export { SignalWire } from './fabric'
-export * from './fabric'
+export * as ProgrammableCalls from './unified'
+export { SignalWire } from './unified'
+export * from './unified'
 
 export { RoomSessionScreenShare } from './RoomSessionScreenShare'
 export { RoomSessionDevice } from './RoomSessionDevice'

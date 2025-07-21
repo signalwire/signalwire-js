@@ -41,7 +41,7 @@ import {
   MemberUpdatedEventNames,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-import { CallCapabilitiesContract, CallSession } from '../../fabric'
+import { CallCapabilitiesContract, CallSession } from '../../unified'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
