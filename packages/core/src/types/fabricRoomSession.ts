@@ -24,10 +24,10 @@ export type CallUpdated = 'call.updated'
 export type CallLeft = 'call.left'
 export type CallRoom = 'call.room'
 
-export type UCallConnectState = 'connecting' | 'connected'
-export type UCallState = 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
-export type UCallDirection = 'inbound' | 'outbound'
-export type UCallPlayState = 'playing' | 'paused' | 'finished'
+export type CallConnectStates = 'connecting' | 'connected'
+export type CallStates = 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
+export type CallDirection = 'inbound' | 'outbound'
+export type CallPlayState = 'playing' | 'paused' | 'finished'
 
 interface CallDeviceCommonParams {
   headers?: any[]
@@ -656,8 +656,8 @@ export interface CallStateEventParams {
   call_id: string
   node_id: string
   segment_id: string
-  call_state: UCallState
-  direction: UCallDirection
+  call_state: CallStates
+  direction: CallDirection
   device: CallDevice
   start_time: number
   answer_time: number
@@ -677,7 +677,7 @@ export interface CallPlayEventParams {
   control_id: string
   call_id: string
   node_id: string
-  state: UCallPlayState
+  state: CallPlayState
   room_session_id: string
 }
 
@@ -690,7 +690,7 @@ export interface CallPlayEvent extends SwEvent {
  * call.connect
  */
 export interface CallConnectEventParams {
-  connect_state: UCallConnectState
+  connect_state: CallConnectStates
   call_id: string
   node_id: string
   segment_id: string

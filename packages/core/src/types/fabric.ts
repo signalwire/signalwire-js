@@ -22,16 +22,16 @@ export * from './fabricLayout'
 /**
  * List of all call fabric events
  */
-export type UCallEventNames =
+export type CallEventNames =
   | CallSessionEventNames
   | MemberEventNames
   | UCallLayoutEventNames
 
-export type UCallEvent = CallSessionEvent | MemberEvent | UCallLayoutEvent
+export type CallEvent = CallSessionEvent | MemberEvent | UCallLayoutEvent
 
-export type UCallEventParams =
+export type CallEventParams =
   | CallSessionEventParams
   | MemberEventParams
   | UCallLayoutEventParams
 
-export type UCallAction = MapToPubSubShape<UCallEvent>
+export type UCallAction = MapToPubSubShape<CallEvent>
