@@ -10,7 +10,7 @@ import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
-import { ProgrammableCallsEvent, ConversationEvent } from '..'
+import { UCallEvent, ConversationEvent } from '..'
 
 export interface SwEvent {
   event_channel: string
@@ -327,7 +327,7 @@ export type SwEventParams =
   | VoiceCallEvent
   | SwAuthorizationStateEvent
   | ConversationEvent
-  | ProgrammableCallsEvent
+  | UCallEvent
 
 export * from './video'
 export * from './utils'

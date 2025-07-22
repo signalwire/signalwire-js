@@ -16,7 +16,7 @@ import {
 import { JWTSession } from '../JWTSession'
 import { SATSessionOptions } from './interfaces'
 /**
- * SAT Session is for the Call ProgrammableCalls SDK
+ * SAT Session is for the Call UCall SDK
  */
 export class SATSession extends JWTSession {
   public connectVersion = UNIFIED_CONNECT_VERSION
@@ -37,7 +37,7 @@ export class SATSession extends JWTSession {
     /**
      * noop
      *
-     * The Call ProgrammableCalls SDK does not attach any timer and
+     * The Call UCall SDK does not attach any timer and
      * does not emit any events to inform the user about the token expiry.
      */
   }

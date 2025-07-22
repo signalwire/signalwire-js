@@ -337,7 +337,7 @@ export const leaveRoom = async (page: Page) => {
 
 // #endregion
 
-// #region Utilities for Call ProgrammableCalls client
+// #region Utilities for Call UCall client
 
 interface CreateCFClientParams {
   attachSagaMonitor?: boolean

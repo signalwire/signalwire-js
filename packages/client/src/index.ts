@@ -1,5 +1,5 @@
 /**
- * Welcome to the technical documentation for the Unified Client JavaScript SDK(a.k.a ProgrammableCalls SDK).
+ * Welcome to the technical documentation for the Unified Client JavaScript SDK(a.k.a UCall SDK).
  * @module
  */
 
@@ -29,7 +29,7 @@ export {
   // EventEmitter,
   SetAudioFlagsParams,
   CallSessionEventParams,
-  ProgrammableCallsLayoutChangedEventParams,
+  UCallLayoutChangedEventParams,
   MemberJoinedEventParams,
   MemberUpdatedEventParams,
   MemberLeftEventParams,
@@ -124,11 +124,11 @@ export {
 } from './unified'
 
 /**
- * The ProgrammableCalls namespace contains the classes and functions that you need to
+ * The UCall namespace contains the classes and functions that you need to
  * create a unified communication application that includes Audio/Video calling
  * with Chat/Messaging capabilties.
  */
-export * as ProgrammableCalls from './unified'
+export * as UCall from './unified'
 export { SignalWire } from './unified'
 export * from './unified'
 

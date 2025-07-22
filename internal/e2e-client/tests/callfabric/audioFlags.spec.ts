@@ -8,7 +8,7 @@ import {
   expectMCUVisible,
 } from '../../utils'
 
-test.describe('CallProgrammableCalls Audio Flags', () => {
+test.describe('CallUCall Audio Flags', () => {
   test('should join a room, update audio flags for self member, reload and reattach with correct states', async ({
     createCustomPage,
     resource,

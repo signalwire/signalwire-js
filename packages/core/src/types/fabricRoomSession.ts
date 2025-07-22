@@ -17,22 +17,17 @@ import {
 
 /**
  * Public event types
- * Intentionally not declaring common events with voice APIs (or should we declare these types with a ProgrammableCalls prefix?)
+ * Intentionally not declaring common events with voice APIs (or should we declare these types with a UCall prefix?)
  */
 export type CallJoined = 'call.joined'
 export type CallUpdated = 'call.updated'
 export type CallLeft = 'call.left'
 export type CallRoom = 'call.room'
 
-export type ProgrammableCallsCallConnectState = 'connecting' | 'connected'
-export type ProgrammableCallsCallState =
-  | 'created'
-  | 'ringing'
-  | 'answered'
-  | 'ending'
-  | 'ended'
-export type ProgrammableCallsCallDirection = 'inbound' | 'outbound'
-export type ProgrammableCallsCallPlayState = 'playing' | 'paused' | 'finished'
+export type UCallConnectState = 'connecting' | 'connected'
+export type UCallState = 'created' | 'ringing' | 'answered' | 'ending' | 'ended'
+export type UCallDirection = 'inbound' | 'outbound'
+export type UCallPlayState = 'playing' | 'paused' | 'finished'
 
 interface CallDeviceCommonParams {
   headers?: any[]
@@ -661,8 +656,8 @@ export interface CallStateEventParams {
   call_id: string
   node_id: string
   segment_id: string
-  call_state: ProgrammableCallsCallState
-  direction: ProgrammableCallsCallDirection
+  call_state: UCallState
+  direction: UCallDirection
   device: CallDevice
   start_time: number
   answer_time: number
@@ -682,7 +677,7 @@ export interface CallPlayEventParams {
   control_id: string
   call_id: string
   node_id: string
-  state: ProgrammableCallsCallPlayState
+  state: UCallPlayState
   room_session_id: string
 }
 
@@ -695,7 +690,7 @@ export interface CallPlayEvent extends SwEvent {
  * call.connect
  */
 export interface CallConnectEventParams {
-  connect_state: ProgrammableCallsCallConnectState
+  connect_state: UCallConnectState
   call_id: string
   node_id: string
   segment_id: string

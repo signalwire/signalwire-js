@@ -90,7 +90,7 @@ const waitForMutedChange = (
   )
 }
 
-test.describe('CallProgrammableCalls - Mute/Unmute All', () => {
+test.describe('CallUCall - Mute/Unmute All', () => {
   const scenarios = [
     {
       name: 'Audio-only room: audio',

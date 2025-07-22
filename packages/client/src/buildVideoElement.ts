@@ -1,5 +1,5 @@
 import {
-  ProgrammableCallsLayoutChangedEventParams as CallLayoutChangedEventParams,
+  UCallLayoutChangedEventParams as CallLayoutChangedEventParams,
   getLogger,
   uuid,
 } from '@signalwire/core'

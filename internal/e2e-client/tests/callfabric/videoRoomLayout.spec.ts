@@ -12,7 +12,7 @@ import {
 } from '../../utils'
 import { CallSession } from '@signalwire/client'
 
-test.describe('CallProgrammableCalls Video Room Layout', () => {
+test.describe('CallUCall Video Room Layout', () => {
   test('should join a room and be able to change the layout', async ({
     createCustomPage,
     resource,

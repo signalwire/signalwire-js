@@ -13,7 +13,7 @@ import {
   waitForStabilizedStats,
 } from '../../utils'
 
-test.describe('CallProgrammableCalls Video Renegotiation', () => {
+test.describe('CallUCall Video Renegotiation', () => {
   test('it should enable video with "sendrecv" and then disable with "inactive"', async ({
     createCustomPage,
     resource,

@@ -11,7 +11,7 @@ import {
 } from '../../utils'
 import { test, expect } from '../../fixtures'
 
-test.describe('CallProgrammableCalls Relay Application', () => {
+test.describe('CallUCall Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({
     createCustomPage,
     resource,

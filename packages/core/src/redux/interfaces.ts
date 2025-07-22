@@ -20,7 +20,7 @@ import type {
   VoiceCallAction,
   VideoManagerAction,
   PubSubEventAction,
-  ProgrammableCallsAction,
+  UCallAction,
   SwAuthorizationState,
 } from '../types'
 import { SDKRunSaga } from '.'
@@ -119,7 +119,7 @@ export type PubSubAction =
   | TaskAction
   | MessagingAction
   | VoiceCallAction
-  | ProgrammableCallsAction
+  | UCallAction
 
 export type SessionChannelAction =
   | PayloadAction<void, SessionEvents>

@@ -9,7 +9,7 @@ import {
   expectPageReceiveAudio,
 } from '../../utils'
 
-test.describe('CallProgrammableCalls SWML', () => {
+test.describe('CallUCall SWML', () => {
   const swmlTTS = {
     sections: {
       main: [

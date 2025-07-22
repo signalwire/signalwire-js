@@ -97,7 +97,7 @@ export interface ConnectionOptions {
   /** @internal */
   nodeId?: string
   /** @internal */
-  fromProgrammableCallsAddressId?: string
+  fromUCallAddressId?: string
 
   layout?: string
   positions?: VideoPositions

@@ -10,13 +10,13 @@ import {
   createCallSessionMemberObject,
   CallSessionMember,
 } from '../CallSessionMember'
-import { ProgrammableCallsWorkerParams } from './fabricWorker'
+import { UCallWorkerParams } from './fabricWorker'
 import { fabricMemberWorker } from './fabricMemberWorker'
 import { mapCapabilityPayload } from '../utils/capabilitiesHelpers'
 import { mapCallJoinedToRoomSubscribedEventParams } from '../utils/eventMappers'
 
 export const callJoinWorker = function* (
-  options: ProgrammableCallsWorkerParams<CallJoinedEvent>
+  options: UCallWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   getLogger().trace('callJoinWorker started')
   const { action, instanceMap, instance: cfRoomSession } = options

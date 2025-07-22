@@ -1,8 +1,8 @@
 import { MapToPubSubShape } from '../redux/interfaces'
 import {
-  ProgrammableCallsLayoutEvent,
-  ProgrammableCallsLayoutEventNames,
-  ProgrammableCallsLayoutEventParams,
+  UCallLayoutEvent,
+  UCallLayoutEventNames,
+  UCallLayoutEventParams,
 } from './fabricLayout'
 import {
   MemberEvent,
@@ -22,19 +22,16 @@ export * from './fabricLayout'
 /**
  * List of all call fabric events
  */
-export type ProgrammableCallsEventNames =
+export type UCallEventNames =
   | CallSessionEventNames
   | MemberEventNames
-  | ProgrammableCallsLayoutEventNames
+  | UCallLayoutEventNames
 
-export type ProgrammableCallsEvent =
-  | CallSessionEvent
-  | MemberEvent
-  | ProgrammableCallsLayoutEvent
+export type UCallEvent = CallSessionEvent | MemberEvent | UCallLayoutEvent
 
-export type ProgrammableCallsEventParams =
+export type UCallEventParams =
   | CallSessionEventParams
   | MemberEventParams
-  | ProgrammableCallsLayoutEventParams
+  | UCallLayoutEventParams
 
-export type ProgrammableCallsAction = MapToPubSubShape<ProgrammableCallsEvent>
+export type UCallAction = MapToPubSubShape<UCallEvent>
