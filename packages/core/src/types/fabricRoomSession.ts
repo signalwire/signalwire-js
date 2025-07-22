@@ -17,7 +17,7 @@ import {
 
 /**
  * Public event types
- * Intentionally not declaring common events with voice APIs (or should we declare these types with a UCall prefix?)
+ * Intentionally not declaring common events with voice APIs (or should we declare these types with a Call prefix?)
  */
 export type CallJoined = 'call.joined'
 export type CallUpdated = 'call.updated'

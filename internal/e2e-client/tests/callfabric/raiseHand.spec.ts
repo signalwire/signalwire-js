@@ -8,7 +8,7 @@ import {
 } from '../../utils'
 import { CallSession } from '@signalwire/client'
 
-test.describe('CallUCall Raise/Lower Hand', () => {
+test.describe('CallCall Raise/Lower Hand', () => {
   test("should join a room and be able to raise/lower self member's hand", async ({
     createCustomPage,
     resource,

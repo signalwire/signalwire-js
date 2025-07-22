@@ -12,7 +12,7 @@ import {
   MemberCommandWithValueParams,
   SetAudioFlagsParams,
   toSnakeCaseKeys,
-  UCallLayoutChangedEventParams,
+  CallLayoutChangedEventParams,
   CallSessionMethods,
 } from '@signalwire/core'
 import {
@@ -52,7 +52,7 @@ export class CallSessionConnection
   private _self?: CallSessionMember
   // this is "the member" on the last/active call segment
   private _member?: CallSessionMember
-  private _currentLayoutEvent: UCallLayoutChangedEventParams
+  private _currentLayoutEvent: CallLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
 
@@ -73,7 +73,7 @@ export class CallSessionConnection
     return params
   }
 
-  set currentLayoutEvent(event: UCallLayoutChangedEventParams) {
+  set currentLayoutEvent(event: CallLayoutChangedEventParams) {
     this._currentLayoutEvent = event
   }
 

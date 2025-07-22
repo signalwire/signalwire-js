@@ -12,7 +12,7 @@ import {
   SignalWireClient,
 } from '@signalwire/client'
 
-test.describe('CallUCall Reattach', () => {
+test.describe('CallCall Reattach', () => {
   test('should join a room, reload and reattach', async ({
     createCustomPage,
     resource,

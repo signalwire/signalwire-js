@@ -6,13 +6,13 @@ import {
   SDKWorkerParams,
   SDKActions,
   MapToPubSubShape,
-  UCallAction,
+  CallAction,
 } from '@signalwire/core'
 import { CallSessionConnection } from '../CallSession'
 import { createCallSessionMemberObject } from '../CallSessionMember'
 import { callSegmentWorker } from './callSegmentWorker'
 
-export type UCallWorkerParams<T> = SDKWorkerParams<CallSessionConnection> & {
+export type CallWorkerParams<T> = SDKWorkerParams<CallSessionConnection> & {
   action: MapToPubSubShape<T>
 }
 
@@ -25,7 +25,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
     instance: cfRoomSession,
   } = options
 
-  function* worker(action: UCallAction) {
+  function* worker(action: CallAction) {
     const { type, payload } = action
 
     switch (type) {
@@ -87,7 +87,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
   }
 
   while (true) {
-    const action: UCallAction = yield sagaEffects.take(
+    const action: CallAction = yield sagaEffects.take(
       swEventChannel,
       isFirstCallJoinedorCallStateEvent
     )

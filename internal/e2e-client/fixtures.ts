@@ -65,7 +65,7 @@ const test = baseTest.extend<CustomFixture>({
     } finally {
       console.log('Cleaning up pages..')
       /**
-       * If we have a __callObj in the page means we tested the Video/UCall APIs
+       * If we have a __callObj in the page means we tested the Video/Call APIs
        * so we must leave the room.
        * Invoke `.leave()` only if we have a valid `roomSessionId`.
        * Then double check the SDK elements got properly removed from the DOM.
@@ -77,7 +77,7 @@ const test = baseTest.extend<CustomFixture>({
       })
 
       /**
-       * The Call UCall SDK does not destory the client when the call is finished.
+       * The Call Call SDK does not destory the client when the call is finished.
        * Make sure we cleanup the client as well.
        */
       await Promise.all(context.pages().map(disconnectClient))

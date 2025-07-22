@@ -4,20 +4,20 @@ import {
   SagaIterator,
   getLogger,
   sagaEffects,
-  UCallAction,
+  CallAction,
 } from '@signalwire/core'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
-import { UCallWorkerParams } from './fabricWorker'
+import { CallWorkerParams } from './fabricWorker'
 import {
-  mapUCallLayoutActionToVideoLayoutAction,
+  mapCallLayoutActionToVideoLayoutAction,
   mapMemberActionToVideoMemberJoinAndLeftAction,
   mapMemberActionToVideoMemberUpdatedAction,
 } from '../utils/eventMappers'
 import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callSegmentWorker = function* (
-  options: UCallWorkerParams<CallJoinedEvent>
+  options: CallWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   const {
     action,
@@ -37,7 +37,7 @@ export const callSegmentWorker = function* (
     action,
   })
 
-  function* worker(action: UCallAction) {
+  function* worker(action: CallAction) {
     const { type, payload } = action
 
     switch (type) {
@@ -99,7 +99,7 @@ export const callSegmentWorker = function* (
         // We need to update the layout event which is needed for rootElement.
         cfRoomSession.currentLayoutEvent = action.payload
         cfRoomSession.emit(type, payload)
-        const videoAction = mapUCallLayoutActionToVideoLayoutAction(action)
+        const videoAction = mapCallLayoutActionToVideoLayoutAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
@@ -119,7 +119,7 @@ export const callSegmentWorker = function* (
   }
 
   const isSegmentEvent = (action: SDKActions) => {
-    const { type, payload } = action as UCallAction
+    const { type, payload } = action as CallAction
     const shouldWatch =
       type.startsWith('call.') ||
       type.startsWith('member.') ||
@@ -137,7 +137,7 @@ export const callSegmentWorker = function* (
   }
 
   while (true) {
-    const action: UCallAction = yield sagaEffects.take(
+    const action: CallAction = yield sagaEffects.take(
       swEventChannel,
       isSegmentEvent
     )

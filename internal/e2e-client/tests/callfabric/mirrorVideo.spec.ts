@@ -26,7 +26,7 @@ type Test = {
   mirrored: boolean
 }
 
-test.describe('CallUCall Mirror Video', () => {
+test.describe('CallCall Mirror Video', () => {
   const tests: Test[] = [{ mirrored: false }, { mirrored: true }]
 
   test.beforeAll(() => {

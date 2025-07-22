@@ -11,7 +11,7 @@ import {
   setLayoutOnPage,
 } from '../../utils'
 
-test.describe('CallUCall VideoRoom', () => {
+test.describe('CallCall VideoRoom', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
     resource,
@@ -277,7 +277,7 @@ test.describe('CallUCall VideoRoom', () => {
     expect(await layoutChangedPromise).toBe(true)
 
     /**
-     * FIXME: The following APIs are not yet supported by the Call UCall SDK
+     * FIXME: The following APIs are not yet supported by the Call Call SDK
      */
 
     // // --------------- Get Room Meta ---------------

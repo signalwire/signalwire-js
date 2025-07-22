@@ -17,7 +17,7 @@ import {
 } from '..'
 
 /**
- * These workers are shared between the realtime-api and the browser SDKs (Video and CallUCall)
+ * These workers are shared between the realtime-api and the browser SDKs (Video and CallCall)
  * For the Realtime-API: we pass the dispatcher function since we emit RoomSessionMember instance
  * For the Video SDK: we use the default dispatcher function since we emit whatever we get from the server
  * For the CF SDK: we pass the dispatcher function to map "id" into "member_id".

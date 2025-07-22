@@ -15,7 +15,7 @@ import {
   VideoMemberUpdatedEventParams,
   InternalMemberEntity,
   InternalMemberEntityUpdated,
-  UCallLayoutChangedEvent,
+  CallLayoutChangedEvent,
   MemberJoinedEvent,
   MemberJoinedEventParams,
   MemberLeftEvent,
@@ -171,8 +171,8 @@ export const mapMemberActionToVideoMemberTalkingAction = (
 /**
  * Map the "layout.changed" action to "video.layout.changed"  action
  */
-export const mapUCallLayoutActionToVideoLayoutAction = (
-  action: MapToPubSubShape<UCallLayoutChangedEvent>
+export const mapCallLayoutActionToVideoLayoutAction = (
+  action: MapToPubSubShape<CallLayoutChangedEvent>
 ): MapToPubSubShape<VideoLayoutChangedEvent> => {
   return {
     type: `video.${action.type}`,

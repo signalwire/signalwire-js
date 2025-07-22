@@ -60,7 +60,7 @@ export type JSONRPCMethod =
   | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
-  | UCallMethod
+  | CallMethod
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
@@ -336,9 +336,9 @@ export type RoomMethod =
   | 'video.prioritize_handraise'
 
 /**
- * List of all Call UCall methods
+ * List of all Call Call methods
  */
-export type UCallMethod =
+export type CallMethod =
   | 'call.mute'
   | 'call.unmute'
   | 'call.deaf'

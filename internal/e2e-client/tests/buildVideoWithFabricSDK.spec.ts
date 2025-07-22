@@ -8,7 +8,7 @@ import {
   randomizeRoomName,
 } from '../utils'
 
-test.describe('buildVideoElement with CallUCall SDK', () => {
+test.describe('buildVideoElement with CallCall SDK', () => {
   const getOverlayMap = (page: Page) =>
     page.evaluate<OverlayMap>(() => {
       // @ts-expect-error

@@ -33,7 +33,7 @@ import {
   InternalMemberEntity,
   InternalMemberEntityUpdated,
   MemberJoinedEventParams,
-  UCallLayoutChangedEventParams,
+  CallLayoutChangedEventParams,
   MemberTalkingEventParams,
   MemberLeftEventParams,
   CallSessionEventParams,
@@ -109,7 +109,7 @@ export type CallSessionEventsHandlerMap = Record<
   Record<MemberListUpdated, (params: CallMemberListUpdatedParams) => void> &
   Record<MemberLeft, (params: MemberLeftEventParams) => void> &
   Record<MemberTalking, (params: MemberTalkingEventParams) => void> &
-  Record<VideoLayoutEventNames, (params: UCallLayoutChangedEventParams) => void>
+  Record<VideoLayoutEventNames, (params: CallLayoutChangedEventParams) => void>
 
 export type CallSessionEvents = {
   [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]
@@ -117,9 +117,9 @@ export type CallSessionEvents = {
 
 export interface CallSessionContract {
   /** The `layout.changed` event based on the current room layout */
-  currentLayoutEvent: UCallLayoutChangedEventParams
+  currentLayoutEvent: CallLayoutChangedEventParams
   /** The layout returned from the `layout.changed` event based on the current room layout */
-  currentLayout: UCallLayoutChangedEventParams['layout']
+  currentLayout: CallLayoutChangedEventParams['layout']
   /** The current position of the member returned from the `layout.changed` event */
   currentPosition: VideoPosition | undefined
   /**
