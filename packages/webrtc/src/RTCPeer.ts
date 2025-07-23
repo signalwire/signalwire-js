@@ -891,10 +891,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     // Check if we're still in the right state
     if (
+      this.type === 'offer' &&
       !['have-local-offer', 'have-local-pranswer'].includes(
         this.instance.signalingState
       )
     ) {
+      // the local SDP was processed already and onnegotiationneeded was not fired
+      // this happens because there multiple places calling _sdpReady
       this.logger.warn(
         `_sdpReady called in wrong state: ${this.instance.signalingState}`
       )
@@ -1020,7 +1023,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       if (this.instance.localDescription?.sdp) {
         if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
           // Take a snapshot of candidates at this point
-          if (this._candidatesSnapshot.length === 0) {
+          if (this._candidatesSnapshot.length === 0 && this.type === 'offer') {
             this._candidatesSnapshot = [...this._allCandidates]
             this.logger.info(
               'SDP has candidates for all media sections, calling _sdpReady for early invite'

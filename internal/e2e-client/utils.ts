@@ -137,7 +137,7 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
   return data.jwt_token
 }
 
-export const createTestSATToken = async () => {
+export const createTestSATToken = async (reference?:String) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
     {
@@ -147,7 +147,7 @@ export const createTestSATToken = async () => {
         Authorization: `Basic ${BASIC_TOKEN}`,
       },
       body: JSON.stringify({
-        reference: process.env.SAT_REFERENCE,
+        reference: reference || process.env.SAT_REFERENCE,
       }),
     }
   )
@@ -341,13 +341,14 @@ export const leaveRoom = async (page: Page) => {
 
 interface CreateCFClientParams {
   attachSagaMonitor?: boolean
+  reference?: string
 }
 
 export const createCFClient = async (
   page: Page,
   params?: CreateCFClientParams
 ) => {
-  const sat = await createTestSATToken()
+  const sat = await createTestSATToken(params?.reference)
   return createCFClientWithToken(page, sat, params)
 }
 
