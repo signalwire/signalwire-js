@@ -131,19 +131,6 @@ export class FabricRoomSessionConnection
     })
   }
 
-  private async join() {
-    if (this.options.attach) {
-      this.options.prevCallId =
-        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-      this.logger.debug(
-        `Tying to reattach to previuos call? ${!!this.options
-          .prevCallId} - prevCallId: ${this.options.prevCallId}`
-      )
-    }
-
-    return super.invite<FabricRoomSession>()
-  }
-
   private executeAction<
     InputType,
     OutputType = InputType,
@@ -217,7 +204,20 @@ export class FabricRoomSessionConnection
           getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
         })
 
-        await this.join()
+        if (this.options.attach) {
+          this.options.prevCallId =
+            getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+          this.logger.debug(
+            `Tying to reattach to previuos call? ${!!this.options
+              .prevCallId} - prevCallId: ${this.options.prevCallId}`
+          )
+        }
+
+        if (this.options.remoteSdp) {
+          await super.answer<FabricRoomSession>()
+        } else {
+          await super.invite<FabricRoomSession>()
+        }
       } catch (error) {
         this.logger.error('WSClient call start', error)
         reject(error)

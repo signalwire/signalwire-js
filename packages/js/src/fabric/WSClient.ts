@@ -217,6 +217,8 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
+    // TODO: Include video based on the SDP
+
     const call = this.makeFabricObject({
       audio: params.audio ?? true,
       video: params.video ?? true,
