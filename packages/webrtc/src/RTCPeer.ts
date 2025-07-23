@@ -897,7 +897,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       )
     ) {
       // the local SDP was processed already and onnegotiationneeded was not fired
-      // this happens because there multiple places calling _sdpReady
+      // this happens because there are multiple places calling _sdpReady
       this.logger.warn(
         `_sdpReady called in wrong state: ${this.instance.signalingState}`
       )
