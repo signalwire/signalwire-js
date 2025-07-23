@@ -1,10 +1,6 @@
 import { CallSession } from '@signalwire/client'
 import { test, expect } from '../../fixtures'
-import {
-  SERVER_URL,
-  createCFClient,
-  dialAddress,
-} from '../../utils'
+import { SERVER_URL, createCFClient, dialAddress } from '../../utils'
 
 test.describe('CallFabric Incoming Call over WebSocket', () => {
   test('should handle incoming call via WebSocket between two subscribers', async ({
@@ -26,14 +22,14 @@ test.describe('CallFabric Incoming Call over WebSocket', () => {
     const calleeAddress = await calleePage.evaluate(async () => {
       const client = window._client!
       const addresses = await client.address.getMyAddresses()
-      
+
       if (!addresses || addresses.length === 0) {
         throw new Error('No addresses found for callee')
       }
-      
-        const myAddressId = addresses[0].id
-        const myAddress = await client.address.getAddress({ id: myAddressId })
-        return myAddress.channels.video
+
+      const myAddressId = addresses[0].id
+      const myAddress = await client.address.getAddress({ id: myAddressId })
+      return myAddress.channels.video
     })
 
     expect(calleeAddress).toBeTruthy()
@@ -56,43 +52,48 @@ test.describe('CallFabric Incoming Call over WebSocket', () => {
     // In Callee page: use client.online to register a listener for invites over WebSocket only
     await calleePage.evaluate(async () => {
       const client = window._client!
-      
+
       await client.online({
         incomingCallHandlers: {
           websocket: (notification) => {
-            console.log('Callee received incoming call:', notification.invite.details)
-            
+            console.log(
+              'Callee received incoming call:',
+              notification.invite.details
+            )
+
             // Accept the call
-            notification.invite.accept({
-              rootElement: document.getElementById('rootElement')!,
-              audio: true,
-              video: true,
-            }).then(async calleeCall => {
+            notification.invite
+              .accept({
+                rootElement: document.getElementById('rootElement')!,
+                audio: true,
+                video: true,
+              })
+              .then(async (calleeCall) => {
                 // @ts-expect-error
-            window._calleeCall = calleeCall
+                window._calleeCall = calleeCall
 
-            // Set up event listeners
-            calleeCall.on('call.state', (state) => {
-              console.log('Callee call state:', state.call_state)
-            })
+                // Set up event listeners
+                calleeCall.on('call.state', (state) => {
+                  console.log('Callee call state:', state.call_state)
+                })
 
-            calleeCall.on('destroy', () => {
-              console.log('Callee call destroyed')
-              // @ts-expect-error
-              window._calleeCallDestroyed(true)
-            })
-            
-            // @ts-expect-error
-            window._calleeCallAnswered(true)
-            })
-          }
-        }
+                calleeCall.on('destroy', () => {
+                  console.log('Callee call destroyed')
+                  // @ts-expect-error
+                  window._calleeCallDestroyed(true)
+                })
+
+                // @ts-expect-error
+                window._calleeCallAnswered(true)
+              })
+          },
+        },
       })
     })
 
     // In Caller: dial the callee address with "?channel=video"
     const callerDialPromise = dialAddress(callerPage, {
-        address: calleeAddress ?? '',
+      address: calleeAddress ?? '',
     })
 
     // Wait for both the caller to connect and callee to answer
@@ -103,7 +104,6 @@ test.describe('CallFabric Incoming Call over WebSocket', () => {
 
     expect(calleeAnswered).toBe(true)
     expect(callerCallSession).toBeDefined()
-
 
     // In Caller page: hang up the call
     await callerPage.evaluate(async () => {
