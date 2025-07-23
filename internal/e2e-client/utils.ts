@@ -137,7 +137,7 @@ export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
   return data.jwt_token
 }
 
-export const createTestSATToken = async (reference?:String) => {
+export const createTestSATToken = async (reference?: string) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/subscribers/tokens`,
     {
