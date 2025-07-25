@@ -5,7 +5,7 @@ import {
   VertoBye,
   VertoSubscribe,
 } from '@signalwire/core'
-import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
+import { sdpHasVideo, sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
 import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
@@ -222,18 +222,25 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    // TODO: Include video based on the SDP
+    let video = false
+    let negotiateVideo = false
+
+    if (sdpHasVideo(payload.sdp)) {
+      video = true
+      negotiateVideo = true
+    }
 
     const call = this.makeCallObject({
       audio: params.audio ?? true,
-      video: params.video ?? true,
+      video: params.video ?? video,
       negotiateAudio: params.negotiateAudio ?? true,
-      negotiateVideo: params.negotiateVideo ?? true,
+      negotiateVideo: params.negotiateVideo ?? negotiateVideo,
       rootElement: params.rootElement || this.wsClientOptions.rootElement,
-      applyLocalVideoOverlay: true,
-      applyMemberOverlay: true,
-      stopCameraWhileMuted: true,
-      stopMicrophoneWhileMuted: true,
+      applyLocalVideoOverlay: params.applyLocalVideoOverlay,
+      applyMemberOverlay: params.applyMemberOverlay,
+      stopCameraWhileMuted: params.stopCameraWhileMuted,
+      stopMicrophoneWhileMuted: params.stopMicrophoneWhileMuted,
+      mirrorLocalVideoOverlay: params.mirrorLocalVideoOverlay,
       watchMediaPackets: false,
       nodeId: payload.nodeId,
       remoteSdp: payload.sdp,

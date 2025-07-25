@@ -26,7 +26,6 @@ export class IncomingCallManager {
     const accept = async (params: CallParams) => {
       delete this._pendingInvites[invite.callID]
       const call = this.options.buildInboundCall(invite, params)
-      await call.start()
       return call
     }
 

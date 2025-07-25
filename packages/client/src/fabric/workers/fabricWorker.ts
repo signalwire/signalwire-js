@@ -73,9 +73,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
 
     // If this is the first call.joined event, verify the call origin ID
     if (!firstCallJoinedReceived) {
-      const callId = action.payload.call_id
-      const originCallId = action.payload.origin_call_id
-      if (callId === originCallId) {
+      if (action.payload.call_id === cfRoomSession.callId) {
         firstCallJoinedReceived = true
         return true
       }
