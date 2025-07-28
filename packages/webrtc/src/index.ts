@@ -38,8 +38,6 @@ export {
   checkMicrophonePermissions,
   checkSpeakerPermissions,
   requestPermissions,
-  sdpHasVideo,
-  sdpHasAudio,
 } from './utils'
 export * from './utils/interfaces'
 export { BaseConnection, BaseConnectionOptions } from './BaseConnection'
