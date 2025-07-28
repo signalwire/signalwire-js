@@ -5,7 +5,7 @@ import {
   VertoBye,
   VertoSubscribe,
 } from '@signalwire/core'
-import { sdpHasVideo, sessionConnectionPoolWorker } from '@signalwire/webrtc'
+import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
 import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
@@ -222,19 +222,11 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   private buildInboundCall(payload: IncomingInvite, params: CallParams) {
-    let video = false
-    let negotiateVideo = false
-
-    if (sdpHasVideo(payload.sdp)) {
-      video = true
-      negotiateVideo = true
-    }
-
     const call = this.makeCallObject({
       audio: params.audio ?? true,
-      video: params.video ?? video,
+      video: params.video ?? true,
       negotiateAudio: params.negotiateAudio ?? true,
-      negotiateVideo: params.negotiateVideo ?? negotiateVideo,
+      negotiateVideo: params.negotiateVideo ?? true,
       rootElement: params.rootElement || this.wsClientOptions.rootElement,
       applyLocalVideoOverlay: params.applyLocalVideoOverlay,
       applyMemberOverlay: params.applyMemberOverlay,
