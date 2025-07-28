@@ -202,7 +202,7 @@ export class CallSessionConnection
 
         this.once('destroy', () => {
           getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-          reject(new Error('Failed to start the call.'))
+          reject(new Error('Failed to start the call.', { cause: this.cause }))
         })
 
         if (this.options.attach) {
