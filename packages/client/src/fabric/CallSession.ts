@@ -202,15 +202,14 @@ export class CallSessionConnection
 
         this.once('destroy', () => {
           getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-          reject(new Error('Failed to start the call.', { cause: this.cause }))
+          reject(new Error('Failed to start the call', { cause: this.cause }))
         })
 
         if (this.options.attach) {
           this.options.prevCallId =
             getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
           this.logger.debug(
-            `Tying to reattach to previuos call? ${!!this.options
-              .prevCallId} - prevCallId: ${this.options.prevCallId}`
+            `Trying to reattach to previous call: ${this.options.prevCallId}`
           )
         }
 
