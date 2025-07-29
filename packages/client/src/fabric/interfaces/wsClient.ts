@@ -14,16 +14,16 @@ export interface WSClientContract {
    * Dial a resource and connect the call
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link CallSession}.
+   * @returns A {@link CallSession} object.
    */
-  dial(params: DialParams): Promise<CallSession>
+  dial(params: DialParams): CallSession
   /**
    * Reattach to the previous call if the previous call was not disconnected
    *
    * @param params {@link DialParams}
-   * @returns A promise resolving to the session object {@link CallSession}.
+   * @returns A {@link CallSession} object.
    */
-  reattach(params: DialParams): Promise<CallSession>
+  reattach(params: DialParams): CallSession
   /**
    * Handles the incoming call via Push Notification
    *

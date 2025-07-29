@@ -21,7 +21,7 @@ export interface IncomingInviteWithSource extends IncomingInvite {
 export interface IncomingCallNotification {
   invite: {
     details: IncomingInvite
-    accept: (param: CallParams) => Promise<CallSession>
+    accept: (param: CallParams) => CallSession
     reject: () => Promise<void>
   }
 }
