@@ -317,6 +317,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public dial(params: DialParams) {
+    // TODO: Do we need this remove item here?
+    // in case the user left the previous call with hangup, and is not reattaching
+    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
     return this.buildOutboundCall(params)
   }
 
