@@ -2,4 +2,4 @@
 '@signalwire/webrtc': patch
 ---
 
-replaced `regex` test with string incluedes in sdpHasValidCandidates to fix issue with ReactNative.
+replaced `regex` test with string includes in sdpHasValidCandidates to fix issue with ReactNative.
