@@ -822,7 +822,6 @@ export class BaseConnection<
             error
           )
         ) {
-          // eslint-disable-line max-len, no-nested-ternaryerror === SYMBOL_EXECUTE_CONNECTION_CLOSED) {
           this.logger.debug('Retrying verto.invite with new RTCPeer')
           return false // we should retry
         }
