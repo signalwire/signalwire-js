@@ -26,7 +26,7 @@ let client = null
 let micAnalyzer = null
 
 const inCallElements = [
-    btnHangup,
+  btnHangup,
   roomControls,
   muteSelfBtn,
   unmuteSelfBtn,
