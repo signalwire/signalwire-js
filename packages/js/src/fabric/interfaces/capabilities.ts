@@ -15,6 +15,7 @@ export interface MemberCapabilityContract {
   meta: boolean
   remove: boolean
   audioFlags: boolean
+  end: boolean
 }
 
 export interface CallCapabilitiesContract {
