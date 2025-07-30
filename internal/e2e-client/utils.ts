@@ -455,7 +455,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
 
         const dialer = reattach ? client.reattach : client.dial
 
-        const call = await dialer({
+        const call = dialer({
           to: address,
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
