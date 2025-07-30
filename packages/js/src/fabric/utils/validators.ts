@@ -233,3 +233,18 @@ export function validateSetAudioFlags(
     )
   }
 }
+
+export function validateEnd(
+  this: FabricRoomSessionConnection,
+  params?: MemberCommandParams
+) {
+  const isSelf = isSelfMember(params, this)
+  const capability = isSelf
+    ? this.capabilities?.self.end
+    : this.capabilities?.member.end
+  if (!capability) {
+    throw new CapabilityError(
+      `Missing ${isSelf ? 'self.end' : 'member.end'} capability`
+    )
+  }
+}
