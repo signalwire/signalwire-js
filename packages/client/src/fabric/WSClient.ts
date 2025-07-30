@@ -7,7 +7,7 @@ import {
 } from '@signalwire/core'
 import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
-import { createCallSessionObject, CallSession } from './CallSession'
+import { createCallSessionObject } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
@@ -23,9 +23,9 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
+import { CallMemberUpdatedEventParams } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallMemberUpdatedEventParams } from '../utils/interfaces'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -206,6 +206,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
+      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
       call.destroy()
     })
 
@@ -315,30 +316,15 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public async dial(params: DialParams) {
-    return new Promise<CallSession>(async (resolve, reject) => {
-      try {
-        // in case the user left the previous call with hangup, and is not reattaching
-        getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-        const call = this.buildOutboundCall(params)
-        resolve(call)
-      } catch (error) {
-        this.logger.error('Unable to connect and dial a call', error)
-        reject(error)
-      }
-    })
+  public dial(params: DialParams) {
+    // TODO: Do we need this remove item here?
+    // in case the user left the previous call with hangup, and is not reattaching
+    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+    return this.buildOutboundCall(params)
   }
 
-  public async reattach(params: ReattachParams) {
-    return new Promise<CallSession>(async (resolve, reject) => {
-      try {
-        const call = this.buildOutboundCall({ ...params, attach: true })
-        resolve(call)
-      } catch (error) {
-        this.logger.error('Unable to connect and reattach a call', error)
-        reject(error)
-      }
-    })
+  public reattach(params: ReattachParams) {
+    return this.buildOutboundCall({ ...params, attach: true })
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {

@@ -23,10 +23,9 @@ export class IncomingCallManager {
   }
 
   private _buildNotification(invite: IncomingInvite): IncomingCallNotification {
-    const accept = async (params: CallParams) => {
+    const accept = (params: CallParams) => {
       delete this._pendingInvites[invite.callID]
-      const call = this.options.buildInboundCall(invite, params)
-      return call
+      return this.options.buildInboundCall(invite, params)
     }
 
     const reject = () => {

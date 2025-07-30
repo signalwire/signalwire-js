@@ -55,37 +55,36 @@ test.describe('CallFabric Incoming Call over WebSocket', () => {
 
       await client.online({
         incomingCallHandlers: {
-          websocket: (notification) => {
+          websocket: async (notification) => {
             console.log(
               'Callee received incoming call:',
               notification.invite.details
             )
 
             // Accept the call
-            notification.invite
-              .accept({
-                rootElement: document.getElementById('rootElement')!,
-                audio: true,
-                video: true,
-              })
-              .then(async (calleeCall) => {
-                // @ts-expect-error
-                window._calleeCall = calleeCall
+            const calleeCall = notification.invite.accept({
+              rootElement: document.getElementById('rootElement')!,
+              audio: true,
+              video: true,
+            })
+            // @ts-expect-error
+            window._calleeCall = calleeCall
 
-                // Set up event listeners
-                calleeCall.on('call.state', (state) => {
-                  console.log('Callee call state:', state.call_state)
-                })
+            await calleeCall.start()
 
-                calleeCall.on('destroy', () => {
-                  console.log('Callee call destroyed')
-                  // @ts-expect-error
-                  window._calleeCallDestroyed(true)
-                })
+            // Set up event listeners
+            calleeCall.on('call.state', (state) => {
+              console.log('Callee call state:', state.call_state)
+            })
 
-                // @ts-expect-error
-                window._calleeCallAnswered(true)
-              })
+            calleeCall.on('destroy', () => {
+              console.log('Callee call destroyed')
+              // @ts-expect-error
+              window._calleeCallDestroyed(true)
+            })
+
+            // @ts-expect-error
+            window._calleeCallAnswered(true)
           },
         },
       })
