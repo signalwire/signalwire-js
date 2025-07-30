@@ -499,6 +499,30 @@ export interface FabricRoomSessionContract {
    * ```
    */
   setAudioFlags(params: SetAudioFlagsParams): Promise<void>
+  /**
+   * Ends call for a specific participant or yourself.
+   *
+   * @param params
+   * @param params.memberId id of the member to end the call for. If omitted, ends the call for the local client.
+   *
+   * @capabilities
+   *  - `room.self.end`: to end your own call
+   *  - `room.member.end`: to end another member's call
+   *
+   * @example Ending your own call:
+   * ```typescript
+   * await room.end();
+   * console.log('Call ended');
+   * ```
+   *
+   * @example Ending another participant's call:
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'; // you can get this from getMembers()
+   * await room.end({ memberId: id });
+   * console.log('Call ended for member', id);
+   * ```
+   */
+  end(params?: MemberCommandParams): Promise<void>
 }
 
 /**
@@ -561,6 +585,7 @@ export type Capability =
   | 'self.position.set'
   | 'self.meta'
   | 'self.audioflags.set'
+  | 'self.end'
 
   // Member
   | 'member'
@@ -582,6 +607,7 @@ export type Capability =
   | 'member.position.set'
   | 'member.meta'
   | 'member.audioflags.set'
+  | 'member.end'
 
   // Layout
   | 'layout'
