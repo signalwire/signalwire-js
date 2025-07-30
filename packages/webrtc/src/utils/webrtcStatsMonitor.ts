@@ -274,9 +274,9 @@ export class WebRTCStatsMonitor {
 
     // Find the active inbound RTP stream and candidate pair
     stats.forEach((report) => {
-      if (report.type === 'inbound-rtp' && report.kind === 'video') {
+      if (report.type === 'inbound-rtp' && (report as any).kind === 'video') {
         inboundRtp = report as RTCInboundRtpStreamStats
-      } else if (report.type === 'candidate-pair' && (report as RTCIceCandidatePairStats).state === 'succeeded') {
+      } else if (report.type === 'candidate-pair' && (report as any).state === 'succeeded') {
         candidatePair = report as RTCIceCandidatePairStats
       }
     })
@@ -285,20 +285,22 @@ export class WebRTCStatsMonitor {
       return null
     }
 
+    const rtpStats = inboundRtp as any // Type assertion to access properties
     const timestamp = Date.now()
-    const packetsReceived = inboundRtp.packetsReceived || 0
-    const bytesReceived = inboundRtp.bytesReceived || 0
-    const packetsLost = inboundRtp.packetsLost || 0
-    const jitter = (inboundRtp.jitter || 0) * 1000 // Convert to milliseconds
+    const packetsReceived = rtpStats.packetsReceived || 0
+    const bytesReceived = rtpStats.bytesReceived || 0
+    const packetsLost = rtpStats.packetsLost || 0
+    const jitter = (rtpStats.jitter || 0) * 1000 // Convert to milliseconds
 
     // RTT from candidate pair if available
-    const roundTripTime = candidatePair?.currentRoundTripTime 
-      ? candidatePair.currentRoundTripTime * 1000 // Convert to milliseconds
+    const pairStats = candidatePair as any // Type assertion to access properties
+    const roundTripTime = pairStats?.currentRoundTripTime 
+      ? pairStats.currentRoundTripTime * 1000 // Convert to milliseconds
       : 0
 
     // Available bitrate from candidate pair
-    const availableOutgoingBitrate = candidatePair?.availableOutgoingBitrate
-    const availableIncomingBitrate = candidatePair?.availableIncomingBitrate
+    const availableOutgoingBitrate = pairStats?.availableOutgoingBitrate
+    const availableIncomingBitrate = pairStats?.availableIncomingBitrate
 
     return {
       timestamp,
@@ -309,7 +311,7 @@ export class WebRTCStatsMonitor {
       jitter,
       availableOutgoingBitrate,
       availableIncomingBitrate,
-      currentRoundTripTime: candidatePair?.currentRoundTripTime
+      currentRoundTripTime: pairStats?.currentRoundTripTime
     }
   }
 

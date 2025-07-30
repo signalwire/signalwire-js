@@ -21,7 +21,8 @@ import {
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
 import { WebRTCStatsMonitor } from './utils/webrtcStatsMonitor'
-import { DevicePreferenceManager, getDevicePreferenceManager } from './utils/deviceHelpers'
+import { DevicePreferenceManager } from './utils/devicePreferenceManager'
+import { getDevicePreferenceManager } from './utils/deviceHelpers'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -1372,14 +1373,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._devicePreferenceManager = getDevicePreferenceManager()
       
       // Set up device recovery callbacks
-      this._devicePreferenceManager.onDeviceChange('camera', (deviceId, deviceLabel, isRecovered) => {
+      this._devicePreferenceManager.onDeviceChange('camera', (deviceId: string, deviceLabel?: string, isRecovered?: boolean) => {
         if (isRecovered) {
           this.logger.info(`Camera device recovered: ${deviceLabel} (${deviceId})`)
           this.call.emit('device.recovered', { deviceType: 'camera', deviceId, deviceLabel })
         }
       })
       
-      this._devicePreferenceManager.onDeviceChange('microphone', (deviceId, deviceLabel, isRecovered) => {
+      this._devicePreferenceManager.onDeviceChange('microphone', (deviceId: string, deviceLabel?: string, isRecovered?: boolean) => {
         if (isRecovered) {
           this.logger.info(`Microphone device recovered: ${deviceLabel} (${deviceId})`)
           this.call.emit('device.recovered', { deviceType: 'microphone', deviceId, deviceLabel })

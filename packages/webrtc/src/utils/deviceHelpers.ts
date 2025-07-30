@@ -888,7 +888,7 @@ export const initializeDevicePreferenceManager = (config?: any): DevicePreferenc
  */
 export const checkCameraWithRecovery = async (
   cameraId: string,
-  cameraLabel?: string,
+  _cameraLabel?: string,
   preference?: DevicePreference
 ): Promise<DeviceRecoveryResult> => {
   try {
@@ -950,7 +950,7 @@ export const checkCameraWithRecovery = async (
  */
 export const checkMicrophoneWithRecovery = async (
   microphoneId: string,
-  microphoneLabel?: string,
+  _microphoneLabel?: string,
   preference?: DevicePreference
 ): Promise<DeviceRecoveryResult> => {
   try {
@@ -1012,7 +1012,7 @@ export const checkMicrophoneWithRecovery = async (
  */
 export const checkSpeakerWithRecovery = async (
   speakerId: string,
-  speakerLabel?: string,
+  _speakerLabel?: string,
   preference?: DevicePreference
 ): Promise<DeviceRecoveryResult> => {
   try {
