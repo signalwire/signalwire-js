@@ -506,8 +506,7 @@ export interface FabricRoomSessionContract {
    * @param params.memberId id of the member to end the call for. If omitted, ends the call for the local client.
    *
    * @capabilities
-   *  - `room.self.end`: to end your own call
-   *  - `room.member.end`: to end another member's call
+   *  - `end`: to end a call (your own or another member's)
    *
    * @example Ending your own call:
    * ```typescript
@@ -585,7 +584,6 @@ export type Capability =
   | 'self.position.set'
   | 'self.meta'
   | 'self.audioflags.set'
-  | 'self.end'
 
   // Member
   | 'member'
@@ -607,7 +605,6 @@ export type Capability =
   | 'member.position.set'
   | 'member.meta'
   | 'member.audioflags.set'
-  | 'member.end'
 
   // Layout
   | 'layout'
@@ -631,6 +628,9 @@ export type Capability =
   // Device & Screenshare
   | 'device'
   | 'screenshare'
+
+  // End
+  | 'end'
 
 /**
  * 'call.joined'
