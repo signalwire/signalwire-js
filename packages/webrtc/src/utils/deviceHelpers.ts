@@ -13,6 +13,11 @@ import {
   supportsMediaOutput,
   getMediaDevicesApi,
 } from './index'
+import { 
+  DevicePreferenceManager, 
+  DeviceRecoveryResult, 
+  DevicePreference 
+} from './devicePreferenceManager'
 
 const _constraintsByKind = (
   kind?: DevicePermissionName | 'all'
@@ -848,4 +853,317 @@ export const getSpeakerById = async (
       (audio.deviceId === 'default' && id === '') ||
       (audio.deviceId === '' && id === 'default')
   )
+}
+
+// Global device preference manager instance
+let globalDevicePreferenceManager: DevicePreferenceManager | null = null
+
+/**
+ * Get or create the global device preference manager instance
+ */
+export const getDevicePreferenceManager = (): DevicePreferenceManager => {
+  if (!globalDevicePreferenceManager) {
+    globalDevicePreferenceManager = new DevicePreferenceManager()
+  }
+  return globalDevicePreferenceManager
+}
+
+/**
+ * Initialize device preference manager with custom configuration
+ */
+export const initializeDevicePreferenceManager = (config?: any): DevicePreferenceManager => {
+  if (globalDevicePreferenceManager) {
+    globalDevicePreferenceManager.destroy()
+  }
+  globalDevicePreferenceManager = new DevicePreferenceManager(config)
+  return globalDevicePreferenceManager
+}
+
+/**
+ * Enhanced camera device checking with preference management and recovery
+ * @param cameraId Current camera device ID
+ * @param cameraLabel Current camera device label
+ * @param preference Device preference for recovery
+ * @returns Device validation and recovery result
+ */
+export const checkCameraWithRecovery = async (
+  cameraId: string,
+  cameraLabel?: string,
+  preference?: DevicePreference
+): Promise<DeviceRecoveryResult> => {
+  try {
+    const hasPerms = await checkCameraPermissions()
+    if (!hasPerms) {
+      return {
+        deviceId: '',
+        deviceLabel: undefined,
+        recovered: false,
+        fallbackUsed: false,
+        recoveryMethod: 'os_default'
+      }
+    }
+    
+    const preferenceManager = getDevicePreferenceManager()
+    const result = await preferenceManager.recoverDevice('camera', cameraId, preference)
+    
+    if (result.recovered || result.fallbackUsed) {
+      // Validate the recovered device ID works
+      const device = await getCameraById(result.deviceId)
+      if (device) {
+        // Update preference if recovery used a different device
+        if (result.fallbackUsed && result.deviceId !== cameraId) {
+          preferenceManager.setDevicePreference('camera', result.deviceId, device.label)
+        }
+        return {
+          ...result,
+          deviceLabel: device.label || result.deviceLabel
+        }
+      }
+    }
+    
+    // Fallback to OS default if nothing else works
+    return {
+      deviceId: 'default',
+      deviceLabel: 'Default',
+      recovered: true,
+      fallbackUsed: true,
+      recoveryMethod: 'os_default'
+    }
+  } catch (error) {
+    getLogger().error('Camera recovery failed:', error)
+    return {
+      deviceId: 'default',
+      deviceLabel: 'Default', 
+      recovered: false,
+      fallbackUsed: true,
+      recoveryMethod: 'os_default'
+    }
+  }
+}
+
+/**
+ * Enhanced microphone device checking with preference management and recovery
+ * @param microphoneId Current microphone device ID
+ * @param microphoneLabel Current microphone device label
+ * @param preference Device preference for recovery
+ * @returns Device validation and recovery result
+ */
+export const checkMicrophoneWithRecovery = async (
+  microphoneId: string,
+  microphoneLabel?: string,
+  preference?: DevicePreference
+): Promise<DeviceRecoveryResult> => {
+  try {
+    const hasPerms = await checkMicrophonePermissions()
+    if (!hasPerms) {
+      return {
+        deviceId: '',
+        deviceLabel: undefined,
+        recovered: false,
+        fallbackUsed: false,
+        recoveryMethod: 'os_default'
+      }
+    }
+    
+    const preferenceManager = getDevicePreferenceManager()
+    const result = await preferenceManager.recoverDevice('microphone', microphoneId, preference)
+    
+    if (result.recovered || result.fallbackUsed) {
+      // Validate the recovered device ID works
+      const device = await getMicrophoneById(result.deviceId)
+      if (device) {
+        // Update preference if recovery used a different device
+        if (result.fallbackUsed && result.deviceId !== microphoneId) {
+          preferenceManager.setDevicePreference('microphone', result.deviceId, device.label)
+        }
+        return {
+          ...result,
+          deviceLabel: device.label || result.deviceLabel
+        }
+      }
+    }
+    
+    // Fallback to OS default if nothing else works
+    return {
+      deviceId: 'default',
+      deviceLabel: 'Default',
+      recovered: true,
+      fallbackUsed: true,
+      recoveryMethod: 'os_default'
+    }
+  } catch (error) {
+    getLogger().error('Microphone recovery failed:', error)
+    return {
+      deviceId: 'default',
+      deviceLabel: 'Default',
+      recovered: false,
+      fallbackUsed: true,
+      recoveryMethod: 'os_default'
+    }
+  }
+}
+
+/**
+ * Enhanced speaker device checking with preference management and recovery
+ * @param speakerId Current speaker device ID
+ * @param speakerLabel Current speaker device label  
+ * @param preference Device preference for recovery
+ * @returns Device validation and recovery result
+ */
+export const checkSpeakerWithRecovery = async (
+  speakerId: string,
+  speakerLabel?: string,
+  preference?: DevicePreference
+): Promise<DeviceRecoveryResult> => {
+  try {
+    const hasPerms = await checkSpeakerPermissions()
+    if (!hasPerms) {
+      return {
+        deviceId: '',
+        deviceLabel: undefined,
+        recovered: false,
+        fallbackUsed: false,
+        recoveryMethod: 'os_default'
+      }
+    }
+    
+    const preferenceManager = getDevicePreferenceManager()
+    const result = await preferenceManager.recoverDevice('speaker', speakerId, preference)
+    
+    if (result.recovered || result.fallbackUsed) {
+      // Validate the recovered device ID works
+      const device = await getSpeakerById(result.deviceId)
+      if (device) {
+        // Update preference if recovery used a different device
+        if (result.fallbackUsed && result.deviceId !== speakerId) {
+          preferenceManager.setDevicePreference('speaker', result.deviceId, device.label)
+        }
+        return {
+          ...result,
+          deviceLabel: device.label || result.deviceLabel
+        }
+      }
+    }
+    
+    // Fallback to OS default if nothing else works
+    return {
+      deviceId: 'default',
+      deviceLabel: 'Default',
+      recovered: true,
+      fallbackUsed: true,
+      recoveryMethod: 'os_default'
+    }
+  } catch (error) {
+    getLogger().error('Speaker recovery failed:', error)
+    return {
+      deviceId: 'default',
+      deviceLabel: 'Default',
+      recovered: false,
+      fallbackUsed: true,
+      recoveryMethod: 'os_default'
+    }
+  }
+}
+
+/**
+ * Get camera device by ID with enhanced error handling
+ * @param id Camera device ID
+ * @returns Camera device info or undefined
+ */
+export const getCameraById = async (
+  id: string
+): Promise<MediaDeviceInfo | undefined> => {
+  try {
+    const cameras = await getCameraDevices()
+    return cameras.find(
+      (camera) =>
+        camera.deviceId === id ||
+        (camera.deviceId === 'default' && id === '') ||
+        (camera.deviceId === '' && id === 'default')
+    )
+  } catch (error) {
+    getLogger().error('Failed to get camera by ID:', error)
+    return undefined
+  }
+}
+
+/**
+ * Get microphone device by ID with enhanced error handling
+ * @param id Microphone device ID
+ * @returns Microphone device info or undefined
+ */
+export const getMicrophoneById = async (
+  id: string
+): Promise<MediaDeviceInfo | undefined> => {
+  try {
+    const microphones = await getMicrophoneDevices()
+    return microphones.find(
+      (microphone) =>
+        microphone.deviceId === id ||
+        (microphone.deviceId === 'default' && id === '') ||
+        (microphone.deviceId === '' && id === 'default')
+    )
+  } catch (error) {
+    getLogger().error('Failed to get microphone by ID:', error)
+    return undefined
+  }
+}
+
+/**
+ * Set device preference for future recovery
+ * @param deviceType Type of device (camera, microphone, speaker)
+ * @param deviceId Device ID to prefer
+ * @param deviceLabel Device label for identification
+ */
+export const setDevicePreference = (
+  deviceType: 'camera' | 'microphone' | 'speaker',
+  deviceId: string,
+  deviceLabel?: string
+): void => {
+  const preferenceManager = getDevicePreferenceManager()
+  preferenceManager.setDevicePreference(deviceType, deviceId, deviceLabel)
+}
+
+/**
+ * Get device preference for a device type
+ * @param deviceType Type of device
+ * @returns Device preference or null
+ */
+export const getDevicePreference = (
+  deviceType: 'camera' | 'microphone' | 'speaker'
+): DevicePreference | null => {
+  const preferenceManager = getDevicePreferenceManager()
+  return preferenceManager.getDevicePreference(deviceType)
+}
+
+/**
+ * Register callback for device changes (when devices are added/removed)
+ * @param deviceType Type of device to monitor
+ * @param callback Function to call when device changes occur
+ */
+export const onDeviceChange = (
+  deviceType: 'camera' | 'microphone' | 'speaker',
+  callback: (deviceId: string, deviceLabel?: string, isRecovered?: boolean) => void
+): void => {
+  const preferenceManager = getDevicePreferenceManager()
+  preferenceManager.onDeviceChange(deviceType, callback)
+}
+
+/**
+ * Remove device change callback
+ * @param deviceType Type of device
+ */
+export const offDeviceChange = (
+  deviceType: 'camera' | 'microphone' | 'speaker'
+): void => {
+  const preferenceManager = getDevicePreferenceManager()
+  preferenceManager.offDeviceChange(deviceType)
+}
+
+/**
+ * Clear all device preferences
+ */
+export const clearDevicePreferences = (): void => {
+  const preferenceManager = getDevicePreferenceManager()
+  preferenceManager.clearPreferences()
 }
