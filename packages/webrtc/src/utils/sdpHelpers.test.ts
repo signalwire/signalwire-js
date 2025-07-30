@@ -8,6 +8,7 @@ import {
   getOppositeSdpDirection,
   sdpHasAudio,
   sdpHasVideo,
+  sdpHasValidCandidates,
 } from './sdpHelpers'
 
 describe('SDP utility functions', () => {
@@ -32,6 +33,40 @@ describe('SDP utility functions', () => {
 
     it('set stereo=1 if a=fmtp is NOT present', () => {
       expect(sdpStereoHack(SDP_NO_OPUS_NO_STEREO)).toEqual(SDP_NO_OPUS_STEREO)
+    })
+  })
+
+  describe('sdpHasValidCandidates', () => {
+    const SDP_WITH_VALID_CANDIDATES = 
+      'v=0\r\no=- 8094323291162995063 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\nm=audio 51609 UDP/TLS/RTP/SAVPF 111\r\na=candidate:1 1 UDP 2122252543 192.168.1.4 51609 typ host\r\na=candidate:2 1 UDP 1694498815 203.0.113.10 51609 typ srflx raddr 192.168.1.4 rport 51609\r\na=candidate:3 1 UDP 1698302975 198.51.100.45 51609 typ relay raddr 203.0.113.10 rport 51609\r\na=sendrecv\r\nm=video 52560 UDP/TLS/RTP/SAVPF 96\r\na=candidate:1 1 UDP 2122252543 192.168.1.4 52560 typ host\r\na=candidate:2 1 UDP 1694498815 203.0.113.10 52560 typ prflx raddr 192.168.1.4 rport 52560\r\na=recvonly\r\n'
+    
+    const SDP_WITH_ONLY_HOST_CANDIDATES =
+      'v=0\r\no=- 8094323291162995063 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\nm=audio 51609 UDP/TLS/RTP/SAVPF 111\r\na=candidate:1 1 UDP 2122252543 192.168.1.4 51609 typ host\r\na=sendrecv\r\nm=video 52560 UDP/TLS/RTP/SAVPF 96\r\na=candidate:1 1 UDP 2122252543 192.168.1.4 52560 typ host\r\na=recvonly\r\n'
+    
+    const SDP_WITH_MIXED_CANDIDATES =
+      'v=0\r\no=- 8094323291162995063 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\nm=audio 51609 UDP/TLS/RTP/SAVPF 111\r\na=candidate:1 1 UDP 2122252543 192.168.1.4 51609 typ host\r\na=candidate:2 1 UDP 1694498815 203.0.113.10 51609 typ srflx raddr 192.168.1.4 rport 51609\r\na=sendrecv\r\nm=video 52560 UDP/TLS/RTP/SAVPF 96\r\na=candidate:1 1 UDP 2122252543 192.168.1.4 52560 typ host\r\na=recvonly\r\n'
+    
+    const SDP_WITHOUT_CANDIDATES =
+      'v=0\r\no=- 8094323291162995063 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\nm=audio 51609 UDP/TLS/RTP/SAVPF 111\r\na=sendrecv\r\nm=video 52560 UDP/TLS/RTP/SAVPF 96\r\na=recvonly\r\n'
+
+    it('returns true when all media sections have valid candidates', () => {
+      expect(sdpHasValidCandidates(SDP_WITH_VALID_CANDIDATES)).toBe(true)
+    })
+
+    it('returns false when only host candidates are present', () => {
+      expect(sdpHasValidCandidates(SDP_WITH_ONLY_HOST_CANDIDATES)).toBe(false)
+    })
+
+    it('returns false when some media sections only have host candidates', () => {
+      expect(sdpHasValidCandidates(SDP_WITH_MIXED_CANDIDATES)).toBe(false)
+    })
+
+    it('returns false when no candidates are present', () => {
+      expect(sdpHasValidCandidates(SDP_WITHOUT_CANDIDATES)).toBe(false)
+    })
+
+    it('returns true for invalid SDP (no media sections)', () => {
+      expect(sdpHasValidCandidates('invalid sdp')).toBe(true)
     })
   })
 
