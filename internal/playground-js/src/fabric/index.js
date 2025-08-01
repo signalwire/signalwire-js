@@ -52,6 +52,7 @@ const inCallElements = [
   pauseRecordingBtn,
   resumeRecordingBtn,
   controlPlayback,
+  endSelfBtn,
 ]
 
 const playbackElements = [
@@ -952,3 +953,14 @@ window.ready(async function () {
     console.log('Room parameter not found')
   }
 })
+
+window.endSelf = async () => {
+  try {
+    if (!roomObj) throw new Error('No active room session')
+    console.log('Attempting to end call for self')
+    await roomObj.end()
+    console.log('Call ended for self')
+  } catch (error) {
+    console.error('Failed to end call:', error)
+  }
+}

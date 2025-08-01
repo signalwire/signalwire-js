@@ -233,3 +233,10 @@ export function validateSetAudioFlags(
     )
   }
 }
+
+export function validateEnd(this: FabricRoomSessionConnection) {
+  const capability = this.capabilities?.end
+  if (!capability) {
+    throw new CapabilityError("Missing 'end' capability")
+  }
+}

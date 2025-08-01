@@ -414,6 +414,13 @@ export class FabricRoomSessionConnection
       extraParams: toSnakeCaseKeys(rest),
     })
   }
+
+  public async end(params?: MemberCommandParams) {
+    return this.executeAction<BaseRPCResult>({
+      method: 'call.end',
+      memberId: params?.memberId,
+    })
+  }
 }
 
 export const isFabricRoomSession = (

@@ -414,6 +414,13 @@ export class CallSessionConnection
       extraParams: toSnakeCaseKeys(rest),
     })
   }
+
+  public async end(params?: MemberCommandParams): Promise<void> {
+    await this.executeAction<BaseRPCResult>({
+      method: 'call.end',
+      memberId: params?.memberId,
+    });
+  }
 }
 
 export const isCallSession = (room: unknown): room is CallSession => {

@@ -15,6 +15,7 @@ import {
   validateUnlock,
   validateVideoMute,
   validateVideoUnmute,
+  validateEnd
 } from './validators'
 import {
   FabricRoomSession,
@@ -45,6 +46,7 @@ export const validationsMap: ValidatorMap = {
   lock: validateLock,
   unlock: validateUnlock,
   setAudioFlags: validateSetAudioFlags,
+  end: validateEnd,
 }
 
 /**
