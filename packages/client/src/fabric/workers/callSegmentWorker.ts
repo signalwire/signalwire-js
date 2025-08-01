@@ -1,11 +1,17 @@
 import {
   CallJoinedEvent,
+  MapToPubSubShape,
   SDKActions,
   SagaIterator,
   getLogger,
   sagaEffects,
 } from '@signalwire/core'
-import { CallAction } from '../../utils/interfaces/fabric'
+import {
+  CallAction,
+  CallMemberJoinedEvent,
+  CallMemberLeftEvent,
+  CallMemberUpdatedEvent,
+} from '../../utils/interfaces/fabric'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
 import { FabricWorkerParams } from './fabricWorker'
@@ -83,16 +89,25 @@ export const callSegmentWorker = function* (
       case 'member.left': {
         yield sagaEffects.fork(fabricMemberWorker, {
           ...options,
-          action,
+          // TS is complaining {[x: string]: {}} in assignable to Record<string, unknown>
+          action: action as unknown as MapToPubSubShape<
+            CallMemberJoinedEvent | CallMemberLeftEvent
+          >,
         })
-        const videoAction =
-          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
+        const videoAction = mapFabricMemberActionToVideoMemberJoinAndLeftAction(
+          // TS is complaining {[x: string]: {}} in assignable to Record<string, unknown>
+          action as unknown as MapToPubSubShape<
+            CallMemberJoinedEvent | CallMemberLeftEvent
+          >
+        )
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
       case 'member.updated': {
-        const videoAction =
-          mapFabricMemberActionToVideoMemberUpdatedAction(action)
+        const videoAction = mapFabricMemberActionToVideoMemberUpdatedAction(
+          // TS is complaining {[x: string]: {}} in assignable to Record<string, unknown>
+          action as unknown as MapToPubSubShape<CallMemberUpdatedEvent>
+        )
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }

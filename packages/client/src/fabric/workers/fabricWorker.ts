@@ -7,13 +7,14 @@ import {
   SDKActions,
   MapToPubSubShape,
 } from '@signalwire/core'
-import { CallAction } from '../../utils/interfaces'
+import { CallAction, InternalCallMemberEntityUpdated } from '../../utils/interfaces'
 import { CallSessionConnection } from '../CallSession'
 import { createCallSessionMemberObject } from '../CallSessionMember'
 import { callSegmentWorker } from './callSegmentWorker'
+import { ShallowCompute } from '../../utils/typeUtils'
 
 export type FabricWorkerParams<T> = SDKWorkerParams<CallSessionConnection> & {
-  action: MapToPubSubShape<T>
+  action: ShallowCompute<MapToPubSubShape<T>>
 }
 
 export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
@@ -33,13 +34,13 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
         // since we depend on `cfRoomSession.selfMember` on the take logic
         // we need to make sure we update the `cfRoomSession.selfMember`
         // in this worker or have a race condition.
-        if (!cfRoomSession.selfMember) {
+        if (!cfRoomSession.selfMember) {          
           const memberInstance = createCallSessionMemberObject({
             store: cfRoomSession.store,
             payload: {
               member: action.payload.room_session.members.find(
                 (m) => m.member_id === action.payload.member_id
-              )!,
+              )! as InternalCallMemberEntityUpdated,
               room_id: action.payload.room_id,
               room_session_id: action.payload.room_session_id,
             },
