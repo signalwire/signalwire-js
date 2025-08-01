@@ -15,6 +15,8 @@ import {
   validateUnlock,
   validateVideoMute,
   validateVideoUnmute,
+  validateEnd,
+
 } from './validators'
 import { CallSession, CallSessionConnection } from '../CallSession'
 
@@ -42,6 +44,7 @@ export const validationsMap: ValidatorMap = {
   lock: validateLock,
   unlock: validateUnlock,
   setAudioFlags: validateSetAudioFlags,
+  end: validateEnd,
 }
 
 /**

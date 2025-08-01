@@ -138,6 +138,14 @@ class MemberCapability implements MemberCapabilityContract {
         flag.startsWith(`${this._memberType}.audioflags.set`)
     )
   }
+
+  get end() {
+    return this._flags.some(
+      (flag) =>
+        flag === this._memberType ||
+        flag === `${this._memberType}.end`
+    )
+  }
 }
 
 export class CallCapabilities implements CallCapabilitiesContract {
@@ -146,7 +154,10 @@ export class CallCapabilities implements CallCapabilitiesContract {
   private _vmutedHide?: CapabilityOnOffState
   private _lock?: CapabilityOnOffState
 
-  constructor(private _flags: string[]) {}
+  constructor(private _flags: string[]) {
+    this._self = this._buildMemberCapability('self')
+    this._member = this._buildMemberCapability('member')
+  }
 
   private _buildMemberCapability(memberType: 'self' | 'member') {
     return new MemberCapability(
