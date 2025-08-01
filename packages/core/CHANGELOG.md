@@ -1,5 +1,11 @@
 # @signalwire/core
 
+## [4.3.1] - 2025-07-28
+
+### Fixed
+
+- [#1257](https://github.com/signalwire/signalwire-js/pull/1257) [`b916036ce2db9807eed217b49f39cd13d9b46acf`](https://github.com/signalwire/signalwire-js/commit/b916036ce2db9807eed217b49f39cd13d9b46acf) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Fix Prettify preserving callable objects types
+
 ## [4.3.0] - 2025-07-04
 
 ### Added
@@ -41,6 +47,7 @@
 - [#1200](https://github.com/signalwire/signalwire-js/pull/1200) [`3d01d9663a4994c8cf42b2a1fac3bd2ca5371687`](https://github.com/signalwire/signalwire-js/commit/3d01d9663a4994c8cf42b2a1fac3bd2ca5371687) Thanks [@iAmmar7](https://github.com/iAmmar7)! - CF SDK: Fix the `getAddresses` TS contract with internal refactoring
 
 - [#1198](https://github.com/signalwire/signalwire-js/pull/1198) [`42ebbf935141f3a306f4d1993ab41ada69b932d9`](https://github.com/signalwire/signalwire-js/commit/42ebbf935141f3a306f4d1993ab41ada69b932d9) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - CF SDK: Changed the type of the error param for the `expectedErrorHandler` internal handler
+
 ## [4.2.1] - 2025-03-04
 
 ### Added

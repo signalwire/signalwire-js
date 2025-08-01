@@ -1,5 +1,12 @@
 # @sw-internal/e2e-client
 
+## 0.0.20
+
+### Patch Changes
+
+- Updated dependencies [[`3b215de44f757d2ee76f38868f33d33f3bf5d9b8`](https://github.com/signalwire/signalwire-js/commit/3b215de44f757d2ee76f38868f33d33f3bf5d9b8), [`92461cf2dd3e1c89e15568dc9f0c516784f9b75d`](https://github.com/signalwire/signalwire-js/commit/92461cf2dd3e1c89e15568dc9f0c516784f9b75d)]:
+  - @signalwire/client@0.0.1
+
 ## 0.0.20-dev.202506111650.ad2f5be.0
 
 ### Patch Changes

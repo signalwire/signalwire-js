@@ -1,6 +1,6 @@
 {
   "name": "@sw-internal/e2e-client",
-  "version": "0.0.20-dev.202506111650.ad2f5be.0",
+  "version": "0.0.20",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "test": ""
   },
   "dependencies": {
-    "@signalwire/client": "0.0.1-alpha",
+    "@signalwire/client": "0.0.1",
     "@sw-internal/playground-js": "0.0.15",
     "express": "^5.1.0",
     "node-fetch": "^2.6.7"

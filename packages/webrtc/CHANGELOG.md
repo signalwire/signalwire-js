@@ -1,5 +1,18 @@
 # @signalwire/webrtc
 
+## [3.14.1] - 2025-07-28
+
+### Changed
+
+- [#1256](https://github.com/signalwire/signalwire-js/pull/1256) [`0710e28c511f50c061c19e5306b0e639886ec92e`](https://github.com/signalwire/signalwire-js/commit/0710e28c511f50c061c19e5306b0e639886ec92e) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Improved the early invite logic to suporte audio and video calls
+
+- Updated dependencies [[`b916036ce2db9807eed217b49f39cd13d9b46acf`](https://github.com/signalwire/signalwire-js/commit/b916036ce2db9807eed217b49f39cd13d9b46acf)]:
+  - @signalwire/core@4.3.1
+
+### Fixed
+
+- [#1246](https://github.com/signalwire/signalwire-js/pull/1246) [`92461cf2dd3e1c89e15568dc9f0c516784f9b75d`](https://github.com/signalwire/signalwire-js/commit/92461cf2dd3e1c89e15568dc9f0c516784f9b75d) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - BUG FIX: wait for ICE candidates in renegotiation adding new media channels
+
 ## [3.14.0] - 2025-07-04
 
 ### Added

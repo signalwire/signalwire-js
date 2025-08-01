@@ -1,5 +1,12 @@
 # @signalwire/web-api
 
+## [3.1.5] - 2025-07-28
+
+### Changed
+
+- Updated dependencies [[`b916036ce2db9807eed217b49f39cd13d9b46acf`](https://github.com/signalwire/signalwire-js/commit/b916036ce2db9807eed217b49f39cd13d9b46acf)]:
+  - @signalwire/core@4.3.1
+
 ## [3.1.4] - 2025-07-04
 
 ### Changed
