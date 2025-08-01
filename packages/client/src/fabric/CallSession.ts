@@ -33,6 +33,7 @@ import { CallSessionMember } from './CallSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
+import { CallRecoveryManager, CallRecoveryConfig } from '../recovery'
 
 export interface CallSession
   extends CallSessionContract,
@@ -42,7 +43,13 @@ export interface CallSession
     BaseComponentContract {}
 
 export interface CallSessionOptions
-  extends Omit<BaseRoomSessionOptions, 'customSagas'> {}
+  extends Omit<BaseRoomSessionOptions, 'customSagas'> {
+  /**
+   * Call recovery configuration for automatic call recovery
+   * when network issues or connection problems are detected.
+   */
+  recovery?: Partial<CallRecoveryConfig>
+}
 
 export class CallSessionConnection
   extends BaseRoomSessionConnection<CallSessionEvents>
@@ -55,11 +62,13 @@ export class CallSessionConnection
   private _currentLayoutEvent: CallLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
+  private _recoveryManager?: CallRecoveryManager
 
   constructor(options: CallSessionOptions) {
     super(options)
 
     this.initWorker()
+    this.initCallRecovery()
   }
 
   override get memberId() {
@@ -413,6 +422,101 @@ export class CallSessionConnection
       memberId,
       extraParams: toSnakeCaseKeys(rest),
     })
+  }
+
+  /**
+   * Initialize call recovery if enabled in options
+   */
+  private initCallRecovery(): void {
+    if (!this.options.recovery?.enabled) {
+      return
+    }
+
+    try {
+      this._recoveryManager = new CallRecoveryManager(
+        this.options.recovery,
+        async () => {
+          // Recovery callback - attempt to resume the call
+          await this.resume()
+        }
+      )
+
+      // Set up recovery event listeners
+      this._recoveryManager.on('recovery.attempting', (attempt) => {
+        this.logger.info(`Call recovery attempt ${attempt.attemptNumber} triggered by: ${attempt.trigger}`)
+        this.emit('call.recovery.attempting', attempt)
+      })
+
+      this._recoveryManager.on('recovery.succeeded', (attempt) => {
+        this.logger.info(`Call recovery succeeded after ${attempt.duration}ms`)
+        this.emit('call.recovery.succeeded', attempt)
+      })
+
+      this._recoveryManager.on('recovery.failed', (attempt, finalFailure) => {
+        this.logger.warn(`Call recovery failed: ${attempt.error || 'Unknown error'}`)
+        this.emit('call.recovery.failed', { attempt, finalFailure })
+      })
+
+      // Start monitoring after connection is established
+      this.once('room.joined', () => {
+        if (this._recoveryManager && this.peer) {
+          // Get WebRTC stats monitor from peer if available
+          const statsMonitor = this.peer.getNetworkQuality ? this.peer.getLatestMetrics : undefined
+          this._recoveryManager.startMonitoring()
+          this.logger.debug('Call recovery monitoring started')
+        }
+      })
+
+      this.logger.debug('Call recovery initialized')
+    } catch (error) {
+      this.logger.error('Failed to initialize call recovery:', error)
+    }
+  }
+
+  /**
+   * Get current call recovery state (if recovery is enabled)
+   */
+  public getRecoveryState() {
+    return this._recoveryManager?.getState() || null
+  }
+
+  /**
+   * Manually trigger call recovery
+   */
+  public async triggerRecovery(trigger: 'audio_timeout' | 'ice_failed' | 'no_packets' | 'high_packet_loss' | 'connection_failed' | 'dtls_failed'): Promise<boolean> {
+    if (!this._recoveryManager) {
+      this.logger.warn('Call recovery is not enabled')
+      return false
+    }
+    
+    return this._recoveryManager.triggerRecovery(trigger)
+  }
+
+  /**
+   * Enable or disable call recovery
+   */
+  public setRecoveryEnabled(enabled: boolean): void {
+    if (!this._recoveryManager) {
+      this.logger.warn('Call recovery is not initialized')
+      return
+    }
+    
+    if (enabled) {
+      this._recoveryManager.enableRecovery()
+    } else {
+      this._recoveryManager.disableRecovery('Manually disabled')
+    }
+  }
+
+  /**
+   * Cleanup call recovery when session ends
+   */
+  protected override destroy(): void {
+    if (this._recoveryManager) {
+      this._recoveryManager.destroy()
+      this._recoveryManager = undefined
+    }
+    super.destroy()
   }
 }
 

@@ -26,6 +26,8 @@ export * from './debounce'
 export * from './SWCloseEvent'
 export * from './eventUtils'
 export * from './asyncRetry'
+export * from './visibilityManager'
+export * from './resourceOptimizer'
 
 export { LOCAL_EVENT_PREFIX }
 

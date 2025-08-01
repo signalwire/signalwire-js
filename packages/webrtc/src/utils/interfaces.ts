@@ -4,6 +4,8 @@ import {
   VideoRoomDeviceEventParams,
   VideoRoomDeviceEventNames,
 } from '@signalwire/core'
+import { WebRTCMonitoringConfig, NetworkIssue } from './webrtcStatsMonitor'
+import { DevicePreferenceConfig } from './devicePreferenceManager'
 
 export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
@@ -124,6 +126,20 @@ export interface ConnectionOptions {
    * @internal
    */
   iceCandidatePoolSize?: number
+
+  /**
+   * WebRTC monitoring configuration for real-time network quality assessment
+   * and issue detection. When enabled, provides network statistics and
+   * automated issue reporting.
+   */
+  monitoring?: Partial<WebRTCMonitoringConfig> & { enabled?: boolean }
+
+  /**
+   * Device preference management configuration for smart device recovery
+   * and persistent device preferences. Provides automatic device switching
+   * when preferred devices become unavailable.
+   */
+  devicePreferences?: Partial<DevicePreferenceConfig>
 }
 
 export interface EmitDeviceUpdatedEventsParams {
@@ -149,15 +165,23 @@ export type MediaEventNames =
   | 'media.reconnecting'
   | 'media.disconnected'
 
+export type MonitoringEventNames =
+  | 'network.issue.detected'
+  | 'network.quality.changed'
+  | 'device.recovered'
+
 type BaseConnectionEventsHandlerMap = Record<
   BaseConnectionState,
   (params: any) => void
 > &
   Record<MediaEventNames, () => void> &
   Record<
-    VideoRoomDeviceEventNames,
+    VideoRoomDeviceEventNames,  
     (params: VideoRoomDeviceEventParams) => void
-  >
+  > &
+  Record<'network.issue.detected', (issue: NetworkIssue) => void> &
+  Record<'network.quality.changed', (isHealthy: boolean, previousState: boolean) => void> &
+  Record<'device.recovered', (params: { deviceType: string; deviceId: string; deviceLabel?: string }) => void>
 
 export type BaseConnectionEvents = {
   [k in keyof BaseConnectionEventsHandlerMap]: BaseConnectionEventsHandlerMap[k]

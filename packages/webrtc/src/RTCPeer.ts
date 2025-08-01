@@ -20,6 +20,9 @@ import {
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
+import { WebRTCStatsMonitor } from './utils/webrtcStatsMonitor'
+import { DevicePreferenceManager } from './utils/devicePreferenceManager'
+import { getDevicePreferenceManager } from './utils/deviceHelpers'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -38,6 +41,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
+  private _statsMonitor?: WebRTCStatsMonitor
+  private _devicePreferenceManager?: DevicePreferenceManager
+  private _monitoringEnabled = false
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -88,6 +94,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     this.rtcConfigPolyfill = this.config
+    
+    // Initialize monitoring if enabled in options
+    this._monitoringEnabled = this.options.monitoring?.enabled ?? false
+    if (this._monitoringEnabled) {
+      this._initializeMonitoring()
+    }
   }
 
   get options() {
@@ -590,6 +602,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       this._attachListeners()
+      
+      // Start monitoring if enabled
+      if (this._monitoringEnabled && this._statsMonitor) {
+        this._statsMonitor.startMonitoring(this.instance)
+      }
     }
   }
 
@@ -842,6 +859,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.instance?.close()
 
     this.stopWatchMediaPackets()
+    
+    // Stop monitoring
+    this._stopMonitoring()
   }
 
   private _supportsAddTransceiver() {
@@ -1325,5 +1345,88 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return this.instance.getConfiguration()
     }
     return this.rtcConfigPolyfill || this.config
+  }
+
+  /**
+   * Initialize WebRTC monitoring and device preference management
+   */
+  private _initializeMonitoring(): void {
+    if (!this._monitoringEnabled) return
+
+    try {
+      // Initialize stats monitor
+      const monitoringConfig = this.options.monitoring || {}
+      this._statsMonitor = new WebRTCStatsMonitor(monitoringConfig)
+      
+      // Set up event listeners for network issues
+      this._statsMonitor.on('network.issue.detected', (issue) => {
+        this.logger.warn('Network issue detected:', issue)
+        this.call.emit('network.issue.detected', issue)
+      })
+      
+      this._statsMonitor.on('network.quality.changed', (isHealthy, previousState) => {
+        this.logger.debug(`Network quality changed: ${previousState} -> ${isHealthy}`)
+        this.call.emit('network.quality.changed', isHealthy, previousState)
+      })
+
+      // Initialize device preference manager
+      this._devicePreferenceManager = getDevicePreferenceManager()
+      
+      // Set up device recovery callbacks
+      this._devicePreferenceManager.onDeviceChange('camera', (deviceId: string, deviceLabel?: string, isRecovered?: boolean) => {
+        if (isRecovered) {
+          this.logger.info(`Camera device recovered: ${deviceLabel} (${deviceId})`)
+          this.call.emit('device.recovered', { deviceType: 'camera', deviceId, deviceLabel })
+        }
+      })
+      
+      this._devicePreferenceManager.onDeviceChange('microphone', (deviceId: string, deviceLabel?: string, isRecovered?: boolean) => {
+        if (isRecovered) {
+          this.logger.info(`Microphone device recovered: ${deviceLabel} (${deviceId})`)
+          this.call.emit('device.recovered', { deviceType: 'microphone', deviceId, deviceLabel })
+        }
+      })
+
+      this.logger.debug('WebRTC monitoring initialized')
+    } catch (error) {
+      this.logger.error('Failed to initialize WebRTC monitoring:', error)
+    }
+  }
+
+  /**
+   * Stop monitoring and cleanup resources
+   */
+  private _stopMonitoring(): void {
+    if (this._statsMonitor) {
+      this._statsMonitor.stopMonitoring()
+      this._statsMonitor = undefined
+    }
+    
+    if (this._devicePreferenceManager) {
+      this._devicePreferenceManager.offDeviceChange('camera')
+      this._devicePreferenceManager.offDeviceChange('microphone')
+    }
+    
+    this.logger.debug('WebRTC monitoring stopped')
+  }
+
+  /**
+   * Get current network quality state (if monitoring is enabled)
+   */
+  public getNetworkQuality() {
+    if (!this._statsMonitor) {
+      return null
+    }
+    return this._statsMonitor.getNetworkQuality()
+  }
+
+  /**
+   * Get latest WebRTC metrics (if monitoring is enabled)
+   */
+  public getLatestMetrics() {
+    if (!this._statsMonitor) {
+      return null
+    }
+    return this._statsMonitor.getLatestMetrics()
   }
 }

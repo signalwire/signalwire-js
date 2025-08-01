@@ -28,3 +28,4 @@ export {
   PaginatedResult,
 } from './interfaces'
 export { CallSession, isCallSession } from './CallSession'
+export * from '../recovery'

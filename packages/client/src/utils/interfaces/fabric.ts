@@ -56,6 +56,7 @@ import {
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract, CallSession } from '../../fabric'
+import { CallRecoveryAttempt } from '../../recovery'
 
 const BrandTypeId: unique symbol = Symbol.for('sw/client')
 
@@ -165,7 +166,10 @@ export type CallSessionEventsHandlerMap = Record<
   Record<MemberListUpdated, (params: CallMemberListUpdatedParams) => void> &
   Record<MemberLeft, (params: CallMemberLeftEventParams) => void> &
   Record<MemberTalking, (params: CallMemberTalkingEventParams) => void> &
-  Record<VideoLayoutEventNames, (params: CallLayoutChangedEventParams) => void>
+  Record<VideoLayoutEventNames, (params: CallLayoutChangedEventParams) => void> &
+  Record<'call.recovery.attempting', (attempt: CallRecoveryAttempt) => void> &
+  Record<'call.recovery.succeeded', (attempt: CallRecoveryAttempt) => void> &
+  Record<'call.recovery.failed', (params: { attempt: CallRecoveryAttempt; finalFailure: boolean }) => void>
 
 export type CallSessionEvents = {
   [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]
