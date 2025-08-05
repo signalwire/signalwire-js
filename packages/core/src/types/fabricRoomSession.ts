@@ -511,14 +511,12 @@ export interface FabricRoomSessionContract {
    * @example Ending your own call:
    * ```typescript
    * await room.end();
-   * console.log('Call ended');
    * ```
    *
    * @example Ending another participant's call:
    * ```typescript
    * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'; // you can get this from getMembers()
    * await room.end({ memberId: id });
-   * console.log('Call ended for member', id);
    * ```
    */
   end(params?: MemberCommandParams): Promise<void>

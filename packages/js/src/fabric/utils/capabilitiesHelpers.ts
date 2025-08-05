@@ -22,10 +22,7 @@ class MemberCapability implements MemberCapabilityContract {
   private _deaf?: CapabilityOnOffState
   private _raisehand?: CapabilityOnOffState
 
-  constructor(
-    private _flags: string[],
-    private _memberType: 'self' | 'member'
-  ) {}
+  constructor(private _flags: string[]) {}
 
   get muteAudio() {
     this._muteAudio =
@@ -138,14 +135,6 @@ class MemberCapability implements MemberCapabilityContract {
         flag.startsWith(`${this._memberType}.audioflags.set`)
     )
   }
-
-  get end() {
-    return this._flags.some(
-      (flag) =>
-        flag === this._memberType ||
-        flag === `${this._memberType}.end`
-    )
-  }
 }
 
 export class CallCapabilities implements CallCapabilitiesContract {
@@ -154,10 +143,7 @@ export class CallCapabilities implements CallCapabilitiesContract {
   private _vmutedHide?: CapabilityOnOffState
   private _lock?: CapabilityOnOffState
 
-  constructor(private _flags: string[]) {
-    this._self = this._buildMemberCapability('self')
-    this._member = this._buildMemberCapability('member')
-  }
+  constructor(private _flags: string[]) {}
 
   private _buildMemberCapability(memberType: 'self' | 'member') {
     return new MemberCapability(
