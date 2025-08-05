@@ -16,7 +16,6 @@ import {
   validateVideoMute,
   validateVideoUnmute,
   validateEnd,
-
 } from './validators'
 import { CallSession, CallSessionConnection } from '../CallSession'
 
