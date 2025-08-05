@@ -75,7 +75,7 @@ export const callJoinWorker = function* (
 
   cfRoomSession.member = get<FabricRoomSessionMember>(payload.member_id)
   // the server send the capabilities payload as an array of string
-  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities ?? [])
+  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities)
 
   const fabricEvent = {
     ...payload,
