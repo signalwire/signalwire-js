@@ -22,7 +22,10 @@ class MemberCapability implements MemberCapabilityContract {
   private _deaf?: CapabilityOnOffState
   private _raisehand?: CapabilityOnOffState
 
-  constructor(private _flags: string[]) {}
+  constructor(
+    private _flags: string[],
+    private _memberType: 'self' | 'member'
+  ) {}
 
   get muteAudio() {
     this._muteAudio =
