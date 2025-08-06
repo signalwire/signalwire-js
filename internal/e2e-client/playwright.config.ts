@@ -58,7 +58,7 @@ const renegotiationTests = [
 ]
 const videoElementTests = [
   'buildVideoWithVideoSDK.spec.ts',
-  'buildVideoWithFabricSDK.spec.ts',
+  'buildVideoWithCallSDK.spec.ts',
 ]
 const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 

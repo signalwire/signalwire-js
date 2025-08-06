@@ -12,6 +12,8 @@ import {
   MemberCommandWithValueParams,
   SetAudioFlagsParams,
   toSnakeCaseKeys,
+  CallLayoutChangedEventParams,
+  CallSessionMethods,
 } from '@signalwire/core'
 import {
   BaseRoomSessionConnection,
@@ -23,8 +25,6 @@ import {
   CallSessionContract,
   CallSessionEvents,
   RequestMemberParams,
-  CallRoomSessionMethods,
-  CallLayoutChangedEventParams,
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
@@ -36,7 +36,7 @@ import { createCallSessionValidateProxy } from './utils/validationProxy'
 
 export interface CallSession
   extends CallSessionContract,
-    CallRoomSessionMethods,
+    CallSessionMethods,
     BaseRoomSessionContract,
     BaseConnectionContract<CallSessionEvents>,
     BaseComponentContract {}

@@ -1,10 +1,7 @@
-import { getLogger } from '@signalwire/core'
+import { getLogger, MemberUpdatedEventParams } from '@signalwire/core'
 import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
-import { CallSession, isCallSession } from './fabric/CallSession'
-import {
-  VideoMemberUpdatedHandlerParams,
-  CallMemberUpdatedEventParams,
-} from './utils/interfaces'
+import { CallSession, isCallSession } from './unified/CallSession'
+import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
 import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/roomSession'
 export type OverlayMap = Map<string, UserOverlay>
 
@@ -133,7 +130,7 @@ export class LocalVideoOverlay extends UserOverlay {
     }
   }
 
-  private fabricMemberVideoMutedHandler(params: CallMemberUpdatedEventParams) {
+  private fabricMemberVideoMutedHandler(params: MemberUpdatedEventParams) {
     this.memberVideoMutedHandler(
       params.member.member_id,
       params.member.video_muted

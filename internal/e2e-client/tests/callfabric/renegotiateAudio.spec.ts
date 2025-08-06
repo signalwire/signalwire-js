@@ -11,7 +11,7 @@ import {
   waitForStabilizedStats,
 } from '../../utils'
 
-test.describe('CallFabric Audio Renegotiation', () => {
+test.describe('CallCall Audio Renegotiation', () => {
   test('it should enable audio with "sendrecv" and then disable with "inactive"', async ({
     createCustomPage,
     resource,

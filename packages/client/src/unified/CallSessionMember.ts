@@ -6,35 +6,34 @@ import {
   MemberUpdated,
   BaseComponentOptionsWithPayload,
   BaseComponent,
+  MemberEventNames,
+  MemberEventParams,
+  MemberEventParamsExcludeTalking,
+  MemberJoinedEventParams,
+  MemberLeftEventParams,
+  MemberTalkingEventParams,
+  MemberUpdatedEventParams,
+  MemberContract,
 } from '@signalwire/core'
-import {
-  CallMemberEventNames,
-  CallMemberEventParams,
-  CallMemberEventParamsExcludeTalking,
-  CallMemberJoinedEventParams,
-  CallMemberLeftEventParams,
-  CallMemberTalkingEventParams,
-  CallMemberUpdatedEventParams,
-  CallMemberContract,
-} from '../utils/interfaces'
+import {} from '../utils/interfaces'
 
-export interface CallSessionMember extends CallMemberContract {
+export interface CallSessionMember extends MemberContract {
   /** Unique id of this member. */
   id: string
-  setPayload(payload: CallMemberEventParams): void
+  setPayload(payload: MemberEventParams): void
 }
 
-// TODO: Fabric Room Session Member instance does not emit any events yet
+// TODO: Call Room Session Member instance does not emit any events yet
 export type CallSessionMemberEventsHandlerMap = Record<
   MemberJoined,
-  (params: CallMemberJoinedEventParams) => void
+  (params: MemberJoinedEventParams) => void
 > &
-  Record<MemberUpdated, (params: CallMemberUpdatedEventParams) => void> &
-  Record<MemberLeft, (params: CallMemberLeftEventParams) => void> &
-  Record<MemberTalking, (params: CallMemberTalkingEventParams) => void> &
+  Record<MemberUpdated, (params: MemberUpdatedEventParams) => void> &
+  Record<MemberLeft, (params: MemberLeftEventParams) => void> &
+  Record<MemberTalking, (params: MemberTalkingEventParams) => void> &
   Record<
-    Exclude<CallMemberEventNames, MemberJoined | MemberLeft | MemberTalking>,
-    (params: CallMemberUpdatedEventParams) => void
+    Exclude<MemberEventNames, MemberJoined | MemberLeft | MemberTalking>,
+    (params: MemberUpdatedEventParams) => void
   >
 
 export type CallSessionMemberEvents = {
@@ -42,13 +41,13 @@ export type CallSessionMemberEvents = {
 }
 
 export interface CallSessionMemberOptions
-  extends BaseComponentOptionsWithPayload<CallMemberEventParamsExcludeTalking> {}
+  extends BaseComponentOptionsWithPayload<MemberEventParamsExcludeTalking> {}
 
 export class CallSessionMemberAPI
   extends BaseComponent<CallSessionMemberEvents>
-  implements CallMemberContract
+  implements MemberContract
 {
-  private _payload: CallMemberEventParamsExcludeTalking
+  private _payload: MemberEventParamsExcludeTalking
 
   constructor(options: CallSessionMemberOptions) {
     super(options)
@@ -160,16 +159,16 @@ export class CallSessionMemberAPI
   }
 
   /** @internal */
-  setPayload(payload: CallMemberEventParams) {
+  setPayload(payload: MemberEventParams) {
     // Reshape the payload since the `member.talking` event does not return all the parameters of a member
-    const newPayload: CallMemberEventParamsExcludeTalking = {
+    const newPayload: MemberEventParamsExcludeTalking = {
       ...this._payload,
       ...payload,
       member: {
         ...this._payload.member,
         ...payload.member,
       },
-    } as CallMemberEventParamsExcludeTalking
+    } as MemberEventParamsExcludeTalking
     this._payload = newPayload
   }
 }

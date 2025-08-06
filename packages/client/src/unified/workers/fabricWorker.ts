@@ -6,13 +6,13 @@ import {
   SDKWorkerParams,
   SDKActions,
   MapToPubSubShape,
+  CallAction,
 } from '@signalwire/core'
-import { CallAction } from '../../utils/interfaces'
 import { CallSessionConnection } from '../CallSession'
 import { createCallSessionMemberObject } from '../CallSessionMember'
 import { callSegmentWorker } from './callSegmentWorker'
 
-export type FabricWorkerParams<T> = SDKWorkerParams<CallSessionConnection> & {
+export type CallWorkerParams<T> = SDKWorkerParams<CallSessionConnection> & {
   action: MapToPubSubShape<T>
 }
 
@@ -94,6 +94,4 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
 
     yield sagaEffects.fork(worker, action)
   }
-
-  getLogger().trace('fabricWorker ended')
 }

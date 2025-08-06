@@ -4,20 +4,20 @@ import {
   SagaIterator,
   getLogger,
   sagaEffects,
+  CallAction,
 } from '@signalwire/core'
-import { CallAction } from '../../utils/interfaces/fabric'
 import { callLeftWorker } from './callLeftWorker'
 import { callJoinWorker } from './callJoinWorker'
-import { FabricWorkerParams } from './fabricWorker'
+import { CallWorkerParams } from './fabricWorker'
 import {
-  mapFabricLayoutActionToVideoLayoutAction,
-  mapFabricMemberActionToVideoMemberJoinAndLeftAction,
-  mapFabricMemberActionToVideoMemberUpdatedAction,
+  mapCallLayoutActionToVideoLayoutAction,
+  mapMemberActionToVideoMemberJoinAndLeftAction,
+  mapMemberActionToVideoMemberUpdatedAction,
 } from '../utils/eventMappers'
 import { fabricMemberWorker } from './fabricMemberWorker'
 
 export const callSegmentWorker = function* (
-  options: FabricWorkerParams<CallJoinedEvent>
+  options: CallWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   const {
     action,
@@ -86,13 +86,12 @@ export const callSegmentWorker = function* (
           action,
         })
         const videoAction =
-          mapFabricMemberActionToVideoMemberJoinAndLeftAction(action)
+          mapMemberActionToVideoMemberJoinAndLeftAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
       case 'member.updated': {
-        const videoAction =
-          mapFabricMemberActionToVideoMemberUpdatedAction(action)
+        const videoAction = mapMemberActionToVideoMemberUpdatedAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
@@ -100,7 +99,7 @@ export const callSegmentWorker = function* (
         // We need to update the layout event which is needed for rootElement.
         cfRoomSession.currentLayoutEvent = action.payload
         cfRoomSession.emit(type, payload)
-        const videoAction = mapFabricLayoutActionToVideoLayoutAction(action)
+        const videoAction = mapCallLayoutActionToVideoLayoutAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break
       }
