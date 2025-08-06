@@ -46,7 +46,7 @@ jobs:
           github-token: ${{ secrets.SW_WORKFLOW_DISPATCH }}
           # TODO: Move this to a dedicated JS module?
           script: |
-            await github.rest.repos.createDispatchEvent({
+            const resp = await github.rest.repos.createDispatchEvent({
               owner: 'signalwire',
               repo: 'rtc-testing',
               event_type: 'public-pr-trigger',
@@ -55,3 +55,4 @@ jobs:
                 head_ref: context.payload.pull_request.head.ref
               }
             })
+            console.log('dispatch response:', resp);
