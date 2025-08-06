@@ -25,7 +25,7 @@ const renegotiationTests = [
   'renegotiateAudio.spec.ts',
   'renegotiateVideo.spec.ts',
 ]
-const videoElementTests = ['buildVideoWithFabricSDK.spec.ts']
+const videoElementTests = ['buildVideoWithCallSDK.spec.ts']
 
 const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],

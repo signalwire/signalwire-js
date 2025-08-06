@@ -13,7 +13,7 @@ import {
 } from '../../utils'
 
 const agent_customer_static_scripts_desc =
-  'CallFabric Agent/Customer interaction, static cXML scripts'
+  'CallCall Agent/Customer interaction, static cXML scripts'
 test.describe(agent_customer_static_scripts_desc, () => {
   const conference_name = `e2e_${uuid()}`
 
@@ -142,7 +142,7 @@ test.describe(agent_customer_static_scripts_desc, () => {
 })
 
 const agent_customer_external_url_desc =
-  'CallFabric Agent/Customer interaction, cXML with external URL'
+  'CallCall Agent/Customer interaction, cXML with external URL'
 test.describe(agent_customer_external_url_desc, () => {
   const external_url_for_cxml = process.env.EXTERNAL_URL_FOR_CXML
 
@@ -274,7 +274,7 @@ test.describe(agent_customer_external_url_desc, () => {
 })
 
 // TODO: Enable when ready
-// const customer_stream_desc = 'CallFabric Customer connecting to stream'
+// const customer_stream_desc = 'CallCall Customer connecting to stream'
 // test.describe(customer_stream_desc, () => {
 //   test('customer should dial an address linked to a cXML script connecting to a conference with stream', async ({
 //     createCustomPage,
