@@ -12,19 +12,19 @@ import { InternalVideoLayout, LayoutChanged } from './videoLayout'
 /**
  * layout.changed
  */
-export interface FabricLayoutChangedEventParams {
+export interface CallLayoutChangedEventParams {
   room_id: string
   room_session_id: string
   layout: InternalVideoLayout
 }
 
-export interface FabricLayoutChangedEvent extends SwEvent {
+export interface CallLayoutChangedEvent extends SwEvent {
   event_type: LayoutChanged
-  params: FabricLayoutChangedEventParams
+  params: CallLayoutChangedEventParams
 }
 
-export type FabricLayoutEventNames = LayoutChanged
+export type CallLayoutEventNames = LayoutChanged
 
-export type FabricLayoutEvent = FabricLayoutChangedEvent
+export type CallLayoutEvent = CallLayoutChangedEvent
 
-export type FabricLayoutEventParams = FabricLayoutChangedEventParams
+export type CallLayoutEventParams = CallLayoutChangedEventParams

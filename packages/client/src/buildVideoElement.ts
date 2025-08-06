@@ -1,5 +1,5 @@
 import {
-  FabricLayoutChangedEventParams as CallLayoutChangedEventParams,
+  CallLayoutChangedEventParams as CallLayoutChangedEventParams,
   getLogger,
   uuid,
 } from '@signalwire/core'
@@ -13,7 +13,7 @@ import {
 } from './utils/videoElement'
 import { addSDKPrefix } from './utils/roomSession'
 import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
-import { CallSession, isCallSession } from './fabric/CallSession'
+import { CallSession, isCallSession } from './unified/CallSession'
 import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
 
 export interface BuildVideoElementParams {

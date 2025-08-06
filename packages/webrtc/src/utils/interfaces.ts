@@ -97,27 +97,27 @@ export interface ConnectionOptions {
   /** @internal */
   nodeId?: string
   /** @internal */
-  fromFabricAddressId?: string
+  fromCallAddressId?: string
 
   layout?: string
   positions?: VideoPositions
-  
-  /** 
-   * Number of connections to maintain in the connection pool. 
+
+  /**
+   * Number of connections to maintain in the connection pool.
    * Set to 0 to disable connection pooling. Default: 3
    * @internal
    */
   connectionPoolSize?: number
-  
-  /** 
+
+  /**
    * Whether to enable connection pooling for faster call setup.
    * When enabled, maintains pre-warmed RTCPeerConnections with gathered ICE candidates.
    * Default: true
    * @internal
    */
   enableConnectionPool?: boolean
-  
-  /** 
+
+  /**
    * Size of the ICE candidate pool for reuse.
    * Allows ICE candidates to be reused when tracks are replaced.
    * Default: 10
