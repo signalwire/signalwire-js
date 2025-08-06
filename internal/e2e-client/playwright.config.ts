@@ -3,29 +3,29 @@ require('dotenv').config()
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
 const callfabricTests = [
-  'address.spec.ts',
-  'agent_customer.spec.ts',
-  'audioFlags.spec.ts',
-  'cleanup.spec.ts',
-  'conversation.spec.ts',
-  'deviceEvent.spec.ts',
-  'deviceState.spec.ts',
-  'holdunhold.spec.ts',
-  'incomingCall.spec.ts',
-  'mirrorVideo.spec.ts',
-  'muteUnmuteAll.spec.ts',
-  'raiseHand.spec.ts',
-  'reattach.spec.ts',
-  'relayApp.spec.ts',
-  'swml.spec.ts',
-  'videoRoom.spec.ts',
-  'videoRoomLayout.spec.ts',
+  'callfabric/address.spec.ts',
+  'callfabric/agent_customer.spec.ts',
+  'callfabric/audioFlags.spec.ts',
+  'callfabric/cleanup.spec.ts',
+  'callfabric/conversation.spec.ts',
+  'callfabric/deviceEvent.spec.ts',
+  'callfabric/deviceState.spec.ts',
+  'callfabric/holdunhold.spec.ts',
+  'callfabric/incomingCall.spec.ts',
+  'callfabric/mirrorVideo.spec.ts',
+  'callfabric/muteUnmuteAll.spec.ts',
+  'callfabric/raiseHand.spec.ts',
+  'callfabric/reattach.spec.ts',
+  // 'callfabric/relayApp.spec.ts', // Disabled: depends on removed @signalwire/realtime-api
+  'callfabric/swml.spec.ts',
+  'callfabric/videoRoom.spec.ts',
+  'callfabric/videoRoomLayout.spec.ts',
 ]
 const renegotiationTests = [
-  'renegotiateAudio.spec.ts',
-  'renegotiateVideo.spec.ts',
+  'callfabric/renegotiateAudio.spec.ts',
+  'callfabric/renegotiateVideo.spec.ts',
 ]
-const videoElementTests = ['buildVideoWithCallSDK.spec.ts']
+const videoElementTests = ['buildVideoWithFabricSDK.spec.ts']
 
 const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
