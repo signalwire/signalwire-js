@@ -1,9 +1,9 @@
 {
-  "name": "@signalwire/client",
-  "description": "SignalWire Client SDK",
+  "name": "@signalwire/js",
+  "description": "SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "0.0.1",
+  "version": "3.29.1",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "unpkg": "dist/index.umd.js",
@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
   },
-  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/client",
+  "homepage": "https://github.com/signalwire/signalwire-js/tree/master/packages/js",
   "scripts": {
     "start": "sw-build --dev --web",
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --umd",
@@ -46,5 +46,5 @@
   "devDependencies": {
     "@types/object-path": "^0.11.4"
   },
-  "types": "dist/client/src/index.d.ts"
+  "types": "dist/js/src/index.d.ts"
 }

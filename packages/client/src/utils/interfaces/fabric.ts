@@ -124,6 +124,7 @@ export interface CallSessionContract {
   currentPosition: VideoPosition | undefined
   /**
    * Starts the call via the WebRTC connection
+   * Based on the the remote SDP, it will either send `verto.invite` or `verto.answer` to start the call.
    *
    * @example:
    * ```typescript

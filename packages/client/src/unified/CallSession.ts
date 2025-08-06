@@ -131,19 +131,6 @@ export class CallSessionConnection
     })
   }
 
-  private async join() {
-    if (this.options.attach) {
-      this.options.prevCallId =
-        getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
-      this.logger.debug(
-        `Tying to reattach to previuos call? ${!!this.options
-          .prevCallId} - prevCallId: ${this.options.prevCallId}`
-      )
-    }
-
-    return super.invite<CallSession>()
-  }
-
   private executeAction<
     InputType,
     OutputType = InputType,
@@ -215,9 +202,22 @@ export class CallSessionConnection
 
         this.once('destroy', () => {
           getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+          reject(new Error('Failed to start the call', { cause: this.cause }))
         })
 
-        await this.join()
+        if (this.options.attach) {
+          this.options.prevCallId =
+            getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+          this.logger.debug(
+            `Trying to reattach to previous call: ${this.options.prevCallId}`
+          )
+        }
+
+        if (this.options.remoteSdp) {
+          await super.answer<CallSession>()
+        } else {
+          await super.invite<CallSession>()
+        }
       } catch (error) {
         this.logger.error('WSClient call start', error)
         reject(error)

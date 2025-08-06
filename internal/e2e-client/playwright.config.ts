@@ -2,48 +2,18 @@ require('dotenv').config()
 
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
-const streamingTests = [
-  'roomSessionStreamingAPI.spec.ts',
-  'roomSessionStreaming.spec.ts',
-  'roomSessionMultipleStreams.spec.ts',
-  'roomSessionAutomaticStream.spec.ts',
-]
-const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
-const promoteTests = [
-  'roomSessionPromoteDemote.spec.ts',
-  'roomSessionPromoteMeta.spec.ts',
-  'roomSessionPromoteParticipant.spec.ts',
-  'roomSessionPromoteReattachDemote.spec.ts',
-]
-const demoteTests = [
-  'roomSessionDemote.spec.ts',
-  'roomSessionDemoteAudience.spec.ts',
-  'roomSessionDemoteReattachPromote.spec.ts',
-  'roomSessionDemotePromote.spec.ts',
-]
-const audienceTests = [
-  'roomSessionAudienceCount.spec.ts',
-  'roomSessionFollowLeader.spec.ts',
-  'roomSessionTalkingEventsToAudience.spec.ts',
-  'roomSessionUnauthorized.spec.ts',
-]
-const reattachTests = [
-  'roomSessionReattach.spec.ts',
-  'roomSessionReattachBadAuth.spec.ts',
-  'roomSessionReattachMultiple.spec.ts',
-  'roomSessionReattachScreenshare.spec.ts',
-  'roomSessionReattachWrongCallId.spec.ts',
-  'roomSessionReattachWrongProtocol.spec.ts',
-]
 const callfabricTests = [
-  'agent_customer.spec.ts',
   'address.spec.ts',
+  'agent_customer.spec.ts',
+  'audioFlags.spec.ts',
   'cleanup.spec.ts',
   'conversation.spec.ts',
   'deviceEvent.spec.ts',
   'deviceState.spec.ts',
   'holdunhold.spec.ts',
+  'incomingCall.spec.ts',
   'mirrorVideo.spec.ts',
+  'muteUnmuteAll.spec.ts',
   'raiseHand.spec.ts',
   'reattach.spec.ts',
   'relayApp.spec.ts',
@@ -52,15 +22,10 @@ const callfabricTests = [
   'videoRoomLayout.spec.ts',
 ]
 const renegotiationTests = [
-  'roomSessionUpdateMedia.spec.ts',
   'renegotiateAudio.spec.ts',
   'renegotiateVideo.spec.ts',
 ]
-const videoElementTests = [
-  'buildVideoWithVideoSDK.spec.ts',
-  'buildVideoWithCallSDK.spec.ts',
-]
-const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
+const videoElementTests = ['buildVideoWithCallSDK.spec.ts']
 
 const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
@@ -96,47 +61,10 @@ const config: PlaywrightTestConfig = {
       name: 'default',
       use: useDesktopChrome,
       testIgnore: [
-        ...badNetworkTests,
-        ...streamingTests,
-        ...promoteTests,
-        ...demoteTests,
-        ...audienceTests,
-        ...reattachTests,
         ...callfabricTests,
         ...renegotiationTests,
         ...videoElementTests,
-        ...v2WebRTC,
       ],
-    },
-    {
-      name: 'streaming',
-      use: useDesktopChrome,
-      testMatch: streamingTests,
-    },
-    {
-      name: 'badNetwork',
-      use: useDesktopChrome,
-      testMatch: badNetworkTests,
-    },
-    {
-      name: 'promote',
-      use: useDesktopChrome,
-      testMatch: promoteTests,
-    },
-    {
-      name: 'demote',
-      use: useDesktopChrome,
-      testMatch: demoteTests,
-    },
-    {
-      name: 'audience',
-      use: useDesktopChrome,
-      testMatch: audienceTests,
-    },
-    {
-      name: 'reattach',
-      use: useDesktopChrome,
-      testMatch: reattachTests,
     },
     {
       name: 'callfabric',
@@ -152,11 +80,6 @@ const config: PlaywrightTestConfig = {
       name: 'videoElement',
       use: useDesktopChrome,
       testMatch: videoElementTests,
-    },
-    {
-      name: 'v2WebRTC',
-      use: useDesktopChrome,
-      testMatch: v2WebRTC,
     },
   ],
 }
