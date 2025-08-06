@@ -24,7 +24,6 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { CallMemberUpdatedEventParams } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 
