@@ -1002,7 +1002,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     // Store all candidates
-    // this._allCandidates.push(event.candidate)
+    this._allCandidates.push(event.candidate)
 
     this.logger.debug('RTCPeer Candidate:', event.candidate)
     if (event.candidate.type === 'host') {
