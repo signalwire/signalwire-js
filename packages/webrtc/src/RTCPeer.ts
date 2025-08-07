@@ -1016,29 +1016,29 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this._onIceTimeout()
       }, this.options.maxIceGatheringTimeout)
     } 
-    // else {
-    //   /**
-    //    * With non-HOST candidate (srflx, prflx or relay), check if we have
-    //    * candidates for all media sections to support early invite
-    //    */
-    //   if (this.instance.localDescription?.sdp) {
-    //     if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
-    //       // Take a snapshot of candidates at this point
-    //       if (this._candidatesSnapshot.length === 0 && this.type === 'offer') {
-    //         this._candidatesSnapshot = [...this._allCandidates]
-    //         this.logger.info(
-    //           'SDP has candidates for all media sections, calling _sdpReady for early invite'
-    //         )
-    //         setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
-    //       }
-    //     } else {
-    //       this.logger.info(
-    //         'SDP does not have candidates for all media sections, waiting for more candidates'
-    //       )
-    //       this.logger.debug(this.instance.localDescription?.sdp)
-    //     }
-    //   }
-    // }
+    else {
+      /**
+       * With non-HOST candidate (srflx, prflx or relay), check if we have
+       * candidates for all media sections to support early invite
+       */
+      if (this.instance.localDescription?.sdp) {
+        if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
+          // Take a snapshot of candidates at this point
+          if (this._candidatesSnapshot.length === 0 && this.type === 'offer') {
+            this._candidatesSnapshot = [...this._allCandidates]
+            this.logger.info(
+              'SDP has candidates for all media sections, calling _sdpReady for early invite'
+            )
+            setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+          }
+        } else {
+          this.logger.info(
+            'SDP does not have candidates for all media sections, waiting for more candidates'
+          )
+          this.logger.debug(this.instance.localDescription?.sdp)
+        }
+      }
+    }
   }
 
   private _retryWithMoreCandidates() {
