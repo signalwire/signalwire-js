@@ -233,3 +233,12 @@ export function validateSetAudioFlags(
     )
   }
 }
+
+export function validateEnd(this: CallSessionConnection) {
+  const capability = this.capabilities?.end
+  if (!capability) {
+    throw new CapabilityError("Missing 'end' capability")
+  }
+}
+
+
