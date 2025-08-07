@@ -3,8 +3,8 @@ import type { Video } from '@signalwire/js'
 import {
   createTestRoomSession,
   SERVER_URL,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession promote myself', () => {
@@ -28,7 +28,7 @@ test.describe('RoomSession promote myself', () => {
     await createTestRoomSession(pageOne, memberSettings)
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)

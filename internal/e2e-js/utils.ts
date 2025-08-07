@@ -224,7 +224,6 @@ export const createTestRoomSession = async (
     vrt: CreateTestVRTOptions
     /** set of events to automatically subscribe before room.join() */
     initialEvents?: string[]
-    expectToJoin?: boolean
     roomSessionOptions?: Record<string, any>
     shouldPassRootElement?: boolean
     attachSagaMonitor?: boolean
@@ -305,18 +304,6 @@ export const createTestRoomSession = async (
       attachSagaMonitor: options.attachSagaMonitor ?? false,
     }
   )
-
-  if (options.expectToJoin !== false) {
-    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
-      await expectMemberId(page, params.member_id)
-
-      const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
-      await expectSDPDirection(page, dir, true)
-
-      const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
-      await expectInteractivityMode(page, mode)
-    })
-  }
 
   return roomSession
 }
@@ -1805,6 +1792,23 @@ export const expectRoomJoined = (
       }
     })
   }, options)
+}
+
+export const expectRoomJoinWithDefaults = async (
+  page: Page,
+  options?: {
+    invokeJoin?: boolean
+    joinAs?: CreateTestVRTOptions['join_as']
+  }
+) => {
+  const { invokeJoin = true, joinAs = 'member' } = options || {}
+  const params = await expectRoomJoined(page, { invokeJoin })
+  await expectMemberId(page, params.member_id)
+  const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+  await expectSDPDirection(page, dir, true)
+  const mode = joinAs === 'audience' ? 'audience' : 'member'
+  await expectInteractivityMode(page, mode)
+  return params
 }
 
 export const expectRecordingStarted = (page: Page) => {

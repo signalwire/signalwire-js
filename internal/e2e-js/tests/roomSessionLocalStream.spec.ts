@@ -3,10 +3,11 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   randomizeRoomName,
   createTestVRTToken,
   expectMCUVisibleForAudience,
+  expectRoomJoinWithDefaults,
+  expectRoomJoined,
 } from '../utils'
 
 test.describe('RoomSession with custom local stream', () => {
@@ -93,7 +94,7 @@ test.describe('RoomSession with custom local stream', () => {
     }
 
     await createTestRoomSession(page, connectionSettings)
-    await expectRoomJoined(page)
+    await expectRoomJoinWithDefaults(page)
     await expectMCUVisibleForAudience(page)
 
     const before = await page.evaluate(async () => {

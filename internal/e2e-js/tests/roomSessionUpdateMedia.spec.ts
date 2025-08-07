@@ -3,7 +3,7 @@ import { Page, test, expect } from '../fixtures'
 import {
   createTestRoomSession,
   expectMCUVisible,
-  expectRoomJoined,
+  expectRoomJoinWithDefaults,
   expectStatWithPolling,
   getStats,
   randomizeRoomName,
@@ -25,7 +25,7 @@ test.describe('RoomSession Update Media', () => {
     await createTestRoomSession(page, memberSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page)
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
 
