@@ -19,7 +19,7 @@ import {
   stopTrack,
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
-// import { connectionPoolManager } from './connectionPoolManager'
+import { connectionPoolManager } from './connectionPoolManager'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -562,32 +562,32 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _setupRTCPeerConnection() {
     if (!this.instance) {
       // Try to get a pre-warmed connection from session-level pool
-      // let pooledConnection: RTCPeerConnection | null = null
+      let pooledConnection: RTCPeerConnection | null = null
 
-      // try {
-      //   pooledConnection = connectionPoolManager.getConnection()
-      // } catch (error) {
-      //   this.logger.debug('Could not access session connection pool', error)
-      // }
+      try {
+        pooledConnection = connectionPoolManager.getConnection()
+      } catch (error) {
+        this.logger.debug('Could not access session connection pool', error)
+      }
 
-      // if (pooledConnection) {
-      //   this.logger.info(
-      //     'Using pre-warmed connection from session pool with ICE candidates ready'
-      //   )
-      //   this.instance = pooledConnection
+      if (pooledConnection) {
+        this.logger.info(
+          'Using pre-warmed connection from session pool with ICE candidates ready'
+        )
+        this.instance = pooledConnection
 
-      //   // The connection is already clean:
-      //   // - Mock tracks have been stopped and removed
-      //   // - ICE candidates are gathered and ready
-      //   // - TURN allocation is fresh
-      //   // - All event listeners have been removed
-      // } else {
-      //   // Fallback to creating new connection
-      //   this.logger.debug(
-      //     'Creating new RTCPeerConnection (no pooled connection available)'
-      //   )
+        // The connection is already clean:
+        // - Mock tracks have been stopped and removed
+        // - ICE candidates are gathered and ready
+        // - TURN allocation is fresh
+        // - All event listeners have been removed
+      } else {
+        // Fallback to creating new connection
+        this.logger.debug(
+          'Creating new RTCPeerConnection (no pooled connection available)'
+        )
         this.instance = RTCPeerConnection(this.config)
-      // }
+      }
 
       this._attachListeners()
     }
