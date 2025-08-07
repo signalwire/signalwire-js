@@ -19,7 +19,7 @@ import {
   stopTrack,
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
-import { connectionPoolManager } from './connectionPoolManager'
+// import { connectionPoolManager } from './connectionPoolManager'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -562,32 +562,32 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _setupRTCPeerConnection() {
     if (!this.instance) {
       // Try to get a pre-warmed connection from session-level pool
-      let pooledConnection: RTCPeerConnection | null = null
+      // let pooledConnection: RTCPeerConnection | null = null
 
-      try {
-        pooledConnection = connectionPoolManager.getConnection()
-      } catch (error) {
-        this.logger.debug('Could not access session connection pool', error)
-      }
+      // try {
+      //   pooledConnection = connectionPoolManager.getConnection()
+      // } catch (error) {
+      //   this.logger.debug('Could not access session connection pool', error)
+      // }
 
-      if (pooledConnection) {
-        this.logger.info(
-          'Using pre-warmed connection from session pool with ICE candidates ready'
-        )
-        this.instance = pooledConnection
+      // if (pooledConnection) {
+      //   this.logger.info(
+      //     'Using pre-warmed connection from session pool with ICE candidates ready'
+      //   )
+      //   this.instance = pooledConnection
 
-        // The connection is already clean:
-        // - Mock tracks have been stopped and removed
-        // - ICE candidates are gathered and ready
-        // - TURN allocation is fresh
-        // - All event listeners have been removed
-      } else {
-        // Fallback to creating new connection
-        this.logger.debug(
-          'Creating new RTCPeerConnection (no pooled connection available)'
-        )
+      //   // The connection is already clean:
+      //   // - Mock tracks have been stopped and removed
+      //   // - ICE candidates are gathered and ready
+      //   // - TURN allocation is fresh
+      //   // - All event listeners have been removed
+      // } else {
+      //   // Fallback to creating new connection
+      //   this.logger.debug(
+      //     'Creating new RTCPeerConnection (no pooled connection available)'
+      //   )
         this.instance = RTCPeerConnection(this.config)
-      }
+      // }
 
       this._attachListeners()
     }
@@ -1002,7 +1002,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     // Store all candidates
-    this._allCandidates.push(event.candidate)
+    // this._allCandidates.push(event.candidate)
 
     this.logger.debug('RTCPeer Candidate:', event.candidate)
     if (event.candidate.type === 'host') {
@@ -1015,29 +1015,30 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.instance.removeEventListener('icecandidate', this._onIce)
         this._onIceTimeout()
       }, this.options.maxIceGatheringTimeout)
-    } else {
-      /**
-       * With non-HOST candidate (srflx, prflx or relay), check if we have
-       * candidates for all media sections to support early invite
-       */
-      if (this.instance.localDescription?.sdp) {
-        if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
-          // Take a snapshot of candidates at this point
-          if (this._candidatesSnapshot.length === 0 && this.type === 'offer') {
-            this._candidatesSnapshot = [...this._allCandidates]
-            this.logger.info(
-              'SDP has candidates for all media sections, calling _sdpReady for early invite'
-            )
-            setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
-          }
-        } else {
-          this.logger.info(
-            'SDP does not have candidates for all media sections, waiting for more candidates'
-          )
-          this.logger.debug(this.instance.localDescription?.sdp)
-        }
-      }
-    }
+    } 
+    // else {
+    //   /**
+    //    * With non-HOST candidate (srflx, prflx or relay), check if we have
+    //    * candidates for all media sections to support early invite
+    //    */
+    //   if (this.instance.localDescription?.sdp) {
+    //     if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
+    //       // Take a snapshot of candidates at this point
+    //       if (this._candidatesSnapshot.length === 0 && this.type === 'offer') {
+    //         this._candidatesSnapshot = [...this._allCandidates]
+    //         this.logger.info(
+    //           'SDP has candidates for all media sections, calling _sdpReady for early invite'
+    //         )
+    //         setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
+    //       }
+    //     } else {
+    //       this.logger.info(
+    //         'SDP does not have candidates for all media sections, waiting for more candidates'
+    //       )
+    //       this.logger.debug(this.instance.localDescription?.sdp)
+    //     }
+    //   }
+    // }
   }
 
   private _retryWithMoreCandidates() {
