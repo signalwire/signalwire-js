@@ -25,7 +25,7 @@ const audienceTests = [
   'roomSessionAudienceCount.spec.ts',
   'roomSessionFollowLeader.spec.ts',
   'roomSessionTalkingEventsToAudience.spec.ts',
-  // 'roomSessionUnauthorized.spec.ts',
+  'roomSessionUnauthorized.spec.ts',
 ]
 const reattachTests = [
   'roomSessionReattach.spec.ts',
