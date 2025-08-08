@@ -102,7 +102,7 @@ test.describe('RoomSession Audience Count', () => {
     )
 
     // join as audience on pageTwo and resolve on `room.joined`
-    const joinTwoParams: any = await expectRoomJoinWithDefaults(pageTwo, {
+    const joinTwoParams = await expectRoomJoinWithDefaults(pageTwo, {
       joinAs: 'audience',
     })
     // expect to have only 1 audience in the room at the moment
