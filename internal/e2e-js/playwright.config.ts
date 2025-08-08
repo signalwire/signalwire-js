@@ -37,7 +37,7 @@ const reattachTests = [
 ]
 const callfabricTests = [
   'address.spec.ts',
-  'agent_customer.spec.ts',
+  'agentCustomer.spec.ts',
   'audioFlags.spec.ts',
   'cleanup.spec.ts',
   'deviceEvent.spec.ts',
