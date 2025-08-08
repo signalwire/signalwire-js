@@ -307,7 +307,7 @@ export const createTestRoomSession = async (
   )
 
   if (options.expectToJoin !== false) {
-    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
+    await expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
       await expectMemberId(page, params.member_id)
 
       const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
