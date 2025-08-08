@@ -1,4 +1,3 @@
-import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
   CreatecXMLScriptParams,
@@ -22,9 +21,7 @@ type CustomPage = Page & {
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: {
-    name: string
-  }): Promise<PageWithWsInspector<CustomPage>>
+  createCustomPage(options: { name: string }): Promise<CustomPage>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
     createcXMLExternalURLResource: typeof createcXMLExternalURLResource
@@ -38,25 +35,20 @@ type CustomFixture = {
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: {
-      name: string
-    }): Promise<PageWithWsInspector<CustomPage>> => {
-      let page = await context.newPage()
+    const maker = async (options: { name: string }): Promise<CustomPage> => {
+      let page = (await context.newPage()) as CustomPage
       enablePageLogs(page, options.name)
-      //@ts-ignore
-      page = await intercepWsTraffic(page)
 
-      // @ts-expect-error
       page.swNetworkDown = () => {
         console.log('Simulate network down..')
         return context.setOffline(true)
       }
-      // @ts-expect-error
+
       page.swNetworkUp = () => {
         console.log('Simulate network up..')
         return context.setOffline(false)
       }
-      // @ts-expect-error
+
       return page
     }
 
@@ -102,7 +94,9 @@ const test = baseTest.extend<CustomFixture>({
         resources.push(data)
         return data
       },
-      createcXMLExternalURLResource: async (params: CreatecXMLExternalURLParams) => {
+      createcXMLExternalURLResource: async (
+        params: CreatecXMLExternalURLParams
+      ) => {
         const data = await createcXMLExternalURLResource(params)
         resources.push(data)
         return data

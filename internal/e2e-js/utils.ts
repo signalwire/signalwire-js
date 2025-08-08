@@ -656,9 +656,7 @@ export const disconnectClient = (page: Page) => {
     // @ts-expect-error
     const client: SignalWireContract = window._client
 
-    if (!client) {
-      console.log('Client is not available')
-    } else {
+    if (client) {
       await client.disconnect()
       console.log('Client disconnected')
     }
