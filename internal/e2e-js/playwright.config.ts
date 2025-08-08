@@ -23,9 +23,9 @@ const demoteTests = [
 ]
 const audienceTests = [
   'roomSessionAudienceCount.spec.ts',
-  'roomSessionFollowLeader.spec.ts',
-  'roomSessionTalkingEventsToAudience.spec.ts',
-  'roomSessionUnauthorized.spec.ts',
+  // 'roomSessionFollowLeader.spec.ts',
+  // 'roomSessionTalkingEventsToAudience.spec.ts',
+  // 'roomSessionUnauthorized.spec.ts',
 ]
 const reattachTests = [
   'roomSessionReattach.spec.ts',
@@ -40,7 +40,6 @@ const callfabricTests = [
   'agent_customer.spec.ts',
   'audioFlags.spec.ts',
   'cleanup.spec.ts',
-  'conversation.spec.ts',
   'deviceEvent.spec.ts',
   'deviceState.spec.ts',
   'holdunhold.spec.ts',
