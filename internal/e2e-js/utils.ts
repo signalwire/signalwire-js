@@ -306,17 +306,18 @@ export const createTestRoomSession = async (
     }
   )
 
-  if (options.expectToJoin !== false) {
-    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
-      await expectMemberId(page, params.member_id)
+  // TODO: Should be removed
+  // if (options.expectToJoin !== false) {
+  //   expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
+  //     await expectMemberId(page, params.member_id)
 
-      const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
-      await expectSDPDirection(page, dir, true)
+  //     const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
+  //     await expectSDPDirection(page, dir, true)
 
-      const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
-      await expectInteractivityMode(page, mode)
-    })
-  }
+  //     const mode = options.vrt.join_as === 'audience' ? 'audience' : 'member'
+  //     await expectInteractivityMode(page, mode)
+  //   })
+  // }
 
   return roomSession
 }
@@ -1790,7 +1791,6 @@ export const expectRoomJoined = (
   page: Page,
   options: { invokeJoin: boolean } = { invokeJoin: true }
 ) => {
-  console.log('>> options', options)
   return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve, reject) => {
       // @ts-expect-error
@@ -1808,18 +1808,21 @@ export const expectRoomJoined = (
   }, options)
 }
 
-export const expectRoomJoinedV2 = async (
+export const expectRoomJoinWithDefaults = async (
   page: Page,
-  options: { joinAs?: 'member' | 'audience' } = {
-    joinAs: 'member',
+  options?: {
+    invokeJoin?: boolean
+    joinAs?: CreateTestVRTOptions['join_as']
   }
 ) => {
-  const params = await expectRoomJoined(page, { invokeJoin: true })
+  const { invokeJoin = true, joinAs = 'member' } = options || {}
+  const params = await expectRoomJoined(page, { invokeJoin })
   await expectMemberId(page, params.member_id)
-  const dir = options.joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+  const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
   await expectSDPDirection(page, dir, true)
-  const mode = options.joinAs === 'audience' ? 'audience' : 'member'
+  const mode = joinAs === 'audience' ? 'audience' : 'member'
   await expectInteractivityMode(page, mode)
+  return params
 }
 
 export const expectRecordingStarted = (page: Page) => {

@@ -7,7 +7,7 @@ import {
   createStreamForRoom,
   deleteRoom,
   expectMCUVisible,
-  expectRoomJoinedV2,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('Room Streaming from REST API', () => {
@@ -41,10 +41,9 @@ test.describe('Room Streaming from REST API', () => {
       `${process.env.RTMP_SERVER}${streamName}`
     )
 
+    // Create and join room from the 1st tab and resolve on 'room.joined'
     await createTestRoomSession(pageOne, connectionSettings)
-
-    // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinedV2(pageOne, { joinAs: 'member' })
+    await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
