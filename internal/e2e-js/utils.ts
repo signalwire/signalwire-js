@@ -307,7 +307,7 @@ export const createTestRoomSession = async (
   )
 
   if (options.expectToJoin !== false) {
-    await expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
+    expectRoomJoined(page, { invokeJoin: false }).then(async (params) => {
       await expectMemberId(page, params.member_id)
 
       const dir = options.vrt.join_as === 'audience' ? 'recvonly' : 'sendrecv'
@@ -1790,6 +1790,7 @@ export const expectRoomJoined = (
   page: Page,
   options: { invokeJoin: boolean } = { invokeJoin: true }
 ) => {
+  console.log('>> options', options)
   return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve, reject) => {
       // @ts-expect-error
@@ -1805,6 +1806,20 @@ export const expectRoomJoined = (
       }
     })
   }, options)
+}
+
+export const expectRoomJoinedV2 = async (
+  page: Page,
+  options: { joinAs?: 'member' | 'audience' } = {
+    joinAs: 'member',
+  }
+) => {
+  const params = await expectRoomJoined(page, { invokeJoin: true })
+  await expectMemberId(page, params.member_id)
+  const dir = options.joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+  await expectSDPDirection(page, dir, true)
+  const mode = options.joinAs === 'audience' ? 'audience' : 'member'
+  await expectInteractivityMode(page, mode)
 }
 
 export const expectRecordingStarted = (page: Page) => {

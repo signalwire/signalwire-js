@@ -6,8 +6,8 @@ import {
   randomizeRoomName,
   createStreamForRoom,
   deleteRoom,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinedV2,
 } from '../utils'
 
 test.describe('Room Streaming from REST API', () => {
@@ -28,6 +28,7 @@ test.describe('Room Streaming from REST API', () => {
         permissions: ['room.stream'],
       },
       initialEvents: ['stream.started', 'stream.ended'],
+      expectToJoin: false,
     }
 
     const roomData = await createRoom({
@@ -43,7 +44,7 @@ test.describe('Room Streaming from REST API', () => {
     await createTestRoomSession(pageOne, connectionSettings)
 
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinedV2(pageOne, { joinAs: 'member' })
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
