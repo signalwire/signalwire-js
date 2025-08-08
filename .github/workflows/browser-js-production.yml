@@ -19,7 +19,7 @@ jobs:
       matrix:
         node-version: [20.x]
         project: [
-            # default,
+            default,
             streaming,
             # badNetwork,
             # promote,
