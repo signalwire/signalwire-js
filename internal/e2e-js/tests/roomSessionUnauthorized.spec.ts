@@ -4,8 +4,8 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisibleForAudience,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession unauthorized methods for audience', () => {
@@ -40,7 +40,9 @@ test.describe('RoomSession unauthorized methods for audience', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoined(page)
+    const joinParams = await expectRoomJoinWithDefaults(page, {
+      joinAs: 'audience',
+    })
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()

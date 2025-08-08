@@ -5,7 +5,7 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession Audience Count', () => {
@@ -94,7 +94,7 @@ test.describe('RoomSession Audience Count', () => {
       expectedAudienceCount
     )
 
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
 
     const expectorPageTwo = expectAudienceCount(pageTwo)
     const audienceCountPageTwoPromise = expectorPageTwo.waitFor(
@@ -102,13 +102,19 @@ test.describe('RoomSession Audience Count', () => {
     )
 
     // join as audience on pageTwo and resolve on `room.joined`
-    const joinTwoParams: any = await expectRoomJoined(pageTwo)
+    const joinTwoParams = await expectRoomJoinWithDefaults(pageTwo, {
+      joinAs: 'audience',
+    })
     // expect to have only 1 audience in the room at the moment
     expect(joinTwoParams.room_session.audience_count).toBe(1)
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
-    await Promise.all(pageThreeToFive.map((page) => expectRoomJoined(page)))
+    await Promise.all(
+      pageThreeToFive.map((page) =>
+        expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
+      )
+    )
 
     // wait for all the room.audienceCount
     await Promise.all([

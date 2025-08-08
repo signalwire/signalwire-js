@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [main, joao/client_package_renamed]
+    branches: [main]
   pull_request:
     branches: [main, dev]
   workflow_dispatch:

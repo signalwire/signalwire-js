@@ -4,13 +4,12 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSessionReattachWrongProtocol', () => {
-  // FIXME: This test is skipped because it requires Hagrid changes
-  test.skip('should handle joining a room, reattaching with wrong protocol ID and then leaving the room', async ({
+  test('should handle joining a room, reattaching with wrong protocol ID and then leaving the room', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[reattach-bad-auth]' })
@@ -30,7 +29,7 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await expectRoomJoined(page)
+    const joinParams: any = await expectRoomJoinWithDefaults(page)
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -56,11 +55,6 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     await page.reload()
 
     await createTestRoomSession(page, connectionSettings)
-
-    // TODO: this test is gonna fail: needs to check:
-    // - different memberId
-    // - different callId
-    // - same room session id
 
     // Try to join but expect to join with a different callId/memberId
     const reattachParams: any = await page.evaluate((roomName) => {

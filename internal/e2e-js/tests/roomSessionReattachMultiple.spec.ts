@@ -4,10 +4,10 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoined,
   expectMCUVisible,
   expectMCUVisibleForAudience,
   deleteRoom,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 type Test = {
@@ -47,7 +47,9 @@ test.describe('RoomSessionReattach', () => {
       }
       await createTestRoomSession(page, connectionSettings)
 
-      const joinParams: any = await expectRoomJoined(page)
+      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+        joinAs: row.join_as,
+      })
       const roomId = joinParams.room_session.room_id
 
       expect(joinParams.room).toBeDefined()
@@ -77,7 +79,9 @@ test.describe('RoomSessionReattach', () => {
 
       console.time(`time-reattach-${row.join_as}`)
       // Join again
-      const reattachParams: any = await expectRoomJoined(page)
+      const reattachParams: any = await expectRoomJoinWithDefaults(page, {
+        joinAs: row.join_as,
+      })
       console.timeEnd(`time-reattach-${row.join_as}`)
 
       expect(reattachParams.room).toBeDefined()
@@ -106,7 +110,9 @@ test.describe('RoomSessionReattach', () => {
 
       console.time(`time-reattach-${row.join_as}-2`)
       // Join again
-      const reattachParams2: any = await expectRoomJoined(page)
+      const reattachParams2: any = await expectRoomJoinWithDefaults(page, {
+        joinAs: row.join_as,
+      })
       console.timeEnd(`time-reattach-${row.join_as}-2`)
 
       expect(reattachParams2.room).toBeDefined()
