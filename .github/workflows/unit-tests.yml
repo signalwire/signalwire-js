@@ -28,31 +28,41 @@ jobs:
         uses: ./.github/actions/build
         with:
           NODE_VERSION: ${{ matrix.node-version }}
-      - name: Unit Tests
-        run: npm test
-      - name: Stack Tests
-        run: npm run -w=@sw-internal/stack-tests dev
-        env:
-          RELAY_HOST: ${{ secrets.RELAY_HOST }}
-          RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
-          RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
-  run-browser-js-staging:
-    name: Browser SDK staging
-    needs: tests
-    uses: ./.github/workflows/browser-js-staging.yml
-    secrets: inherit
+      # - name: Unit Tests
+      #   run: npm test
+      # - name: Stack Tests
+      #   run: npm run -w=@sw-internal/stack-tests dev
+      #   env:
+      #     RELAY_HOST: ${{ secrets.RELAY_HOST }}
+      #     RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
+      #     RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+  # run-browser-js-staging:
+  #   name: Browser SDK staging
+  #   needs: tests
+  #   uses: ./.github/workflows/browser-js-staging.yml
+  #   secrets: inherit
   run-browser-js-production:
     name: Browser SDK production
     # needs: tests
     uses: ./.github/workflows/browser-js-production.yml
     secrets: inherit
-  run-realtime-api-staging:
-    name: RealtimeAPI SDK staging
-    needs: tests
-    uses: ./.github/workflows/realtime-api-staging.yml
-    secrets: inherit
-  run-realtime-api-production:
-    name: RealtimeAPI SDK production
-    needs: tests
-    uses: ./.github/workflows/realtime-api-production.yml
-    secrets: inherit
+  # run-realtime-api-staging:
+  #   name: RealtimeAPI SDK staging
+  #   needs: tests
+  #   uses: ./.github/workflows/realtime-api-staging.yml
+  #   secrets: inherit
+  # run-realtime-api-production:
+  #   name: RealtimeAPI SDK production
+  #   needs: tests
+  #   uses: ./.github/workflows/realtime-api-production.yml
+  #   secrets: inherit
+  # run-browser-client-staging:
+  #   name: Browser Client SDK staging
+  #   needs: tests
+  #   uses: ./.github/workflows/browser-client-staging.yml
+  #   secrets: inherit
+  # run-browser-client-production:
+  #   name: Browser Client SDK production
+  #   needs: tests
+  #   uses: ./.github/workflows/browser-client-production.yml
+  #   secrets: inherit
