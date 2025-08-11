@@ -514,7 +514,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   async onRemoteSdp(sdp: string) {
-    this.logger.info('onRemoteSdp')
     if (
       this._processingRemoteSDP ||
       (this.remoteSdp && this.remoteSdp === sdp)

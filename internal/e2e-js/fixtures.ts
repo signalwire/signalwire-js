@@ -36,7 +36,7 @@ type CustomFixture = {
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
     const maker = async (options: { name: string }): Promise<CustomPage> => {
-      let page = (await context.newPage()) as CustomPage
+      const page = (await context.newPage()) as CustomPage
       enablePageLogs(page, options.name)
 
       page.swNetworkDown = () => {

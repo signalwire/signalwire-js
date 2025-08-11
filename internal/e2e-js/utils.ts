@@ -271,9 +271,9 @@ export const createTestRoomSession = async (
         ...(options.shouldPassRootElement && {
           rootElement: document.getElementById('rootElement'),
         }),
-        logLevel: options.CI ? 'info' : 'debug',
+        logLevel: 'debug',
         debug: {
-          logWsTraffic: true, //Boolean(options.CI),
+          logWsTraffic: true,
         },
         ...(options.attachSagaMonitor && { sagaMonitor }),
         ...options.roomSessionOptions,
