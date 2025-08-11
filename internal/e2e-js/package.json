@@ -16,7 +16,6 @@
   "devDependencies": {
     "@playwright/test": "^1.52.0",
     "@types/express": "^5.0.1",
-    "playwrigth-ws-inspector": "^1.0.0",
     "vite": "^7.0.0"
   }
 }
