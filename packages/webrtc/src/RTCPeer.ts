@@ -52,7 +52,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
    * wait for the negotiation to complete.
    */
   public _pendingNegotiationPromise?: {
-    promise: Promise<unknown>
+    promise?: Promise<unknown>
     resolve: (value?: unknown) => void
     reject: (error: unknown) => void
   }
