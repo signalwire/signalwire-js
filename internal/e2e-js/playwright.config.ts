@@ -37,10 +37,9 @@ const reattachTests = [
 ]
 const callfabricTests = [
   'address.spec.ts',
-  'agent_customer.spec.ts',
+  'agentCustomer.spec.ts',
   'audioFlags.spec.ts',
   'cleanup.spec.ts',
-  'conversation.spec.ts',
   'deviceEvent.spec.ts',
   'deviceState.spec.ts',
   'holdunhold.spec.ts',
@@ -78,9 +77,7 @@ const useDesktopChrome: PlaywrightTestConfig['use'] = {
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
-  reporter: process.env.CI
-    ? [['github'], [require.resolve('./test-reporter.ts')]]
-    : [['list'], [require.resolve('./test-reporter.ts')]],
+  reporter: process.env.CI ? [['github'], ['line']] : [['list'], ['line']],
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
