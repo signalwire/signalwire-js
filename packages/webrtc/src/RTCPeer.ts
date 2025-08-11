@@ -38,7 +38,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
-  private _previousNegotiationPromise = Promise.resolve()
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
