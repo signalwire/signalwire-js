@@ -518,7 +518,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._processingRemoteSDP ||
       (this.remoteSdp && this.remoteSdp === sdp)
     ) {
-      this.logger.warn('Ignore same remote SDP', sdp)
+      this.logger.debug('Ignore same remote SDP', sdp)
       return
     }
 
@@ -528,7 +528,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         type === 'answer' &&
         this.instance.signalingState !== 'have-local-offer'
       ) {
-        this.logger.warn(
+        this.logger.debug(
           'Ignoring offer SDP as signaling state is not have-local-offer'
         )
         return
