@@ -1035,9 +1035,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.instance.removeEventListener('icecandidate', this._onIce)
         this._onIceTimeout()
       }, this.options.maxIceGatheringTimeout)
-    }
-    // avoid a early invite if we have pre gathered candidates
-    else if (!connectionPoolManager.hasPreGathereCandidates) {
+    } else {
       /**
        * With non-HOST candidate (srflx, prflx or relay), check if we have
        * candidates for all media sections to support early invite
