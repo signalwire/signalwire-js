@@ -38,6 +38,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
+  private _previousNegotiationPromise = Promise.resolve()
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -52,6 +53,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
    * wait for the negotiation to complete.
    */
   public _pendingNegotiationPromise?: {
+    promise: Promise<unknown>
     resolve: (value?: unknown) => void
     reject: (error: unknown) => void
   }
@@ -889,21 +891,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
 
-    // Check if we're still in the right state
-    if (
-      this.type === 'offer' &&
-      !['have-local-offer', 'have-local-pranswer'].includes(
-        this.instance.signalingState
-      )
-    ) {
-      // the local SDP was processed already and onnegotiationneeded was not fired
-      // this happens because there are multiple places calling _sdpReady
-      this.logger.warn(
-        `_sdpReady called in wrong state: ${this.instance.signalingState}`
-      )
-      return
-    }
-
     this._processingLocalSDP = true
     clearTimeout(this._iceTimeout)
 
@@ -927,6 +914,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
+      const skipOnLocalSDPReady = await this._isAllowedToSendLocalSDP()
+      if (skipOnLocalSDPReady) {
+        this.logger.info('Skipping onLocalSDPReady due to early invite')
+        this._processingLocalSDP = false
+        return
+      }
+
       await this.call.onLocalSDPReady(this)
       this._processingLocalSDP = false
       if (this.isAnswer) {
@@ -938,6 +932,24 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._pendingNegotiationPromise?.reject(error)
       this._processingLocalSDP = false
     }
+  }
+
+  /**
+   * Waits for the pending negotiation promise to resolve
+   * and checks if the current signaling state allows to send a local SDP.
+   * This is used to prevent sending an offer when the signaling state is not appropriate.
+   * or when still waiting for a previous negotiation to complete.
+   */
+  private async _isAllowedToSendLocalSDP() {
+    await this._pendingNegotiationPromise?.promise
+
+    // Check if signalingState have the right state to sand an offer
+    return (
+      this.type === 'offer' &&
+      !['have-local-offer', 'have-local-pranswer'].includes(
+        this.instance.signalingState
+      )
+    )
   }
 
   private _sdpIsValid() {

@@ -1330,6 +1330,7 @@ export class BaseConnection<
       const peer = this.peer
       const negotiationPromise = new Promise((resolve, reject) => {
         peer._pendingNegotiationPromise = {
+          promise: negotiationPromise,
           resolve,
           reject,
         }
