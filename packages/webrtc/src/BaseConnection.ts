@@ -1245,14 +1245,7 @@ export class BaseConnection<
     const rtcPeer = new RTCPeer(this, type)
     this.appendRTCPeer(rtcPeer)
     this.runRTCPeerWorkers(rtcPeer.uuid)
-    const negotiationPromise = new Promise((resolve, reject) => {
-      rtcPeer._pendingNegotiationPromise = {
-        resolve,
-        reject,
-      }
-    })
-    rtcPeer._pendingNegotiationPromise!.promise = negotiationPromise
-
+    
     return rtcPeer
   }
 
@@ -1341,7 +1334,6 @@ export class BaseConnection<
           reject,
         }
       })
-      peer._pendingNegotiationPromise!.promise = negotiationPromise
 
       const shouldEnableAudio = ['sendonly', 'sendrecv'].includes(
         audio?.direction || ''

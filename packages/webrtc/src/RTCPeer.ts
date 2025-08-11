@@ -38,6 +38,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
+  private _waitNegotiation: Promise<void> = Promise.resolve()
+  private _waitNegotiationCompleter: () => void
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -52,7 +54,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
    * wait for the negotiation to complete.
    */
   public _pendingNegotiationPromise?: {
-    promise?: Promise<unknown>
     resolve: (value?: unknown) => void
     reject: (error: unknown) => void
   }
@@ -198,6 +199,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return false
   }
 
+  private _negotiationCompleted(error?: unknown) {
+    if (!error) {
+      this._resolveStartMethod()
+      this._waitNegotiationCompleter?.()
+      this._pendingNegotiationPromise?.resolve()
+    } else {
+      this._rejectStartMethod(error)
+      this._waitNegotiationCompleter?.()
+      this._pendingNegotiationPromise?.reject(error)
+    }
+  }
+
   stopTrackSender(kind: string) {
     try {
       const sender = this._getSenderByKind(kind)
@@ -327,8 +340,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.restartIce()
     } catch (error) {
       this.logger.error('restartIceWithRelayOnly', error)
-      this._rejectStartMethod?.(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
     }
   }
 
@@ -502,15 +514,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
     }
   }
 
   onRemoteBye({ code, message }: { code: string; message: string }) {
     // It could be a negotiation/signaling error so reject the "startMethod"
     const error = { code, message }
-    this._rejectStartMethod?.(error)
-    this._pendingNegotiationPromise?.reject(error)
+    this._negotiationCompleted(error)
     this.stop()
   }
 
@@ -543,8 +554,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        * we need to reply to the server and wait for the signaling.
        */
       if (this.isOffer) {
-        this._resolveStartMethod()
-        this._pendingNegotiationPromise?.resolve()
+        this._negotiationCompleted()
       }
 
       this.resetNeedResume()
@@ -555,8 +565,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         error
       )
       this.call.hangup()
-      this._rejectStartMethod(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
     }
   }
 
@@ -602,8 +611,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       try {
         this._localStream = await this._retrieveLocalStream()
       } catch (error) {
-        this._rejectStartMethod(error)
-        this._pendingNegotiationPromise?.reject(error)
+        this._negotiationCompleted(error)
         return this.call.setState('hangup')
       }
 
@@ -920,15 +928,17 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         return
       }
 
+      this._waitNegotiation = new Promise((resolve) => {
+        this._waitNegotiationCompleter = resolve
+      })
+
       await this.call.onLocalSDPReady(this)
       this._processingLocalSDP = false
       if (this.isAnswer) {
-        this._resolveStartMethod()
-        this._pendingNegotiationPromise?.resolve()
+        this._negotiationCompleted()
       }
     } catch (error) {
-      this._rejectStartMethod(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
       this._processingLocalSDP = false
     }
   }
@@ -940,7 +950,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
    * or when still waiting for a previous negotiation to complete.
    */
   private async _isAllowedToSendLocalSDP() {
-    await this._pendingNegotiationPromise?.promise
+    await this._waitNegotiation
 
     // Check if signalingState have the right state to sand an offer
     return (
@@ -978,8 +988,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         code: 'ICE_GATHERING_FAILED',
         message: 'Ice gathering timeout',
       }
-      this._rejectStartMethod(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
       this.call.setState('destroy')
       return
     }
