@@ -110,6 +110,7 @@ export class RTCPeerConnectionManager {
     return null
   }
 
+
   /**
    * Clean up the manager and all connections
    */
