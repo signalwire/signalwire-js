@@ -30,6 +30,7 @@ jobs:
             callfabric,
             renegotiation,
             videoElement,
+            performance,
             v2WebRTC,
           ]
     steps:
