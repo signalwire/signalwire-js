@@ -2,11 +2,12 @@ import { uuid } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
 import { SERVER_URL, createCFClient } from '../../utils'
 import { SignalWireContract } from '@signalwire/js'
+import { appendFileSync } from 'fs'
 
-const MAX_CALL_SETUP_TIME_MS = 5000
+const MAX_CALL_SETUP_TIME_MS = 4000
 
 test.describe('CallFabric Start Time', () => {
-  test('should join a video room within 5 seconds', async ({
+  test('should join a video room within 4 seconds', async ({
     createCustomPage,
     resource,
   }) => {
@@ -41,15 +42,26 @@ test.describe('CallFabric Start Time', () => {
       }
     )
 
-    console.log('::group::CallFabric perf')
-    console.log(`[PERF] call.start(ms)= ${ms.toFixed(0)}`)
-    console.log(`::notice title=Call setup latency::${Math.round(ms)} ms`)
-    console.log('::endgroup::')
+    if (ms < MAX_CALL_SETUP_TIME_MS) {
+      console.log(`\x1b[1;32m✅ call.start(): ${ms.toFixed(0)} ms\x1b[0m`)
+    } else {
+      console.log(`\x1b[1;31m❌ call.start(): ${ms.toFixed(0)} ms\x1b[0m`)
+    }
+
+    if (process.env.GITHUB_STEP_SUMMARY) {
+      const summary = [
+        '### CallFabric Performance',
+        '',
+        `- Room: \`${roomName}\``,
+        `- \`call.start()\`: **${ms.toFixed(0)} ms**`,
+      ].join('\n')
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n${summary}\n`)
+    }
 
     expect(ms).toBeLessThan(MAX_CALL_SETUP_TIME_MS)
   })
 
-  test('should join an audio-only room within 5 seconds', async ({
+  test('should join an audio-only room within 4 seconds', async ({
     createCustomPage,
     resource,
   }) => {

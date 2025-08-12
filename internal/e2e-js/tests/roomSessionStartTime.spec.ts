@@ -2,10 +2,10 @@ import type { Video } from '@signalwire/js'
 import { test, expect } from '../fixtures'
 import { SERVER_URL, createTestRoomSession, randomizeRoomName } from '../utils'
 
-const MAX_CALL_SETUP_TIME_MS = 5000
+const MAX_CALL_SETUP_TIME_MS = 4000
 
 test.describe('RoomSession Start Time', () => {
-  test('should join a room room within 5 seconds', async ({
+  test('should join a room room within 4 seconds', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: 'raise-lower' })
