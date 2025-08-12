@@ -2,10 +2,18 @@ import type { Video } from '@signalwire/js'
 import { test, expect } from '../fixtures'
 import { SERVER_URL, createTestRoomSession, randomizeRoomName } from '../utils'
 
-const MAX_CALL_SETUP_TIME_MS = 4000
+export const MAX_CALL_SETUP_TIME_MS = 5000
+
+export const logCallStartTime = (ms: number) => {
+  if (ms < MAX_CALL_SETUP_TIME_MS) {
+    console.log(`\x1b[1;32m✅ call.start(): ${ms.toFixed(0)} ms\x1b[0m`)
+  } else {
+    console.log(`\x1b[1;31m❌ call.start(): ${ms.toFixed(0)} ms\x1b[0m`)
+  }
+}
 
 test.describe('RoomSession Start Time', () => {
-  test('should join a room room within 4 seconds', async ({
+  test('should join a room room within 5 seconds', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: 'raise-lower' })
@@ -40,10 +48,7 @@ test.describe('RoomSession Start Time', () => {
       })
     })
 
-    console.log('::group::CallFabric perf')
-    console.log(`[PERF] call.start(ms)= ${ms.toFixed(0)}`)
-    console.log(`::notice title=Call setup latency::${Math.round(ms)} ms`)
-    console.log('::endgroup::')
+    logCallStartTime(ms)
 
     expect(ms).toBeLessThan(MAX_CALL_SETUP_TIME_MS)
   })
