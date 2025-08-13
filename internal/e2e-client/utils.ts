@@ -27,7 +27,7 @@ declare global {
 // #region Utilities for Playwright test server & fixture
 
 type CreateTestServerOptions = {
-  target: 'video' | 'blank'
+  target: 'unified' | 'blank'
 }
 
 const TARGET_ROOT_PATH: Record<
@@ -38,9 +38,9 @@ const TARGET_ROOT_PATH: Record<
   }
 > = {
   blank: { path: './templates/blank', port: 1337 },
-  video: {
+  unified: {
     path: path.dirname(
-      require.resolve('@sw-internal/playground-js/src/video/index.html')
+      require.resolve('@sw-internal/playground-client/src/unified/index.html')
     ),
     port: 1336,
   },

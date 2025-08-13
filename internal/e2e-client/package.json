@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@signalwire/client": "0.0.1",
-    "@sw-internal/playground-js": "0.0.15",
+    "@sw-internal/playground-client": "0.0.15",
     "express": "^5.1.0",
     "node-fetch": "^2.6.7"
   },
