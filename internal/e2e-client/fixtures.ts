@@ -89,7 +89,7 @@ const test = baseTest.extend<CustomFixture>({
       })
 
       /**
-       * The Call Call SDK does not destory the client when the call is finished.
+       * The Call SDK does not destroy the client when the call is finished.
        * Make sure we cleanup the client as well.
        */
       await Promise.all(context.pages().map(disconnectClient))
