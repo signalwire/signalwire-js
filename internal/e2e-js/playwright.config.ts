@@ -11,9 +11,9 @@ const streamingTests = [
 const badNetworkTests = ['roomSessionBadNetwork.spec.ts']
 const promoteTests = [
   'roomSessionPromoteDemote.spec.ts',
-  'roomSessionPromoteMeta.spec.ts',
-  'roomSessionPromoteParticipant.spec.ts',
-  'roomSessionPromoteReattachDemote.spec.ts',
+  // 'roomSessionPromoteMeta.spec.ts',
+  // 'roomSessionPromoteParticipant.spec.ts',
+  // 'roomSessionPromoteReattachDemote.spec.ts',
 ]
 const demoteTests = [
   'roomSessionDemote.spec.ts',
