@@ -8,6 +8,7 @@ import {
   expectPageReceiveAudio,
   randomizeRoomName,
   expectRoomJoinWithDefaults,
+  expectToPass,
 } from '../utils'
 
 test.describe('RoomSession end_room_session_on_leave feature', () => {
@@ -63,40 +64,72 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
 
     await pageOne.waitForTimeout(2000)
 
-    const promiseWaitForMember2Left = pageTwo.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
-          resolve(true)
+    const memberLeftEvent = expectToPass(
+      async () => {
+        const result = await pageTwo.evaluate(async () => {
+          return new Promise<boolean>((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
         })
-      })
-    })
+        expect(result).toBe(true)
+      },
+      { message: 'member left event' }
+    )
 
-    const promiseWaitForMember3Left = pageThree.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
-          resolve(true)
+    const audienceLeftEvent = expectToPass(
+      async () => {
+        const result = await pageThree.evaluate(async () => {
+          return new Promise<boolean>((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
         })
-      })
-    })
+        expect(result).toBe(true)
+      },
+      { message: 'audience member left event' }
+    )
 
-    await pageOne.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-
-      const promiseWaitForMember1Left = new Promise((resolve) => {
-        roomObj.on('room.left', () => {
-          resolve(true)
+    const leaderLeftEvent = expectToPass(
+      async () => {
+        const result = await pageOne.evaluate(async () => {
+          return new Promise<boolean>((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
         })
-      })
+        expect(result).toBe(true)
+      },
+      { message: 'leader member left event' }
+    )
 
-      await roomObj.leave()
-      return await promiseWaitForMember1Left
-    })
+    const leaderLeftAPI = expectToPass(
+      async () => {
+        const result = await pageOne.evaluate(async () => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          await roomObj.leave()
+          return true
+        })
+        expect(result).toBe(true)
+      },
+      { message: 'leader member left' }
+    )
 
-    await Promise.all([promiseWaitForMember2Left, promiseWaitForMember3Left])
+    await Promise.all([
+      leaderLeftAPI,
+      leaderLeftEvent,
+      audienceLeftEvent,
+      memberLeftEvent,
+    ])
   })
 })
