@@ -24,7 +24,8 @@ const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
-
+  public call: BaseConnection<EventTypes>
+  public type: RTCSdpType
   public instance: RTCPeerConnection
 
   private _iceTimeout: any
@@ -66,10 +67,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return getLogger()
   }
 
-  constructor(
-    public call: BaseConnection<EventTypes>,
-    public type: RTCSdpType
-  ) {
+  constructor(call: BaseConnection<EventTypes>, type: RTCSdpType) {
+    // Assign call first before any getter access
+    this.call = call
+    this.type = type
+
     this.logger.debug(
       'New Peer with type:',
       this.type,
