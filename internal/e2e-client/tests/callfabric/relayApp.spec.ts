@@ -1,5 +1,4 @@
 import { uuid } from '@signalwire/core'
-import { SignalWire } from '@signalwire/realtime-api'
 import {
   createCFClient,
   dialAddress,
@@ -15,44 +14,21 @@ test.describe('CallCall Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({
     createCustomPage,
     resource,
+    relayAppClient,
   }) => {
-    let playback
-    const client = await SignalWire({
-      host: process.env.RELAY_HOST,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      debug: {
-        logWsTraffic: true,
-      },
-    })
-
     const topic = `e2e_${uuid()}`
     await resource.createRelayAppResource({
       name: topic,
       topic,
     })
 
-    await client.voice.listen({
-      topics: [topic],
-      onCallReceived: async (call) => {
-        try {
-          console.log('Call received', call.id)
-
-          await call.answer()
-          console.log('Inbound call answered')
-
-          playback = await call
-            .playAudio({
-              url: 'https://cdn.signalwire.com/default-music/welcome.mp3',
-            })
-            .onStarted()
-          await playback.setVolume(10)
-
-          console.log('Playback has started!')
-        } catch (error) {
-          console.error('Inbound call error', error)
-        }
-      },
+    // Start the relay app in Node.js context
+    await relayAppClient.start('playAudio', {
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT,
+      token: process.env.RELAY_TOKEN,
+      topic,
+      debug: { logWsTraffic: true },
     })
 
     const page = await createCustomPage({ name: '[page]' })
@@ -90,11 +66,14 @@ test.describe('CallCall Relay Application', () => {
     // Wait until the callee join and starts the playback
     await expectInitialEvents
 
+    // Wait for playback to start on relay app side
+    const playbackEvent = await relayAppClient.waitForEvent('playbackStarted')
+    
     console.log('Calculating audio stats')
     await expectPageReceiveAudio(page)
 
     // stop relayApp playback
-    await playback!.stop()
+    await relayAppClient.stopPlayback(playbackEvent.playbackId)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -118,46 +97,27 @@ test.describe('CallCall Relay Application', () => {
 
     await expectFinalEvents
 
-    await client.disconnect()
+    await relayAppClient.stop()
   })
 
   test('should connect to the relay app and expect a silence', async ({
     createCustomPage,
     resource,
+    relayAppClient,
   }) => {
-    let playback
-    const client = await SignalWire({
-      host: process.env.RELAY_HOST,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      debug: {
-        logWsTraffic: true,
-      },
-    })
-
     const topic = `e2e_${uuid()}`
     await resource.createRelayAppResource({
       name: topic,
       topic,
     })
 
-    await client.voice.listen({
-      topics: [topic],
-      onCallReceived: async (call) => {
-        try {
-          console.log('Call received', call.id)
-
-          await call.answer()
-          console.log('Inbound call answered')
-
-          playback = await call.playSilence({ duration: 60 }).onStarted()
-          await playback.setVolume(10)
-
-          console.log('Playback silence has started!')
-        } catch (error) {
-          console.error('Inbound call error', error)
-        }
-      },
+    // Start the relay app in Node.js context
+    await relayAppClient.start('playSilence', {
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT,
+      token: process.env.RELAY_TOKEN,
+      topic,
+      debug: { logWsTraffic: true },
     })
 
     const page = await createCustomPage({ name: '[page]' })
@@ -195,6 +155,9 @@ test.describe('CallCall Relay Application', () => {
     // Wait until the callee join and starts the playback
     await expectInitialEvents
 
+    // Wait for playback to start on relay app side
+    const playbackEvent = await relayAppClient.waitForEvent('playbackStarted')
+
     console.log('Calculating audio stats')
     const audioStats = await getAudioStats(page)
 
@@ -210,7 +173,10 @@ test.describe('CallCall Relay Application', () => {
         'Warning - totalAudioEnergy was not present in the audioStats.'
       )
     }
-    playback!.stop()
+    
+    // Stop playback
+    await relayAppClient.stopPlayback(playbackEvent.playbackId)
+    
     await page.evaluate(async () => {
       // @ts-expect-error
       const callObj: Video.RoomSession = window._callObj
@@ -233,43 +199,27 @@ test.describe('CallCall Relay Application', () => {
 
     await expectFinalEvents
 
-    await client.disconnect()
+    await relayAppClient.stop()
   })
 
   test('should connect to the relay app and expect a hangup', async ({
     createCustomPage,
     resource,
+    relayAppClient,
   }) => {
-    const client = await SignalWire({
-      host: process.env.RELAY_HOST,
-      project: process.env.RELAY_PROJECT as string,
-      token: process.env.RELAY_TOKEN as string,
-      debug: {
-        logWsTraffic: true,
-      },
-    })
-
     const topic = `e2e_${uuid()}`
     await resource.createRelayAppResource({
       name: topic,
       topic,
     })
 
-    await client.voice.listen({
-      topics: [topic],
-      onCallReceived: async (call) => {
-        try {
-          console.log('Call received', call.id)
-
-          await call.answer()
-          console.log('Inbound call answered')
-
-          await call.hangup()
-          console.log('Callee hung up the call!')
-        } catch (error) {
-          console.error('Inbound call error', error)
-        }
-      },
+    // Start the relay app in Node.js context
+    await relayAppClient.start('hangup', {
+      host: process.env.RELAY_HOST,
+      project: process.env.RELAY_PROJECT,
+      token: process.env.RELAY_TOKEN,
+      topic,
+      debug: { logWsTraffic: true },
     })
 
     const page = await createCustomPage({ name: '[page]' })
@@ -299,6 +249,6 @@ test.describe('CallCall Relay Application', () => {
     await expectInitialEvents
     await expectFinalEvents
 
-    await client.disconnect()
+    await relayAppClient.stop()
   })
 })
