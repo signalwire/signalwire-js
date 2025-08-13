@@ -13,7 +13,7 @@ import {
 } from '../../utils'
 
 const agent_customer_static_scripts_desc =
-  'CallCall Agent/Customer interaction, static cXML scripts'
+  'Call Agent/Customer interaction, static cXML scripts'
 test.describe(agent_customer_static_scripts_desc, () => {
   const conference_name = `e2e_${uuid()}`
 
