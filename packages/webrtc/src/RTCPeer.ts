@@ -955,7 +955,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // Check if signalingState have the right state to sand an offer
     return (
       this.type === 'offer' &&
-      !['have-local-offer', 'have-local-pranswer'].includes(
+      ['have-local-offer', 'have-local-pranswer'].includes(
         this.instance.signalingState
       )
     )
