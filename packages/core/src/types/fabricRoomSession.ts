@@ -499,6 +499,27 @@ export interface FabricRoomSessionContract {
    * ```
    */
   setAudioFlags(params: SetAudioFlagsParams): Promise<void>
+  /**
+   * Ends call for a specific participant or yourself.
+   *
+   * @param params
+   * @param params.memberId id of the member to end the call for. If omitted, ends the call for the local client.
+   *
+   * @capabilities
+   *  - `end`: to end a call (your own or another member's)
+   *
+   * @example Ending your own call:
+   * ```typescript
+   * await room.end();
+   * ```
+   *
+   * @example Ending another participant's call:
+   * ```typescript
+   * const id = 'de550c0c-3fac-4efd-b06f-b5b8614b8966'; // you can get this from getMembers()
+   * await room.end({ memberId: id });
+   * ```
+   */
+  end(params?: MemberCommandParams): Promise<void>
 }
 
 /**
@@ -605,6 +626,9 @@ export type Capability =
   // Device & Screenshare
   | 'device'
   | 'screenshare'
+
+  // End
+  | 'end'
 
 /**
  * 'call.joined'

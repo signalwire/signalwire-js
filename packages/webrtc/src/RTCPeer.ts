@@ -38,6 +38,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
+  private _waitNegotiation: Promise<void> = Promise.resolve()
+  private _waitNegotiationCompleter: () => void
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -197,6 +199,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return false
   }
 
+  private _negotiationCompleted(error?: unknown) {
+    if (!error) {
+      this._resolveStartMethod()
+      this._waitNegotiationCompleter?.()
+      this._pendingNegotiationPromise?.resolve()
+    } else {
+      this._rejectStartMethod(error)
+      this._waitNegotiationCompleter?.()
+      this._pendingNegotiationPromise?.reject(error)
+    }
+  }
+
   stopTrackSender(kind: string) {
     try {
       const sender = this._getSenderByKind(kind)
@@ -326,8 +340,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this.restartIce()
     } catch (error) {
       this.logger.error('restartIceWithRelayOnly', error)
-      this._rejectStartMethod?.(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
     }
   }
 
@@ -501,15 +514,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
     }
   }
 
   onRemoteBye({ code, message }: { code: string; message: string }) {
     // It could be a negotiation/signaling error so reject the "startMethod"
     const error = { code, message }
-    this._rejectStartMethod?.(error)
-    this._pendingNegotiationPromise?.reject(error)
+    this._negotiationCompleted(error)
     this.stop()
   }
 
@@ -542,8 +554,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        * we need to reply to the server and wait for the signaling.
        */
       if (this.isOffer) {
-        this._resolveStartMethod()
-        this._pendingNegotiationPromise?.resolve()
+        this._negotiationCompleted()
       }
 
       this.resetNeedResume()
@@ -554,8 +565,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         error
       )
       this.call.hangup()
-      this._rejectStartMethod(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
     }
   }
 
@@ -601,8 +611,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       try {
         this._localStream = await this._retrieveLocalStream()
       } catch (error) {
-        this._rejectStartMethod(error)
-        this._pendingNegotiationPromise?.reject(error)
+        this._negotiationCompleted(error)
         return this.call.setState('hangup')
       }
 
@@ -889,21 +898,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return
     }
 
-    // Check if we're still in the right state
-    if (
-      this.type === 'offer' &&
-      !['have-local-offer', 'have-local-pranswer'].includes(
-        this.instance.signalingState
-      )
-    ) {
-      // the local SDP was processed already and onnegotiationneeded was not fired
-      // this happens because there are multiple places calling _sdpReady
-      this.logger.warn(
-        `_sdpReady called in wrong state: ${this.instance.signalingState}`
-      )
-      return
-    }
-
     this._processingLocalSDP = true
     clearTimeout(this._iceTimeout)
 
@@ -927,17 +921,44 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
+      const skipOnLocalSDPReady = await this._isAllowedToSendLocalSDP()
+      if (skipOnLocalSDPReady) {
+        this.logger.info('Skipping onLocalSDPReady due to early invite')
+        this._processingLocalSDP = false
+        return
+      }
+
+      this._waitNegotiation = new Promise((resolve) => {
+        this._waitNegotiationCompleter = resolve
+      })
+
       await this.call.onLocalSDPReady(this)
       this._processingLocalSDP = false
       if (this.isAnswer) {
-        this._resolveStartMethod()
-        this._pendingNegotiationPromise?.resolve()
+        this._negotiationCompleted()
       }
     } catch (error) {
-      this._rejectStartMethod(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
       this._processingLocalSDP = false
     }
+  }
+
+  /**
+   * Waits for the pending negotiation promise to resolve
+   * and checks if the current signaling state allows to send a local SDP.
+   * This is used to prevent sending an offer when the signaling state is not appropriate.
+   * or when still waiting for a previous negotiation to complete.
+   */
+  private async _isAllowedToSendLocalSDP() {
+    await this._waitNegotiation
+
+    // Check if signalingState have the right state to sand an offer
+    return (
+      this.type === 'offer' &&
+      ['have-local-offer', 'have-local-pranswer'].includes(
+        this.instance.signalingState
+      )
+    )
   }
 
   private _sdpIsValid() {
@@ -967,8 +988,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         code: 'ICE_GATHERING_FAILED',
         message: 'Ice gathering timeout',
       }
-      this._rejectStartMethod(error)
-      this._pendingNegotiationPromise?.reject(error)
+      this._negotiationCompleted(error)
       this.call.setState('destroy')
       return
     }
@@ -1015,9 +1035,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.instance.removeEventListener('icecandidate', this._onIce)
         this._onIceTimeout()
       }, this.options.maxIceGatheringTimeout)
-    }
-    // avoid a early invite if we have pre gathered candidates
-    else if (!connectionPoolManager.hasPreGathereCandidates) {
+    } else {
       /**
        * With non-HOST candidate (srflx, prflx or relay), check if we have
        * candidates for all media sections to support early invite

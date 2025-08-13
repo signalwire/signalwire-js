@@ -30,7 +30,6 @@ export class RTCPeerConnectionManager {
   private forceRefresh: boolean
   private turnRefreshInterval: number = 240000 // 4 minutes
   private refreshTimer?: ReturnType<typeof setInterval>
-  private candidatesCount = 0
   private logger = getLogger()
 
   constructor(config: RTCConfiguration, poolSize = 3, forceRefresh = false) {
@@ -111,9 +110,6 @@ export class RTCPeerConnectionManager {
     return null
   }
 
-  get hasPreGatheredCandidates() {
-    return this.candidatesCount > 0
-  }  
 
   /**
    * Clean up the manager and all connections
@@ -223,12 +219,6 @@ export class RTCPeerConnectionManager {
       }
 
       pc.addEventListener('icegatheringstatechange', onGatheringComplete)
-
-      pc.addEventListener('icecandidate', (event) => {
-        if (event.candidate) {
-          this.candidatesCount++
-        }
-      })
 
       // Timeout after 10 seconds
       const timer = setTimeout(() => {

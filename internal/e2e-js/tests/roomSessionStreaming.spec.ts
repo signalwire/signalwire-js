@@ -3,9 +3,9 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoined,
   expectMCUVisible,
   randomizeRoomName,
+  expectRoomJoinWithDefaults,
 } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -38,21 +38,23 @@ test.describe('RoomSession', () => {
       createTestRoomSession(pageThree, connectionSettings),
     ])
 
-    // --------------- Joining from the 2nd tab and resolve on 'stream.started' ---------------
+    // --------------- Promise that resolve on 'stream.started' ---------------
     const pageTwoStreamPromise = pageTwo.evaluate(() => {
       return new Promise((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         roomObj.on('stream.started', (stream: any) => resolve(stream))
-        roomObj.join()
       })
     })
 
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await expectRoomJoined(pageOne)
+    await expectRoomJoinWithDefaults(pageOne)
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
+
+    // --------------- Joining from the 2nd tab and resolve on 'room.joined' ---------------
+    await expectRoomJoinWithDefaults(pageTwo)
 
     const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 
@@ -84,55 +86,57 @@ test.describe('RoomSession', () => {
     // Checks that the video is visible on pageTwo
     await expectMCUVisible(pageTwo)
 
-    // --------------- Joining from the 3rd tab and get the active streams ---------------
-    const { streamsOnJoined, streamsOnGet, streamOnEnd }: any =
-      await pageThree.evaluate(() => {
-        return new Promise((resolve) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
+    // --------------- Get the active streams from 3rd tab ---------------
+    const pageThreeStreamPromise: any = pageThree.evaluate(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
 
-          roomObj.on('room.joined', async (params) => {
-            const result = await roomObj.getStreams()
+        roomObj.on('room.joined', async (params) => {
+          const result = await roomObj.getStreams()
 
-            const streamOnEnd = await Promise.all(
-              result.streams.map((stream: any) => {
-                const streamEnded = new Promise((resolve) => {
-                  roomObj.on('stream.ended', (params) => {
-                    if (params.id === stream.id) {
-                      resolve(params)
-                    }
-                  })
+          const streamOnEnd = await Promise.all(
+            result.streams.map((stream: any) => {
+              const streamEnded = new Promise((resolve) => {
+                roomObj.on('stream.ended', (params) => {
+                  if (params.id === stream.id) {
+                    resolve(params)
+                  }
                 })
-
-                stream.stop().then(() => {
-                  console.log(`Stream ${stream.id} stopped!`)
-                })
-
-                return streamEnded
               })
-            )
 
-            const streamSerializer = (stream: any) => {
-              return {
-                id: stream.id,
-                roomSessionId: stream.roomSessionId,
-                state: stream.state,
-                url: stream.url,
-                stop: stream.stop,
-              }
-            }
+              stream.stop().then(() => {
+                console.log(`Stream ${stream.id} stopped!`)
+              })
 
-            resolve({
-              streamsOnJoined:
-                params.room_session.streams?.map(streamSerializer),
-              streamsOnGet: result.streams.map(streamSerializer),
-              streamOnEnd: streamOnEnd.map(streamSerializer),
+              return streamEnded
             })
-          })
+          )
 
-          roomObj.join()
+          const streamSerializer = (stream: any) => {
+            return {
+              id: stream.id,
+              roomSessionId: stream.roomSessionId,
+              state: stream.state,
+              url: stream.url,
+              stop: stream.stop,
+            }
+          }
+
+          resolve({
+            streamsOnJoined: params.room_session.streams?.map(streamSerializer),
+            streamsOnGet: result.streams.map(streamSerializer),
+            streamOnEnd: streamOnEnd.map(streamSerializer),
+          })
         })
       })
+    })
+
+    // --------------- Joining from the 3rd tab and resolve on 'room.joined' ---------------
+    await expectRoomJoinWithDefaults(pageThree)
+
+    const { streamsOnJoined, streamsOnGet, streamOnEnd } =
+      await pageThreeStreamPromise
 
     expect(streamsOnJoined.length).toEqual(streamsOnGet.length)
     expect(streamsOnGet.length).toEqual(streamOnEnd.length)

@@ -5,9 +5,6 @@ class ConnectionPoolManagerSingleton {
   private manager?: RTCPeerConnectionManager
   private logger = getLogger()
   
-  get hasPreGathereCandidates() {
-    return this.manager?.hasPreGatheredCandidates ?? false
-  }
 
   async initializePool(
     iceServers: RTCIceServer[],
