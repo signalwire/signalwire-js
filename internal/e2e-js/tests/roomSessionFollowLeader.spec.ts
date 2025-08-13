@@ -49,8 +49,14 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     await Promise.all(
       allPages.map((page, i) =>
         i === allPages.length - 1
-          ? expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
-          : expectRoomJoinWithDefaults(page, { joinAs: 'member' })
+          ? expectToPass(
+              () => expectRoomJoinWithDefaults(page, { joinAs: 'audience' }),
+              { message: 'Failed to join audience member' }
+            )
+          : expectToPass(
+              () => expectRoomJoinWithDefaults(page, { joinAs: 'member' }),
+              { message: 'Failed to join member' }
+            )
       )
     )
     await Promise.all(
@@ -75,7 +81,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
         })
         expect(result).toBe(true)
       },
-      { message: 'member left event' }
+      { message: 'Failed to receive room.left event for member' }
     )
 
     const audienceLeftEvent = expectToPass(
@@ -91,7 +97,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
         })
         expect(result).toBe(true)
       },
-      { message: 'audience member left event' }
+      { message: 'Failed to receive room.left event for audience' }
     )
 
     const leaderLeftEvent = expectToPass(
@@ -107,7 +113,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
         })
         expect(result).toBe(true)
       },
-      { message: 'leader member left event' }
+      { message: 'Failed to receive room.left event for leader' }
     )
 
     await expectToPass(
@@ -120,7 +126,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
         })
         expect(result).toBe(true)
       },
-      { message: 'leader member left' }
+      { message: 'Failed to call roomObj.leave()' }
     )
 
     await Promise.all([leaderLeftEvent, audienceLeftEvent, memberLeftEvent])
