@@ -77,7 +77,7 @@ const test = baseTest.extend<CustomFixture>({
     } finally {
       console.log('Cleaning up pages..')
       /**
-       * If we have a __callObj in the page means we tested the Video/Call APIs
+       * If we have a __callObj in the page means we tested the Call APIs
        * so we must leave the room.
        * Invoke `.leave()` only if we have a valid `roomSessionId`.
        * Then double check the SDK elements got properly removed from the DOM.
