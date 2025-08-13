@@ -62,8 +62,6 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     )
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
-    await pageOne.waitForTimeout(2000)
-
     const memberLeftEvent = expectToPass(
       async () => {
         const result = await pageTwo.evaluate(async () => {
@@ -112,7 +110,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       { message: 'leader member left event' }
     )
 
-    const leaderLeftAPI = expectToPass(
+    await expectToPass(
       async () => {
         const result = await pageOne.evaluate(async () => {
           // @ts-expect-error
@@ -125,11 +123,6 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       { message: 'leader member left' }
     )
 
-    await Promise.all([
-      leaderLeftAPI,
-      leaderLeftEvent,
-      audienceLeftEvent,
-      memberLeftEvent,
-    ])
+    await Promise.all([leaderLeftEvent, audienceLeftEvent, memberLeftEvent])
   })
 })

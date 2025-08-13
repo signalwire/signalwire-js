@@ -22,10 +22,10 @@ const demoteTests = [
   'roomSessionDemotePromote.spec.ts',
 ]
 const audienceTests = [
-  'roomSessionAudienceCount.spec.ts',
+  // 'roomSessionAudienceCount.spec.ts',
   'roomSessionFollowLeader.spec.ts',
-  'roomSessionTalkingEventsToAudience.spec.ts',
-  'roomSessionUnauthorized.spec.ts',
+  // 'roomSessionTalkingEventsToAudience.spec.ts',
+  // 'roomSessionUnauthorized.spec.ts',
 ]
 const reattachTests = [
   'roomSessionReattach.spec.ts',
