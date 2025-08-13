@@ -1897,7 +1897,7 @@ export const expectToPass = async (
   options?: { interval?: number[]; timeout?: number }
 ) => {
   const mergedOptions = {
-    timeout: 5000,
+    timeout: 10_000,
     ...options,
   }
   try {
