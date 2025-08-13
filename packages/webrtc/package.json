@@ -34,11 +34,24 @@
     "start": "tsc --watch --project tsconfig.build.json",
     "build": "tsc --project tsconfig.build.json && tsc --project tsconfig.cjs.json",
     "test": "NODE_ENV=test jest",
+    "test:integration": "./scripts/run-integration-tests.sh",
+    "test:integration:headed": "./scripts/run-integration-tests.sh --headed",
+    "test:integration:ui": "./scripts/run-integration-tests.sh --ui",
+    "test:integration:report": "./scripts/run-integration-tests.sh --report",
+    "test:integration:all": "./scripts/run-integration-tests.sh --browsers chromium,firefox,webkit --report",
+    "test:integration:manual": "node run-integration-tests.js",
+    "start:turn-server": "node -e \"require('./test/turnServer.js').MockTurnServer.getInstance().start().then(() => console.log('TURN server started')).catch(console.error)\"",
+    "setup:playwright": "npx playwright install",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@signalwire/core": "4.3.1",
     "sdp": "^3.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^20.19.10",
+    "node-turn": "^0.0.6"
   },
   "types": "dist/cjs/webrtc/src/index.d.ts"
 }
