@@ -27,7 +27,7 @@ declare global {
 // #region Utilities for Playwright test server & fixture
 
 type CreateTestServerOptions = {
-  target: 'unified' | 'blank'
+  target: 'blank'
 }
 
 const TARGET_ROOT_PATH: Record<
@@ -38,12 +38,6 @@ const TARGET_ROOT_PATH: Record<
   }
 > = {
   blank: { path: './templates/blank', port: 1337 },
-  unified: {
-    path: path.dirname(
-      require.resolve('@sw-internal/playground-client/src/unified/index.html')
-    ),
-    port: 1336,
-  },
 }
 
 export const SERVER_URL = 'http://localhost:1337'
@@ -73,7 +67,7 @@ export const createTestServer = async (
     optimizeDeps: {
       include: [
         '@signalwire/client',
-        '@signalwire/core', 
+        '@signalwire/core',
         '@signalwire/webrtc',
       ],
     },
