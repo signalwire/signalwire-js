@@ -1900,10 +1900,5 @@ export const expectToPass = async (
     timeout: 5000,
     ...options,
   }
-  try {
-    return await expect(assertion, { message }).toPass(mergedOptions)
-  } catch (error) {
-    // TODO: improve error message and logging
-    throw new Error(`expectToPass: ${message}`)
-  }
+  return await expect(assertion, { message }).toPass(mergedOptions)
 }
