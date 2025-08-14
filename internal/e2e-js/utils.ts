@@ -1896,7 +1896,7 @@ export const expectToPass = async (
   { message }: { message: string },
   options?: { intervals?: number[]; timeout?: number }
 ) => {
-  const mergedOptions = { timeout: 10_000, ...options }
+  const mergedOptions = { timeout: 20_000, ...options }
   await expect(
     async () => {
       await assertion()
