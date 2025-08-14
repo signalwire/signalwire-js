@@ -1711,14 +1711,18 @@ export const expectInteractivityMode = async (
   expect(interactivityMode).toEqual(mode)
 }
 
-export const setLayoutOnPage = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    async (options) => {
-      // @ts-expect-error
+export const setLayoutOnPage = async (page: Page, layoutName: string) => {
+  return waitForFunction(
+    page,
+    async (params) => {
       const callObj = window._callObj
-      return await callObj.setLayout({ name: options.layoutName })
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
+      await callObj.setLayout({ name: params.layoutName })
     },
-    { layoutName }
+    { layoutName },
+    { message: 'set layout' }
   )
 }
 
