@@ -1143,7 +1143,7 @@ export class BaseConnection<
     this.prevState = this.state
     this.state = state
     this.logger.debug(
-      `Call ${this.id} state change from ${this.prevState} to ${this.state}`
+      `Call ${this.callId} state change from ${this.prevState} to ${this.state}`
     )
 
     this.emit(this.state, this)
