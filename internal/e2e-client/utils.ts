@@ -1754,3 +1754,37 @@ export const expectToPass = async (
     throw error
   }
 }
+
+export const waitForFunction = async <TArg, TResult>(
+  page: Page,
+  fn: PageFunction<TArg, TResult>,
+  arg?: TArg,
+  options?: {
+    interval?: number[]
+    timeout?: number
+    message?: string
+  }
+) => {
+  try {
+    const mergedOptions = {
+      timeout: 10_000,
+      ...options,
+    }
+    if (arg) {
+      return await page.waitForFunction(fn, arg, mergedOptions)
+    } else {
+      // FIXME: remove the type assertion
+      return await page.waitForFunction(
+        fn as PageFunction<void, TResult>,
+        mergedOptions
+      )
+    }
+  } catch (error) {
+    // TODO: improve error message and logging
+    if (options?.message) {
+      throw new Error(`waitForFunction: ${options.message} `)
+    } else {
+      throw new Error('waitForFunction:', error)
+    }
+  }
+}
