@@ -2,11 +2,9 @@ name: Tests
 
 on:
   push:
-    # TODO: Remove the custom branch
-    branches: [main, aa/performance-tests]
+    branches: [main]
   pull_request:
-    # TODO: Remove the custom branch
-    branches: [main, dev, aa/performance-tests]
+    branches: [main, dev]
   workflow_dispatch:
 
 concurrency:
