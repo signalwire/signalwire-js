@@ -1625,21 +1625,31 @@ export const expectCFFinalEvents = (
   return Promise.all([finalEvents, ...extraEvents])
 }
 
-export const expectLayoutChanged = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    (options) => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const callObj: CallSession = window._callObj
-        callObj.on('layout.changed', ({ layout }: any) => {
-          if (layout.name === options.layoutName) {
-            resolve(true)
-          }
-        })
-      })
+export const expectLayoutChanged = async (page: Page, layoutName: string) => {
+  let result: boolean = false
+  await expectToPass(
+    async () => {
+      result = await page.evaluate(
+        (params) => {
+          return new Promise<boolean>((resolve) => {
+            const callObj = window._callObj
+            if (!callObj) {
+              throw new Error('Call object not found')
+            }
+            callObj.on('layout.changed', ({ layout }) => {
+              if (layout.name === params.layoutName) {
+                resolve(true)
+              }
+            })
+          })
+        },
+        { layoutName }
+      )
+      expect(result, 'expect layout changed result').toBe(true)
     },
-    { layoutName }
+    { message: 'layout changed' }
   )
+  return result
 }
 
 export const expectRoomJoined = (
