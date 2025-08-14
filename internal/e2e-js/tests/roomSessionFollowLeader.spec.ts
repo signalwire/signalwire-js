@@ -116,17 +116,12 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       { message: 'Failed to receive room.left event for leader' }
     )
 
-    await expectToPass(
-      async () => {
-        await pageOne.evaluate(async () => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
-          await roomObj.leave()
-          console.log('>> leave is resolved')
-        })
-      },
-      { message: 'Failed to call roomObj.leave()' }
-    )
+    await pageOne.evaluate(async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      await roomObj.leave()
+      console.log('>> leave is resolved')
+    })
 
     await Promise.all([leaderLeftEvent, audienceLeftEvent, memberLeftEvent])
   })
