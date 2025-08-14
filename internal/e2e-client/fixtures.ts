@@ -145,4 +145,4 @@ const test = baseTest.extend<CustomFixture>({
   },
 })
 
-export { test, expect, Page }
+export { test, expect, Page, CustomPage }
