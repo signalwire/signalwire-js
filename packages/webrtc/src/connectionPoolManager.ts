@@ -4,6 +4,7 @@ import { RTCPeerConnectionManager } from './RTCPeerConnectionManager'
 class ConnectionPoolManagerSingleton {
   private manager?: RTCPeerConnectionManager
   private logger = getLogger()
+  
 
   async initializePool(
     iceServers: RTCIceServer[],
