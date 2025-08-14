@@ -80,6 +80,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
             // @ts-expect-error
             const roomObj: Video.RoomSession = window._roomObj
             roomObj.on('room.left', () => {
+              console.log('>> room.left received')
               resolve(true)
             })
           })

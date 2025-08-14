@@ -182,6 +182,7 @@ export const RoomSession = function (roomOptions: RoomSessionOptions) {
 
   // WebRTC connection left the room.
   room.once('destroy', () => {
+    console.log('>> destroy received')
     room.emit('room.left', { reason: room.leaveReason })
 
     // Remove callId to reattach
