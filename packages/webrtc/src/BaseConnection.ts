@@ -1044,6 +1044,7 @@ export class BaseConnection<
     }
 
     try {
+      console.log('>> executing verto.bye')
       const message = VertoBye(this.dialogParams(rtcPeerId))
       await this.vertoExecute({
         message,
@@ -1061,6 +1062,7 @@ export class BaseConnection<
         )
       }
       this.setState('hangup')
+      console.log('>> resolve the hangup')
     }
   }
 
@@ -1245,7 +1247,7 @@ export class BaseConnection<
     const rtcPeer = new RTCPeer(this, type)
     this.appendRTCPeer(rtcPeer)
     this.runRTCPeerWorkers(rtcPeer.uuid)
-    
+
     return rtcPeer
   }
 

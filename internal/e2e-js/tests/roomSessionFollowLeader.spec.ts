@@ -122,6 +122,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
           await roomObj.leave()
+          console.log('>> leave is resolved')
           return true
         })
         expect(result).toBe(true)
