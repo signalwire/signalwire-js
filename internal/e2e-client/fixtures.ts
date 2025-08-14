@@ -115,7 +115,7 @@ const test = baseTest.extend<CustomFixture>({
           const workerPath = path.join(__dirname, 'relayAppWorker.js')
           childProcess = fork(workerPath, [command, JSON.stringify(params)], {
             silent: false,
-            env: process.env
+            env: process.env,
           })
 
           childProcess.on('error', (error) => {
@@ -127,7 +127,7 @@ const test = baseTest.extend<CustomFixture>({
             console.log('RelayApp message:', msg)
 
             const listeners = eventListeners.get(msg.type) || []
-            listeners.forEach(listener => listener(msg))
+            listeners.forEach((listener) => listener(msg))
 
             if (msg.type === 'error') {
               reject(new Error(msg.error))
@@ -142,11 +142,14 @@ const test = baseTest.extend<CustomFixture>({
         if (childProcess) {
           childProcess.send({ type: 'disconnect' })
           await new Promise<void>((resolve) => {
-            childProcess!.on('exit', () => resolve())
-            setTimeout(() => {
-              childProcess!.kill('SIGTERM')
+            const timeoutId = setTimeout(() => {
+              childProcess?.kill('SIGTERM')
               resolve()
             }, 5000)
+            childProcess!.on('exit', () => {
+              clearTimeout(timeoutId)
+              resolve()
+            })
           })
           childProcess = null
         }
@@ -165,7 +168,7 @@ const test = baseTest.extend<CustomFixture>({
             const listeners = eventListeners.get('playbackStopped') || []
             listeners.push(listener)
             eventListeners.set('playbackStopped', listeners)
-            
+
             childProcess!.send({ type: 'stopPlayback', playbackId: id })
           })
         }
@@ -189,7 +192,7 @@ const test = baseTest.extend<CustomFixture>({
           eventListeners.set(eventType, listeners)
         })
       },
-      process: childProcess
+      process: childProcess,
     }
 
     try {
