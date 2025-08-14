@@ -1737,3 +1737,20 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 
   expect(roomMemberId).toEqual(memberId)
 }
+
+export const expectToPass = async (
+  assertion: () => Promise<void>,
+  { message }: { message: string },
+  options?: { interval?: number[]; timeout?: number }
+) => {
+  try {
+    const mergedOptions = {
+      timeout: 10_000,
+      ...options,
+    }
+    return await expect(assertion, { message }).toPass(mergedOptions)
+  } catch (error) {
+    // TODO: improve error message and logging
+    throw error
+  }
+}
