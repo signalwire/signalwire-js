@@ -44,3 +44,6 @@ CLAUDE.md
 docs
 test-results.json
 test-results/
+test-artifacts/
+playwright-report/
+packages/webrtc/playwright-report/index.html
