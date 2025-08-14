@@ -1565,8 +1565,10 @@ export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
       return new Promise<void>((resolve) => {
-        // @ts-expect-error
         const callObj = window._callObj
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
         callObj.on(event, resolve)
       })
     },
