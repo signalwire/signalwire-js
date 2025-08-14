@@ -1142,7 +1142,7 @@ export class BaseConnection<
   setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
-    this.logger.trace(
+    this.logger.debug(
       `Call ${this.id} state change from ${this.prevState} to ${this.state}`
     )
 
