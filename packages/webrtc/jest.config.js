@@ -7,5 +7,6 @@ module.exports = {
     '\\.[jt]sx?$': ['babel-jest', { configFile: './../../babel.config.js' }],
   },
   testMatch: ['<rootDir>/src/**/*.test.ts'],
+  testPathIgnorePatterns: ['\\.integration\\.test\\.ts$'],
   setupFiles: ['./src/setupTests.ts'],
 }

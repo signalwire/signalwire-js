@@ -1,17 +1,18 @@
 import { test, expect, Page, Browser } from '@playwright/test'
 import { RealTurnServer } from '../turnServer'
+import path from 'path'
 
 /**
  * RTCPeer Integration Tests
  * 
- * These tests verify the RTCPeer implementation using the real RTCPeer class
- * instead of directly using browser RTCPeerConnection APIs. They test actual 
- * ICE candidate gathering, media negotiation, and peer-to-peer connection 
- * establishment using a local TURN server.
+ * These tests verify the RTCPeerCore implementation using the REAL RTCPeerCore class
+ * loaded from the integration bundle. They test actual ICE candidate gathering, 
+ * media negotiation, and peer-to-peer connection establishment using a local TURN server.
  * 
- * NOTE: Due to the complexity of importing RTCPeer with all its dependencies 
- * into browser context, these tests currently use a simplified mock approach
- * that mimics RTCPeer behavior patterns while testing the core functionality.
+ * The tests use the real RTCPeerCore implementation from packages/webrtc/dist/integration/rtc-peer-bundle.js
+ * which includes all necessary dependencies bundled together with minimal mocks for @signalwire/core.
+ * 
+ * This is Phase 4 of the RTCPeer decoupling proposal - testing the real implementation.
  */
 
 interface TestPeerConnection {
@@ -40,164 +41,65 @@ const mediaConfigurations: MediaTestConfig[] = [
 ]
 
 /**
- * Helper function to create a test peer connection with RTCPeer-like behavior
- * This simulates the RTCPeer pattern without requiring complex dependency injection
+ * Helper function to create a test peer connection using the REAL RTCPeerCore implementation
+ * This creates actual RTCPeerCore instances loaded from the integration bundle
  */
+/**
+ * Load the real RTCPeerCore implementation from the integration bundle
+ * This loads the ACTUAL RTCPeerCore implementation, not a mock
+ */
+async function loadRTCPeerBundle(page: Page): Promise<void> {
+  // Load the real integration bundle
+  const bundlePath = path.resolve(__dirname, '../dist/integration/rtc-peer-bundle.js')
+  await page.addScriptTag({ path: bundlePath })
+  
+  // Wait for the RTCPeerIntegration global to be available
+  await page.waitForFunction(() => {
+    return typeof (window as any).RTCPeerIntegration === 'object' && 
+           typeof (window as any).RTCPeerIntegration.createRTCPeerCore === 'function' &&
+           typeof (window as any).RTCPeerIntegration.RTCPeerCore === 'function'
+  }, {}, { timeout: 5000 })
+  
+  // Verify the setup worked
+  const bundleInfo = await page.evaluate(() => {
+    const integration = (window as any).RTCPeerIntegration
+    return {
+      integrationLoaded: typeof integration,
+      createRTCPeerCoreLoaded: typeof integration?.createRTCPeerCore,
+      RTCPeerCoreLoaded: typeof integration?.RTCPeerCore,
+      hasConnectionPoolManager: typeof integration?.connectionPoolManager
+    }
+  })
+  
+  console.log('Real RTCPeerCore integration bundle loaded:', bundleInfo)
+  
+  if (bundleInfo.createRTCPeerCoreLoaded !== 'function') {
+    throw new Error(`RTCPeerIntegration not loaded properly: ${JSON.stringify(bundleInfo)}`)
+  }
+}
+
 async function createTestRTCPeer(
   page: Page,
   iceServers: RTCIceServer[],
   peerVar: string,
   type: 'offer' | 'answer' = 'offer'
 ): Promise<TestPeerConnection> {
+  // Ensure RTCPeerCore integration bundle is loaded
+  await loadRTCPeerBundle(page)
+  
   return await page.evaluate(
     ({ iceServers, peerVar, type }) => {
-      /**
-       * RTCPeer-like class that mimics the real RTCPeer behavior patterns
-       * This allows us to test the integration patterns without importing dependencies
-       */
-      class RTCPeerLike {
-        public uuid: string
-        public call: any
-        public type: 'offer' | 'answer'
-        public instance: RTCPeerConnection
-        public _allCandidates: RTCIceCandidate[] = []
-        public _candidatesSnapshot: RTCIceCandidate[] = []
-        public _processingLocalSDP = false
-        public _negotiating = false
-        
-        constructor(call: any, type: 'offer' | 'answer') {
-          this.uuid = Math.random().toString(36).substr(2, 9)
-          this.call = call
-          this.type = type
-          this.instance = new RTCPeerConnection({
-            iceServers,
-            iceCandidatePoolSize: 10,
-            bundlePolicy: 'max-compat',
-          })
-          
-          this._setupListeners()
-        }
-        
-        get isOffer() {
-          return this.type === 'offer'
-        }
-        
-        get isAnswer() {
-          return this.type === 'answer'
-        }
-        
-        get localStream() {
-          return this._localStream
-        }
-        
-        set localStream(stream) {
-          this._localStream = stream
-        }
-        
-        private _localStream?: MediaStream
-        
-        private _setupListeners() {
-          this.instance.addEventListener('icecandidate', (event: RTCPeerConnectionIceEvent) => {
-            if (event.candidate) {
-              this._allCandidates.push(event.candidate)
-              
-              // Simulate early invite logic - call onLocalSDPReady when we have valid candidates
-              if (event.candidate.type !== 'host' && this.instance.localDescription) {
-                if (this._candidatesSnapshot.length === 0 && this.type === 'offer') {
-                  this._candidatesSnapshot = [...this._allCandidates]
-                  console.log('RTCPeerLike: Triggering early invite with', this._candidatesSnapshot.length, 'candidates')
-                  setTimeout(() => this._sdpReady(), 0)
-                }
-              }
-            } else {
-              // No more candidates
-              if (this._candidatesSnapshot.length === 0) {
-                console.log('RTCPeerLike: ICE gathering complete, calling _sdpReady')
-                this._sdpReady()
-              }
-            }
-          })
-        }
-        
-        private async _sdpReady() {
-          if (this._processingLocalSDP) {
-            console.log('RTCPeerLike: Already processing local SDP, skipping')
-            return
-          }
-          
-          this._processingLocalSDP = true
-          
-          try {
-            if (this.instance.localDescription) {
-              await this.call.onLocalSDPReady(this)
-              this._processingLocalSDP = false
-            }
-          } catch (error) {
-            this._processingLocalSDP = false
-            console.error('RTCPeerLike: Error in _sdpReady:', error)
-          }
-        }
-        
-        async start(): Promise<void> {
-          return new Promise(async (resolve, reject) => {
-            try {
-              // Get user media if needed
-              if (this.call.options.audio || this.call.options.video) {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                  audio: this.call.options.audio,
-                  video: this.call.options.video
-                })
-                
-                this.localStream = stream
-                
-                // Add tracks to peer connection
-                stream.getTracks().forEach(track => {
-                  this.instance.addTrack(track, stream)
-                })
-              }
-              
-              if (this.isOffer) {
-                // Create offer
-                const offer = await this.instance.createOffer({
-                  offerToReceiveAudio: this.call.options.negotiateAudio,
-                  offerToReceiveVideo: this.call.options.negotiateVideo,
-                })
-                await this.instance.setLocalDescription(offer)
-              } else {
-                // For answer, we need remote SDP first
-                if (this.call.options.remoteSdp) {
-                  await this.instance.setRemoteDescription({
-                    type: 'offer',
-                    sdp: this.call.options.remoteSdp
-                  })
-                  
-                  const answer = await this.instance.createAnswer()
-                  await this.instance.setLocalDescription(answer)
-                }
-              }
-              
-              // Note: Per requirements, start() should not resolve until server answer
-              // We simulate this by not resolving immediately
-              
-            } catch (error) {
-              reject(error)
-            }
-          })
-        }
-        
-        async onRemoteSdp(sdp: string) {
-          const type = this.isOffer ? 'answer' : 'offer'
-          await this.instance.setRemoteDescription({ type, sdp })
-        }
-        
-        stop() {
-          this.instance.close()
-          this.localStream?.getTracks().forEach(track => track.stop())
-        }
-      }
-
-      // Create minimal mock for BaseConnection
+      const { createRTCPeerCore, RTCPeerCore } = (window as any).RTCPeerIntegration
+      
+      // Create mock BaseConnection that implements the RTCPeerCallContract interface
       class MockBaseConnection {
+        public options: any
+        public id: string
+        public iceServers: RTCIceServer[]
+        public _onLocalSDPReadyCallCount: number = 0
+        public _onLocalSDPReadyData: any = null
+        public _onLocalSDPReadySpy: jest.SpyFunction<any, any>[] = []
+        
         constructor(options: any = {}) {
           this.options = {
             iceServers,
@@ -211,8 +113,6 @@ async function createTestRTCPeer(
           }
           this.id = Math.random().toString(36).substr(2, 9)
           this.iceServers = iceServers
-          this._onLocalSDPReadyCallCount = 0
-          this._onLocalSDPReadyData = null
         }
 
         async onLocalSDPReady(rtcPeer: any) {
@@ -220,9 +120,19 @@ async function createTestRTCPeer(
           this._onLocalSDPReadyData = {
             type: rtcPeer.instance.localDescription?.type,
             sdpLength: rtcPeer.instance.localDescription?.sdp?.length,
-            candidateCount: rtcPeer._allCandidates?.length || 0
+            candidateCount: rtcPeer._allCandidates?.length || 0,
+            candidatesSnapshot: rtcPeer._candidatesSnapshot?.length || 0,
           }
-          console.log('onLocalSDPReady called', this._onLocalSDPReadyCallCount, this._onLocalSDPReadyData)
+          console.log('MockBaseConnection.onLocalSDPReady called with REAL RTCPeerCore', this._onLocalSDPReadyCallCount, this._onLocalSDPReadyData)
+          
+          // Record the spy call
+          this._onLocalSDPReadySpy.push({
+            args: [rtcPeer],
+            timestamp: Date.now(),
+            callCount: this._onLocalSDPReadyCallCount,
+            data: this._onLocalSDPReadyData
+          })
+          
           return Promise.resolve()
         }
 
@@ -244,11 +154,21 @@ async function createTestRTCPeer(
         }
       }
 
-      // Create mock call (BaseConnection)
+      // Create mock call (BaseConnection) with spy functionality
       const mockCall = new MockBaseConnection()
-
-      // Create RTCPeer-like instance
-      const rtcPeer = new RTCPeerLike(mockCall, type)
+      
+      // Configure mock call for this peer type
+      mockCall.options.audio = true
+      mockCall.options.video = true
+      
+      // Create REAL RTCPeerCore instance using the factory function
+      const rtcPeer = createRTCPeerCore(mockCall, type)
+      
+      console.log('Created REAL RTCPeerCore instance:', {
+        uuid: rtcPeer.uuid,
+        type: rtcPeer.type,
+        hasInstance: !!rtcPeer.instance
+      })
 
       const testPeer: TestPeerConnection = {
         rtcPeer,
@@ -270,7 +190,7 @@ async function createTestRTCPeer(
 }
 
 /**
- * Helper function to wait for ICE gathering completion using RTCPeer
+ * Helper function to wait for ICE gathering completion using RTCPeerCore
  */
 async function waitForIceGatheringComplete(
   page: Page,
@@ -528,13 +448,20 @@ test.describe('RTCPeer Integration Tests', () => {
         const testPeer = (globalThis as any).testPeer
         return {
           callCount: testPeer.rtcPeer.call._onLocalSDPReadyCallCount,
-          data: testPeer.rtcPeer.call._onLocalSDPReadyData
+          data: testPeer.rtcPeer.call._onLocalSDPReadyData,
+          spyCalls: testPeer.rtcPeer.call._onLocalSDPReadySpy
         }
       })
 
       expect(callbackInfo.callCount).toBe(1)
       expect(callbackInfo.data.type).toBe('offer')
       expect(callbackInfo.data.candidateCount).toBeGreaterThan(0)
+      expect(callbackInfo.spyCalls).toHaveLength(1)
+      
+      // Verify the spy recorded the correct data
+      const spyCall = callbackInfo.spyCalls[0]
+      expect(spyCall.callCount).toBe(1)
+      expect(spyCall.data.type).toBe('offer')
 
       // Wait for ICE gathering to complete
       const candidates = await waitForIceGatheringComplete(page, 'testPeer', 20000)
@@ -689,7 +616,7 @@ test.describe('RTCPeer Integration Tests', () => {
       // Give some time for any potential second call
       await page.waitForTimeout(2000)
 
-      // Verify early invite logic
+      // Verify early invite logic with real RTCPeer
       const earlyInviteInfo = await page.evaluate(() => {
         const testPeer = (globalThis as any).earlyInvitePeer
         
@@ -700,6 +627,9 @@ test.describe('RTCPeer Integration Tests', () => {
           allCandidatesLength: testPeer.rtcPeer._allCandidates?.length || 0,
           iceGatheringState: testPeer.rtcPeer.instance?.iceGatheringState,
           hasValidSDP: !!testPeer.rtcPeer.instance?.localDescription?.sdp,
+          spyCalls: testPeer.rtcPeer.call._onLocalSDPReadySpy || [],
+          rtcPeerUuid: testPeer.rtcPeer.uuid,
+          rtcPeerType: testPeer.rtcPeer.type,
         }
       })
 
@@ -708,12 +638,23 @@ test.describe('RTCPeer Integration Tests', () => {
       // Verify early invite behavior: onLocalSDPReady should be called exactly once
       expect(earlyInviteInfo.onLocalSDPReadyCallCount).toBe(1)
       expect(earlyInviteInfo.onLocalSDPReadyTimestamps.length).toBe(1)
+      expect(earlyInviteInfo.spyCalls).toHaveLength(1)
+      
+      // Verify the real RTCPeer implementation details
+      expect(earlyInviteInfo.rtcPeerUuid).toBeDefined()
+      expect(earlyInviteInfo.rtcPeerType).toBe('offer')
       
       // Verify SDP was generated
       expect(earlyInviteInfo.hasValidSDP).toBe(true)
       
       // Verify candidates were collected
       expect(earlyInviteInfo.allCandidatesLength).toBeGreaterThan(0)
+      
+      // Verify the spy captured the RTCPeer instance correctly
+      const spyCall = earlyInviteInfo.spyCalls[0]
+      expect(spyCall.args).toHaveLength(1)
+      expect(spyCall.data.type).toBe('offer')
+      expect(spyCall.data.candidateCount).toBeGreaterThan(0)
       
       // If early invite worked, we should have a snapshot of candidates
       if (earlyInviteInfo.candidatesSnapshotLength > 0) {
@@ -883,22 +824,25 @@ test.describe('RTCPeer Integration Tests', () => {
     expect(candidates.length).toBeGreaterThan(0)
     expect(metrics.candidatesCount).toBeGreaterThan(0)
     expect(metrics.onLocalSDPReadyCallCount).toBe(1) // Early invite requirement
+    expect(metrics.candidatesCount).toBeGreaterThan(0) // Verify real ICE gathering worked
     expect(metrics.onLocalSDPReadyDuration).toBeGreaterThanOrEqual(0)
     expect(['complete', 'gathering']).toContain(metrics.iceGatheringState)
     if (metrics.candidatesCount > 0) {
       expect(Object.keys(metrics.candidateTypes)).toContain('host')
     }
 
-    // Generate test report
+    // Generate test report with real RTCPeer data
     const testReport = {
-      testName: 'RTCPeer Comprehensive Metrics',
+      testName: 'Real RTCPeer Comprehensive Metrics',
       timestamp: new Date().toISOString(),
       browser: await page.evaluate(() => navigator.userAgent),
       metrics,
       turnServerConfig: turnServer.getConfig(),
+      rtcPeerImplementation: 'REAL',
+      bundlePath: 'packages/webrtc/dist/rtcpeer.umd.js',
     }
 
-    console.log('Final RTCPeer Test Report:', JSON.stringify(testReport, null, 2))
+    console.log('Final Real RTCPeer Test Report:', JSON.stringify(testReport, null, 2))
 
     // Clean up
     await page.evaluate(() => {

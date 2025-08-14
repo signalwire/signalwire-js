@@ -76,39 +76,65 @@ const _newTrack = (kind: string) => {
   return track
 }
 
-Object.defineProperty(navigator, 'permissions', {
-  value: {
-    query: jest.fn(() => ({})),
-  },
-})
+// Check if permissions already exists before trying to define it
+if (!navigator.permissions) {
+  Object.defineProperty(navigator, 'permissions', {
+    value: {
+      query: jest.fn().mockResolvedValue({ state: 'granted' }),
+    },
+    writable: true,
+    configurable: true,
+  })
+} else {
+  // If it exists, just mock the query method
+  if (navigator.permissions.query) {
+    ;(navigator.permissions.query as jest.Mock) = jest.fn().mockResolvedValue({ state: 'granted' })
+  } else {
+    Object.defineProperty(navigator.permissions, 'query', {
+      value: jest.fn().mockResolvedValue({ state: 'granted' }),
+      writable: true,
+      configurable: true,
+    })
+  }
+}
 
-Object.defineProperty(navigator, 'mediaDevices', {
-  value: {
-    enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
-    getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
-    getUserMedia: jest.fn((constraints) => {
-      if (
-        Object.keys(constraints).length === 0 ||
-        Object.values(constraints).every((v) => v === false)
-      ) {
-        throw new TypeError(
-          "Failed to execute 'getUserMedia' on 'MediaDevices': At least one of audio and video must be requested"
-        )
-      }
-      const stream = new global.MediaStream()
-      const { audio = null, video = null } = constraints
-      if (audio !== null) {
-        stream.addTrack(_newTrack('audio'))
-      }
-      if (video !== null) {
-        stream.addTrack(_newTrack('video'))
-      }
-      return stream
-    }),
-    getDisplayMedia: jest.fn((_constraints) => {
-      const stream = new global.MediaStream()
+// Mock mediaDevices with safe property definition
+const mediaDevicesMock = {
+  enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
+  getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
+  getUserMedia: jest.fn((constraints) => {
+    if (
+      Object.keys(constraints).length === 0 ||
+      Object.values(constraints).every((v) => v === false)
+    ) {
+      throw new TypeError(
+        "Failed to execute 'getUserMedia' on 'MediaDevices': At least one of audio and video must be requested"
+      )
+    }
+    const stream = new global.MediaStream()
+    const { audio = null, video = null } = constraints
+    if (audio !== null) {
+      stream.addTrack(_newTrack('audio'))
+    }
+    if (video !== null) {
       stream.addTrack(_newTrack('video'))
-      return stream
-    }),
-  },
-})
+    }
+    return stream
+  }),
+  getDisplayMedia: jest.fn((_constraints) => {
+    const stream = new global.MediaStream()
+    stream.addTrack(_newTrack('video'))
+    return stream
+  }),
+}
+
+if (!navigator.mediaDevices) {
+  Object.defineProperty(navigator, 'mediaDevices', {
+    value: mediaDevicesMock,
+    writable: true,
+    configurable: true,
+  })
+} else {
+  // If mediaDevices already exists, override its methods
+  Object.assign(navigator.mediaDevices, mediaDevicesMock)
+}
