@@ -1894,13 +1894,17 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 export const expectToPass = async (
   assertion: () => Promise<void>,
   { message }: { message: string },
-  options?: { intervals?: number[]; timeout?: number }
+  options?: { interval?: number[]; timeout?: number }
 ) => {
-  const mergedOptions = { timeout: 20_000, ...options }
-  await expect(
-    async () => {
-      await assertion()
-    },
-    { message }
-  ).toPass(mergedOptions)
+  try {
+    const mergedOptions = {
+      timeout: 10_000,
+      ...options,
+    }
+    return await expect(assertion, { message }).toPass(mergedOptions)
+  } catch (error) {
+    // TODO: improve error message and logging
+    // throw new Error(`expectToPass: ${message}`)
+    throw error
+  }
 }
