@@ -118,14 +118,12 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
 
     await expectToPass(
       async () => {
-        const result = await pageOne.evaluate(async () => {
+        await pageOne.evaluate(async () => {
           // @ts-expect-error
           const roomObj: Video.RoomSession = window._roomObj
           await roomObj.leave()
           console.log('>> leave is resolved')
-          return true
         })
-        expect(result).toBe(true)
       },
       { message: 'Failed to call roomObj.leave()' }
     )
