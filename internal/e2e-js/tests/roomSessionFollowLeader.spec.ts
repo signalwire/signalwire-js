@@ -8,7 +8,6 @@ import {
   expectPageReceiveAudio,
   randomizeRoomName,
   expectRoomJoinWithDefaults,
-  expectToPass,
 } from '../utils'
 
 test.describe('RoomSession end_room_session_on_leave feature', () => {
@@ -49,86 +48,55 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     await Promise.all(
       allPages.map((page, i) =>
         i === allPages.length - 1
-          ? expectToPass(
-              () => expectRoomJoinWithDefaults(page, { joinAs: 'audience' }),
-              { message: 'Failed to join audience member' }
-            )
-          : expectToPass(
-              () => expectRoomJoinWithDefaults(page, { joinAs: 'member' }),
-              { message: 'Failed to join member' }
-            )
+          ? expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
+          : expectRoomJoinWithDefaults(page, { joinAs: 'member' })
       )
     )
     await Promise.all(
       allPages.map((page, i) =>
         i === allPages.length - 1
-          ? expectToPass(() => expectMCUVisibleForAudience(page), {
-              message: 'Failed: No MCU for audience member',
-            })
-          : expectToPass(() => expectMCUVisible(page), {
-              message: 'Failed: No MCU for member',
-            })
+          ? expectMCUVisibleForAudience(page)
+          : expectMCUVisible(page)
       )
     )
-
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
-    const memberLeftEvent = expectToPass(
-      async () => {
-        const result = await pageTwo.evaluate(async () => {
-          return new Promise<boolean>((resolve) => {
-            // @ts-expect-error
-            const roomObj: Video.RoomSession = window._roomObj
-            roomObj.on('room.left', () => {
-              console.log('>> room.left received')
-              resolve(true)
-            })
-          })
-        })
-        expect(result).toBe(true)
-      },
-      { message: 'Failed to receive room.left event for member' }
-    )
+    await pageOne.waitForTimeout(2000)
 
-    const audienceLeftEvent = expectToPass(
-      async () => {
-        const result = await pageThree.evaluate(async () => {
-          return new Promise<boolean>((resolve) => {
-            // @ts-expect-error
-            const roomObj: Video.RoomSession = window._roomObj
-            roomObj.on('room.left', () => {
-              resolve(true)
-            })
-          })
+    const promiseWaitForMember2Left = pageTwo.evaluate(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('room.left', () => {
+          resolve(true)
         })
-        expect(result).toBe(true)
-      },
-      { message: 'Failed to receive room.left event for audience' }
-    )
+      })
+    })
 
-    const leaderLeftEvent = expectToPass(
-      async () => {
-        const result = await pageOne.evaluate(async () => {
-          return new Promise<boolean>((resolve) => {
-            // @ts-expect-error
-            const roomObj: Video.RoomSession = window._roomObj
-            roomObj.on('room.left', () => {
-              resolve(true)
-            })
-          })
+    const promiseWaitForMember3Left = pageThree.evaluate(() => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('room.left', () => {
+          resolve(true)
         })
-        expect(result).toBe(true)
-      },
-      { message: 'Failed to receive room.left event for leader' }
-    )
+      })
+    })
 
     await pageOne.evaluate(async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
+
+      const promiseWaitForMember1Left = new Promise((resolve) => {
+        roomObj.on('room.left', () => {
+          resolve(true)
+        })
+      })
+
       await roomObj.leave()
-      console.log('>> leave is resolved')
+      return await promiseWaitForMember1Left
     })
 
-    await Promise.all([leaderLeftEvent, audienceLeftEvent, memberLeftEvent])
+    await Promise.all([promiseWaitForMember2Left, promiseWaitForMember3Left])
   })
 })
