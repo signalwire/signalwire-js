@@ -62,10 +62,15 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     await Promise.all(
       allPages.map((page, i) =>
         i === allPages.length - 1
-          ? expectMCUVisibleForAudience(page)
-          : expectMCUVisible(page)
+          ? expectToPass(() => expectMCUVisibleForAudience(page), {
+              message: 'Failed: No MCU for audience member',
+            })
+          : expectToPass(() => expectMCUVisible(page), {
+              message: 'Failed: No MCU for member',
+            })
       )
     )
+
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
     const memberLeftEvent = expectToPass(
