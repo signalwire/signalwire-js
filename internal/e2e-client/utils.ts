@@ -9,7 +9,8 @@ import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
-import { Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
@@ -21,6 +22,7 @@ declare global {
       SignalWire: typeof SignalWire
     }
     _client?: SignalWireClient
+    _callObj?: CallSession
   }
 }
 
@@ -319,9 +321,12 @@ export const deleteRoom = async (id: string) => {
 
 export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
-    const callObj: CallSession =
-      // @ts-expect-error
-      window._callObj
+    const callObj = window._callObj
+
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+
     console.log('Fixture callObj', callObj)
     if (callObj && callObj?.roomSessionId) {
       console.log('Fixture has room', callObj.roomSessionId)
@@ -376,7 +381,7 @@ const createCFClientWithToken = async (
   const swClient = await page.evaluate(
     async (options) => {
       const _runningWorkers: any[] = []
-      // @ts-expect-error
+      // @ts-expect-error - _runningWorkers is not defined in the window object
       window._runningWorkers = _runningWorkers
       const addTask = (task: any) => {
         if (!_runningWorkers.includes(task)) {
@@ -467,7 +472,6 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           call.on('room.joined', resolve)
         }
 
-        // @ts-expect-error
         window._callObj = call
 
         if (shouldStartCall) {
@@ -1548,8 +1552,10 @@ export const deleteResource = async (id: string) => {
 export const expectMemberTalkingEvent = (page: Page) => {
   return page.evaluate(async () => {
     return new Promise((resolve) => {
-      // @ts-expect-error
       const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
       callObj.on('member.talking', resolve)
     })
   })
@@ -1682,8 +1688,11 @@ export const expectInteractivityMode = async (
   mode: 'member' | 'audience'
 ) => {
   const interactivityMode = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+    // @ts-expect-error - interactivityMode is not defined in the CallSession interface
     return callObj.interactivityMode
   })
 
@@ -1707,8 +1716,10 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 
 export const expectMemberId = async (page: Page, memberId: string) => {
   const roomMemberId = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
     return callObj.memberId
   })
 
