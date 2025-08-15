@@ -921,7 +921,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
-      const isAllowedToSendLocalSDP = !(await this._isAllowedToSendLocalSDP())
+      const isAllowedToSendLocalSDP = await this._isAllowedToSendLocalSDP()
       if (!isAllowedToSendLocalSDP) {
         this.logger.info('Skipping onLocalSDPReady due to early invite')
         this._processingLocalSDP = false
