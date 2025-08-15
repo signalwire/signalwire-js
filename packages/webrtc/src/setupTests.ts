@@ -76,39 +76,43 @@ const _newTrack = (kind: string) => {
   return track
 }
 
-Object.defineProperty(navigator, 'permissions', {
-  value: {
-    query: jest.fn(() => ({})),
-  },
-})
+if (!navigator.permissions) {
+  Object.defineProperty(navigator, 'permissions', {
+    value: {
+      query: jest.fn(() => ({})),
+    },
+  })
+}
 
-Object.defineProperty(navigator, 'mediaDevices', {
-  value: {
-    enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
-    getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
-    getUserMedia: jest.fn((constraints) => {
-      if (
-        Object.keys(constraints).length === 0 ||
-        Object.values(constraints).every((v) => v === false)
-      ) {
-        throw new TypeError(
-          "Failed to execute 'getUserMedia' on 'MediaDevices': At least one of audio and video must be requested"
-        )
-      }
-      const stream = new global.MediaStream()
-      const { audio = null, video = null } = constraints
-      if (audio !== null) {
-        stream.addTrack(_newTrack('audio'))
-      }
-      if (video !== null) {
+if (!navigator.mediaDevices) {
+  Object.defineProperty(navigator, 'mediaDevices', {
+    value: {
+      enumerateDevices: jest.fn().mockResolvedValue(ENUMERATED_MEDIA_DEVICES),
+      getSupportedConstraints: jest.fn().mockReturnValue(SUPPORTED_CONSTRAINTS),
+      getUserMedia: jest.fn((constraints) => {
+        if (
+          Object.keys(constraints).length === 0 ||
+          Object.values(constraints).every((v) => v === false)
+        ) {
+          throw new TypeError(
+            "Failed to execute 'getUserMedia' on 'MediaDevices': At least one of audio and video must be requested"
+          )
+        }
+        const stream = new global.MediaStream()
+        const { audio = null, video = null } = constraints
+        if (audio !== null) {
+          stream.addTrack(_newTrack('audio'))
+        }
+        if (video !== null) {
+          stream.addTrack(_newTrack('video'))
+        }
+        return stream
+      }),
+      getDisplayMedia: jest.fn((_constraints) => {
+        const stream = new global.MediaStream()
         stream.addTrack(_newTrack('video'))
-      }
-      return stream
-    }),
-    getDisplayMedia: jest.fn((_constraints) => {
-      const stream = new global.MediaStream()
-      stream.addTrack(_newTrack('video'))
-      return stream
-    }),
-  },
-})
+        return stream
+      }),
+    },
+  })
+}
