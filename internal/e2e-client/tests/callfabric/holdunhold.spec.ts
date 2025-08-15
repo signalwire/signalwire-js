@@ -11,7 +11,7 @@ import {
   waitForStabilizedStats,
 } from '../../utils'
 
-test.describe('CallFabric Hold/Unhold Call', () => {
+test.describe('CallCall Hold/Unhold Call', () => {
   test('should dial a call and be able to hold/unhold the call', async ({
     createCustomPage,
     resource,

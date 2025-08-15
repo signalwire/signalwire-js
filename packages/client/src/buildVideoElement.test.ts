@@ -6,7 +6,7 @@ import {
   dispatchMockedRoomSubscribed,
 } from './testUtils'
 import { buildVideoElement, BuildVideoElementParams } from './buildVideoElement'
-import { CallSession, createCallSessionObject } from './fabric/CallSession'
+import { CallSession, createCallSessionObject } from './unified/CallSession'
 import {
   createVideoRoomSessionObject,
   VideoRoomSession,
