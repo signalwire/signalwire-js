@@ -921,8 +921,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
-      const skipOnLocalSDPReady = await this._isAllowedToSendLocalSDP()
-      if (skipOnLocalSDPReady) {
+      const isAllowedToSendLocalSDP = await this._isAllowedToSendLocalSDP()
+      if (!isAllowedToSendLocalSDP) {
         this.logger.info('Skipping onLocalSDPReady due to early invite')
         this._processingLocalSDP = false
         return
@@ -954,10 +954,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     // Check if signalingState have the right state to sand an offer
     return (
-      this.type === 'offer' &&
-      !['have-local-offer', 'have-local-pranswer'].includes(
-        this.instance.signalingState
-      )
+      (this.type === 'offer' &&
+        ['have-local-offer', 'have-local-pranswer'].includes(
+          this.instance.signalingState
+        )) ||
+      (this.type === 'answer' && this.instance.signalingState === 'stable')
     )
   }
 
