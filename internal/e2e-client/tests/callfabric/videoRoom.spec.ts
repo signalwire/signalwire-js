@@ -20,10 +20,9 @@ test.describe('CallFabric VideoRoom', () => {
     createCustomPage,
     resource,
   }) => {
-    let callObj: JSHandle<CallSession> = {} as JSHandle<CallSession>
-    let callSession: CallJoinedEventParams = {} as CallJoinedEventParams
-    let page: PageWithWsInspector<CustomPage> =
-      {} as PageWithWsInspector<CustomPage>
+    let callObj = {} as JSHandle<CallSession>
+    let callSession = {} as CallJoinedEventParams
+    let page = {} as PageWithWsInspector<CustomPage>
 
     await test.step('setup page and call', async () => {
       page = await createCustomPage({ name: '[page]' })
@@ -35,16 +34,18 @@ test.describe('CallFabric VideoRoom', () => {
       await createCFClient(page)
 
       // Dial an address and join a video room
-      const callSession: CallJoinedEventParams = await dialAddress(page, {
+      callSession = await dialAddress(page, {
         address: `/public/${roomName}?channel=video`,
       })
 
       expect(callSession.room_session).toBeDefined()
       expect(callSession.room_session.name).toBeDefined()
       expect(callSession.room_session.display_name).toBeDefined()
+
+      const memberId = callSession.member_id
       expect(
         callSession.room_session.members.some(
-          (member) => member.member_id === callSession.member_id
+          (member) => member.member_id === memberId
         )
       ).toBeTruthy()
 
@@ -58,6 +59,19 @@ test.describe('CallFabric VideoRoom', () => {
           throw new Error('Call object not found')
         }
       })
+    })
+
+    await test.step('sanity check - call object, call session and page are set', async () => {
+      // assert that each object has at least one key (not empty)
+      expect(
+        Object.keys(callObj).length,
+        'callObj has properties'
+      ).toBeGreaterThan(0)
+      expect(
+        Object.keys(callSession).length,
+        'callSession has properties'
+      ).toBeGreaterThan(0)
+      expect(Object.keys(page).length, 'page has properties').toBeGreaterThan(0)
     })
 
     // --------------- Muting Audio (self) ---------------
@@ -107,23 +121,15 @@ test.describe('CallFabric VideoRoom', () => {
         { message: 'member updated muted' }
       )
 
-      const audioMuteSelf = expectToPass(
-        async () => {
-          const result = await page.evaluate(
-            async (params) => {
-              await params.callObj.audioMute()
-              return true
-            },
-            { callObj }
-          )
-          expect(result, 'expect audio mute self').toBe(true)
-        },
+      const audioMuteSelf = waitForFunction(
+        page,
+        async (params) => await params.callObj.audioMute(),
+        { callObj },
         { message: 'audio mute self' }
       )
 
       await audioMuteSelf
-      await memberUpdatedMuted
-      await memberUpdatedMutedEvent
+      await Promise.all([memberUpdatedMuted, memberUpdatedMutedEvent])
     })
     // --------------- Unmuting Audio (self) ---------------
     await test.step('unmuting audio (self)', async () => {
@@ -512,7 +518,7 @@ test.describe('CallFabric VideoRoom', () => {
 
     // --------------- Set layout ---------------
     await test.step('set layout', async () => {
-      const LAYOUT_NAME = '3x30000'
+      const LAYOUT_NAME = '3x3'
       const layoutChangedPromise = expectLayoutChanged(page, LAYOUT_NAME)
       await setLayoutOnPage(page, LAYOUT_NAME)
       await expect(layoutChangedPromise).resolves.toBe(true)
