@@ -9,7 +9,8 @@ import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
-import { Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
@@ -21,6 +22,7 @@ declare global {
       SignalWire: typeof SignalWire
     }
     _client?: SignalWireClient
+    _callObj?: CallSession
   }
 }
 
@@ -319,9 +321,12 @@ export const deleteRoom = async (id: string) => {
 
 export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
-    const callObj: CallSession =
-      // @ts-expect-error
-      window._callObj
+    const callObj = window._callObj
+
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+
     console.log('Fixture callObj', callObj)
     if (callObj && callObj?.roomSessionId) {
       console.log('Fixture has room', callObj.roomSessionId)
@@ -376,7 +381,7 @@ const createCFClientWithToken = async (
   const swClient = await page.evaluate(
     async (options) => {
       const _runningWorkers: any[] = []
-      // @ts-expect-error
+      // @ts-expect-error - _runningWorkers is not defined in the window object
       window._runningWorkers = _runningWorkers
       const addTask = (task: any) => {
         if (!_runningWorkers.includes(task)) {
@@ -467,7 +472,6 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           call.on('room.joined', resolve)
         }
 
-        // @ts-expect-error
         window._callObj = call
 
         if (shouldStartCall) {
@@ -1548,8 +1552,10 @@ export const deleteResource = async (id: string) => {
 export const expectMemberTalkingEvent = (page: Page) => {
   return page.evaluate(async () => {
     return new Promise((resolve) => {
-      // @ts-expect-error
       const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
       callObj.on('member.talking', resolve)
     })
   })
@@ -1559,8 +1565,10 @@ export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
       return new Promise<void>((resolve) => {
-        // @ts-expect-error
         const callObj = window._callObj
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
         callObj.on(event, resolve)
       })
     },
@@ -1617,21 +1625,31 @@ export const expectCFFinalEvents = (
   return Promise.all([finalEvents, ...extraEvents])
 }
 
-export const expectLayoutChanged = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    (options) => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const callObj: CallSession = window._callObj
-        callObj.on('layout.changed', ({ layout }: any) => {
-          if (layout.name === options.layoutName) {
-            resolve(true)
-          }
-        })
-      })
+export const expectLayoutChanged = async (page: Page, layoutName: string) => {
+  let result: boolean = false
+  await expectToPass(
+    async () => {
+      result = await page.evaluate(
+        (params) => {
+          return new Promise<boolean>((resolve) => {
+            const callObj = window._callObj
+            if (!callObj) {
+              throw new Error('Call object not found')
+            }
+            callObj.on('layout.changed', ({ layout }) => {
+              if (layout.name === params.layoutName) {
+                resolve(true)
+              }
+            })
+          })
+        },
+        { layoutName }
+      )
+      expect(result, 'expect layout changed result').toBe(true)
     },
-    { layoutName }
+    { message: 'layout changed' }
   )
+  return result
 }
 
 export const expectRoomJoined = (
@@ -1682,22 +1700,29 @@ export const expectInteractivityMode = async (
   mode: 'member' | 'audience'
 ) => {
   const interactivityMode = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+    // @ts-expect-error - interactivityMode is not defined in the CallSession interface
     return callObj.interactivityMode
   })
 
   expect(interactivityMode).toEqual(mode)
 }
 
-export const setLayoutOnPage = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    async (options) => {
-      // @ts-expect-error
+export const setLayoutOnPage = async (page: Page, layoutName: string) => {
+  return waitForFunction(
+    page,
+    async (params) => {
       const callObj = window._callObj
-      return await callObj.setLayout({ name: options.layoutName })
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
+      await callObj.setLayout({ name: params.layoutName })
     },
-    { layoutName }
+    { layoutName },
+    { message: 'set layout' }
   )
 }
 
@@ -1707,10 +1732,63 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 
 export const expectMemberId = async (page: Page, memberId: string) => {
   const roomMemberId = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
     return callObj.memberId
   })
 
   expect(roomMemberId).toEqual(memberId)
+}
+
+export const expectToPass = async (
+  assertion: () => Promise<void>,
+  { message }: { message: string },
+  options?: { interval?: number[]; timeout?: number }
+) => {
+  try {
+    const mergedOptions = {
+      timeout: 10_000,
+      ...options,
+    }
+    return await expect(assertion, { message }).toPass(mergedOptions)
+  } catch (error) {
+    // TODO: improve error message and logging
+    throw error
+  }
+}
+
+export const waitForFunction = async <TArg, TResult>(
+  page: Page,
+  fn: PageFunction<TArg, TResult>,
+  arg?: TArg,
+  options?: {
+    interval?: number[]
+    timeout?: number
+    message?: string
+  }
+) => {
+  try {
+    const mergedOptions = {
+      timeout: 10_000,
+      ...options,
+    }
+    if (arg) {
+      return await page.waitForFunction(fn, arg, mergedOptions)
+    } else {
+      // FIXME: remove the type assertion
+      return await page.waitForFunction(
+        fn as PageFunction<void, TResult>,
+        mergedOptions
+      )
+    }
+  } catch (error) {
+    // TODO: improve error message and logging
+    if (options?.message) {
+      throw new Error(`waitForFunction: ${options.message} `)
+    } else {
+      throw new Error('waitForFunction:', error)
+    }
+  }
 }
