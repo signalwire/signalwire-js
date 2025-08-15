@@ -1044,7 +1044,6 @@ export class BaseConnection<
     }
 
     try {
-      console.log('>> executing verto.bye')
       const message = VertoBye(this.dialogParams(rtcPeerId))
       await this.vertoExecute({
         message,
@@ -1062,7 +1061,6 @@ export class BaseConnection<
         )
       }
       this.setState('hangup')
-      console.log('>> resolve the hangup')
     }
   }
 
@@ -1142,7 +1140,7 @@ export class BaseConnection<
   setState(state: BaseConnectionState) {
     this.prevState = this.state
     this.state = state
-    this.logger.debug(
+    this.logger.trace(
       `Call ${this.callId} state change from ${this.prevState} to ${this.state}`
     )
 

@@ -135,12 +135,10 @@ export class BaseRoomSessionConnection<
       screenShare.leave()
     })
 
-    console.log('>> hangup is called')
     return super.hangup(id)
   }
 
   leave() {
-    console.log('>> leave is called')
     return this.hangup()
   }
 
