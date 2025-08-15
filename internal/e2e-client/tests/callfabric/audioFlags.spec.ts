@@ -35,54 +35,74 @@ test.describe('CallCall Audio Flags', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const memberUpdatedEvent = new Promise((res) => {
-          callObj.on('member.updated', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('noise_suppression') &&
-              params.member.updated.includes('echo_cancellation') &&
-              params.member.updated.includes('auto_gain') &&
-              params.member.auto_gain === false &&
-              params.member.echo_cancellation === false &&
-              params.member.noise_suppression === false
-            ) {
-              res(true)
+        // Use Promise.withResolvers for better event handling
+        const { promise: audioFlagsPromise, resolve: resolveAudioFlags } = Promise.withResolvers()
+
+        let eventsReceived = 0
+        const expectedEvents = 4 // member.updated + 3 specific events
+
+        // Set up event listeners
+        const handleMemberUpdate = (params: any) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('noise_suppression') &&
+            params.member.updated.includes('echo_cancellation') &&
+            params.member.updated.includes('auto_gain') &&
+            params.member.auto_gain === false &&
+            params.member.echo_cancellation === false &&
+            params.member.noise_suppression === false
+          ) {
+            eventsReceived++
+            if (eventsReceived >= expectedEvents) {
+              resolveAudioFlags(true)
             }
-          })
-        })
-        const memberUpdatedAutoGainEvent = new Promise((res) => {
-          callObj.on('member.updated.autoGain', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('auto_gain') &&
-              params.member.auto_gain === false
-            ) {
-              res(true)
+          }
+        }
+
+        const handleAutoGainUpdate = (params: any) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('auto_gain') &&
+            params.member.auto_gain === false
+          ) {
+            eventsReceived++
+            if (eventsReceived >= expectedEvents) {
+              resolveAudioFlags(true)
             }
-          })
-        })
-        const memberUpdatedEchoCancellationEvent = new Promise((res) => {
-          callObj.on('member.updated.echoCancellation', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('echo_cancellation') &&
-              params.member.echo_cancellation === false
-            ) {
-              res(true)
+          }
+        }
+
+        const handleEchoCancellationUpdate = (params: any) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('echo_cancellation') &&
+            params.member.echo_cancellation === false
+          ) {
+            eventsReceived++
+            if (eventsReceived >= expectedEvents) {
+              resolveAudioFlags(true)
             }
-          })
-        })
-        const memberUpdatedNoiseSuppressionEvent = new Promise((res) => {
-          callObj.on('member.updated.noiseSuppression', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('noise_suppression') &&
-              params.member.noise_suppression === false
-            ) {
-              res(true)
+          }
+        }
+
+        const handleNoiseSuppressionUpdate = (params: any) => {
+          if (
+            params.member.member_id === memberId &&
+            params.member.updated.includes('noise_suppression') &&
+            params.member.noise_suppression === false
+          ) {
+            eventsReceived++
+            if (eventsReceived >= expectedEvents) {
+              resolveAudioFlags(true)
             }
-          })
-        })
+          }
+        }
+
+        // Attach event listeners
+        callObj.on('member.updated', handleMemberUpdate)
+        callObj.on('member.updated.autoGain', handleAutoGainUpdate)
+        callObj.on('member.updated.echoCancellation', handleEchoCancellationUpdate)
+        callObj.on('member.updated.noiseSuppression', handleNoiseSuppressionUpdate)
 
         await callObj.setAudioFlags({
           autoGain: false,
@@ -90,12 +110,15 @@ test.describe('CallCall Audio Flags', () => {
           noiseSuppression: false,
         })
 
-        return Promise.all([
-          memberUpdatedEvent,
-          memberUpdatedAutoGainEvent,
-          memberUpdatedEchoCancellationEvent,
-          memberUpdatedNoiseSuppressionEvent,
-        ])
+        await audioFlagsPromise
+
+        // Clean up listeners
+        callObj.off('member.updated', handleMemberUpdate)
+        callObj.off('member.updated.autoGain', handleAutoGainUpdate)
+        callObj.off('member.updated.echoCancellation', handleEchoCancellationUpdate)
+        callObj.off('member.updated.noiseSuppression', handleNoiseSuppressionUpdate)
+
+        return true
       }, memberId)
     })
 

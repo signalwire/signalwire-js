@@ -4,6 +4,7 @@ import {
   IncomingCallHandlers,
 } from './incomingCallManager'
 import { CallSession } from '../CallSession'
+import { CallSessionEventHandlers } from './callEvents'
 
 export interface WSClientContract {
   /**
@@ -14,9 +15,9 @@ export interface WSClientContract {
    * Dial a resource and connect the call
    *
    * @param params {@link DialParams}
-   * @returns A {@link CallSession} object.
+   * @returns A Promise resolving to a {@link CallSession} object.
    */
-  dial(params: DialParams): CallSession
+  dial(params: DialParams): Promise<CallSession>
   /**
    * Reattach to the previous call if the previous call was not disconnected
    *
@@ -122,6 +123,8 @@ export interface CallParams extends DefaultCallParams {
 export interface DialParams extends CallParams {
   to: string
   nodeId?: string
+  /** Optional event listeners for the call session */
+  listen?: Partial<CallSessionEventHandlers>
 }
 
 export interface ReattachParams extends CallParams {

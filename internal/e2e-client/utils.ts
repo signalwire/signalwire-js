@@ -4,6 +4,7 @@ import type {
   SignalWire,
   SignalWireClient,
   SignalWireContract,
+  CallSessionEventHandlers,
 } from '@signalwire/client'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
@@ -443,6 +444,7 @@ interface DialAddressParams {
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
+  listen?: Partial<CallSessionEventHandlers>
 }
 export const dialAddress = (page: Page, params: DialAddressParams) => {
   const {
@@ -452,6 +454,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     shouldPassRootElement = true,
     shouldStartCall = true,
     shouldWaitForJoin = true,
+    listen,
   } = params
   return page.evaluate(
     async ({
@@ -461,6 +464,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
+      listen,
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
@@ -474,6 +478,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
             rootElement: document.getElementById('rootElement')!,
           }),
           ...JSON.parse(dialOptions),
+          ...(listen && { listen: JSON.parse(listen) }),
         })
 
         if (shouldWaitForJoin) {
@@ -499,6 +504,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
+      listen: listen ? JSON.stringify(listen) : undefined,
     }
   )
 }

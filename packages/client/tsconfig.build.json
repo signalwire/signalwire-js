@@ -5,5 +5,5 @@
     "outDir": "dist"
   },
   "include": ["./src/**/*.ts", "../core/src/**/*.ts", "../webrtc/src/**/*.ts"],
-  "exclude": ["**/*.test.ts"]
+  "exclude": ["**/*.test.ts", "**/*.test-d.ts"]
 }

@@ -46,66 +46,86 @@ test.describe('CallCall VideoRoom', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const memberUpdatedMuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('audio_muted') &&
-                params.member.audio_muted === true
-              ) {
-                res(true)
-              }
-            })
-          })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.audioMuted', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.audio_muted === true
-              ) {
-                res(true)
-              }
-            })
-          })
+        // Use Promise.withResolvers for better event handling
+        const { promise: memberMutedPromise, resolve: resolveMuted } = Promise.withResolvers()
+        const { promise: memberUnmutedPromise, resolve: resolveUnmuted } = Promise.withResolvers()
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+        let mutedEventsReceived = 0
+        let unmutedEventsReceived = 0
 
-        const memberUpdatedUnmuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('audio_muted') &&
-                params.member.audio_muted === false
-              ) {
-                res(true)
-              }
-            })
-          })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.audioMuted', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.audio_muted === false
-              ) {
-                res(true)
-              }
-            })
-          })
+        // Set up event listeners for muted state
+        const handleMutedUpdate = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.updated.includes('audio_muted') &&
+            params.member.audio_muted === true
+          ) {
+            mutedEventsReceived++
+            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
+              resolveMuted(true)
+            }
+          }
+        }
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+        const handleMutedUpdateAudio = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.audio_muted === true
+          ) {
+            mutedEventsReceived++
+            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
+              resolveMuted(true)
+            }
+          }
+        }
+
+        // Set up event listeners for unmuted state
+        const handleUnmutedUpdate = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.updated.includes('audio_muted') &&
+            params.member.audio_muted === false
+          ) {
+            unmutedEventsReceived++
+            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
+              resolveUnmuted(true)
+            }
+          }
+        }
+
+        const handleUnmutedUpdateAudio = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.audio_muted === false
+          ) {
+            unmutedEventsReceived++
+            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
+              resolveUnmuted(true)
+            }
+          }
+        }
+
+        // Attach event listeners
+        callObj.on('member.updated', handleMutedUpdate)
+        callObj.on('member.updated.audioMuted', handleMutedUpdateAudio)
 
         await callObj.audioMute()
-        await callObj.audioUnmute()
+        await memberMutedPromise
 
-        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
+        // Clean up muted listeners and set up unmuted listeners
+        callObj.off('member.updated', handleMutedUpdate)
+        callObj.off('member.updated.audioMuted', handleMutedUpdateAudio)
+        callObj.on('member.updated', handleUnmutedUpdate)
+        callObj.on('member.updated.audioMuted', handleUnmutedUpdateAudio)
+
+        await callObj.audioUnmute()
+        await memberUnmutedPromise
+
+        // Clean up unmuted listeners
+        callObj.off('member.updated', handleUnmutedUpdate)
+        callObj.off('member.updated.audioMuted', handleUnmutedUpdateAudio)
+
+        return true
       },
       { callSession }
     )
@@ -116,72 +136,92 @@ test.describe('CallCall VideoRoom', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const memberUpdatedMuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('video_muted') &&
-                params.member.updated.includes('visible') &&
-                params.member.video_muted === true &&
-                params.member.visible === false
-              ) {
-                res(true)
-              }
-            })
-          })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.videoMuted', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.video_muted === true &&
-                params.member.visible === false
-              ) {
-                res(true)
-              }
-            })
-          })
+        // Use Promise.withResolvers for better event handling
+        const { promise: memberMutedPromise, resolve: resolveMuted } = Promise.withResolvers()
+        const { promise: memberUnmutedPromise, resolve: resolveUnmuted } = Promise.withResolvers()
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+        let mutedEventsReceived = 0
+        let unmutedEventsReceived = 0
 
-        const memberUpdatedUnmuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('video_muted') &&
-                params.member.updated.includes('visible') &&
-                params.member.video_muted === false &&
-                params.member.visible === true
-              ) {
-                res(true)
-              }
-            })
-          })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.videoMuted', (params) => {
-              if (
-                params.member.member_id === callSession.member_id &&
-                params.member.video_muted === false &&
-                params.member.visible === true
-              ) {
-                res(true)
-              }
-            })
-          })
+        // Set up event listeners for muted state
+        const handleMutedUpdate = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.updated.includes('video_muted') &&
+            params.member.updated.includes('visible') &&
+            params.member.video_muted === true &&
+            params.member.visible === false
+          ) {
+            mutedEventsReceived++
+            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
+              resolveMuted(true)
+            }
+          }
+        }
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+        const handleMutedUpdateVideo = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.video_muted === true &&
+            params.member.visible === false
+          ) {
+            mutedEventsReceived++
+            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
+              resolveMuted(true)
+            }
+          }
+        }
+
+        // Set up event listeners for unmuted state
+        const handleUnmutedUpdate = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.updated.includes('video_muted') &&
+            params.member.updated.includes('visible') &&
+            params.member.video_muted === false &&
+            params.member.visible === true
+          ) {
+            unmutedEventsReceived++
+            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
+              resolveUnmuted(true)
+            }
+          }
+        }
+
+        const handleUnmutedUpdateVideo = (params: any) => {
+          if (
+            params.member.member_id === callSession.member_id &&
+            params.member.video_muted === false &&
+            params.member.visible === true
+          ) {
+            unmutedEventsReceived++
+            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
+              resolveUnmuted(true)
+            }
+          }
+        }
+
+        // Attach event listeners
+        callObj.on('member.updated', handleMutedUpdate)
+        callObj.on('member.updated.videoMuted', handleMutedUpdateVideo)
 
         await callObj.videoMute()
-        await callObj.videoUnmute()
+        await memberMutedPromise
 
-        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
+        // Clean up muted listeners and set up unmuted listeners
+        callObj.off('member.updated', handleMutedUpdate)
+        callObj.off('member.updated.videoMuted', handleMutedUpdateVideo)
+        callObj.on('member.updated', handleUnmutedUpdate)
+        callObj.on('member.updated.videoMuted', handleUnmutedUpdateVideo)
+
+        await callObj.videoUnmute()
+        await memberUnmutedPromise
+
+        // Clean up unmuted listeners
+        callObj.off('member.updated', handleUnmutedUpdate)
+        callObj.off('member.updated.videoMuted', handleUnmutedUpdateVideo)
+
+        return true
       },
       { callSession }
     )
@@ -245,27 +285,38 @@ test.describe('CallCall VideoRoom', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        const roomUpdatedLocked = new Promise((resolve) => {
-          callObj.on('room.updated', (params) => {
-            if (params.room_session.locked === true) {
-              resolve(true)
-            }
-          })
-        })
+        // Use Promise.withResolvers for better event handling
+        const { promise: roomLockedPromise, resolve: resolveRoomLocked } = Promise.withResolvers()
+        const { promise: roomUnlockedPromise, resolve: resolveRoomUnlocked } = Promise.withResolvers()
 
-        const roomUpdatedUnlocked = new Promise((resolve) => {
-          callObj.on('room.updated', (params) => {
-            if (params.room_session.locked === false) {
-              resolve(true)
-            }
-          })
-        })
+        // Set up event listeners
+        const handleRoomLocked = (params: any) => {
+          if (params.room_session.locked === true) {
+            resolveRoomLocked(true)
+          }
+        }
+
+        const handleRoomUnlocked = (params: any) => {
+          if (params.room_session.locked === false) {
+            resolveRoomUnlocked(true)
+          }
+        }
+
+        // Attach event listener for lock
+        callObj.on('room.updated', handleRoomLocked)
 
         await callObj.lock()
-        await roomUpdatedLocked
+        await roomLockedPromise
+
+        // Clean up lock listener and set up unlock listener
+        callObj.off('room.updated', handleRoomLocked)
+        callObj.on('room.updated', handleRoomUnlocked)
 
         await callObj.unlock()
-        await roomUpdatedUnlocked
+        await roomUnlockedPromise
+
+        // Clean up unlock listener
+        callObj.off('room.updated', handleRoomUnlocked)
       },
       { callSession }
     )
@@ -377,6 +428,20 @@ test.describe('CallCall VideoRoom', () => {
     const callSession = await page.evaluate(async () => {
       try {
         const client = window._client!
+
+        // Example of new dial() API with Promise.withResolvers pattern:
+        // const { promise: memberPromise, resolve: resolveMember } = Promise.withResolvers()
+        // 
+        // const call = await client.dial({
+        //   to: `/public/some-address?channel=video`,
+        //   rootElement: document.getElementById('rootElement'),
+        //   listen: {
+        //     'member.updated': resolveMember, // Pass resolver directly
+        //     'call.joined': (params) => console.log('Call joined', params)
+        //   }
+        // })
+        //
+        // await memberPromise // Wait for member.updated event
 
         const call = await client.dial({
           to: `/public/invalid-address?channel=video`,

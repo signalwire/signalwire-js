@@ -8,7 +8,7 @@ import {
 } from '@signalwire/core'
 import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
-import { createCallSessionObject } from './CallSession'
+import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
@@ -20,6 +20,7 @@ import {
   WSClientOptions,
   HandlePushNotificationResult,
 } from './interfaces'
+import { CallSessionEventHandlers } from './interfaces/callEvents'
 import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
@@ -316,11 +317,36 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public dial(params: DialParams) {
+  public async dial(params: DialParams): Promise<CallSession> {
     // TODO: Do we need this remove item here?
     // in case the user left the previous call with hangup, and is not reattaching
     getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-    return this.buildOutboundCall(params)
+    
+    const callSession = this.buildOutboundCall(params)
+    
+    try {
+      // Attach event listeners if provided
+      if (params.listen) {
+        this.attachEventListeners(callSession, params.listen)
+      }
+      
+      // Start the call
+      await callSession.start()
+      
+      return callSession
+    } catch (error) {
+      // Clean up on failure
+      try {
+        callSession.destroy()
+      } catch (cleanupError) {
+        this.logger.warn('Error during callSession cleanup:', cleanupError)
+      }
+      
+      // Provide meaningful error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during dial'
+      this.logger.error('Failed to dial:', error)
+      throw new Error(`Failed to dial to ${params.to}: ${errorMessage}`, { cause: error })
+    }
   }
 
   public reattach(params: ReattachParams) {
@@ -404,6 +430,34 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return this.execute<unknown, void>({
       method: 'subscriber.offline',
       params: {},
+    })
+  }
+
+  /**
+   * Attaches event listeners to a call session.
+   * Handles errors in individual event handlers to prevent them from affecting other handlers.
+   * 
+   * @param callSession The call session to attach listeners to
+   * @param handlers The event handlers to attach
+   */
+  private attachEventListeners(
+    callSession: CallSession,
+    handlers: Partial<CallSessionEventHandlers>
+  ): void {
+    Object.entries(handlers).forEach(([eventName, handler]) => {
+      if (typeof handler === 'function') {
+        // Wrap each handler to isolate errors
+        const wrappedHandler = async (params: any) => {
+          try {
+            await handler(params)
+          } catch (error) {
+            this.logger.error(`Error in event handler for ${eventName}:`, error)
+            // Don't re-throw to prevent breaking other handlers
+          }
+        }
+        
+        callSession.on(eventName as any, wrappedHandler)
+      }
     })
   }
 
