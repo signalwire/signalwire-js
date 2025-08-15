@@ -328,10 +328,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       // Attach event listeners if provided
       if (params.listen) {
         this.attachEventListeners(callSession, params.listen)
+        // Start the call
+        await callSession.start()
       }
-      
-      // Start the call
-      await callSession.start()
       
       return callSession
     } catch (error) {
