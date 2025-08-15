@@ -61,7 +61,7 @@ const videoElementTests = [
   'buildVideoWithVideoSDK.spec.ts',
   'buildVideoWithFabricSDK.spec.ts',
 ]
-const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
+const v2WebRTCTests = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
 const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
@@ -104,7 +104,7 @@ const config: PlaywrightTestConfig = {
         ...callfabricTests,
         ...renegotiationTests,
         ...videoElementTests,
-        ...v2WebRTC,
+        ...v2WebRTCTests,
       ],
     },
     {
@@ -155,7 +155,7 @@ const config: PlaywrightTestConfig = {
     {
       name: 'v2WebRTC',
       use: useDesktopChrome,
-      testMatch: v2WebRTC,
+      testMatch: v2WebRTCTests,
     },
   ],
 }
