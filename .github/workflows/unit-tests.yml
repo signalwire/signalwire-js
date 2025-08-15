@@ -36,33 +36,23 @@ jobs:
           RELAY_HOST: ${{ secrets.RELAY_HOST }}
           RELAY_PROJECT: ${{ secrets.RELAY_PROJECT }}
           RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
-  run-browser-js-staging:
-    name: Browser SDK staging
-    needs: tests
-    uses: ./.github/workflows/browser-js-staging.yml
-    secrets: inherit
-  run-browser-js-production:
-    name: Browser SDK production
-    needs: tests
-    uses: ./.github/workflows/browser-js-production.yml
-    secrets: inherit
-  run-realtime-api-staging:
-    name: RealtimeAPI SDK staging
-    needs: tests
-    uses: ./.github/workflows/realtime-api-staging.yml
-    secrets: inherit
-  run-realtime-api-production:
-    name: RealtimeAPI SDK production
-    needs: tests
-    uses: ./.github/workflows/realtime-api-production.yml
-    secrets: inherit
-  run-browser-client-staging:
-    name: Browser Client SDK staging
-    needs: tests
-    uses: ./.github/workflows/browser-client-staging.yml
-    secrets: inherit
-  run-browser-client-production:
-    name: Browser Client SDK production
-    needs: tests
-    uses: ./.github/workflows/browser-client-production.yml
-    secrets: inherit
+
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Call Fabric SDK E2E Tests
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SW_WORKFLOW_DISPATCH }}
+          # TODO: Move this to a dedicated JS module?
+          script: |
+            const resp = await github.rest.repos.createDispatchEvent({
+              owner: 'signalwire',
+              repo: 'rtc-testing',
+              event_type: 'public-pr-trigger',
+              client_payload: {
+                pr_number: context.payload.pull_request.number,
+                head_ref: context.payload.pull_request.head.ref
+              }
+            })
+            console.log('dispatch response:', resp);
