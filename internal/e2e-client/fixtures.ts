@@ -38,26 +38,25 @@ type CustomFixture = {
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: {
-      name: string
-    }): Promise<PageWithWsInspector<CustomPage>> => {
+    const maker = async (options: { name: string }) => {
       let page = await context.newPage()
       enablePageLogs(page, options.name)
-      //@ts-ignore
-      page = await intercepWsTraffic(page)
 
-      // @ts-expect-error
-      page.swNetworkDown = () => {
+      const pageWithWsInspector = (await intercepWsTraffic(
+        // @ts-expect-error - PageWithWsInspector<CustomPage> is not assignable to Page
+        page
+      )) as PageWithWsInspector<CustomPage>
+
+      pageWithWsInspector.swNetworkDown = () => {
         console.log('Simulate network down..')
         return context.setOffline(true)
       }
-      // @ts-expect-error
-      page.swNetworkUp = () => {
+      pageWithWsInspector.swNetworkUp = () => {
         console.log('Simulate network up..')
         return context.setOffline(false)
       }
-      // @ts-expect-error
-      return page
+
+      return pageWithWsInspector
     }
 
     try {
