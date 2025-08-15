@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { CallSession, CallJoinedEventParams } from '@signalwire/client'
+import { CallSession } from '@signalwire/client'
 import { test, expect } from '../../fixtures'
 import {
   SERVER_URL,
@@ -9,6 +9,8 @@ import {
   expectMCUVisible,
   getStats,
   setLayoutOnPage,
+  waitForCallEvent,
+  type CallEventResolvers,
 } from '../../utils'
 
 test.describe('CallCall VideoRoom', () => {
@@ -24,9 +26,10 @@ test.describe('CallCall VideoRoom', () => {
 
     await createCFClient(page)
 
-    // Dial an address and join a video room
-    const callSession: CallJoinedEventParams = await dialAddress(page, {
+    // Dial an address and join a video room using the new pattern with resolvers
+    const { callSession, resolvers }: { callSession: any, resolvers: CallEventResolvers } = await dialAddress(page, {
       address: `/public/${roomName}?channel=video`,
+      createResolversFor: ['member.updated.audioMuted', 'member.updated.videoMuted', 'room.updated'],
     })
 
     expect(callSession.room_session).toBeDefined()
@@ -40,191 +43,75 @@ test.describe('CallCall VideoRoom', () => {
 
     await expectMCUVisible(page)
 
-    // --------------- Muting Audio (self) ---------------
+    // --------------- Muting Audio (self) - NEW PATTERN using waitForCallEvent ---------------
     await page.evaluate(
       async ({ callSession }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
-
-        // Use Promise.withResolvers for better event handling
-        const { promise: memberMutedPromise, resolve: resolveMuted } = Promise.withResolvers()
-        const { promise: memberUnmutedPromise, resolve: resolveUnmuted } = Promise.withResolvers()
-
-        let mutedEventsReceived = 0
-        let unmutedEventsReceived = 0
-
-        // Set up event listeners for muted state
-        const handleMutedUpdate = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.updated.includes('audio_muted') &&
-            params.member.audio_muted === true
-          ) {
-            mutedEventsReceived++
-            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
-              resolveMuted(true)
-            }
-          }
-        }
-
-        const handleMutedUpdateAudio = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.audio_muted === true
-          ) {
-            mutedEventsReceived++
-            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
-              resolveMuted(true)
-            }
-          }
-        }
-
-        // Set up event listeners for unmuted state
-        const handleUnmutedUpdate = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.updated.includes('audio_muted') &&
-            params.member.audio_muted === false
-          ) {
-            unmutedEventsReceived++
-            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
-              resolveUnmuted(true)
-            }
-          }
-        }
-
-        const handleUnmutedUpdateAudio = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.audio_muted === false
-          ) {
-            unmutedEventsReceived++
-            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
-              resolveUnmuted(true)
-            }
-          }
-        }
-
-        // Attach event listeners
-        callObj.on('member.updated', handleMutedUpdate)
-        callObj.on('member.updated.audioMuted', handleMutedUpdateAudio)
 
         await callObj.audioMute()
-        await memberMutedPromise
-
-        // Clean up muted listeners and set up unmuted listeners
-        callObj.off('member.updated', handleMutedUpdate)
-        callObj.off('member.updated.audioMuted', handleMutedUpdateAudio)
-        callObj.on('member.updated', handleUnmutedUpdate)
-        callObj.on('member.updated.audioMuted', handleUnmutedUpdateAudio)
-
-        await callObj.audioUnmute()
-        await memberUnmutedPromise
-
-        // Clean up unmuted listeners
-        callObj.off('member.updated', handleUnmutedUpdate)
-        callObj.off('member.updated.audioMuted', handleUnmutedUpdateAudio)
-
         return true
       },
       { callSession }
     )
 
-    // --------------- Muting Video (self) ---------------
+    // NEW PATTERN: Use waitForCallEvent helper to wait for audio muted event
+    await waitForCallEvent(page, 'member.updated.audioMuted')
+
     await page.evaluate(
       async ({ callSession }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        // Use Promise.withResolvers for better event handling
-        const { promise: memberMutedPromise, resolve: resolveMuted } = Promise.withResolvers()
-        const { promise: memberUnmutedPromise, resolve: resolveUnmuted } = Promise.withResolvers()
-
-        let mutedEventsReceived = 0
-        let unmutedEventsReceived = 0
-
-        // Set up event listeners for muted state
-        const handleMutedUpdate = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.updated.includes('video_muted') &&
-            params.member.updated.includes('visible') &&
-            params.member.video_muted === true &&
-            params.member.visible === false
-          ) {
-            mutedEventsReceived++
-            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
-              resolveMuted(true)
-            }
-          }
-        }
-
-        const handleMutedUpdateVideo = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.video_muted === true &&
-            params.member.visible === false
-          ) {
-            mutedEventsReceived++
-            if (mutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
-              resolveMuted(true)
-            }
-          }
-        }
-
-        // Set up event listeners for unmuted state
-        const handleUnmutedUpdate = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.updated.includes('video_muted') &&
-            params.member.updated.includes('visible') &&
-            params.member.video_muted === false &&
-            params.member.visible === true
-          ) {
-            unmutedEventsReceived++
-            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
-              resolveUnmuted(true)
-            }
-          }
-        }
-
-        const handleUnmutedUpdateVideo = (params: any) => {
-          if (
-            params.member.member_id === callSession.member_id &&
-            params.member.video_muted === false &&
-            params.member.visible === true
-          ) {
-            unmutedEventsReceived++
-            if (unmutedEventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
-              resolveUnmuted(true)
-            }
-          }
-        }
-
-        // Attach event listeners
-        callObj.on('member.updated', handleMutedUpdate)
-        callObj.on('member.updated.videoMuted', handleMutedUpdateVideo)
-
-        await callObj.videoMute()
-        await memberMutedPromise
-
-        // Clean up muted listeners and set up unmuted listeners
-        callObj.off('member.updated', handleMutedUpdate)
-        callObj.off('member.updated.videoMuted', handleMutedUpdateVideo)
-        callObj.on('member.updated', handleUnmutedUpdate)
-        callObj.on('member.updated.videoMuted', handleUnmutedUpdateVideo)
-
-        await callObj.videoUnmute()
-        await memberUnmutedPromise
-
-        // Clean up unmuted listeners
-        callObj.off('member.updated', handleUnmutedUpdate)
-        callObj.off('member.updated.videoMuted', handleUnmutedUpdateVideo)
-
+        await callObj.audioUnmute()
         return true
       },
       { callSession }
     )
+
+    // Wait for audio unmuted event using the helper
+    await waitForCallEvent(page, 'member.updated.audioMuted')
+
+    // --------------- Muting Video (self) - NEW PATTERN using window._callResolvers ---------------
+    await page.evaluate(
+      async ({ callSession }) => {
+        // @ts-expect-error
+        const callObj: CallSession = window._callObj
+
+        await callObj.videoMute()
+        return true
+      },
+      { callSession }
+    )
+
+    // NEW PATTERN: Access resolvers directly from window._callResolvers
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const resolvers = window._callResolvers
+      if (resolvers && resolvers['member.updated.videoMuted']) {
+        await resolvers['member.updated.videoMuted'].promise
+      }
+    })
+
+    await page.evaluate(
+      async ({ callSession }) => {
+        // @ts-expect-error
+        const callObj: CallSession = window._callObj
+
+        await callObj.videoUnmute()
+        return true
+      },
+      { callSession }
+    )
+
+    // Wait for video unmuted event using window._callResolvers
+    await page.evaluate(async () => {
+      // @ts-expect-error
+      const resolvers = window._callResolvers
+      if (resolvers && resolvers['member.updated.videoMuted']) {
+        await resolvers['member.updated.videoMuted'].promise
+      }
+    })
 
     // --------------- Screenshare ---------------
     await page.evaluate(async () => {
@@ -278,48 +165,34 @@ test.describe('CallCall VideoRoom', () => {
       ])
     })
 
-    // --------------- Room lock/unlock ---------------
+    // --------------- Room lock/unlock - NEW PATTERN using resolvers from dialAddress ---------------
     await page.evaluate(
-      // @ts-expect-error
       async ({ callSession }) => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        // Use Promise.withResolvers for better event handling
-        const { promise: roomLockedPromise, resolve: resolveRoomLocked } = Promise.withResolvers()
-        const { promise: roomUnlockedPromise, resolve: resolveRoomUnlocked } = Promise.withResolvers()
-
-        // Set up event listeners
-        const handleRoomLocked = (params: any) => {
-          if (params.room_session.locked === true) {
-            resolveRoomLocked(true)
-          }
-        }
-
-        const handleRoomUnlocked = (params: any) => {
-          if (params.room_session.locked === false) {
-            resolveRoomUnlocked(true)
-          }
-        }
-
-        // Attach event listener for lock
-        callObj.on('room.updated', handleRoomLocked)
-
         await callObj.lock()
-        await roomLockedPromise
-
-        // Clean up lock listener and set up unlock listener
-        callObj.off('room.updated', handleRoomLocked)
-        callObj.on('room.updated', handleRoomUnlocked)
-
-        await callObj.unlock()
-        await roomUnlockedPromise
-
-        // Clean up unlock listener
-        callObj.off('room.updated', handleRoomUnlocked)
+        return true
       },
       { callSession }
     )
+
+    // NEW PATTERN: Use resolvers returned from dialAddress call
+    await resolvers['room.updated']?.promise
+
+    await page.evaluate(
+      async ({ callSession }) => {
+        // @ts-expect-error
+        const callObj: CallSession = window._callObj
+
+        await callObj.unlock()
+        return true
+      },
+      { callSession }
+    )
+
+    // Wait for room unlocked event using resolvers from dialAddress
+    await resolvers['room.updated']?.promise
 
     // --------------- Set layout ---------------
     const layoutName = '3x3'
@@ -429,19 +302,16 @@ test.describe('CallCall VideoRoom', () => {
       try {
         const client = window._client!
 
-        // Example of new dial() API with Promise.withResolvers pattern:
-        // const { promise: memberPromise, resolve: resolveMember } = Promise.withResolvers()
-        // 
-        // const call = await client.dial({
-        //   to: `/public/some-address?channel=video`,
-        //   rootElement: document.getElementById('rootElement'),
-        //   listen: {
-        //     'member.updated': resolveMember, // Pass resolver directly
-        //     'call.joined': (params) => console.log('Call joined', params)
-        //   }
+        // Example of new dial() API with resolvers created by dialAddress:
+        // const { callSession, resolvers } = await dialAddress(page, {
+        //   address: `/public/some-address?channel=video`,
+        //   createResolversFor: ['member.updated', 'call.joined']
         // })
         //
-        // await memberPromise // Wait for member.updated event
+        // // Then use resolvers or waitForCallEvent helper:
+        // await resolvers['member.updated'].promise
+        // // OR: await waitForCallEvent(page, 'member.updated')
+        // // OR: await window._callResolvers['member.updated'].promise
 
         const call = await client.dial({
           to: `/public/invalid-address?channel=video`,
@@ -474,7 +344,7 @@ test.describe('CallCall VideoRoom', () => {
 
     await createCFClient(page)
 
-    // Dial an address with audio only channel
+    // Dial an address with audio only channel - NEW PATTERN without createResolversFor (backward compatibility)
     const callSession = await dialAddress(page, {
       address: `/public/${roomName}?channel=audio`,
     })

@@ -21,10 +21,10 @@ export interface WSClientContract {
   /**
    * Reattach to the previous call if the previous call was not disconnected
    *
-   * @param params {@link DialParams}
-   * @returns A {@link CallSession} object.
+   * @param params {@link ReattachParams}
+   * @returns A Promise resolving to a {@link CallSession} object.
    */
-  reattach(params: DialParams): CallSession
+  reattach(params: ReattachParams): Promise<CallSession>
   /**
    * Handles the incoming call via Push Notification
    *
@@ -130,6 +130,8 @@ export interface DialParams extends CallParams {
 export interface ReattachParams extends CallParams {
   to?: string
   nodeId?: string
+  /** Optional event listeners for the call session */
+  listen?: Partial<CallSessionEventHandlers>
 }
 
 export interface ApiRequestRetriesOptions {

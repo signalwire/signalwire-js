@@ -4,7 +4,6 @@ import type {
   SignalWire,
   SignalWireClient,
   SignalWireContract,
-  CallSessionEventHandlers,
 } from '@signalwire/client'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
@@ -16,12 +15,129 @@ import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { EventEmitter } from 'events'
+
+// Type for Promise resolver functions  
+type PromiseResolver<T = any> = (value: T) => void
+type PromiseRejecter = (reason?: any) => void
+
+// Simple event handler type for common call events
+type CallEventHandler<T = any> = (params: T) => void | Promise<void>
+
+// Simplified interface for event handlers (subset of what's available)
+interface SimpleCallSessionEventHandlers {
+  'call.joined'?: CallEventHandler
+  'call.state'?: CallEventHandler
+  'call.left'?: CallEventHandler
+  'call.updated'?: CallEventHandler
+  'member.joined'?: CallEventHandler
+  'member.left'?: CallEventHandler
+  'member.updated'?: CallEventHandler
+  'member.talking'?: CallEventHandler
+  'member.updated.audioMuted'?: CallEventHandler
+  'member.updated.videoMuted'?: CallEventHandler
+  'layout.changed'?: CallEventHandler
+  'room.joined'?: CallEventHandler
+  'room.left'?: CallEventHandler
+  'room.updated'?: CallEventHandler
+}
+
+// Interface for managing resolvers for common call events
+export interface CallEventResolvers {
+  // Call lifecycle events
+  'call.joined'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'call.state'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'call.left'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'call.updated'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  
+  // Member events
+  'member.joined'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'member.left'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'member.updated'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'member.talking'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  
+  // Member sub-events
+  'member.updated.audioMuted'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'member.updated.videoMuted'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  
+  // Layout events
+  'layout.changed'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  
+  // Room events
+  'room.joined'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'room.left'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+  'room.updated'?: {
+    promise: Promise<any>
+    resolve: PromiseResolver
+    reject: PromiseRejecter
+  }
+}
+
+// Result type for dialAddress function  
+export interface DialAddressResult {
+  callSession: CallSession
+  resolvers: CallEventResolvers
+}
+
 declare global {
   interface Window {
     _SWJS: {
       SignalWire: typeof SignalWire
     }
     _client?: SignalWireClient
+    _callObj?: CallSession
+    _callResolvers?: CallEventResolvers
   }
 }
 
@@ -444,9 +560,15 @@ interface DialAddressParams {
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
-  listen?: Partial<CallSessionEventHandlers>
+  listen?: SimpleCallSessionEventHandlers
+  /** Array of event names to automatically create Promise.withResolvers for */
+  createResolversFor?: (keyof CallEventResolvers)[]
 }
-export const dialAddress = (page: Page, params: DialAddressParams) => {
+
+// Overloaded function signatures for backward compatibility
+export function dialAddress(page: Page, params: DialAddressParams & { createResolversFor: (keyof CallEventResolvers)[] }): Promise<DialAddressResult>
+export function dialAddress(page: Page, params: DialAddressParams): Promise<any>
+export function dialAddress(page: Page, params: DialAddressParams): Promise<any> {
   const {
     address,
     dialOptions = {},
@@ -455,7 +577,9 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     shouldStartCall = true,
     shouldWaitForJoin = true,
     listen,
+    createResolversFor = [],
   } = params
+  
   return page.evaluate(
     async ({
       address,
@@ -465,35 +589,77 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldStartCall,
       shouldWaitForJoin,
       listen,
+      createResolversFor,
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
         const client: SignalWireContract = window._client
 
+        // Create Promise.withResolvers for the requested events
+        const resolvers: any = {}
+        const listenHandlers: any = listen ? JSON.parse(listen) : {}
+        
+        // Create resolvers for requested events
+        createResolversFor.forEach((eventName) => {
+          // @ts-expect-error - Promise.withResolvers is available in modern environments
+          const { promise, resolve: resolveFunc, reject: rejectFunc } = Promise.withResolvers()
+          resolvers[eventName] = {
+            promise,
+            resolve: resolveFunc,
+            reject: rejectFunc,
+          }
+          
+          // Add the resolver to the listen handlers
+          listenHandlers[eventName] = resolveFunc
+        })
+
         const dialer = reattach ? client.reattach : client.dial
 
-        const call = dialer({
+        const call = await dialer({
           to: address,
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
           ...JSON.parse(dialOptions),
-          ...(listen && { listen: JSON.parse(listen) }),
+          ...(Object.keys(listenHandlers).length > 0 && { listen: listenHandlers }),
         })
 
-        if (shouldWaitForJoin) {
-          call.on('room.joined', resolve)
-        }
-
+        // Store call object and resolvers in window for test access
         // @ts-expect-error
         window._callObj = call
+        // @ts-expect-error  
+        window._callResolvers = resolvers
+
+        if (shouldWaitForJoin) {
+          call.on('room.joined', (joinedParams: any) => {
+            // If resolvers were requested, return the new format
+            if (createResolversFor.length > 0) {
+              resolve({
+                callSession: joinedParams,
+                resolvers: resolvers,
+              })
+            } else {
+              // Maintain backward compatibility
+              resolve(joinedParams)
+            }
+          })
+        }
 
         if (shouldStartCall) {
           await call.start()
         }
 
         if (!shouldWaitForJoin) {
-          resolve(call)
+          // If resolvers were requested, return the new format
+          if (createResolversFor.length > 0) {
+            resolve({
+              callSession: call,
+              resolvers: resolvers,
+            })
+          } else {
+            // Maintain backward compatibility
+            resolve(call)
+          }
         }
       })
     },
@@ -505,8 +671,35 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldStartCall,
       shouldWaitForJoin,
       listen: listen ? JSON.stringify(listen) : undefined,
+      createResolversFor,
     }
   )
+}
+
+/**
+ * Helper function to get resolvers stored in window object from the page context
+ * Usage: const resolvers = await getCallResolvers(page)
+ */
+export const getCallResolvers = (page: Page): Promise<CallEventResolvers> => {
+  return page.evaluate(() => {
+    // @ts-expect-error
+    return window._callResolvers || {}
+  })
+}
+
+/**
+ * Helper function to await a specific event resolver promise
+ * Usage: await waitForCallEvent(page, 'member.updated.audioMuted')
+ */
+export const waitForCallEvent = (page: Page, eventName: keyof CallEventResolvers): Promise<any> => {
+  return page.evaluate((eventName) => {
+    // @ts-expect-error
+    const resolvers = window._callResolvers
+    if (resolvers && resolvers[eventName]) {
+      return resolvers[eventName].promise
+    }
+    throw new Error(`No resolver found for event: ${eventName}`)
+  }, eventName)
 }
 
 export const reloadAndReattachAddress = async (

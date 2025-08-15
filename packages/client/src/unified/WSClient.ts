@@ -328,9 +328,10 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       // Attach event listeners if provided
       if (params.listen) {
         this.attachEventListeners(callSession, params.listen)
-        // Start the call
-        await callSession.start()
       }
+      
+      // Always start the call
+      await callSession.start()
       
       return callSession
     } catch (error) {
@@ -348,8 +349,32 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     }
   }
 
-  public reattach(params: ReattachParams) {
-    return this.buildOutboundCall({ ...params, attach: true })
+  public async reattach(params: ReattachParams): Promise<CallSession> {
+    const callSession = this.buildOutboundCall({ ...params, attach: true })
+    
+    try {
+      // Attach event listeners if provided
+      if (params.listen) {
+        this.attachEventListeners(callSession, params.listen)
+      }
+      
+      // Always start the call
+      await callSession.start()
+      
+      return callSession
+    } catch (error) {
+      // Clean up on failure
+      try {
+        callSession.destroy()
+      } catch (cleanupError) {
+        this.logger.warn('Error during callSession cleanup:', cleanupError)
+      }
+      
+      // Provide meaningful error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during reattach'
+      this.logger.error('Failed to reattach:', error)
+      throw new Error(`Failed to reattach to ${params.to}: ${errorMessage}`, { cause: error })
+    }
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {

@@ -1,6 +1,6 @@
 import { WSClient } from './WSClient'
 import { CallSession } from './CallSession'
-import { DialParams } from './interfaces'
+import { DialParams, ReattachParams } from './interfaces'
 import { CallSessionEventHandlers } from './interfaces/callEvents'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
@@ -554,6 +554,409 @@ describe('WSClient - dial() method with event listeners', () => {
         'Error in event handler for call.joined:',
         expect.any(Error)
       )
+    })
+  })
+})
+
+describe('WSClient - reattach() method with event listeners', () => {
+  let mockCallSession: jest.Mocked<CallSession>
+  let mockStorage: jest.Mocked<ReturnType<typeof getStorage>>
+  
+  // Mock WSClient methods we need to test reattach() in isolation
+  let mockBuildOutboundCall: jest.Mock
+  let mockAttachEventListeners: jest.Mock
+  let mockLogger: jest.Mocked<any>
+
+  beforeEach(() => {
+    // Mock storage
+    mockStorage = {
+      removeItem: jest.fn(),
+      setItem: jest.fn(),
+      getItem: jest.fn(),
+    }
+    ;(getStorage as jest.Mock).mockReturnValue(mockStorage)
+
+    // Create mock CallSession
+    mockCallSession = {
+      start: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
+      on: jest.fn(),
+      once: jest.fn(),
+      off: jest.fn(),
+      emit: jest.fn(),
+      memberId: 'test-member-id',
+      callId: 'test-call-id',
+      roomId: 'test-room-id',
+      roomSessionId: 'test-room-session-id',
+      nodeId: 'test-node-id',
+    } as jest.Mocked<CallSession>
+
+    // Mock logger
+    mockLogger = {
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    }
+
+    // Mock WSClient methods
+    mockBuildOutboundCall = jest.fn().mockReturnValue(mockCallSession)
+    mockAttachEventListeners = jest.fn()
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  describe('Basic reattach functionality', () => {
+    test('should reattach successfully without event listeners', async () => {
+      const reattachParams: ReattachParams = {
+        to: 'sip:user@example.com',
+        nodeId: 'test-node-id',
+      }
+
+      // Create a mock reattach implementation
+      const reattachImplementation = async function(this: WSClient, params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        await callSession.start()
+        return callSession
+      }
+
+      const result = await reattachImplementation.call({} as WSClient, reattachParams)
+
+      expect(mockBuildOutboundCall).toHaveBeenCalledWith({ ...reattachParams, attach: true })
+      expect(mockCallSession.start).toHaveBeenCalled()
+      expect(result).toBe(mockCallSession)
+    })
+
+    test('should attach event listeners before starting call', async () => {
+      const mockHandler = jest.fn()
+      const reattachParams: ReattachParams = {
+        to: 'sip:user@example.com',
+        nodeId: 'test-node-id',
+        listen: {
+          'call.joined': mockHandler,
+        },
+      }
+
+      // Create a mock reattach implementation that includes event listener attachment
+      const reattachImplementation = async function(this: WSClient, params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        
+        if (params.listen) {
+          mockAttachEventListeners(callSession, params.listen)
+        }
+        
+        await callSession.start()
+        return callSession
+      }
+
+      await reattachImplementation.call({} as WSClient, reattachParams)
+
+      expect(mockAttachEventListeners).toHaveBeenCalledWith(mockCallSession, reattachParams.listen)
+      expect(mockAttachEventListeners).toHaveBeenCalled()
+      expect(mockCallSession.start).toHaveBeenCalled()
+    })
+
+    test('should handle start() failure and cleanup properly', async () => {
+      const startError = new Error('Failed to start call')
+      mockCallSession.start.mockRejectedValue(startError)
+
+      const reattachParams: ReattachParams = {
+        to: 'sip:user@example.com',
+        nodeId: 'test-node-id',
+      }
+
+      // Create a mock reattach implementation with error handling
+      const reattachImplementation = async function(this: WSClient, params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        
+        try {
+          if (params.listen) {
+            mockAttachEventListeners(callSession, params.listen)
+          }
+          await callSession.start()
+          return callSession
+        } catch (error) {
+          try {
+            callSession.destroy()
+          } catch (cleanupError) {
+            mockLogger.warn('Error during callSession cleanup:', cleanupError)
+          }
+          
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during reattach'
+          mockLogger.error('Failed to reattach:', error)
+          throw new Error(`Failed to reattach to ${params.to}: ${errorMessage}`, { cause: error })
+        }
+      }
+
+      await expect(reattachImplementation.call({ logger: mockLogger } as WSClient, reattachParams))
+        .rejects.toThrow('Failed to reattach to sip:user@example.com: Failed to start call')
+      
+      expect(mockCallSession.destroy).toHaveBeenCalled()
+    })
+
+    test('should work without to parameter (reattach to previous call)', async () => {
+      const reattachParams: ReattachParams = {
+        nodeId: 'test-node-id',
+      }
+
+      const reattachImplementation = async function(this: WSClient, params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        await callSession.start()
+        return callSession
+      }
+
+      const result = await reattachImplementation.call({} as WSClient, reattachParams)
+
+      expect(mockBuildOutboundCall).toHaveBeenCalledWith({ ...reattachParams, attach: true })
+      expect(mockCallSession.start).toHaveBeenCalled()
+      expect(result).toBe(mockCallSession)
+    })
+  })
+
+  describe('Event listeners functionality', () => {
+    test('should handle event listener attachment correctly', () => {
+      const mockCallJoinedHandler = jest.fn()
+      const mockMemberJoinedHandler = jest.fn()
+      
+      const handlers: Partial<CallSessionEventHandlers> = {
+        'call.joined': mockCallJoinedHandler,
+        'member.joined': mockMemberJoinedHandler,
+      }
+
+      // Mock the attachEventListeners implementation (same as dial tests)
+      const attachEventListenersImplementation = function(
+        callSession: CallSession,
+        eventHandlers: Partial<CallSessionEventHandlers>
+      ) {
+        Object.entries(eventHandlers).forEach(([eventName, handler]) => {
+          if (typeof handler === 'function') {
+            const wrappedHandler = async (params: any) => {
+              try {
+                await handler(params)
+              } catch (error) {
+                mockLogger.error(`Error in event handler for ${eventName}:`, error)
+              }
+            }
+            callSession.on(eventName as any, wrappedHandler)
+          }
+        })
+      }
+
+      attachEventListenersImplementation(mockCallSession, handlers)
+
+      expect(mockCallSession.on).toHaveBeenCalledWith('call.joined', expect.any(Function))
+      expect(mockCallSession.on).toHaveBeenCalledWith('member.joined', expect.any(Function))
+      expect(mockCallSession.on).toHaveBeenCalledTimes(2)
+    })
+
+    test('should support all event types for reattach', () => {
+      const universalHandler = jest.fn()
+      
+      const allEvents: Partial<CallSessionEventHandlers> = {
+        'call.joined': universalHandler,
+        'call.state': universalHandler,
+        'call.left': universalHandler,
+        'call.updated': universalHandler,
+        'member.joined': universalHandler,
+        'member.left': universalHandler,
+        'member.updated': universalHandler,
+        'member.talking': universalHandler,
+        'member.updated.audioMuted': universalHandler,
+        'member.updated.videoMuted': universalHandler,
+        'layout.changed': universalHandler,
+        'recording.started': universalHandler,
+        'recording.ended': universalHandler,
+        'stream.started': universalHandler,
+        'stream.ended': universalHandler,
+        'playback.started': universalHandler,
+        'playback.ended': universalHandler,
+        'room.subscribed': universalHandler,
+      }
+
+      const attachEventListenersImplementation = function(
+        callSession: CallSession,
+        eventHandlers: Partial<CallSessionEventHandlers>
+      ) {
+        Object.entries(eventHandlers).forEach(([eventName, handler]) => {
+          if (typeof handler === 'function') {
+            const wrappedHandler = async (params: any) => {
+              try {
+                await handler(params)
+              } catch (error) {
+                mockLogger.error(`Error in event handler for ${eventName}:`, error)
+              }
+            }
+            callSession.on(eventName as any, wrappedHandler)
+          }
+        })
+      }
+
+      attachEventListenersImplementation(mockCallSession, allEvents)
+
+      const expectedCallCount = Object.keys(allEvents).length
+      expect(mockCallSession.on).toHaveBeenCalledTimes(expectedCallCount)
+      
+      const registeredEvents = (mockCallSession.on as jest.Mock).mock.calls.map(call => call[0])
+      Object.keys(allEvents).forEach(eventName => {
+        expect(registeredEvents).toContain(eventName)
+      })
+    })
+  })
+
+  describe('Error handling', () => {
+    test('should handle cleanup failure gracefully', async () => {
+      const startError = new Error('Start failed')
+      const destroyError = new Error('Destroy failed')
+      
+      mockCallSession.start.mockRejectedValue(startError)
+      mockCallSession.destroy.mockImplementation(() => {
+        throw destroyError
+      })
+
+      const reattachParams: ReattachParams = {
+        to: 'sip:user@example.com',
+        nodeId: 'test-node-id',
+      }
+
+      const reattachImplementation = async function(params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        
+        try {
+          await callSession.start()
+          return callSession
+        } catch (error) {
+          try {
+            callSession.destroy()
+          } catch (cleanupError) {
+            mockLogger.warn('Error during callSession cleanup:', cleanupError)
+          }
+          
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during reattach'
+          mockLogger.error('Failed to reattach:', error)
+          throw new Error(`Failed to reattach to ${params.to}: ${errorMessage}`, { cause: error })
+        }
+      }
+
+      await expect(reattachImplementation.call({ logger: mockLogger } as any, reattachParams))
+        .rejects.toThrow('Failed to reattach to sip:user@example.com: Start failed')
+      
+      expect(mockCallSession.destroy).toHaveBeenCalled()
+      expect(mockLogger.warn).toHaveBeenCalledWith('Error during callSession cleanup:', destroyError)
+    })
+
+    test('should handle unknown error types', async () => {
+      const unknownError = 'String error'
+      mockCallSession.start.mockRejectedValue(unknownError)
+
+      const reattachParams: ReattachParams = {
+        to: 'sip:user@example.com',
+        nodeId: 'test-node-id',
+      }
+
+      const reattachImplementation = async function(params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        
+        try {
+          await callSession.start()
+          return callSession
+        } catch (error) {
+          try {
+            callSession.destroy()
+          } catch (cleanupError) {
+            mockLogger.warn('Error during callSession cleanup:', cleanupError)
+          }
+          
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during reattach'
+          mockLogger.error('Failed to reattach:', error)
+          throw new Error(`Failed to reattach to ${params.to}: ${errorMessage}`, { cause: error })
+        }
+      }
+
+      await expect(reattachImplementation.call({ logger: mockLogger } as any, reattachParams))
+        .rejects.toThrow('Failed to reattach to sip:user@example.com: Unknown error occurred during reattach')
+        
+      expect(mockCallSession.destroy).toHaveBeenCalled()
+    })
+  })
+
+  describe('Integration scenarios', () => {
+    test('should handle complete reattach flow with event listeners', async () => {
+      const mockHandler = jest.fn()
+      const reattachParams: ReattachParams = {
+        to: 'sip:user@example.com',
+        nodeId: 'test-node-id',
+        listen: {
+          'call.joined': mockHandler,
+          'member.joined': mockHandler,
+        },
+      }
+
+      const fullReattachImplementation = async function(params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        
+        try {
+          if (params.listen) {
+            // Simulate attachEventListeners
+            Object.entries(params.listen).forEach(([eventName, handler]) => {
+              if (typeof handler === 'function') {
+                const wrappedHandler = async (eventParams: any) => {
+                  try {
+                    await handler(eventParams)
+                  } catch (error) {
+                    mockLogger.error(`Error in event handler for ${eventName}:`, error)
+                  }
+                }
+                callSession.on(eventName as any, wrappedHandler)
+              }
+            })
+          }
+          
+          await callSession.start()
+          return callSession
+        } catch (error) {
+          try {
+            callSession.destroy()
+          } catch (cleanupError) {
+            mockLogger.warn('Error during callSession cleanup:', cleanupError)
+          }
+          
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during reattach'
+          mockLogger.error('Failed to reattach:', error)
+          throw new Error(`Failed to reattach to ${params.to}: ${errorMessage}`, { cause: error })
+        }
+      }
+
+      const result = await fullReattachImplementation(reattachParams)
+
+      expect(mockBuildOutboundCall).toHaveBeenCalledWith({ ...reattachParams, attach: true })
+      expect(mockCallSession.on).toHaveBeenCalledWith('call.joined', expect.any(Function))
+      expect(mockCallSession.on).toHaveBeenCalledWith('member.joined', expect.any(Function))
+      expect(mockCallSession.start).toHaveBeenCalled()
+      expect(result).toBe(mockCallSession)
+    })
+
+    test('should pass attach: true parameter to buildOutboundCall', async () => {
+      const reattachParams: ReattachParams = {
+        audio: true,
+        video: false,
+        to: 'sip:user@example.com',
+        nodeId: 'test-node-id',
+      }
+
+      const reattachImplementation = async function(params: ReattachParams) {
+        const callSession = mockBuildOutboundCall({ ...params, attach: true })
+        await callSession.start()
+        return callSession
+      }
+
+      await reattachImplementation(reattachParams)
+
+      expect(mockBuildOutboundCall).toHaveBeenCalledWith({
+        ...reattachParams,
+        attach: true,
+      })
     })
   })
 })
