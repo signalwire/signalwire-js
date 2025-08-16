@@ -42,3 +42,7 @@ export {
 export * from './utils/interfaces'
 export { BaseConnection, BaseConnectionOptions } from './BaseConnection'
 export { sessionConnectionPoolWorker } from './workers/sessionConnectionPoolWorker'
+export { BaselineManager } from './monitoring/BaselineManager'
+export type { BaselineComparison } from './monitoring/BaselineManager'
+export * from './monitoring/interfaces'
+export * from './monitoring/constants'
