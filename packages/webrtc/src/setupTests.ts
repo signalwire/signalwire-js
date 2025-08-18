@@ -80,6 +80,7 @@ Object.defineProperty(navigator, 'permissions', {
   value: {
     query: jest.fn(() => ({})),
   },
+  configurable: true,
 })
 
 Object.defineProperty(navigator, 'mediaDevices', {
@@ -111,4 +112,5 @@ Object.defineProperty(navigator, 'mediaDevices', {
       return stream
     }),
   },
+  configurable: true,
 })

@@ -30,6 +30,7 @@ import {
   RoomSessionScreenShareEvents,
 } from './RoomSessionScreenShare'
 import * as workers from './video/workers'
+import { VisibilityConfig } from './visibility'
 
 export interface BaseRoomSession<
   EventTypes extends EventEmitter.ValidEventTypes = BaseRoomSessionEvents
@@ -37,7 +38,14 @@ export interface BaseRoomSession<
     BaseConnection<EventTypes>,
     BaseComponentContract {}
 
-export interface BaseRoomSessionOptions extends BaseConnectionOptions {}
+export interface BaseRoomSessionOptions extends BaseConnectionOptions {
+  /**
+   * Configuration for visibility lifecycle management
+   * This feature helps maintain WebRTC connections when tabs are hidden/restored
+   * @default undefined (disabled)
+   */
+  visibilityConfig?: VisibilityConfig
+}
 
 export class BaseRoomSessionConnection<
     EventTypes extends EventEmitter.ValidEventTypes = BaseRoomSessionEvents
@@ -49,6 +57,7 @@ export class BaseRoomSessionConnection<
   private _audioEl: AudioElement
   private _overlayMap: OverlayMap
   private _localVideoOverlay: LocalVideoOverlay
+  private _visibilityWorkerTask?: any
 
   get audioEl() {
     return this._audioEl
@@ -135,6 +144,12 @@ export class BaseRoomSessionConnection<
       screenShare.leave()
     })
 
+    // Clean up visibility worker if it exists
+    if (this._visibilityWorkerTask) {
+      this._visibilityWorkerTask.cancel()
+      this._visibilityWorkerTask = undefined
+    }
+
     return super.hangup(id)
   }
 
@@ -152,6 +167,29 @@ export class BaseRoomSessionConnection<
     this.runWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,
     })
+
+    // Initialize visibility worker if configured
+    const options = this.options as BaseRoomSessionOptions
+    if (options.visibilityConfig && options.visibilityConfig.enabled !== false) {
+      this.initVisibilityWorker()
+    }
+  }
+
+  /**
+   * Initialize the visibility lifecycle management worker
+   * @internal
+   */
+  private initVisibilityWorker() {
+    const options = this.options as BaseRoomSessionOptions
+    const { visibilityWorker } = require('./workers')
+    this._visibilityWorkerTask = this.runWorker('visibilityWorker', {
+      worker: visibilityWorker,
+      // Pass parameters through the worker options
+      initialArgs: {
+        instance: this,
+        visibilityConfig: options.visibilityConfig,
+      },
+    } as any)
   }
 
   /** @internal */
