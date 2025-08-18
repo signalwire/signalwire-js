@@ -5,6 +5,7 @@ import type {
   SignalWireClient,
   SignalWireContract,
 } from '@signalwire/client'
+import type { CallJoinedEventParams } from '@signalwire/core'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
@@ -354,6 +355,7 @@ export const createCFClient = async (
   params?: CreateCFClientParams
 ) => {
   const sat = await createTestSATToken(params?.reference)
+  expect(sat, 'SAT token created').toBeDefined()
   return createCFClientWithToken(page, sat, params)
 }
 
@@ -408,6 +410,10 @@ const createCFClientWithToken = async (
       }
 
       const SignalWire = window._SWJS.SignalWire
+      expect(SignalWire, 'SignalWire is defined').toBeDefined()
+
+      expect(options.API_TOKEN, 'API token is defined').toBeDefined()
+      expect(options.RELAY_HOST, 'Relay host is defined').toBeDefined()
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
@@ -1404,10 +1410,8 @@ export const createVideoRoomResource = async (name?: string) => {
     }
   )
   const data = (await response.json()) as Resource
+  expect(data.id, 'Video Room resource created').toBeDefined()
   console.log('>> Resource VideoRoom created:', data.id, name)
-  if (!data.id) {
-    throw new Error('Failed to create Video Room resource')
-  }
   return data
 }
 
