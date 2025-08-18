@@ -1,3 +1,5 @@
-import * as SWJS from '@signalwire/client'
+import * as ClientModule from '@signalwire/client'
 
-window._SWJS = SWJS
+window._SWJS = {
+  ...ClientModule,
+}
