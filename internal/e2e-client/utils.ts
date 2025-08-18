@@ -1824,3 +1824,43 @@ export const waitForFunction = async <TArg, TResult>(
     }
   }
 }
+
+/**
+ * uses the expectToPass utility to assert that a promise resolves
+ * as a wrapper util to avoid repeating the same code
+ */
+export const expectPageEvalToPass = async <TArgs, TResult>(
+  page: Page,
+  {
+    booleanAssert = true,
+    evaluateArgs,
+    evaluateFn,
+    messageAssert,
+    messageError,
+    timeoutMs = 10_000,
+  }: {
+    booleanAssert?: boolean
+    evaluateArgs?: TArgs
+    evaluateFn: PageFunction<TArgs, TResult>
+    messageAssert: string
+    messageError: string
+    timeoutMs?: number
+  }
+) => {
+  return expectToPass(
+    async () => {
+      let result: TResult
+      if (evaluateArgs) {
+        result = await page.evaluate(
+          evaluateFn as PageFunction<TArgs, TResult>,
+          evaluateArgs
+        )
+      } else {
+        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
+      }
+      expect(result, messageAssert).toBe(booleanAssert)
+    },
+    { message: messageError },
+    { timeout: timeoutMs }
+  )
+}
