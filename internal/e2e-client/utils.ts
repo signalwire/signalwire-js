@@ -1603,8 +1603,10 @@ export const expectCFInitialEvents = (
   extraEvents: Promise<boolean>[] = []
 ) => {
   const initialEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
 
     const callCreated = new Promise<boolean>((resolve) => {
       callObj.on('call.state', (params) => {
@@ -1634,8 +1636,10 @@ export const expectCFFinalEvents = (
   extraEvents: Promise<unknown>[] = []
 ) => {
   const finalEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
 
     const callLeft = new Promise((resolve) => {
       callObj.on('destroy', () => resolve(true))
@@ -1680,8 +1684,10 @@ export const expectRoomJoined = (
 ) => {
   return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve, reject) => {
-      // @ts-expect-error
-      const callObj: CallSession = window._callObj
+      const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
 
       callObj.once('room.joined', (room) => {
         console.log('Room joined!')
@@ -1698,8 +1704,10 @@ export const expectRoomJoined = (
 export const expectScreenShareJoined = async (page: Page) => {
   return page.evaluate(() => {
     return new Promise<any>(async (resolve) => {
-      // @ts-expect-error
-      const callObj: CallSession = window._callObj
+      const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
 
       callObj.on('member.joined', (params) => {
         if (params.member.type === 'screen') {
