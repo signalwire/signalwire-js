@@ -1779,6 +1779,7 @@ export const expectToPass = async (
 ) => {
   try {
     const mergedOptions = {
+      interval: [10_000], // 10 seconds to avoid polling
       timeout: 10_000,
       ...options,
     }
@@ -1801,6 +1802,7 @@ export const waitForFunction = async <TArg, TResult>(
 ) => {
   try {
     const mergedOptions = {
+      interval: [10_000], // 10 seconds to avoid polling
       timeout: 10_000,
       ...options,
     }
