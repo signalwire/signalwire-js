@@ -129,50 +129,31 @@ test.describe('CallCall Reattach', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        // Use Promise.withResolvers for better event handling
-        const { promise: memberMutedPromise, resolve: resolveMuted } = Promise.withResolvers()
-
-        let eventsReceived = 0
-
-        // Set up event listeners
-        const handleMutedUpdate = (event: any) => {
-          if (
-            event.member.member_id === memberId &&
-            event.member.updated.includes('audio_muted') &&
-            event.member.audio_muted === true
-          ) {
-            eventsReceived++
-            if (eventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
-              resolveMuted(true)
+        const memberUpdatedEvent = new Promise((res) => {
+          callObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
+              event.member.audio_muted === true
+            ) {
+              res(true)
             }
-          }
-        }
-
-        const handleMutedUpdateAudio = (event: any) => {
-          if (
-            event.member.member_id === memberId &&
-            event.member.updated.includes('audio_muted') &&
-            event.member.audio_muted === true
-          ) {
-            eventsReceived++
-            if (eventsReceived >= 2) { // Both member.updated and member.updated.audioMuted
-              resolveMuted(true)
+          })
+        })
+        const memberUpdatedAudioMutedEvent = new Promise((res) => {
+          callObj.on('member.updated.audioMuted', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('audio_muted') &&
+              event.member.audio_muted === true
+            ) {
+              res(true)
             }
-          }
-        }
-
-        // Attach event listeners
-        callObj.on('member.updated', handleMutedUpdate)
-        callObj.on('member.updated.audioMuted', handleMutedUpdateAudio)
+          })
+        })
 
         await callObj.audioMute()
-        await memberMutedPromise
-
-        // Clean up listeners
-        callObj.off('member.updated', handleMutedUpdate)
-        callObj.off('member.updated.audioMuted', handleMutedUpdateAudio)
-
-        return true
+        return Promise.all([memberUpdatedEvent, memberUpdatedAudioMutedEvent])
       }, memberId)
     })
 
