@@ -324,11 +324,6 @@ export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
     const callObj = window._callObj
 
-    if (!callObj) {
-      throw new Error('Call object not found')
-    }
-
-    console.log('Fixture callObj', callObj)
     if (callObj && callObj?.roomSessionId) {
       console.log('Fixture has room', callObj.roomSessionId)
       await callObj.leave()
