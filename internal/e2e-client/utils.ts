@@ -436,7 +436,11 @@ interface DialAddressParams {
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
 }
-export const dialAddress = (page: Page, params: DialAddressParams) => {
+
+export const dialAddress = <TReturn extends unknown = CallJoinedEventParams>(
+  page: Page,
+  params: DialAddressParams
+) => {
   const {
     address,
     dialOptions = {},
@@ -454,8 +458,10 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldStartCall,
       shouldWaitForJoin,
     }) => {
-      return new Promise<any>(async (resolve, _reject) => {
-        // @ts-expect-error
+      return new Promise<TReturn>(async (resolve, _reject) => {
+        if (!window._client) {
+          throw new Error('Client is not defined')
+        }
         const client: SignalWireContract = window._client
 
         const dialer = reattach ? client.reattach : client.dial
@@ -469,7 +475,9 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
         })
 
         if (shouldWaitForJoin) {
-          call.on('room.joined', resolve)
+          call.on('room.joined', (params) => {
+            resolve(params as TReturn)
+          })
         }
 
         window._callObj = call
@@ -479,7 +487,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
         }
 
         if (!shouldWaitForJoin) {
-          resolve(call)
+          resolve(call as TReturn)
         }
       })
     },
