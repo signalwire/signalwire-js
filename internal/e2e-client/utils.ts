@@ -1772,6 +1772,11 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   expect(roomMemberId).toEqual(memberId)
 }
 
+/**
+ * @description
+ * Uses the expect().toPass() Playwright with a default timeout
+ *
+ */
 export const expectToPass = async (
   assertion: () => Promise<void>,
   { message }: { message: string },
@@ -1826,12 +1831,16 @@ export const waitForFunction = async <TArg, TResult>(
 }
 
 /**
- * uses the expectToPass utility to assert that a promise resolves
- * as a wrapper util to avoid repeating the same code
+ * @description
+ * Uses the expectToPass utility to assert that a promise resolves
+ * - allows the user to provide a custom assertion function or use the default one
+ * - allows the user to provide a custom timeout
+ * - provide a custom message for the assertion and error
  */
 export const expectPageEvalToPass = async <TArgs, TResult>(
   page: Page,
   {
+    assertionFn,
     booleanAssert = true,
     evaluateArgs,
     evaluateFn,
@@ -1839,6 +1848,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     messageError,
     timeoutMs = 10_000,
   }: {
+    assertionFn?: (result: TResult, message: string) => void
     booleanAssert?: boolean
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
@@ -1850,15 +1860,25 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
   return expectToPass(
     async () => {
       let result: TResult
+
+      // evaluate the function with the provided arguments
       if (evaluateArgs) {
         result = await page.evaluate(
           evaluateFn as PageFunction<TArgs, TResult>,
           evaluateArgs
         )
       } else {
+        // evaluate the function without arguments
         result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
       }
-      expect(result, messageAssert).toBe(booleanAssert)
+
+      // allow the user to provide a custom assertion function
+      if (assertionFn) {
+        assertionFn(result, messageAssert)
+        // otherwise, use the default assertion function
+      } else {
+        expect(result, messageAssert).toBe(booleanAssert)
+      }
     },
     { message: messageError },
     { timeout: timeoutMs }
