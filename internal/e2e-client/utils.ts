@@ -154,7 +154,9 @@ export const createTestSATToken = async (reference?: string) => {
       }),
     }
   )
-  const data = await response.json()
+  const data = (await response.json()) as {
+    token: string
+  }
   return data.token
 }
 
