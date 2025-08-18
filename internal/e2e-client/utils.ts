@@ -405,10 +405,16 @@ const createCFClientWithToken = async (
       }
 
       const SignalWire = window._SWJS.SignalWire
-      expect(SignalWire, 'SignalWire is defined').toBeDefined()
+      if (!SignalWire) {
+        throw new Error('SignalWire is not defined')
+      }
+      if (!options.RELAY_HOST) {
+        throw new Error('Relay host is not defined')
+      }
+      if (!options.API_TOKEN) {
+        throw new Error('API token is not defined')
+      }
 
-      expect(options.API_TOKEN, 'API token is defined').toBeDefined()
-      expect(options.RELAY_HOST, 'Relay host is defined').toBeDefined()
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
