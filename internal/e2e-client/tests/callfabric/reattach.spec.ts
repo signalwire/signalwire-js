@@ -95,50 +95,31 @@ test.describe('CallCall Reattach', () => {
         // @ts-expect-error
         const callObj: CallSession = window._callObj
 
-        // Use Promise.withResolvers for better event handling
-        const { promise: memberMutedPromise, resolve: resolveMuted } = Promise.withResolvers()
-
-        let eventsReceived = 0
-
-        // Set up event listeners
-        const handleMutedUpdate = (event: any) => {
-          if (
-            event.member.member_id === memberId &&
-            event.member.updated.includes('video_muted') &&
-            event.member.video_muted === true
-          ) {
-            eventsReceived++
-            if (eventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
-              resolveMuted(true)
+        const memberUpdatedEvent = new Promise((res) => {
+          callObj.on('member.updated', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
+              event.member.video_muted === true
+            ) {
+              res(true)
             }
-          }
-        }
-
-        const handleMutedUpdateVideo = (event: any) => {
-          if (
-            event.member.member_id === memberId &&
-            event.member.updated.includes('video_muted') &&
-            event.member.video_muted === true
-          ) {
-            eventsReceived++
-            if (eventsReceived >= 2) { // Both member.updated and member.updated.videoMuted
-              resolveMuted(true)
+          })
+        })
+        const memberUpdatedVideoMutedEvent = new Promise((res) => {
+          callObj.on('member.updated.videoMuted', (event) => {
+            if (
+              event.member.member_id === memberId &&
+              event.member.updated.includes('video_muted') &&
+              event.member.video_muted === true
+            ) {
+              res(true)
             }
-          }
-        }
-
-        // Attach event listeners
-        callObj.on('member.updated', handleMutedUpdate)
-        callObj.on('member.updated.videoMuted', handleMutedUpdateVideo)
+          })
+        })
 
         await callObj.videoMute()
-        await memberMutedPromise
-
-        // Clean up listeners
-        callObj.off('member.updated', handleMutedUpdate)
-        callObj.off('member.updated.videoMuted', handleMutedUpdateVideo)
-
-        return true
+        return Promise.all([memberUpdatedEvent, memberUpdatedVideoMutedEvent])
       }, memberId)
     })
 
@@ -203,24 +184,16 @@ test.describe('CallCall Reattach', () => {
           // @ts-expect-error
           const callObj: CallSession = window._callObj
 
-          // Use Promise.withResolvers for better event handling
-          const { promise: roomLockedPromise, resolve: resolveRoomLocked } = Promise.withResolvers()
-
-          // Set up event listener
-          const handleRoomLocked = (params: any) => {
-            if (params.room_session.locked === true) {
-              resolveRoomLocked(true)
-            }
-          }
-
-          // Attach event listener
-          callObj.on('room.updated', handleRoomLocked)
+          const roomUpdatedLocked = new Promise((res) => {
+            callObj.on('room.updated', (params) => {
+              if (params.room_session.locked === true) {
+                res(true)
+              }
+            })
+          })
 
           await callObj.lock()
-          await roomLockedPromise
-
-          // Clean up listener
-          callObj.off('room.updated', handleRoomLocked)
+          await roomUpdatedLocked
         },
         { callSession: callSessionBefore }
       )
@@ -233,50 +206,34 @@ test.describe('CallCall Reattach', () => {
           // @ts-expect-error
           const callObj: CallSession = window._callObj
 
-          // Use Promise.withResolvers for better event handling
-          const { promise: volumeChangedPromise, resolve: resolveVolumeChanged } = Promise.withResolvers()
-
-          let eventsReceived = 0
-
-          // Set up event listeners
-          const handleVolumeUpdate = (event: any) => {
-            if (
-              event.member.member_id === memberId &&
-              event.member.updated.includes('input_volume') &&
-              event.member.input_volume === volume
-            ) {
-              eventsReceived++
-              if (eventsReceived >= 2) { // Both member.updated and member.updated.inputVolume
-                resolveVolumeChanged(true)
+          const memberUpdatedEvent = new Promise((res) => {
+            callObj.on('member.updated', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
+                event.member.input_volume === volume
+              ) {
+                res(true)
               }
-            }
-          }
-
-          const handleVolumeUpdateSpecific = (event: any) => {
-            if (
-              event.member.member_id === memberId &&
-              event.member.updated.includes('input_volume') &&
-              event.member.input_volume === volume
-            ) {
-              eventsReceived++
-              if (eventsReceived >= 2) { // Both member.updated and member.updated.inputVolume
-                resolveVolumeChanged(true)
+            })
+          })
+          const memberUpdatedInputVolumeEvent = new Promise((res) => {
+            callObj.on('member.updated.inputVolume', (event) => {
+              if (
+                event.member.member_id === memberId &&
+                event.member.updated.includes('input_volume') &&
+                event.member.input_volume === volume
+              ) {
+                res(true)
               }
-            }
-          }
-
-          // Attach event listeners
-          callObj.on('member.updated', handleVolumeUpdate)
-          callObj.on('member.updated.inputVolume', handleVolumeUpdateSpecific)
+            })
+          })
 
           await callObj.setInputVolume({ volume: volume })
-          await volumeChangedPromise
-
-          // Clean up listeners
-          callObj.off('member.updated', handleVolumeUpdate)
-          callObj.off('member.updated.inputVolume', handleVolumeUpdateSpecific)
-
-          return true
+          return Promise.all([
+            memberUpdatedEvent,
+            memberUpdatedInputVolumeEvent,
+          ])
         },
         { volume: MIC_VOLUME, memberId }
       )
