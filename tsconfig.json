@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "lib": ["dom", "es2024"],
+    "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "ES2024",
+    "target": "ESNext",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
