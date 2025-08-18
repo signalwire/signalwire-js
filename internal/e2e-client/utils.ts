@@ -521,8 +521,7 @@ export const reloadAndReattachAddress = async (
 
 export const disconnectClient = (page: Page) => {
   return page.evaluate(async () => {
-    // @ts-expect-error
-    const client: SignalWireContract = window._client
+    const client = window._client
 
     if (!client) {
       console.log('Client is not available')
@@ -580,9 +579,12 @@ interface GetStatsResult {
 
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
   return await page.evaluate<GetStatsResult>(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
-    // @ts-expect-error
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+
+    // @ts-expect-error - peer is not defined in the call object
     const rtcPeer = callObj.peer
 
     // Get the currently active inbound and outbound tracks.
@@ -723,13 +725,15 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 
 export const getAudioStats = async (page: Page) => {
   const audioStats = await page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
 
-    // @ts-expect-error
+    // @ts-expect-error - peer is not defined in the call object
     const audioTrackId = callObj.peer._getReceiverByKind('audio').track.id
 
-    // @ts-expect-error
+    // @ts-expect-error - peer is not defined in the call object
     const stats = await callObj.peer.instance.getStats(null)
     const filter = {
       'inbound-rtp': [
@@ -798,9 +802,12 @@ export const expectSDPDirection = async (
   value: boolean
 ) => {
   const peerSDP = await page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
-    // @ts-expect-error
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+
+    // @ts-expect-error - peer is not defined in the call object
     return callObj.peer.localSdp
   })
 
