@@ -4,7 +4,6 @@ import type {
   SignalWire,
   SignalWireClient,
   SignalWireContract,
-  CallJoinedEventParams,
 } from '@signalwire/client'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
