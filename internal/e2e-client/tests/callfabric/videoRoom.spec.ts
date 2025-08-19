@@ -12,7 +12,6 @@ import {
   setLayoutOnPage,
   waitForFunction,
 } from '../../utils'
-import { PageWithWsInspector } from 'playwrigth-ws-inspector'
 import { JSHandle } from '@playwright/test'
 
 test.describe('CallFabric VideoRoom', () => {
@@ -22,7 +21,7 @@ test.describe('CallFabric VideoRoom', () => {
   }) => {
     let callObj = {} as JSHandle<CallSession>
     let callSession = {} as CallJoinedEventParams
-    let page = {} as PageWithWsInspector<CustomPage>
+    let page = {} as CustomPage
 
     await test.step('setup page and call', async () => {
       page = await createCustomPage({ name: '[page]' })
