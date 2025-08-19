@@ -62,16 +62,14 @@ test.describe('CallFabric VideoRoom', () => {
     })
 
     await test.step('sanity check - call object, call session and page are set', async () => {
-      // assert that each object has at least one key (not empty)
-      expect(
-        Object.keys(callObj).length,
-        'callObj has properties'
-      ).toBeGreaterThan(0)
-      expect(
-        Object.keys(callSession).length,
-        'callSession has properties'
-      ).toBeGreaterThan(0)
-      expect(Object.keys(page).length, 'page has properties').toBeGreaterThan(0)
+      expect(callObj.getProperty('on')).toBeDefined()
+      expect(callObj.getProperty('audioMute')).toBeDefined()
+      expect(callObj.getProperty('leave')).toBeDefined()
+      expect(callSession).toHaveProperty('room_session')
+      expect(callSession).toHaveProperty('member_id')
+      expect(page.goto).toBeDefined()
+      expect(page.evaluate).toBeDefined()
+      expect(page.waitForSelector).toBeDefined()
     })
 
     // --------------- Muting Audio (self) ---------------
