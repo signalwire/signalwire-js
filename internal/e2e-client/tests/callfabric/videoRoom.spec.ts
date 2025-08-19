@@ -33,9 +33,9 @@ test.describe('CallCall VideoRoom', () => {
       await createCFClient(page)
 
       // Dial an address and join a video room
-      callSession = await dialAddress(page, {
+      callSession = (await dialAddress(page, {
         address: `/public/${roomName}?channel=video`,
-      })
+      })) as CallJoinedEventParams
 
       expect(callSession.room_session).toBeDefined()
       expect(callSession.room_session.name).toBeDefined()
@@ -597,9 +597,9 @@ test.describe('CallCall VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address with audio only channel
-    const callSession = await dialAddress(page, {
+    const callSession = (await dialAddress(page, {
       address: `/public/${roomName}?channel=audio`,
-    })
+    })) as any
 
     expect(callSession.room_session).toBeDefined()
     expect(

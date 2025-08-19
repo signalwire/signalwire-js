@@ -467,10 +467,7 @@ interface DialAddressParams {
   shouldPassRootElement?: boolean
 }
 
-export const dialAddress = <TReturn extends unknown = CallJoinedEventParams>(
-  page: Page,
-  params: DialAddressParams
-) => {
+export const dialAddress = (page: Page, params: DialAddressParams) => {
   const {
     address,
     dialOptions = {},
@@ -488,7 +485,7 @@ export const dialAddress = <TReturn extends unknown = CallJoinedEventParams>(
       shouldStartCall,
       shouldWaitForJoin,
     }) => {
-      return new Promise<TReturn>(async (resolve, _reject) => {
+      return new Promise(async (resolve, _reject) => {
         if (!window._client) {
           throw new Error('Client is not defined')
         }
@@ -506,7 +503,7 @@ export const dialAddress = <TReturn extends unknown = CallJoinedEventParams>(
 
         if (shouldWaitForJoin) {
           call.on('room.joined', (params) => {
-            resolve(params as TReturn)
+            resolve(params)
           })
         }
 
@@ -517,7 +514,7 @@ export const dialAddress = <TReturn extends unknown = CallJoinedEventParams>(
         }
 
         if (!shouldWaitForJoin) {
-          resolve(call as TReturn)
+          resolve(call)
         }
       })
     },
@@ -1880,6 +1877,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateFn,
     messageAssert,
     messageError,
+    intervalMs = 10_000,
     timeoutMs = 10_000,
   }: {
     assertionFn?: (result: TResult, message: string) => void
