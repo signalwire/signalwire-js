@@ -1,4 +1,4 @@
-import { test } from '../fixtures'
+import { test, expect } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -50,7 +50,13 @@ test.describe('Room Streaming from REST API', () => {
     // Visit the stream page on pageTwo to make sure it's working
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
-    await pageTwo.waitForSelector(`text=${streamName}`, { timeout: 10_000 })
+
+    const locator = pageTwo.getByText(streamName)
+    await expect(async () => {
+      await pageTwo.reload({ waitUntil: 'domcontentloaded' })
+      await expect(locator).toBeVisible({ timeout: 0 })
+    }).toPass({ timeout: 10_000, intervals: [500] })
+
     console.log('>> Stream is visible on pageTwo')
     await deleteRoom(roomData.id)
   })
