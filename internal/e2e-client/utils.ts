@@ -1878,7 +1878,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateFn,
     messageAssert,
     messageError,
-    intervalMs = 10_000,
+    interval = [10_000],
     timeoutMs = 10_000,
   }: {
     assertionFn?: (result: TResult, message: string) => void
@@ -1887,13 +1887,13 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateFn: PageFunction<TArgs, TResult>
     messageAssert: string
     messageError: string
+    interval?: number[]
     timeoutMs?: number
   }
 ) => {
-  return expectToPass(
+  let result: TResult | undefined
+  await expectToPass(
     async () => {
-      let result: TResult
-
       // evaluate the function with the provided arguments
       if (evaluateArgs) {
         result = await page.evaluate(
@@ -1914,6 +1914,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
       }
     },
     { message: messageError },
-    { timeout: timeoutMs }
+    { timeout: timeoutMs, interval: interval }
   )
+  return result
 }
