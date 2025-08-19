@@ -1,4 +1,3 @@
-import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
   CreatecXMLScriptParams,
@@ -22,9 +21,7 @@ type CustomPage = Page & {
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: {
-    name: string
-  }): Promise<PageWithWsInspector<CustomPage>>
+  createCustomPage(options: { name: string }): Promise<CustomPage>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
     createcXMLExternalURLResource: typeof createcXMLExternalURLResource
@@ -38,25 +35,21 @@ type CustomFixture = {
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: { name: string }) => {
-      let page = await context.newPage()
+    const maker = async (options: { name: string }): Promise<CustomPage> => {
+      const page = (await context.newPage()) as CustomPage
       enablePageLogs(page, options.name)
 
-      const pageWithWsInspector = (await intercepWsTraffic(
-        // @ts-expect-error - PageWithWsInspector<CustomPage> is not assignable to Page
-        page
-      )) as PageWithWsInspector<CustomPage>
-
-      pageWithWsInspector.swNetworkDown = () => {
+      page.swNetworkDown = () => {
         console.log('Simulate network down..')
         return context.setOffline(true)
       }
-      pageWithWsInspector.swNetworkUp = () => {
+
+      page.swNetworkUp = () => {
         console.log('Simulate network up..')
         return context.setOffline(false)
       }
 
-      return pageWithWsInspector
+      return page
     }
 
     try {
