@@ -289,8 +289,6 @@ test.describe('CallCall VideoRoom', () => {
 
     // --------------- Screenshare ---------------
     await test.step('screen share', async () => {
-      let screenMemberId: string | undefined
-
       const screenMemberJoined = expectPageEvalToPass(page, {
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
@@ -306,8 +304,6 @@ test.describe('CallCall VideoRoom', () => {
           expect(typeof result, message).toBe('string')
           expect(result, message).toMatch(/^[a-z0-9-]+$/) // is of a uuid
           expect(result.length, message).toBeGreaterThan(0)
-          // set screenMemberId to the resolved value
-          screenMemberId = result
         },
         messageAssert: 'expect screen joined result',
         messageError: 'screen joined',
@@ -324,6 +320,8 @@ test.describe('CallCall VideoRoom', () => {
         { callObj },
         { message: 'screen share obj' }
       )
+
+      const screenMemberId = await screenMemberJoined
 
       // --------------- Check Screen Share ID ---------------
       await expectPageEvalToPass(page, {
