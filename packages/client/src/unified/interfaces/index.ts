@@ -83,7 +83,3 @@ export * from './device'
 export * from './httpClient'
 export * from './incomingCallManager'
 export * from './wsClient'
-export * from './callEvents'
-
-// Re-export CallSession type from the main module
-export type { CallSession } from '../CallSession'

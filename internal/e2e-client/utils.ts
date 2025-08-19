@@ -10,125 +10,12 @@ import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
 import { Page } from '@playwright/test'
+import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { EventEmitter } from 'events'
-
-// Type for Promise resolver functions  
-type PromiseResolver<T = any> = (value: T) => void
-type PromiseRejecter = (reason?: any) => void
-
-// Simple event handler type for common call events
-type CallEventHandler<T = any> = (params: T) => void | Promise<void>
-
-// Simplified interface for event handlers (subset of what's available)
-interface SimpleCallSessionEventHandlers {
-  'call.joined'?: CallEventHandler
-  'call.state'?: CallEventHandler
-  'call.left'?: CallEventHandler
-  'call.updated'?: CallEventHandler
-  'member.joined'?: CallEventHandler
-  'member.left'?: CallEventHandler
-  'member.updated'?: CallEventHandler
-  'member.talking'?: CallEventHandler
-  'member.updated.audioMuted'?: CallEventHandler
-  'member.updated.videoMuted'?: CallEventHandler
-  'layout.changed'?: CallEventHandler
-  'room.joined'?: CallEventHandler
-  'room.left'?: CallEventHandler
-  'room.updated'?: CallEventHandler
-}
-
-// Interface for managing resolvers for common call events
-export interface CallEventResolvers {
-  // Call lifecycle events
-  'call.joined'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'call.state'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'call.left'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'call.updated'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  
-  // Member events
-  'member.joined'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'member.left'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'member.updated'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'member.talking'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  
-  // Member sub-events
-  'member.updated.audioMuted'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'member.updated.videoMuted'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  
-  // Layout events
-  'layout.changed'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  
-  // Room events
-  'room.joined'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'room.left'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-  'room.updated'?: {
-    promise: Promise<any>
-    resolve: PromiseResolver
-    reject: PromiseRejecter
-  }
-}
-
-// Result type for dialAddress function  
-export interface DialAddressResult {
-  callSession: CallSession
-  resolvers: CallEventResolvers
-}
 
 declare global {
   interface Window {
@@ -137,7 +24,13 @@ declare global {
     }
     _client?: SignalWireClient
     _callObj?: CallSession
-    _callResolvers?: CallEventResolvers
+    _callState?: {
+      history: any[]
+      update(event: string, payload: any): void
+      getState(): any
+      getSelfState(): any
+      logHistory(): void
+    }
   }
 }
 
@@ -175,22 +68,24 @@ export const createTestServer = async (
     logLevel: 'silent',
     resolve: {
       alias: {
-        '@signalwire/client': path.resolve(__dirname, '../../packages/client/src'),
+        '@signalwire/client': path.resolve(
+          __dirname,
+          '../../packages/client/src'
+        ),
         '@signalwire/core': path.resolve(__dirname, '../../packages/core/src'),
-        '@signalwire/webrtc': path.resolve(__dirname, '../../packages/webrtc/src'),
+        '@signalwire/webrtc': path.resolve(
+          __dirname,
+          '../../packages/webrtc/src'
+        ),
         '@signalwire/js': path.resolve(__dirname, '../../packages/js/src'),
       },
     },
     optimizeDeps: {
-      include: [
-        '@signalwire/client',
-        '@signalwire/core',
-        '@signalwire/webrtc',
-      ],
+      include: ['@signalwire/client', '@signalwire/core', '@signalwire/webrtc'],
     },
     define: {
       'process.env': '{}',
-      'process': '{}',
+      process: '{}',
     },
   })
 
@@ -449,9 +344,7 @@ export const deleteRoom = async (id: string) => {
 
 export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
-    const callObj: CallSession =
-      // @ts-expect-error
-      window._callObj
+    const callObj = window._callObj
     console.log('Fixture callObj', callObj)
     if (callObj && callObj?.roomSessionId) {
       console.log('Fixture has room', callObj.roomSessionId)
@@ -536,6 +429,7 @@ const createCFClientWithToken = async (
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
+        logLevel: 'info',
         debug: { logWsTraffic: true },
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
@@ -553,6 +447,102 @@ const createCFClientWithToken = async (
   return swClient
 }
 
+export const createCallStateUtility = (page: Page) => {
+  return page.evaluate(() => {
+    // Initialize the global _callState with a state utility that keeps the history of the call state
+    window._callState = {
+      history: [],
+
+      update(event: string, payload: any) {
+        const timestamp = Date.now()
+
+        let newState
+
+        if (!event.startsWith('member')) {
+          newState = {
+            ...this.getState(),
+            ...payload,
+          }
+        } else {
+          newState = {
+            ...this.getState(),
+          }
+          const memberIndex = newState.room_session.members.findIndex(
+            (m: any) => m.member_id == payload.member.member_id
+          )
+          if (memberIndex >= 0) {
+            newState.room_session.members[memberIndex] = {
+              ...newState.room_session.members[memberIndex],
+              ...payload.member,
+            }
+          }
+        }
+
+        const entry = { event, payload, timestamp, state: newState }
+
+        // Add to history
+        this.history.push(entry)
+      },
+
+      getState() {
+        return this.history.length
+          ? { ...this.history[this.history.length - 1].state }
+          : null
+      },
+      getSelfState() {
+        const state = this.getState()
+        return state?.room_session?.members.find(
+          (m: any) => m.member_id == state.member_id
+        )
+      },
+      logHistory() {
+        console.log(
+          'Call State History:',
+          JSON.stringify(this.history, null, 2)
+        )
+      },
+    }
+
+    return window._callState
+  })
+}
+
+export const waitSefState = async (
+  page: Page,
+  criteria: any,
+  options?: {
+    interval?: number[]
+    timeout?: number
+    message?: string
+  }
+) => {
+  try {
+    return page.waitForFunction(
+      (criteria) => {
+        if (!criteria) return true
+
+        if (typeof criteria !== 'object') {
+          const self = window._callState?.getSelfState()
+          return Object.keys(criteria).every(
+            (key) => self[key] === criteria[key]
+          )
+        }
+
+        return false
+      },
+      criteria,
+      { timeout: 5_000, ...options }
+    )
+  } catch (error) {
+    page.evaluate(() => window._callState?.logHistory())
+    if (options?.message) {
+      throw new Error(`waitSefState: ${options.message} `)
+    } else {
+      throw new Error('waitSefState:', error)
+    }
+  }
+}
+
 interface DialAddressParams {
   address: string
   dialOptions?: Partial<DialParams>
@@ -560,15 +550,18 @@ interface DialAddressParams {
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
-  listen?: SimpleCallSessionEventHandlers
-  /** Array of event names to automatically create Promise.withResolvers for */
-  createResolversFor?: (keyof CallEventResolvers)[]
+  shouldListenToEvent?: boolean
 }
 
 // Overloaded function signatures for backward compatibility
-export function dialAddress(page: Page, params: DialAddressParams & { createResolversFor: (keyof CallEventResolvers)[] }): Promise<DialAddressResult>
-export function dialAddress(page: Page, params: DialAddressParams): Promise<any>
-export function dialAddress(page: Page, params: DialAddressParams): Promise<any> {
+export function dialAddress(
+  page: Page,
+  params: DialAddressParams
+): Promise<CallSession>
+export function dialAddress(
+  page: Page,
+  params: DialAddressParams
+): Promise<CallSession> {
   const {
     address,
     dialOptions = {},
@@ -576,10 +569,9 @@ export function dialAddress(page: Page, params: DialAddressParams): Promise<any>
     shouldPassRootElement = true,
     shouldStartCall = true,
     shouldWaitForJoin = true,
-    listen,
-    createResolversFor = [],
+    shouldListenToEvent = false,
   } = params
-  
+
   return page.evaluate(
     async ({
       address,
@@ -588,30 +580,61 @@ export function dialAddress(page: Page, params: DialAddressParams): Promise<any>
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
-      listen,
-      createResolversFor,
+      shouldListenToEvent,
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
         const client: SignalWireContract = window._client
+        const listenHandlers: any = {}
 
-        // Create Promise.withResolvers for the requested events
-        const resolvers: any = {}
-        const listenHandlers: any = listen ? JSON.parse(listen) : {}
-        
-        // Create resolvers for requested events
-        createResolversFor.forEach((eventName) => {
-          // @ts-expect-error - Promise.withResolvers is available in modern environments
-          const { promise, resolve: resolveFunc, reject: rejectFunc } = Promise.withResolvers()
-          resolvers[eventName] = {
-            promise,
-            resolve: resolveFunc,
-            reject: rejectFunc,
-          }
-          
-          // Add the resolver to the listen handlers
-          listenHandlers[eventName] = resolveFunc
-        })
+        // If shouldListenToEvent is true, add listeners for all events to update window._callState
+        if (shouldListenToEvent && window._callState) {
+          console.log('Adding call event listeners...')
+          // Define all events to listen to
+          const eventsToListen = [
+            'call.joined',
+            'call.state',
+            'call.left',
+            'call.updated',
+            'call.play',
+            'call.connect',
+            'call.room',
+            'member.joined',
+            'member.left',
+            'member.updated',
+            'member.talking',
+            'member.updated.audioMuted',
+            'member.updated.videoMuted',
+            'member.updated.deaf',
+            'member.updated.visible',
+            'member.updated.inputVolume',
+            'member.updated.outputVolume',
+            'member.updated.inputSensitivity',
+            'member.updated.handraised',
+            'member.updated.echoCancellation',
+            'member.updated.autoGain',
+            'member.updated.noiseSuppression',
+            'layout.changed',
+            'stream.started',
+            'stream.ended',
+            'playback.started',
+            'playback.updated',
+            'playback.ended',
+            'recording.started',
+            'recording.updated',
+            'recording.ended',
+            'room.subscribed',
+            'room.left',
+          ]
+
+          // Add listeners for each event
+          eventsToListen.forEach((eventName) => {
+            listenHandlers[eventName] = (params: any) => {
+              console.log(`Event ${eventName} received`)
+              window._callState?.update(eventName, params)
+            }
+          })
+        }
 
         const dialer = reattach ? client.reattach : client.dial
 
@@ -621,27 +644,15 @@ export function dialAddress(page: Page, params: DialAddressParams): Promise<any>
             rootElement: document.getElementById('rootElement')!,
           }),
           ...JSON.parse(dialOptions),
-          ...(Object.keys(listenHandlers).length > 0 && { listen: listenHandlers }),
+          listen: listenHandlers,
         })
 
         // Store call object and resolvers in window for test access
-        // @ts-expect-error
         window._callObj = call
-        // @ts-expect-error  
-        window._callResolvers = resolvers
 
         if (shouldWaitForJoin) {
           call.on('room.joined', (joinedParams: any) => {
-            // If resolvers were requested, return the new format
-            if (createResolversFor.length > 0) {
-              resolve({
-                callSession: joinedParams,
-                resolvers: resolvers,
-              })
-            } else {
-              // Maintain backward compatibility
-              resolve(joinedParams)
-            }
+            resolve(joinedParams)
           })
         }
 
@@ -650,16 +661,7 @@ export function dialAddress(page: Page, params: DialAddressParams): Promise<any>
         }
 
         if (!shouldWaitForJoin) {
-          // If resolvers were requested, return the new format
-          if (createResolversFor.length > 0) {
-            resolve({
-              callSession: call,
-              resolvers: resolvers,
-            })
-          } else {
-            // Maintain backward compatibility
-            resolve(call)
-          }
+          resolve(call)
         }
       })
     },
@@ -670,36 +672,9 @@ export function dialAddress(page: Page, params: DialAddressParams): Promise<any>
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
-      listen: listen ? JSON.stringify(listen) : undefined,
-      createResolversFor,
+      shouldListenToEvent,
     }
   )
-}
-
-/**
- * Helper function to get resolvers stored in window object from the page context
- * Usage: const resolvers = await getCallResolvers(page)
- */
-export const getCallResolvers = (page: Page): Promise<CallEventResolvers> => {
-  return page.evaluate(() => {
-    // @ts-expect-error
-    return window._callResolvers || {}
-  })
-}
-
-/**
- * Helper function to await a specific event resolver promise
- * Usage: await waitForCallEvent(page, 'member.updated.audioMuted')
- */
-export const waitForCallEvent = (page: Page, eventName: keyof CallEventResolvers): Promise<any> => {
-  return page.evaluate((eventName) => {
-    // @ts-expect-error
-    const resolvers = window._callResolvers
-    if (resolvers && resolvers[eventName]) {
-      return resolvers[eventName].promise
-    }
-    throw new Error(`No resolver found for event: ${eventName}`)
-  }, eventName)
 }
 
 export const reloadAndReattachAddress = async (
@@ -1760,8 +1735,8 @@ export const deleteResource = async (id: string) => {
 export const expectMemberTalkingEvent = (page: Page) => {
   return page.evaluate(async () => {
     return new Promise((resolve) => {
-      // @ts-expect-error
       const callObj = window._callObj
+      // @ts-expect-error
       callObj.on('member.talking', resolve)
     })
   })
@@ -1771,9 +1746,8 @@ export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
       return new Promise<void>((resolve) => {
-        // @ts-expect-error
         const callObj = window._callObj
-        callObj.on(event, resolve)
+        callObj!.on(event, resolve)
       })
     },
     { event }
@@ -1894,9 +1868,9 @@ export const expectInteractivityMode = async (
   mode: 'member' | 'audience'
 ) => {
   const interactivityMode = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
-    return callObj.interactivityMode
+    //@ts-ignore
+    return callObj!.interactivityMode
   })
 
   expect(interactivityMode).toEqual(mode)
@@ -1905,9 +1879,8 @@ export const expectInteractivityMode = async (
 export const setLayoutOnPage = (page: Page, layoutName: string) => {
   return page.evaluate(
     async (options) => {
-      // @ts-expect-error
       const callObj = window._callObj
-      return await callObj.setLayout({ name: options.layoutName })
+      return await callObj!.setLayout({ name: options.layoutName })
     },
     { layoutName }
   )
@@ -1919,9 +1892,8 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 
 export const expectMemberId = async (page: Page, memberId: string) => {
   const roomMemberId = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
-    return callObj.memberId
+    return callObj!.memberId
   })
 
   expect(roomMemberId).toEqual(memberId)

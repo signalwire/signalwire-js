@@ -4,7 +4,7 @@ import {
   IncomingCallHandlers,
 } from './incomingCallManager'
 import { CallSession } from '../CallSession'
-import { CallSessionEventHandlers } from './callEvents'
+import { CallSessionEvents } from 'packages/client/src/utils/interfaces'
 
 export interface WSClientContract {
   /**
@@ -124,14 +124,14 @@ export interface DialParams extends CallParams {
   to: string
   nodeId?: string
   /** Optional event listeners for the call session */
-  listen?: Partial<CallSessionEventHandlers>
+  listen?: Partial<CallSessionEvents>
 }
 
 export interface ReattachParams extends CallParams {
   to?: string
   nodeId?: string
   /** Optional event listeners for the call session */
-  listen?: Partial<CallSessionEventHandlers>
+  listen?: Partial<CallSessionEvents>
 }
 
 export interface ApiRequestRetriesOptions {

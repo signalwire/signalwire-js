@@ -1,6 +1,7 @@
 import {
   actions,
   BaseClient,
+  CallSessionEventNames,
   CallJoinedEventParams as InternalCallJoinedEventParams,
   MemberUpdatedEventParams,
   VertoBye,
@@ -20,13 +21,13 @@ import {
   WSClientOptions,
   HandlePushNotificationResult,
 } from './interfaces'
-import { CallSessionEventHandlers } from './interfaces/callEvents'
 import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { CallSessionEvents } from 'packages/client/src/utils/interfaces'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -317,22 +318,20 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public async dial(params: DialParams): Promise<CallSession> {
-    // TODO: Do we need this remove item here?
-    // in case the user left the previous call with hangup, and is not reattaching
-    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-    
-    const callSession = this.buildOutboundCall(params)
-    
+  private async initializeCallSession(
+    callSession: CallSession,
+    params: DialParams | ReattachParams,
+    operation: 'dial' | 'reattach'
+  ): Promise<CallSession> {
     try {
       // Attach event listeners if provided
-      if (params.listen) {
+      if (params.listen && Object.keys(params.listen).length > 0) {
         this.attachEventListeners(callSession, params.listen)
+
+        // start the call only if event listeners were attached
+        await callSession.start()
       }
-      
-      // Always start the call
-      await callSession.start()
-      
+
       return callSession
     } catch (error) {
       // Clean up on failure
@@ -341,40 +340,33 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       } catch (cleanupError) {
         this.logger.warn('Error during callSession cleanup:', cleanupError)
       }
-      
+
       // Provide meaningful error message
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during dial'
-      this.logger.error('Failed to dial:', error)
-      throw new Error(`Failed to dial to ${params.to}: ${errorMessage}`, { cause: error })
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : `Unknown error occurred during ${operation}`
+      this.logger.error(`Failed to ${operation}:`, error)
+      throw new Error(
+        `Failed to ${operation} to ${params.to}: ${errorMessage}`,
+        {
+          cause: error,
+        }
+      )
     }
+  }
+
+  public async dial(params: DialParams): Promise<CallSession> {
+    // in case the user left the previous call with hangup, and is not reattaching
+    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+
+    const callSession = this.buildOutboundCall(params)
+    return this.initializeCallSession(callSession, params, 'dial')
   }
 
   public async reattach(params: ReattachParams): Promise<CallSession> {
     const callSession = this.buildOutboundCall({ ...params, attach: true })
-    
-    try {
-      // Attach event listeners if provided
-      if (params.listen) {
-        this.attachEventListeners(callSession, params.listen)
-      }
-      
-      // Always start the call
-      await callSession.start()
-      
-      return callSession
-    } catch (error) {
-      // Clean up on failure
-      try {
-        callSession.destroy()
-      } catch (cleanupError) {
-        this.logger.warn('Error during callSession cleanup:', cleanupError)
-      }
-      
-      // Provide meaningful error message
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during reattach'
-      this.logger.error('Failed to reattach:', error)
-      throw new Error(`Failed to reattach to ${params.to}: ${errorMessage}`, { cause: error })
-    }
+    return this.initializeCallSession(callSession, params, 'reattach')
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {
@@ -460,27 +452,27 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   /**
    * Attaches event listeners to a call session.
    * Handles errors in individual event handlers to prevent them from affecting other handlers.
-   * 
+   *
    * @param callSession The call session to attach listeners to
    * @param handlers The event handlers to attach
    */
   private attachEventListeners(
     callSession: CallSession,
-    handlers: Partial<CallSessionEventHandlers>
+    handlers: Partial<CallSessionEvents>
   ): void {
     Object.entries(handlers).forEach(([eventName, handler]) => {
       if (typeof handler === 'function') {
         // Wrap each handler to isolate errors
+        this.logger.debug(`adding listener for event '${eventName}'`)
         const wrappedHandler = async (params: any) => {
           try {
             await handler(params)
           } catch (error) {
             this.logger.error(`Error in event handler for ${eventName}:`, error)
-            // Don't re-throw to prevent breaking other handlers
           }
         }
-        
-        callSession.on(eventName as any, wrappedHandler)
+
+        callSession.on(eventName as CallSessionEventNames, wrappedHandler)
       }
     })
   }
