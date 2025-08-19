@@ -14,7 +14,7 @@ import {
 } from '../../utils'
 import { JSHandle } from '@playwright/test'
 
-test.describe('CallFabric VideoRoom', () => {
+test.describe('CallCall VideoRoom', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
     resource,
@@ -457,7 +457,7 @@ test.describe('CallFabric VideoRoom', () => {
     })
 
     /**
-     * FIXME: The following APIs are not yet supported by the Call Fabric SDK
+     * FIXME: The following APIs are not yet supported by the Call Call SDK
      */
 
     // // --------------- Get Room Meta ---------------

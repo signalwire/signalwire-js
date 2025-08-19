@@ -7,7 +7,7 @@ import type {
   InternalVideoMemberEntityUpdated,
   VideoMemberEventNames,
   MemberUpdated,
-  MemberUpdatedEventNames,
+  CoreMemberUpdatedEventNames,
   MemberTalkingEventNames,
   VideoMemberTalkingEventParams,
   RTCTrackEventName,
@@ -105,12 +105,12 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   Record<
     Exclude<
       VideoMemberEventNames,
-      MemberUpdated | MemberUpdatedEventNames | MemberListUpdated
+      MemberUpdated | CoreMemberUpdatedEventNames | MemberListUpdated
     >,
     (params: VideoMemberHandlerParams) => void
   > &
   Record<
-    Extract<VideoMemberEventNames, MemberUpdated | MemberUpdatedEventNames>,
+    Extract<VideoMemberEventNames, MemberUpdated | CoreMemberUpdatedEventNames>,
     (params: VideoMemberUpdatedHandlerParams) => void
   > &
   Record<

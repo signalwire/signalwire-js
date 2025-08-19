@@ -30,7 +30,7 @@ declare global {
 // #region Utilities for Playwright test server & fixture
 
 type CreateTestServerOptions = {
-  target: 'video' | 'blank'
+  target: 'blank'
 }
 
 const TARGET_ROOT_PATH: Record<
@@ -41,12 +41,6 @@ const TARGET_ROOT_PATH: Record<
   }
 > = {
   blank: { path: './templates/blank', port: 1337 },
-  video: {
-    path: path.dirname(
-      require.resolve('@sw-internal/playground-js/src/video/index.html')
-    ),
-    port: 1336,
-  },
 }
 
 export const SERVER_URL = 'http://localhost:1337'
@@ -65,6 +59,25 @@ export const createTestServer = async (
       port: targetOptions.port,
     },
     logLevel: 'silent',
+    resolve: {
+      alias: {
+        '@signalwire/client': path.resolve(__dirname, '../../packages/client/src'),
+        '@signalwire/core': path.resolve(__dirname, '../../packages/core/src'),
+        '@signalwire/webrtc': path.resolve(__dirname, '../../packages/webrtc/src'),
+        '@signalwire/js': path.resolve(__dirname, '../../packages/js/src'),
+      },
+    },
+    optimizeDeps: {
+      include: [
+        '@signalwire/client',
+        '@signalwire/core',
+        '@signalwire/webrtc',
+      ],
+    },
+    define: {
+      'process.env': '{}',
+      'process': '{}',
+    },
   })
 
   return {
@@ -340,7 +353,7 @@ export const leaveRoom = async (page: Page) => {
 
 // #endregion
 
-// #region Utilities for Call Fabric client
+// #region Utilities for Call Call client
 
 interface CreateCFClientParams {
   attachSagaMonitor?: boolean
