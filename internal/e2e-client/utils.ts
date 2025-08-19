@@ -1808,17 +1808,12 @@ export const expectToPass = async (
   { message }: { message: string },
   options?: { interval?: number[]; timeout?: number }
 ) => {
-  try {
-    const mergedOptions = {
-      interval: [10_000], // 10 seconds to avoid polling
-      timeout: 10_000,
-      ...options,
-    }
-    return await expect(assertion, { message }).toPass(mergedOptions)
-  } catch (error) {
-    // TODO: improve error message and logging
-    throw error
+  const mergedOptions = {
+    interval: [10_000], // 10 seconds to avoid polling
+    timeout: 10_000,
+    ...options,
   }
+  return await expect(assertion, { message }).toPass(mergedOptions)
 }
 
 export const waitForFunction = async <TArg, TResult>(
