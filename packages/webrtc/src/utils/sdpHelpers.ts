@@ -174,12 +174,10 @@ export const sdpHasValidCandidates = (sdp: string) => {
     for (const section of sections) {
       const lines = SDPUtils.splitLines(section)
       const valid = lines.some((line) => {
-        return (
-          line.indexOf('a=candidate') === 0 &&
-          (line.includes('typ srflx') ||
-            line.includes('typ prflx') ||
-            line.includes('typ relay'))
-        )
+        return line.indexOf('a=candidate') === 0 && 
+               (line.includes('typ srflx') || 
+                line.includes('typ prflx') || 
+                line.includes('typ relay'))
       })
       if (!valid) {
         return false

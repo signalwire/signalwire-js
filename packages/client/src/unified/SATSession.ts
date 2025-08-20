@@ -66,16 +66,14 @@ export class SATSession extends JWTSession {
 
       this._rpcConnectResult = {
         ...this._rpcConnectResult,
-        ...(reauthResponse as object),
+        ...reauthResponse,
       }
     } catch (error) {
       throw error
     }
   }
 
-  override async execute(
-    msg: JSONRPCRequest | JSONRPCResponse
-  ): Promise<unknown> {
+  override async execute(msg: JSONRPCRequest | JSONRPCResponse): Promise<any> {
     return asyncRetry({
       asyncCallable: async () => {
         await this._waitConnected() // avoid queuing a retry

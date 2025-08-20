@@ -5,8 +5,6 @@ import {
   sagaEffects,
   MemberPosition,
   stripNamespacePrefix,
-  InternalMemberEntity,
-  InternalMemberEntityUpdated,
 } from '@signalwire/core'
 import {
   createCallSessionMemberObject,
@@ -38,7 +36,7 @@ export const callJoinWorker = function* (
        * The {@link memberPositionWorker} dispatches the Video SDK events.
        * We need to convert it back to CF SDK event before emitting to the user.
        */
-      const fabricType = stripNamespacePrefix(subType, 'video')
+      const fabricType = stripNamespacePrefix(subType, 'video') as any
       const fabricPaylod = {
         ...subPayload,
         member: {
@@ -47,7 +45,6 @@ export const callJoinWorker = function* (
         },
       }
 
-      // @ts-expect-error saga fork type mismatch with worker function signature
       yield sagaEffects.fork(fabricMemberWorker, {
         ...options,
         action: { type: fabricType, payload: fabricPaylod },
@@ -55,28 +52,26 @@ export const callJoinWorker = function* (
     },
   })
 
-  payload.room_session.members?.forEach(
-    (member: InternalMemberEntity | InternalMemberEntityUpdated) => {
-      let memberInstance = get<CallSessionMember>(member.member_id!)
-      if (!memberInstance) {
-        memberInstance = createCallSessionMemberObject({
-          store: cfRoomSession.store,
-          payload: {
-            member: member,
-            room_id: payload.room_id,
-            room_session_id: payload.room_session_id,
-          },
-        })
-      } else {
-        memberInstance.setPayload({
+  payload.room_session.members?.forEach((member: any) => {
+    let memberInstance = get<CallSessionMember>(member.member_id!)
+    if (!memberInstance) {
+      memberInstance = createCallSessionMemberObject({
+        store: cfRoomSession.store,
+        payload: {
           member: member,
           room_id: payload.room_id,
           room_session_id: payload.room_session_id,
-        })
-      }
-      set<CallSessionMember>(member.member_id, memberInstance)
+        },
+      })
+    } else {
+      memberInstance.setPayload({
+        member: member,
+        room_id: payload.room_id,
+        room_session_id: payload.room_session_id,
+      })
     }
-  )
+    set<CallSessionMember>(member.member_id, memberInstance)
+  })
 
   cfRoomSession.member = get<CallSessionMember>(payload.member_id)
   // the server send the capabilities payload as an array of string

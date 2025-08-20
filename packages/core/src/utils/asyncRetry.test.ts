@@ -10,30 +10,23 @@ const DELAY_INCREMENT = 100
 
 describe('asyncRetry', () => {
   describe('Delay Builders', () => {
-    it('Should not accepted invalid params', () => {
-      expect(() => increasingDelay({ initialDelay: -1 })).toThrow()
-      expect(() => increasingDelay({ delayLimit: -1 })).toThrow()
-      expect(() => increasingDelay({ variation: -1 })).toThrow()
-      expect(() =>
-        increasingDelay({ variation: -1, initialDelay: -1, delayLimit: -1 })
-      ).toThrow()
-      expect(() => decreasingDelay({ initialDelay: -1 })).toThrow()
-      expect(() => decreasingDelay({ delayLimit: -1 })).toThrow()
-      expect(() => decreasingDelay({ variation: -1 })).toThrow()
-      expect(() =>
-        decreasingDelay({ variation: -1, initialDelay: -1, delayLimit: -1 })
-      ).toThrow()
-      expect(() => constDelay({ initialDelay: -1 })).toThrow()
 
-      expect(() =>
-        increasingDelay({ initialDelay: 50, delayLimit: 10 })
-      ).toThrow()
-      expect(() =>
-        decreasingDelay({ initialDelay: 10, delayLimit: 50 })
-      ).toThrow()
+    it('Should not accepted invalid params', () => {
+      expect(() => increasingDelay({initialDelay: -1})).toThrow()
+      expect(() => increasingDelay({delayLimit: -1})).toThrow()
+      expect(() => increasingDelay({variation: -1})).toThrow()
+      expect(() => increasingDelay({variation: -1, initialDelay: -1, delayLimit: -1})).toThrow()
+      expect(() => decreasingDelay({initialDelay: -1})).toThrow()
+      expect(() => decreasingDelay({delayLimit: -1})).toThrow()
+      expect(() => decreasingDelay({variation: -1})).toThrow()
+      expect(() => decreasingDelay({variation: -1, initialDelay: -1, delayLimit: -1})).toThrow()
+      expect(() => constDelay({initialDelay: -1})).toThrow()
+
+      expect(() => increasingDelay({initialDelay: 50, delayLimit: 10})).toThrow()
+      expect(() => decreasingDelay({initialDelay: 10, delayLimit: 50})).toThrow()
     })
     it('Should increase by default', () => {
-      const delayFn = increasingDelay({})
+      const delayFn = increasingDelay({ })
       expect(delayFn()).toEqual(100)
       expect(delayFn()).toEqual(101)
       expect(delayFn()).toEqual(102)
@@ -140,7 +133,7 @@ describe('asyncRetry', () => {
 
   describe('retries', () => {
     const delayFn = increasingDelay({ initialDelay: DELAY_INCREMENT })
-    const constDelayFn = constDelay({ initialDelay: CONST_DELAY_INTERVAL })
+    const constDelayFn = constDelay({initialDelay: CONST_DELAY_INTERVAL})
 
     it('should call the promise without delay function and maximum retries', async () => {
       const delaySpy = jest.fn(() => delayFn())
@@ -161,7 +154,7 @@ describe('asyncRetry', () => {
         asyncCallable: mockAsyncCallable,
         maxRetries: 5,
       })
-
+      
       await expect(promise).resolves.toBe('success')
       expect(mockAsyncCallable).toHaveBeenCalledTimes(2)
     })
@@ -175,18 +168,19 @@ describe('asyncRetry', () => {
       const promise = asyncRetry({
         asyncCallable: mockAsyncCallable,
         maxRetries: 5,
-        expectedErrorHandler: (error) => error.message === 'Expected Error',
+        expectedErrorHandler:(error) => error.message === 'Expected Error'
       })
-
+      
       await expect(() => promise).rejects.toEqual(new Error('Expected Error'))
       expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
     })
 
-    describe('With fake timers', () => {
+    describe("With fake timers", () => {
+
       beforeEach(() => {
         jest.useFakeTimers()
       })
-
+  
       afterEach(() => {
         jest.useRealTimers()
         jest.clearAllMocks()
@@ -198,27 +192,29 @@ describe('asyncRetry', () => {
           .fn()
           .mockRejectedValueOnce(new Error('Failed'))
           .mockResolvedValue('success')
-
+  
         const promise = asyncRetry({
           asyncCallable: mockAsyncCallable,
           maxRetries: 5,
           delayFn: delaySpy,
         })
-
+  
         // First attempt fails
         await Promise.resolve()
         expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
         expect(delaySpy).toHaveBeenCalledTimes(1)
-
+  
         // Advance timer
         jest.advanceTimersByTime(CONST_DELAY_INTERVAL / 2)
-
+  
+        
         expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
         expect(delaySpy).toHaveBeenCalledTimes(1)
-
+  
         // Advance timer
         jest.advanceTimersByTime(CONST_DELAY_INTERVAL / 2)
         await Promise.resolve()
+  
 
         await expect(promise).resolves.toBe('success')
         expect(mockAsyncCallable).toHaveBeenCalledTimes(2)
@@ -231,43 +227,48 @@ describe('asyncRetry', () => {
           .fn()
           .mockRejectedValueOnce(new Error('Failed'))
           .mockResolvedValue('success')
-
+  
         const promise = asyncRetry({
           asyncCallable: mockAsyncCallable,
           maxRetries: 5,
           delayFn: delaySpy,
-          expectedErrorHandler: (_) => false,
+          expectedErrorHandler: (_) => false 
         })
-
+  
         // First attempt fails
         await Promise.resolve()
         expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
         expect(delaySpy).toHaveBeenCalledTimes(1)
-
+  
         // Advance timer
         jest.advanceTimersByTime(CONST_DELAY_INTERVAL / 2)
-
+  
+        
         expect(mockAsyncCallable).toHaveBeenCalledTimes(1)
         expect(delaySpy).toHaveBeenCalledTimes(1)
-
+  
         // Advance timer
         jest.advanceTimersByTime(CONST_DELAY_INTERVAL / 2)
         await Promise.resolve()
+  
 
         await expect(promise).resolves.toBe('success')
         expect(mockAsyncCallable).toHaveBeenCalledTimes(2)
         expect(delaySpy).toHaveBeenCalledTimes(1)
       })
 
+     
+
       it('Should throw a validator exception transparently', async () => {
         const delaySpy = jest.fn(() => constDelayFn())
-        const callableSpy = jest.fn(() => Promise.resolve({ ok: false }))
+        const callableSpy = 
+        jest.fn(() => Promise.resolve({ ok: false }))
         const validatorSpy = jest.fn((result: { ok: boolean }) => {
           if (!result.ok) {
             throw new Error('Validation Error')
           }
         })
-
+  
         const promise = asyncRetry({
           asyncCallable: callableSpy,
           delayFn: delaySpy,
@@ -275,7 +276,7 @@ describe('asyncRetry', () => {
         })
 
         await jest.runAllTimersAsync()
-
+        
         expect(callableSpy).toHaveBeenCalledTimes(10)
         expect(delaySpy).toHaveBeenCalledTimes(9)
 
@@ -283,7 +284,7 @@ describe('asyncRetry', () => {
 
         expect(validatorSpy).not.toHaveReturned()
 
-        await expect(promise).resolves.toEqual({ ok: false })
+        await expect(promise).resolves.toEqual({"ok": false})
       })
 
       it('Should throw the real exception if fail the last attempt', async () => {
@@ -296,7 +297,7 @@ describe('asyncRetry', () => {
             throw new Error('Validation Error')
           }
         })
-
+  
         const promise = asyncRetry({
           asyncCallable: callableSpy,
           delayFn: delaySpy,
@@ -304,22 +305,25 @@ describe('asyncRetry', () => {
         })
 
         try {
-          jest.runAllTimersAsync()
-
+        jest.runAllTimersAsync()
+        
+        
           await promise
         } catch (error) {
-          expect(callableSpy).toHaveBeenCalledTimes(10)
-          expect(delaySpy).toHaveBeenCalledTimes(9)
 
-          expect(validatorSpy).toHaveBeenCalledTimes(0)
-          expect(error).toBeInstanceOf(Error)
-          expect(error.message).toBe('Real Callable Error - should be thrown')
-          await expect(() => promise).rejects.toEqual(
-            new Error('Real Callable Error - should be thrown')
-          )
+        expect(callableSpy).toHaveBeenCalledTimes(10)
+        expect(delaySpy).toHaveBeenCalledTimes(9)
+
+        expect(validatorSpy).toHaveBeenCalledTimes(0)
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toBe('Real Callable Error - should be thrown')
+        await expect(() => promise).rejects.toEqual(new Error('Real Callable Error - should be thrown'))
         }
       })
+      
     })
+
+    
 
     it('Should throw with no retries', async () => {
       const delaySpy = jest.fn(() => delayFn())
@@ -360,5 +364,6 @@ describe('asyncRetry', () => {
       expect(delaySpy).not.toHaveBeenCalled()
       expect(ok).toEqual(true)
     })
+
   })
 })

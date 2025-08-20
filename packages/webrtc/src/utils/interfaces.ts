@@ -47,7 +47,7 @@ export interface ConnectionOptions {
   /** Id of the speaker device to use for audio output. If undefined, picks a default speaker. */
   speakerId?: string
   /** @internal */
-  userVariables?: { [key: string]: unknown }
+  userVariables?: { [key: string]: any }
   /** @internal */
   screenShare?: boolean
   /** @internal */

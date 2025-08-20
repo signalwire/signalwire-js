@@ -1,9 +1,6 @@
 import { Action, AnyAction, Reducer } from 'redux'
 import { DeepReadonly } from '../../types'
-import {
-  ActionReducerMapBuilder,
-  executeReducerBuilderCallback,
-} from './mapBuilders'
+import { ActionReducerMapBuilder, executeReducerBuilderCallback } from './mapBuilders'
 import { NoInfer } from './tsHelpers'
 
 export type CaseReducer<S = any, A extends Action = AnyAction> = (
@@ -47,11 +44,10 @@ export type ActionMatcherDescriptionCollection<S> = Array<
   ActionMatcherDescription<S, any>
 >
 
+
 export type NotFunction<T> = T extends Function ? never : T
 
-export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<
-  DeepReadonly<S>
-> & {
+export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<DeepReadonly<S>> & {
   getInitialState: () => DeepReadonly<S>
 }
 

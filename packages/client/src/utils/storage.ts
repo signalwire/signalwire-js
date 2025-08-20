@@ -18,7 +18,7 @@ export const sessionStorageManager = (token: string) => {
     roomName = jwtPayload?.r ?? ''
   } catch (e) {
     try {
-      const jwtPayload = jwtDecode<{ typ: string }>(token, { header: true })
+      const jwtPayload = jwtDecode<{ typ: string}>(token, {header: true})
       roomName = jwtPayload.typ || ''
     } catch {
       if (process.env.NODE_ENV !== 'production') {

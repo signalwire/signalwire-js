@@ -269,7 +269,10 @@ describe('CallSession', () => {
     })
 
     test('setRaisedHand implementation (raise)', async () => {
-      const spy = jest.spyOn(CallSessionConnection.prototype, 'setRaisedHand')
+      const spy = jest.spyOn(
+        CallSessionConnection.prototype,
+        'setRaisedHand'
+      )
       await room.setRaisedHand({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -284,7 +287,10 @@ describe('CallSession', () => {
     })
 
     test('setRaisedHand implementation (lower)', async () => {
-      const spy = jest.spyOn(CallSessionConnection.prototype, 'setRaisedHand')
+      const spy = jest.spyOn(
+        CallSessionConnection.prototype,
+        'setRaisedHand'
+      )
       await room.setRaisedHand({ memberId: 'member-id-2', raised: false })
       expect(spy).toHaveBeenCalledWith({
         memberId: 'member-id-2',
@@ -369,7 +375,10 @@ describe('CallSession', () => {
     })
 
     test('setPositions implementation', async () => {
-      const spy = jest.spyOn(CallSessionConnection.prototype, 'setPositions')
+      const spy = jest.spyOn(
+        CallSessionConnection.prototype,
+        'setPositions'
+      )
       const positions = {
         self: 'auto',
         'member-id-2': 'off-canvas',
@@ -439,7 +448,10 @@ describe('CallSession', () => {
     })
 
     test('setAudioFlags implementation', async () => {
-      const spy = jest.spyOn(CallSessionConnection.prototype, 'setAudioFlags')
+      const spy = jest.spyOn(
+        CallSessionConnection.prototype,
+        'setAudioFlags'
+      )
       await room.setAudioFlags({
         memberId: 'member-id-2',
         echoCancellation: true,

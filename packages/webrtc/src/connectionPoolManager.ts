@@ -4,6 +4,7 @@ import { RTCPeerConnectionManager } from './RTCPeerConnectionManager'
 class ConnectionPoolManagerSingleton {
   private manager?: RTCPeerConnectionManager
   private logger = getLogger()
+  
 
   async initializePool(
     iceServers: RTCIceServer[],
@@ -23,7 +24,7 @@ class ConnectionPoolManagerSingleton {
       iceServers,
       iceCandidatePoolSize: options.iceCandidatePoolSize ?? 10,
     }
-
+    
     this.manager = new RTCPeerConnectionManager(
       rtcConfig,
       options.poolSize ?? 2
