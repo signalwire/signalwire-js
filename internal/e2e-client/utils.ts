@@ -1891,7 +1891,8 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     timeoutMs?: number
   }
 ) => {
-  let result: TResult | undefined
+  // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
+  let result = undefined as TResult
   await expectToPass(
     async () => {
       // evaluate the function with the provided arguments
