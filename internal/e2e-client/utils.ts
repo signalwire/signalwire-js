@@ -470,7 +470,7 @@ interface DialAddressParams {
   shouldPassRootElement?: boolean
 }
 
-export const dialAddress = (page: Page, params: DialAddressParams) => {
+export const dialAddress = async (page: Page, params: DialAddressParams) => {
   const {
     address,
     dialOptions = {},
@@ -479,8 +479,17 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
     shouldStartCall = true,
     shouldWaitForJoin = true,
   } = params
-  return page.evaluate(
-    async ({
+
+  return expectPageEvalToPass(page, {
+    evaluateArgs: {
+      address,
+      dialOptions: JSON.stringify(dialOptions),
+      reattach,
+      shouldPassRootElement,
+      shouldStartCall,
+      shouldWaitForJoin,
+    },
+    evaluateFn: async ({
       address,
       dialOptions,
       reattach,
@@ -488,7 +497,7 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldStartCall,
       shouldWaitForJoin,
     }) => {
-      return new Promise(async (resolve, _reject) => {
+      return new Promise<any>(async (resolve, _reject) => {
         if (!window._client) {
           throw new Error('Client is not defined')
         }
@@ -521,15 +530,12 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
         }
       })
     },
-    {
-      address,
-      dialOptions: JSON.stringify(dialOptions),
-      reattach,
-      shouldPassRootElement,
-      shouldStartCall,
-      shouldWaitForJoin,
-    }
-  )
+    assertionFn(result, message) {
+      expect(result, message).toBeDefined()
+    },
+    messageAssert: 'expect dialAddress to succeed',
+    messageError: 'failed to dial address',
+  })
 }
 
 export const reloadAndReattachAddress = async (
