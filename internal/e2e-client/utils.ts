@@ -58,24 +58,22 @@ export const createTestServer = async (
     logLevel: 'silent',
     resolve: {
       alias: {
-        '@signalwire/client': path.resolve(
-          __dirname,
-          '../../packages/client/src'
-        ),
+        '@signalwire/client': path.resolve(__dirname, '../../packages/client/src'),
         '@signalwire/core': path.resolve(__dirname, '../../packages/core/src'),
-        '@signalwire/webrtc': path.resolve(
-          __dirname,
-          '../../packages/webrtc/src'
-        ),
+        '@signalwire/webrtc': path.resolve(__dirname, '../../packages/webrtc/src'),
         '@signalwire/js': path.resolve(__dirname, '../../packages/js/src'),
       },
     },
     optimizeDeps: {
-      include: ['@signalwire/client', '@signalwire/core', '@signalwire/webrtc'],
+      include: [
+        '@signalwire/client',
+        '@signalwire/core',
+        '@signalwire/webrtc',
+      ],
     },
     define: {
       'process.env': '{}',
-      process: '{}',
+      'process': '{}',
     },
   })
 
