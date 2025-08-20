@@ -1731,28 +1731,6 @@ export const expectRoomJoined = (
   }, options)
 }
 
-export const expectScreenShareJoined = async (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<any>(async (resolve) => {
-      const callObj = window._callObj
-      if (!callObj) {
-        throw new Error('Call object not found')
-      }
-
-      callObj.on('member.joined', (params) => {
-        if (params.member.type === 'screen') {
-          resolve(true)
-        }
-      })
-
-      await callObj.startScreenShare({
-        audio: true,
-        video: true,
-      })
-    })
-  })
-}
-
 // #endregion
 
 export const expectInteractivityMode = async (
