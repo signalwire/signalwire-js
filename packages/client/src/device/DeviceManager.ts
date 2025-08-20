@@ -6,6 +6,22 @@
 import { EventEmitter, getLogger } from '@signalwire/core'
 import type { BaseRoomSessionConnection } from '../BaseRoomSession'
 import { LocalStorageAdapter } from './DevicePreferenceStorage'
+import {
+  devicePreferenceUpdateAction,
+  devicePreferenceClearAction,
+  deviceRecoveryTriggerAction,
+  deviceChangeDetectedAction,
+  deviceMonitoringStartedAction,
+  deviceMonitoringStoppedAction,
+  deviceUnavailableAction,
+  deviceRecoverySuccessAction,
+  deviceRecoveryFailureAction,
+  deviceStateChangedAction,
+  devicePreferencesLoadedAction,
+  devicePreferencesSavedAction,
+  devicePreferencesClearedAction,
+  deviceEnumerationErrorAction,
+} from './deviceActions'
 import type {
   DeviceType,
   DevicePreference,
@@ -16,14 +32,17 @@ import type {
   DeviceManagerAPI,
   RecoveryStrategy,
   RecoveryResult,
-  DevicePreferenceStorage
+  DevicePreferenceStorage,
 } from './types'
 
 /**
  * DeviceManager class
  * Manages device preferences, state, and recovery for WebRTC media devices
  */
-export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements DeviceManagerAPI {
+export class DeviceManager
+  extends EventEmitter<DeviceManagerEvents>
+  implements DeviceManagerAPI
+{
   private readonly logger = getLogger()
   private readonly roomSession: BaseRoomSessionConnection
   private readonly config: DevicePreferenceConfig
@@ -64,15 +83,15 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       retry: {
         maxAttempts: 3,
         delay: 1000,
-        backoff: 'exponential'
-      }
+        backoff: 'exponential',
+      },
     },
     persistPreferences: true,
     storageKeyPrefix: 'sw_device_',
     maxRecoveryAttempts: 3,
     recoveryDelay: 1000,
     enableMonitoring: true,
-    monitoringInterval: 5000
+    monitoringInterval: 5000,
   }
 
   /**
@@ -80,14 +99,20 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * @param roomSession - The room session to manage devices for
    * @param config - Configuration options
    */
-  constructor(roomSession: BaseRoomSessionConnection, config?: DevicePreferenceConfig) {
+  constructor(
+    roomSession: BaseRoomSessionConnection,
+    config?: DevicePreferenceConfig
+  ) {
     super()
-    
+
     this.roomSession = roomSession
     this.config = this.mergeConfig(config)
-    this.storageAdapter = this.config.storageAdapter || new LocalStorageAdapter(
-      this.config.global?.storageKeyPrefix || DeviceManager.DEFAULT_CONFIG.storageKeyPrefix
-    )
+    this.storageAdapter =
+      this.config.storageAdapter ||
+      new LocalStorageAdapter(
+        this.config.global?.storageKeyPrefix ||
+          DeviceManager.DEFAULT_CONFIG.storageKeyPrefix
+      )
 
     this.logger.debug('[DeviceManager] Initialized with config:', this.config)
 
@@ -96,7 +121,7 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
 
     // Load preferences if persistence is enabled
     if (this.shouldPersistPreferences()) {
-      this.loadAllPreferences().catch(error => {
+      this.loadAllPreferences().catch((error) => {
         this.logger.error('[DeviceManager] Failed to load preferences:', error)
       })
     }
@@ -112,7 +137,10 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * @param deviceId - Device ID to set
    * @param preference - Optional preference configuration
    */
-  async setCamera(deviceId: string, preference?: Partial<DevicePreference>): Promise<void> {
+  async setCamera(
+    deviceId: string,
+    preference?: Partial<DevicePreference>
+  ): Promise<void> {
     await this.setDevice('camera', deviceId, preference)
   }
 
@@ -121,7 +149,10 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * @param deviceId - Device ID to set
    * @param preference - Optional preference configuration
    */
-  async setMicrophone(deviceId: string, preference?: Partial<DevicePreference>): Promise<void> {
+  async setMicrophone(
+    deviceId: string,
+    preference?: Partial<DevicePreference>
+  ): Promise<void> {
     await this.setDevice('microphone', deviceId, preference)
   }
 
@@ -130,7 +161,10 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * @param deviceId - Device ID to set
    * @param preference - Optional preference configuration
    */
-  async setSpeaker(deviceId: string, preference?: Partial<DevicePreference>): Promise<void> {
+  async setSpeaker(
+    deviceId: string,
+    preference?: Partial<DevicePreference>
+  ): Promise<void> {
     await this.setDevice('speaker', deviceId, preference)
   }
 
@@ -157,11 +191,13 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * @param type - Optional device type to clear (clears all if not specified)
    */
   async clearPreferences(type?: DeviceType): Promise<void> {
-    const typesToClear = type ? [type] : Array.from(this.devicePreferences.keys())
+    const typesToClear = type
+      ? [type]
+      : Array.from(this.devicePreferences.keys())
 
     for (const deviceType of typesToClear) {
       this.devicePreferences.delete(deviceType)
-      
+
       if (this.shouldPersistPreferences()) {
         await this.storageAdapter.clear(deviceType)
       }
@@ -169,6 +205,18 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
 
     this.emit('preferences.cleared', { types: typesToClear })
     this.logger.debug('[DeviceManager] Cleared preferences for:', typesToClear)
+
+    // Dispatch Redux action for each cleared type
+    for (const deviceType of typesToClear) {
+      this.dispatchReduxAction(
+        devicePreferenceClearAction({ deviceType })
+      )
+    }
+
+    // Also dispatch the general cleared action
+    this.dispatchReduxAction(
+      devicePreferencesClearedAction({ types: typesToClear })
+    )
   }
 
   /**
@@ -179,22 +227,32 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
   async recoverDevice(type: DeviceType): Promise<RecoveryResult> {
     // Check if recovery is already in progress
     if (this.recoveryInProgress.get(type)) {
-      this.logger.debug(`[DeviceManager] Recovery already in progress for ${type}`)
+      this.logger.debug(
+        `[DeviceManager] Recovery already in progress for ${type}`
+      )
       return {
         success: false,
-        error: new Error('Recovery already in progress')
+        error: new Error('Recovery already in progress'),
       }
     }
 
     this.recoveryInProgress.set(type, true)
     const startTime = Date.now()
     const currentState = this.deviceStates.get(type)
-    
+
     this.emit('device.recovery.started', {
       type,
       currentDeviceId: currentState?.deviceId || null,
-      reason: 'Manual recovery initiated'
+      reason: 'Manual recovery initiated',
     })
+
+    // Dispatch Redux action
+    this.dispatchReduxAction(
+      deviceRecoveryTriggerAction({
+        deviceType: type,
+        reason: 'Manual recovery initiated',
+      })
+    )
 
     try {
       const strategy = this.getRecoveryStrategy(type)
@@ -203,20 +261,34 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       if (result.success) {
         this.emit('device.recovery.completed', { type, result })
         this.recoveryAttempts.delete(type)
+
+        // Dispatch Redux action for successful recovery
+        this.dispatchReduxAction(
+          deviceRecoverySuccessAction({ deviceType: type, result })
+        )
       } else {
         const attempts = (this.recoveryAttempts.get(type) || 0) + 1
         this.recoveryAttempts.set(type, attempts)
-        
+
         this.emit('device.recovery.failed', {
           type,
           error: result.error || new Error('Recovery failed'),
-          attempts
+          attempts,
         })
+
+        // Dispatch Redux action for failed recovery
+        this.dispatchReduxAction(
+          deviceRecoveryFailureAction({
+            deviceType: type,
+            error: result.error || new Error('Recovery failed'),
+            attempts,
+          })
+        )
       }
 
       return {
         ...result,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       }
     } finally {
       this.recoveryInProgress.set(type, false)
@@ -232,11 +304,14 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       return
     }
 
-    const interval = this.config.global?.monitoringInterval || 
-                    DeviceManager.DEFAULT_CONFIG.monitoringInterval
+    const interval =
+      this.config.global?.monitoringInterval ||
+      DeviceManager.DEFAULT_CONFIG.monitoringInterval
 
-    this.logger.debug(`[DeviceManager] Starting device monitoring with interval: ${interval}ms`)
-    
+    this.logger.debug(
+      `[DeviceManager] Starting device monitoring with interval: ${interval}ms`
+    )
+
     // Initial device scan
     this.scanDevices()
 
@@ -246,6 +321,14 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
     }, interval)
 
     this.isMonitoring = true
+
+    // Dispatch Redux action for monitoring started
+    this.dispatchReduxAction(
+      deviceMonitoringStartedAction({
+        pollingInterval: interval,
+        nativeEventsSupported: 'ondevicechange' in navigator.mediaDevices,
+      })
+    )
   }
 
   /**
@@ -263,6 +346,13 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
 
     this.isMonitoring = false
     this.logger.debug('[DeviceManager] Stopped device monitoring')
+
+    // Dispatch Redux action for monitoring stopped
+    this.dispatchReduxAction(
+      deviceMonitoringStoppedAction({
+        reason: 'Manual stop',
+      })
+    )
   }
 
   /**
@@ -306,7 +396,7 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       label: deviceInfo.label,
       groupId: deviceInfo.groupId,
       error: null,
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
     }
 
     this.deviceStates.set(type, newState)
@@ -315,8 +405,20 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
     this.emit('device.state.changed', {
       type,
       state: newState,
-      previous: previousState
+      previous: previousState,
     })
+
+    // Dispatch Redux action
+    this.dispatchReduxAction(
+      deviceStateChangedAction({
+        deviceType: type,
+        deviceId: newState.deviceId,
+        isAvailable: newState.isAvailable,
+        isActive: newState.isActive,
+        label: newState.label,
+        error: newState.error,
+      })
+    )
 
     // Update preferences if provided
     if (preference) {
@@ -341,14 +443,18 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
     preference: Partial<DevicePreference>
   ): Promise<void> {
     const preferences = this.getPreferences(type)
-    const existingIndex = preferences.findIndex(p => p.deviceId === deviceId)
-    
+    const existingIndex = preferences.findIndex((p) => p.deviceId === deviceId)
+
     const newPreference: DevicePreference = {
       deviceId,
       label,
-      priority: preference.priority ?? (existingIndex >= 0 ? preferences[existingIndex].priority : preferences.length + 1),
+      priority:
+        preference.priority ??
+        (existingIndex >= 0
+          ? preferences[existingIndex].priority
+          : preferences.length + 1),
       isFallback: preference.isFallback,
-      metadata: preference.metadata
+      metadata: preference.metadata,
     }
 
     const previous = existingIndex >= 0 ? preferences[existingIndex] : undefined
@@ -367,16 +473,36 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
     // Persist if enabled
     if (this.shouldPersistPreferences()) {
       await this.storageAdapter.save(type, preferences)
+      const allPreferences = Object.fromEntries(
+        this.devicePreferences
+      ) as Record<DeviceType, DevicePreference[]>
+
       this.emit('preferences.saved', {
-        preferences: Object.fromEntries(this.devicePreferences) as Record<DeviceType, DevicePreference[]>
+        preferences: allPreferences,
       })
+
+      // Dispatch Redux action for saved preferences
+      this.dispatchReduxAction(
+        devicePreferencesSavedAction({
+          preferences: allPreferences,
+        })
+      )
     }
 
     this.emit('device.preference.updated', {
       type,
       preference: newPreference,
-      previous
+      previous,
     })
+
+    // Dispatch Redux action for preference update
+    this.dispatchReduxAction(
+      devicePreferenceUpdateAction({
+        deviceType: type,
+        deviceId,
+        preference: newPreference,
+      })
+    )
   }
 
   /**
@@ -402,7 +528,10 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       }
       this.logger.debug(`[DeviceManager] Applied ${type} device: ${deviceId}`)
     } catch (error) {
-      this.logger.error(`[DeviceManager] Failed to apply ${type} device:`, error)
+      this.logger.error(
+        `[DeviceManager] Failed to apply ${type} device:`,
+        error
+      )
       throw error
     }
   }
@@ -413,13 +542,18 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * @param deviceId - Device ID
    * @returns MediaDeviceInfo or null
    */
-  private async getDeviceInfo(type: DeviceType, deviceId: string): Promise<MediaDeviceInfo | null> {
+  private async getDeviceInfo(
+    type: DeviceType,
+    deviceId: string
+  ): Promise<MediaDeviceInfo | null> {
     const devices = await navigator.mediaDevices.enumerateDevices()
     const kind = this.getMediaDeviceKind(type)
-    
-    return devices.find(device => 
-      device.deviceId === deviceId && device.kind === kind
-    ) || null
+
+    return (
+      devices.find(
+        (device) => device.deviceId === deviceId && device.kind === kind
+      ) || null
+    )
   }
 
   /**
@@ -443,14 +577,14 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    */
   private initializeDeviceStates(): void {
     const types: DeviceType[] = ['camera', 'microphone', 'speaker']
-    
+
     for (const type of types) {
       this.deviceStates.set(type, {
         deviceId: null,
         isAvailable: false,
         isActive: false,
         error: null,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       })
     }
   }
@@ -472,9 +606,25 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
 
     if (Object.keys(loadedPreferences).length > 0) {
       this.emit('preferences.loaded', {
-        preferences: loadedPreferences as Record<DeviceType, DevicePreference[]>
+        preferences: loadedPreferences as Record<
+          DeviceType,
+          DevicePreference[]
+        >,
       })
-      this.logger.debug('[DeviceManager] Loaded preferences:', loadedPreferences)
+      this.logger.debug(
+        '[DeviceManager] Loaded preferences:',
+        loadedPreferences
+      )
+
+      // Dispatch Redux action for loaded preferences
+      this.dispatchReduxAction(
+        devicePreferencesLoadedAction({
+          preferences: loadedPreferences as Record<
+            DeviceType,
+            DevicePreference[]
+          >,
+        })
+      )
     }
   }
 
@@ -489,14 +639,16 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
 
       // Find added devices
       for (const device of devices) {
-        if (!this.lastKnownDevices.find(d => d.deviceId === device.deviceId)) {
+        if (
+          !this.lastKnownDevices.find((d) => d.deviceId === device.deviceId)
+        ) {
           added.push(device)
         }
       }
 
       // Find removed devices
       for (const device of this.lastKnownDevices) {
-        if (!devices.find(d => d.deviceId === device.deviceId)) {
+        if (!devices.find((d) => d.deviceId === device.deviceId)) {
           removed.push(device)
         }
       }
@@ -507,13 +659,47 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       // Emit change event if there are changes
       if (added.length > 0 || removed.length > 0) {
         this.emit('device.monitor.change', { added, removed })
-        this.logger.debug('[DeviceManager] Device changes detected:', { added, removed })
+        this.logger.debug('[DeviceManager] Device changes detected:', {
+          added,
+          removed,
+        })
+
+        // Dispatch Redux actions for device changes
+        for (const device of added) {
+          this.dispatchReduxAction(
+            deviceChangeDetectedAction({
+              deviceType: this.getDeviceTypeFromKind(device.kind),
+              changeType: 'added',
+              deviceId: device.deviceId,
+              deviceInfo: device,
+            })
+          )
+        }
+
+        for (const device of removed) {
+          this.dispatchReduxAction(
+            deviceChangeDetectedAction({
+              deviceType: this.getDeviceTypeFromKind(device.kind),
+              changeType: 'removed',
+              deviceId: device.deviceId,
+              deviceInfo: device,
+            })
+          )
+        }
 
         // Check if current devices are still available
         await this.checkCurrentDeviceAvailability(removed)
       }
     } catch (error) {
       this.logger.error('[DeviceManager] Failed to scan devices:', error)
+
+      // Dispatch Redux action for enumeration error
+      this.dispatchReduxAction(
+        deviceEnumerationErrorAction({
+          error: error instanceof Error ? error : new Error(String(error)),
+          timestamp: Date.now(),
+        })
+      )
     }
   }
 
@@ -521,7 +707,9 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * Check if current devices are still available
    * @param removedDevices - List of removed devices
    */
-  private async checkCurrentDeviceAvailability(removedDevices: MediaDeviceInfo[]): Promise<void> {
+  private async checkCurrentDeviceAvailability(
+    removedDevices: MediaDeviceInfo[]
+  ): Promise<void> {
     const types: DeviceType[] = ['camera', 'microphone', 'speaker']
 
     for (const type of types) {
@@ -529,8 +717,8 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       if (!state || !state.deviceId) continue
 
       const kind = this.getMediaDeviceKind(type)
-      const wasRemoved = removedDevices.find(d => 
-        d.deviceId === state.deviceId && d.kind === kind
+      const wasRemoved = removedDevices.find(
+        (d) => d.deviceId === state.deviceId && d.kind === kind
       )
 
       if (wasRemoved) {
@@ -544,14 +732,28 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
         this.emit('device.unavailable', {
           type,
           deviceId: state.deviceId,
-          reason: 'Device disconnected'
+          reason: 'Device disconnected',
         })
+
+        // Dispatch Redux action for unavailable device
+        this.dispatchReduxAction(
+          deviceUnavailableAction({
+            deviceType: type,
+            deviceId: state.deviceId,
+            reason: 'Device disconnected',
+          })
+        )
 
         // Trigger recovery if enabled
         if (this.shouldAutoRecover(type)) {
-          this.logger.debug(`[DeviceManager] Triggering auto-recovery for ${type}`)
-          this.recoverDevice(type).catch(error => {
-            this.logger.error(`[DeviceManager] Auto-recovery failed for ${type}:`, error)
+          this.logger.debug(
+            `[DeviceManager] Triggering auto-recovery for ${type}`
+          )
+          this.recoverDevice(type).catch((error) => {
+            this.logger.error(
+              `[DeviceManager] Auto-recovery failed for ${type}:`,
+              error
+            )
           })
         }
       }
@@ -567,9 +769,11 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
     const deviceConfig = this.config[type]
     const globalConfig = this.config.global
 
-    return deviceConfig?.recoveryStrategy || 
-           globalConfig?.recoveryStrategy || 
-           DeviceManager.DEFAULT_CONFIG.recoveryStrategy
+    return (
+      deviceConfig?.recoveryStrategy ||
+      globalConfig?.recoveryStrategy ||
+      DeviceManager.DEFAULT_CONFIG.recoveryStrategy
+    )
   }
 
   /**
@@ -591,8 +795,12 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
     }
 
     // Standard recovery flow
-    const priorityOrder = strategy.priorityOrder || ['preference', 'fallback', 'any']
-    
+    const priorityOrder = strategy.priorityOrder || [
+      'preference',
+      'fallback',
+      'any',
+    ]
+
     for (const method of priorityOrder) {
       const result = await this.tryRecoveryMethod(type, method, preferences)
       if (result.success) {
@@ -602,7 +810,7 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
 
     return {
       success: false,
-      error: new Error('All recovery methods failed')
+      error: new Error('All recovery methods failed'),
     }
   }
 
@@ -625,7 +833,10 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
         case 'preference':
           // Try preferences in priority order
           for (const pref of preferences) {
-            if (!pref.isFallback && await this.isDeviceAvailable(type, pref.deviceId)) {
+            if (
+              !pref.isFallback &&
+              (await this.isDeviceAvailable(type, pref.deviceId))
+            ) {
               deviceId = pref.deviceId
               break
             }
@@ -635,7 +846,10 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
         case 'fallback':
           // Try fallback devices
           for (const pref of preferences) {
-            if (pref.isFallback && await this.isDeviceAvailable(type, pref.deviceId)) {
+            if (
+              pref.isFallback &&
+              (await this.isDeviceAvailable(type, pref.deviceId))
+            ) {
               deviceId = pref.deviceId
               break
             }
@@ -646,14 +860,16 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
           // Try any available device
           const devices = await navigator.mediaDevices.enumerateDevices()
           const kind = this.getMediaDeviceKind(type)
-          const availableDevice = devices.find(d => d.kind === kind && d.deviceId)
+          const availableDevice = devices.find(
+            (d) => d.kind === kind && d.deviceId
+          )
           deviceId = availableDevice?.deviceId || null
           break
       }
 
       if (deviceId) {
         await this.applyDevice(type, deviceId)
-        
+
         // Update state
         const deviceInfo = await this.getDeviceInfo(type, deviceId)
         this.deviceStates.set(type, {
@@ -663,7 +879,7 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
           label: deviceInfo?.label,
           groupId: deviceInfo?.groupId,
           error: null,
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
         })
 
         return { success: true, deviceId }
@@ -671,9 +887,9 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
 
       return { success: false }
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error : new Error(String(error))
+      return {
+        success: false,
+        error: error instanceof Error ? error : new Error(String(error)),
       }
     }
   }
@@ -684,7 +900,10 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
    * @param deviceId - Device ID
    * @returns true if device is available
    */
-  private async isDeviceAvailable(type: DeviceType, deviceId: string): Promise<boolean> {
+  private async isDeviceAvailable(
+    type: DeviceType,
+    deviceId: string
+  ): Promise<boolean> {
     const deviceInfo = await this.getDeviceInfo(type, deviceId)
     return deviceInfo !== null
   }
@@ -699,8 +918,8 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
       ...config,
       global: {
         ...DeviceManager.DEFAULT_CONFIG,
-        ...config?.global
-      }
+        ...config?.global,
+      },
     }
   }
 
@@ -728,8 +947,55 @@ export class DeviceManager extends EventEmitter<DeviceManagerEvents> implements 
   private shouldAutoRecover(type: DeviceType): boolean {
     const deviceConfig = this.config[type]
     const globalConfig = this.config.global
-    
-    return deviceConfig?.autoRecover !== false && 
-           globalConfig?.autoRecover !== false
+
+    return (
+      deviceConfig?.autoRecover !== false && globalConfig?.autoRecover !== false
+    )
+  }
+
+  /**
+   * Helper method to get DeviceType from MediaDeviceKind
+   * @param kind - MediaDeviceKind
+   * @returns DeviceType
+   */
+  private getDeviceTypeFromKind(kind: MediaDeviceKind): DeviceType {
+    switch (kind) {
+      case 'videoinput':
+        return 'camera'
+      case 'audioinput':
+        return 'microphone'
+      case 'audiooutput':
+        return 'speaker'
+      default:
+        // Fallback for unknown kinds
+        return 'microphone'
+    }
+  }
+
+  /**
+   * Helper method to dispatch Redux actions safely
+   * @param action - Redux action to dispatch
+   */
+  private dispatchReduxAction(action: any): void {
+    try {
+      if (this.roomSession?.store?.dispatch) {
+        this.roomSession.store.dispatch(action)
+        this.logger.trace(
+          '[DeviceManager] Dispatched Redux action:',
+          action.type
+        )
+      } else {
+        this.logger.debug(
+          '[DeviceManager] Redux store not available, skipping action dispatch:',
+          action.type
+        )
+      }
+    } catch (error) {
+      this.logger.warn(
+        '[DeviceManager] Failed to dispatch Redux action:',
+        action.type,
+        error
+      )
+    }
   }
 }

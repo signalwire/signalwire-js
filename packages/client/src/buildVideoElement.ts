@@ -1,7 +1,7 @@
 import {
-  CallLayoutChangedEventParams as CallLayoutChangedEventParams,
   getLogger,
   uuid,
+  VideoLayoutChangedEventParams,
 } from '@signalwire/core'
 import {
   buildVideo,
@@ -13,14 +13,13 @@ import {
 } from './utils/videoElement'
 import { addSDKPrefix } from './utils/roomSession'
 import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
-import { CallSession, isCallSession } from './unified/CallSession'
 import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallSession | VideoRoomSession
+  room: VideoRoomSession
   rootElement?: HTMLElement
 }
 
@@ -79,8 +78,7 @@ export const buildVideoElement = async (
     })
 
     const processLayoutChanged = (params: any) => {
-      // @ts-expect-error
-      if (room.peer?.hasVideoSender && room.localStream) {
+      if ((room as any).peer?.hasVideoSender && room.localStream) {
         makeLayout({
           layout: params.layout,
           localStream: room.localStream,
@@ -91,7 +89,7 @@ export const buildVideoElement = async (
       }
     }
 
-    const layoutChangedHandler = (params: CallLayoutChangedEventParams) => {
+    const layoutChangedHandler = (params: VideoLayoutChangedEventParams) => {
       getLogger().debug('Received layout.changed - videoTrack', hasVideoTrack)
       if (hasVideoTrack) {
         processLayoutChanged(params)
@@ -117,8 +115,7 @@ export const buildVideoElement = async (
     }
 
     // If the remote video already exist, inject the remote stream to the video element
-    // @ts-expect-error
-    const videoTrack = room.peer?.remoteVideoTrack as MediaStreamTrack | null
+    const videoTrack = (room as any).peer?.remoteVideoTrack as MediaStreamTrack | null
     if (videoTrack) {
       await processVideoTrack(videoTrack)
     }
@@ -134,11 +131,8 @@ export const buildVideoElement = async (
       cleanupElement(rootElement)
       overlayMap.clear() // Use "delete" rather than "clear" if we want to update the reference
       room.overlayMap = overlayMap
-      if (isCallSession(room)) {
-        room.off('track', trackHandler)
-        room.off('layout.changed', layoutChangedHandler)
-        room.off('destroy', unsubscribe)
-      } else if (isVideoRoomSession(room)) {
+      // Since CallSession was removed, only handle VideoRoomSession
+      if (isVideoRoomSession(room)) {
         room.off('track', trackHandler)
         room.off('layout.changed', layoutChangedHandler)
         room.off('destroy', unsubscribe)
@@ -151,11 +145,8 @@ export const buildVideoElement = async (
      * there are cases (promote/demote) where we need to handle multiple `track`
      * events and update the videoEl with the new track.
      */
-    if (isCallSession(room)) {
-      room.on('track', trackHandler)
-      room.on('layout.changed', layoutChangedHandler)
-      room.once('destroy', unsubscribe)
-    } else if (isVideoRoomSession(room)) {
+    // Since CallSession was removed, only handle VideoRoomSession
+    if (isVideoRoomSession(room)) {
       room.on('track', trackHandler)
       room.on('layout.changed', layoutChangedHandler)
       room.once('destroy', unsubscribe)

@@ -11,26 +11,26 @@ import type {
   DevicePreference,
   RecoveryResult,
   DeviceRecoveryEngineOptions,
-  RecoveryStrategyDefinition
+  RecoveryStrategyDefinition,
 } from './types'
 
 // Mock @signalwire/core
 jest.mock('@signalwire/core', () => ({
   EventEmitter: class MockEventEmitter {
     private listeners: Map<string, Function[]> = new Map()
-    
+
     on(event: string, listener: Function) {
       if (!this.listeners.has(event)) {
         this.listeners.set(event, [])
       }
       this.listeners.get(event)!.push(listener)
     }
-    
+
     emit(event: string, ...args: any[]) {
       const listeners = this.listeners.get(event) || []
-      listeners.forEach(listener => listener(...args))
+      listeners.forEach((listener) => listener(...args))
     }
-    
+
     removeAllListeners() {
       this.listeners.clear()
     }
@@ -39,7 +39,7 @@ jest.mock('@signalwire/core', () => ({
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
+    error: jest.fn(),
   }),
   uuid: jest.fn(() => 'mock-uuid-123'),
   debounce: jest.fn((fn, delay) => {
@@ -48,21 +48,27 @@ jest.mock('@signalwire/core', () => ({
       return fn(...args)
     }
     return debounced
-  })
+  }),
+  actions: {
+    createAction: jest.fn((type) => (payload) => ({
+      type,
+      payload,
+    })),
+  },
 }))
 
 // Mock MediaDeviceInfo
 const createMockDevice = (
-  deviceId: string, 
-  kind: MediaDeviceKind, 
-  label: string, 
+  deviceId: string,
+  kind: MediaDeviceKind,
+  label: string,
   groupId: string = 'default'
 ): MediaDeviceInfo => ({
   deviceId,
   kind,
   label,
   groupId,
-  toJSON: () => ({ deviceId, kind, label, groupId })
+  toJSON: () => ({ deviceId, kind, label, groupId }),
 })
 
 // Sample devices for testing
@@ -73,29 +79,33 @@ const mockDevices = {
   mic2: createMockDevice('mic-2', 'audioinput', 'USB Microphone'),
   speaker1: createMockDevice('speaker-1', 'audiooutput', 'Built-in Output'),
   speaker2: createMockDevice('speaker-2', 'audiooutput', 'USB Speakers'),
-  defaultSpeaker: createMockDevice('', 'audiooutput', 'Default - Built-in Output')
+  defaultSpeaker: createMockDevice(
+    '',
+    'audiooutput',
+    'Default - Built-in Output'
+  ),
 }
 
 describe('DeviceRecoveryEngine', () => {
   let engine: DeviceRecoveryEngine
   let mockEnumerateDevices: jest.Mock
   let mockIsDeviceAvailable: jest.Mock
-  
+
   const allDevices = Object.values(mockDevices)
-  
+
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     mockEnumerateDevices = jest.fn().mockResolvedValue(allDevices)
     mockIsDeviceAvailable = jest.fn().mockResolvedValue(true)
-    
+
     engine = new DeviceRecoveryEngine({
       enumerateDevices: mockEnumerateDevices,
       isDeviceAvailable: mockIsDeviceAvailable,
-      debug: false
+      debug: false,
     })
   })
-  
+
   afterEach(() => {
     engine.destroy()
   })
@@ -111,7 +121,7 @@ describe('DeviceRecoveryEngine', () => {
       const customEngine = new DeviceRecoveryEngine({
         maxRecoveryAttempts: 10,
         debounceDelay: 1000,
-        debug: true
+        debug: true,
       })
       expect(customEngine).toBeInstanceOf(DeviceRecoveryEngine)
       customEngine.destroy()
@@ -131,7 +141,7 @@ describe('DeviceRecoveryEngine', () => {
         deviceId: 'camera-1',
         isAvailable: false,
         isActive: false,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       }
 
       const result = await engine.recoverDevice('camera', currentState)
@@ -149,7 +159,7 @@ describe('DeviceRecoveryEngine', () => {
         label: 'FaceTime HD Camera',
         isAvailable: false,
         isActive: false,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       }
 
       const result = await engine.recoverDevice('camera', currentState)
@@ -166,18 +176,22 @@ describe('DeviceRecoveryEngine', () => {
         label: 'Non-existent Camera',
         isAvailable: false,
         isActive: false,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       }
-      
+
       const preferences: DevicePreference[] = [
         {
           deviceId: 'camera-2',
           label: 'USB Camera',
-          priority: 1
-        }
+          priority: 1,
+        },
       ]
 
-      const result = await engine.recoverDevice('camera', currentState, preferences)
+      const result = await engine.recoverDevice(
+        'camera',
+        currentState,
+        preferences
+      )
 
       expect(result.success).toBe(true)
       expect(result.deviceId).toBe('camera-2')
@@ -211,7 +225,7 @@ describe('DeviceRecoveryEngine', () => {
           deviceId: 'camera-1',
           isAvailable: true,
           isActive: false,
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
         })
 
         expect(result.success).toBe(true)
@@ -224,7 +238,7 @@ describe('DeviceRecoveryEngine', () => {
           deviceId: 'non-existent-camera',
           isAvailable: true,
           isActive: false,
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
         })
 
         expect(result.success).toBe(false)
@@ -246,7 +260,7 @@ describe('DeviceRecoveryEngine', () => {
           label: 'FaceTime HD Camera',
           isAvailable: false,
           isActive: false,
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
         })
 
         expect(result.success).toBe(true)
@@ -256,10 +270,15 @@ describe('DeviceRecoveryEngine', () => {
 
       it('should succeed when preference label matches', async () => {
         const preferences: DevicePreference[] = [
-          { deviceId: 'any', label: 'USB Camera', priority: 1 }
+          { deviceId: 'any', label: 'USB Camera', priority: 1 },
         ]
 
-        const result = await engine.tryStrategy('label-match', 'camera', undefined, preferences)
+        const result = await engine.tryStrategy(
+          'label-match',
+          'camera',
+          undefined,
+          preferences
+        )
 
         expect(result.success).toBe(true)
         expect(result.deviceId).toBe('camera-2')
@@ -271,7 +290,7 @@ describe('DeviceRecoveryEngine', () => {
           label: 'Non-existent Camera',
           isAvailable: false,
           isActive: false,
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
         })
 
         expect(result.success).toBe(false)
@@ -283,10 +302,15 @@ describe('DeviceRecoveryEngine', () => {
       it('should prioritize preferences', async () => {
         const preferences: DevicePreference[] = [
           { deviceId: 'camera-2', label: 'USB Camera', priority: 1 },
-          { deviceId: 'camera-1', label: 'FaceTime HD Camera', priority: 2 }
+          { deviceId: 'camera-1', label: 'FaceTime HD Camera', priority: 2 },
         ]
 
-        const result = await engine.tryStrategy('same-type-fallback', 'camera', undefined, preferences)
+        const result = await engine.tryStrategy(
+          'same-type-fallback',
+          'camera',
+          undefined,
+          preferences
+        )
 
         expect(result.success).toBe(true)
         expect(result.deviceId).toBe('camera-2')
@@ -305,14 +329,17 @@ describe('DeviceRecoveryEngine', () => {
         // Test the strategy canHandle method first - it should return false
         const testEngine = new DeviceRecoveryEngine({
           enumerateDevices: jest.fn().mockResolvedValue([mockDevices.mic1]), // Only microphone
-          isDeviceAvailable: mockIsDeviceAvailable
+          isDeviceAvailable: mockIsDeviceAvailable,
         })
 
-        const result = await testEngine.tryStrategy('same-type-fallback', 'camera')
+        const result = await testEngine.tryStrategy(
+          'same-type-fallback',
+          'camera'
+        )
 
         expect(result.success).toBe(false)
         expect(result.reason).toBe('Strategy not applicable')
-        
+
         testEngine.destroy()
       })
     })
@@ -327,7 +354,10 @@ describe('DeviceRecoveryEngine', () => {
       })
 
       it('should fallback to first device when no default found', async () => {
-        mockEnumerateDevices.mockResolvedValue([mockDevices.speaker1, mockDevices.speaker2])
+        mockEnumerateDevices.mockResolvedValue([
+          mockDevices.speaker1,
+          mockDevices.speaker2,
+        ])
 
         const result = await engine.tryStrategy('os-default', 'speaker')
 
@@ -348,8 +378,8 @@ describe('DeviceRecoveryEngine', () => {
       expect(startedSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           attempt: expect.objectContaining({
-            deviceType: 'camera'
-          })
+            deviceType: 'camera',
+          }),
         })
       )
     })
@@ -364,15 +394,15 @@ describe('DeviceRecoveryEngine', () => {
         expect.objectContaining({
           attempt: expect.any(Object),
           result: expect.objectContaining({
-            success: true
-          })
+            success: true,
+          }),
         })
       )
     })
 
     it('should emit recovery.failed event', async () => {
       mockEnumerateDevices.mockRejectedValue(new Error('Enumeration failed'))
-      
+
       const failedSpy = jest.fn()
       engine.on('recovery.failed', failedSpy)
 
@@ -381,7 +411,7 @@ describe('DeviceRecoveryEngine', () => {
       expect(failedSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           attempt: expect.any(Object),
-          error: expect.any(Error)
+          error: expect.any(Error),
         })
       )
     })
@@ -404,7 +434,7 @@ describe('DeviceRecoveryEngine', () => {
       expect(statusSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           activeRecoveries: 0,
-          queuedRecoveries: 0
+          queuedRecoveries: 0,
         })
       )
     })
@@ -422,7 +452,9 @@ describe('DeviceRecoveryEngine', () => {
     })
 
     it('should handle device availability check errors', async () => {
-      mockIsDeviceAvailable.mockRejectedValue(new Error('Availability check failed'))
+      mockIsDeviceAvailable.mockRejectedValue(
+        new Error('Availability check failed')
+      )
 
       const result = await engine.recoverDevice('camera')
 
@@ -444,18 +476,18 @@ describe('DeviceRecoveryEngine', () => {
       const limitedEngine = new DeviceRecoveryEngine({
         maxRecoveryAttempts: 1,
         enumerateDevices: mockEnumerateDevices,
-        isDeviceAvailable: mockIsDeviceAvailable
+        isDeviceAvailable: mockIsDeviceAvailable,
       })
 
       // First attempt
       await limitedEngine.recoverDevice('camera')
-      
+
       // Second attempt should fail due to limit
       const result = await limitedEngine.recoverDevice('camera')
-      
+
       expect(result.success).toBe(false)
       expect(result.error?.message).toContain('Maximum recovery attempts')
-      
+
       limitedEngine.destroy()
     })
 
@@ -465,7 +497,7 @@ describe('DeviceRecoveryEngine', () => {
         priority: 0,
         execute: async () => {
           throw new Error('Strategy failed')
-        }
+        },
       }
 
       engine.registerStrategy(faultyStrategy)
@@ -485,8 +517,8 @@ describe('DeviceRecoveryEngine', () => {
         execute: async () => ({
           success: true,
           deviceId: 'custom-device',
-          confidence: 1.0
-        })
+          confidence: 1.0,
+        }),
       }
 
       engine.registerStrategy(customStrategy)
@@ -501,7 +533,7 @@ describe('DeviceRecoveryEngine', () => {
 
       expect(async () => {
         await engine.tryStrategy('exact-id-match', 'camera')
-      }).rejects.toThrow('Recovery strategy \'exact-id-match\' not found')
+      }).rejects.toThrow("Recovery strategy 'exact-id-match' not found")
     })
 
     it('should register multiple strategies', () => {
@@ -509,13 +541,13 @@ describe('DeviceRecoveryEngine', () => {
         {
           name: 'strategy-1',
           priority: 1,
-          execute: async () => ({ success: false })
+          execute: async () => ({ success: false }),
         },
         {
           name: 'strategy-2',
           priority: 2,
-          execute: async () => ({ success: false })
-        }
+          execute: async () => ({ success: false }),
+        },
       ]
 
       engine.registerStrategies(strategies)
@@ -553,7 +585,7 @@ describe('DeviceRecoveryEngine', () => {
       await engine.recoverDevice('microphone')
 
       engine.clearHistory('camera')
-      
+
       const history = engine.getRecoveryHistory()
       const cameraHistory = engine.getRecoveryHistory('camera')
 
@@ -567,7 +599,7 @@ describe('DeviceRecoveryEngine', () => {
       await engine.recoverDevice('microphone')
 
       engine.clearHistory()
-      
+
       const history = engine.getRecoveryHistory()
       expect(history).toHaveLength(0)
     })
@@ -576,7 +608,7 @@ describe('DeviceRecoveryEngine', () => {
       const limitedEngine = new DeviceRecoveryEngine({
         maxHistorySize: 2,
         enumerateDevices: mockEnumerateDevices,
-        isDeviceAvailable: mockIsDeviceAvailable
+        isDeviceAvailable: mockIsDeviceAvailable,
       })
 
       // Add 3 recovery attempts
@@ -586,7 +618,7 @@ describe('DeviceRecoveryEngine', () => {
 
       const history = limitedEngine.getRecoveryHistory()
       expect(history).toHaveLength(2)
-      
+
       limitedEngine.destroy()
     })
   })
@@ -597,7 +629,7 @@ describe('DeviceRecoveryEngine', () => {
 
       expect(status).toEqual({
         activeRecoveries: 0,
-        queuedRecoveries: 0
+        queuedRecoveries: 0,
       })
     })
 
@@ -607,7 +639,7 @@ describe('DeviceRecoveryEngine', () => {
 
       // Start a recovery but don't await it
       const recoveryPromise = engine.recoverDevice('camera')
-      
+
       // Cancel it immediately
       engine.cancelRecovery('camera', 'Test cancellation')
 
@@ -616,7 +648,7 @@ describe('DeviceRecoveryEngine', () => {
       expect(cancelledSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           attempt: expect.any(Object),
-          reason: 'Test cancellation'
+          reason: 'Test cancellation',
         })
       )
     })
@@ -633,7 +665,7 @@ describe('DeviceRecoveryEngine', () => {
     it('should try next strategy if device becomes unavailable', async () => {
       mockIsDeviceAvailable
         .mockResolvedValueOnce(false) // First strategy device not available
-        .mockResolvedValueOnce(true)  // Second strategy device available
+        .mockResolvedValueOnce(true) // Second strategy device available
 
       const result = await engine.recoverDevice('camera')
 
@@ -646,19 +678,22 @@ describe('DeviceRecoveryEngine', () => {
     it.each([
       ['camera', 'videoinput'],
       ['microphone', 'audioinput'],
-      ['speaker', 'audiooutput']
-    ])('should handle %s device type correctly', async (deviceType: DeviceType, expectedKind: MediaDeviceKind) => {
-      const result = await engine.recoverDevice(deviceType as DeviceType)
+      ['speaker', 'audiooutput'],
+    ])(
+      'should handle %s device type correctly',
+      async (deviceType: DeviceType, expectedKind: MediaDeviceKind) => {
+        const result = await engine.recoverDevice(deviceType as DeviceType)
 
-      expect(result.success).toBe(true)
-      expect(mockEnumerateDevices).toHaveBeenCalled()
-    })
+        expect(result.success).toBe(true)
+        expect(mockEnumerateDevices).toHaveBeenCalled()
+      }
+    )
   })
 
   describe('Cleanup and Destruction', () => {
     it('should clean up resources on destroy', () => {
       const testEngine = new DeviceRecoveryEngine()
-      
+
       testEngine.destroy()
 
       // Should not throw errors when trying to use destroyed engine
@@ -671,7 +706,7 @@ describe('DeviceRecoveryEngine', () => {
 
       // Start recovery but don't await
       const recoveryPromise = engine.recoverDevice('camera')
-      
+
       // Destroy engine
       engine.destroy()
 
@@ -679,7 +714,7 @@ describe('DeviceRecoveryEngine', () => {
 
       expect(cancelledSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          reason: 'Engine destroyed'
+          reason: 'Engine destroyed',
         })
       )
     })
@@ -695,7 +730,7 @@ describe('DeviceRecoveryEngine', () => {
     it('should use custom device enumeration function', async () => {
       const customEnumerate = jest.fn().mockResolvedValue([mockDevices.camera1])
       const customEngine = new DeviceRecoveryEngine({
-        enumerateDevices: customEnumerate
+        enumerateDevices: customEnumerate,
       })
 
       await customEngine.recoverDevice('camera')
@@ -708,7 +743,7 @@ describe('DeviceRecoveryEngine', () => {
       const customAvailabilityCheck = jest.fn().mockResolvedValue(true)
       const customEngine = new DeviceRecoveryEngine({
         enumerateDevices: mockEnumerateDevices,
-        isDeviceAvailable: customAvailabilityCheck
+        isDeviceAvailable: customAvailabilityCheck,
       })
 
       await customEngine.recoverDevice('camera')

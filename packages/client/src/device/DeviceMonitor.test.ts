@@ -13,28 +13,28 @@ const mockDevices: MediaDeviceInfo[] = [
     kind: 'videoinput',
     label: 'Front Camera',
     groupId: 'group1',
-    toJSON: () => ({})
+    toJSON: () => ({}),
   } as MediaDeviceInfo,
   {
     deviceId: 'camera2',
     kind: 'videoinput',
     label: 'Back Camera',
     groupId: 'group2',
-    toJSON: () => ({})
+    toJSON: () => ({}),
   } as MediaDeviceInfo,
   {
     deviceId: 'mic1',
     kind: 'audioinput',
     label: 'Built-in Microphone',
     groupId: 'group1',
-    toJSON: () => ({})
+    toJSON: () => ({}),
   } as MediaDeviceInfo,
   {
     deviceId: 'speaker1',
     kind: 'audiooutput',
     label: 'Built-in Speaker',
     groupId: 'group1',
-    toJSON: () => ({})
+    toJSON: () => ({}),
   } as MediaDeviceInfo,
 ]
 
@@ -43,7 +43,7 @@ const mockNewDevice: MediaDeviceInfo = {
   kind: 'videoinput',
   label: 'External Camera',
   groupId: 'group3',
-  toJSON: () => ({})
+  toJSON: () => ({}),
 } as MediaDeviceInfo
 
 // Mock navigator.mediaDevices
@@ -82,25 +82,26 @@ Object.defineProperty(global, 'window', {
 })
 
 // Utility to wait for promises/timers
-const waitForAsync = (ms = 10) => new Promise(resolve => setTimeout(resolve, ms))
+const waitForAsync = (ms = 10) =>
+  new Promise((resolve) => setTimeout(resolve, ms))
 
 describe('DeviceMonitor', () => {
   let monitor: DeviceMonitor
-  
+
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks()
     jest.clearAllTimers()
     jest.useFakeTimers()
-    
+
     // Setup default mock behavior
     mockEnumerateDevices.mockResolvedValue([...mockDevices])
-    
+
     // Create monitor instance
     monitor = new DeviceMonitor({
       pollingInterval: 100,
       debounceDelay: 50,
-      debug: false
+      debug: false,
     })
   })
 
@@ -126,9 +127,9 @@ describe('DeviceMonitor', () => {
         useNativeEvents: false,
         monitorOnVisibilityChange: false,
         monitorOnFocusChange: false,
-        debug: true
+        debug: true,
       })
-      
+
       expect(customMonitor).toBeDefined()
       expect(customMonitor.isActive()).toBe(false)
       customMonitor.destroy()
@@ -152,9 +153,12 @@ describe('DeviceMonitor', () => {
       expect(mockEnumerateDevices).toHaveBeenCalled()
       expect(startedCallback).toHaveBeenCalledWith({
         pollingInterval: 100,
-        nativeEventsSupported: true
+        nativeEventsSupported: true,
       })
-      expect(mockAddEventListener).toHaveBeenCalledWith('devicechange', expect.any(Function))
+      expect(mockAddEventListener).toHaveBeenCalledWith(
+        'devicechange',
+        expect.any(Function)
+      )
     })
 
     it('should not start monitoring if already started', async () => {
@@ -175,7 +179,10 @@ describe('DeviceMonitor', () => {
 
       expect(monitor.isActive()).toBe(false)
       expect(stoppedCallback).toHaveBeenCalledWith({ reason: 'test reason' })
-      expect(mockRemoveEventListener).toHaveBeenCalledWith('devicechange', expect.any(Function))
+      expect(mockRemoveEventListener).toHaveBeenCalledWith(
+        'devicechange',
+        expect.any(Function)
+      )
     })
 
     it('should not error when stopping if not started', () => {
@@ -184,8 +191,10 @@ describe('DeviceMonitor', () => {
     })
 
     it('should handle start errors gracefully', async () => {
-      mockEnumerateDevices.mockRejectedValueOnce(new Error('Device access denied'))
-      
+      mockEnumerateDevices.mockRejectedValueOnce(
+        new Error('Device access denied')
+      )
+
       await expect(monitor.start()).rejects.toThrow('Device access denied')
       expect(monitor.isActive()).toBe(false)
     })
@@ -199,7 +208,7 @@ describe('DeviceMonitor', () => {
     it('should detect added devices', async () => {
       const changeCallback = jest.fn()
       const addedCallback = jest.fn()
-      
+
       monitor.on('device.change', changeCallback)
       monitor.on('device.added', addedCallback)
 
@@ -219,7 +228,7 @@ describe('DeviceMonitor', () => {
       expect(addedCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'added',
-          device: mockNewDevice
+          device: mockNewDevice,
         })
       )
     })
@@ -227,7 +236,7 @@ describe('DeviceMonitor', () => {
     it('should detect removed devices', async () => {
       const changeCallback = jest.fn()
       const removedCallback = jest.fn()
-      
+
       monitor.on('device.change', changeCallback)
       monitor.on('device.removed', removedCallback)
 
@@ -247,7 +256,7 @@ describe('DeviceMonitor', () => {
       expect(removedCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'removed',
-          device: mockDevices[0]
+          device: mockDevices[0],
         })
       )
     })
@@ -255,12 +264,12 @@ describe('DeviceMonitor', () => {
     it('should detect changed devices', async () => {
       const changeCallback = jest.fn()
       const changedCallback = jest.fn()
-      
+
       monitor.on('device.change', changeCallback)
       monitor.on('device.changed', changedCallback)
 
       // Simulate device change (label change)
-      const changedDevices = mockDevices.map((device, index) => 
+      const changedDevices = mockDevices.map((device, index) =>
         index === 0 ? { ...device, label: 'Updated Camera Label' } : device
       )
       mockEnumerateDevices.mockResolvedValueOnce(changedDevices)
@@ -279,7 +288,7 @@ describe('DeviceMonitor', () => {
         expect.objectContaining({
           type: 'changed',
           device: expect.objectContaining({ label: 'Updated Camera Label' }),
-          previousDevice: expect.objectContaining({ label: 'Front Camera' })
+          previousDevice: expect.objectContaining({ label: 'Front Camera' }),
         })
       )
     })
@@ -297,7 +306,9 @@ describe('DeviceMonitor', () => {
       const errorCallback = jest.fn()
       monitor.on('monitor.error', errorCallback)
 
-      mockEnumerateDevices.mockRejectedValueOnce(new Error('Enumeration failed'))
+      mockEnumerateDevices.mockRejectedValueOnce(
+        new Error('Enumeration failed')
+      )
 
       const changes = await monitor.checkDevices()
 
@@ -305,7 +316,7 @@ describe('DeviceMonitor', () => {
       expect(errorCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.any(Error),
-          timestamp: expect.any(Number)
+          timestamp: expect.any(Number),
         })
       )
     })
@@ -314,22 +325,22 @@ describe('DeviceMonitor', () => {
   describe('Polling Mechanism', () => {
     it('should set up polling interval when started', async () => {
       const setIntervalSpy = jest.spyOn(global, 'setInterval')
-      
+
       await monitor.start()
-      
+
       expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 100)
-      
+
       setIntervalSpy.mockRestore()
     })
 
     it('should clear polling interval when stopped', async () => {
       const clearIntervalSpy = jest.spyOn(global, 'clearInterval')
-      
+
       await monitor.start()
       monitor.stop()
-      
+
       expect(clearIntervalSpy).toHaveBeenCalled()
-      
+
       clearIntervalSpy.mockRestore()
     })
   })
@@ -338,26 +349,30 @@ describe('DeviceMonitor', () => {
     it('should set up native event listeners when supported', async () => {
       await monitor.start()
 
-      expect(mockAddEventListener).toHaveBeenCalledWith('devicechange', expect.any(Function))
+      expect(mockAddEventListener).toHaveBeenCalledWith(
+        'devicechange',
+        expect.any(Function)
+      )
     })
 
     it('should handle native devicechange events with debouncing', async () => {
       await monitor.start()
 
       // Get the registered event handler
-      const deviceChangeHandler = mockAddEventListener.mock.calls
-        .find(call => call[0] === 'devicechange')?.[1]
+      const deviceChangeHandler = mockAddEventListener.mock.calls.find(
+        (call) => call[0] === 'devicechange'
+      )?.[1]
 
       expect(deviceChangeHandler).toBeDefined()
-      
+
       // Verify that setTimeout is used for debouncing
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout')
-      
+
       // Simulate devicechange event
       deviceChangeHandler()
-      
+
       expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 50)
-      
+
       setTimeoutSpy.mockRestore()
     })
 
@@ -365,7 +380,10 @@ describe('DeviceMonitor', () => {
       await monitor.start()
       monitor.stop()
 
-      expect(mockRemoveEventListener).toHaveBeenCalledWith('devicechange', expect.any(Function))
+      expect(mockRemoveEventListener).toHaveBeenCalledWith(
+        'devicechange',
+        expect.any(Function)
+      )
     })
   })
 
@@ -373,44 +391,58 @@ describe('DeviceMonitor', () => {
     it('should set up visibility change listeners', async () => {
       await monitor.start()
 
-      expect(document.addEventListener).toHaveBeenCalledWith('visibilitychange', expect.any(Function))
+      expect(document.addEventListener).toHaveBeenCalledWith(
+        'visibilitychange',
+        expect.any(Function)
+      )
     })
 
     it('should set up focus change listeners', async () => {
       await monitor.start()
 
-      expect(window.addEventListener).toHaveBeenCalledWith('focus', expect.any(Function))
-      expect(window.addEventListener).toHaveBeenCalledWith('blur', expect.any(Function))
+      expect(window.addEventListener).toHaveBeenCalledWith(
+        'focus',
+        expect.any(Function)
+      )
+      expect(window.addEventListener).toHaveBeenCalledWith(
+        'blur',
+        expect.any(Function)
+      )
     })
 
     it('should check devices when page becomes visible', async () => {
       await monitor.start()
 
-      const visibilityHandler = (document.addEventListener as jest.Mock).mock.calls
-        .find(call => call[0] === 'visibilitychange')?.[1]
+      const visibilityHandler = (
+        document.addEventListener as jest.Mock
+      ).mock.calls.find((call) => call[0] === 'visibilitychange')?.[1]
 
       expect(visibilityHandler).toBeDefined()
-      
+
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout')
 
       // Simulate visibility change
-      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true })
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true,
+      })
       visibilityHandler()
 
       // Verify that setTimeout is called for the visibility change delay
       expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100)
-      
+
       setTimeoutSpy.mockRestore()
     })
 
     it('should check devices when window gains focus', async () => {
       await monitor.start()
 
-      const focusHandler = (window.addEventListener as jest.Mock).mock.calls
-        .find(call => call[0] === 'focus')?.[1]
+      const focusHandler = (
+        window.addEventListener as jest.Mock
+      ).mock.calls.find((call) => call[0] === 'focus')?.[1]
 
       expect(focusHandler).toBeDefined()
-      
+
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout')
 
       // Simulate focus event
@@ -418,7 +450,7 @@ describe('DeviceMonitor', () => {
 
       // Verify that setTimeout is called for the focus change delay
       expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100)
-      
+
       setTimeoutSpy.mockRestore()
     })
 
@@ -426,9 +458,18 @@ describe('DeviceMonitor', () => {
       await monitor.start()
       monitor.stop()
 
-      expect(document.removeEventListener).toHaveBeenCalledWith('visibilitychange', expect.any(Function))
-      expect(window.removeEventListener).toHaveBeenCalledWith('focus', expect.any(Function))
-      expect(window.removeEventListener).toHaveBeenCalledWith('blur', expect.any(Function))
+      expect(document.removeEventListener).toHaveBeenCalledWith(
+        'visibilitychange',
+        expect.any(Function)
+      )
+      expect(window.removeEventListener).toHaveBeenCalledWith(
+        'focus',
+        expect.any(Function)
+      )
+      expect(window.removeEventListener).toHaveBeenCalledWith(
+        'blur',
+        expect.any(Function)
+      )
     })
   })
 
@@ -436,7 +477,7 @@ describe('DeviceMonitor', () => {
     it('should respect useNativeEvents option', async () => {
       const noNativeMonitor = new DeviceMonitor({
         useNativeEvents: false,
-        pollingInterval: 100
+        pollingInterval: 100,
       })
 
       await noNativeMonitor.start()
@@ -449,12 +490,15 @@ describe('DeviceMonitor', () => {
     it('should respect monitorOnVisibilityChange option', async () => {
       const noVisibilityMonitor = new DeviceMonitor({
         monitorOnVisibilityChange: false,
-        pollingInterval: 100
+        pollingInterval: 100,
       })
 
       await noVisibilityMonitor.start()
 
-      expect(document.addEventListener).not.toHaveBeenCalledWith('visibilitychange', expect.any(Function))
+      expect(document.addEventListener).not.toHaveBeenCalledWith(
+        'visibilitychange',
+        expect.any(Function)
+      )
 
       noVisibilityMonitor.destroy()
     })
@@ -462,13 +506,19 @@ describe('DeviceMonitor', () => {
     it('should respect monitorOnFocusChange option', async () => {
       const noFocusMonitor = new DeviceMonitor({
         monitorOnFocusChange: false,
-        pollingInterval: 100
+        pollingInterval: 100,
       })
 
       await noFocusMonitor.start()
 
-      expect(window.addEventListener).not.toHaveBeenCalledWith('focus', expect.any(Function))
-      expect(window.addEventListener).not.toHaveBeenCalledWith('blur', expect.any(Function))
+      expect(window.addEventListener).not.toHaveBeenCalledWith(
+        'focus',
+        expect.any(Function)
+      )
+      expect(window.addEventListener).not.toHaveBeenCalledWith(
+        'blur',
+        expect.any(Function)
+      )
 
       noFocusMonitor.destroy()
     })
@@ -542,14 +592,16 @@ describe('DeviceMonitor', () => {
 
       await monitor.start()
 
-      mockEnumerateDevices.mockRejectedValueOnce(new Error('Device access denied'))
+      mockEnumerateDevices.mockRejectedValueOnce(
+        new Error('Device access denied')
+      )
 
       await monitor.checkDevices()
 
       expect(errorCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({ message: 'Device access denied' }),
-          timestamp: expect.any(Number)
+          timestamp: expect.any(Number),
         })
       )
     })
@@ -568,7 +620,7 @@ describe('DeviceMonitor', () => {
       // Restore API
       Object.defineProperty(navigator, 'mediaDevices', {
         value: originalMediaDevices,
-        writable: true
+        writable: true,
       })
     })
   })
@@ -607,7 +659,7 @@ describe('DeviceMonitor', () => {
       // Restore
       Object.defineProperty(document, 'visibilityState', {
         value: originalVisibilityState,
-        writable: true
+        writable: true,
       })
     })
   })

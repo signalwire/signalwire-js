@@ -1,8 +1,8 @@
 import { getLogger, MemberUpdatedEventParams } from '@signalwire/core'
 import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
-import { CallSession, isCallSession } from './unified/CallSession'
 import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
 import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/roomSession'
+
 export type OverlayMap = Map<string, UserOverlay>
 
 interface UserOverlayOptions {
@@ -62,12 +62,12 @@ export class UserOverlay {
 interface LocalVideoOverlayOptions {
   id: string
   mirrorLocalVideoOverlay: boolean
-  room: CallSession | VideoRoomSession
+  room: VideoRoomSession
 }
 
 export class LocalVideoOverlay extends UserOverlay {
   private _mirrored: boolean
-  private _room: CallSession | VideoRoomSession
+  private _room: VideoRoomSession
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
@@ -92,12 +92,8 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
-    if (isCallSession(this._room)) {
-      this._room.on(
-        'member.updated.videoMuted',
-        this.fabricMemberVideoMutedHandler
-      )
-    } else if (isVideoRoomSession(this._room)) {
+    // Since CallSession was removed, only handle VideoRoomSession
+    if (isVideoRoomSession(this._room)) {
       this._room.on(
         'member.updated.videoMuted',
         this.videoMemberVideoMutedHandler
@@ -107,12 +103,8 @@ export class LocalVideoOverlay extends UserOverlay {
 
   /** @internal */
   public detachListeners() {
-    if (isCallSession(this._room)) {
-      this._room.off(
-        'member.updated.videoMuted',
-        this.fabricMemberVideoMutedHandler
-      )
-    } else if (isVideoRoomSession(this._room)) {
+    // Since CallSession was removed, only handle VideoRoomSession
+    if (isVideoRoomSession(this._room)) {
       this._room.off(
         'member.updated.videoMuted',
         this.videoMemberVideoMutedHandler

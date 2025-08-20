@@ -14,8 +14,26 @@ export type { DeviceMonitorOptions } from './DeviceMonitor'
 export {
   LocalStorageAdapter,
   MemoryStorageAdapter,
-  createStorageAdapter
+  createStorageAdapter,
 } from './DevicePreferenceStorage'
+
+// Redux actions
+export {
+  devicePreferenceUpdateAction,
+  devicePreferenceClearAction,
+  deviceRecoveryTriggerAction,
+  deviceChangeDetectedAction,
+  deviceMonitoringStartedAction,
+  deviceMonitoringStoppedAction,
+  deviceUnavailableAction,
+  deviceRecoverySuccessAction,
+  deviceRecoveryFailureAction,
+  deviceStateChangedAction,
+  devicePreferencesLoadedAction,
+  devicePreferencesSavedAction,
+  devicePreferencesClearedAction,
+  deviceEnumerationErrorAction,
+} from './deviceActions'
 
 // Type definitions
 export type {
@@ -31,5 +49,5 @@ export type {
   DeviceManagerAPI,
   DeviceChangeEvent,
   DeviceChanges,
-  DeviceMonitorEvents
+  DeviceMonitorEvents,
 } from './types'

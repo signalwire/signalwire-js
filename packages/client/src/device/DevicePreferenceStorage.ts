@@ -34,7 +34,10 @@ export class LocalStorageAdapter implements DevicePreferenceStorage {
       localStorage.setItem(storageKey, data)
       this.logger.debug(`[LocalStorageAdapter] Saved preferences for ${key}`)
     } catch (error) {
-      this.logger.error('[LocalStorageAdapter] Failed to save preferences:', error)
+      this.logger.error(
+        '[LocalStorageAdapter] Failed to save preferences:',
+        error
+      )
       throw new Error(`Failed to save device preferences: ${error}`)
     }
   }
@@ -48,17 +51,24 @@ export class LocalStorageAdapter implements DevicePreferenceStorage {
     try {
       const storageKey = this.getStorageKey(key)
       const data = localStorage.getItem(storageKey)
-      
+
       if (!data) {
-        this.logger.debug(`[LocalStorageAdapter] No preferences found for ${key}`)
+        this.logger.debug(
+          `[LocalStorageAdapter] No preferences found for ${key}`
+        )
         return null
       }
 
       const preferences = JSON.parse(data) as DevicePreference[]
-      this.logger.debug(`[LocalStorageAdapter] Loaded ${preferences.length} preferences for ${key}`)
+      this.logger.debug(
+        `[LocalStorageAdapter] Loaded ${preferences.length} preferences for ${key}`
+      )
       return preferences
     } catch (error) {
-      this.logger.error('[LocalStorageAdapter] Failed to load preferences:', error)
+      this.logger.error(
+        '[LocalStorageAdapter] Failed to load preferences:',
+        error
+      )
       return null
     }
   }
@@ -73,7 +83,10 @@ export class LocalStorageAdapter implements DevicePreferenceStorage {
       localStorage.removeItem(storageKey)
       this.logger.debug(`[LocalStorageAdapter] Cleared preferences for ${key}`)
     } catch (error) {
-      this.logger.error('[LocalStorageAdapter] Failed to clear preferences:', error)
+      this.logger.error(
+        '[LocalStorageAdapter] Failed to clear preferences:',
+        error
+      )
       throw new Error(`Failed to clear device preferences: ${error}`)
     }
   }
@@ -118,7 +131,9 @@ export class MemoryStorageAdapter implements DevicePreferenceStorage {
    */
   async save(key: string, preferences: DevicePreference[]): Promise<void> {
     this.storage.set(key, [...preferences])
-    this.logger.debug(`[MemoryStorageAdapter] Saved ${preferences.length} preferences for ${key}`)
+    this.logger.debug(
+      `[MemoryStorageAdapter] Saved ${preferences.length} preferences for ${key}`
+    )
   }
 
   /**
@@ -129,7 +144,9 @@ export class MemoryStorageAdapter implements DevicePreferenceStorage {
   async load(key: string): Promise<DevicePreference[] | null> {
     const preferences = this.storage.get(key)
     if (preferences) {
-      this.logger.debug(`[MemoryStorageAdapter] Loaded ${preferences.length} preferences for ${key}`)
+      this.logger.debug(
+        `[MemoryStorageAdapter] Loaded ${preferences.length} preferences for ${key}`
+      )
       return [...preferences]
     }
     return null
@@ -176,10 +193,12 @@ export function createStorageAdapter(
   }
 
   const adapter = new LocalStorageAdapter(prefix)
-  
+
   // Fallback to memory storage if localStorage is not available
   if (!adapter.isAvailable()) {
-    getLogger().warn('[createStorageAdapter] localStorage not available, using memory storage')
+    getLogger().warn(
+      '[createStorageAdapter] localStorage not available, using memory storage'
+    )
     return new MemoryStorageAdapter()
   }
 

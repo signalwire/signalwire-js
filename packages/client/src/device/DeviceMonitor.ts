@@ -4,10 +4,18 @@
  */
 
 import { EventEmitter, getLogger } from '@signalwire/core'
+import type { BaseRoomSessionConnection } from '../BaseRoomSession'
+import {
+  deviceChangeDetectedAction,
+  deviceMonitoringStartedAction,
+  deviceMonitoringStoppedAction,
+  deviceEnumerationErrorAction,
+} from './deviceActions'
 import type {
   DeviceMonitorEvents,
   DeviceChanges,
-  DeviceChangeEvent
+  DeviceChangeEvent,
+  DeviceType,
 } from './types'
 
 /**
@@ -43,6 +51,11 @@ export interface DeviceMonitorOptions {
    * Enable debug logging (default: false)
    */
   debug?: boolean
+
+  /**
+   * Optional session connection for Redux store access
+   */
+  sessionConnection?: BaseRoomSessionConnection
 }
 
 /**
@@ -51,7 +64,8 @@ export interface DeviceMonitorOptions {
  */
 export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
   private readonly logger = getLogger()
-  private readonly options: Required<DeviceMonitorOptions>
+  private readonly options: Required<Omit<DeviceMonitorOptions, 'sessionConnection'>>
+  private readonly sessionConnection?: BaseRoomSessionConnection
 
   /**
    * Monitoring state
@@ -72,7 +86,7 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
     deviceChange: this.handleNativeDeviceChange.bind(this),
     visibilityChange: this.handleVisibilityChange.bind(this),
     focusChange: this.handleFocusChange.bind(this),
-    blurChange: this.handleBlurChange.bind(this)
+    blurChange: this.handleBlurChange.bind(this),
   }
 
   /**
@@ -84,13 +98,13 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
   /**
    * Default configuration
    */
-  private static readonly DEFAULT_OPTIONS: Required<DeviceMonitorOptions> = {
+  private static readonly DEFAULT_OPTIONS: Required<Omit<DeviceMonitorOptions, 'sessionConnection'>> = {
     pollingInterval: 2000,
     debounceDelay: 100,
     useNativeEvents: true,
     monitorOnVisibilityChange: true,
     monitorOnFocusChange: true,
-    debug: false
+    debug: false,
   }
 
   /**
@@ -100,9 +114,13 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
   constructor(options: DeviceMonitorOptions = {}) {
     super()
 
+    // Extract sessionConnection from options
+    const { sessionConnection, ...configOptions } = options
+    this.sessionConnection = sessionConnection
+
     this.options = {
       ...DeviceMonitor.DEFAULT_OPTIONS,
-      ...options
+      ...configOptions,
     }
 
     // Detect browser capabilities
@@ -112,7 +130,8 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
     this.logger.debug('[DeviceMonitor] Initialized with options:', this.options)
     this.logger.debug('[DeviceMonitor] Capabilities:', {
       nativeEventsSupported: this.nativeEventsSupported,
-      visibilityApiSupported: this.visibilityApiSupported
+      visibilityApiSupported: this.visibilityApiSupported,
+      hasReduxStore: !!this.sessionConnection?.store,
     })
   }
 
@@ -138,7 +157,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       }
 
       // Set up visibility and focus listeners if enabled
-      if (this.options.monitorOnVisibilityChange && this.visibilityApiSupported) {
+      if (
+        this.options.monitorOnVisibilityChange &&
+        this.visibilityApiSupported
+      ) {
         this.setupVisibilityListeners()
       }
 
@@ -154,10 +176,22 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       // Emit started event
       this.emit('monitor.started', {
         pollingInterval: this.options.pollingInterval,
-        nativeEventsSupported: this.nativeEventsSupported && this.options.useNativeEvents
+        nativeEventsSupported:
+          this.nativeEventsSupported && this.options.useNativeEvents,
       })
 
-      this.logger.debug('[DeviceMonitor] Device monitoring started successfully')
+      // Dispatch Redux action for monitoring started
+      this.dispatchReduxAction(
+        deviceMonitoringStartedAction({
+          pollingInterval: this.options.pollingInterval,
+          nativeEventsSupported:
+            this.nativeEventsSupported && this.options.useNativeEvents,
+        })
+      )
+
+      this.logger.debug(
+        '[DeviceMonitor] Device monitoring started successfully'
+      )
     } catch (error) {
       this.logger.error('[DeviceMonitor] Failed to start monitoring:', error)
       this.emitError(error instanceof Error ? error : new Error(String(error)))
@@ -175,7 +209,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       return
     }
 
-    this.logger.debug('[DeviceMonitor] Stopping device monitoring', reason ? `(${reason})` : '')
+    this.logger.debug(
+      '[DeviceMonitor] Stopping device monitoring',
+      reason ? `(${reason})` : ''
+    )
 
     // Clear timers
     if (this.pollingTimer) {
@@ -197,6 +234,11 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
 
     // Emit stopped event
     this.emit('monitor.stopped', { reason })
+
+    // Dispatch Redux action for monitoring stopped
+    this.dispatchReduxAction(
+      deviceMonitoringStoppedAction({ reason })
+    )
 
     this.logger.debug('[DeviceMonitor] Device monitoring stopped')
   }
@@ -251,8 +293,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       const devices = await this.enumerateDevices()
       this.lastKnownDevices = devices
 
-      this.logger.debug(`[DeviceMonitor] Initial scan found ${devices.length} devices:`, 
-        devices.map(d => `${d.kind}: ${d.label || d.deviceId}`))
+      this.logger.debug(
+        `[DeviceMonitor] Initial scan found ${devices.length} devices:`,
+        devices.map((d) => `${d.kind}: ${d.label || d.deviceId}`)
+      )
     } catch (error) {
       this.logger.error('[DeviceMonitor] Initial device scan failed:', error)
       throw error
@@ -268,7 +312,11 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       const currentDevices = await this.enumerateDevices()
       const timestamp = Date.now()
 
-      const changes = this.compareDevices(this.lastKnownDevices, currentDevices, timestamp)
+      const changes = this.compareDevices(
+        this.lastKnownDevices,
+        currentDevices,
+        timestamp
+      )
 
       // Update last known devices
       this.lastKnownDevices = currentDevices
@@ -287,7 +335,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
 
       return null
     } catch (error) {
-      this.logger.error('[DeviceMonitor] Device change detection failed:', error)
+      this.logger.error(
+        '[DeviceMonitor] Device change detection failed:',
+        error
+      )
       this.emitError(error instanceof Error ? error : new Error(String(error)))
       return null
     }
@@ -307,11 +358,16 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
   ): DeviceChanges {
     const added: MediaDeviceInfo[] = []
     const removed: MediaDeviceInfo[] = []
-    const changed: Array<{ current: MediaDeviceInfo; previous: MediaDeviceInfo }> = []
+    const changed: Array<{
+      current: MediaDeviceInfo
+      previous: MediaDeviceInfo
+    }> = []
 
     // Find added devices
     for (const device of current) {
-      const previousDevice = previous.find(d => d.deviceId === device.deviceId)
+      const previousDevice = previous.find(
+        (d) => d.deviceId === device.deviceId
+      )
       if (!previousDevice) {
         added.push(device)
       } else if (this.hasDeviceChanged(previousDevice, device)) {
@@ -321,7 +377,7 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
 
     // Find removed devices
     for (const device of previous) {
-      const currentDevice = current.find(d => d.deviceId === device.deviceId)
+      const currentDevice = current.find((d) => d.deviceId === device.deviceId)
       if (!currentDevice) {
         removed.push(device)
       }
@@ -331,7 +387,7 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       added,
       removed,
       changed,
-      timestamp
+      timestamp,
     }
   }
 
@@ -341,7 +397,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    * @param current - Current device info
    * @returns true if device has changed
    */
-  private hasDeviceChanged(previous: MediaDeviceInfo, current: MediaDeviceInfo): boolean {
+  private hasDeviceChanged(
+    previous: MediaDeviceInfo,
+    current: MediaDeviceInfo
+  ): boolean {
     return (
       previous.label !== current.label ||
       previous.groupId !== current.groupId ||
@@ -355,7 +414,11 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    * @returns true if there are changes
    */
   private hasChanges(changes: DeviceChanges): boolean {
-    return changes.added.length > 0 || changes.removed.length > 0 || changes.changed.length > 0
+    return (
+      changes.added.length > 0 ||
+      changes.removed.length > 0 ||
+      changes.changed.length > 0
+    )
   }
 
   /**
@@ -368,9 +431,19 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       const event: DeviceChangeEvent = {
         type: 'added',
         device,
-        timestamp: changes.timestamp
+        timestamp: changes.timestamp,
       }
       this.emit('device.added', event)
+
+      // Dispatch Redux action for device added
+      this.dispatchReduxAction(
+        deviceChangeDetectedAction({
+          deviceType: this.getDeviceTypeFromKind(device.kind),
+          changeType: 'added',
+          deviceId: device.deviceId,
+          deviceInfo: device,
+        })
+      )
     }
 
     // Emit removed events
@@ -378,9 +451,19 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       const event: DeviceChangeEvent = {
         type: 'removed',
         device,
-        timestamp: changes.timestamp
+        timestamp: changes.timestamp,
       }
       this.emit('device.removed', event)
+
+      // Dispatch Redux action for device removed
+      this.dispatchReduxAction(
+        deviceChangeDetectedAction({
+          deviceType: this.getDeviceTypeFromKind(device.kind),
+          changeType: 'removed',
+          deviceId: device.deviceId,
+          deviceInfo: device,
+        })
+      )
     }
 
     // Emit changed events
@@ -389,9 +472,19 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
         type: 'changed',
         device: current,
         previousDevice: previous,
-        timestamp: changes.timestamp
+        timestamp: changes.timestamp,
       }
       this.emit('device.changed', event)
+
+      // Dispatch Redux action for device changed
+      this.dispatchReduxAction(
+        deviceChangeDetectedAction({
+          deviceType: this.getDeviceTypeFromKind(current.kind),
+          changeType: 'changed',
+          deviceId: current.deviceId,
+          deviceInfo: current,
+        })
+      )
     }
   }
 
@@ -400,10 +493,20 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    * @param error - Error to emit
    */
   private emitError(error: Error): void {
+    const timestamp = Date.now()
+    
     this.emit('monitor.error', {
       error,
-      timestamp: Date.now()
+      timestamp,
     })
+
+    // Dispatch Redux action for enumeration error
+    this.dispatchReduxAction(
+      deviceEnumerationErrorAction({
+        error,
+        timestamp,
+      })
+    )
   }
 
   /**
@@ -420,7 +523,9 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
       }
     }, this.options.pollingInterval)
 
-    this.logger.debug(`[DeviceMonitor] Polling started with ${this.options.pollingInterval}ms interval`)
+    this.logger.debug(
+      `[DeviceMonitor] Polling started with ${this.options.pollingInterval}ms interval`
+    )
   }
 
   /**
@@ -446,8 +551,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    */
   private handleVisibilityChange(): void {
     if (document.visibilityState === 'visible' && this.isMonitoring) {
-      this.logger.debug('[DeviceMonitor] Page became visible, checking for device changes')
-      
+      this.logger.debug(
+        '[DeviceMonitor] Page became visible, checking for device changes'
+      )
+
       // Small delay to allow devices to be re-initialized
       setTimeout(async () => {
         if (this.isMonitoring) {
@@ -462,8 +569,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    */
   private handleFocusChange(): void {
     if (this.isMonitoring) {
-      this.logger.debug('[DeviceMonitor] Window gained focus, checking for device changes')
-      
+      this.logger.debug(
+        '[DeviceMonitor] Window gained focus, checking for device changes'
+      )
+
       // Small delay to allow devices to be re-initialized
       setTimeout(async () => {
         if (this.isMonitoring) {
@@ -486,7 +595,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    */
   private setupNativeEventListeners(): void {
     if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
-      navigator.mediaDevices.addEventListener('devicechange', this.boundHandlers.deviceChange)
+      navigator.mediaDevices.addEventListener(
+        'devicechange',
+        this.boundHandlers.deviceChange
+      )
       this.logger.debug('[DeviceMonitor] Native devicechange listener added')
     }
   }
@@ -496,7 +608,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    */
   private removeNativeEventListeners(): void {
     if (navigator.mediaDevices && navigator.mediaDevices.removeEventListener) {
-      navigator.mediaDevices.removeEventListener('devicechange', this.boundHandlers.deviceChange)
+      navigator.mediaDevices.removeEventListener(
+        'devicechange',
+        this.boundHandlers.deviceChange
+      )
       this.logger.debug('[DeviceMonitor] Native devicechange listener removed')
     }
   }
@@ -506,7 +621,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    */
   private setupVisibilityListeners(): void {
     if (this.detectVisibilityApiSupported()) {
-      document.addEventListener('visibilitychange', this.boundHandlers.visibilityChange)
+      document.addEventListener(
+        'visibilitychange',
+        this.boundHandlers.visibilityChange
+      )
       this.logger.debug('[DeviceMonitor] Visibility change listener added')
     }
   }
@@ -516,7 +634,10 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    */
   private removeVisibilityListeners(): void {
     if (this.detectVisibilityApiSupported()) {
-      document.removeEventListener('visibilitychange', this.boundHandlers.visibilityChange)
+      document.removeEventListener(
+        'visibilitychange',
+        this.boundHandlers.visibilityChange
+      )
       this.logger.debug('[DeviceMonitor] Visibility change listener removed')
     }
   }
@@ -570,6 +691,55 @@ export class DeviceMonitor extends EventEmitter<DeviceMonitorEvents> {
    * @returns true if Visibility API is supported
    */
   private detectVisibilityApiSupported(): boolean {
-    return typeof document !== 'undefined' && typeof document.visibilityState !== 'undefined'
+    return (
+      typeof document !== 'undefined' &&
+      typeof document.visibilityState !== 'undefined'
+    )
+  }
+
+  /**
+   * Helper method to dispatch Redux actions safely
+   * @param action - Redux action to dispatch
+   */
+  private dispatchReduxAction(action: any): void {
+    try {
+      if (this.sessionConnection?.store?.dispatch) {
+        this.sessionConnection.store.dispatch(action)
+        this.logger.trace(
+          '[DeviceMonitor] Dispatched Redux action:',
+          action.type
+        )
+      } else {
+        this.logger.debug(
+          '[DeviceMonitor] Redux store not available, skipping action dispatch:',
+          action.type
+        )
+      }
+    } catch (error) {
+      this.logger.warn(
+        '[DeviceMonitor] Failed to dispatch Redux action:',
+        action.type,
+        error
+      )
+    }
+  }
+
+  /**
+   * Convert MediaDeviceInfo.kind to DeviceType
+   * @param kind - MediaDeviceInfo kind
+   * @returns DeviceType
+   */
+  private getDeviceTypeFromKind(kind: string): DeviceType {
+    switch (kind) {
+      case 'videoinput':
+        return 'camera'
+      case 'audioinput':
+        return 'microphone'
+      case 'audiooutput':
+        return 'speaker'
+      default:
+        this.logger.warn('[DeviceMonitor] Unknown device kind:', kind)
+        return 'microphone' // Default fallback
+    }
   }
 }

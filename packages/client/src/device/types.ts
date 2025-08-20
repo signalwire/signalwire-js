@@ -458,17 +458,26 @@ export interface DeviceManagerAPI {
   /**
    * Set camera device with optional preference
    */
-  setCamera(deviceId: string, preference?: Partial<DevicePreference>): Promise<void>
+  setCamera(
+    deviceId: string,
+    preference?: Partial<DevicePreference>
+  ): Promise<void>
 
   /**
    * Set microphone device with optional preference
    */
-  setMicrophone(deviceId: string, preference?: Partial<DevicePreference>): Promise<void>
+  setMicrophone(
+    deviceId: string,
+    preference?: Partial<DevicePreference>
+  ): Promise<void>
 
   /**
    * Set speaker device with optional preference
    */
-  setSpeaker(deviceId: string, preference?: Partial<DevicePreference>): Promise<void>
+  setSpeaker(
+    deviceId: string,
+    preference?: Partial<DevicePreference>
+  ): Promise<void>
 
   /**
    * Get current device state
@@ -571,7 +580,7 @@ export enum RecoveryStatus {
   /** Recovery attempt was cancelled */
   CANCELLED = 'cancelled',
   /** Recovery attempt was debounced/skipped */
-  DEBOUNCED = 'debounced'
+  DEBOUNCED = 'debounced',
 }
 
 /**
@@ -641,7 +650,10 @@ export interface DeviceRecoveryEngineOptions {
   /**
    * Custom device availability checker
    */
-  isDeviceAvailable?: (deviceId: string, deviceType: DeviceType) => Promise<boolean>
+  isDeviceAvailable?: (
+    deviceId: string,
+    deviceType: DeviceType
+  ) => Promise<boolean>
 }
 
 /**
