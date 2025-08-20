@@ -1,8 +1,68 @@
 import { ProfileManager } from './ProfileManager'
 import { HTTPClient } from './HTTPClient'
-import { ProfileType, Profile } from './interfaces/clientFactory'
+import {
+  ProfileType,
+  Profile,
+  SignalWireCredentials,
+} from './interfaces/clientFactory'
 import { SignalWireStorageContract } from './interfaces/storage'
 import { ResourceType } from './interfaces/address'
+
+// Helper function to create test credentials
+function createTestCredentials(
+  overrides?: Partial<SignalWireCredentials>
+): SignalWireCredentials {
+  return {
+    satToken: 'test-token',
+    tokenExpiry: Date.now() + 3600000, // 1 hour from now
+    satRefreshPayload: {
+      refresh_token: 'refresh-token',
+      project_id: 'project-123',
+    },
+    satRefreshURL: 'https://api.signalwire.com/auth/refresh',
+    satRefreshResultMapper: (body: Record<string, any>) => ({
+      satToken: body.access_token || `refreshed_token_${Date.now()}`,
+      tokenExpiry: body.expires_at || Date.now() + 3600000,
+      satRefreshPayload: {
+        refresh_token: body.refresh_token || 'refresh-token',
+      },
+    }),
+    ...overrides,
+  }
+}
+
+// Helper function to create mock storage
+function createMockStorage(additionalMocks?: Partial<SignalWireStorageContract>): SignalWireStorageContract {
+  return {
+    // Persistent storage methods
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue(undefined),
+    delete: jest.fn().mockResolvedValue(true),
+    has: jest.fn().mockResolvedValue(false),
+    getMany: jest.fn().mockResolvedValue(new Map()),
+    setMany: jest.fn().mockResolvedValue(undefined),
+    deleteMany: jest.fn().mockResolvedValue(new Map()),
+    list: jest.fn().mockResolvedValue([]),
+    clear: jest.fn().mockResolvedValue(undefined),
+    // Session storage methods
+    getSession: jest.fn().mockResolvedValue(null),
+    setSession: jest.fn().mockResolvedValue(undefined),
+    deleteSession: jest.fn().mockResolvedValue(true),
+    hasSession: jest.fn().mockResolvedValue(false),
+    getManySession: jest.fn().mockResolvedValue(new Map()),
+    setManySession: jest.fn().mockResolvedValue(undefined),
+    deleteManySession: jest.fn().mockResolvedValue(new Map()),
+    listSession: jest.fn().mockResolvedValue([]),
+    clearSession: jest.fn().mockResolvedValue(undefined),
+    // Storage info
+    getStorageInfo: jest.fn().mockResolvedValue({
+      type: 'memory',
+      isAvailable: true,
+      isPersistent: false,
+    }),
+    ...additionalMocks,
+  }
+}
 
 describe('ProfileManager Credential Management', () => {
   let profileManager: ProfileManager
@@ -10,13 +70,7 @@ describe('ProfileManager Credential Management', () => {
 
   beforeEach(async () => {
     // Create mock storage
-    mockStorage = {
-      get: jest.fn(),
-      set: jest.fn(),
-      delete: jest.fn(),
-      has: jest.fn(),
-      clear: jest.fn(),
-    }
+    mockStorage = createMockStorage()
 
     profileManager = new ProfileManager()
     await profileManager.init(mockStorage)
@@ -33,19 +87,16 @@ describe('ProfileManager Credential Management', () => {
       const mockProfile = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'cred-123',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'old-token',
-          satRefreshToken: 'refresh-token',
-          tokenExpiry: Date.now() + 3600000, // 1 hour from now
-          projectId: 'project-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'address-123',
       }
 
       const profileId = await profileManager.addProfile(mockProfile)
-
-      // Refresh credentials
+      
+      // Since we're in a test environment, the refresh will use the mock implementation
+      // which returns a refreshed token immediately
       await profileManager.refreshCredentials(profileId)
 
       // Get updated profile
@@ -70,13 +121,7 @@ describe('ProfileManager Credential Management', () => {
       const mockProfile = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'cred-123',
-        credentials: {
-          satToken: 'token',
-          satRefreshToken: 'refresh-token',
-          tokenExpiry: Date.now() + 3600000, // 1 hour from now
-          projectId: 'project-123',
-          spaceId: 'space-123',
-        },
+        credentials: createTestCredentials(),
         addressId: 'address-123',
       }
 
@@ -90,13 +135,9 @@ describe('ProfileManager Credential Management', () => {
       const mockProfile = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'cred-123',
-        credentials: {
-          satToken: 'token',
-          satRefreshToken: 'refresh-token',
+        credentials: createTestCredentials({
           tokenExpiry: Date.now() - 1000, // Already expired
-          projectId: 'project-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'address-123',
       }
 
@@ -127,13 +168,10 @@ describe('ProfileManager Credential Management', () => {
       const mockProfile = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'cred-123',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token',
-          satRefreshToken: 'refresh-token',
           tokenExpiry: Date.now() + 600000, // 10 minutes from now
-          projectId: 'project-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'address-123',
       }
 
@@ -152,13 +190,10 @@ describe('ProfileManager Credential Management', () => {
       const mockProfile = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'cred-123',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token',
-          satRefreshToken: 'refresh-token',
           tokenExpiry: Date.now() - 1000, // Already expired
-          projectId: 'project-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'address-123',
       }
 
@@ -177,13 +212,10 @@ describe('ProfileManager Credential Management', () => {
       const mockProfile = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'cred-123',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token',
-          satRefreshToken: 'refresh-token',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'project-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'address-123',
       }
 
@@ -211,7 +243,7 @@ describe('ProfileManager Credential Management', () => {
     beforeEach(async () => {
       profileManager = new ProfileManager()
       const storageData: Record<string, any> = {}
-      mockStorage = {
+      mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
           if (key === 'swcf:profiles') {
             return Object.keys(storageData)
@@ -222,7 +254,7 @@ describe('ProfileManager Credential Management', () => {
         }),
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
           storageData[key] = value
-          return true
+          return undefined
         }),
         delete: jest.fn().mockImplementation(async (key: string) => {
           if (storageData[key]) {
@@ -234,12 +266,7 @@ describe('ProfileManager Credential Management', () => {
         has: jest.fn().mockImplementation(async (key: string) => {
           return key in storageData
         }),
-        getInfo: jest.fn().mockResolvedValue({
-          type: 'memory',
-          version: '1.0.0',
-          description: 'Test Storage',
-        }),
-      }
+      })
       await profileManager.init(mockStorage)
     })
 
@@ -253,13 +280,10 @@ describe('ProfileManager Credential Management', () => {
       const profile = {
         type: ProfileType.STATIC,
         credentialsId: 'cred-1',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'address-123',
       }
 
@@ -299,13 +323,10 @@ describe('ProfileManager Credential Management', () => {
       const profile = {
         type: ProfileType.STATIC,
         credentialsId: 'cred-1',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'primary-address-123',
       }
 
@@ -343,13 +364,10 @@ describe('ProfileManager Credential Management', () => {
       const profile = {
         type: ProfileType.STATIC,
         credentialsId: 'cred-1',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'address-123',
       }
 
@@ -365,39 +383,30 @@ describe('ProfileManager Credential Management', () => {
       const profile1 = {
         type: ProfileType.STATIC,
         credentialsId: 'shared-cred-1',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'address-1',
       }
 
       const profile2 = {
         type: ProfileType.STATIC,
         credentialsId: 'shared-cred-1',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'address-2',
       }
 
       const profile3 = {
         type: ProfileType.STATIC,
         credentialsId: 'different-cred',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-456',
-          satRefreshToken: 'refresh-456',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-2',
-          spaceId: 'space-2',
-        },
+        }),
         addressId: 'address-3',
       }
 
@@ -440,13 +449,10 @@ describe('ProfileManager Credential Management', () => {
       const profile = {
         type: ProfileType.STATIC,
         credentialsId: 'cred-1',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'primary-address-123',
       }
 
@@ -480,7 +486,7 @@ describe('ProfileManager Credential Management', () => {
     beforeEach(async () => {
       profileManager = new ProfileManager()
       const storageData: Record<string, any> = {}
-      mockStorage = {
+      mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
           if (key === 'swcf:profiles') {
             return Object.keys(storageData)
@@ -491,7 +497,7 @@ describe('ProfileManager Credential Management', () => {
         }),
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
           storageData[key] = value
-          return true
+          return undefined
         }),
         delete: jest.fn().mockImplementation(async (key: string) => {
           if (storageData[key]) {
@@ -505,14 +511,9 @@ describe('ProfileManager Credential Management', () => {
         }),
         clear: jest.fn().mockImplementation(async () => {
           Object.keys(storageData).forEach((key) => delete storageData[key])
-          return true
+          return undefined
         }),
-        getInfo: jest.fn().mockResolvedValue({
-          type: 'memory',
-          version: '1.0.0',
-          description: 'Test Storage',
-        }),
-      }
+      })
       await profileManager.init(mockStorage)
     })
 
@@ -524,13 +525,10 @@ describe('ProfileManager Credential Management', () => {
       const profileData = {
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-123',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
       }
 
@@ -559,13 +557,10 @@ describe('ProfileManager Credential Management', () => {
       const profileData = {
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-details',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
         addressDetails,
       }
@@ -581,24 +576,23 @@ describe('ProfileManager Credential Management', () => {
     })
 
     it('should update timestamps when profile is modified', async () => {
+      jest.useFakeTimers()
+      
       const profileData = {
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-update',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
       }
 
       const profileId = await profileManager.addProfile(profileData)
       const originalProfile = await profileManager.getProfile(profileId)
 
-      // Wait a bit to ensure timestamp difference
-      await new Promise((resolve) => setTimeout(resolve, 10))
+      // Advance time to ensure timestamp difference
+      jest.advanceTimersByTime(10)
 
       // Update the profile
       const updatedCredentials = {
@@ -613,6 +607,8 @@ describe('ProfileManager Credential Management', () => {
 
       await profileManager.updateProfile(profileId, updatedProfileData)
       const updatedProfile = await profileManager.getProfile(profileId)
+      
+      jest.useRealTimers()
 
       expect(updatedProfile?.updatedAt).toBeGreaterThan(
         originalProfile!.createdAt
@@ -632,7 +628,7 @@ describe('ProfileManager Credential Management', () => {
       storageSetCalls = []
       const storageData: Record<string, any> = {}
 
-      mockStorage = {
+      mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
           if (key === 'swcf:profiles') {
             return Object.keys(storageData)
@@ -644,7 +640,7 @@ describe('ProfileManager Credential Management', () => {
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
           storageSetCalls.push({ key, value })
           storageData[key] = value
-          return true
+          return undefined
         }),
         delete: jest.fn().mockImplementation(async (key: string) => {
           if (storageData[key]) {
@@ -658,14 +654,9 @@ describe('ProfileManager Credential Management', () => {
         }),
         clear: jest.fn().mockImplementation(async () => {
           Object.keys(storageData).forEach((key) => delete storageData[key])
-          return true
+          return undefined
         }),
-        getInfo: jest.fn().mockResolvedValue({
-          type: 'memory',
-          version: '1.0.0',
-          description: 'Test Storage',
-        }),
-      }
+      })
       await profileManager.init(mockStorage)
     })
 
@@ -677,13 +668,10 @@ describe('ProfileManager Credential Management', () => {
       const profileData = {
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-key',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
       }
 
@@ -713,26 +701,20 @@ describe('ProfileManager Credential Management', () => {
       const profileData1 = {
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-1',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-1',
-          satRefreshToken: 'refresh-1',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'addr-1',
       }
 
       const profileData2 = {
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-2',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-2',
-          satRefreshToken: 'refresh-2',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-2',
-          spaceId: 'space-2',
-        },
+        }),
         addressId: 'addr-2',
       }
 
@@ -756,13 +738,10 @@ describe('ProfileManager Credential Management', () => {
       const profileData = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'test-cred-dynamic',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
       }
 
@@ -789,18 +768,7 @@ describe('ProfileManager Credential Management', () => {
 
     beforeEach(async () => {
       profileManager = new ProfileManager()
-      mockStorage = {
-        get: jest.fn().mockResolvedValue(null),
-        set: jest.fn().mockResolvedValue(true),
-        delete: jest.fn().mockResolvedValue(true),
-        has: jest.fn().mockResolvedValue(false),
-        clear: jest.fn().mockResolvedValue(true),
-        getInfo: jest.fn().mockResolvedValue({
-          type: 'memory',
-          version: '1.0.0',
-          description: 'Test Storage',
-        }),
-      }
+      mockStorage = createMockStorage()
       await profileManager.init(mockStorage)
     })
 
@@ -816,13 +784,10 @@ describe('ProfileManager Credential Management', () => {
       const expiredProfile = {
         type: ProfileType.STATIC,
         credentialsId: 'expired-cred',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'expired-token',
-          satRefreshToken: 'refresh-token',
           tokenExpiry: now - 1000, // 1 second ago
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-456',
       }
 
@@ -836,13 +801,10 @@ describe('ProfileManager Credential Management', () => {
       const validProfile = {
         type: ProfileType.STATIC,
         credentialsId: 'valid-cred',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'valid-token',
-          satRefreshToken: 'refresh-token',
           tokenExpiry: now + 3600000, // 1 hour from now
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
       }
 
@@ -862,13 +824,10 @@ describe('ProfileManager Credential Management', () => {
       const profileData = {
         type: ProfileType.STATIC,
         credentialsId: 'schedule-test',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry,
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
       }
 
@@ -897,13 +856,10 @@ describe('ProfileManager Credential Management', () => {
       const profileData = {
         type: ProfileType.STATIC,
         credentialsId: 'fail-refresh',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'bad-token',
-          satRefreshToken: 'bad-refresh',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'bad-project',
-          spaceId: 'bad-space',
-        },
+        }),
         addressId: 'addr-123',
       }
 
@@ -925,7 +881,7 @@ describe('ProfileManager Credential Management', () => {
     beforeEach(async () => {
       profileManager = new ProfileManager()
       const storageData: Record<string, any> = {}
-      mockStorage = {
+      mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
           if (key === 'swcf:profiles') {
             return Object.keys(storageData)
@@ -936,7 +892,7 @@ describe('ProfileManager Credential Management', () => {
         }),
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
           storageData[key] = value
-          return true
+          return undefined
         }),
         delete: jest.fn().mockImplementation(async (key: string) => {
           if (storageData[key]) {
@@ -950,14 +906,9 @@ describe('ProfileManager Credential Management', () => {
         }),
         clear: jest.fn().mockImplementation(async () => {
           Object.keys(storageData).forEach((key) => delete storageData[key])
-          return true
+          return undefined
         }),
-        getInfo: jest.fn().mockResolvedValue({
-          type: 'memory',
-          version: '1.0.0',
-          description: 'Test Storage',
-        }),
-      }
+      })
       await profileManager.init(mockStorage)
     })
 
@@ -969,26 +920,20 @@ describe('ProfileManager Credential Management', () => {
       const staticProfile = {
         type: ProfileType.STATIC,
         credentialsId: 'static-cred',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-1',
-          satRefreshToken: 'refresh-1',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-1',
-          spaceId: 'space-1',
-        },
+        }),
         addressId: 'addr-1',
       }
 
       const dynamicProfile = {
         type: ProfileType.DYNAMIC,
         credentialsId: 'dynamic-cred',
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-2',
-          satRefreshToken: 'refresh-2',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-2',
-          spaceId: 'space-2',
-        },
+        }),
         addressId: 'addr-2',
       }
 
@@ -1031,13 +976,10 @@ describe('ProfileManager Credential Management', () => {
       const invalidProfile = {
         type: ProfileType.STATIC,
         // Missing credentialsId
-        credentials: {
+        credentials: createTestCredentials({
           satToken: 'token-123',
-          satRefreshToken: 'refresh-123',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'proj-123',
-          spaceId: 'space-123',
-        },
+        }),
         addressId: 'addr-123',
       } as any
 

@@ -3,7 +3,27 @@
  * Tests that the API signatures match the specification
  */
 import { ClientFactory } from './ClientFactory'
-import { ProfileType, Profile } from './interfaces/clientFactory'
+import { ProfileType, Profile, SignalWireCredentials } from './interfaces/clientFactory'
+
+// Helper function to create test credentials
+function createTestCredentials(overrides?: Partial<SignalWireCredentials>): SignalWireCredentials {
+  return {
+    satToken: 'test-token',
+    tokenExpiry: Date.now() + 3600000, // 1 hour from now
+    satRefreshPayload: { 
+      refresh_token: 'refresh-token',
+    },
+    satRefreshURL: 'https://api.signalwire.com/auth/refresh',
+    satRefreshResultMapper: (body: Record<string, any>) => ({
+      satToken: body.access_token || `refreshed_token_${Date.now()}`,
+      tokenExpiry: body.expires_at || Date.now() + 3600000,
+      satRefreshPayload: { 
+        refresh_token: body.refresh_token || 'refresh-token',
+      }
+    }),
+    ...overrides
+  }
+}
 
 describe.skip('ClientFactory API Integration', () => {
   let factory: ClientFactory
@@ -102,13 +122,7 @@ describe.skip('ClientFactory API Integration', () => {
         {
           type: ProfileType.DYNAMIC,
           credentialsId: 'test',
-          credentials: {
-            satToken: 'token',
-            satRefreshToken: 'refresh',
-            tokenExpiry: Date.now() + 3600000,
-            projectId: 'project',
-            spaceId: 'space',
-          },
+          credentials: createTestCredentials(),
           addressId: 'address',
         },
       ],
@@ -156,13 +170,7 @@ describe.skip('ClientFactory API Integration', () => {
     // Test that addDynamicProfile returns Promise<Profile>
     const dynamicResult: Promise<Profile> = factory.addDynamicProfile(
       'cred-id',
-      {
-        satToken: 'token',
-        satRefreshToken: 'refresh',
-        tokenExpiry: Date.now() + 3600000,
-        projectId: 'project',
-        spaceId: 'space',
-      },
+      createTestCredentials(),
       'address-id'
     )
     expect(dynamicResult).toBeInstanceOf(Promise)
@@ -170,13 +178,9 @@ describe.skip('ClientFactory API Integration', () => {
     // Test that addStaticProfile returns Promise<Profile>
     const staticResult: Promise<Profile> = factory.addStaticProfile(
       'cred-id-2',
-      {
+      createTestCredentials({
         satToken: 'token2',
-        satRefreshToken: 'refresh2',
-        tokenExpiry: Date.now() + 3600000,
-        projectId: 'project2',
-        spaceId: 'space2',
-      },
+      }),
       'address-id-2'
     )
     expect(staticResult).toBeInstanceOf(Promise)

@@ -55,10 +55,10 @@ export function isValidProfile(data: unknown): data is Profile {
   const credentials = profile.credentials as Record<string, unknown>
   if (
     typeof credentials.satToken !== 'string' ||
-    typeof credentials.satRefreshToken !== 'string' ||
     typeof credentials.tokenExpiry !== 'number' ||
-    typeof credentials.projectId !== 'string' ||
-    typeof credentials.spaceId !== 'string'
+    typeof credentials.satRefreshPayload !== 'object' ||
+    typeof credentials.satRefreshURL !== 'string' ||
+    typeof credentials.satRefreshResultMapper !== 'function'
   ) {
     return false
   }

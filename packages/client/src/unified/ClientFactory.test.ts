@@ -5,6 +5,7 @@ import {
   ClientFactoryError,
   ProfileNotFoundError,
   InstanceNotFoundError,
+  SignalWireCredentials,
 } from './interfaces/clientFactory'
 import { LocalStorageAdapter } from './storage/LocalStorageAdapter'
 import { ProfileManager } from './ProfileManager'
@@ -15,6 +16,28 @@ jest.mock('./storage/LocalStorageAdapter')
 jest.mock('./SignalWire')
 jest.mock('./ProfileManager')
 jest.mock('./InstanceManager')
+
+// Helper function to create test credentials
+function createTestCredentials(
+  overrides?: Partial<SignalWireCredentials>
+): SignalWireCredentials {
+  return {
+    satToken: 'test-token',
+    tokenExpiry: Date.now() + 3600000, // 1 hour from now
+    satRefreshPayload: {
+      refresh_token: 'refresh-token',
+    },
+    satRefreshURL: 'https://api.signalwire.com/auth/refresh',
+    satRefreshResultMapper: (body: Record<string, any>) => ({
+      satToken: body.access_token || `refreshed_token_${Date.now()}`,
+      tokenExpiry: body.expires_at || Date.now() + 3600000,
+      satRefreshPayload: {
+        refresh_token: body.refresh_token || 'refresh-token',
+      },
+    }),
+    ...overrides,
+  }
+}
 
 describe('ClientFactory', () => {
   let factory: ClientFactory
@@ -193,13 +216,9 @@ describe('ClientFactory', () => {
 
     it('should add a static profile successfully', async () => {
       const credentialsId = 'test-cred-id'
-      const credentials = {
+      const credentials = createTestCredentials({
         satToken: 'test-token',
-        satRefreshToken: 'test-refresh',
-        tokenExpiry: Date.now() + 3600000,
-        projectId: 'test-project',
-        spaceId: 'test-space',
-      }
+      })
       const addressId = 'test-address-id'
 
       const profile = await factory.addStaticProfile(
@@ -219,13 +238,9 @@ describe('ClientFactory', () => {
 
     it('should add a dynamic profile successfully', async () => {
       const credentialsId = 'test-cred-id'
-      const credentials = {
+      const credentials = createTestCredentials({
         satToken: 'test-token',
-        satRefreshToken: 'test-refresh',
-        tokenExpiry: Date.now() + 3600000,
-        projectId: 'test-project',
-        spaceId: 'test-space',
-      }
+      })
       const addressId = 'test-address-id'
 
       const profile = await factory.addDynamicProfile(
@@ -248,25 +263,17 @@ describe('ClientFactory', () => {
         {
           type: ProfileType.STATIC,
           credentialsId: 'cred-1',
-          credentials: {
+          credentials: createTestCredentials({
             satToken: 'token1',
-            satRefreshToken: 'refresh1',
-            tokenExpiry: Date.now() + 3600000,
-            projectId: 'project1',
-            spaceId: 'space1',
-          },
+          }),
           addressId: 'address1',
         },
         {
           type: ProfileType.DYNAMIC,
           credentialsId: 'cred-2',
-          credentials: {
+          credentials: createTestCredentials({
             satToken: 'token2',
-            satRefreshToken: 'refresh2',
-            tokenExpiry: Date.now() + 3600000,
-            projectId: 'project2',
-            spaceId: 'space2',
-          },
+          }),
           addressId: 'address2',
         },
       ]
@@ -293,13 +300,7 @@ describe('ClientFactory', () => {
       const invalidProfile = {
         type: ProfileType.STATIC,
         credentialsId: '', // Invalid: empty credentialsId
-        credentials: {
-          satToken: 'token',
-          satRefreshToken: 'refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'project',
-          spaceId: 'space',
-        },
+        credentials: createTestCredentials(),
         addressId: 'address',
       }
 
@@ -309,13 +310,7 @@ describe('ClientFactory', () => {
 
     it('should list profiles correctly', async () => {
       // Add some profiles first
-      const credentials = {
-        satToken: 'token',
-        satRefreshToken: 'refresh',
-        tokenExpiry: Date.now() + 3600000,
-        projectId: 'project',
-        spaceId: 'space',
-      }
+      const credentials = createTestCredentials()
 
       const dynamicProfile = await factory.addDynamicProfile(
         'cred-dyn',
@@ -338,13 +333,9 @@ describe('ClientFactory', () => {
 
     it('should remove profiles correctly', async () => {
       // Add a profile first
-      const credentials = {
-        satToken: 'token',
-        satRefreshToken: 'refresh',
-        tokenExpiry: Date.now() + 3600000,
-        projectId: 'project',
-        spaceId: 'space',
-      }
+      const credentials = createTestCredentials({
+        satToken: 'token'
+      })
       const profile = await factory.addDynamicProfile(
         'cred-test',
         credentials,
@@ -415,13 +406,9 @@ describe('ClientFactory', () => {
 
     describe('Profile Structure and Timestamps', () => {
       it('should create profiles with proper structure and Unix timestamps', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'test-cred',
@@ -437,10 +424,10 @@ describe('ClientFactory', () => {
           addressId: 'test-addr',
           credentials: expect.objectContaining({
             satToken: 'test-token',
-            satRefreshToken: 'test-refresh',
+            satRefreshPayload: expect.any(Object),
+            satRefreshURL: expect.any(String),
+            satRefreshResultMapper: expect.any(Function),
             tokenExpiry: expect.any(Number),
-            projectId: 'test-project',
-            spaceId: 'test-space',
           }),
           createdAt: expect.any(Number),
           updatedAt: expect.any(Number),
@@ -455,13 +442,9 @@ describe('ClientFactory', () => {
       })
 
       it('should handle profile with optional addressDetails', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
         const addressDetails = {
           type: 'room' as any,
           name: 'test-room',
@@ -482,13 +465,9 @@ describe('ClientFactory', () => {
 
     describe('Credential Management', () => {
       it('should validate credentials and handle expiry detection', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() - 1000, // Expired token
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'expired-cred',
@@ -512,13 +491,9 @@ describe('ClientFactory', () => {
       })
 
       it('should handle refresh token logic', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'refresh-test',
@@ -535,13 +510,9 @@ describe('ClientFactory', () => {
       })
 
       it('should throw error when credential refresh fails', async () => {
-        const credentials = {
-          satToken: 'expired-token',
-          satRefreshToken: 'invalid-refresh',
-          tokenExpiry: Date.now() - 1000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'expired-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'fail-refresh',
@@ -563,13 +534,9 @@ describe('ClientFactory', () => {
 
     describe('Client Instance Management', () => {
       it('should create and return new client instances', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'instance-test',
@@ -599,13 +566,9 @@ describe('ClientFactory', () => {
       })
 
       it('should reuse existing instances', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'reuse-test',
@@ -629,13 +592,9 @@ describe('ClientFactory', () => {
       })
 
       it('should dispose client instances properly', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'dispose-test',
@@ -656,13 +615,9 @@ describe('ClientFactory', () => {
       })
 
       it('should list active client instances', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile1 = await factory.addStaticProfile(
           'list-test-1',
@@ -687,13 +642,9 @@ describe('ClientFactory', () => {
 
     describe('Address Resolution', () => {
       it('should find profile by addressId', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'address-test',
@@ -737,13 +688,9 @@ describe('ClientFactory', () => {
 
     describe('Profile Type Handling', () => {
       it('should correctly handle STATIC profile type', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addStaticProfile(
           'static-test',
@@ -762,13 +709,9 @@ describe('ClientFactory', () => {
       })
 
       it('should correctly handle DYNAMIC profile type', async () => {
-        const credentials = {
-          satToken: 'test-token',
-          satRefreshToken: 'test-refresh',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'test-project',
-          spaceId: 'test-space',
-        }
+        const credentials = createTestCredentials({
+        satToken: 'test-token'
+      })
 
         const profile = await factory.addDynamicProfile(
           'dynamic-test',
@@ -800,13 +743,9 @@ describe('ClientFactory', () => {
         const invalidProfileData = {
           type: ProfileType.STATIC,
           credentialsId: '', // Invalid: empty
-          credentials: {
-            satToken: 'token',
-            satRefreshToken: 'refresh',
-            tokenExpiry: Date.now() + 3600000,
-            projectId: 'project',
-            spaceId: 'space',
-          },
+          credentials: createTestCredentials({
+            satToken: 'token'
+          }),
           addressId: 'address',
         }
 
@@ -821,10 +760,8 @@ describe('ClientFactory', () => {
           type: ProfileType.STATIC,
           credentialsId: 'test-cred',
           credentials: {
-            // Missing satToken and projectId
-            satRefreshToken: 'refresh',
+            // Missing required fields
             tokenExpiry: Date.now() + 3600000,
-            spaceId: 'space',
           } as any,
           addressId: 'address',
         }
@@ -840,20 +777,12 @@ describe('ClientFactory', () => {
       it('should support multiple factory instances conceptually', async () => {
         // Note: Since we're using a singleton pattern, this tests the conceptual support
         // by ensuring the factory can handle multiple profiles and instances
-        const credentials1 = {
-          satToken: 'token1',
-          satRefreshToken: 'refresh1',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'project1',
-          spaceId: 'space1',
-        }
-        const credentials2 = {
-          satToken: 'token2',
-          satRefreshToken: 'refresh2',
-          tokenExpiry: Date.now() + 3600000,
-          projectId: 'project2',
-          spaceId: 'space2',
-        }
+        const credentials1 = createTestCredentials({
+        satToken: 'token1'
+      })
+        const credentials2 = createTestCredentials({
+        satToken: 'token2'
+      })
 
         const profile1 = await factory.addStaticProfile(
           'multi-1',

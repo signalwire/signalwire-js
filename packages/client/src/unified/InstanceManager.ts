@@ -38,9 +38,14 @@ export class InstanceManager implements InstanceManagerContract {
 
     try {
       // Create SignalWire client instance with params from profile credentials
+      // Extract project from satRefreshPayload if needed
+      const projectId = profile.credentials.satRefreshPayload?.project_id || 
+                       profile.credentials.satRefreshPayload?.projectId ||
+                       'default-project'
+      
       const clientParams = {
         token: profile.credentials.satToken,
-        project: profile.credentials.projectId,
+        project: projectId,
         // Additional params can be added here based on profile details
       }
       const client = await createSignalWireClient(clientParams)

@@ -296,13 +296,7 @@ export class ClientFactory implements ClientFactoryContract {
    */
   async addDynamicProfile(
     credentialsId: string,
-    credentials: {
-      satToken: string
-      satRefreshToken: string
-      tokenExpiry: number
-      projectId: string
-      spaceId: string
-    },
+    credentials: import('./interfaces/clientFactory').SignalWireCredentials,
     addressId: string,
     addressDetails?: {
       type: import('./interfaces/address').ResourceType
@@ -342,13 +336,7 @@ export class ClientFactory implements ClientFactoryContract {
    */
   async addStaticProfile(
     credentialsId: string,
-    credentials: {
-      satToken: string
-      satRefreshToken: string
-      tokenExpiry: number
-      projectId: string
-      spaceId: string
-    },
+    credentials: import('./interfaces/clientFactory').SignalWireCredentials,
     addressId: string,
     addressDetails?: {
       type: import('./interfaces/address').ResourceType
@@ -447,13 +435,22 @@ export class ClientFactory implements ClientFactoryContract {
     }
 
     // Validate required credentials fields
+    if (!profileData.credentials.satToken) {
+      throw new ClientFactoryError(
+        'Credentials must include satToken for SignalWire authentication',
+        'MISSING_AUTH_PARAMS'
+      )
+    }
+    
+    // Validate refresh configuration
     if (
-      !profileData.credentials.satToken ||
-      !profileData.credentials.projectId
+      !profileData.credentials.satRefreshURL ||
+      !profileData.credentials.satRefreshPayload ||
+      !profileData.credentials.satRefreshResultMapper
     ) {
       throw new ClientFactoryError(
-        'Credentials must include satToken and projectId for SignalWire authentication',
-        'MISSING_AUTH_PARAMS'
+        'Credentials must include satRefreshURL, satRefreshPayload, and satRefreshResultMapper for token refresh',
+        'MISSING_REFRESH_PARAMS'
       )
     }
 

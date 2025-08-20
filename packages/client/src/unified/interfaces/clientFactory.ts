@@ -3,6 +3,26 @@ import { ResourceType } from './address'
 import { SignalWireStorageContract } from './storage'
 
 /**
+ * Public type for authentication credentials
+ */
+export interface SignalWireCredentials {
+  /** The current SAT token */
+  satToken: string
+  /** Custom payload for refresh request */
+  satRefreshPayload: Record<string, any>
+  /** URL for refresh token endpoint */
+  satRefreshURL: string
+  /** Function to map refresh response to credentials */
+  satRefreshResultMapper: (body: Record<string, any>) => {
+    satToken: string
+    tokenExpiry: number
+    satRefreshPayload: Record<string, any>
+  }
+  /** Token expiry timestamp */
+  tokenExpiry: number
+}
+
+/**
  * Types of authentication profiles
  */
 export enum ProfileType {
@@ -29,13 +49,7 @@ export interface Profile {
 
   // Credentials
   credentialsId: string // Reference to credential set
-  credentials: {
-    satToken: string
-    satRefreshToken: string
-    tokenExpiry: number // Unix timestamp
-    projectId: string
-    spaceId: string
-  }
+  credentials: SignalWireCredentials
 
   // Address information
   addressId: string // SignalWire address ID

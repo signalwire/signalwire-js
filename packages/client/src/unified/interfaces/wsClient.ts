@@ -73,7 +73,7 @@ export interface PushNotificationPayload {
   type: 'call_invite'
   iv: string
   version: string
-  decrypted: Record<string, unknown>
+  decrypted: Record<string, any>
 }
 
 export type HandlePushNotificationParams = PushNotificationPayload & {
@@ -92,7 +92,7 @@ interface DefaultCallParams {
   /** HTML element in which to display the video stream */
   rootElement?: HTMLElement | null
   /** User & UserAgent metadata */
-  userVariables?: Record<string, unknown>
+  userVariables?: Record<string, any>
 }
 
 export interface CallParams extends DefaultCallParams {

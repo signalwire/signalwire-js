@@ -15,10 +15,16 @@ describe('TypeGuards', () => {
       credentialsId: 'test-cred-id',
       credentials: {
         satToken: 'sat-token',
-        satRefreshToken: 'refresh-token',
         tokenExpiry: Date.now() + 3600000,
-        projectId: 'project-id',
-        spaceId: 'space-id',
+        satRefreshPayload: {
+          refresh_token: 'refresh-token',
+        },
+        satRefreshURL: 'https://api.signalwire.com/auth/refresh',
+        satRefreshResultMapper: (body: Record<string, any>) => ({
+          satToken: body.access_token || 'token',
+          tokenExpiry: body.expires_at || Date.now() + 3600000,
+          satRefreshPayload: body.refresh_payload || {}
+        }),
       },
       addressId: 'address-id',
       createdAt: Date.now(),
@@ -175,13 +181,13 @@ describe('TypeGuards', () => {
         })
       ).toBe(false)
 
-      // Missing satRefreshToken
+      // Missing satRefreshPayload
       expect(
         isValidProfile({
           ...validProfile,
           credentials: {
             ...validProfile.credentials,
-            satRefreshToken: undefined,
+            satRefreshPayload: undefined,
           },
         })
       ).toBe(false)
@@ -197,24 +203,24 @@ describe('TypeGuards', () => {
         })
       ).toBe(false)
 
-      // Missing projectId
+      // Missing satRefreshURL
       expect(
         isValidProfile({
           ...validProfile,
           credentials: {
             ...validProfile.credentials,
-            projectId: undefined,
+            satRefreshURL: undefined,
           },
         })
       ).toBe(false)
 
-      // Missing spaceId
+      // Missing satRefreshResultMapper
       expect(
         isValidProfile({
           ...validProfile,
           credentials: {
             ...validProfile.credentials,
-            spaceId: undefined,
+            satRefreshResultMapper: undefined,
           },
         })
       ).toBe(false)
@@ -478,27 +484,37 @@ describe('TypeGuards', () => {
     })
 
     it('should work with isValidProfile validator', () => {
+      // Note: Functions cannot be serialized to JSON, so this test
+      // validates that safeJsonParse correctly returns null for
+      // profiles that lose their function properties during serialization
       const validProfile = {
         id: 'test-profile-id',
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-id',
         credentials: {
           satToken: 'sat-token',
-          satRefreshToken: 'refresh-token',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'project-id',
-          spaceId: 'space-id',
+          satRefreshPayload: {
+            refresh_token: 'refresh-token',
+          },
+          satRefreshURL: 'https://api.signalwire.com/auth/refresh',
+          satRefreshResultMapper: (body: Record<string, any>) => ({
+            satToken: body.access_token || 'token',
+            tokenExpiry: body.expires_at || Date.now() + 3600000,
+            satRefreshPayload: body.refresh_payload || {}
+          }),
         },
         addressId: 'address-id',
         createdAt: Date.now(),
         updatedAt: Date.now(),
       }
 
+      // When serialized to JSON, the function will be lost
       const json = JSON.stringify(validProfile)
       const result = safeJsonParse(json, isValidProfile)
 
-      expect(result).toEqual(validProfile)
-      expect(isValidProfile(result)).toBe(true)
+      // The result should be null because the function is lost during serialization
+      expect(result).toBeNull()
     })
 
     it('should work with isStringArray validator', () => {

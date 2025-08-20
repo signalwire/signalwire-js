@@ -451,10 +451,16 @@ describe('StorageWrapper', () => {
         const credentialsId = 'cred-123'
         const credentials = {
           satToken: 'sat-token-value',
-          satRefreshToken: 'refresh-token-value',
           tokenExpiry: Date.now() + 3600000,
-          projectId: 'project-123',
-          spaceId: 'space-123',
+          satRefreshPayload: {
+            refresh_token: 'refresh-token-value',
+          },
+          satRefreshURL: 'https://api.signalwire.com/auth/refresh',
+          satRefreshResultMapper: (body: Record<string, any>) => ({
+            satToken: body.access_token || 'token',
+            tokenExpiry: body.expires_at || Date.now() + 3600000,
+            satRefreshPayload: body.refresh_payload || {}
+          }),
         }
 
         await wrapper.set(`credentials:${credentialsId}`, credentials)
