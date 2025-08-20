@@ -117,6 +117,7 @@ interface CreateTestVRTOptions {
   end_room_session_on_leave?: boolean
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/video/room_tokens`,
@@ -138,6 +139,7 @@ interface CreateTestJWTOptions {
   refresh_token?: string
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/relay/rest/jwt`,
@@ -215,6 +217,7 @@ interface CreateTestCRTOptions {
   channels: Record<string, { read?: boolean; write?: boolean }>
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/chat/tokens`,
@@ -301,6 +304,7 @@ export const createRoom = async (body: CreateOrUpdateRoomOptions) => {
   return response.json()
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createStreamForRoom = async (name: string, url: string) => {
   const room = await getRoomByName(name)
   if (!room) {
@@ -326,6 +330,7 @@ export const createStreamForRoom = async (name: string, url: string) => {
   return data
 }
 
+// TODO: This is not used anywhere, remove it?
 export const deleteRoom = async (id: string) => {
   return await fetch(`https://${process.env.API_HOST}/api/video/rooms/${id}`, {
     method: 'DELETE',
@@ -737,6 +742,7 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
   return result
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const first = await getStats(page)
   await page.waitForTimeout(delay)
@@ -827,6 +833,7 @@ export const expectPageReceiveAudio = async (page: Page) => {
   await expectTotalAudioEnergyToBeGreaterThan(page, 0.5)
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectSDPDirection = async (
   page: Page,
   direction: string,
@@ -846,6 +853,7 @@ export const expectSDPDirection = async (
   expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
 }
 
+// TODO: This is not used anywhere, remove it?
 export const getRemoteMediaIP = async (page: Page) => {
   const remoteIP: string = await page.evaluate(() => {
     // @ts-expect-error
@@ -963,6 +971,7 @@ export async function expectStatWithPolling(
 
 export type StatusEvents = 'initiated' | 'ringing' | 'answered' | 'completed'
 
+// TODO: This is not used anywhere, remove it?
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
@@ -1036,6 +1045,7 @@ export const createCallWithCompatibilityApi = async (
   return undefined
 }
 
+// TODO: This is not used anywhere, remove it?
 export const getDialConferenceLaml = (conferenceNameBase: string) => {
   const conferenceName = randomizeRoomName(conferenceNameBase)
   const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
@@ -1056,6 +1066,7 @@ export const getDialConferenceLaml = (conferenceNameBase: string) => {
   return inlineLaml
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectv2HasReceivedAudio = async (
   page: Page,
   minTotalAudioEnergy: number,
@@ -1139,6 +1150,7 @@ export const expectv2HasReceivedAudio = async (
   }
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectv2HasReceivedSilence = async (
   page: Page,
   maxTotalAudioEnergy: number,
@@ -1222,6 +1234,7 @@ export const expectv2HasReceivedSilence = async (
   }
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectedMinPackets = (
   packetRate: number,
   callDurationMs: number,
@@ -1240,10 +1253,12 @@ export const expectedMinPackets = (
   return minPackets
 }
 
+// TODO: This is not used anywhere, remove it?
 export const randomizeResourceName = (prefix: string = 'e2e') => {
   return `res-${prefix}${uuid()}`
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectInjectRelayHost = async (page: Page, host: string) => {
   await page.evaluate(
     async (params) => {
@@ -1612,6 +1627,7 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
@@ -1733,6 +1749,7 @@ export const expectRoomJoined = (
 
 // #endregion
 
+// TODO: This is not used anywhere, remove it?
 export const expectInteractivityMode = async (
   page: Page,
   mode: 'member' | 'audience'
@@ -1770,6 +1787,7 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
   return `${prefix}${uuid()}`
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectMemberId = async (page: Page, memberId: string) => {
   const roomMemberId = await page.evaluate(async () => {
     const callObj = window._callObj
