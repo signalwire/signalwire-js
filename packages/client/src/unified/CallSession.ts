@@ -63,7 +63,7 @@ export class CallSessionConnection
 
   constructor(options: CallSessionOptions) {
     super(options)
-    
+
     // Store the storage implementation for later use
     this.storage = options.storage
 
@@ -206,9 +206,11 @@ export class CallSessionConnection
         this.once('room.subscribed', (params) => {
           // Use provided storage or fallback to session storage
           if (this.storage) {
-            this.storage.setSession(PREVIOUS_CALLID_STORAGE_KEY, params.call_id).catch(() => {
-              // Ignore errors when setting call ID
-            })
+            this.storage
+              .setSession(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
+              .catch(() => {
+                // Ignore errors when setting call ID
+              })
           } else {
             getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
           }
@@ -218,9 +220,11 @@ export class CallSessionConnection
         this.once('destroy', () => {
           // Use provided storage or fallback to session storage
           if (this.storage) {
-            this.storage.deleteSession(PREVIOUS_CALLID_STORAGE_KEY).catch(() => {
-              // Ignore errors when removing call ID
-            })
+            this.storage
+              .deleteSession(PREVIOUS_CALLID_STORAGE_KEY)
+              .catch(() => {
+                // Ignore errors when removing call ID
+              })
           } else {
             getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
           }
@@ -231,10 +235,12 @@ export class CallSessionConnection
           // Use provided storage or fallback to session storage
           if (this.storage) {
             // For async storage, we need to await the result
-            const storedCallId = await this.storage.getSession<string>(PREVIOUS_CALLID_STORAGE_KEY).catch(() => null)
+            const storedCallId = await this.storage
+              .getSession<string>(PREVIOUS_CALLID_STORAGE_KEY)
+              .catch(() => null)
             this.options.prevCallId = storedCallId ?? undefined
           } else {
-            this.options.prevCallId = 
+            this.options.prevCallId =
               getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
           }
           this.logger.debug(
@@ -448,7 +454,7 @@ export class CallSessionConnection
     await this.executeAction<BaseRPCResult>({
       method: 'call.end',
       memberId: params?.memberId,
-    });
+    })
   }
 }
 

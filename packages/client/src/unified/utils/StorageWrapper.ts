@@ -45,12 +45,12 @@ export class StorageWrapper implements SignalWireStorageContract {
   }
 
   // Persistent storage methods
-  async get<T = any>(key: string): Promise<T | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     if (!this.storage) return null
     return this.storage.get<T>(this.prefixKey(key))
   }
 
-  async set<T = any>(key: string, value: T): Promise<void> {
+  async set<T = unknown>(key: string, value: T): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
@@ -67,16 +67,16 @@ export class StorageWrapper implements SignalWireStorageContract {
     return this.storage.has(this.prefixKey(key))
   }
 
-  async getMany<T = any>(keys: string[]): Promise<Map<string, T | null>> {
+  async getMany<T = unknown>(keys: string[]): Promise<Map<string, T | null>> {
     if (!this.storage) {
       const result = new Map<string, T | null>()
-      keys.forEach(key => result.set(key, null))
+      keys.forEach((key) => result.set(key, null))
       return result
     }
 
-    const prefixedKeys = keys.map(key => this.prefixKey(key))
+    const prefixedKeys = keys.map((key) => this.prefixKey(key))
     const prefixedResults = await this.storage.getMany<T>(prefixedKeys)
-    
+
     const result = new Map<string, T | null>()
     prefixedResults.forEach((value, prefixedKey) => {
       const originalKey = this.unprefixKey(prefixedKey)
@@ -85,42 +85,44 @@ export class StorageWrapper implements SignalWireStorageContract {
         result.set(keys[keyIndex], value)
       }
     })
-    
+
     // Ensure all requested keys are in the result
     for (const key of keys) {
       if (!result.has(key)) {
         result.set(key, null)
       }
     }
-    
+
     return result
   }
 
-  async setMany<T = any>(entries: Map<string, T> | Array<[string, T]>): Promise<void> {
+  async setMany<T = unknown>(
+    entries: Map<string, T> | Array<[string, T]>
+  ): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
 
     const prefixedEntries = new Map<string, T>()
     const entriesArray = entries instanceof Map ? Array.from(entries) : entries
-    
+
     for (const [key, value] of entriesArray) {
       prefixedEntries.set(this.prefixKey(key), value)
     }
-    
+
     return this.storage.setMany(prefixedEntries)
   }
 
   async deleteMany(keys: string[]): Promise<Map<string, boolean>> {
     if (!this.storage) {
       const result = new Map<string, boolean>()
-      keys.forEach(key => result.set(key, false))
+      keys.forEach((key) => result.set(key, false))
       return result
     }
 
-    const prefixedKeys = keys.map(key => this.prefixKey(key))
+    const prefixedKeys = keys.map((key) => this.prefixKey(key))
     const prefixedResults = await this.storage.deleteMany(prefixedKeys)
-    
+
     const result = new Map<string, boolean>()
     prefixedResults.forEach((deleted, prefixedKey) => {
       const originalKey = this.unprefixKey(prefixedKey)
@@ -129,42 +131,42 @@ export class StorageWrapper implements SignalWireStorageContract {
         result.set(keys[keyIndex], deleted)
       }
     })
-    
+
     // Ensure all requested keys are in the result
     for (const key of keys) {
       if (!result.has(key)) {
         result.set(key, false)
       }
     }
-    
+
     return result
   }
 
   async list(prefix?: string): Promise<string[]> {
     if (!this.storage) return []
-    
+
     const fullPrefix = prefix ? this.prefixKey(prefix) : this.prefix
     const allKeys = await this.storage.list(fullPrefix)
-    
+
     return allKeys
-      .filter(key => this.hasPrefix(key))
-      .map(key => this.unprefixKey(key))
+      .filter((key) => this.hasPrefix(key))
+      .map((key) => this.unprefixKey(key))
   }
 
   async clear(prefix?: string): Promise<void> {
     if (!this.storage) return
-    
+
     const fullPrefix = prefix ? this.prefixKey(prefix) : this.prefix
     return this.storage.clear(fullPrefix)
   }
 
   // Session storage methods
-  async getSession<T = any>(key: string): Promise<T | null> {
+  async getSession<T = unknown>(key: string): Promise<T | null> {
     if (!this.storage) return null
     return this.storage.getSession<T>(this.prefixKey(key))
   }
 
-  async setSession<T = any>(key: string, value: T): Promise<void> {
+  async setSession<T = unknown>(key: string, value: T): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
@@ -181,16 +183,18 @@ export class StorageWrapper implements SignalWireStorageContract {
     return this.storage.hasSession(this.prefixKey(key))
   }
 
-  async getManySession<T = any>(keys: string[]): Promise<Map<string, T | null>> {
+  async getManySession<T = unknown>(
+    keys: string[]
+  ): Promise<Map<string, T | null>> {
     if (!this.storage) {
       const result = new Map<string, T | null>()
-      keys.forEach(key => result.set(key, null))
+      keys.forEach((key) => result.set(key, null))
       return result
     }
 
-    const prefixedKeys = keys.map(key => this.prefixKey(key))
+    const prefixedKeys = keys.map((key) => this.prefixKey(key))
     const prefixedResults = await this.storage.getManySession<T>(prefixedKeys)
-    
+
     const result = new Map<string, T | null>()
     prefixedResults.forEach((value, prefixedKey) => {
       const originalKey = this.unprefixKey(prefixedKey)
@@ -199,42 +203,44 @@ export class StorageWrapper implements SignalWireStorageContract {
         result.set(keys[keyIndex], value)
       }
     })
-    
+
     // Ensure all requested keys are in the result
     for (const key of keys) {
       if (!result.has(key)) {
         result.set(key, null)
       }
     }
-    
+
     return result
   }
 
-  async setManySession<T = any>(entries: Map<string, T> | Array<[string, T]>): Promise<void> {
+  async setManySession<T = unknown>(
+    entries: Map<string, T> | Array<[string, T]>
+  ): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
 
     const prefixedEntries = new Map<string, T>()
     const entriesArray = entries instanceof Map ? Array.from(entries) : entries
-    
+
     for (const [key, value] of entriesArray) {
       prefixedEntries.set(this.prefixKey(key), value)
     }
-    
+
     return this.storage.setManySession(prefixedEntries)
   }
 
   async deleteManySession(keys: string[]): Promise<Map<string, boolean>> {
     if (!this.storage) {
       const result = new Map<string, boolean>()
-      keys.forEach(key => result.set(key, false))
+      keys.forEach((key) => result.set(key, false))
       return result
     }
 
-    const prefixedKeys = keys.map(key => this.prefixKey(key))
+    const prefixedKeys = keys.map((key) => this.prefixKey(key))
     const prefixedResults = await this.storage.deleteManySession(prefixedKeys)
-    
+
     const result = new Map<string, boolean>()
     prefixedResults.forEach((deleted, prefixedKey) => {
       const originalKey = this.unprefixKey(prefixedKey)
@@ -243,31 +249,31 @@ export class StorageWrapper implements SignalWireStorageContract {
         result.set(keys[keyIndex], deleted)
       }
     })
-    
+
     // Ensure all requested keys are in the result
     for (const key of keys) {
       if (!result.has(key)) {
         result.set(key, false)
       }
     }
-    
+
     return result
   }
 
   async listSession(prefix?: string): Promise<string[]> {
     if (!this.storage) return []
-    
+
     const fullPrefix = prefix ? this.prefixKey(prefix) : this.prefix
     const allKeys = await this.storage.listSession(fullPrefix)
-    
+
     return allKeys
-      .filter(key => this.hasPrefix(key))
-      .map(key => this.unprefixKey(key))
+      .filter((key) => this.hasPrefix(key))
+      .map((key) => this.unprefixKey(key))
   }
 
   async clearSession(prefix?: string): Promise<void> {
     if (!this.storage) return
-    
+
     const fullPrefix = prefix ? this.prefixKey(prefix) : this.prefix
     return this.storage.clearSession(fullPrefix)
   }

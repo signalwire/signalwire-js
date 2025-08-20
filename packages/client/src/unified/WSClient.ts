@@ -35,7 +35,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   constructor(private wsClientOptions: WSClientOptions) {
     const client = createWSClient(wsClientOptions)
     super(client)
-    
+
     // Store the storage implementation for later use
     this.storage = wsClientOptions.storage
 
@@ -359,10 +359,24 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
           reject('Unknown notification type')
         }
         this.logger.debug('handlePushNotification', params)
+        const decryptedData = decrypted as {
+          params: {
+            params: {
+              callID: string
+              sdp: string
+              caller_id_name: string
+              caller_id_number: string
+              callee_id_name: string
+              callee_id_number: string
+              display_direction: string
+            }
+          }
+          node_id: string
+        }
         const {
           params: { params: payload },
           node_id: nodeId,
-        } = decrypted
+        } = decryptedData
         try {
           // Catch the error temporarly
           try {

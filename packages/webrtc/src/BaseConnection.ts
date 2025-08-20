@@ -1245,7 +1245,7 @@ export class BaseConnection<
     const rtcPeer = new RTCPeer(this, type)
     this.appendRTCPeer(rtcPeer)
     this.runRTCPeerWorkers(rtcPeer.uuid)
-    
+
     return rtcPeer
   }
 

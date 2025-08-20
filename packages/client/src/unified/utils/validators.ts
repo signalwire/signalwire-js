@@ -240,5 +240,3 @@ export function validateEnd(this: CallSessionConnection) {
     throw new CapabilityError("Missing 'end' capability")
   }
 }
-
-

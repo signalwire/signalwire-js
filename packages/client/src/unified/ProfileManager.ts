@@ -10,7 +10,7 @@ import {
   CredentialRefreshError,
 } from './interfaces/clientFactory'
 import { HTTPClient } from './HTTPClient'
-import { Address } from './interfaces/address'
+import { isValidProfile, isStringArray } from './utils/typeGuards'
 
 /**
  * Manages authentication profiles for SignalWire client instances.
@@ -31,7 +31,7 @@ export class ProfileManager implements ProfileManagerContract {
   async init(storage: SignalWireStorageContract): Promise<void> {
     this.storage = storage
     this.initialized = true
-    
+
     // Load any existing static profiles from storage
     await this.loadStaticProfiles()
   }
@@ -41,12 +41,14 @@ export class ProfileManager implements ProfileManagerContract {
    * @param profile - Profile to add (without id, createdAt, updatedAt, lastUsed)
    * @returns Created profile ID
    */
-  async addProfile(profile: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>): Promise<string> {
+  async addProfile(
+    profile: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>
+  ): Promise<string> {
     this.ensureInitialized()
 
     // Generate unique ID
     const profileId = this.generateProfileId()
-    
+
     // Check if profile already exists
     if (await this.hasProfile(profileId)) {
       throw new ProfileExistsError(profileId)
@@ -136,12 +138,12 @@ export class ProfileManager implements ProfileManagerContract {
       }
       const profileKey = this.getProfileStorageKey(profileId)
       const deleted = await this.storage.delete(profileKey)
-      
+
       // Also remove from profiles index
       if (deleted) {
         await this.removeFromProfilesIndex(profileId)
       }
-      
+
       return deleted
     } else {
       return this.dynamicProfiles.delete(profileId)
@@ -228,16 +230,24 @@ export class ProfileManager implements ProfileManagerContract {
     }
 
     try {
-      const profileIds = await this.storage.get<string[]>(STORAGE_KEYS.PROFILES) || []
+      const profileIdsData = await this.storage.get<string[]>(
+        STORAGE_KEYS.PROFILES
+      )
+      const profileIds =
+        profileIdsData && isStringArray(profileIdsData) ? profileIdsData : []
       const profiles: Profile[] = []
 
       for (const profileId of profileIds) {
         const profileKey = this.getProfileStorageKey(profileId)
-        const profile = await this.storage.get<Profile>(profileKey)
-        if (profile && profile.type === ProfileType.STATIC) {
-          profiles.push(profile)
+        const profileData = await this.storage.get<Profile>(profileKey)
+        if (
+          profileData &&
+          isValidProfile(profileData) &&
+          profileData.type === ProfileType.STATIC
+        ) {
+          profiles.push(profileData)
           // Schedule refresh for loaded profiles
-          this.scheduleRefresh(profile)
+          this.scheduleRefresh(profileData)
         }
       }
 
@@ -259,7 +269,7 @@ export class ProfileManager implements ProfileManagerContract {
 
     const profileKey = this.getProfileStorageKey(profile.id)
     await this.storage.set(profileKey, profile)
-    
+
     // Add to profiles index
     await this.addToProfilesIndex(profile.id)
   }
@@ -273,7 +283,11 @@ export class ProfileManager implements ProfileManagerContract {
       return
     }
 
-    const profileIds = await this.storage.get<string[]>(STORAGE_KEYS.PROFILES) || []
+    const profileIdsData = await this.storage.get<string[]>(
+      STORAGE_KEYS.PROFILES
+    )
+    const profileIds =
+      profileIdsData && isStringArray(profileIdsData) ? profileIdsData : []
     if (!profileIds.includes(profileId)) {
       profileIds.push(profileId)
       await this.storage.set(STORAGE_KEYS.PROFILES, profileIds)
@@ -289,8 +303,12 @@ export class ProfileManager implements ProfileManagerContract {
       return
     }
 
-    const profileIds = await this.storage.get<string[]>(STORAGE_KEYS.PROFILES) || []
-    const filteredIds = profileIds.filter(id => id !== profileId)
+    const profileIdsData = await this.storage.get<string[]>(
+      STORAGE_KEYS.PROFILES
+    )
+    const profileIds =
+      profileIdsData && isStringArray(profileIdsData) ? profileIdsData : []
+    const filteredIds = profileIds.filter((id) => id !== profileId)
     await this.storage.set(STORAGE_KEYS.PROFILES, filteredIds)
   }
 
@@ -304,14 +322,17 @@ export class ProfileManager implements ProfileManagerContract {
 
     const profile = await this.getProfile(profileId)
     if (!profile) {
-      throw new CredentialRefreshError(profileId, new Error('Profile not found'))
+      throw new CredentialRefreshError(
+        profileId,
+        new Error('Profile not found')
+      )
     }
 
     try {
       // Placeholder API call for token refresh
       // In production, this would call the actual SignalWire API
       const refreshedCredentials = await this.callRefreshAPI(profile)
-      
+
       // Update the profile with new credentials
       const updatedProfile: Profile = {
         ...profile,
@@ -330,7 +351,9 @@ export class ProfileManager implements ProfileManagerContract {
       this.clearRefreshTimer(profileId)
       this.scheduleRefresh(updatedProfile)
 
-      console.log(`Successfully refreshed credentials for profile: ${profileId}`)
+      console.log(
+        `Successfully refreshed credentials for profile: ${profileId}`
+      )
     } catch (error) {
       throw new CredentialRefreshError(profileId, error as Error)
     }
@@ -385,7 +408,7 @@ export class ProfileManager implements ProfileManagerContract {
 
     const now = Date.now()
     const timeUntilExpiry = tokenExpiry - now
-    
+
     // Don't schedule if already expired
     if (timeUntilExpiry <= 0) {
       console.warn(`Token already expired for profile: ${id}`)
@@ -394,7 +417,7 @@ export class ProfileManager implements ProfileManagerContract {
 
     // Schedule refresh 5 minutes before expiry
     const refreshTime = Math.max(0, timeUntilExpiry - this.REFRESH_BUFFER_MS)
-    
+
     if (refreshTime > 0) {
       const timer = setTimeout(async () => {
         console.log(`Auto-refreshing credentials for profile: ${id}`)
@@ -406,7 +429,11 @@ export class ProfileManager implements ProfileManagerContract {
       }, refreshTime)
 
       this.refreshTimers.set(id, timer)
-      console.log(`Scheduled credential refresh for profile ${id} in ${refreshTime / 1000}s`)
+      console.log(
+        `Scheduled credential refresh for profile ${id} in ${
+          refreshTime / 1000
+        }s`
+      )
     }
   }
 
@@ -433,14 +460,14 @@ export class ProfileManager implements ProfileManagerContract {
       console.log(`Cleaned up timer for profile: ${profileId}`)
     }
     this.refreshTimers.clear()
-    
+
     // Clear dynamic profiles
     this.dynamicProfiles.clear()
-    
+
     // Reset initialized state
     this.initialized = false
     this.storage = null
-    
+
     console.log('ProfileManager cleanup completed')
   }
 
@@ -449,16 +476,18 @@ export class ProfileManager implements ProfileManagerContract {
    * @param profile - Profile to refresh
    * @returns Refreshed credentials
    */
-  private async callRefreshAPI(profile: Profile): Promise<Profile['credentials']> {
+  private async callRefreshAPI(
+    profile: Profile
+  ): Promise<Profile['credentials']> {
     // This is a placeholder implementation
     // In production, this would make an actual API call to SignalWire
     // to exchange the refresh token for new access tokens
-    
+
     const { satRefreshToken, projectId, spaceId } = profile.credentials
-    
+
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
     // TODO: Replace with actual API call
     // Example:
     // const response = await fetch('https://api.signalwire.com/auth/refresh', {
@@ -473,10 +502,10 @@ export class ProfileManager implements ProfileManagerContract {
     //   }),
     // })
     // const data = await response.json()
-    
+
     // For now, return mock refreshed credentials
-    const newExpiry = Date.now() + (60 * 60 * 1000) // 1 hour from now
-    
+    const newExpiry = Date.now() + 60 * 60 * 1000 // 1 hour from now
+
     return {
       satToken: `refreshed_token_${Date.now()}`, // Mock new token
       satRefreshToken: satRefreshToken, // Refresh token typically stays the same
@@ -492,9 +521,10 @@ export class ProfileManager implements ProfileManagerContract {
    */
   private async checkProfileLimits(type: ProfileType): Promise<void> {
     const existingProfiles = await this.listProfiles(type)
-    const maxProfiles = type === ProfileType.STATIC 
-      ? DEFAULT_CONFIG.MAX_STATIC_PROFILES 
-      : DEFAULT_CONFIG.MAX_DYNAMIC_PROFILES
+    const maxProfiles =
+      type === ProfileType.STATIC
+        ? DEFAULT_CONFIG.MAX_STATIC_PROFILES
+        : DEFAULT_CONFIG.MAX_DYNAMIC_PROFILES
 
     if (existingProfiles.length >= maxProfiles) {
       throw new MaxProfilesExceededError(type, maxProfiles)
@@ -507,11 +537,14 @@ export class ProfileManager implements ProfileManagerContract {
    */
   private generateProfileId(): string {
     // Generate UUID v4
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0
-      const v = c === 'x' ? r : (r & 0x3 | 0x8)
-      return v.toString(16)
-    })
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0
+        const v = c === 'x' ? r : (r & 0x3) | 0x8
+        return v.toString(16)
+      }
+    )
   }
 
   /**
@@ -545,7 +578,9 @@ export class ProfileManager implements ProfileManagerContract {
     const allProfiles = await this.listProfiles()
     for (const profile of allProfiles) {
       if (profile.addressId === addressId) {
-        console.log(`Found direct match for address ${addressId} in profile ${profile.id}`)
+        console.log(
+          `Found direct match for address ${addressId} in profile ${profile.id}`
+        )
         return profile
       }
     }
@@ -563,28 +598,46 @@ export class ProfileManager implements ProfileManagerContract {
         const accessibleAddresses = subscriberInfo.fabric_addresses || []
 
         // Check if the requested address is in the accessible list
-        const hasAccess = accessibleAddresses.some((addr: Address) => addr.id === addressId)
-        
+        const hasAccess = accessibleAddresses.some(
+          (addr: { id: string }) => addr.id === addressId
+        )
+
         if (hasAccess) {
-          console.log(`Profile ${profile.id} has access to address ${addressId}`)
-          
+          console.log(
+            `Profile ${profile.id} has access to address ${addressId}`
+          )
+
           // Step 3: Create dynamic profile for shared resource if this is not already a dynamic profile for this address
-          if (profile.type === ProfileType.STATIC && profile.addressId !== addressId) {
+          if (
+            profile.type === ProfileType.STATIC &&
+            profile.addressId !== addressId
+          ) {
             // Check if we already have a dynamic profile for this address
-            const existingDynamicProfiles = await this.listProfiles(ProfileType.DYNAMIC)
-            const existingDynamic = existingDynamicProfiles.find(p => p.addressId === addressId)
-            
+            const existingDynamicProfiles = await this.listProfiles(
+              ProfileType.DYNAMIC
+            )
+            const existingDynamic = existingDynamicProfiles.find(
+              (p) => p.addressId === addressId
+            )
+
             if (existingDynamic) {
-              console.log(`Found existing dynamic profile ${existingDynamic.id} for address ${addressId}`)
+              console.log(
+                `Found existing dynamic profile ${existingDynamic.id} for address ${addressId}`
+              )
               return existingDynamic
             }
-            
+
             // Create new dynamic profile
-            const dynamicProfile = await this.createDynamicProfile(profile, addressId)
-            console.log(`Created dynamic profile ${dynamicProfile.id} for address ${addressId}`)
+            const dynamicProfile = await this.createDynamicProfile(
+              profile,
+              addressId
+            )
+            console.log(
+              `Created dynamic profile ${dynamicProfile.id} for address ${addressId}`
+            )
             return dynamicProfile
           }
-          
+
           return profile
         }
       } catch (error) {
@@ -607,10 +660,12 @@ export class ProfileManager implements ProfileManagerContract {
 
     const allProfiles = await this.listProfiles()
     const matchingProfiles = allProfiles.filter(
-      profile => profile.credentialsId === credentialId
+      (profile) => profile.credentialsId === credentialId
     )
 
-    console.log(`Found ${matchingProfiles.length} profiles with credential ID ${credentialId}`)
+    console.log(
+      `Found ${matchingProfiles.length} profiles with credential ID ${credentialId}`
+    )
     return matchingProfiles
   }
 
@@ -620,7 +675,10 @@ export class ProfileManager implements ProfileManagerContract {
    * @param addressId - Address ID for the shared resource
    * @returns Created dynamic profile
    */
-  async createDynamicProfile(parentProfile: Profile, addressId: string): Promise<Profile> {
+  async createDynamicProfile(
+    parentProfile: Profile,
+    addressId: string
+  ): Promise<Profile> {
     this.ensureInitialized()
 
     // Generate unique ID for dynamic profile
@@ -664,7 +722,9 @@ export class ProfileManager implements ProfileManagerContract {
     // Schedule credential refresh if needed (using parent's expiry)
     this.scheduleRefresh(dynamicProfile)
 
-    console.log(`Created dynamic profile ${dynamicProfileId} for address ${addressId} based on parent profile ${parentProfile.id}`)
+    console.log(
+      `Created dynamic profile ${dynamicProfileId} for address ${addressId} based on parent profile ${parentProfile.id}`
+    )
     return dynamicProfile
   }
 }

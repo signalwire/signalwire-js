@@ -38,10 +38,12 @@ await storage.setSession('temporaryToken', 'abc123')
 const token = await storage.getSession('temporaryToken')
 
 // Batch operations
-await storage.setMany(new Map([
-  ['setting1', 'value1'],
-  ['setting2', 'value2']
-]))
+await storage.setMany(
+  new Map([
+    ['setting1', 'value1'],
+    ['setting2', 'value2'],
+  ])
+)
 
 const values = await storage.getMany(['setting1', 'setting2', 'setting3'])
 // Map { 'setting1' => 'value1', 'setting2' => 'value2', 'setting3' => null }
@@ -93,18 +95,18 @@ class MyCustomStorage implements SignalWireStorageContract {
   async get<T>(key: string): Promise<T | null> {
     // Your implementation
   }
-  
+
   async set<T>(key: string, value: T): Promise<void> {
     // Your implementation
   }
-  
+
   // Implement all other required methods...
-  
+
   async getStorageInfo(): Promise<StorageInfo> {
     return {
       type: 'custom',
       isAvailable: true,
-      isPersistent: true
+      isPersistent: true,
     }
   }
 }

@@ -1,21 +1,22 @@
 import { SignalWireClient } from './index'
 import { ResourceType } from './address'
+import { SignalWireStorageContract } from './storage'
 
 /**
  * Types of authentication profiles
  */
 export enum ProfileType {
-  /** 
+  /**
    * Static profile with credentials that are persisted to storage.
-   * Typically used for subscriber authentication. 
+   * Typically used for subscriber authentication.
    */
   STATIC = 'static',
-  
-  /** 
+
+  /**
    * Dynamic profile that exists only in memory.
-   * Used for shared resource access or temporary authentication. 
+   * Used for shared resource access or temporary authentication.
    */
-  DYNAMIC = 'dynamic'
+  DYNAMIC = 'dynamic',
 }
 
 /**
@@ -23,32 +24,32 @@ export enum ProfileType {
  */
 export interface Profile {
   // Identification
-  id: string;                    // UUID v4
-  type: ProfileType;              // 'static' | 'dynamic'
-  
+  id: string // UUID v4
+  type: ProfileType // 'static' | 'dynamic'
+
   // Credentials
-  credentialsId: string;          // Reference to credential set
+  credentialsId: string // Reference to credential set
   credentials: {
-    satToken: string;
-    satRefreshToken: string;
-    tokenExpiry: number;          // Unix timestamp
-    projectId: string;
-    spaceId: string;
-  };
-  
+    satToken: string
+    satRefreshToken: string
+    tokenExpiry: number // Unix timestamp
+    projectId: string
+    spaceId: string
+  }
+
   // Address information
-  addressId: string;              // SignalWire address ID
+  addressId: string // SignalWire address ID
   addressDetails?: {
-    type: ResourceType;
-    name: string;
-    displayName?: string;
-    channels?: number;
-  };
-  
+    type: ResourceType
+    name: string
+    displayName?: string
+    channels?: number
+  }
+
   // Metadata
-  createdAt: number;              // Unix timestamp
-  updatedAt: number;              // Unix timestamp
-  lastUsed?: number;              // Unix timestamp
+  createdAt: number // Unix timestamp
+  updatedAt: number // Unix timestamp
+  lastUsed?: number // Unix timestamp
 }
 
 /**
@@ -57,22 +58,22 @@ export interface Profile {
 export interface ManagedInstance {
   /** Unique identifier for the instance */
   id: string
-  
+
   /** Profile ID used to create this instance */
   profileId: string
-  
+
   /** The actual SignalWire client instance */
   client: SignalWireClient
-  
+
   /** Timestamp when the instance was created */
   createdAt: Date
-  
+
   /** Timestamp when the instance was last accessed */
   lastAccessedAt: Date
-  
+
   /** Number of times this instance has been accessed */
   accessCount: number
-  
+
   /** Whether the instance is currently connected */
   isConnected: boolean
 }
@@ -95,7 +96,10 @@ export interface RemoveProfilesParams {
  * Parameters for getting a client instance
  */
 export interface GetClientParams {
-  profileId: string
+  /** Profile ID to use for the client. Takes priority over addressId */
+  profileId?: string
+  /** Address ID to find a suitable profile for. Used if profileId is not provided */
+  addressId?: string
   /** Whether to create a new instance if one doesn't exist */
   createIfNotExists?: boolean
 }
@@ -126,49 +130,49 @@ export interface ClientFactoryContract {
    * Initialize the factory with storage
    * @param storage - Optional storage implementation
    */
-  init(storage?: any): Promise<void>
-  
+  init(storage?: SignalWireStorageContract): Promise<void>
+
   /**
    * Add one or more authentication profiles
    * @param params - Profiles to add
-   * @returns Array of created profile IDs
+   * @returns Array of created profiles
    */
-  addProfiles(params: AddProfilesParams): Promise<string[]>
-  
+  addProfiles(params: AddProfilesParams): Promise<Profile[]>
+
   /**
    * Remove one or more authentication profiles
    * @param params - Profile IDs to remove
    * @returns Array of successfully removed profile IDs
    */
   removeProfiles(params: RemoveProfilesParams): Promise<string[]>
-  
+
   /**
    * List all available profiles
    * @returns Array of all profiles
    */
   listProfiles(): Promise<Profile[]>
-  
+
   /**
    * Get a specific profile by ID
    * @param profileId - Profile identifier
    * @returns Profile or null if not found
    */
   getProfile(profileId: string): Promise<Profile | null>
-  
+
   /**
    * Get or create a client instance for a profile
    * @param params - Client request parameters
    * @returns Client instance information
    */
   getClient(params: GetClientParams): Promise<GetClientResult>
-  
+
   /**
    * Dispose of a client instance
    * @param params - Disposal parameters
    * @returns Whether the instance was successfully disposed
    */
   disposeClient(params: DisposeClientParams): Promise<boolean>
-  
+
   /**
    * List all active client instances
    * @returns Array of active instances
@@ -184,72 +188,80 @@ export interface ProfileManagerContract {
    * Initialize the profile manager with storage
    * @param storage - Storage implementation
    */
-  init(storage: any): Promise<void>
-  
+  init(storage: SignalWireStorageContract): Promise<void>
+
   /**
    * Add a new profile
    * @param profile - Profile to add (without id, createdAt, updatedAt, lastUsed)
    * @returns Created profile ID
    */
-  addProfile(profile: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>): Promise<string>
-  
+  addProfile(
+    profile: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>
+  ): Promise<string>
+
   /**
    * Update an existing profile
    * @param profileId - Profile ID to update
    * @param updates - Partial profile updates
    * @returns Whether the profile was updated
    */
-  updateProfile(profileId: string, updates: Partial<Omit<Profile, 'id' | 'createdAt'>>): Promise<boolean>
-  
+  updateProfile(
+    profileId: string,
+    updates: Partial<Omit<Profile, 'id' | 'createdAt'>>
+  ): Promise<boolean>
+
   /**
    * Remove a profile
    * @param profileId - Profile ID to remove
    * @returns Whether the profile was removed
    */
   removeProfile(profileId: string): Promise<boolean>
-  
+
   /**
    * Get a profile by ID
    * @param profileId - Profile identifier
    * @returns Profile or null if not found
    */
   getProfile(profileId: string): Promise<Profile | null>
-  
+
   /**
    * List all profiles
    * @param type - Optional filter by profile type
    * @returns Array of profiles
    */
   listProfiles(type?: ProfileType): Promise<Profile[]>
-  
+
   /**
    * Check if a profile exists
    * @param profileId - Profile identifier
    * @returns Whether the profile exists
    */
   hasProfile(profileId: string): Promise<boolean>
-  
+
   /**
    * Find a profile that has access to a specific address
    * @param addressId - Address identifier to search for
    * @returns Profile that has access or null if not found
    */
   findProfileForAddress(addressId: string): Promise<Profile | null>
-  
+
   /**
    * Get all profiles associated with a credential ID
    * @param credentialId - Credential identifier
    * @returns Array of profiles with the given credential ID
    */
   getProfilesByCredentialId(credentialId: string): Promise<Profile[]>
-  
+
   /**
    * Create a dynamic profile for accessing a shared resource
    * @param parentProfile - Profile to inherit credentials from
    * @param addressId - Address ID for the shared resource
    * @returns Created dynamic profile
    */
-  createDynamicProfile(parentProfile: Profile, addressId: string): Promise<Profile>
+  createDynamicProfile(
+    parentProfile: Profile,
+    addressId: string
+  ): Promise<Profile>
 }
 
 /**
@@ -263,7 +275,7 @@ export interface InstanceManagerContract {
    * @returns Created instance
    */
   createInstance(profileId: string, profile: Profile): Promise<ManagedInstance>
-  
+
   /**
    * Dispose of a client instance
    * @param instanceId - Instance ID to dispose
@@ -271,27 +283,27 @@ export interface InstanceManagerContract {
    * @returns Whether the instance was disposed
    */
   disposeInstance(instanceId: string, force?: boolean): Promise<boolean>
-  
+
   /**
    * Get an existing instance
    * @param instanceId - Instance identifier
    * @returns Instance or null if not found
    */
   getInstance(instanceId: string): Promise<ManagedInstance | null>
-  
+
   /**
    * Get instance by profile ID
    * @param profileId - Profile identifier
    * @returns Instance or null if not found
    */
   getInstanceByProfile(profileId: string): Promise<ManagedInstance | null>
-  
+
   /**
    * List all active instances
    * @returns Array of active instances
    */
   listInstances(): Promise<ManagedInstance[]>
-  
+
   /**
    * Update instance access tracking
    * @param instanceId - Instance identifier
@@ -328,7 +340,7 @@ export class ClientFactoryError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly context?: Record<string, any>
+    public readonly context?: Record<string, unknown>
   ) {
     super(message)
     this.name = 'ClientFactoryError'
@@ -343,25 +355,37 @@ export class ProfileNotFoundError extends ClientFactoryError {
 
 export class InstanceNotFoundError extends ClientFactoryError {
   constructor(instanceId: string) {
-    super(`Instance not found: ${instanceId}`, 'INSTANCE_NOT_FOUND', { instanceId })
+    super(`Instance not found: ${instanceId}`, 'INSTANCE_NOT_FOUND', {
+      instanceId,
+    })
   }
 }
 
 export class ProfileExistsError extends ClientFactoryError {
   constructor(profileId: string) {
-    super(`Profile already exists: ${profileId}`, 'PROFILE_EXISTS', { profileId })
+    super(`Profile already exists: ${profileId}`, 'PROFILE_EXISTS', {
+      profileId,
+    })
   }
 }
 
 export class MaxProfilesExceededError extends ClientFactoryError {
   constructor(type: ProfileType, max: number) {
-    super(`Maximum number of ${type} profiles exceeded: ${max}`, 'MAX_PROFILES_EXCEEDED', { type, max })
+    super(
+      `Maximum number of ${type} profiles exceeded: ${max}`,
+      'MAX_PROFILES_EXCEEDED',
+      { type, max }
+    )
   }
 }
 
 export class InstanceInUseError extends ClientFactoryError {
   constructor(instanceId: string) {
-    super(`Instance is in use and cannot be disposed: ${instanceId}`, 'INSTANCE_IN_USE', { instanceId })
+    super(
+      `Instance is in use and cannot be disposed: ${instanceId}`,
+      'INSTANCE_IN_USE',
+      { instanceId }
+    )
   }
 }
 

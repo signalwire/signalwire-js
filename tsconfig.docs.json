@@ -17,7 +17,7 @@
       "@signalwire/core": ["packages/core/src"],
       "@signalwire/webrtc": ["packages/webrtc/src"],
       "@signalwire/node": ["packages/node/src"]
-    },
+    }
   },
   "exclude": ["**/*.test.ts", "**/*.native.ts"]
 }

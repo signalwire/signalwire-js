@@ -1,5 +1,5 @@
-import { stripNamespacePrefix } from "@signalwire/core"
-import { mapCapabilityPayload } from "./capabilitiesHelpers"
+import { stripNamespacePrefix } from '@signalwire/core'
+import { mapCapabilityPayload } from './capabilitiesHelpers'
 
 describe('eventUtils', () => {
   describe('stripNamespacePrefix', () => {

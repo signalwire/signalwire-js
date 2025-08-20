@@ -104,7 +104,10 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 export type SliceCaseReducers<State> = {
   [K: string]:
     | CaseReducer<DeepReadonly<State>, PayloadAction<any>>
-    | CaseReducerWithPrepare<DeepReadonly<State>, PayloadAction<any, string, any, any>>
+    | CaseReducerWithPrepare<
+        DeepReadonly<State>,
+        PayloadAction<any, string, any, any>
+      >
 }
 
 /**

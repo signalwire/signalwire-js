@@ -9,10 +9,13 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
 
   constructor() {
     this.isLocalStorageAvailable = this.checkStorageAvailability('localStorage')
-    this.isSessionStorageAvailable = this.checkStorageAvailability('sessionStorage')
+    this.isSessionStorageAvailable =
+      this.checkStorageAvailability('sessionStorage')
   }
 
-  private checkStorageAvailability(type: 'localStorage' | 'sessionStorage'): boolean {
+  private checkStorageAvailability(
+    type: 'localStorage' | 'sessionStorage'
+  ): boolean {
     try {
       const storage = window[type]
       const testKey = '__sw_storage_test__'
@@ -48,14 +51,16 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
         throw new Error(`Storage quota exceeded during ${operation}`)
       }
       if (error.name === 'SecurityError') {
-        throw new Error(`Security error during ${operation}: Storage access denied`)
+        throw new Error(
+          `Security error during ${operation}: Storage access denied`
+        )
       }
     }
     throw new Error(`Storage operation failed during ${operation}: ${error}`)
   }
 
   // Persistent storage methods
-  async get<T = any>(key: string): Promise<T | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     if (!this.isLocalStorageAvailable) {
       return null
     }
@@ -67,7 +72,7 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
     }
   }
 
-  async set<T = any>(key: string, value: T): Promise<void> {
+  async set<T = unknown>(key: string, value: T): Promise<void> {
     if (!this.isLocalStorageAvailable) {
       throw new Error('localStorage is not available')
     }
@@ -105,7 +110,7 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
     }
   }
 
-  async getMany<T = any>(keys: string[]): Promise<Map<string, T | null>> {
+  async getMany<T = unknown>(keys: string[]): Promise<Map<string, T | null>> {
     const result = new Map<string, T | null>()
     for (const key of keys) {
       result.set(key, await this.get<T>(key))
@@ -113,7 +118,9 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
     return result
   }
 
-  async setMany<T = any>(entries: Map<string, T> | Array<[string, T]>): Promise<void> {
+  async setMany<T = unknown>(
+    entries: Map<string, T> | Array<[string, T]>
+  ): Promise<void> {
     const entriesArray = entries instanceof Map ? Array.from(entries) : entries
     for (const [key, value] of entriesArray) {
       await this.set(key, value)
@@ -165,7 +172,7 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
   }
 
   // Session storage methods
-  async getSession<T = any>(key: string): Promise<T | null> {
+  async getSession<T = unknown>(key: string): Promise<T | null> {
     if (!this.isSessionStorageAvailable) {
       return null
     }
@@ -177,7 +184,7 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
     }
   }
 
-  async setSession<T = any>(key: string, value: T): Promise<void> {
+  async setSession<T = unknown>(key: string, value: T): Promise<void> {
     if (!this.isSessionStorageAvailable) {
       throw new Error('sessionStorage is not available')
     }
@@ -215,7 +222,9 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
     }
   }
 
-  async getManySession<T = any>(keys: string[]): Promise<Map<string, T | null>> {
+  async getManySession<T = unknown>(
+    keys: string[]
+  ): Promise<Map<string, T | null>> {
     const result = new Map<string, T | null>()
     for (const key of keys) {
       result.set(key, await this.getSession<T>(key))
@@ -223,7 +232,9 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
     return result
   }
 
-  async setManySession<T = any>(entries: Map<string, T> | Array<[string, T]>): Promise<void> {
+  async setManySession<T = unknown>(
+    entries: Map<string, T> | Array<[string, T]>
+  ): Promise<void> {
     const entriesArray = entries instanceof Map ? Array.from(entries) : entries
     for (const [key, value] of entriesArray) {
       await this.setSession(key, value)
@@ -278,12 +289,17 @@ export class LocalStorageAdapter implements SignalWireStorageContract {
   async getStorageInfo(): Promise<StorageInfo> {
     const info: StorageInfo = {
       type: 'localStorage',
-      isAvailable: this.isLocalStorageAvailable || this.isSessionStorageAvailable,
+      isAvailable:
+        this.isLocalStorageAvailable || this.isSessionStorageAvailable,
       isPersistent: this.isLocalStorageAvailable,
     }
 
     // Try to estimate storage quota if available
-    if ('navigator' in globalThis && 'storage' in navigator && 'estimate' in navigator.storage) {
+    if (
+      'navigator' in globalThis &&
+      'storage' in navigator &&
+      'estimate' in navigator.storage
+    ) {
       try {
         const estimate = await navigator.storage.estimate()
         if (estimate.usage !== undefined) {

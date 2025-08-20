@@ -68,7 +68,7 @@ test.describe('CallCall Relay Application', () => {
 
     // Wait for playback to start on relay app side
     const playbackEvent = await relayAppClient.waitForEvent('playbackStarted')
-    
+
     console.log('Calculating audio stats')
     await expectPageReceiveAudio(page)
 
@@ -173,10 +173,10 @@ test.describe('CallCall Relay Application', () => {
         'Warning - totalAudioEnergy was not present in the audioStats.'
       )
     }
-    
+
     // Stop playback
     await relayAppClient.stopPlayback(playbackEvent.playbackId)
-    
+
     await page.evaluate(async () => {
       // @ts-expect-error
       const callObj: Video.RoomSession = window._callObj

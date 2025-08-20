@@ -8,7 +8,7 @@ export interface ConversationContract {
   readonly createdAt: number
   readonly groupId: string
   readonly lastMessageAt: number
-  readonly metadata: Record<string, any>
+  readonly metadata: Record<string, unknown>
   readonly name: string
   sendMessage(
     params: ConversationAPISendMessageParams
@@ -22,8 +22,8 @@ export interface SendConversationMessageParams {
   groupId: string
   fromAddressId: string
   text: string
-  metadata?: Record<string, any>
-  details?: Record<string, any>
+  metadata?: Record<string, unknown>
+  details?: Record<string, unknown>
 }
 
 // TODO
@@ -44,7 +44,7 @@ export interface ConversationResponse {
   created_at: number
   from_address_id: string
   last_message_at: number
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   name: string
 }
 
@@ -97,8 +97,8 @@ export interface ConversationMessage {
   from_address_id: string
   group_id: string
   ts: number
-  metadata?: Record<string, any>
-  details: Record<string, any>
+  metadata?: Record<string, unknown>
+  details: Record<string, unknown>
   type: string
   subtype: string
   kind?: string

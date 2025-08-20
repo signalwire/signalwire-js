@@ -21,7 +21,10 @@ export class InstanceManager implements InstanceManagerContract {
    * @param profile - Profile data
    * @returns Created instance
    */
-  async createInstance(profileId: string, profile: Profile): Promise<ManagedInstance> {
+  async createInstance(
+    profileId: string,
+    profile: Profile
+  ): Promise<ManagedInstance> {
     // Check if an instance already exists for this profile
     const existingInstanceId = this.profileInstances.get(profileId)
     if (existingInstanceId && this.instances.has(existingInstanceId)) {
@@ -41,7 +44,7 @@ export class InstanceManager implements InstanceManagerContract {
         // Additional params can be added here based on profile details
       }
       const client = await createSignalWireClient(clientParams)
-      
+
       // Create managed instance
       const now = new Date()
       const managedInstance: ManagedInstance = {
@@ -65,7 +68,9 @@ export class InstanceManager implements InstanceManagerContract {
     } catch (error) {
       // Clean up on failure
       this.profileInstances.delete(profileId)
-      throw new Error(`Failed to create instance for profile ${profileId}: ${error}`)
+      throw new Error(
+        `Failed to create instance for profile ${profileId}: ${error}`
+      )
     }
   }
 
@@ -90,7 +95,10 @@ export class InstanceManager implements InstanceManagerContract {
       // Disconnect the client
       await instance.client.disconnect()
     } catch (error) {
-      console.warn(`Error disconnecting client for instance ${instanceId}:`, error)
+      console.warn(
+        `Error disconnecting client for instance ${instanceId}:`,
+        error
+      )
       // Continue with disposal even if disconnect fails
     }
 
@@ -123,7 +131,9 @@ export class InstanceManager implements InstanceManagerContract {
    * @param profileId - Profile identifier
    * @returns Instance or null if not found
    */
-  async getInstanceByProfile(profileId: string): Promise<ManagedInstance | null> {
+  async getInstanceByProfile(
+    profileId: string
+  ): Promise<ManagedInstance | null> {
     const instanceId = this.profileInstances.get(profileId)
     if (!instanceId) {
       return null
@@ -137,8 +147,9 @@ export class InstanceManager implements InstanceManagerContract {
    * @returns Array of active instances
    */
   async listInstances(): Promise<ManagedInstance[]> {
-    return Array.from(this.instances.values())
-      .sort((a, b) => b.lastAccessedAt.getTime() - a.lastAccessedAt.getTime())
+    return Array.from(this.instances.values()).sort(
+      (a, b) => b.lastAccessedAt.getTime() - a.lastAccessedAt.getTime()
+    )
   }
 
   /**
@@ -228,8 +239,8 @@ export class InstanceManager implements InstanceManagerContract {
     }
 
     // Dispose of all instances
-    const disposePromises = Array.from(this.instances.keys()).map(instanceId =>
-      this.disposeInstance(instanceId, true)
+    const disposePromises = Array.from(this.instances.keys()).map(
+      (instanceId) => this.disposeInstance(instanceId, true)
     )
 
     await Promise.allSettled(disposePromises)

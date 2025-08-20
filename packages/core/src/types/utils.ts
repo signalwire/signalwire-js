@@ -135,7 +135,7 @@ export type Promisify<T> = {
  * Flattens object types for better IDE display while preserving function types
  */
 export type Prettify<T> = T extends { (...args: any[]): any }
-  ? T  // Preserve callable objects (functions with properties, overloads, etc.)
+  ? T // Preserve callable objects (functions with properties, overloads, etc.)
   : T extends object
   ? {
       [K in keyof T]: T[K]

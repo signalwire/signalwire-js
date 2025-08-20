@@ -1,6 +1,10 @@
-import { Action, AnyAction } from "redux"
-import { CaseReducer } from "./createReducer"
-import { ActionMatcher, ActionMatcherDescriptionCollection, CaseReducers } from "./createReducer"
+import { Action, AnyAction } from 'redux'
+import { CaseReducer } from './createReducer'
+import {
+  ActionMatcher,
+  ActionMatcherDescriptionCollection,
+  CaseReducers,
+} from './createReducer'
 
 export interface TypedActionCreator<Type extends string> {
   (...args: any[]): Action<Type>
@@ -12,7 +16,7 @@ export interface TypedActionCreator<Type extends string> {
  *
  * @public
  */
- export interface ActionReducerMapBuilder<State> {
+export interface ActionReducerMapBuilder<State> {
   /**
    * Adds a case reducer to handle a single exact action type.
    * @remarks

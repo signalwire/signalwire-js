@@ -7,6 +7,6 @@ import * as ClientModule from '@signalwire/client'
 // Explicitly include SignalWire and buildVideoElement to handle ESM re-export issues
 window._SWJS = {
   ...ClientModule,
-  SignalWire,  // Explicitly ensure SignalWire is available
-  buildVideoElement,  // Explicitly ensure buildVideoElement is available
+  SignalWire, // Explicitly ensure SignalWire is available
+  buildVideoElement, // Explicitly ensure buildVideoElement is available
 }

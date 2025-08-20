@@ -100,9 +100,7 @@ export class Conversation {
       const chatCallbacks = this.chatSubscriptions[event.group_id]
       if (chatCallbacks?.size) {
         // the backend includes the user_name if is chat event
-        chatCallbacks.forEach((cb) =>
-          cb(event)
-        )
+        chatCallbacks.forEach((cb) => cb(event))
       }
     }
 

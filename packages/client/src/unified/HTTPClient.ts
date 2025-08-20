@@ -121,7 +121,6 @@ export class HTTPClient implements HTTPClientContract {
   }
 
   public async getMyAddresses(): Promise<Address[]> {
-
     return (await this.getSubscriberInfo()).fabric_addresses
   }
 

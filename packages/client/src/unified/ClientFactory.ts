@@ -57,28 +57,33 @@ export class ClientFactory implements ClientFactoryContract {
 
     // Initialize managers
     await this.profileManager.init(this.storage)
-    
+
     this.initialized = true
   }
 
   /**
    * Add one or more authentication profiles
    * @param params - Profiles to add
-   * @returns Array of created profile IDs
+   * @returns Array of created profiles
    */
-  async addProfiles(params: AddProfilesParams): Promise<string[]> {
+  async addProfiles(params: AddProfilesParams): Promise<Profile[]> {
     this.ensureInitialized()
 
-    const profileIds: string[] = []
+    const profiles: Profile[] = []
     const errors: Error[] = []
 
     for (const profileData of params.profiles) {
       try {
         // Validate profile data
         this.validateProfileData(profileData)
-        
+
         const profileId = await this.profileManager.addProfile(profileData)
-        profileIds.push(profileId)
+
+        // Fetch the created profile to return the full object
+        const profile = await this.profileManager.getProfile(profileId)
+        if (profile) {
+          profiles.push(profile)
+        }
       } catch (error) {
         errors.push(error instanceof Error ? error : new Error(String(error)))
       }
@@ -90,7 +95,7 @@ export class ClientFactory implements ClientFactoryContract {
       console.warn('Some profiles failed to be added:', errors)
     }
 
-    return profileIds
+    return profiles
   }
 
   /**
@@ -107,7 +112,9 @@ export class ClientFactory implements ClientFactoryContract {
     for (const profileId of params.profileIds) {
       try {
         // Check if there are active instances using this profile
-        const instance = await this.instanceManager.getInstanceByProfile(profileId)
+        const instance = await this.instanceManager.getInstanceByProfile(
+          profileId
+        )
         if (instance) {
           // Try to dispose the instance first
           await this.instanceManager.disposeInstance(instance.id, false)
@@ -156,29 +163,83 @@ export class ClientFactory implements ClientFactoryContract {
   async getClient(params: GetClientParams): Promise<GetClientResult> {
     this.ensureInitialized()
 
-    const { profileId, createIfNotExists = true } = params
+    const { profileId, addressId, createIfNotExists = true } = params
 
-    // Check if profile exists
-    const profile = await this.profileManager.getProfile(profileId)
-    if (!profile) {
-      throw new ProfileNotFoundError(profileId)
+    // Determine which profile to use
+    let targetProfileId: string | undefined = profileId
+    let profile: Profile | null = null
+
+    if (profileId) {
+      // Priority 1: Use provided profileId
+      profile = await this.profileManager.getProfile(profileId)
+      if (!profile) {
+        throw new ProfileNotFoundError(profileId)
+      }
+    } else if (addressId) {
+      // Priority 2: Find profile for addressId
+      profile = await this.profileManager.findProfileForAddress(addressId)
+      if (!profile) {
+        throw new ClientFactoryError(
+          `No profile found with access to address ${addressId}`,
+          'NO_PROFILE_FOR_ADDRESS',
+          { addressId }
+        )
+      }
+      targetProfileId = profile.id
+    } else {
+      // Neither profileId nor addressId provided
+      throw new ClientFactoryError(
+        'Either profileId or addressId must be provided',
+        'MISSING_IDENTIFIER',
+        { profileId, addressId }
+      )
+    }
+
+    // Validate credentials before creating instance
+    const isValid = await this.profileManager.validateCredentials(
+      targetProfileId!
+    )
+    if (!isValid) {
+      // Try to refresh credentials
+      try {
+        await this.profileManager.refreshCredentials(targetProfileId!)
+        // Re-fetch profile after refresh
+        profile = await this.profileManager.getProfile(targetProfileId!)
+        if (!profile) {
+          throw new ProfileNotFoundError(targetProfileId!)
+        }
+      } catch (error) {
+        throw new ClientFactoryError(
+          `Invalid or expired credentials for profile ${targetProfileId}`,
+          'INVALID_CREDENTIALS',
+          {
+            profileId: targetProfileId,
+            error: error instanceof Error ? error.message : String(error),
+          }
+        )
+      }
     }
 
     // Check if instance already exists
-    let instance = await this.instanceManager.getInstanceByProfile(profileId)
+    let instance = await this.instanceManager.getInstanceByProfile(
+      targetProfileId!
+    )
     let isNew = false
 
     if (!instance && createIfNotExists) {
       // Create new instance
-      instance = await this.instanceManager.createInstance(profileId, profile)
+      instance = await this.instanceManager.createInstance(
+        targetProfileId!,
+        profile
+      )
       isNew = true
     }
 
     if (!instance) {
       throw new ClientFactoryError(
-        `No instance available for profile ${profileId} and createIfNotExists is false`,
+        `No instance available for profile ${targetProfileId} and createIfNotExists is false`,
         'NO_INSTANCE_AVAILABLE',
-        { profileId, createIfNotExists }
+        { profileId: targetProfileId, createIfNotExists }
       )
     }
 
@@ -231,32 +292,43 @@ export class ClientFactory implements ClientFactoryContract {
    * @param credentials - Authentication credentials
    * @param addressId - SignalWire address ID
    * @param addressDetails - Optional address details
-   * @returns Created profile ID
+   * @returns Created profile
    */
   async addDynamicProfile(
     credentialsId: string,
     credentials: {
-      satToken: string;
-      satRefreshToken: string;
-      tokenExpiry: number;
-      projectId: string;
-      spaceId: string;
+      satToken: string
+      satRefreshToken: string
+      tokenExpiry: number
+      projectId: string
+      spaceId: string
     },
     addressId: string,
     addressDetails?: {
-      type: import('./interfaces/address').ResourceType;
-      name: string;
-      displayName?: string;
-      channels?: number;
+      type: import('./interfaces/address').ResourceType
+      name: string
+      displayName?: string
+      channels?: number
     }
-  ): Promise<string> {
-    return this.profileManager.addProfile({
+  ): Promise<Profile> {
+    const profileId = await this.profileManager.addProfile({
       type: ProfileType.DYNAMIC,
       credentialsId,
       credentials,
       addressId,
       addressDetails,
     })
+
+    // Fetch and return the created profile
+    const profile = await this.profileManager.getProfile(profileId)
+    if (!profile) {
+      throw new ClientFactoryError(
+        `Failed to retrieve newly created dynamic profile ${profileId}`,
+        'PROFILE_CREATION_ERROR',
+        { profileId }
+      )
+    }
+    return profile
   }
 
   /**
@@ -266,32 +338,43 @@ export class ClientFactory implements ClientFactoryContract {
    * @param credentials - Authentication credentials
    * @param addressId - SignalWire address ID
    * @param addressDetails - Optional address details
-   * @returns Created profile ID
+   * @returns Created profile
    */
   async addStaticProfile(
     credentialsId: string,
     credentials: {
-      satToken: string;
-      satRefreshToken: string;
-      tokenExpiry: number;
-      projectId: string;
-      spaceId: string;
+      satToken: string
+      satRefreshToken: string
+      tokenExpiry: number
+      projectId: string
+      spaceId: string
     },
     addressId: string,
     addressDetails?: {
-      type: import('./interfaces/address').ResourceType;
-      name: string;
-      displayName?: string;
-      channels?: number;
+      type: import('./interfaces/address').ResourceType
+      name: string
+      displayName?: string
+      channels?: number
     }
-  ): Promise<string> {
-    return this.profileManager.addProfile({
+  ): Promise<Profile> {
+    const profileId = await this.profileManager.addProfile({
       type: ProfileType.STATIC,
       credentialsId,
       credentials,
       addressId,
       addressDetails,
     })
+
+    // Fetch and return the created profile
+    const profile = await this.profileManager.getProfile(profileId)
+    if (!profile) {
+      throw new ClientFactoryError(
+        `Failed to retrieve newly created static profile ${profileId}`,
+        'PROFILE_CREATION_ERROR',
+        { profileId }
+      )
+    }
+    return profile
   }
 
   /**
@@ -320,7 +403,7 @@ export class ClientFactory implements ClientFactoryContract {
 
       // Clear dynamic profiles (static profiles remain in storage)
       // Note: We don't clear static profiles as they should persist
-      
+
       this.initialized = false
       ClientFactory.instance = null
     } catch (error) {
@@ -333,21 +416,41 @@ export class ClientFactory implements ClientFactoryContract {
    * Validate profile data before adding
    * @param profileData - Profile data to validate
    */
-  private validateProfileData(profileData: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>): void {
-    if (!profileData.credentialsId || typeof profileData.credentialsId !== 'string') {
-      throw new ClientFactoryError('Credentials ID is required and must be a string', 'INVALID_CREDENTIALS_ID')
+  private validateProfileData(
+    profileData: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>
+  ): void {
+    if (
+      !profileData.credentialsId ||
+      typeof profileData.credentialsId !== 'string'
+    ) {
+      throw new ClientFactoryError(
+        'Credentials ID is required and must be a string',
+        'INVALID_CREDENTIALS_ID'
+      )
     }
 
     if (!Object.values(ProfileType).includes(profileData.type)) {
-      throw new ClientFactoryError('Invalid profile type', 'INVALID_PROFILE_TYPE')
+      throw new ClientFactoryError(
+        'Invalid profile type',
+        'INVALID_PROFILE_TYPE'
+      )
     }
 
-    if (!profileData.credentials || typeof profileData.credentials !== 'object') {
-      throw new ClientFactoryError('Credentials are required and must be an object', 'INVALID_CREDENTIALS')
+    if (
+      !profileData.credentials ||
+      typeof profileData.credentials !== 'object'
+    ) {
+      throw new ClientFactoryError(
+        'Credentials are required and must be an object',
+        'INVALID_CREDENTIALS'
+      )
     }
 
     // Validate required credentials fields
-    if (!profileData.credentials.satToken || !profileData.credentials.projectId) {
+    if (
+      !profileData.credentials.satToken ||
+      !profileData.credentials.projectId
+    ) {
       throw new ClientFactoryError(
         'Credentials must include satToken and projectId for SignalWire authentication',
         'MISSING_AUTH_PARAMS'
@@ -355,7 +458,10 @@ export class ClientFactory implements ClientFactoryContract {
     }
 
     if (!profileData.addressId || typeof profileData.addressId !== 'string') {
-      throw new ClientFactoryError('Address ID is required and must be a string', 'INVALID_ADDRESS_ID')
+      throw new ClientFactoryError(
+        'Address ID is required and must be a string',
+        'INVALID_ADDRESS_ID'
+      )
     }
   }
 

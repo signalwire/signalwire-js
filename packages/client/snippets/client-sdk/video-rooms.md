@@ -4,14 +4,15 @@ DESCRIPTION: Complete video room functionality including screen sharing, layouts
 SOURCE: videoRoom.spec.ts, videoRoomLayout.spec.ts
 LANGUAGE: typescript
 CODE:
+
 ```typescript
 import { SignalWire } from '@signalwire/client'
 
 // Initialize and join a video room
 const client = await SignalWire({ token: 'your-auth-token' })
 const call = await client.dial({
-  to: '/public/room-name?channel=video',  // or ?channel=audio for audio-only
-  rootElement: document.getElementById('rootElement')
+  to: '/public/room-name?channel=video', // or ?channel=audio for audio-only
+  rootElement: document.getElementById('rootElement'),
 })
 
 // Listen for room events before starting
@@ -36,13 +37,13 @@ console.log('Room ID:', call.roomSessionId)
 console.log('My member ID:', call.memberId)
 
 // Room controls
-await call.lock()    // Lock the room (no new members can join)
-await call.unlock()  // Unlock the room
+await call.lock() // Lock the room (no new members can join)
+await call.unlock() // Unlock the room
 
 // Screen sharing
 const screenShare = await call.startScreenShare({
-  audio: true,   // Include system audio
-  video: true    // Share screen video
+  audio: true, // Include system audio
+  video: true, // Share screen video
 })
 
 // Listen for screen share events
@@ -56,9 +57,9 @@ call.on('member.joined', (event) => {
 await screenShare.leave()
 
 // Layout management
-await call.setLayout({ name: '3x3' })     // Set grid layout
-await call.setLayout({ name: '8x8' })     // Larger grid
-await call.setLayout({ name: 'grid-9' })  // 9-person grid
+await call.setLayout({ name: '3x3' }) // Set grid layout
+await call.setLayout({ name: '8x8' }) // Larger grid
+await call.setLayout({ name: 'grid-9' }) // 9-person grid
 
 // Listen for layout changes
 call.on('layout.changed', (event) => {
@@ -73,9 +74,9 @@ const myPosition = call.currentPosition
 // Set member positions in layout
 await call.setPositions({
   positions: {
-    self: 'reserved-1',  // Set your own position
-    'member-id-123': 'reserved-2'  // Set another member's position
-  }
+    self: 'reserved-1', // Set your own position
+    'member-id-123': 'reserved-2', // Set another member's position
+  },
 })
 
 // Member management (requires permissions)
@@ -85,18 +86,19 @@ await call.removeMember({ memberId: 'member-id' })
 
 // Get member list
 const members = call.getMembers()
-members.forEach(member => {
+members.forEach((member) => {
   console.log('Member:', {
     id: member.member_id,
     name: member.name,
     audioMuted: member.audio_muted,
     videoMuted: member.video_muted,
     visible: member.visible,
-    handraised: member.handraised
+    handraised: member.handraised,
   })
 })
 
 // Leave the room
 await call.leave()
 ```
+
 ===
