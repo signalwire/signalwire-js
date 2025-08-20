@@ -273,6 +273,7 @@ export const DEFAULT_VISIBILITY_CONFIG: VisibilityConfig = {
       RecoveryStrategy.KeyframeRequest,
       RecoveryStrategy.StreamReconnection,
       RecoveryStrategy.Reinvite,
+      RecoveryStrategy.LayoutRefresh,
     ],
     maxAttempts: 3,
     delayBetweenAttempts: 1000,

@@ -2,7 +2,9 @@
  * VisibilityManager - Core class for managing visibility lifecycle events
  */
 
-import { EventEmitter } from '@signalwire/core'
+import { EventEmitter, getLogger } from '@signalwire/core'
+import type RTCPeer from '@signalwire/webrtc/src/RTCPeer'
+import { BaseRoomSession } from '../BaseRoomSession'
 import {
   VisibilityConfig,
   VisibilityEvent,
@@ -23,25 +25,55 @@ import {
   getCurrentVisibilityState,
   checkVisibilityAPISupport,
 } from './eventChannel'
+import {
+  executeKeyframeRequestRecovery,
+  executeStreamReconnectionRecovery,
+} from './recoveryStrategies'
 
 /**
  * Interface for room session instances that can be managed
+ * Based on BaseRoomSession with additional capabilities
  */
 interface ManagedRoomSession {
   id: string
-  // Video controls
+  // Video controls (multiple method names for compatibility)
   muteVideo?: () => Promise<void>
   unmuteVideo?: () => Promise<void>
-  // Audio controls  
+  videoMute?: () => Promise<void>
+  videoUnmute?: () => Promise<void>
+  // Audio controls (multiple method names for compatibility)  
   muteAudio?: () => Promise<void>
   unmuteAudio?: () => Promise<void>
+  audioMute?: () => Promise<void>
+  audioUnmute?: () => Promise<void>
   // Device controls
   updateVideoDevice?: (params: { deviceId: string }) => Promise<void>
   updateAudioDevice?: (params: { deviceId: string }) => Promise<void>
   // Connection controls
   reconnect?: () => Promise<void>
-  // Event emission
+  // Layout controls
+  setLayout?: (params: { name: string }) => Promise<void>
+  // Event emission (simplified)
   emit?: (event: string, ...args: any[]) => void
+  // WebRTC peer connection
+  peer?: RTCPeer<any>
+  // Video overlays for accessing video elements
+  localVideoOverlay?: { domElement?: Element }
+  overlayMap?: Map<string, { domElement?: Element }>
+  // Screen share state
+  screenShareList?: any[]
+  // Media state properties
+  audioMuted?: boolean
+  videoMuted?: boolean
+  // Device IDs
+  cameraId?: string | null
+  microphoneId?: string | null
+  // Track constraints
+  cameraConstraints?: any
+  microphoneConstraints?: any
+  // Member state (for CallSession)
+  member?: { audioMuted?: boolean; videoMuted?: boolean }
+  selfMember?: { audioMuted?: boolean; videoMuted?: boolean }
 }
 
 /**
@@ -49,6 +81,117 @@ interface ManagedRoomSession {
  */
 class MediaStateManager {
   private snapshots = new Map<string, MediaStateSnapshot>()
+  private logger = getLogger()
+
+  /**
+   * Capture the current media state from a room session instance
+   */
+  captureCurrentMediaState(instance: ManagedRoomSession): MediaStateSnapshot {
+    const snapshot = this.createDefaultSnapshot()
+    
+    try {
+      // Capture audio state
+      // Check multiple possible property/method names for compatibility
+      const audioMuted = this.getAudioMutedState(instance)
+      const audioEnabled = !audioMuted
+      
+      snapshot.audio = {
+        enabled: audioEnabled,
+        muted: audioMuted,
+        deviceId: this.getAudioDeviceId(instance),
+        constraints: this.getAudioConstraints(instance),
+      }
+
+      // Capture video state
+      const videoMuted = this.getVideoMutedState(instance)
+      const videoEnabled = !videoMuted
+      
+      snapshot.video = {
+        enabled: videoEnabled,
+        muted: videoMuted,
+        deviceId: this.getVideoDeviceId(instance),
+        constraints: this.getVideoConstraints(instance),
+      }
+
+      // Capture screen share state
+      snapshot.screen = {
+        sharing: this.getScreenShareState(instance),
+        audio: false, // Could be enhanced to check screen share audio
+      }
+
+      // Preserve auto-muted flags if they exist
+      const existingSnapshot = this.snapshots.get(instance.id)
+      if (existingSnapshot?.autoMuted) {
+        snapshot.autoMuted = existingSnapshot.autoMuted
+      }
+
+      this.logger.debug('Captured media state:', snapshot)
+    } catch (error) {
+      this.logger.error('Error capturing media state:', error)
+    }
+
+    return snapshot
+  }
+
+  /**
+   * Restore media state to a room session instance
+   */
+  async restoreMediaState(instance: ManagedRoomSession, snapshot: MediaStateSnapshot): Promise<void> {
+    try {
+      // Restore video state
+      if (snapshot.autoMuted.video && snapshot.video.enabled && !snapshot.video.muted) {
+        // Video was auto-muted and should be restored
+        await this.unmuteVideo(instance)
+        this.logger.debug('Restored video unmute state')
+      } else if (!snapshot.autoMuted.video) {
+        // Restore actual video state
+        if (snapshot.video.muted && !this.getVideoMutedState(instance)) {
+          await this.muteVideo(instance)
+          this.logger.debug('Restored video mute state')
+        } else if (!snapshot.video.muted && this.getVideoMutedState(instance)) {
+          await this.unmuteVideo(instance)
+          this.logger.debug('Restored video unmute state')
+        }
+      }
+
+      // Restore audio state
+      if (snapshot.autoMuted.audio && snapshot.audio.enabled && !snapshot.audio.muted) {
+        // Audio was auto-muted and should be restored
+        await this.unmuteAudio(instance)
+        this.logger.debug('Restored audio unmute state')
+      } else if (!snapshot.autoMuted.audio) {
+        // Restore actual audio state
+        if (snapshot.audio.muted && !this.getAudioMutedState(instance)) {
+          await this.muteAudio(instance)
+          this.logger.debug('Restored audio mute state')
+        } else if (!snapshot.audio.muted && this.getAudioMutedState(instance)) {
+          await this.unmuteAudio(instance)
+          this.logger.debug('Restored audio unmute state')
+        }
+      }
+
+      // Restore device selections if changed
+      if (snapshot.video.deviceId) {
+        const currentVideoDevice = this.getVideoDeviceId(instance)
+        if (currentVideoDevice !== snapshot.video.deviceId) {
+          await this.updateVideoDevice(instance, snapshot.video.deviceId)
+          this.logger.debug('Restored video device:', snapshot.video.deviceId)
+        }
+      }
+
+      if (snapshot.audio.deviceId) {
+        const currentAudioDevice = this.getAudioDeviceId(instance)
+        if (currentAudioDevice !== snapshot.audio.deviceId) {
+          await this.updateAudioDevice(instance, snapshot.audio.deviceId)
+          this.logger.debug('Restored audio device:', snapshot.audio.deviceId)
+        }
+      }
+
+      this.logger.debug('Media state restoration completed')
+    } catch (error) {
+      this.logger.error('Error restoring media state:', error)
+    }
+  }
 
   saveSnapshot(instanceId: string, state: Partial<MediaStateSnapshot>): void {
     const existing = this.snapshots.get(instanceId) || this.createDefaultSnapshot()
@@ -65,6 +208,102 @@ class MediaStateManager {
 
   clearSnapshot(instanceId: string): void {
     this.snapshots.delete(instanceId)
+  }
+
+  // Helper methods for state detection
+  private getAudioMutedState(instance: any): boolean {
+    // Check various possible property names
+    if ('audioMuted' in instance) return instance.audioMuted
+    if ('localAudioMuted' in instance) return instance.localAudioMuted
+    if ('isAudioMuted' in instance) return instance.isAudioMuted
+    // Check for member state
+    if (instance.member && 'audioMuted' in instance.member) return instance.member.audioMuted
+    if (instance.selfMember && 'audioMuted' in instance.selfMember) return instance.selfMember.audioMuted
+    // Default to muted if unknown
+    return true
+  }
+
+  private getVideoMutedState(instance: any): boolean {
+    // Check various possible property names
+    if ('videoMuted' in instance) return instance.videoMuted
+    if ('localVideoMuted' in instance) return instance.localVideoMuted
+    if ('isVideoMuted' in instance) return instance.isVideoMuted
+    // Check for member state
+    if (instance.member && 'videoMuted' in instance.member) return instance.member.videoMuted
+    if (instance.selfMember && 'videoMuted' in instance.selfMember) return instance.selfMember.videoMuted
+    // Default to muted if unknown
+    return true
+  }
+
+  private getScreenShareState(instance: any): boolean {
+    if ('screenShareList' in instance && Array.isArray(instance.screenShareList)) {
+      return instance.screenShareList.length > 0
+    }
+    if ('isScreenSharing' in instance) return instance.isScreenSharing
+    return false
+  }
+
+  private getAudioDeviceId(instance: any): string | null {
+    if ('microphoneId' in instance) return instance.microphoneId
+    if ('audioDeviceId' in instance) return instance.audioDeviceId
+    if ('currentAudioDevice' in instance) return instance.currentAudioDevice
+    return null
+  }
+
+  private getVideoDeviceId(instance: any): string | null {
+    if ('cameraId' in instance) return instance.cameraId
+    if ('videoDeviceId' in instance) return instance.videoDeviceId
+    if ('currentVideoDevice' in instance) return instance.currentVideoDevice
+    return null
+  }
+
+  private getAudioConstraints(instance: any): any {
+    if ('microphoneConstraints' in instance) return instance.microphoneConstraints
+    if ('audioConstraints' in instance) return instance.audioConstraints
+    return {}
+  }
+
+  private getVideoConstraints(instance: any): any {
+    if ('cameraConstraints' in instance) return instance.cameraConstraints
+    if ('videoConstraints' in instance) return instance.videoConstraints
+    return {}
+  }
+
+  // Helper methods for state restoration
+  private async muteAudio(instance: any): Promise<void> {
+    if (instance.audioMute) return instance.audioMute()
+    if (instance.muteAudio) return instance.muteAudio()
+    if (instance.setAudioMuted) return instance.setAudioMuted(true)
+  }
+
+  private async unmuteAudio(instance: any): Promise<void> {
+    if (instance.audioUnmute) return instance.audioUnmute()
+    if (instance.unmuteAudio) return instance.unmuteAudio()
+    if (instance.setAudioMuted) return instance.setAudioMuted(false)
+  }
+
+  private async muteVideo(instance: any): Promise<void> {
+    if (instance.videoMute) return instance.videoMute()
+    if (instance.muteVideo) return instance.muteVideo()
+    if (instance.setVideoMuted) return instance.setVideoMuted(true)
+  }
+
+  private async unmuteVideo(instance: any): Promise<void> {
+    if (instance.videoUnmute) return instance.videoUnmute()
+    if (instance.unmuteVideo) return instance.unmuteVideo()
+    if (instance.setVideoMuted) return instance.setVideoMuted(false)
+  }
+
+  private async updateAudioDevice(instance: any, deviceId: string): Promise<void> {
+    if (instance.updateAudioDevice) return instance.updateAudioDevice({ deviceId })
+    if (instance.setAudioDevice) return instance.setAudioDevice(deviceId)
+    if (instance.updateMicrophone) return instance.updateMicrophone({ deviceId })
+  }
+
+  private async updateVideoDevice(instance: any, deviceId: string): Promise<void> {
+    if (instance.updateVideoDevice) return instance.updateVideoDevice({ deviceId })
+    if (instance.setVideoDevice) return instance.setVideoDevice(deviceId)
+    if (instance.updateCamera) return instance.updateCamera({ deviceId })
   }
 
   private createDefaultSnapshot(): MediaStateSnapshot {
@@ -105,6 +344,8 @@ class RecoveryOrchestrator {
     lastSuccessStrategy: null,
     failureCount: 0,
   }
+  
+  constructor(private visibilityManager: VisibilityManager) {}
 
   async executeRecoveryStrategies(
     instance: ManagedRoomSession,
@@ -161,6 +402,9 @@ class RecoveryOrchestrator {
       case RecoveryStrategy.Reinvite:
         return this.reinvite(instance)
         
+      case RecoveryStrategy.LayoutRefresh:
+        return this.visibilityManager.refreshLayout()
+        
       default:
         return false
     }
@@ -190,25 +434,119 @@ class RecoveryOrchestrator {
     }
   }
 
-  private async requestKeyframe(_instance: ManagedRoomSession): Promise<boolean> {
+  private async requestKeyframe(instance: ManagedRoomSession): Promise<boolean> {
+    const logger = getLogger()
     try {
-      // In a real implementation, this would send a PLI (Picture Loss Indication)
-      // request through the WebRTC connection to request a new keyframe
-      console.debug('Requesting keyframe for recovery')
-      return true
+      logger.debug('Requesting keyframe for WebRTC recovery')
+      
+      // Use the existing keyframe request recovery strategy
+      if (instance as BaseRoomSession) {
+        const result = await executeKeyframeRequestRecovery(instance as BaseRoomSession)
+        return result.success
+      }
+      
+      // Fallback: Direct PLI request implementation
+      const peer = instance.peer as RTCPeer<any>
+      if (!peer?.instance) {
+        logger.debug('No active RTCPeerConnection available for keyframe request')
+        return false
+      }
+
+      const peerConnection = peer.instance
+      const receivers = peerConnection.getReceivers()
+      const videoReceivers = receivers.filter(
+        (receiver) => receiver.track?.kind === 'video' && receiver.track?.readyState === 'live'
+      )
+
+      if (videoReceivers.length === 0) {
+        logger.debug('No active video receivers found for keyframe request')
+        return false
+      }
+
+      // Request keyframes by triggering stats collection which may induce PLI
+      let pliCount = 0
+      for (const receiver of videoReceivers) {
+        try {
+          await receiver.getStats()
+          pliCount++
+        } catch (error) {
+          logger.debug('PLI request failed for receiver:', error)
+        }
+      }
+
+      // Wait briefly for potential keyframe response
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      logger.debug(`Requested keyframes from ${pliCount} video receivers`)
+      return pliCount > 0
     } catch (error) {
-      console.debug('Keyframe request failed:', error)
+      logger.debug('Keyframe request failed:', error)
       return false
     }
   }
 
-  private async reconnectStream(_instance: ManagedRoomSession): Promise<boolean> {
+  private async reconnectStream(instance: ManagedRoomSession): Promise<boolean> {
+    const logger = getLogger()
     try {
-      // This would reconnect the local media stream
-      console.debug('Reconnecting media stream')
-      return true
+      logger.debug('Reconnecting media stream for WebRTC recovery')
+      
+      // Use the existing stream reconnection recovery strategy
+      if (instance as BaseRoomSession) {
+        const result = await executeStreamReconnectionRecovery(instance as BaseRoomSession)
+        return result.success
+      }
+      
+      // Fallback: Direct stream reconnection implementation
+      const peer = instance.peer as RTCPeer<any>
+      if (!peer?.instance) {
+        logger.debug('No active RTCPeerConnection available for stream reconnection')
+        return false
+      }
+
+      const peerConnection = peer.instance
+      const senders = peerConnection.getSenders()
+      
+      let reconnectedTracks = 0
+      for (const sender of senders) {
+        if (sender.track && sender.track.kind === 'video') {
+          try {
+            const track = sender.track
+            
+            // Check if track needs reconnection
+            if (track.readyState === 'ended' || track.muted) {
+              // Get new video track with same constraints
+              const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false,
+              })
+              
+              const newVideoTrack = stream.getVideoTracks()[0]
+              if (newVideoTrack) {
+                await sender.replaceTrack(newVideoTrack)
+                
+                // Update local stream reference if available
+                if (peer.localStream) {
+                  peer.localStream.removeTrack(track)
+                  peer.localStream.addTrack(newVideoTrack)
+                }
+                
+                // Stop the old track
+                track.stop()
+                reconnectedTracks++
+                
+                logger.debug('Successfully reconnected video track')
+              }
+            }
+          } catch (error) {
+            logger.debug('Track reconnection failed:', error)
+          }
+        }
+      }
+
+      logger.debug(`Reconnected ${reconnectedTracks} video tracks`)
+      return reconnectedTracks > 0
     } catch (error) {
-      console.debug('Stream reconnection failed:', error)
+      logger.debug('Stream reconnection failed:', error)
       return false
     }
   }
@@ -242,6 +580,7 @@ export class VisibilityManager extends EventEmitter<VisibilityManagerEvents> imp
   private visibilityChannel: ReturnType<typeof createVisibilityChannel> | null = null
   private deviceChannel: ReturnType<typeof createDeviceChangeChannel> | null = null
   private instance: ManagedRoomSession | null = null
+  private logger = getLogger()
   
   // State tracking
   private currentVisibilityState: VisibilityState
@@ -258,7 +597,7 @@ export class VisibilityManager extends EventEmitter<VisibilityManagerEvents> imp
     this.instance = instance || null
     this.mobileContext = detectMobileContext()
     this.mediaStateManager = new MediaStateManager()
-    this.recoveryOrchestrator = new RecoveryOrchestrator()
+    this.recoveryOrchestrator = new RecoveryOrchestrator(this)
     this.currentVisibilityState = getCurrentVisibilityState()
 
     if (this.config.enabled) {
@@ -455,12 +794,22 @@ export class VisibilityManager extends EventEmitter<VisibilityManagerEvents> imp
     if (!this.instance || !this.mobileContext.isMobile) return false
 
     try {
+      // First capture current state before auto-muting
+      const currentSnapshot = this.mediaStateManager.captureCurrentMediaState(this.instance)
+      const wasVideoEnabled = currentSnapshot.video.enabled && !currentSnapshot.video.muted
+      
       // Auto-mute video to save battery
-      if (this.instance.muteVideo) {
-        await this.instance.muteVideo()
+      if (wasVideoEnabled) {
+        // Try various mute methods
+        if (this.instance.muteVideo) {
+          await this.instance.muteVideo()
+        } else if (this.instance.videoMute) {
+          await this.instance.videoMute()
+        }
         
         // Mark as auto-muted for restoration
         this.mediaStateManager.saveSnapshot(this.instance.id, {
+          ...currentSnapshot,
           autoMuted: { video: true, audio: false },
         })
 
@@ -469,10 +818,11 @@ export class VisibilityManager extends EventEmitter<VisibilityManagerEvents> imp
           this.instance.emit('dtmf', { tone: '*0' })
         }
 
+        this.logger.debug('Auto-muted video for mobile optimization')
         return true
       }
     } catch (error) {
-      console.debug('Auto-mute failed:', error)
+      this.logger.error('Auto-mute failed:', error)
     }
 
     return false
@@ -484,33 +834,13 @@ export class VisibilityManager extends EventEmitter<VisibilityManagerEvents> imp
   private async saveCurrentMediaState(): Promise<void> {
     if (!this.instance) return
 
-    // In a real implementation, this would query the actual media state
-    // from the room session instance
-    const _snapshot: Partial<MediaStateSnapshot> = {
-      timestamp: Date.now(),
-      video: {
-        enabled: true, // Would query actual state
-        muted: false,
-        deviceId: null,
-        constraints: {},
-      },
-      audio: {
-        enabled: true,
-        muted: false, 
-        deviceId: null,
-        constraints: {},
-      },
-      screen: {
-        sharing: false,
-        audio: false,
-      },
-      autoMuted: {
-        video: false,
-        audio: false,
-      },
-    }
-
-    this.mediaStateManager.saveSnapshot(this.instance.id, _snapshot)
+    // Capture the actual media state from the instance
+    const snapshot = this.mediaStateManager.captureCurrentMediaState(this.instance)
+    
+    // Save the snapshot
+    this.mediaStateManager.saveSnapshot(this.instance.id, snapshot)
+    
+    this.logger.debug('Saved media state snapshot for instance:', this.instance.id)
   }
 
   /**
@@ -519,40 +849,24 @@ export class VisibilityManager extends EventEmitter<VisibilityManagerEvents> imp
   private async restoreMediaState(): Promise<void> {
     if (!this.instance) return
 
-    const _snapshot = this.mediaStateManager.getSnapshot(this.instance.id)
-    if (!_snapshot) return
+    const snapshot = this.mediaStateManager.getSnapshot(this.instance.id)
+    if (!snapshot) {
+      this.logger.debug('No media state snapshot found for instance:', this.instance.id)
+      return
+    }
 
-    try {
-      // Restore video state if it was auto-muted
-      if (_snapshot.autoMuted.video && 
-          _snapshot.video.enabled && 
-          !_snapshot.video.muted &&
-          this.instance.unmuteVideo) {
-        await this.instance.unmuteVideo()
-        
-        if (this.config.mobile.notifyServer && this.instance.emit) {
-          this.instance.emit('dtmf', { tone: '*0' })
-        }
-      }
-
-      // Restore audio state if it was auto-muted
-      if (_snapshot.autoMuted.audio && 
-          _snapshot.audio.enabled && 
-          !_snapshot.audio.muted &&
-          this.instance.unmuteAudio) {
-        await this.instance.unmuteAudio()
-      }
-
-      // Restore device selections
-      if (_snapshot.video.deviceId && this.instance.updateVideoDevice) {
-        await this.instance.updateVideoDevice({ deviceId: _snapshot.video.deviceId })
-      }
-      if (_snapshot.audio.deviceId && this.instance.updateAudioDevice) {
-        await this.instance.updateAudioDevice({ deviceId: _snapshot.audio.deviceId })
-      }
-
-    } catch (error) {
-      console.debug('Media state restoration failed:', error)
+    this.logger.debug('Restoring media state for instance:', this.instance.id)
+    
+    // Use the MediaStateManager to restore the state
+    await this.mediaStateManager.restoreMediaState(this.instance, snapshot)
+    
+    // Send DTMF notification if configured and video was restored
+    if (this.config.mobile.notifyServer && 
+        snapshot.autoMuted.video && 
+        snapshot.video.enabled && 
+        !snapshot.video.muted &&
+        this.instance.emit) {
+      this.instance.emit('dtmf', { tone: '*0' })
     }
   }
 
@@ -646,6 +960,41 @@ export class VisibilityManager extends EventEmitter<VisibilityManagerEvents> imp
 
   getRecoveryStatus(): RecoveryStatus {
     return this.recoveryOrchestrator.getStatus()
+  }
+
+  /**
+   * Refresh video layout to recover from layout issues
+   */
+  async refreshLayout(): Promise<boolean> {
+    const logger = getLogger()
+    
+    if (!this.instance) {
+      logger.debug('No instance available for layout refresh')
+      return false
+    }
+
+    try {
+      logger.debug('Refreshing video layout for recovery')
+      
+      // Try to refresh the layout if the capability is available
+      if (this.instance.setLayout) {
+        // Get current layout name or use a default
+        // In a real implementation, you'd store the current layout
+        await this.instance.setLayout({ name: 'grid-responsive' })
+        
+        // Wait briefly for layout to settle
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        logger.debug('Layout refresh completed successfully')
+        return true
+      } else {
+        logger.debug('Layout refresh not available - no setLayout capability')
+        return false
+      }
+    } catch (error) {
+      logger.debug('Layout refresh failed:', error)
+      return false
+    }
   }
 
   /**

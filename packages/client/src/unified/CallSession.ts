@@ -146,6 +146,7 @@ export class CallSessionConnection
               'KeyframeRequest',
               'StreamReconnection',
               'Reinvite',
+              'CallFabricResume',
             ],
           },
         },

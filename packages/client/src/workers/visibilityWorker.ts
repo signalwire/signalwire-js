@@ -51,10 +51,11 @@ const MAX_RECOVERY_ATTEMPTS = 3
  * Handles browser visibility changes and manages recovery strategies
  */
 export const visibilityWorker: SDKWorker<any> = function* (
-  options: SDKWorkerParams<any>
+  options: SDKWorkerParams<any> & { initialArgs?: VisibilityWorkerParams }
 ): SagaIterator {
-  // Extract custom parameters from payload (not initialArgs)
-  const { instance, visibilityConfig } = (options.payload || {}) as VisibilityWorkerParams
+  // Extract custom parameters from initialArgs (passed via runWorker definition)
+  const { initialArgs } = options
+  const { instance, visibilityConfig } = (initialArgs || {}) as VisibilityWorkerParams
   const logger = getLogger()
 
   // Initialize state
@@ -86,16 +87,19 @@ export const visibilityWorker: SDKWorker<any> = function* (
       
       // Initialize mobile optimization if enabled
       if ('mobileOptimization' in visibilityConfig && visibilityConfig.mobileOptimization) {
-        state.mobileManager = new MobileOptimizationManager(instance as any)
+        state.mobileManager = new MobileOptimizationManager(visibilityConfig)
       }
 
       // Initialize device management if enabled
       if ('deviceManagement' in visibilityConfig && visibilityConfig.deviceManagement) {
-        state.deviceManager = yield call(createDeviceManager as any, {
-          onDeviceChange: (changeInfo: any) => {
-            logger.debug('Device change detected:', changeInfo)
-          },
-        })
+        const deviceManagerTarget = {
+          id: instance.id || 'default',
+          // Add other required properties if needed
+        }
+        state.deviceManager = yield call(createDeviceManager as any, 
+          deviceManagerTarget,
+          visibilityConfig
+        )
       }
 
       // Create visibility event channel
