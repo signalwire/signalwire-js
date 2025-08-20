@@ -121,6 +121,27 @@ export {
   GetSubscriberInfoResult,
   PaginatedResponse,
   PaginatedResult,
+  // From interfaces/clientFactory.ts
+  Profile,
+  ProfileType,
+  ManagedInstance,
+  AddProfilesParams,
+  RemoveProfilesParams,
+  GetClientParams,
+  GetClientResult,
+  DisposeClientParams,
+  ClientFactoryContract,
+  ProfileManagerContract,
+  InstanceManagerContract,
+  ClientFactoryError,
+  ProfileNotFoundError,
+  InstanceNotFoundError,
+  ProfileExistsError,
+  MaxProfilesExceededError,
+  InstanceInUseError,
+  // From interfaces/storage.ts
+  SignalWireStorageContract,
+  StorageInfo,
 } from './unified'
 
 /**

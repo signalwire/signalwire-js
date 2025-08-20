@@ -33,6 +33,7 @@ import { CallSessionMember } from './CallSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
+import { SignalWireStorageContract } from './interfaces/storage'
 
 export interface CallSession
   extends CallSessionContract,
@@ -42,7 +43,10 @@ export interface CallSession
     BaseComponentContract {}
 
 export interface CallSessionOptions
-  extends Omit<BaseRoomSessionOptions, 'customSagas'> {}
+  extends Omit<BaseRoomSessionOptions, 'customSagas'> {
+  /** Optional storage implementation for persisting client data (wrapped with clientId prefix) */
+  storage?: SignalWireStorageContract
+}
 
 export class CallSessionConnection
   extends BaseRoomSessionConnection<CallSessionEvents>
@@ -55,9 +59,13 @@ export class CallSessionConnection
   private _currentLayoutEvent: CallLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
+  private storage?: SignalWireStorageContract
 
   constructor(options: CallSessionOptions) {
     super(options)
+    
+    // Store the storage implementation for later use
+    this.storage = options.storage
 
     this.initWorker()
   }
@@ -196,18 +204,39 @@ export class CallSessionConnection
     return new Promise<void>(async (resolve, reject) => {
       try {
         this.once('room.subscribed', (params) => {
-          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
+          // Use provided storage or fallback to session storage
+          if (this.storage) {
+            this.storage.setSession(PREVIOUS_CALLID_STORAGE_KEY, params.call_id).catch(() => {
+              // Ignore errors when setting call ID
+            })
+          } else {
+            getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
+          }
           resolve()
         })
 
         this.once('destroy', () => {
-          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+          // Use provided storage or fallback to session storage
+          if (this.storage) {
+            this.storage.deleteSession(PREVIOUS_CALLID_STORAGE_KEY).catch(() => {
+              // Ignore errors when removing call ID
+            })
+          } else {
+            getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+          }
           reject(new Error('Failed to start the call', { cause: this.cause }))
         })
 
         if (this.options.attach) {
-          this.options.prevCallId =
-            getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+          // Use provided storage or fallback to session storage
+          if (this.storage) {
+            // For async storage, we need to await the result
+            const storedCallId = await this.storage.getSession<string>(PREVIOUS_CALLID_STORAGE_KEY).catch(() => null)
+            this.options.prevCallId = storedCallId ?? undefined
+          } else {
+            this.options.prevCallId = 
+              getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+          }
           this.logger.debug(
             `Trying to reattach to previous call: ${this.options.prevCallId}`
           )
