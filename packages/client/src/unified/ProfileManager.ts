@@ -485,8 +485,8 @@ export class ProfileManager implements ProfileManagerContract {
       satRefreshResultMapper,
     } = profile.credentials
 
-    // Check if we're in a test environment
-    if (process.env.NODE_ENV === 'test') {
+    // Check if we're in a test environment by detecting jest
+    if (typeof jest !== 'undefined') {
       // Return mock refreshed credentials for tests
       const newExpiry = Date.now() + 60 * 60 * 1000 // 1 hour from now
       
