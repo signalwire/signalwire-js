@@ -1750,8 +1750,7 @@ export const expectInteractivityMode = async (
 }
 
 export const setLayoutOnPage = async (page: Page, layoutName: string) => {
-  let layoutChanged: boolean = false
-  await expectPageEvalToPass(page, {
+  const layoutChanged = await expectPageEvalToPass(page, {
     evaluateArgs: { layoutName },
     evaluateFn: async (params) => {
       const callObj = window._callObj
@@ -1760,10 +1759,6 @@ export const setLayoutOnPage = async (page: Page, layoutName: string) => {
       }
       await callObj.setLayout({ name: params.layoutName })
       return true
-    },
-    assertionFn: (result, message) => {
-      expect(result, message).toBe(true)
-      layoutChanged = result
     },
     messageAssert: 'expect set layout',
     messageError: 'set layout',
@@ -1784,7 +1779,7 @@ export const expectMemberId = async (page: Page, memberId: string) => {
     return callObj.memberId
   })
 
-  expect(roomMemberId).toEqual(memberId)
+  expect(roomMemberId).toBe(memberId)
 }
 
 /**
