@@ -4,11 +4,6 @@ import {
   VideoRoomDeviceEventParams,
   VideoRoomDeviceEventNames,
 } from '@signalwire/core'
-import type {
-  NetworkQuality,
-  NetworkIssue,
-  RecoveryAttemptInfo,
-} from '../monitoring/interfaces'
 
 export interface ConnectionOptions {
   // TODO: Not used anymore but required for backend
@@ -129,14 +124,6 @@ export interface ConnectionOptions {
    * @internal
    */
   iceCandidatePoolSize?: number
-
-  /**
-   * Enable WebRTC Stats Monitoring feature.
-   * When enabled, monitors connection quality, detects issues, and provides recovery actions.
-   * Default: true
-   * @internal
-   */
-  enableStatsMonitoring?: boolean
 }
 
 export interface EmitDeviceUpdatedEventsParams {
@@ -162,12 +149,6 @@ export type MediaEventNames =
   | 'media.reconnecting'
   | 'media.disconnected'
 
-export type MonitoringEventNames =
-  | 'network.quality.changed'
-  | 'network.issue.detected'
-  | 'network.issue.resolved'
-  | 'network.recovery.attempted'
-
 type BaseConnectionEventsHandlerMap = Record<
   BaseConnectionState,
   (params: any) => void
@@ -176,11 +157,7 @@ type BaseConnectionEventsHandlerMap = Record<
   Record<
     VideoRoomDeviceEventNames,
     (params: VideoRoomDeviceEventParams) => void
-  > &
-  Record<'network.quality.changed', (params: { quality: NetworkQuality; previousQuality?: NetworkQuality; timestamp: number }) => void> &
-  Record<'network.issue.detected', (params: { issue: NetworkIssue; quality: NetworkQuality; timestamp: number }) => void> &
-  Record<'network.issue.resolved', (params: { issue: NetworkIssue; duration: number; quality: NetworkQuality; timestamp: number }) => void> &
-  Record<'network.recovery.attempted', (params: { attempt: RecoveryAttemptInfo; quality: NetworkQuality; timestamp: number }) => void>
+  >
 
 export type BaseConnectionEvents = {
   [k in keyof BaseConnectionEventsHandlerMap]: BaseConnectionEventsHandlerMap[k]
