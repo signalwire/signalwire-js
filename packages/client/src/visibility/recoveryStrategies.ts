@@ -171,7 +171,7 @@ export async function executeKeyframeRequestRecovery(
     logger.debug('Executing keyframe request recovery')
     
     // Get the active RTCPeer connection
-    const peer = instance.peer as RTCPeer<any>
+    const peer = instance.peer as unknown as RTCPeer<any>
     if (!peer?.instance) {
       return {
         success: false,
@@ -269,7 +269,7 @@ export async function executeStreamReconnectionRecovery(
   try {
     logger.debug('Executing stream reconnection recovery')
     
-    const peer = instance.peer as RTCPeer<any>
+    const peer = instance.peer as unknown as RTCPeer<any>
     if (!peer?.instance) {
       return {
         success: false,
@@ -354,7 +354,7 @@ export async function executeReinviteRecovery(
   try {
     logger.debug('Executing re-INVITE recovery')
     
-    const peer = instance.peer as RTCPeer<any>
+    const peer = instance.peer as unknown as RTCPeer<any>
     if (!peer?.instance) {
       return {
         success: false,

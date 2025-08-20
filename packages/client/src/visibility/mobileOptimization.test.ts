@@ -208,12 +208,16 @@ describe('MobileWakeDetector', () => {
 
   beforeEach(() => {
     jest.useFakeTimers()
-    detector = new MobileWakeDetector()
     mockCallback = jest.fn()
+    // Create detector after fake timers are set up
+    detector = new MobileWakeDetector()
   })
 
   afterEach(() => {
-    detector.stop()
+    if (detector) {
+      detector.stop()
+      detector = null
+    }
     jest.useRealTimers()
   })
 
@@ -293,6 +297,10 @@ describe('MobileDTMFNotifier', () => {
   })
 
   afterEach(() => {
+    if (notifier) {
+      notifier.clearPendingNotifications()
+      notifier = null
+    }
     jest.useRealTimers()
   })
 
@@ -329,7 +337,10 @@ describe('MobileOptimizationManager', () => {
   })
 
   afterEach(() => {
-    manager.destroy()
+    if (manager) {
+      manager.destroy()
+      manager = null
+    }
   })
 
   it('should create all sub-components', () => {
@@ -340,6 +351,11 @@ describe('MobileOptimizationManager', () => {
   })
 
   it('should detect when special handling is required', () => {
+    // Clean up the existing manager first
+    if (manager) {
+      manager.destroy()
+    }
+
     // @ts-ignore
     global.navigator = createMockNavigator({
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15',
@@ -358,6 +374,11 @@ describe('MobileOptimizationManager', () => {
   })
 
   it('should not require special handling on desktop', () => {
+    // Clean up the existing manager first
+    if (manager) {
+      manager.destroy()
+    }
+
     // @ts-ignore
     global.navigator = createMockNavigator({
       userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',

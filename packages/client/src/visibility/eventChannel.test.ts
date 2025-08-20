@@ -2,7 +2,7 @@
  * Comprehensive unit tests for eventChannel functions
  */
 
-import { eventChannel } from '@redux-saga/core'
+import { sagaHelpers } from '@signalwire/core'
 import {
   createVisibilityChannel,
   createDeviceChangeChannel,
@@ -15,9 +15,12 @@ import {
 } from './eventChannel'
 import { VisibilityConfig, DEFAULT_VISIBILITY_CONFIG } from './types'
 
-// Mock eventChannel from redux-saga
-jest.mock('@redux-saga/core', () => ({
-  eventChannel: jest.fn(),
+// Mock sagaHelpers.eventChannel while preserving other exports
+jest.mock('@signalwire/core', () => ({
+  ...jest.requireActual('@signalwire/core'),
+  sagaHelpers: {
+    eventChannel: jest.fn(),
+  },
 }))
 
 // Mock DOM APIs
@@ -337,7 +340,7 @@ describe('createVisibilityChannel', () => {
     emittedEvents = []
     
     // Mock eventChannel to capture emitted events
-    ;(eventChannel as jest.MockedFunction<typeof eventChannel>).mockImplementation((channelFactory) => {
+    ;(sagaHelpers.eventChannel as jest.MockedFunction<typeof sagaHelpers.eventChannel>).mockImplementation((channelFactory) => {
       const mockEmitter = (event: any) => {
         emittedEvents.push(event)
       }
@@ -501,7 +504,7 @@ describe('createDeviceChangeChannel', () => {
     emittedEvents = []
     
     // Mock eventChannel to capture emitted events
-    ;(eventChannel as jest.MockedFunction<typeof eventChannel>).mockImplementation((channelFactory) => {
+    ;(sagaHelpers.eventChannel as jest.MockedFunction<typeof sagaHelpers.eventChannel>).mockImplementation((channelFactory) => {
       const mockEmitter = (event: any) => {
         emittedEvents.push(event)
       }
@@ -717,13 +720,13 @@ describe('Integration with redux-saga eventChannel', () => {
   test('eventChannel is called with correct factory function', () => {
     createVisibilityChannel(DEFAULT_VISIBILITY_CONFIG)
     
-    expect(eventChannel).toHaveBeenCalledWith(expect.any(Function))
+    expect(sagaHelpers.eventChannel).toHaveBeenCalledWith(expect.any(Function))
   })
 
   test('channel factory receives emitter function', () => {
     let capturedEmitter: any = null
     
-    ;(eventChannel as jest.MockedFunction<typeof eventChannel>).mockImplementation((factory) => {
+    ;(sagaHelpers.eventChannel as jest.MockedFunction<typeof sagaHelpers.eventChannel>).mockImplementation((factory) => {
       capturedEmitter = jest.fn()
       factory(capturedEmitter)
       return { close: jest.fn() } as any

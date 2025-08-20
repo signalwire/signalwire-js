@@ -2,7 +2,7 @@
  * Event channel implementation for visibility lifecycle events
  */
 
-import { eventChannel } from '@redux-saga/core'
+import { sagaHelpers } from '@signalwire/core'
 import {
   VisibilityEvent,
   VisibilityState,
@@ -54,7 +54,7 @@ export function detectDeviceChanges(
 export function createVisibilityChannel(
   config: VisibilityConfig = {} as VisibilityConfig
 ) {
-  return eventChannel<VisibilityEvent>((emitter) => {
+  return sagaHelpers.eventChannel<VisibilityEvent>((emitter) => {
     let lastBlurTime: number | null = null
     let lastCheckTime = Date.now()
     let wakeDetectionInterval: NodeJS.Timeout | null = null
@@ -170,7 +170,7 @@ export function createVisibilityChannel(
 export function createDeviceChangeChannel(
   config: VisibilityConfig
 ) {
-  return eventChannel<DeviceChangeEvent>((emitter) => {
+  return sagaHelpers.eventChannel<DeviceChangeEvent>((emitter) => {
     let previousDevices: MediaDeviceInfo[] = []
     let pollingInterval: NodeJS.Timeout | null = null
 
@@ -226,7 +226,7 @@ export function createDeviceChangeChannel(
 export function createCombinedVisibilityChannel(
   config: VisibilityConfig
 ) {
-  return eventChannel<VisibilityEvent | DeviceChangeEvent>((_emitter) => {
+  return sagaHelpers.eventChannel<VisibilityEvent | DeviceChangeEvent>((_emitter) => {
     // Create individual channels
     const visibilityChannel = createVisibilityChannel(config)
     const deviceChannel = createDeviceChangeChannel(config)

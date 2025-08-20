@@ -12,11 +12,10 @@
  * - Integration with BaseRoomSession device management methods
  */
 
-import { eventChannel } from '@redux-saga/core'
-import { call, takeEvery } from '@redux-saga/core/effects'
-import { getLogger } from '@signalwire/core'
-import type { SagaIterator } from '@redux-saga/types'
+import { sagaHelpers, sagaEffects, getLogger, SagaIterator } from '@signalwire/core'
 import type { EventChannel } from '@redux-saga/core'
+
+const { call, takeEvery } = sagaEffects
 import {
   enumerateDevices,
   getMicrophoneDevices,
@@ -149,7 +148,7 @@ export class DeviceManager {
    * Create device change monitoring channel
    */
   createDeviceChangeChannel(): EventChannel<DeviceChangeEvent> {
-    return eventChannel((emitter) => {
+    return sagaHelpers.eventChannel((emitter) => {
       let pollingInterval: NodeJS.Timeout | null = null
 
       const checkDevices = async () => {

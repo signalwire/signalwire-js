@@ -1,6 +1,6 @@
 import { BaseRoomSession } from '../BaseRoomSession'
+import { RecoveryStrategy } from './types'
 import {
-  RecoveryStrategy,
   executeVideoPlayRecovery,
   executeKeyframeRequestRecovery,
   executeStreamReconnectionRecovery,
@@ -121,7 +121,7 @@ describe('Recovery Strategies', () => {
     it('should return a result with correct strategy', async () => {
       const result = await executeVideoPlayRecovery(mockInstance as any)
 
-      expect(result.strategy).toBe(RecoveryStrategy.PLAY_VIDEO)
+      expect(result.strategy).toBe(RecoveryStrategy.VideoPlay)
       expect(result).toHaveProperty('success')
       expect(result).toHaveProperty('details')
     })
@@ -130,7 +130,7 @@ describe('Recovery Strategies', () => {
       // Set instance to null to trigger error path
       const result = await executeVideoPlayRecovery(null as any)
 
-      expect(result.strategy).toBe(RecoveryStrategy.PLAY_VIDEO)
+      expect(result.strategy).toBe(RecoveryStrategy.VideoPlay)
       expect(result.success).toBe(false)
       // The current implementation doesn't always set error, just check that it handled gracefully
       expect(result).toHaveProperty('details')
@@ -141,7 +141,7 @@ describe('Recovery Strategies', () => {
     it('should request keyframes from video receivers', async () => {
       const result = await executeKeyframeRequestRecovery(mockInstance as any)
 
-      expect(result.strategy).toBe(RecoveryStrategy.REQUEST_KEYFRAME)
+      expect(result.strategy).toBe(RecoveryStrategy.KeyframeRequest)
       expect(result.success).toBe(true)
     })
 
@@ -150,7 +150,7 @@ describe('Recovery Strategies', () => {
 
       const result = await executeKeyframeRequestRecovery(mockInstance as any)
 
-      expect(result.strategy).toBe(RecoveryStrategy.REQUEST_KEYFRAME)
+      expect(result.strategy).toBe(RecoveryStrategy.KeyframeRequest)
       expect(result.success).toBe(false)
       expect(result.error?.message).toContain('No active RTCPeerConnection')
     })
@@ -160,7 +160,7 @@ describe('Recovery Strategies', () => {
     it('should reconnect video tracks that have issues', async () => {
       const result = await executeStreamReconnectionRecovery(mockInstance as any)
 
-      expect(result.strategy).toBe(RecoveryStrategy.RECONNECT_STREAM)
+      expect(result.strategy).toBe(RecoveryStrategy.StreamReconnection)
       expect(result.success).toBe(false) // No problematic tracks in mock
     })
   })
@@ -172,15 +172,15 @@ describe('Recovery Strategies', () => {
       const result = await executeReinviteRecovery(mockInstance as any, { timeout: 100 })
 
       expect(restartIceSpy).toHaveBeenCalled()
-      expect(result.strategy).toBe(RecoveryStrategy.REINVITE)
+      expect(result.strategy).toBe(RecoveryStrategy.Reinvite)
     })
   })
 
   describe('executeRecoveryStrategies', () => {
     it('should execute strategies and return results', async () => {
       const strategies = [
-        RecoveryStrategy.PLAY_VIDEO,
-        RecoveryStrategy.REQUEST_KEYFRAME,
+        RecoveryStrategy.VideoPlay,
+        RecoveryStrategy.KeyframeRequest,
       ]
 
       const results = await executeRecoveryStrategies(
@@ -197,8 +197,8 @@ describe('Recovery Strategies', () => {
     it('should try all strategies if none succeed', async () => {
       // Make all strategies fail by using null instance
       const strategies = [
-        RecoveryStrategy.REQUEST_KEYFRAME,
-        RecoveryStrategy.RECONNECT_STREAM,
+        RecoveryStrategy.KeyframeRequest,
+        RecoveryStrategy.StreamReconnection,
       ]
 
       const results = await executeRecoveryStrategies(
