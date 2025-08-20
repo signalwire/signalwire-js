@@ -1802,7 +1802,7 @@ export const expectMemberId = async (page: Page, memberId: string) => {
  * Uses the expect().toPass() Playwright with a default timeout
  *
  */
-const expectToPass = async (
+export const expectToPass = async (
   assertion: () => Promise<void>,
   assertionMessage: string | { message: string },
   options?: { interval?: number[]; timeout?: number }

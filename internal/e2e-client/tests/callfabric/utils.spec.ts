@@ -1,4 +1,4 @@
-import { expectToPass, SERVER_URL } from '../../utils'
+import { expectPageEvalToPass, expectToPass, SERVER_URL } from '../../utils'
 import { test, expect } from '../../fixtures'
 
 test.describe('utils', () => {
@@ -189,5 +189,77 @@ test.describe('utils', () => {
 
       expect(attemptCount).toBeGreaterThan(1)
     })
+  })
+})
+
+test.describe('waitForFunction', () => {
+  test('TODO: should resolve when the function returns a truthy value', async () => {
+    test.skip(
+      true,
+      'TODO: Implement test for waitForFunction resolving on truthy value'
+    )
+  })
+
+  test('TODO: should timeout if the function never returns truthy', async () => {
+    test.skip(true, 'TODO: Implement test for waitForFunction timeout behavior')
+  })
+
+  test('TODO: should pass arguments to the page function', async () => {
+    test.skip(true, 'TODO: Implement test for waitForFunction argument passing')
+  })
+})
+
+test.describe('expectPageEvalToPass', () => {
+  test('should resolve when the page evaluation passes', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+
+    const result = await expectPageEvalToPass(page, {
+      evaluateFn: () => true,
+      messageAssert: 'pass - resolve when the function returns a truthy value',
+      messageError:
+        'error - should resolve when the function returns a truthy value',
+    })
+
+    expect(result).toBe(true)
+
+    // with promise
+    const result2 = await expectPageEvalToPass(page, {
+      evaluateFn: () => Promise.resolve(true),
+      messageAssert: 'pass - resolve when the function returns a truthy value',
+      messageError:
+        'error - should resolve when the function returns a truthy value',
+    })
+    expect(result2).toBe(true)
+
+    // should fail with a custom error message
+    expect(
+      expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          throw new Error('test error')
+        },
+        messageAssert:
+          'pass - resolve when the function returns a truthy value',
+        messageError:
+          'error - should resolve when the function returns a truthy value',
+      })
+    ).rejects.toThrow(
+      'error - should resolve when the function returns a truthy value'
+    )
+  })
+
+  test('TODO: should fail with a custom error message', async () => {
+    test.skip(
+      true,
+      'TODO: Implement test for expectPageEvalToPass error handling'
+    )
+  })
+
+  test('TODO: should pass evaluateArgs to the evaluateFn', async () => {
+    test.skip(
+      true,
+      'TODO: Implement test for expectPageEvalToPass argument passing'
+    )
   })
 })
