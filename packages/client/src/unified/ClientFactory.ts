@@ -14,7 +14,9 @@ import {
   DisposeClientParams,
   ProfileNotFoundError,
   ClientFactoryError,
+  SignalWireCredentials,
 } from './interfaces/clientFactory'
+import { ResourceType } from './interfaces/address'
 
 /**
  * Singleton factory for managing SignalWire client instances and authentication profiles.
@@ -296,10 +298,10 @@ export class ClientFactory implements ClientFactoryContract {
    */
   async addDynamicProfile(
     credentialsId: string,
-    credentials: import('./interfaces/clientFactory').SignalWireCredentials,
+    credentials: SignalWireCredentials,
     addressId: string,
     addressDetails?: {
-      type: import('./interfaces/address').ResourceType
+      type: ResourceType
       name: string
       displayName?: string
       channels?: number
@@ -336,10 +338,10 @@ export class ClientFactory implements ClientFactoryContract {
    */
   async addStaticProfile(
     credentialsId: string,
-    credentials: import('./interfaces/clientFactory').SignalWireCredentials,
+    credentials: SignalWireCredentials,
     addressId: string,
     addressDetails?: {
-      type: import('./interfaces/address').ResourceType
+      type: ResourceType
       name: string
       displayName?: string
       channels?: number
