@@ -1808,6 +1808,19 @@ const expectToPass = async (
   }
   return await expect(assertion, assertionMessage).toPass(mergedOptions)
 }
+/**
+ * @description
+ * Waits for a function to return a truthy value or not throw within the page context.
+ *
+ * This utility wraps Playwright's `page.waitForFunction` and is useful for polling the browser context
+ * until a certain condition is met. In this wrapper the interval and timeout are set to the same value by default.
+ * This is to avoid polling, and have a default timeout of 10 seconds.
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Returns when the pageFunction returns a truthy value. It resolves to a JSHandle of the truthy value.
+ * - The JSHandle can be passed to other Playwright functions, like `page.evaluate` or `page.evaluateHandle`.
+ */
 
 export const waitForFunction = async <TArg, TResult>(
   page: Page,
@@ -1846,10 +1859,15 @@ export const waitForFunction = async <TArg, TResult>(
 
 /**
  * @description
- * Uses the expectToPass utility to assert that a promise resolves
- * - allows the user to provide a custom assertion function or use the default one
- * - allows the user to provide a custom timeout
- * - provide a custom message for the assertion and error
+ * Utility to evaluate a function in the browser context and assert its result using Playwright's expect.
+ *
+ * This function wraps a call to `page.evaluate` and uses the expectToPass utility to assert that a promise resolves
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Only serializable values can be returned
+ * - If a custom assertion function is not provided, the result is expected to strictly equal `booleanAssert`.
+ * - Throws an error with the provided message if the assertion fails or times out.
  */
 export const expectPageEvalToPass = async <TArgs, TResult>(
   page: Page,
