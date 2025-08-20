@@ -396,8 +396,7 @@ const createCFClientWithToken = async (
 
   const { attachSagaMonitor = false } = params || {}
 
-  let swClient = {} as SignalWireContract
-  await expectPageEvalToPass(page, {
+  const swClient = (await expectPageEvalToPass(page, {
     evaluateArgs: {
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
@@ -454,12 +453,10 @@ const createCFClientWithToken = async (
     },
     assertionFn: (client, message) => {
       expect(client, message).toBeDefined()
-      // assign the client the swClient variable
-      swClient = client
     },
     messageAssert: 'expect SignalWire client to be created',
     messageError: 'failed to create SignalWire client',
-  })
+  })) as SignalWireContract
 
   return swClient
 }
@@ -1615,6 +1612,7 @@ export const deleteResource = async (id: string) => {
 
 // #region Utilities for Events assertion
 
+// TODO: This is not used anywhere, remove it?
 export const expectMemberTalkingEvent = (page: Page) => {
   return page.evaluate(async () => {
     return new Promise((resolve) => {
@@ -1697,8 +1695,7 @@ export const expectCFFinalEvents = (
 }
 
 export const expectLayoutChanged = async (page: Page, layoutName: string) => {
-  let layoutChanged: boolean = false
-  await expectPageEvalToPass(page, {
+  return await expectPageEvalToPass(page, {
     evaluateArgs: { layoutName },
     evaluateFn: (params) => {
       return new Promise<boolean>((resolve) => {
@@ -1713,15 +1710,9 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
         })
       })
     },
-    assertionFn: (result, message) => {
-      expect(result, message).toBe(true)
-      // set the result to the resolved value
-      layoutChanged = result
-    },
     messageAssert: 'expect layout changed result',
     messageError: 'layout changed',
   })
-  return layoutChanged
 }
 
 export const expectRoomJoined = (
