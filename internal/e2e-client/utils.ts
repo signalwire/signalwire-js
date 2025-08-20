@@ -1805,9 +1805,9 @@ export const expectMemberId = async (page: Page, memberId: string) => {
  * Uses the expect().toPass() Playwright with a default timeout
  *
  */
-export const expectToPass = async (
+const expectToPass = async (
   assertion: () => Promise<void>,
-  { message }: { message: string },
+  assertionMessage: string | { message: string },
   options?: { interval?: number[]; timeout?: number }
 ) => {
   const mergedOptions = {
@@ -1815,7 +1815,7 @@ export const expectToPass = async (
     timeout: 10_000,
     ...options,
   }
-  return await expect(assertion, { message }).toPass(mergedOptions)
+  return await expect(assertion, assertionMessage).toPass(mergedOptions)
 }
 
 export const waitForFunction = async <TArg, TResult>(
