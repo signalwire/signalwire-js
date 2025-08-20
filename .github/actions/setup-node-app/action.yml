@@ -4,11 +4,11 @@ description: Setup app, install node dependencies and build
 inputs:
   NODE_VERSION:
     required: false
-    default: '20.x'
-    description: 'Default node version'
+    default: "20.x"
+    description: "Default node version"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Setup node
       uses: actions/setup-node@v4
