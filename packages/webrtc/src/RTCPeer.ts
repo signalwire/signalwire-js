@@ -20,6 +20,17 @@ import {
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
+import { WebRTCStatsMonitor } from './monitoring/WebRTCStatsMonitor'
+import type {
+  NetworkQuality,
+  StatsHistoryEntry,
+  RecoveryType,
+  MonitoringOptions,
+  MonitoringEventHandler,
+  NetworkQualityChangedEvent,
+  NetworkIssueDetectedEvent,
+  NetworkIssueResolvedEvent,
+} from './monitoring/interfaces'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -47,6 +58,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
    */
   private _resolveStartMethod: (value?: unknown) => void
   private _rejectStartMethod: (error: unknown) => void
+
+  // WebRTC Stats Monitoring properties
+  private _statsMonitor?: WebRTCStatsMonitor
+  private _monitoringEnabled: boolean = true
 
   /**
    * The promise that resolves or rejects when the negotiation succeed or fail.
@@ -90,6 +105,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     this.rtcConfigPolyfill = this.config
+
+    // Initialize monitoring based on options (default: true)
+    this._monitoringEnabled = this.options.enableStatsMonitoring !== false
+    if (this._monitoringEnabled) {
+      this._initializeStatsMonitoring()
+    }
   }
 
   get options() {
@@ -600,6 +621,37 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       this._attachListeners()
+      
+      // Initialize stats monitoring now that we have a peer connection
+      if (this._monitoringEnabled && !this._statsMonitor) {
+        this._initializeStatsMonitoringWithPeerConnection()
+      }
+    }
+  }
+
+  /**
+   * Initialize stats monitoring with the peer connection instance
+   * @private
+   */
+  private _initializeStatsMonitoringWithPeerConnection(): void {
+    if (!this._monitoringEnabled || this._statsMonitor || !this.instance) {
+      return
+    }
+
+    try {
+      // Create a wrapper object that provides the expected interface
+      const rtcPeerWrapper = {
+        peerConnection: this.instance,
+        uuid: this.uuid,
+        logger: this.logger,
+      }
+      
+      this._statsMonitor = new WebRTCStatsMonitor(rtcPeerWrapper as any, this.call)
+      this._setupMonitoringEventHandlers()
+      this.logger.debug('WebRTC Stats Monitoring initialized with peer connection')
+    } catch (error) {
+      this.logger.error('Failed to initialize WebRTC Stats Monitoring with peer connection', error)
+      this._monitoringEnabled = false
     }
   }
 
@@ -844,6 +896,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   stop() {
+    // Stop stats monitoring before cleanup
+    if (this._statsMonitor) {
+      this.stopStatsMonitoring()
+    }
+
     // Do not use `stopTrack` util to not dispatch the `ended` event
     this._localStream?.getTracks().forEach((track) => track.stop())
     this._remoteStream?.getTracks().forEach((track) => track.stop())
@@ -851,6 +908,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.instance?.close()
 
     this.stopWatchMediaPackets()
+    
+    // Dispose of monitoring resources
+    if (this._statsMonitor) {
+      this._statsMonitor.dispose()
+      this._statsMonitor = undefined
+    }
   }
 
   private _supportsAddTransceiver() {
@@ -1210,6 +1273,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         case 'connected':
           this.clearConnectionStateTimer()
           this.emitMediaConnected()
+          
+          // Start stats monitoring 2 seconds after connection is established
+          if (this._monitoringEnabled && this._statsMonitor) {
+            setTimeout(() => {
+              if (this.instance?.connectionState === 'connected') {
+                this.startStatsMonitoring()
+              }
+            }, 2000)
+          }
           break
         // case 'closed':
         //   break
@@ -1350,5 +1422,275 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return this.instance.getConfiguration()
     }
     return this.rtcConfigPolyfill || this.config
+  }
+
+  // === WebRTC Stats Monitoring Methods ===
+
+  /**
+   * Initialize the stats monitoring system
+   * @private
+   */
+  private _initializeStatsMonitoring(): void {
+    if (!this._monitoringEnabled || this._statsMonitor) {
+      return
+    }
+
+    try {
+      // Note: We need to defer initialization until the peer connection is created
+      // This will be done in _setupRTCPeerConnection()
+      this.logger.debug('WebRTC Stats Monitoring initialization deferred until peer connection is ready')
+    } catch (error) {
+      this.logger.error('Failed to prepare WebRTC Stats Monitoring initialization', error)
+      this._monitoringEnabled = false
+    }
+  }
+
+  /**
+   * Setup event handlers for monitoring events
+   * @private
+   */
+  private _setupMonitoringEventHandlers(): void {
+    if (!this._statsMonitor) return
+
+    // Handle network quality changes
+    const onQualityChanged: MonitoringEventHandler<NetworkQualityChangedEvent> = (event) => {
+      this.call.emit('network.quality.changed', {
+        quality: event.quality,
+        previousQuality: event.previousQuality,
+        timestamp: event.timestamp,
+      })
+    }
+
+    // Handle network issues detected
+    const onIssueDetected: MonitoringEventHandler<NetworkIssueDetectedEvent> = (event) => {
+      this.call.emit('network.issue.detected', {
+        issue: event.issue,
+        quality: event.quality,
+        timestamp: event.timestamp,
+      })
+    }
+
+    // Handle network issues resolved
+    const onIssueResolved: MonitoringEventHandler<NetworkIssueResolvedEvent> = (event) => {
+      this.call.emit('network.issue.resolved', {
+        issue: event.issue,
+        duration: event.duration,
+        quality: event.quality,
+        timestamp: event.timestamp,
+      })
+    }
+
+    this._statsMonitor.on('network.quality.changed', onQualityChanged)
+    this._statsMonitor.on('network.issue.detected', onIssueDetected)
+    this._statsMonitor.on('network.issue.resolved', onIssueResolved)
+  }
+
+  /**
+   * Start WebRTC stats monitoring
+   * @param options Optional monitoring configuration
+   */
+  startStatsMonitoring(options?: MonitoringOptions): void {
+    if (!this._monitoringEnabled || !this._statsMonitor) {
+      this.logger.warn('Stats monitoring is not enabled or not initialized')
+      return
+    }
+
+    try {
+      this._statsMonitor.start(options)
+      this.logger.debug('WebRTC Stats Monitoring started')
+    } catch (error) {
+      this.logger.error('Failed to start WebRTC Stats Monitoring', error)
+    }
+  }
+
+  /**
+   * Stop WebRTC stats monitoring
+   */
+  stopStatsMonitoring(): void {
+    if (!this._statsMonitor) {
+      return
+    }
+
+    try {
+      this._statsMonitor.stop()
+      this.logger.debug('WebRTC Stats Monitoring stopped')
+    } catch (error) {
+      this.logger.error('Failed to stop WebRTC Stats Monitoring', error)
+    }
+  }
+
+  /**
+   * Check if WebRTC stats monitoring is enabled and active
+   * @returns True if monitoring is enabled and active
+   */
+  isStatsMonitoringEnabled(): boolean {
+    return this._monitoringEnabled && this._statsMonitor?.getState().isActive === true
+  }
+
+  /**
+   * Get current network quality information
+   * @returns Current network quality or null if monitoring is not active
+   */
+  getNetworkQuality(): NetworkQuality | null {
+    if (!this._statsMonitor || !this.isStatsMonitoringEnabled()) {
+      return null
+    }
+
+    try {
+      return this._statsMonitor.getNetworkQuality()
+    } catch (error) {
+      this.logger.error('Failed to get network quality', error)
+      return null
+    }
+  }
+
+  /**
+   * Get WebRTC stats history
+   * @param limit Optional limit on number of entries to return
+   * @returns Array of stats history entries or empty array if monitoring is not active
+   */
+  getStatsHistory(limit?: number): StatsHistoryEntry[] {
+    if (!this._statsMonitor || !this.isStatsMonitoringEnabled()) {
+      return []
+    }
+
+    try {
+      return this._statsMonitor.getMetricsHistory(limit)
+    } catch (error) {
+      this.logger.error('Failed to get stats history', error)
+      return []
+    }
+  }
+
+  /**
+   * Request a keyframe from remote peer (recovery action)
+   * This can help with video quality issues by forcing a fresh video frame
+   */
+  async requestKeyframe(): Promise<void> {
+    if (!this.instance) {
+      this.logger.error('Cannot request keyframe: RTCPeerConnection instance not available')
+      throw new Error('RTCPeerConnection instance not available')
+    }
+
+    try {
+      const videoSender = this._getSenderByKind('video')
+      if (!videoSender || !videoSender.track) {
+        this.logger.warn('No video sender available for keyframe request - no video track to refresh')
+        return
+      }
+
+      this.logger.info('Requesting keyframe for video quality recovery')
+
+      // Method 1: Use RTP stats to identify video streams and check PLI capability
+      const stats = await this.instance.getStats()
+      let foundOutboundVideo = false
+      
+      stats.forEach((report) => {
+        if (report.type === 'outbound-rtp' && report.kind === 'video') {
+          foundOutboundVideo = true
+          this.logger.debug(`Found outbound video RTP stream (SSRC: ${report.ssrc}), PLI capability available`)
+        }
+      })
+
+      if (!foundOutboundVideo) {
+        this.logger.warn('No outbound video RTP stream found in stats')
+      }
+
+      // Method 2: Force keyframe by track replacement (more reliable)
+      const currentTrack = videoSender.track
+      if (currentTrack && currentTrack.readyState === 'live') {
+        this.logger.debug('Forcing keyframe through track replacement')
+        
+        // Briefly remove and re-add the track to force keyframe generation
+        await videoSender.replaceTrack(null)
+        
+        // Small delay to ensure the replacement is processed
+        await new Promise(resolve => setTimeout(resolve, 10))
+        
+        await videoSender.replaceTrack(currentTrack)
+        
+        this.logger.info('Keyframe requested successfully via track replacement')
+      } else {
+        this.logger.warn(`Video track not in live state: ${currentTrack?.readyState}`)
+        throw new Error('Video track is not in live state')
+      }
+      
+    } catch (error) {
+      this.logger.error('Failed to request keyframe:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Trigger ICE restart (recovery action)
+   * This can help with connectivity issues
+   */
+  async triggerICERestart(): Promise<void> {
+    try {
+      this.restartIce()
+      this.logger.debug('ICE restart triggered successfully')
+    } catch (error) {
+      this.logger.error('Failed to trigger ICE restart', error)
+      throw error
+    }
+  }
+
+  /**
+   * Trigger full re-negotiation (reinvite) for connection recovery
+   * This is different from ICE restart - it creates a completely new SDP offer/answer cycle
+   * This can help with complex negotiation issues or codec problems
+   */
+  async triggerReinvite(): Promise<void> {
+    if (this._negotiating) {
+      this.logger.warn('Cannot trigger reinvite during active negotiation')
+      throw new Error('Negotiation already in progress')
+    }
+
+    if (!this.instance) {
+      this.logger.error('Cannot trigger reinvite: RTCPeerConnection instance not available')
+      throw new Error('RTCPeerConnection instance not available')
+    }
+
+    try {
+      this.logger.info('Triggering full re-negotiation (reinvite)')
+      
+      // Reset negotiation state to allow new negotiation
+      this._negotiating = false
+      this._restartingIce = false
+      this._processingRemoteSDP = false
+      this._processingLocalSDP = false
+      
+      // For reinvite, we always act as the offerer to initiate the new negotiation
+      this.type = 'offer'
+      
+      // Clear any pending negotiation promises to start fresh
+      this._waitNegotiation = Promise.resolve()
+      
+      // Start a new negotiation cycle with force=true to bypass state checks
+      await this.startNegotiation(true)
+      
+      this.logger.info('Reinvite (full re-negotiation) initiated successfully')
+    } catch (error) {
+      this.logger.error('Failed to trigger reinvite:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Trigger manual recovery action
+   * @param type Type of recovery action to perform
+   */
+  async triggerRecovery(type: RecoveryType): Promise<void> {
+    if (!this._statsMonitor) {
+      throw new Error('Stats monitoring is not initialized')
+    }
+
+    try {
+      await this._statsMonitor.triggerRecovery(type)
+      this.logger.debug(`Recovery action ${type} triggered successfully`)
+    } catch (error) {
+      this.logger.error(`Failed to trigger recovery action ${type}`, error)
+      throw error
+    }
   }
 }

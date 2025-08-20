@@ -11,6 +11,12 @@ export const DEFAULT_THRESHOLDS = {
   /** Threshold for no inbound packets timeout in milliseconds */
   NO_PACKET_TIMEOUT_MS: 2000,
 
+  /** Warning threshold for no inbound packets in milliseconds */
+  NO_INBOUND_PACKETS_WARNING_MS: 2000,
+
+  /** Critical threshold for no inbound packets in milliseconds */
+  NO_INBOUND_PACKETS_CRITICAL_MS: 5000,
+
   /** Multiplier for RTT spike detection (current RTT > baseline * multiplier) */
   RTT_SPIKE_MULTIPLIER: 3,
 
@@ -31,7 +37,7 @@ export const DEFAULT_THRESHOLDS = {
 
   /** Timeout for critical connection state duration in milliseconds */
   CRITICAL_CONNECTION_TIMEOUT_MS: 5000,
-} as const;
+} as const
 
 /**
  * Polling intervals for different platforms
@@ -54,7 +60,7 @@ export const POLLING_INTERVALS = {
 
   /** Slower polling interval when network is healthy on mobile in milliseconds */
   MOBILE_HEALTHY: 1000,
-} as const;
+} as const
 
 /**
  * Recovery debounce times and rate limiting
@@ -74,7 +80,7 @@ export const RECOVERY_TIMING = {
 
   /** General recovery cooldown period in milliseconds */
   RECOVERY_COOLDOWN_MS: 30000,
-} as const;
+} as const
 
 /**
  * Maximum retry attempts for different recovery actions
@@ -94,7 +100,7 @@ export const MAX_RECOVERY_ATTEMPTS = {
 
   /** Reset recovery attempt counters after this duration in milliseconds */
   RESET_ATTEMPTS_AFTER_MS: 300000, // 5 minutes
-} as const;
+} as const
 
 /**
  * Baseline establishment configuration
@@ -114,7 +120,7 @@ export const BASELINE_CONFIG = {
 
   /** Time after which baseline should be recalculated in milliseconds */
   BASELINE_REFRESH_INTERVAL_MS: 300000, // 5 minutes
-} as const;
+} as const
 
 /**
  * History retention limits
@@ -134,7 +140,7 @@ export const HISTORY_LIMITS = {
 
   /** Cleanup interval for removing stale history entries in milliseconds */
   HISTORY_CLEANUP_INTERVAL_MS: 60000, // 1 minute
-} as const;
+} as const
 
 /**
  * Issue detection thresholds and criteria
@@ -158,7 +164,7 @@ export const ISSUE_DETECTION = {
 
   /** Minimum severity level for issue tracking (0-1) */
   MIN_TRACKABLE_SEVERITY: 0.1,
-} as const;
+} as const
 
 /**
  * Recovery tier thresholds
@@ -186,7 +192,7 @@ export const RECOVERY_TIERS = {
     MIXED_WARNING: 2,
     ACTIONS: ['ice_restart', 'renegotiation', 'reinvite'] as const,
   },
-} as const;
+} as const
 
 /**
  * Network quality scoring
@@ -214,7 +220,7 @@ export const QUALITY_SCORING = {
     JITTER: 0.2,
     BANDWIDTH: 0.1,
   },
-} as const;
+} as const
 
 /**
  * Platform-specific constants
@@ -246,7 +252,7 @@ export const PLATFORM_CONFIG = {
     FULL_HISTORY_RETENTION: true,
     ADVANCED_RECOVERY: true,
   },
-} as const;
+} as const
 
 /**
  * Monitoring state timeouts
@@ -266,7 +272,7 @@ export const STATE_TIMEOUTS = {
 
   /** Heartbeat interval for monitoring health checks in milliseconds */
   MONITORING_HEARTBEAT_MS: 30000,
-} as const;
+} as const
 
 /**
  * Event emission thresholds
@@ -283,7 +289,7 @@ export const EVENT_THRESHOLDS = {
 
   /** Throttle duration for repeated similar events in milliseconds */
   EVENT_THROTTLE_MS: 3000,
-} as const;
+} as const
 
 /**
  * Default monitoring options
@@ -318,7 +324,7 @@ export const DEFAULT_MONITORING_OPTIONS = {
 
   /** Default verbose logging */
   VERBOSE_LOGGING: false,
-} as const;
+} as const
 
 /**
  * WebRTC API specific constants
@@ -351,10 +357,8 @@ export const WEBRTC_CONSTANTS = {
   ] as RTCIceConnectionState[],
 
   /** Signaling states that might indicate issues */
-  CONCERNING_SIGNALING_STATES: [
-    'closed',
-  ] as RTCSignalingState[],
-} as const;
+  CONCERNING_SIGNALING_STATES: ['closed'] as RTCSignalingState[],
+} as const
 
 /**
  * Mathematical constants for statistical calculations
@@ -374,7 +378,7 @@ export const MATH_CONSTANTS = {
 
   /** Correlation threshold for trend detection */
   TREND_CORRELATION_THRESHOLD: 0.7,
-} as const;
+} as const
 
 /**
  * Error handling constants
@@ -391,29 +395,29 @@ export const ERROR_HANDLING = {
 
   /** Error backoff multiplier */
   ERROR_BACKOFF_MULTIPLIER: 2,
-} as const;
+} as const
 
 /**
  * Type-safe constant validation
  */
 export type MonitoringConstants = {
-  readonly DEFAULT_THRESHOLDS: typeof DEFAULT_THRESHOLDS;
-  readonly POLLING_INTERVALS: typeof POLLING_INTERVALS;
-  readonly RECOVERY_TIMING: typeof RECOVERY_TIMING;
-  readonly MAX_RECOVERY_ATTEMPTS: typeof MAX_RECOVERY_ATTEMPTS;
-  readonly BASELINE_CONFIG: typeof BASELINE_CONFIG;
-  readonly HISTORY_LIMITS: typeof HISTORY_LIMITS;
-  readonly ISSUE_DETECTION: typeof ISSUE_DETECTION;
-  readonly RECOVERY_TIERS: typeof RECOVERY_TIERS;
-  readonly QUALITY_SCORING: typeof QUALITY_SCORING;
-  readonly PLATFORM_CONFIG: typeof PLATFORM_CONFIG;
-  readonly STATE_TIMEOUTS: typeof STATE_TIMEOUTS;
-  readonly EVENT_THRESHOLDS: typeof EVENT_THRESHOLDS;
-  readonly DEFAULT_MONITORING_OPTIONS: typeof DEFAULT_MONITORING_OPTIONS;
-  readonly WEBRTC_CONSTANTS: typeof WEBRTC_CONSTANTS;
-  readonly MATH_CONSTANTS: typeof MATH_CONSTANTS;
-  readonly ERROR_HANDLING: typeof ERROR_HANDLING;
-};
+  readonly DEFAULT_THRESHOLDS: typeof DEFAULT_THRESHOLDS
+  readonly POLLING_INTERVALS: typeof POLLING_INTERVALS
+  readonly RECOVERY_TIMING: typeof RECOVERY_TIMING
+  readonly MAX_RECOVERY_ATTEMPTS: typeof MAX_RECOVERY_ATTEMPTS
+  readonly BASELINE_CONFIG: typeof BASELINE_CONFIG
+  readonly HISTORY_LIMITS: typeof HISTORY_LIMITS
+  readonly ISSUE_DETECTION: typeof ISSUE_DETECTION
+  readonly RECOVERY_TIERS: typeof RECOVERY_TIERS
+  readonly QUALITY_SCORING: typeof QUALITY_SCORING
+  readonly PLATFORM_CONFIG: typeof PLATFORM_CONFIG
+  readonly STATE_TIMEOUTS: typeof STATE_TIMEOUTS
+  readonly EVENT_THRESHOLDS: typeof EVENT_THRESHOLDS
+  readonly DEFAULT_MONITORING_OPTIONS: typeof DEFAULT_MONITORING_OPTIONS
+  readonly WEBRTC_CONSTANTS: typeof WEBRTC_CONSTANTS
+  readonly MATH_CONSTANTS: typeof MATH_CONSTANTS
+  readonly ERROR_HANDLING: typeof ERROR_HANDLING
+}
 
 /**
  * Consolidated constants object for easy access
@@ -435,48 +439,62 @@ export const MONITORING_CONSTANTS: MonitoringConstants = {
   WEBRTC_CONSTANTS,
   MATH_CONSTANTS,
   ERROR_HANDLING,
-} as const;
+} as const
 
 /**
  * Helper function to get platform-specific polling interval
  */
-export function getPlatformPollingInterval(isMobile: boolean, hasIssues: boolean): number {
+export function getPlatformPollingInterval(
+  isMobile: boolean,
+  hasIssues: boolean
+): number {
   if (isMobile) {
-    return hasIssues ? POLLING_INTERVALS.MOBILE_ISSUES : POLLING_INTERVALS.MOBILE_DEFAULT;
+    return hasIssues
+      ? POLLING_INTERVALS.MOBILE_ISSUES
+      : POLLING_INTERVALS.MOBILE_DEFAULT
   }
-  return hasIssues ? POLLING_INTERVALS.DESKTOP_ISSUES : POLLING_INTERVALS.DESKTOP_DEFAULT;
+  return hasIssues
+    ? POLLING_INTERVALS.DESKTOP_ISSUES
+    : POLLING_INTERVALS.DESKTOP_DEFAULT
 }
 
 /**
  * Helper function to determine if device is mobile
  */
 export function isMobileDevice(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  
-  return PLATFORM_CONFIG.MOBILE_USER_AGENTS.some(pattern => 
+  if (typeof navigator === 'undefined') return false
+
+  return PLATFORM_CONFIG.MOBILE_USER_AGENTS.some((pattern) =>
     pattern.test(navigator.userAgent)
-  );
+  )
 }
 
 /**
  * Helper function to get recovery tier based on issues
  */
-export function getRecoveryTier(warningCount: number, criticalCount: number): 1 | 2 | 3 {
+export function getRecoveryTier(
+  warningCount: number,
+  criticalCount: number
+): 1 | 2 | 3 {
   // Tier 3: ICE restart level
-  if (criticalCount >= RECOVERY_TIERS.TIER3.MIN_CRITICAL_ISSUES ||
-      (criticalCount >= RECOVERY_TIERS.TIER3.MIXED_CRITICAL && 
-       warningCount >= RECOVERY_TIERS.TIER3.MIXED_WARNING)) {
-    return 3;
+  if (
+    criticalCount >= RECOVERY_TIERS.TIER3.MIN_CRITICAL_ISSUES ||
+    (criticalCount >= RECOVERY_TIERS.TIER3.MIXED_CRITICAL &&
+      warningCount >= RECOVERY_TIERS.TIER3.MIXED_WARNING)
+  ) {
+    return 3
   }
 
   // Tier 2: Recovery level
-  if (criticalCount >= RECOVERY_TIERS.TIER2.MIN_CRITICAL_ISSUES ||
-      warningCount >= RECOVERY_TIERS.TIER2.MIN_WARNING_ISSUES) {
-    return 2;
+  if (
+    criticalCount >= RECOVERY_TIERS.TIER2.MIN_CRITICAL_ISSUES ||
+    warningCount >= RECOVERY_TIERS.TIER2.MIN_WARNING_ISSUES
+  ) {
+    return 2
   }
 
   // Tier 1: Warning level
-  return 1;
+  return 1
 }
 
 /**
@@ -490,30 +508,32 @@ export function calculateQualityScore(
   baselineRtt: number = 100,
   baselineJitter: number = 10
 ): number {
-  const weights = QUALITY_SCORING.QUALITY_WEIGHTS;
-  
+  const weights = QUALITY_SCORING.QUALITY_WEIGHTS
+
   // Normalize metrics (0-100 scale, where 100 is best)
-  const packetLossScore = Math.max(0, 100 - (packetLoss * 100 * 10)); // 10% loss = 0 score
-  const rttScore = Math.max(0, 100 - ((rtt / baselineRtt) * 50)); // 2x baseline = 50 score
-  const jitterScore = Math.max(0, 100 - ((jitter / baselineJitter) * 50)); // 2x baseline = 50 score
-  const bandwidthScore = Math.min(100, bandwidth / 10); // 1000 kbps = 100 score
-  
-  const totalScore = 
-    (packetLossScore * weights.PACKET_LOSS) +
-    (rttScore * weights.RTT) +
-    (jitterScore * weights.JITTER) +
-    (bandwidthScore * weights.BANDWIDTH);
-    
-  return Math.round(Math.max(0, Math.min(100, totalScore)));
+  const packetLossScore = Math.max(0, 100 - packetLoss * 100 * 10) // 10% loss = 0 score
+  const rttScore = Math.max(0, 100 - (rtt / baselineRtt) * 50) // 2x baseline = 50 score
+  const jitterScore = Math.max(0, 100 - (jitter / baselineJitter) * 50) // 2x baseline = 50 score
+  const bandwidthScore = Math.min(100, bandwidth / 10) // 1000 kbps = 100 score
+
+  const totalScore =
+    packetLossScore * weights.PACKET_LOSS +
+    rttScore * weights.RTT +
+    jitterScore * weights.JITTER +
+    bandwidthScore * weights.BANDWIDTH
+
+  return Math.round(Math.max(0, Math.min(100, totalScore)))
 }
 
 /**
  * Helper function to get quality level from score
  */
-export function getQualityLevel(score: number): 'excellent' | 'good' | 'fair' | 'poor' | 'critical' {
-  if (score >= QUALITY_SCORING.EXCELLENT_THRESHOLD) return 'excellent';
-  if (score >= QUALITY_SCORING.GOOD_THRESHOLD) return 'good';
-  if (score >= QUALITY_SCORING.FAIR_THRESHOLD) return 'fair';
-  if (score >= QUALITY_SCORING.POOR_THRESHOLD) return 'poor';
-  return 'critical';
+export function getQualityLevel(
+  score: number
+): 'excellent' | 'good' | 'fair' | 'poor' | 'critical' {
+  if (score >= QUALITY_SCORING.EXCELLENT_THRESHOLD) return 'excellent'
+  if (score >= QUALITY_SCORING.GOOD_THRESHOLD) return 'good'
+  if (score >= QUALITY_SCORING.FAIR_THRESHOLD) return 'fair'
+  if (score >= QUALITY_SCORING.POOR_THRESHOLD) return 'poor'
+  return 'critical'
 }
