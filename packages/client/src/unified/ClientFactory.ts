@@ -1,7 +1,11 @@
 import { LocalStorageAdapter } from './storage/LocalStorageAdapter'
-import { SignalWireStorageContract, setGlobalStorageInstance } from '@signalwire/core'
+import {
+  SignalWireStorageContract,
+  setGlobalStorageInstance,
+} from '@signalwire/core'
 import { ProfileManager } from './ProfileManager'
 import { InstanceManager } from './InstanceManager'
+import { HTTPClient } from './HTTPClient'
 import {
   Profile,
   ProfileType,
@@ -79,15 +83,80 @@ export class ClientFactory implements ClientFactoryContract {
 
     for (const profileData of params.profiles) {
       try {
-        // Validate profile data
-        this.validateProfileData(profileData)
+        let profilesToAdd = []
+        if ((profileData as Profile).addressId) {
+          // AddressId already provided, use it directly (backward compatibility)
+          profilesToAdd = [
+            profileData as Omit<
+              Profile,
+              'id' | 'createdAt' | 'updatedAt' | 'lastUsed'
+            >,
+          ]
+        } else {
+          // Fetch subscriber info to get all addresses associated with this token
+          try {
+            const httpClient = new HTTPClient({
+              token: profileData.credentials.satToken,
+            })
+            const subscriberInfo = await httpClient.getSubscriberInfo()
 
-        const profileId = await this.profileManager.addProfile(profileData)
+            if (
+              subscriberInfo.fabric_addresses &&
+              subscriberInfo.fabric_addresses.length > 0
+            ) {
+              // Create a profile copy for each address
+              profilesToAdd = subscriberInfo.fabric_addresses.map(
+                (address) => ({
+                  ...profileData,
+                  addressId: address.id,
+                  addressDetails: {
+                    type: address.type,
+                    name: address.name,
+                    displayName: address.display_name,
+                    channels: Object.keys(address.channels || {}).length,
+                  },
+                })
+              )
+            } else {
+              // No addresses found, cannot create profile without addressId
+              const errorMsg =
+                'No fabric addresses found for token - cannot create profile without addressId'
+              console.warn(errorMsg)
+              errors.push(new Error(errorMsg))
+              continue
+            }
+          } catch (apiError) {
+            // If fetching subscriber info fails, cannot create profile
+            const errorMsg = `Failed to fetch subscriber info: ${
+              apiError instanceof Error ? apiError.message : String(apiError)
+            }`
+            console.warn(errorMsg)
+            errors.push(new Error(errorMsg))
+            continue
+          }
+        }
 
-        // Fetch the created profile to return the full object
-        const profile = await this.profileManager.getProfile(profileId)
-        if (profile) {
-          profiles.push(profile)
+        // Add each profile (one per address)
+        for (const profileToAdd of profilesToAdd) {
+          try {
+            // Validate profile data
+            this.validateProfileData(profileToAdd)
+
+            const profileId = await this.profileManager.addProfile(profileToAdd)
+
+            // Fetch the created profile to return the full object
+            const profile = await this.profileManager.getProfile(profileId)
+            if (profile) {
+              profiles.push(profile)
+            }
+          } catch (profileError) {
+            // Handle individual profile addition errors
+            errors.push(
+              profileError instanceof Error
+                ? profileError
+                : new Error(String(profileError))
+            )
+          }
         }
       } catch (error) {
         errors.push(error instanceof Error ? error : new Error(String(error)))
@@ -441,7 +510,7 @@ export class ClientFactory implements ClientFactoryContract {
         'MISSING_AUTH_PARAMS'
       )
     }
-    
+
     // Validate refresh configuration
     if (
       !profileData.credentials.satRefreshURL ||

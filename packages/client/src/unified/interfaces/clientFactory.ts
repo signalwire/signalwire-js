@@ -96,7 +96,7 @@ export interface ManagedInstance {
  * Parameters for adding profiles
  */
 export interface AddProfilesParams {
-  profiles: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>[]
+  profiles: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed' | 'addressId'>[]
 }
 
 /**
