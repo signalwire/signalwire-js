@@ -469,20 +469,24 @@ export const deleteRoom = async (id: string) => {
 }
 
 export const leaveRoom = async (page: Page) => {
-  return page.evaluate(async () => {
-    const roomObj: Video.RoomSession | FabricRoomSession =
-      // @ts-expect-error
-      window._roomObj
-    console.log('Fixture roomObj', roomObj)
-    if (roomObj && roomObj?.roomSessionId) {
-      console.log('Fixture has room', roomObj.roomSessionId)
-      await roomObj.leave()
-    }
+  return expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const roomObj: Video.RoomSession | FabricRoomSession =
+        // @ts-expect-error
+        window._roomObj
+      console.log('Fixture roomObj', roomObj)
+      if (roomObj && roomObj?.roomSessionId) {
+        console.log('Fixture has room', roomObj.roomSessionId)
+        await roomObj.leave()
+      }
 
-    return {
-      videos: Array.from(document.querySelectorAll('video')).length,
-      rootEl: document.getElementById('rootElement')?.childElementCount ?? 0,
-    }
+      return {
+        videos: Array.from(document.querySelectorAll('video')).length,
+        rootEl: document.getElementById('rootElement')?.childElementCount ?? 0,
+      }
+    },
+    messageAssert: 'Room left',
+    messageError: 'Unable to leave the room',
   })
 }
 
