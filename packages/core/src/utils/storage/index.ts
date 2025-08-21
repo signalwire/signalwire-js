@@ -1,5 +1,5 @@
 import { mutateStorageKey, safeParseJson } from '../'
-import { SignalWireStorageContract, StorageInfo } from './SignalwireStorageContract'
+import { SignalWireStorageContract, StorageInfo } from '../../types/SignalwireStorageContract'
 
 export { SignalWireStorageContract, StorageInfo }
 

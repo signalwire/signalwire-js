@@ -20,14 +20,14 @@ export interface SignalWireStorageContract {
    * @param key - The storage key
    * @returns The stored value or null if not found
    */
-  get<T = unknown>(key: string): Promise<T | null>
+  get(key: string): Promise<string | null>
 
   /**
    * Set a value in persistent storage
    * @param key - The storage key
    * @param value - The value to store
    */
-  set<T = unknown>(key: string, value: T): Promise<void>
+  set(key: string, value: string): Promise<void>
 
   /**
    * Delete a value from persistent storage
@@ -48,14 +48,14 @@ export interface SignalWireStorageContract {
    * @param keys - Array of storage keys
    * @returns Map of keys to values (null if not found)
    */
-  getMany<T = unknown>(keys: string[]): Promise<Map<string, T | null>>
+  getMany(keys: string[]): Promise<Map<string, string | null>>
 
   /**
    * Set multiple values in persistent storage
    * @param entries - Map or array of key-value pairs
    */
-  setMany<T = unknown>(
-    entries: Map<string, T> | Array<[string, T]>
+  setMany(
+    entries: Map<string, string> | Array<[string, string]>
   ): Promise<void>
 
   /**
@@ -84,14 +84,14 @@ export interface SignalWireStorageContract {
    * @param key - The storage key
    * @returns The stored value or null if not found
    */
-  getSession<T = unknown>(key: string): Promise<T | null>
+  getSession(key: string): Promise<string | null>
 
   /**
    * Set a value in session storage
    * @param key - The storage key
    * @param value - The value to store
    */
-  setSession<T = unknown>(key: string, value: T): Promise<void>
+  setSession(key: string, value: string): Promise<void>
 
   /**
    * Delete a value from session storage
@@ -112,14 +112,14 @@ export interface SignalWireStorageContract {
    * @param keys - Array of storage keys
    * @returns Map of keys to values (null if not found)
    */
-  getManySession<T = unknown>(keys: string[]): Promise<Map<string, T | null>>
+  getManySession(keys: string[]): Promise<Map<string, string | null>>
 
   /**
    * Set multiple values in session storage
    * @param entries - Map or array of key-value pairs
    */
-  setManySession<T = unknown>(
-    entries: Map<string, T> | Array<[string, T]>
+  setManySession(
+    entries: Map<string, string> | Array<[string, string]>
   ): Promise<void>
 
   /**

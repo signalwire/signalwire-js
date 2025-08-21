@@ -45,12 +45,12 @@ export class StorageWrapper implements SignalWireStorageContract {
   }
 
   // Persistent storage methods
-  async get<T = unknown>(key: string): Promise<T | null> {
+  async get(key: string): Promise<string | null> {
     if (!this.storage) return null
-    return this.storage.get<T>(this.prefixKey(key))
+    return this.storage.get(this.prefixKey(key))
   }
 
-  async set<T = unknown>(key: string, value: T): Promise<void> {
+  async set(key: string, value: string): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
@@ -67,17 +67,17 @@ export class StorageWrapper implements SignalWireStorageContract {
     return this.storage.has(this.prefixKey(key))
   }
 
-  async getMany<T = unknown>(keys: string[]): Promise<Map<string, T | null>> {
+  async getMany(keys: string[]): Promise<Map<string, string | null>> {
     if (!this.storage) {
-      const result = new Map<string, T | null>()
+      const result = new Map<string, string | null>()
       keys.forEach((key) => result.set(key, null))
       return result
     }
 
     const prefixedKeys = keys.map((key) => this.prefixKey(key))
-    const prefixedResults = await this.storage.getMany<T>(prefixedKeys)
+    const prefixedResults = await this.storage.getMany(prefixedKeys)
 
-    const result = new Map<string, T | null>()
+    const result = new Map<string, string | null>()
     prefixedResults.forEach((value, prefixedKey) => {
       const originalKey = this.unprefixKey(prefixedKey)
       const keyIndex = keys.indexOf(originalKey)
@@ -96,14 +96,14 @@ export class StorageWrapper implements SignalWireStorageContract {
     return result
   }
 
-  async setMany<T = unknown>(
-    entries: Map<string, T> | Array<[string, T]>
+  async setMany(
+    entries: Map<string, string> | Array<[string, string]>
   ): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
 
-    const prefixedEntries = new Map<string, T>()
+    const prefixedEntries = new Map<string, string>()
     const entriesArray = entries instanceof Map ? Array.from(entries) : entries
 
     for (const [key, value] of entriesArray) {
@@ -161,12 +161,12 @@ export class StorageWrapper implements SignalWireStorageContract {
   }
 
   // Session storage methods
-  async getSession<T = unknown>(key: string): Promise<T | null> {
+  async getSession(key: string): Promise<string | null> {
     if (!this.storage) return null
-    return this.storage.getSession<T>(this.prefixKey(key))
+    return this.storage.getSession(this.prefixKey(key))
   }
 
-  async setSession<T = unknown>(key: string, value: T): Promise<void> {
+  async setSession(key: string, value: string): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
@@ -183,19 +183,17 @@ export class StorageWrapper implements SignalWireStorageContract {
     return this.storage.hasSession(this.prefixKey(key))
   }
 
-  async getManySession<T = unknown>(
-    keys: string[]
-  ): Promise<Map<string, T | null>> {
+  async getManySession(keys: string[]): Promise<Map<string, string | null>> {
     if (!this.storage) {
-      const result = new Map<string, T | null>()
+      const result = new Map<string, string | null>()
       keys.forEach((key) => result.set(key, null))
       return result
     }
 
     const prefixedKeys = keys.map((key) => this.prefixKey(key))
-    const prefixedResults = await this.storage.getManySession<T>(prefixedKeys)
+    const prefixedResults = await this.storage.getManySession(prefixedKeys)
 
-    const result = new Map<string, T | null>()
+    const result = new Map<string, string | null>()
     prefixedResults.forEach((value, prefixedKey) => {
       const originalKey = this.unprefixKey(prefixedKey)
       const keyIndex = keys.indexOf(originalKey)
@@ -214,14 +212,14 @@ export class StorageWrapper implements SignalWireStorageContract {
     return result
   }
 
-  async setManySession<T = unknown>(
-    entries: Map<string, T> | Array<[string, T]>
+  async setManySession(
+    entries: Map<string, string> | Array<[string, string]>
   ): Promise<void> {
     if (!this.storage) {
       throw new Error('Storage is not available')
     }
 
-    const prefixedEntries = new Map<string, T>()
+    const prefixedEntries = new Map<string, string>()
     const entriesArray = entries instanceof Map ? Array.from(entries) : entries
 
     for (const [key, value] of entriesArray) {

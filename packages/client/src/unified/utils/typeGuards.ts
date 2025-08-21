@@ -2,6 +2,20 @@ import { Profile, ProfileType } from '../interfaces/clientFactory'
 import type { ResourceType } from '../interfaces/address'
 
 /**
+ * Check if a value is a serialized function marker
+ */
+function isSerializedFunctionMarker(value: unknown): boolean {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    '__type' in value &&
+    '__value' in value &&
+    (value as any).__type === 'function' &&
+    typeof (value as any).__value === 'string'
+  )
+}
+
+/**
  * Valid resource types
  */
 const VALID_RESOURCE_TYPES: ResourceType[] = [
@@ -57,8 +71,16 @@ export function isValidProfile(data: unknown): data is Profile {
     typeof credentials.satToken !== 'string' ||
     typeof credentials.tokenExpiry !== 'number' ||
     typeof credentials.satRefreshPayload !== 'object' ||
-    typeof credentials.satRefreshURL !== 'string' ||
-    typeof credentials.satRefreshResultMapper !== 'function'
+    typeof credentials.satRefreshURL !== 'string'
+  ) {
+    return false
+  }
+  
+  // satRefreshResultMapper can be a function, undefined, or a serialized function marker
+  if (
+    credentials.satRefreshResultMapper !== undefined &&
+    typeof credentials.satRefreshResultMapper !== 'function' &&
+    !isSerializedFunctionMarker(credentials.satRefreshResultMapper)
   ) {
     return false
   }

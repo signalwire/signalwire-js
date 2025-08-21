@@ -150,6 +150,36 @@ describe('TypeGuards', () => {
       expect(isValidProfile(missingCredentials)).toBe(false)
     })
 
+    it('should handle serialized function markers in credentials', () => {
+      // Test with serialized function marker
+      expect(
+        isValidProfile({
+          ...validProfile,
+          credentials: {
+            ...validProfile.credentials,
+            satRefreshResultMapper: {
+              __type: 'function',
+              __value: '(body) => ({ satToken: body.access_token, tokenExpiry: body.expires_at, satRefreshPayload: body.refresh_payload })'
+            },
+          },
+        })
+      ).toBe(true)
+
+      // Test with invalid serialized function marker
+      expect(
+        isValidProfile({
+          ...validProfile,
+          credentials: {
+            ...validProfile.credentials,
+            satRefreshResultMapper: {
+              __type: 'invalid',
+              __value: 'some string'
+            },
+          },
+        })
+      ).toBe(false)
+    })
+
     it('should return false for invalid credentials object', () => {
       // Credentials not an object
       expect(
@@ -214,7 +244,7 @@ describe('TypeGuards', () => {
         })
       ).toBe(false)
 
-      // Missing satRefreshResultMapper
+      // satRefreshResultMapper can be undefined (for backward compatibility with JSON serialization)
       expect(
         isValidProfile({
           ...validProfile,
@@ -223,7 +253,7 @@ describe('TypeGuards', () => {
             satRefreshResultMapper: undefined,
           },
         })
-      ).toBe(false)
+      ).toBe(true)
     })
 
     it('should return false for invalid optional lastUsed field', () => {
@@ -509,12 +539,56 @@ describe('TypeGuards', () => {
         updatedAt: Date.now(),
       }
 
-      // When serialized to JSON, the function will be lost
+      // When serialized to JSON with normal JSON.stringify, the function will be lost
       const json = JSON.stringify(validProfile)
       const result = safeJsonParse(json, isValidProfile)
 
-      // The result should be null because the function is lost during serialization
-      expect(result).toBeNull()
+      // The result should be valid because undefined satRefreshResultMapper is allowed
+      expect(result).not.toBeNull()
+      expect(result?.credentials.satRefreshResultMapper).toBeUndefined()
+    })
+
+    it('should preserve functions with serializeWithFunctions utility', () => {
+      const { serializeWithFunctions, safeJsonParseWithFunctions } = require('./serialization')
+      
+      const validProfile = {
+        id: 'test-profile-id',
+        type: ProfileType.STATIC,
+        credentialsId: 'test-cred-id',
+        credentials: {
+          satToken: 'sat-token',
+          tokenExpiry: Date.now() + 3600000,
+          satRefreshPayload: {
+            refresh_token: 'refresh-token',
+          },
+          satRefreshURL: 'https://api.signalwire.com/auth/refresh',
+          satRefreshResultMapper: (body: Record<string, any>) => ({
+            satToken: body.access_token || 'token',
+            tokenExpiry: body.expires_at || Date.now() + 3600000,
+            satRefreshPayload: body.refresh_payload || {}
+          }),
+        },
+        addressId: 'address-id',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      }
+
+      // When serialized with our special serialization utility
+      const json = serializeWithFunctions(validProfile)
+      const result = safeJsonParseWithFunctions(json, isValidProfile)
+
+      // The result should be valid and the function should be preserved
+      expect(result).not.toBeNull()
+      expect(typeof result?.credentials.satRefreshResultMapper).toBe('function')
+      
+      // Test that the reconstructed function works
+      const testBody = { access_token: 'new-token', expires_at: 123456, refresh_payload: { test: true } }
+      const mappedResult = result?.credentials.satRefreshResultMapper(testBody)
+      expect(mappedResult).toEqual({
+        satToken: 'new-token',
+        tokenExpiry: 123456,
+        satRefreshPayload: { test: true }
+      })
     })
 
     it('should work with isStringArray validator', () => {

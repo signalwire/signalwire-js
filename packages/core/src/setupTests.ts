@@ -1,6 +1,6 @@
 // Mock storage functions to avoid circular dependency during tests
 jest.mock('./utils/storage', () => ({
-  ...jest.requireActual('./utils/storage/SignalwireStorageContract'),
+  ...jest.requireActual('./types/SignalwireStorageContract'),
   setGlobalStorageInstance: jest.fn(),
   getGlobalStorageInstance: jest.fn(() => null),
   getItem: jest.fn(() => Promise.resolve(null)),

@@ -8,17 +8,25 @@ import {
   CredentialRefreshError,
 } from './interfaces/clientFactory'
 import { HTTPClient } from './HTTPClient'
-import { isValidProfile, isStringArray } from './utils/typeGuards'
+import {
+  isValidProfile,
+  isStringArray,
+  safeJsonParse,
+} from './utils/typeGuards'
+import {
+  serializeWithFunctions,
+  safeJsonParseWithFunctions,
+} from './utils/serialization'
 
 /**
  * Manages authentication profiles for SignalWire client instances.
  * Handles both persistent (static) and memory-only (dynamic) profiles.
  */
 export class ProfileManager implements ProfileManagerContract {
-  private storage: SignalWireStorageContract | null = null
-  private dynamicProfiles = new Map<string, Profile>()
-  private initialized = false
-  private refreshTimers = new Map<string, NodeJS.Timeout>()
+  private _storage: SignalWireStorageContract | null = null
+  private _dynamicProfiles = new Map<string, Profile>()
+  private _initialized = false
+  private _refreshTimers = new Map<string, NodeJS.Timeout>()
   /** Time before expiry to trigger refresh (5 minutes in milliseconds) */
   private readonly REFRESH_BUFFER_MS = 5 * 60 * 1000
 
@@ -27,11 +35,24 @@ export class ProfileManager implements ProfileManagerContract {
    * @param storage - Storage implementation for persistent profiles
    */
   async init(storage: SignalWireStorageContract): Promise<void> {
-    this.storage = storage
-    this.initialized = true
+    this._storage = storage
+    this._initialized = true
 
     // Load any existing static profiles from storage
-    await this.loadStaticProfiles()
+    await this._loadStaticProfiles()
+  }
+
+  private async _getSavedProfileIds() {
+    const profileIdsData = await this._storage?.get(STORAGE_KEYS.PROFILES)
+    return profileIdsData
+      ? safeJsonParse(profileIdsData, isStringArray) ?? []
+      : []
+  }
+
+  private async _getSavedProfile(profileId: string) {
+    const profileKey = this._getProfileStorageKey(profileId)
+    const value = await this._storage?.get(profileKey)
+    return value ? safeJsonParseWithFunctions(value, isValidProfile) : null
   }
 
   /**
@@ -42,10 +63,10 @@ export class ProfileManager implements ProfileManagerContract {
   async addProfile(
     profile: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed'>
   ): Promise<string> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     // Generate unique ID
-    const profileId = this.generateProfileId()
+    const profileId = this._generateProfileId()
 
     // Check if profile already exists
     if (await this.hasProfile(profileId)) {
@@ -63,9 +84,9 @@ export class ProfileManager implements ProfileManagerContract {
 
     // Store profile based on type
     if (profile.type === ProfileType.STATIC) {
-      await this.storeStaticProfile(completeProfile)
+      await this._storeStaticProfile(completeProfile)
     } else {
-      this.dynamicProfiles.set(profileId, completeProfile)
+      this._dynamicProfiles.set(profileId, completeProfile)
     }
 
     // Schedule credential refresh if needed
@@ -84,7 +105,7 @@ export class ProfileManager implements ProfileManagerContract {
     profileId: string,
     updates: Partial<Omit<Profile, 'id' | 'createdAt'>>
   ): Promise<boolean> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     const existingProfile = await this.getProfile(profileId)
     if (!existingProfile) {
@@ -102,9 +123,9 @@ export class ProfileManager implements ProfileManagerContract {
 
     // Store updated profile based on type
     if (existingProfile.type === ProfileType.STATIC) {
-      await this.storeStaticProfile(updatedProfile)
+      await this._storeStaticProfile(updatedProfile)
     } else {
-      this.dynamicProfiles.set(profileId, updatedProfile)
+      this._dynamicProfiles.set(profileId, updatedProfile)
     }
 
     return true
@@ -116,7 +137,7 @@ export class ProfileManager implements ProfileManagerContract {
    * @returns Whether the profile was removed
    */
   async removeProfile(profileId: string): Promise<boolean> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     const profile = await this.getProfile(profileId)
     if (!profile) {
@@ -124,24 +145,24 @@ export class ProfileManager implements ProfileManagerContract {
     }
 
     // Clear any refresh timers for this profile
-    this.clearRefreshTimer(profileId)
+    this._clearRefreshTimer(profileId)
 
     // Remove profile based on type
     if (profile.type === ProfileType.STATIC) {
-      if (!this.storage) {
+      if (!this._storage) {
         return false
       }
-      const profileKey = this.getProfileStorageKey(profileId)
-      const deleted = await this.storage.delete(profileKey)
+      const profileKey = this._getProfileStorageKey(profileId)
+      const deleted = await this._storage.delete(profileKey)
 
       // Also remove from profiles index
       if (deleted) {
-        await this.removeFromProfilesIndex(profileId)
+        await this._removeFromProfilesIndex(profileId)
       }
 
       return deleted
     } else {
-      return this.dynamicProfiles.delete(profileId)
+      return this._dynamicProfiles.delete(profileId)
     }
   }
 
@@ -151,21 +172,20 @@ export class ProfileManager implements ProfileManagerContract {
    * @returns Profile or null if not found
    */
   async getProfile(profileId: string): Promise<Profile | null> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     // Check dynamic profiles first
-    const dynamicProfile = this.dynamicProfiles.get(profileId)
+    const dynamicProfile = this._dynamicProfiles.get(profileId)
     if (dynamicProfile) {
       return dynamicProfile
     }
 
     // Check static profiles
-    if (!this.storage) {
+    if (!this._storage) {
       return null
     }
 
-    const profileKey = this.getProfileStorageKey(profileId)
-    return await this.storage.get<Profile>(profileKey)
+    return this._getSavedProfile(profileId)
   }
 
   /**
@@ -174,18 +194,18 @@ export class ProfileManager implements ProfileManagerContract {
    * @returns Array of profiles
    */
   async listProfiles(type?: ProfileType): Promise<Profile[]> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     const profiles: Profile[] = []
 
     // Add dynamic profiles
     if (!type || type === ProfileType.DYNAMIC) {
-      profiles.push(...Array.from(this.dynamicProfiles.values()))
+      profiles.push(...Array.from(this._dynamicProfiles.values()))
     }
 
     // Add static profiles
     if (!type || type === ProfileType.STATIC) {
-      const staticProfiles = await this.loadStaticProfiles()
+      const staticProfiles = await this._loadStaticProfiles()
       profiles.push(...staticProfiles)
     }
 
@@ -199,47 +219,38 @@ export class ProfileManager implements ProfileManagerContract {
    * @returns Whether the profile exists
    */
   async hasProfile(profileId: string): Promise<boolean> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     // Check dynamic profiles
-    if (this.dynamicProfiles.has(profileId)) {
+    if (this._dynamicProfiles.has(profileId)) {
       return true
     }
 
     // Check static profiles
-    if (!this.storage) {
+    if (!this._storage) {
       return false
     }
 
-    const profileKey = this.getProfileStorageKey(profileId)
-    return await this.storage.has(profileKey)
+    const profileKey = this._getProfileStorageKey(profileId)
+    return await this._storage.has(profileKey)
   }
 
   /**
    * Load all static profiles from storage
    * @returns Array of static profiles
    */
-  private async loadStaticProfiles(): Promise<Profile[]> {
-    if (!this.storage) {
+  private async _loadStaticProfiles(): Promise<Profile[]> {
+    if (!this._storage) {
       return []
     }
 
     try {
-      const profileIdsData = await this.storage.get<string[]>(
-        STORAGE_KEYS.PROFILES
-      )
-      const profileIds =
-        profileIdsData && isStringArray(profileIdsData) ? profileIdsData : []
+      const profileIds = await this._getSavedProfileIds()
       const profiles: Profile[] = []
 
       for (const profileId of profileIds) {
-        const profileKey = this.getProfileStorageKey(profileId)
-        const profileData = await this.storage.get<Profile>(profileKey)
-        if (
-          profileData &&
-          isValidProfile(profileData) &&
-          profileData.type === ProfileType.STATIC
-        ) {
+        const profileData = await this._getSavedProfile(profileId)
+        if (profileData && profileData.type === ProfileType.STATIC) {
           profiles.push(profileData)
           // Schedule refresh for loaded profiles
           this.scheduleRefresh(profileData)
@@ -257,35 +268,31 @@ export class ProfileManager implements ProfileManagerContract {
    * Store a static profile to persistent storage
    * @param profile - Profile to store
    */
-  private async storeStaticProfile(profile: Profile): Promise<void> {
-    if (!this.storage) {
+  private async _storeStaticProfile(profile: Profile): Promise<void> {
+    if (!this._storage) {
       throw new Error('Storage not initialized')
     }
 
-    const profileKey = this.getProfileStorageKey(profile.id)
-    await this.storage.set(profileKey, profile)
+    const profileKey = this._getProfileStorageKey(profile.id)
+    await this._storage.set(profileKey, serializeWithFunctions(profile))
 
     // Add to profiles index
-    await this.addToProfilesIndex(profile.id)
+    await this._addToProfilesIndex(profile.id)
   }
 
   /**
    * Add a profile ID to the profiles index
    * @param profileId - Profile ID to add
    */
-  private async addToProfilesIndex(profileId: string): Promise<void> {
-    if (!this.storage) {
+  private async _addToProfilesIndex(profileId: string): Promise<void> {
+    if (!this._storage) {
       return
     }
 
-    const profileIdsData = await this.storage.get<string[]>(
-      STORAGE_KEYS.PROFILES
-    )
-    const profileIds =
-      profileIdsData && isStringArray(profileIdsData) ? profileIdsData : []
+    const profileIds = await this._getSavedProfileIds()
     if (!profileIds.includes(profileId)) {
       profileIds.push(profileId)
-      await this.storage.set(STORAGE_KEYS.PROFILES, profileIds)
+      await this._storage.set(STORAGE_KEYS.PROFILES, JSON.stringify(profileIds))
     }
   }
 
@@ -293,18 +300,14 @@ export class ProfileManager implements ProfileManagerContract {
    * Remove a profile ID from the profiles index
    * @param profileId - Profile ID to remove
    */
-  private async removeFromProfilesIndex(profileId: string): Promise<void> {
-    if (!this.storage) {
+  private async _removeFromProfilesIndex(profileId: string): Promise<void> {
+    if (!this._storage) {
       return
     }
 
-    const profileIdsData = await this.storage.get<string[]>(
-      STORAGE_KEYS.PROFILES
-    )
-    const profileIds =
-      profileIdsData && isStringArray(profileIdsData) ? profileIdsData : []
+    const profileIds = await this._getSavedProfileIds()
     const filteredIds = profileIds.filter((id) => id !== profileId)
-    await this.storage.set(STORAGE_KEYS.PROFILES, filteredIds)
+    await this._storage.set(STORAGE_KEYS.PROFILES, JSON.stringify(filteredIds))
   }
 
   /**
@@ -313,7 +316,7 @@ export class ProfileManager implements ProfileManagerContract {
    * @throws CredentialRefreshError if refresh fails
    */
   async refreshCredentials(profileId: string): Promise<void> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     const profile = await this.getProfile(profileId)
     if (!profile) {
@@ -326,7 +329,7 @@ export class ProfileManager implements ProfileManagerContract {
     try {
       // Placeholder API call for token refresh
       // In production, this would call the actual SignalWire API
-      const refreshedCredentials = await this.callRefreshAPI(profile)
+      const refreshedCredentials = await this._callRefreshAPI(profile)
 
       // Update the profile with new credentials
       const updatedProfile: Profile = {
@@ -337,13 +340,13 @@ export class ProfileManager implements ProfileManagerContract {
 
       // Store updated profile based on type
       if (profile.type === ProfileType.STATIC) {
-        await this.storeStaticProfile(updatedProfile)
+        await this._storeStaticProfile(updatedProfile)
       } else {
-        this.dynamicProfiles.set(profileId, updatedProfile)
+        this._dynamicProfiles.set(profileId, updatedProfile)
       }
 
       // Reschedule refresh with new expiry
-      this.clearRefreshTimer(profileId)
+      this._clearRefreshTimer(profileId)
       this.scheduleRefresh(updatedProfile)
 
       console.log(
@@ -360,7 +363,7 @@ export class ProfileManager implements ProfileManagerContract {
    * @returns true if credentials are valid, false otherwise
    */
   async validateCredentials(profileId: string): Promise<boolean> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     const profile = await this.getProfile(profileId)
     if (!profile) {
@@ -399,7 +402,7 @@ export class ProfileManager implements ProfileManagerContract {
     const { tokenExpiry } = credentials
 
     // Clear any existing timer
-    this.clearRefreshTimer(id)
+    this._clearRefreshTimer(id)
 
     const now = Date.now()
     const timeUntilExpiry = tokenExpiry - now
@@ -423,7 +426,7 @@ export class ProfileManager implements ProfileManagerContract {
         }
       }, refreshTime)
 
-      this.refreshTimers.set(id, timer)
+      this._refreshTimers.set(id, timer)
       console.log(
         `Scheduled credential refresh for profile ${id} in ${
           refreshTime / 1000
@@ -436,11 +439,11 @@ export class ProfileManager implements ProfileManagerContract {
    * Clear refresh timer for a profile
    * @param profileId - Profile ID to clear timer for
    */
-  private clearRefreshTimer(profileId: string): void {
-    const timer = this.refreshTimers.get(profileId)
+  private _clearRefreshTimer(profileId: string): void {
+    const timer = this._refreshTimers.get(profileId)
     if (timer) {
       clearTimeout(timer)
-      this.refreshTimers.delete(profileId)
+      this._refreshTimers.delete(profileId)
       console.log(`Cleared refresh timer for profile: ${profileId}`)
     }
   }
@@ -450,18 +453,18 @@ export class ProfileManager implements ProfileManagerContract {
    */
   cleanup(): void {
     // Clear all refresh timers
-    for (const [profileId, timer] of this.refreshTimers.entries()) {
+    for (const [profileId, timer] of this._refreshTimers.entries()) {
       clearTimeout(timer)
       console.log(`Cleaned up timer for profile: ${profileId}`)
     }
-    this.refreshTimers.clear()
+    this._refreshTimers.clear()
 
     // Clear dynamic profiles
-    this.dynamicProfiles.clear()
+    this._dynamicProfiles.clear()
 
     // Reset initialized state
-    this.initialized = false
-    this.storage = null
+    this._initialized = false
+    this._storage = null
 
     console.log('ProfileManager cleanup completed')
   }
@@ -471,20 +474,17 @@ export class ProfileManager implements ProfileManagerContract {
    * @param profile - Profile to refresh
    * @returns Refreshed credentials
    */
-  private async callRefreshAPI(
+  private async _callRefreshAPI(
     profile: Profile
   ): Promise<Profile['credentials']> {
-    const {
-      satRefreshURL,
-      satRefreshPayload,
-      satRefreshResultMapper,
-    } = profile.credentials
+    const { satRefreshURL, satRefreshPayload, satRefreshResultMapper } =
+      profile.credentials
 
     // Check if we're in a test environment by detecting jest
     if (typeof jest !== 'undefined') {
       // Return mock refreshed credentials for tests
       const newExpiry = Date.now() + 60 * 60 * 1000 // 1 hour from now
-      
+
       return {
         satToken: `refreshed_token_${Date.now()}`,
         tokenExpiry: newExpiry,
@@ -508,10 +508,10 @@ export class ProfileManager implements ProfileManagerContract {
     }
 
     const responseBody = await response.json()
-    
+
     // Use the custom mapper to extract the credentials from the response
     const mappedResult = satRefreshResultMapper(responseBody)
-    
+
     return {
       satToken: mappedResult.satToken,
       tokenExpiry: mappedResult.tokenExpiry,
@@ -521,12 +521,11 @@ export class ProfileManager implements ProfileManagerContract {
     }
   }
 
-
   /**
    * Generate a unique profile ID (UUID v4)
    * @returns Unique profile identifier
    */
-  private generateProfileId(): string {
+  private _generateProfileId(): string {
     // Generate UUID v4
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
       /[xy]/g,
@@ -543,7 +542,7 @@ export class ProfileManager implements ProfileManagerContract {
    * @param profileId - Profile identifier
    * @returns Storage key
    */
-  private getProfileStorageKey(profileId: string): string {
+  private _getProfileStorageKey(profileId: string): string {
     return STORAGE_KEYS.PROFILE(profileId)
   }
 
@@ -551,8 +550,8 @@ export class ProfileManager implements ProfileManagerContract {
    * Ensure the manager is initialized
    * @throws Error if not initialized
    */
-  private ensureInitialized(): void {
-    if (!this.initialized) {
+  private _ensureInitialized(): void {
+    if (!this._initialized) {
       throw new Error('ProfileManager not initialized. Call init() first.')
     }
   }
@@ -563,7 +562,7 @@ export class ProfileManager implements ProfileManagerContract {
    * @returns Profile that has access or null if not found
    */
   async findProfileForAddress(addressId: string): Promise<Profile | null> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     // Step 1: Check for direct match on profile.addressId
     const allProfiles = await this.listProfiles()
@@ -647,7 +646,7 @@ export class ProfileManager implements ProfileManagerContract {
    * @returns Array of profiles with the given credential ID
    */
   async getProfilesByCredentialId(credentialId: string): Promise<Profile[]> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     const allProfiles = await this.listProfiles()
     const matchingProfiles = allProfiles.filter(
@@ -670,10 +669,10 @@ export class ProfileManager implements ProfileManagerContract {
     parentProfile: Profile,
     addressId: string
   ): Promise<Profile> {
-    this.ensureInitialized()
+    this._ensureInitialized()
 
     // Generate unique ID for dynamic profile
-    const dynamicProfileId = `dynamic_${this.generateProfileId()}`
+    const dynamicProfileId = `dynamic_${this._generateProfileId()}`
 
     // Fetch address details if possible
     let addressDetails: Profile['addressDetails'] | undefined
@@ -708,7 +707,7 @@ export class ProfileManager implements ProfileManagerContract {
     }
 
     // Store in memory only (not persisted)
-    this.dynamicProfiles.set(dynamicProfileId, dynamicProfile)
+    this._dynamicProfiles.set(dynamicProfileId, dynamicProfile)
 
     // Schedule credential refresh if needed (using parent's expiry)
     this.scheduleRefresh(dynamicProfile)

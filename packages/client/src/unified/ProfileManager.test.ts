@@ -1,12 +1,26 @@
 import { ProfileManager } from './ProfileManager'
 import { HTTPClient } from './HTTPClient'
-import {
-  ProfileType,
-  Profile,
-  SignalWireCredentials,
-} from './interfaces/clientFactory'
+import { ProfileType, SignalWireCredentials } from './interfaces/clientFactory'
 import { SignalWireStorageContract } from '@signalwire/core'
 import { ResourceType } from './interfaces/address'
+
+// Mock HTTPClient at the module level
+jest.mock('./HTTPClient', () => {
+  return {
+    HTTPClient: jest.fn().mockImplementation(() => {
+      return {
+        getSubscriberInfo: jest.fn().mockResolvedValue({
+          fabric_addresses: []
+        }),
+        getAddress: jest.fn().mockResolvedValue(null),
+        refreshToken: jest.fn().mockResolvedValue({
+          access_token: 'refreshed-token',
+          expires_at: Date.now() + 7200000
+        })
+      }
+    })
+  }
+})
 
 // Helper function to create test credentials
 function createTestCredentials(
@@ -32,7 +46,9 @@ function createTestCredentials(
 }
 
 // Helper function to create mock storage
-function createMockStorage(additionalMocks?: Partial<SignalWireStorageContract>): SignalWireStorageContract {
+function createMockStorage(
+  additionalMocks?: Partial<SignalWireStorageContract>
+): SignalWireStorageContract {
   return {
     // Persistent storage methods
     get: jest.fn().mockResolvedValue(null),
@@ -94,7 +110,7 @@ describe('ProfileManager Credential Management', () => {
       }
 
       const profileId = await profileManager.addProfile(mockProfile)
-      
+
       // Since we're in a test environment, the refresh will use the mock implementation
       // which returns a refreshed token immediately
       await profileManager.refreshCredentials(profileId)
@@ -245,11 +261,6 @@ describe('ProfileManager Credential Management', () => {
       const storageData: Record<string, any> = {}
       mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
-          if (key === 'swcf:profiles') {
-            return Object.keys(storageData)
-              .filter((k) => k.startsWith('swcf:profile:'))
-              .map((k) => k.replace('swcf:profile:', ''))
-          }
           return storageData[key] || null
         }),
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
@@ -288,6 +299,12 @@ describe('ProfileManager Credential Management', () => {
       }
 
       const profileId = await profileManager.addProfile(profile)
+      
+      // Verify the profile was added
+      const addedProfile = await profileManager.getProfile(profileId)
+      expect(addedProfile).not.toBeNull()
+      expect(addedProfile?.addressId).toBe('address-123')
+      
       const foundProfile = await profileManager.findProfileForAddress(
         'address-123'
       )
@@ -298,27 +315,26 @@ describe('ProfileManager Credential Management', () => {
     })
 
     it('should create dynamic profile for shared resource', async () => {
-      // Mock HTTPClient methods
-      const mockGetSubscriberInfo = jest.fn().mockResolvedValue({
-        fabric_addresses: [
-          { id: 'shared-address-123', name: 'shared-resource', type: 'room' },
-        ],
-      })
-
-      const mockGetAddress = jest.fn().mockResolvedValue({
-        id: 'shared-address-123',
-        name: 'shared-resource',
-        display_name: 'Shared Resource',
-        type: 'room',
-        channels: { audio: 'enabled', video: 'enabled' },
-      })
-
-      jest
-        .spyOn(HTTPClient.prototype, 'getSubscriberInfo')
-        .mockImplementation(mockGetSubscriberInfo)
-      jest
-        .spyOn(HTTPClient.prototype, 'getAddress')
-        .mockImplementation(mockGetAddress)
+      // Setup HTTPClient mock for this specific test
+      const mockHTTPClient = HTTPClient as jest.MockedClass<typeof HTTPClient>
+      mockHTTPClient.mockImplementation(() => ({
+        getSubscriberInfo: jest.fn().mockResolvedValue({
+          fabric_addresses: [
+            { id: 'shared-address-123', name: 'shared-resource', type: 'room' },
+          ],
+        }),
+        getAddress: jest.fn().mockResolvedValue({
+          id: 'shared-address-123',
+          name: 'shared-resource',
+          display_name: 'Shared Resource',
+          type: 'room',
+          channels: { audio: 'enabled', video: 'enabled' },
+        }),
+        refreshToken: jest.fn().mockResolvedValue({
+          access_token: 'refreshed-token',
+          expires_at: Date.now() + 7200000
+        })
+      }) as any)
 
       const profile = {
         type: ProfileType.STATIC,
@@ -353,13 +369,18 @@ describe('ProfileManager Credential Management', () => {
     })
 
     it('should return null when no profile has access', async () => {
-      const mockGetSubscriberInfo = jest.fn().mockResolvedValue({
-        fabric_addresses: [],
-      })
-
-      jest
-        .spyOn(HTTPClient.prototype, 'getSubscriberInfo')
-        .mockImplementation(mockGetSubscriberInfo)
+      // Setup HTTPClient mock to return empty addresses
+      const mockHTTPClient = HTTPClient as jest.MockedClass<typeof HTTPClient>
+      mockHTTPClient.mockImplementation(() => ({
+        getSubscriberInfo: jest.fn().mockResolvedValue({
+          fabric_addresses: [],
+        }),
+        getAddress: jest.fn().mockResolvedValue(null),
+        refreshToken: jest.fn().mockResolvedValue({
+          access_token: 'refreshed-token',
+          expires_at: Date.now() + 7200000
+        })
+      }) as any)
 
       const profile = {
         type: ProfileType.STATIC,
@@ -425,26 +446,26 @@ describe('ProfileManager Credential Management', () => {
     })
 
     it('should reuse existing dynamic profile for same address', async () => {
-      const mockGetSubscriberInfo = jest.fn().mockResolvedValue({
-        fabric_addresses: [
-          { id: 'shared-address-123', name: 'shared-resource', type: 'room' },
-        ],
-      })
-
-      const mockGetAddress = jest.fn().mockResolvedValue({
-        id: 'shared-address-123',
-        name: 'shared-resource',
-        display_name: 'Shared Resource',
-        type: 'room',
-        channels: { audio: 'enabled', video: 'enabled' },
-      })
-
-      jest
-        .spyOn(HTTPClient.prototype, 'getSubscriberInfo')
-        .mockImplementation(mockGetSubscriberInfo)
-      jest
-        .spyOn(HTTPClient.prototype, 'getAddress')
-        .mockImplementation(mockGetAddress)
+      // Setup HTTPClient mock for this test
+      const mockHTTPClient = HTTPClient as jest.MockedClass<typeof HTTPClient>
+      mockHTTPClient.mockImplementation(() => ({
+        getSubscriberInfo: jest.fn().mockResolvedValue({
+          fabric_addresses: [
+            { id: 'shared-address-123', name: 'shared-resource', type: 'room' },
+          ],
+        }),
+        getAddress: jest.fn().mockResolvedValue({
+          id: 'shared-address-123',
+          name: 'shared-resource',
+          display_name: 'Shared Resource',
+          type: 'room',
+          channels: { audio: 'enabled', video: 'enabled' },
+        }),
+        refreshToken: jest.fn().mockResolvedValue({
+          access_token: 'refreshed-token',
+          expires_at: Date.now() + 7200000
+        })
+      }) as any)
 
       const profile = {
         type: ProfileType.STATIC,
@@ -488,11 +509,6 @@ describe('ProfileManager Credential Management', () => {
       const storageData: Record<string, any> = {}
       mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
-          if (key === 'swcf:profiles') {
-            return Object.keys(storageData)
-              .filter((k) => k.startsWith('swcf:profile:'))
-              .map((k) => k.replace('swcf:profile:', ''))
-          }
           return storageData[key] || null
         }),
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
@@ -577,7 +593,7 @@ describe('ProfileManager Credential Management', () => {
 
     it('should update timestamps when profile is modified', async () => {
       jest.useFakeTimers()
-      
+
       const profileData = {
         type: ProfileType.STATIC,
         credentialsId: 'test-cred-update',
@@ -607,7 +623,7 @@ describe('ProfileManager Credential Management', () => {
 
       await profileManager.updateProfile(profileId, updatedProfileData)
       const updatedProfile = await profileManager.getProfile(profileId)
-      
+
       jest.useRealTimers()
 
       expect(updatedProfile?.updatedAt).toBeGreaterThan(
@@ -630,11 +646,6 @@ describe('ProfileManager Credential Management', () => {
 
       mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
-          if (key === 'swcf:profiles') {
-            return Object.keys(storageData)
-              .filter((k) => k.startsWith('swcf:profile:'))
-              .map((k) => k.replace('swcf:profile:', ''))
-          }
           return storageData[key] || null
         }),
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
@@ -686,7 +697,8 @@ describe('ProfileManager Credential Management', () => {
       expect(profileKeyCalls[0].key).toBe(`swcf:profile:${profileId}`)
 
       // Verify the stored profile has the correct structure
-      const storedProfile = profileKeyCalls[0].value
+      const storedProfileJson = profileKeyCalls[0].value
+      const storedProfile = JSON.parse(storedProfileJson)
       expect(storedProfile).toMatchObject({
         id: profileId,
         type: ProfileType.STATIC,
@@ -883,11 +895,6 @@ describe('ProfileManager Credential Management', () => {
       const storageData: Record<string, any> = {}
       mockStorage = createMockStorage({
         get: jest.fn().mockImplementation(async (key: string) => {
-          if (key === 'swcf:profiles') {
-            return Object.keys(storageData)
-              .filter((k) => k.startsWith('swcf:profile:'))
-              .map((k) => k.replace('swcf:profile:', ''))
-          }
           return storageData[key] || null
         }),
         set: jest.fn().mockImplementation(async (key: string, value: any) => {
@@ -959,9 +966,12 @@ describe('ProfileManager Credential Management', () => {
 
     it('should handle corrupted profile data gracefully', async () => {
       // Manually inject corrupted data into storage
-      const corruptedData = { invalid: 'data', missing: 'required fields' }
+      const corruptedData = JSON.stringify({
+        invalid: 'data',
+        missing: 'required fields',
+      })
       await mockStorage.set('swcf:profile:corrupted-id', corruptedData)
-      await mockStorage.set('swcf:profiles', ['corrupted-id'])
+      await mockStorage.set('swcf:profiles', JSON.stringify(['corrupted-id']))
 
       // Should handle corrupted data without throwing
       const profiles = await profileManager.listProfiles()
@@ -999,7 +1009,7 @@ describe('ProfileManager Credential Management', () => {
       const staticProfileCount = 100
       const dynamicProfileCount = 100
       const totalProfiles = staticProfileCount + dynamicProfileCount
-      
+
       const staticProfileIds: string[] = []
       const dynamicProfileIds: string[] = []
 
@@ -1014,7 +1024,7 @@ describe('ProfileManager Credential Management', () => {
           }),
           addressId: `static-addr-${i}`,
         }
-        
+
         const profileId = await profileManager.addProfile(staticProfile)
         staticProfileIds.push(profileId)
         expect(profileId).toBeTruthy()
@@ -1031,7 +1041,7 @@ describe('ProfileManager Credential Management', () => {
           }),
           addressId: `dynamic-addr-${i}`,
         }
-        
+
         const profileId = await profileManager.addProfile(dynamicProfile)
         dynamicProfileIds.push(profileId)
         expect(profileId).toBeTruthy()
@@ -1047,23 +1057,31 @@ describe('ProfileManager Credential Management', () => {
       const allProfiles = await profileManager.listProfiles()
       expect(allProfiles).toHaveLength(totalProfiles)
 
-      const staticProfiles = await profileManager.listProfiles(ProfileType.STATIC)
-      const dynamicProfiles = await profileManager.listProfiles(ProfileType.DYNAMIC)
-      
+      const staticProfiles = await profileManager.listProfiles(
+        ProfileType.STATIC
+      )
+      const dynamicProfiles = await profileManager.listProfiles(
+        ProfileType.DYNAMIC
+      )
+
       expect(staticProfiles).toHaveLength(staticProfileCount)
       expect(dynamicProfiles).toHaveLength(dynamicProfileCount)
 
       // Verify individual profile retrieval works for a sample
       const sampleStaticId = staticProfileIds[0]
       const sampleDynamicId = dynamicProfileIds[0]
-      
-      const retrievedStaticProfile = await profileManager.getProfile(sampleStaticId)
-      const retrievedDynamicProfile = await profileManager.getProfile(sampleDynamicId)
-      
+
+      const retrievedStaticProfile = await profileManager.getProfile(
+        sampleStaticId
+      )
+      const retrievedDynamicProfile = await profileManager.getProfile(
+        sampleDynamicId
+      )
+
       expect(retrievedStaticProfile).toBeTruthy()
       expect(retrievedStaticProfile?.type).toBe(ProfileType.STATIC)
       expect(retrievedStaticProfile?.credentialsId).toBe('static-cred-0')
-      
+
       expect(retrievedDynamicProfile).toBeTruthy()
       expect(retrievedDynamicProfile?.type).toBe(ProfileType.DYNAMIC)
       expect(retrievedDynamicProfile?.credentialsId).toBe('dynamic-cred-0')
@@ -1071,15 +1089,19 @@ describe('ProfileManager Credential Management', () => {
       // Test retrieval of profiles at the end of the range to ensure no indexing issues
       const lastStaticId = staticProfileIds[staticProfileCount - 1]
       const lastDynamicId = dynamicProfileIds[dynamicProfileCount - 1]
-      
+
       const lastStaticProfile = await profileManager.getProfile(lastStaticId)
       const lastDynamicProfile = await profileManager.getProfile(lastDynamicId)
-      
+
       expect(lastStaticProfile).toBeTruthy()
-      expect(lastStaticProfile?.credentialsId).toBe(`static-cred-${staticProfileCount - 1}`)
-      
+      expect(lastStaticProfile?.credentialsId).toBe(
+        `static-cred-${staticProfileCount - 1}`
+      )
+
       expect(lastDynamicProfile).toBeTruthy()
-      expect(lastDynamicProfile?.credentialsId).toBe(`dynamic-cred-${dynamicProfileCount - 1}`)
+      expect(lastDynamicProfile?.credentialsId).toBe(
+        `dynamic-cred-${dynamicProfileCount - 1}`
+      )
     })
   })
 })

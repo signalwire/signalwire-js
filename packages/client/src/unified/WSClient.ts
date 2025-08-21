@@ -76,7 +76,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     const room = createCallSessionObject({
       ...options,
       store: this.store,
-      storage: this.storage,
     })
 
     /**
