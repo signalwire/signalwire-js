@@ -1,13 +1,3 @@
-import express, { Express, Request, Response } from 'express'
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
-import path from 'path'
-import { EventEmitter } from 'events'
-import { v4 as uuid } from 'uuid'
-import { clearInterval } from 'timers'
-import { Server } from 'http'
-import { createServer } from 'vite'
-import { Page } from '@playwright/test'
-import type { PageFunction } from 'playwright-core/types/structs'
 import type {
   DialParams,
   FabricRoomSession,
@@ -15,10 +5,18 @@ import type {
   SignalWireClient,
   SignalWireContract,
   Video,
-  VideoRoomSubscribedEventParams,
 } from '@signalwire/js'
 import type { MediaEventNames } from '@signalwire/webrtc'
+import { createServer } from 'vite'
+import path from 'path'
 import { expect } from './fixtures'
+import { Page } from '@playwright/test'
+import { v4 as uuid } from 'uuid'
+import { clearInterval } from 'timers'
+import express, { Express, Request, Response } from 'express'
+import { Server } from 'http'
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import { EventEmitter } from 'events'
 
 declare global {
   interface Window {
@@ -671,8 +669,7 @@ export const disconnectClient = (page: Page) => {
 // #region Utilities for the MCU
 
 export const expectMCUVisible = async (page: Page) => {
-  const memberMCU = page.locator('div[id^="sw-sdk-"] > video')
-  await memberMCU.waitFor()
+  await page.waitForSelector('div[id^="sw-sdk-"] > video')
 }
 
 export const expectMCUNotVisible = async (page: Page) => {
@@ -681,8 +678,7 @@ export const expectMCUNotVisible = async (page: Page) => {
 }
 
 export const expectMCUVisibleForAudience = async (page: Page) => {
-  const audienceMCU = page.locator('#rootElement video')
-  await audienceMCU.waitFor()
+  await page.waitForSelector('#rootElement video')
 }
 
 // #endregion
@@ -932,20 +928,15 @@ export const expectSDPDirection = async (
   direction: string,
   value: boolean
 ) => {
-  await expectPageEvalToPass(page, {
-    evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      // @ts-expect-error
-      return roomObj.peer.localSdp
-    },
-    assertionFn: (peerSDP) => {
-      expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-      expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
-    },
-    messageAssert: 'SDP includes valid direction',
-    messageError: 'SDP does not include valid direction',
+  const peerSDP = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    // @ts-expect-error
+    return roomObj.peer.localSdp
   })
+
+  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
+  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
 }
 
 export const getRemoteMediaIP = async (page: Page) => {
@@ -1764,62 +1755,42 @@ export const expectCFFinalEvents = (
   return Promise.all([finalEvents, ...extraEvents])
 }
 
-export const expectLayoutChanged = async (page: Page, layoutName: string) => {
-  return await expectPageEvalToPass(page, {
-    evaluateArgs: { layoutName },
-    evaluateFn: (params) => {
-      return new Promise<boolean>((resolve) => {
+export const expectLayoutChanged = (page: Page, layoutName: string) => {
+  return page.evaluate(
+    (options) => {
+      return new Promise((resolve) => {
         // @ts-expect-error
-        const callObj = window._callObj
-        callObj.on('layout.changed', ({ layout }: any) => {
-          if (layout.name === params.layoutName) {
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('layout.changed', ({ layout }: any) => {
+          if (layout.name === options.layoutName) {
             resolve(true)
           }
         })
       })
     },
-    messageAssert: 'layout.changed event is received',
-    messageError: 'layout.changed event is not received',
-  })
+    { layoutName }
+  )
 }
 
-export const expectRoomJoined = async (
+export const expectRoomJoined = (
   page: Page,
   options: { invokeJoin: boolean } = { invokeJoin: true }
 ) => {
-  const roomJoinedEventPromise = expectPageEvalToPass(page, {
-    evaluateFn: () => {
-      return new Promise<VideoRoomSubscribedEventParams>((resolve, _reject) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.once('room.joined', (room) => {
-          resolve(room)
-        })
+  return page.evaluate(({ invokeJoin }) => {
+    return new Promise<any>(async (resolve, reject) => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+
+      roomObj.once('room.joined', (room) => {
+        console.log('Room joined!')
+        resolve(room)
       })
-    },
-    messageAssert: 'room.joined event is received',
-    messageError: 'room.joined event is not received',
-  })
 
-  if (options.invokeJoin) {
-    await expectPageEvalToPass(page, {
-      evaluateFn: async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        await roomObj.join()
-      },
-      messageAssert: 'room is joined',
-      messageError: 'unable to join the room',
+      if (invokeJoin) {
+        await roomObj.join().catch(reject)
+      }
     })
-  }
-
-  const roomJoinedEvent = await roomJoinedEventPromise
-
-  if (!roomJoinedEvent) {
-    throw new Error('Room joined event is undefined')
-  }
-
-  return roomJoinedEvent
+  }, options)
 }
 
 export const expectRoomJoinWithDefaults = async (
@@ -1886,18 +1857,13 @@ export const expectInteractivityMode = async (
   page: Page,
   mode: 'member' | 'audience'
 ) => {
-  await expectPageEvalToPass(page, {
-    evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.interactivityMode
-    },
-    assertionFn: (interactivityMode) => {
-      expect(interactivityMode).toEqual(mode)
-    },
-    messageAssert: 'interactivity mode is equal',
-    messageError: 'interactivity mode is not equal',
+  const interactivityMode = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.interactivityMode
   })
+
+  expect(interactivityMode).toEqual(mode)
 }
 
 export const setLayoutOnPage = (page: Page, layoutName: string) => {
@@ -1916,124 +1882,11 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 }
 
 export const expectMemberId = async (page: Page, memberId: string) => {
-  await expectPageEvalToPass(page, {
-    evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.memberId
-    },
-    assertionFn: (roomMemberId) => {
-      expect(roomMemberId).toEqual(memberId)
-    },
-    messageAssert: 'member id is equal',
-    messageError: 'member id is not equal',
+  const roomMemberId = await page.evaluate(async () => {
+    // @ts-expect-error
+    const roomObj: Video.RoomSession = window._roomObj
+    return roomObj.memberId
   })
-}
 
-/**
- * @description
- * Uses the expect().toPass() Playwright with a default timeout
- */
-export const expectToPass = async (
-  assertion: () => Promise<void>,
-  { message }: { message: string },
-  options?: { interval?: number[]; timeout?: number }
-) => {
-  const mergedOptions = {
-    interval: [10_000], // 10 seconds to avoid polling
-    timeout: 10_000,
-    ...options,
-  }
-  return await expect(assertion, { message }).toPass(mergedOptions)
-}
-
-export const waitForFunction = async <TArg, TResult>(
-  page: Page,
-  fn: PageFunction<TArg, TResult>,
-  arg?: TArg,
-  options?: {
-    interval?: number[]
-    timeout?: number
-    message?: string
-  }
-) => {
-  try {
-    const mergedOptions = {
-      interval: [10_000], // 10 seconds to avoid polling
-      timeout: 10_000,
-      ...options,
-    }
-    if (arg) {
-      return await page.waitForFunction(fn, arg, mergedOptions)
-    } else {
-      // FIXME: remove the type assertion
-      return await page.waitForFunction(
-        fn as PageFunction<void, TResult>,
-        mergedOptions
-      )
-    }
-  } catch (error) {
-    // TODO: improve error message and logging
-    if (options?.message) {
-      throw new Error(`waitForFunction: ${options.message} `)
-    } else {
-      throw new Error('waitForFunction:', error)
-    }
-  }
-}
-
-/**
- * @description
- * Uses the expectToPass utility to assert that a promise resolves
- * - allows the user to provide a custom assertion function or use the default one
- * - allows the user to provide a custom timeout
- * - provide a custom message for the assertion and error
- */
-export const expectPageEvalToPass = async <TArgs, TResult>(
-  page: Page,
-  {
-    assertionFn,
-    booleanAssert = true,
-    evaluateArgs,
-    evaluateFn,
-    messageAssert,
-    messageError,
-    interval = [10_000],
-    timeoutMs = 10_000,
-  }: {
-    assertionFn?: (result: TResult, message: string) => void
-    booleanAssert?: boolean
-    evaluateArgs?: TArgs
-    evaluateFn: PageFunction<TArgs, TResult>
-    messageAssert: string
-    messageError: string
-    interval?: number[]
-    timeoutMs?: number
-  }
-) => {
-  let result: TResult | undefined
-  await expectToPass(
-    async () => {
-      // evaluate the function with the provided arguments
-      if (evaluateArgs) {
-        result = await page.evaluate(
-          evaluateFn as PageFunction<TArgs, TResult>,
-          evaluateArgs
-        )
-      } else {
-        // evaluate the function without arguments
-        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
-      }
-      // allow the user to provide a custom assertion function
-      if (assertionFn) {
-        assertionFn(result, messageAssert)
-        // otherwise, use the default assertion function
-      } else {
-        expect(result, messageAssert).toBe(booleanAssert)
-      }
-    },
-    { message: messageError },
-    { timeout: timeoutMs, interval: interval }
-  )
-  return result
+  expect(roomMemberId).toEqual(memberId)
 }
