@@ -984,8 +984,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
-      const skipOnLocalSDPReady = !(await this._isAllowedToSendLocalSDP())
-      if (skipOnLocalSDPReady) {
+      const isAllowedToSendLocalSDP = await this._isAllowedToSendLocalSDP()
+      if (!isAllowedToSendLocalSDP) {
         this.logger.info('Skipping onLocalSDPReady due to early invite')
         this._processingLocalSDP = false
         return
@@ -1013,10 +1013,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
    * or when still waiting for a previous negotiation to complete.
    */
   private async _isAllowedToSendLocalSDP() {
-    console.dir(`####### _isAllowedToSendLocalSDP`, this._waitNegotiation)
-    console.log(
-      `####### this.instance.signalingState ${this.instance.signalingState}`
-    )
     await this._waitNegotiation
 
     // Check if signalingState have the right state to sand an offer
