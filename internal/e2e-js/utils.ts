@@ -871,7 +871,7 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 
 export const getAudioStats = async (page: Page) => {
   const audioStats = await expectPageEvalToPass(page, {
-    evaluateFn: () => {
+    evaluateFn: async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
 
