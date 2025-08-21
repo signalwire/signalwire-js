@@ -5,6 +5,7 @@ import type {
   SignalWireClient,
   SignalWireContract,
   Video,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/js'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
@@ -1794,6 +1795,45 @@ export const expectRoomJoined = (
   }, options)
 }
 
+export const expectRoomJoinedV2 = async (
+  page: Page,
+  options: { invokeJoin: boolean } = { invokeJoin: true }
+) => {
+  const roomJoinedEventPromise = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      return new Promise<VideoRoomSubscribedEventParams>((resolve, _reject) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.once('room.joined', (room) => {
+          resolve(room)
+        })
+      })
+    },
+    messageAssert: 'room.joined event is received',
+    messageError: 'room.joined event is not received',
+  })
+
+  if (options.invokeJoin) {
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        await roomObj.join()
+      },
+      messageAssert: 'room is joined',
+      messageError: 'unable to join the room',
+    })
+  }
+
+  const roomJoinedEvent = await roomJoinedEventPromise
+
+  if (!roomJoinedEvent) {
+    throw new Error('Room joined event is undefined')
+  }
+
+  return roomJoinedEvent
+}
+
 export const expectRoomJoinWithDefaults = async (
   page: Page,
   options?: {
@@ -1803,6 +1843,23 @@ export const expectRoomJoinWithDefaults = async (
 ) => {
   const { invokeJoin = true, joinAs = 'member' } = options || {}
   const params = await expectRoomJoined(page, { invokeJoin })
+  await expectMemberId(page, params.member_id)
+  const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+  await expectSDPDirection(page, dir, true)
+  const mode = joinAs === 'audience' ? 'audience' : 'member'
+  await expectInteractivityMode(page, mode)
+  return params
+}
+
+export const expectRoomJoinWithDefaultsV2 = async (
+  page: Page,
+  options?: {
+    invokeJoin?: boolean
+    joinAs?: CreateTestVRTOptions['join_as']
+  }
+) => {
+  const { invokeJoin = true, joinAs = 'member' } = options || {}
+  const params = await expectRoomJoinedV2(page, { invokeJoin })
   await expectMemberId(page, params.member_id)
   const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
   await expectSDPDirection(page, dir, true)
