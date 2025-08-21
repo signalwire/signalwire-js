@@ -20,6 +20,7 @@ export interface SignalWireCredentials {
   }
   /** Token expiry timestamp */
   tokenExpiry: number
+  host: string
 }
 
 /**

@@ -77,8 +77,8 @@ window.addProfile = async () => {
     }
 
     // Validate required fields
-    if (!credentialsData.host || !credentialsData.token) {
-      showError('Credentials must include "host" and "token" fields')
+    if (!credentialsData.satToken) {
+      showError('Credentials must include "satToken" field')
       return
     }
 
@@ -98,15 +98,20 @@ window.addProfile = async () => {
 
     // Create credentials object
     const credentials = {
-      satToken: credentialsData.token,
+      satToken: credentialsData.satToken,
       satRefreshPayload: credentialsData.satRefreshPayload || {},
-      satRefreshURL: credentialsData.satRefreshURL || `https://${credentialsData.host}/api/fabric/auth/refresh`,
+      satRefreshURL: credentialsData.satRefreshUrl || credentialsData.satRefreshURL,
       satRefreshResultMapper: credentialsData.satRefreshResultMapper || ((body) => ({
         satToken: body.satToken || body.token,
         tokenExpiry: body.tokenExpiry || body.expires_at || (Date.now() + 3600000),
         satRefreshPayload: body.satRefreshPayload || {}
       })),
       tokenExpiry: credentialsData.tokenExpiry || (Date.now() + 3600000) // 1 hour default
+    }
+    
+    // Add host if provided (helps with API calls)
+    if (credentialsData.host) {
+      credentials.host = credentialsData.host
     }
 
     // Create profile data
@@ -128,12 +133,21 @@ window.addProfile = async () => {
     }
 
     // Add profiles using ClientFactory
+    console.log('Adding profile with data:', profileData)
     const addedProfiles = await clientFactory.addProfiles({
       profiles: [profileData]
     })
 
+    console.log('Added profiles result:', addedProfiles)
+    
     if (addedProfiles.length === 0) {
-      throw new Error('No profiles were created')
+      // Check if we need to provide addressId manually
+      console.error('No profiles were created. This usually means:')
+      console.error('1. The token is invalid or expired')
+      console.error('2. The subscriber has no fabric addresses')
+      console.error('3. Network/CORS issues preventing API calls')
+      console.error('Check the browser console for warnings from ClientFactory')
+      throw new Error('No profiles were created. Check console for details.')
     }
 
     // Update local profiles map

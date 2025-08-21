@@ -97,6 +97,7 @@ export class ClientFactory implements ClientFactoryContract {
           try {
             const httpClient = new HTTPClient({
               token: profileData.credentials.satToken,
+              ...(profileData.credentials.host && { host: profileData.credentials.host }),
             })
             const subscriberInfo = await httpClient.getSubscriberInfo()
 

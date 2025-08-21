@@ -10,12 +10,14 @@ import {
 import { LocalStorageAdapter } from './storage/LocalStorageAdapter'
 import { ProfileManager } from './ProfileManager'
 import { InstanceManager } from './InstanceManager'
+import { HTTPClient } from './HTTPClient'
 
 // Mock the dependencies
 jest.mock('./storage/LocalStorageAdapter')
 jest.mock('./SignalWire')
 jest.mock('./ProfileManager')
 jest.mock('./InstanceManager')
+jest.mock('./HTTPClient')
 
 // Helper function to create test credentials
 function createTestCredentials(
@@ -801,6 +803,73 @@ describe('ClientFactory', () => {
         expect(instance1.instance.id).not.toBe(instance2.instance.id)
         expect(instance1.instance.profileId).toBe(profile1.id)
         expect(instance2.instance.profileId).toBe(profile2.id)
+      })
+    })
+
+    describe('HTTPClient host handling', () => {
+      it('should pass host to HTTPClient when present in credentials', async () => {
+        const MockedHTTPClient = HTTPClient as jest.MockedClass<typeof HTTPClient>
+        const mockGetSubscriberInfo = jest.fn().mockResolvedValue({
+          fabric_addresses: [{
+            id: 'addr-1',
+            type: 'sip',
+            name: 'test-address',
+            display_name: 'Test Address',
+            channels: {}
+          }]
+        })
+        
+        MockedHTTPClient.mockImplementation(() => ({
+          getSubscriberInfo: mockGetSubscriberInfo,
+        } as any))
+
+        const credentialsWithHost = createTestCredentials({
+          host: 'custom.signalwire.com'
+        })
+
+        await factory.addProfiles({
+          profiles: [{
+            type: ProfileType.STATIC,
+            credentialsId: 'test-cred-with-host',
+            credentials: credentialsWithHost,
+          }]
+        })
+
+        expect(MockedHTTPClient).toHaveBeenCalledWith({
+          token: credentialsWithHost.satToken,
+          host: 'custom.signalwire.com'
+        })
+      })
+
+      it('should not pass host to HTTPClient when not present in credentials', async () => {
+        const MockedHTTPClient = HTTPClient as jest.MockedClass<typeof HTTPClient>
+        const mockGetSubscriberInfo = jest.fn().mockResolvedValue({
+          fabric_addresses: [{
+            id: 'addr-2',
+            type: 'sip',
+            name: 'test-address-2',
+            display_name: 'Test Address 2',
+            channels: {}
+          }]
+        })
+        
+        MockedHTTPClient.mockImplementation(() => ({
+          getSubscriberInfo: mockGetSubscriberInfo,
+        } as any))
+
+        const credentialsWithoutHost = createTestCredentials()
+
+        await factory.addProfiles({
+          profiles: [{
+            type: ProfileType.STATIC,
+            credentialsId: 'test-cred-without-host',
+            credentials: credentialsWithoutHost,
+          }]
+        })
+
+        expect(MockedHTTPClient).toHaveBeenCalledWith({
+          token: credentialsWithoutHost.satToken,
+        })
       })
     })
   })
