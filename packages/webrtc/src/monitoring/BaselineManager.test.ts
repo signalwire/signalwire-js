@@ -2,9 +2,9 @@
  * BaselineManager Tests
  */
 
-import { BaselineManager, BaselineComparison } from './BaselineManager'
+import { BaselineManager } from './BaselineManager'
 import type { StatsMetrics, BaselineEstablishedEvent } from './interfaces'
-import { BASELINE_CONFIG, MATH_CONSTANTS } from './constants'
+import { BASELINE_CONFIG } from './constants'
 
 // Mock the logger to avoid console output during tests
 jest.mock('@signalwire/core', () => ({
