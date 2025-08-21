@@ -23,7 +23,7 @@ describe('TypeGuards', () => {
         satRefreshResultMapper: (body: Record<string, any>) => ({
           satToken: body.access_token || 'token',
           tokenExpiry: body.expires_at || Date.now() + 3600000,
-          satRefreshPayload: body.refresh_payload || {}
+          satRefreshPayload: body.refresh_payload || {},
         }),
       },
       addressId: 'address-id',
@@ -159,7 +159,8 @@ describe('TypeGuards', () => {
             ...validProfile.credentials,
             satRefreshResultMapper: {
               __type: 'function',
-              __value: '(body) => ({ satToken: body.access_token, tokenExpiry: body.expires_at, satRefreshPayload: body.refresh_payload })'
+              __value:
+                '(body) => ({ satToken: body.access_token, tokenExpiry: body.expires_at, satRefreshPayload: body.refresh_payload })',
             },
           },
         })
@@ -173,7 +174,7 @@ describe('TypeGuards', () => {
             ...validProfile.credentials,
             satRefreshResultMapper: {
               __type: 'invalid',
-              __value: 'some string'
+              __value: 'some string',
             },
           },
         })
@@ -244,7 +245,7 @@ describe('TypeGuards', () => {
         })
       ).toBe(false)
 
-      // satRefreshResultMapper can be undefined (for backward compatibility with JSON serialization)
+      // Missing satRefreshResultMapper
       expect(
         isValidProfile({
           ...validProfile,
@@ -253,7 +254,7 @@ describe('TypeGuards', () => {
             satRefreshResultMapper: undefined,
           },
         })
-      ).toBe(true)
+      ).toBe(false)
     })
 
     it('should return false for invalid optional lastUsed field', () => {
@@ -513,44 +514,12 @@ describe('TypeGuards', () => {
       expect(result).toBeNull()
     })
 
-    it('should work with isValidProfile validator', () => {
-      // Note: Functions cannot be serialized to JSON, so this test
-      // validates that safeJsonParse correctly returns null for
-      // profiles that lose their function properties during serialization
-      const validProfile = {
-        id: 'test-profile-id',
-        type: ProfileType.STATIC,
-        credentialsId: 'test-cred-id',
-        credentials: {
-          satToken: 'sat-token',
-          tokenExpiry: Date.now() + 3600000,
-          satRefreshPayload: {
-            refresh_token: 'refresh-token',
-          },
-          satRefreshURL: 'https://api.signalwire.com/auth/refresh',
-          satRefreshResultMapper: (body: Record<string, any>) => ({
-            satToken: body.access_token || 'token',
-            tokenExpiry: body.expires_at || Date.now() + 3600000,
-            satRefreshPayload: body.refresh_payload || {}
-          }),
-        },
-        addressId: 'address-id',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }
-
-      // When serialized to JSON with normal JSON.stringify, the function will be lost
-      const json = JSON.stringify(validProfile)
-      const result = safeJsonParse(json, isValidProfile)
-
-      // The result should be valid because undefined satRefreshResultMapper is allowed
-      expect(result).not.toBeNull()
-      expect(result?.credentials.satRefreshResultMapper).toBeUndefined()
-    })
-
     it('should preserve functions with serializeWithFunctions utility', () => {
-      const { serializeWithFunctions, safeJsonParseWithFunctions } = require('./serialization')
-      
+      const {
+        serializeWithFunctions,
+        safeJsonParseWithFunctions,
+      } = require('./serialization')
+
       const validProfile = {
         id: 'test-profile-id',
         type: ProfileType.STATIC,
@@ -565,7 +534,7 @@ describe('TypeGuards', () => {
           satRefreshResultMapper: (body: Record<string, any>) => ({
             satToken: body.access_token || 'token',
             tokenExpiry: body.expires_at || Date.now() + 3600000,
-            satRefreshPayload: body.refresh_payload || {}
+            satRefreshPayload: body.refresh_payload || {},
           }),
         },
         addressId: 'address-id',
@@ -580,14 +549,18 @@ describe('TypeGuards', () => {
       // The result should be valid and the function should be preserved
       expect(result).not.toBeNull()
       expect(typeof result?.credentials.satRefreshResultMapper).toBe('function')
-      
+
       // Test that the reconstructed function works
-      const testBody = { access_token: 'new-token', expires_at: 123456, refresh_payload: { test: true } }
+      const testBody = {
+        access_token: 'new-token',
+        expires_at: 123456,
+        refresh_payload: { test: true },
+      }
       const mappedResult = result?.credentials.satRefreshResultMapper(testBody)
       expect(mappedResult).toEqual({
         satToken: 'new-token',
         tokenExpiry: 123456,
-        satRefreshPayload: { test: true }
+        satRefreshPayload: { test: true },
       })
     })
 

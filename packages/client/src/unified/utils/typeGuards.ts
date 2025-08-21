@@ -75,10 +75,9 @@ export function isValidProfile(data: unknown): data is Profile {
   ) {
     return false
   }
-  
+
   // satRefreshResultMapper can be a function, undefined, or a serialized function marker
   if (
-    credentials.satRefreshResultMapper !== undefined &&
     typeof credentials.satRefreshResultMapper !== 'function' &&
     !isSerializedFunctionMarker(credentials.satRefreshResultMapper)
   ) {
@@ -133,9 +132,7 @@ export function isStringArray(data: unknown): data is string[] {
  * @param data - Unknown data to validate
  * @returns True if data has required Address properties
  */
-export function isValidAddress(
-  data: unknown
-): data is {
+export function isValidAddress(data: unknown): data is {
   id: string
   type: ResourceType
   name: string
