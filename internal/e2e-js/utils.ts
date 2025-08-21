@@ -11,6 +11,7 @@ import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
 import { Page } from '@playwright/test'
+import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import { clearInterval } from 'timers'
 import express, { Express, Request, Response } from 'express'
@@ -1889,4 +1890,132 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   })
 
   expect(roomMemberId).toEqual(memberId)
+}
+
+/**
+ * @description
+ * Uses the expect().toPass() Playwright with a default timeout
+ */
+export const expectToPass = async (
+  assertion: () => Promise<void>,
+  assertionMessage: string | { message: string },
+  options?: { interval?: number[]; timeout?: number }
+) => {
+  const mergedOptions = {
+    interval: [10_000], // 10 seconds to avoid polling
+    timeout: 10_000,
+    ...options,
+  }
+  return await expect(assertion, assertionMessage).toPass(mergedOptions)
+}
+
+/**
+ * @description
+ * Waits for a function to return a truthy value or not throw within the page context.
+ *
+ * This utility wraps Playwright's `page.waitForFunction` and is useful for polling the browser context
+ * until a certain condition is met. In this wrapper the interval and timeout are set to the same value by default.
+ * This is to avoid polling, and have a default timeout of 10 seconds.
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Returns when the pageFunction returns a truthy value. It resolves to a JSHandle of the truthy value.
+ * - The JSHandle can be passed to other Playwright functions, like `page.evaluate` or `page.evaluateHandle`.
+ */
+export const waitForFunction = async <TArg, TResult>(
+  page: Page,
+  fn: PageFunction<TArg, TResult>,
+  arg?: TArg,
+  options?: {
+    interval?: number[]
+    timeout?: number
+    message?: string
+  }
+) => {
+  try {
+    const mergedOptions = {
+      interval: [10_000], // 10 seconds to avoid polling
+      timeout: 10_000,
+      ...options,
+    }
+    if (arg) {
+      return await page.waitForFunction(fn, arg, mergedOptions)
+    } else {
+      // FIXME: remove the type assertion
+      return await page.waitForFunction(
+        fn as PageFunction<void, TResult>,
+        mergedOptions
+      )
+    }
+  } catch (error) {
+    // TODO: improve error message and logging
+    if (options?.message) {
+      throw new Error(`waitForFunction: ${options.message} `)
+    } else {
+      throw new Error('waitForFunction:', error)
+    }
+  }
+}
+
+/**
+ * @description
+ * Utility to evaluate a function in the browser context and assert its result using Playwright's expect.
+ *
+ * This function wraps a call to `page.evaluate` and uses the expectToPass utility to assert that a promise resolves
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Only serializable values can be returned
+ * - If a custom assertion function is not provided, the result is expected to strictly equal `booleanAssert`.
+ * - Throws an error with the provided message if the assertion fails or times out.
+ */
+export const expectPageEvalToPass = async <TArgs, TResult>(
+  page: Page,
+  {
+    assertionFn,
+    booleanAssert = true,
+    evaluateArgs,
+    evaluateFn,
+    messageAssert,
+    messageError,
+    interval = [10_000],
+    timeoutMs = 10_000,
+  }: {
+    assertionFn?: (result: TResult, message: string) => void
+    booleanAssert?: boolean
+    evaluateArgs?: TArgs
+    evaluateFn: PageFunction<TArgs, TResult>
+    messageAssert: string
+    messageError: string
+    interval?: number[]
+    timeoutMs?: number
+  }
+) => {
+  // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
+  let result = undefined as TResult
+  await expectToPass(
+    async () => {
+      // evaluate the function with the provided arguments
+      if (evaluateArgs) {
+        result = await page.evaluate(
+          evaluateFn as PageFunction<TArgs, TResult>,
+          evaluateArgs
+        )
+      } else {
+        // evaluate the function without arguments
+        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
+      }
+
+      // allow the user to provide a custom assertion function
+      if (assertionFn) {
+        assertionFn(result, messageAssert)
+        // otherwise, use the default assertion function
+      } else {
+        expect(result, messageAssert).toBe(booleanAssert)
+      }
+    },
+    { message: messageError },
+    { timeout: timeoutMs, interval: interval }
+  )
+  return result
 }
