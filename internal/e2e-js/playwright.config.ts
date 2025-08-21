@@ -35,6 +35,10 @@ const reattachTests = [
   'roomSessionReattachWrongCallId.spec.ts',
   'roomSessionReattachWrongProtocol.spec.ts',
 ]
+const talkingTests = [
+  'roomSessionTalkingEventsParticipants.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
+]
 const callfabricTests = [
   'address.spec.ts',
   'agentCustomer.spec.ts',
@@ -100,6 +104,7 @@ const config: PlaywrightTestConfig = {
         ...promoteTests,
         ...demoteTests,
         ...audienceTests,
+        ...talkingTests,
         ...reattachTests,
         ...callfabricTests,
         ...renegotiationTests,
@@ -131,6 +136,11 @@ const config: PlaywrightTestConfig = {
       name: 'audience',
       use: useDesktopChrome,
       testMatch: audienceTests,
+    },
+    {
+      name: 'talking',
+      use: useDesktopChrome,
+      testMatch: talkingTests,
     },
     {
       name: 'reattach',

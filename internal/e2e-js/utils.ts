@@ -1702,12 +1702,16 @@ export const deleteResource = async (id: string) => {
 // #region Utilities for Events assertion
 
 export const expectMemberTalkingEvent = (page: Page) => {
-  return page.evaluate(async () => {
-    return new Promise((resolve) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      roomObj.on('member.talking', resolve)
-    })
+  return expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      return new Promise((resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+        roomObj.on('member.talking', resolve)
+      })
+    },
+    messageAssert: 'member.talking is recived',
+    messageError: 'member.talking is not received',
   })
 }
 
