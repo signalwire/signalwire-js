@@ -719,8 +719,7 @@ interface GetStatsResult {
 }
 
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
-  let result = {} as GetStatsResult
-  await expectPageEvalToPass(page, {
+  return expectPageEvalToPass(page, {
     evaluateFn: async () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
@@ -848,14 +847,9 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
 
       return result
     },
-    assertionFn: (value, message) => {
-      result = value
-      expect(result, message).toBeDefined()
-    },
     messageAssert: 'expect to get RTP stats',
     messageError: 'failed to get RTP stats',
   })
-  return result
 }
 
 export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
