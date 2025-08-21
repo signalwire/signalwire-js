@@ -13,7 +13,7 @@ export interface ConversationMessageEventParams {
   text: string | null
   ts: number
   type: string
-  from_address_id: string
+  from_fabric_address_id: string
   user_name: string
 }
 

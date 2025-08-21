@@ -66,7 +66,7 @@ describe('Conversation', () => {
       const conversations = [
         {
           group_id: uuid(),
-          from_address_id: uuid(),
+          from_fabric_address_id: uuid(),
           last_message_at: Date.now(),
           created_at: Date.now(),
           metadata: {},
@@ -74,7 +74,7 @@ describe('Conversation', () => {
         },
         {
           group_id: uuid(),
-          from_address_id: uuid(),
+          from_fabric_address_id: uuid(),
           last_message_at: Date.now(),
           created_at: Date.now(),
           metadata: {},
@@ -120,8 +120,8 @@ describe('Conversation', () => {
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: {
           data: [
-            { text: 'message1', from_address_id: 'addr1' },
-            { text: 'message2', from_address_id: 'addr2' },
+            { text: 'message1', from_fabric_address_id: 'addr1' },
+            { text: 'message2', from_fabric_address_id: 'addr2' },
           ],
           links: {
             next: 'http://next.url',
@@ -132,8 +132,8 @@ describe('Conversation', () => {
 
       const result = await conversation.getMessages()
       expect(result.data).toEqual([
-        { text: 'message1', from_address_id: 'addr1' },
-        { text: 'message2', from_address_id: 'addr2' },
+        { text: 'message1', from_fabric_address_id: 'addr1' },
+        { text: 'message2', from_fabric_address_id: 'addr2' },
       ])
       expect(result.hasNext).toBe(true)
       expect(result.hasPrev).toBe(true)
@@ -200,7 +200,7 @@ describe('Conversation', () => {
   describe('sendMessage', () => {
     it('should create a conversation message', async () => {
       const group_id = uuid()
-      const from_address_id = uuid()
+      const from_fabric_address_id = uuid()
       const text = 'test message'
       const expectedResponse = {
         table: {
@@ -215,7 +215,7 @@ describe('Conversation', () => {
       // TODO: Test with payload
       const result = await conversation.sendMessage({
         groupId: group_id,
-        fromAddressId: from_address_id,
+        fromAddressId: from_fabric_address_id,
         text,
       })
 
@@ -224,7 +224,7 @@ describe('Conversation', () => {
         method: 'POST',
         body: {
           group_id,
-          from_address_id,
+          from_fabric_address_id,
           text,
           metadata: undefined,
           details: undefined,
@@ -253,34 +253,34 @@ describe('Conversation', () => {
 
   describe('joinConversation', () => {
     it('should join a conversation', async () => {
-      const from_address_id = uuid()
+      const from_fabric_address_id = uuid()
       const addressIds = [uuid(), uuid()]
       const group_id = uuid()
       const expectedResponse = {
         group_id,
         fabric_address_ids: addressIds,
-        from_fabric_address_id: from_address_id,
+        from_fabric_address_id: from_fabric_address_id,
       }
       ;(httpClient.fetch as jest.Mock).mockResolvedValue({
         body: expectedResponse,
       })
 
       const result = await conversation.joinConversation({
-        fromAddressId: from_address_id,
+        fromAddressId: from_fabric_address_id,
         addressIds,
       })
 
       expect(result).toEqual({
         group_id,
         addressIds,
-        from_address_id,
+        from_fabric_address_id,
       })
       expect(httpClient.fetch).toHaveBeenCalledWith(
         '/api/fabric/conversations/join',
         {
           method: 'POST',
           body: {
-            from_fabric_address_id: from_address_id,
+            from_fabric_address_id: from_fabric_address_id,
             fabric_address_ids: addressIds,
           },
         }
@@ -396,17 +396,17 @@ describe('Conversation', () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'log', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -434,17 +434,17 @@ describe('Conversation', () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa2' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa3' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa2' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa3' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa2' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa3' } as any,
-          { subtype: 'chat', group_id: 'abc', from_address_id: 'fa1' } as any,
+          { subtype: 'log', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa2' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa3' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa2' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa3' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa2' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa3' } as any,
+          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -499,7 +499,7 @@ describe('Conversation', () => {
       })
 
       expect(messages.data).toHaveLength(3)
-      expect(mock_getAddressSpy).toHaveBeenCalledTimes(0) // messages without from_address_id should not try to resolve the address
+      expect(mock_getAddressSpy).toHaveBeenCalledTimes(0) // messages without from_fabric_address_id should not try to resolve the address
 
       expect(messages.data.every((item) => item.subtype === 'chat')).toBe(true)
       expect(messages.data.every((item) => item.group_id === group_id)).toBe(
@@ -522,12 +522,12 @@ describe('Conversation', () => {
               {
                 subtype: 'chat',
                 group_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               } as any,
               {
                 subtype: 'chat',
                 group_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               } as any,
             ],
             hasNext: true,
@@ -537,7 +537,7 @@ describe('Conversation', () => {
                 {
                   subtype: 'chat',
                   group_id: 'abc',
-                  from_address_id: 'fa1',
+                  from_fabric_address_id: 'fa1',
                 } as any,
               ],
               hasNext: false,
@@ -557,7 +557,7 @@ describe('Conversation', () => {
               {
                 subtype: 'chat',
                 group_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               } as any,
             ],
             hasNext: false,
@@ -602,7 +602,7 @@ describe('Conversation', () => {
         details: {},
         metadata: {},
         hidden: false,
-        from_address_id: 'addr1',
+        from_fabric_address_id: 'addr1',
       }
       conversation.handleEvent(valid)
       conversation.handleEvent({
@@ -615,7 +615,7 @@ describe('Conversation', () => {
         details: {},
         metadata: {},
         hidden: false,
-        from_address_id: 'addr2',
+        from_fabric_address_id: 'addr2',
       })
       conversation.handleEvent({
         type: 'message' as const,
@@ -626,7 +626,7 @@ describe('Conversation', () => {
         details: {},
         metadata: {},
         hidden: false,
-        from_address_id: 'addr3',
+        from_fabric_address_id: 'addr3',
       })
 
       expect(mockCallback).toHaveBeenCalledWith(valid)
@@ -691,7 +691,7 @@ describe('Conversation', () => {
         ts: 1,
         user_id: 'test_user_id',
         user_name: 'test_user_name',
-        from_address_id: 'test_from_address_id',
+        from_fabric_address_id: 'test_from_fabric_address_id',
       }
       conversation.handleEvent(eventForAddressId1)
 
@@ -700,7 +700,7 @@ describe('Conversation', () => {
         group_id: 'different_id',
         subtype: 'chat',
         type: 'message',
-        from_address_id: '',
+        from_fabric_address_id: '',
       })
 
       conversation.handleEvent({
@@ -708,7 +708,7 @@ describe('Conversation', () => {
         group_id: 'abc',
         subtype: 'log',
         type: 'message',
-        from_address_id: '',
+        from_fabric_address_id: '',
       })
 
       expect(mockCallback1).toHaveBeenCalledWith(eventForAddressId1)
@@ -744,22 +744,22 @@ describe('Conversation', () => {
               {
                 subtype: 'chat',
                 conversation_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
               {
                 subtype: 'chat',
                 conversation_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
               {
                 subtype: 'chat',
                 conversation_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
               {
                 subtype: 'chat',
                 conversation_id: 'xyz',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
             ],
             links: {
@@ -792,22 +792,22 @@ describe('Conversation', () => {
               {
                 subtype: 'chat',
                 conversation_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
               {
                 subtype: 'chat',
                 conversation_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
               {
                 subtype: 'chat',
                 conversation_id: 'abc',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
               {
                 subtype: 'chat',
                 conversation_id: 'xyz',
-                from_address_id: 'fa1',
+                from_fabric_address_id: 'fa1',
               },
             ],
             links: {
@@ -859,17 +859,17 @@ describe('Conversation', () => {
           {
             group_id: 'address1',
             subtype: 'chat',
-            from_address_id: '1',
+            from_fabric_address_id: '1',
           },
           {
             group_id: 'address1',
             subtype: 'log',
-            from_address_id: '2',
+            from_fabric_address_id: '2',
           },
           {
             group_id: 'address1',
             subtype: 'chat',
-            from_address_id: '3',
+            from_fabric_address_id: '3',
           },
         ],
         hasNext: true,
@@ -885,12 +885,12 @@ describe('Conversation', () => {
           {
             group_id: 'address1',
             subtype: 'chat',
-            from_address_id: '4',
+            from_fabric_address_id: '4',
           },
           {
             group_id: 'address1',
             subtype: 'chat',
-            from_address_id: '5',
+            from_fabric_address_id: '5',
           },
         ],
         hasNext: false,
@@ -910,14 +910,14 @@ describe('Conversation', () => {
       })
 
       expect(result.data).toHaveLength(3)
-      expect(result.data[0].from_address_id).toBe('1')
-      expect(result.data[1].from_address_id).toBe('3')
-      expect(result.data[2].from_address_id).toBe('4')
+      expect(result.data[0].from_fabric_address_id).toBe('1')
+      expect(result.data[1].from_fabric_address_id).toBe('3')
+      expect(result.data[2].from_fabric_address_id).toBe('4')
       expect(result.hasNext).toBe(true)
 
       const nextResult = await result.nextPage()
       expect(nextResult?.data).toHaveLength(1)
-      expect(nextResult?.data[0].from_address_id).toBe('5')
+      expect(nextResult?.data[0].from_fabric_address_id).toBe('5')
     })
   })
 })
