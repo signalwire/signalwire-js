@@ -4,9 +4,7 @@ import {
   ProfileType,
   ProfileManagerContract,
   STORAGE_KEYS,
-  DEFAULT_CONFIG,
   ProfileExistsError,
-  MaxProfilesExceededError,
   CredentialRefreshError,
 } from './interfaces/clientFactory'
 import { HTTPClient } from './HTTPClient'
@@ -53,9 +51,6 @@ export class ProfileManager implements ProfileManagerContract {
     if (await this.hasProfile(profileId)) {
       throw new ProfileExistsError(profileId)
     }
-
-    // Check profile limits
-    await this.checkProfileLimits(profile.type)
 
     // Create complete profile
     const now = Date.now()
@@ -526,21 +521,6 @@ export class ProfileManager implements ProfileManagerContract {
     }
   }
 
-  /**
-   * Check if adding a profile would exceed limits
-   * @param type - Profile type to check
-   */
-  private async checkProfileLimits(type: ProfileType): Promise<void> {
-    const existingProfiles = await this.listProfiles(type)
-    const maxProfiles =
-      type === ProfileType.STATIC
-        ? DEFAULT_CONFIG.MAX_STATIC_PROFILES
-        : DEFAULT_CONFIG.MAX_DYNAMIC_PROFILES
-
-    if (existingProfiles.length >= maxProfiles) {
-      throw new MaxProfilesExceededError(type, maxProfiles)
-    }
-  }
 
   /**
    * Generate a unique profile ID (UUID v4)

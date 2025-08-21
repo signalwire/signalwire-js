@@ -340,8 +340,6 @@ export const STORAGE_KEYS = {
  */
 export const DEFAULT_CONFIG = {
   INSTANCE_ACCESS_UPDATE_INTERVAL: 5000, // 5 seconds
-  MAX_STATIC_PROFILES: 10,
-  MAX_DYNAMIC_PROFILES: 50,
   MAX_INSTANCES_PER_PROFILE: 1,
 } as const
 
@@ -378,16 +376,6 @@ export class ProfileExistsError extends ClientFactoryError {
     super(`Profile already exists: ${profileId}`, 'PROFILE_EXISTS', {
       profileId,
     })
-  }
-}
-
-export class MaxProfilesExceededError extends ClientFactoryError {
-  constructor(type: ProfileType, max: number) {
-    super(
-      `Maximum number of ${type} profiles exceeded: ${max}`,
-      'MAX_PROFILES_EXCEEDED',
-      { type, max }
-    )
   }
 }
 
