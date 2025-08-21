@@ -1,5 +1,5 @@
 import { LocalStorageAdapter } from './storage/LocalStorageAdapter'
-import { SignalWireStorageContract } from './interfaces/storage'
+import { SignalWireStorageContract, setGlobalStorageInstance } from '@signalwire/core'
 import { ProfileManager } from './ProfileManager'
 import { InstanceManager } from './InstanceManager'
 import {
@@ -56,6 +56,9 @@ export class ClientFactory implements ClientFactoryContract {
 
     // Use provided storage or default to LocalStorageAdapter
     this.storage = storage || new LocalStorageAdapter()
+
+    // Register the storage instance globally for the SDK
+    setGlobalStorageInstance(this.storage)
 
     // Initialize managers
     await this.profileManager.init(this.storage)
@@ -385,6 +388,9 @@ export class ClientFactory implements ClientFactoryContract {
 
       // Clear dynamic profiles (static profiles remain in storage)
       // Note: We don't clear static profiles as they should persist
+
+      // Clear the global storage instance
+      setGlobalStorageInstance(null)
 
       this.initialized = false
       ClientFactory.instance = null

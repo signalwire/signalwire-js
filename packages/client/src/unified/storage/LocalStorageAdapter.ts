@@ -1,4 +1,4 @@
-import { SignalWireStorageContract, StorageInfo } from '../interfaces/storage'
+import { SignalWireStorageContract, StorageInfo } from '@signalwire/core'
 
 /**
  * Browser-based storage adapter using localStorage and sessionStorage

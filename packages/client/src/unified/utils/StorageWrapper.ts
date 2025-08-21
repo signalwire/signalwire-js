@@ -1,4 +1,4 @@
-import { SignalWireStorageContract, StorageInfo } from '../interfaces/storage'
+import { SignalWireStorageContract, StorageInfo } from '@signalwire/core'
 
 /**
  * A wrapper that adds client-specific prefixing to any storage implementation.

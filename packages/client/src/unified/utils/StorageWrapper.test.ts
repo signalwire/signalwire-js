@@ -1,5 +1,5 @@
 import { StorageWrapper } from './StorageWrapper'
-import { SignalWireStorageContract, StorageInfo } from '../interfaces/storage'
+import { SignalWireStorageContract, StorageInfo } from '@signalwire/core'
 
 // Create a mock storage implementation
 class MockStorage implements SignalWireStorageContract {

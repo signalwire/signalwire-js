@@ -2,7 +2,7 @@ import { Conversation } from '../Conversation'
 import { Address } from './address'
 import { HTTPClientContract } from './httpClient'
 import { WSClientContract, WSClientOptions } from './wsClient'
-import { SignalWireStorageContract } from './storage'
+import { SignalWireStorageContract } from '@signalwire/core'
 
 export interface SignalWireClientParams extends WSClientOptions {
   /** Optional client ID for multi-instance support. Defaults to 'default' */
@@ -92,5 +92,4 @@ export * from './device'
 export * from './httpClient'
 export * from './incomingCallManager'
 export * from './wsClient'
-export * from './storage'
 export * from './clientFactory'

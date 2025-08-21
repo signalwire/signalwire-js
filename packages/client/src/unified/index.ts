@@ -10,7 +10,6 @@ export * from './interfaces/capabilities'
 export * from './interfaces/conversation'
 export * from './interfaces/device'
 export * from './interfaces/incomingCallManager'
-export * from './interfaces/storage'
 export * from './interfaces/clientFactory'
 
 export {

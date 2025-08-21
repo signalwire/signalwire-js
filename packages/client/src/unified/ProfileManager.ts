@@ -1,4 +1,4 @@
-import { SignalWireStorageContract } from './interfaces/storage'
+import { SignalWireStorageContract } from '@signalwire/core'
 import {
   Profile,
   ProfileType,

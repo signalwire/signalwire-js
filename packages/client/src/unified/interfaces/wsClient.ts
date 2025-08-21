@@ -1,10 +1,9 @@
-import { SessionOptions, UserOptions } from '@signalwire/core'
+import { SessionOptions, UserOptions, SignalWireStorageContract } from '@signalwire/core'
 import {
   IncomingCallHandler,
   IncomingCallHandlers,
 } from './incomingCallManager'
 import { CallSession } from '../CallSession'
-import { SignalWireStorageContract } from './storage'
 
 export interface WSClientContract {
   /**

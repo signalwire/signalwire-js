@@ -4,7 +4,7 @@ import { WSClient } from './WSClient'
 import { Conversation } from './Conversation'
 import { LocalStorageAdapter } from './storage/LocalStorageAdapter'
 import { StorageWrapper } from './utils/StorageWrapper'
-import { SignalWireStorageContract } from './interfaces/storage'
+import { SignalWireStorageContract } from '@signalwire/core'
 
 jest.mock('./HTTPClient')
 jest.mock('./WSClient')

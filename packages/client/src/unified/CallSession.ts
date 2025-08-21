@@ -33,7 +33,7 @@ import { CallSessionMember } from './CallSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
-import { SignalWireStorageContract } from './interfaces/storage'
+import { SignalWireStorageContract } from '@signalwire/core'
 
 export interface CallSession
   extends CallSessionContract,

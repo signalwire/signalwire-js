@@ -1,6 +1,6 @@
 import { SignalWireClient } from './index'
 import { ResourceType } from './address'
-import { SignalWireStorageContract } from './storage'
+import { SignalWireStorageContract } from '@signalwire/core'
 
 /**
  * Public type for authentication credentials

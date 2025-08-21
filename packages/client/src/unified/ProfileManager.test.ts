@@ -5,7 +5,7 @@ import {
   Profile,
   SignalWireCredentials,
 } from './interfaces/clientFactory'
-import { SignalWireStorageContract } from './interfaces/storage'
+import { SignalWireStorageContract } from '@signalwire/core'
 import { ResourceType } from './interfaces/address'
 
 // Helper function to create test credentials
