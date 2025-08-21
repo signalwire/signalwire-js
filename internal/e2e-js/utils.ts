@@ -659,14 +659,17 @@ export const reloadAndReattachAddress = async (
 }
 
 export const disconnectClient = (page: Page) => {
-  return page.evaluate(async () => {
-    // @ts-expect-error
-    const client: SignalWireContract = window._client
+  return expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      // @ts-expect-error
+      const client: SignalWireContract = window._client
 
-    if (client) {
-      await client.disconnect()
-      console.log('Client disconnected')
-    }
+      if (client) {
+        await client.disconnect()
+      }
+    },
+    messageAssert: 'client disconnected',
+    messageError: 'client disconnect failed',
   })
 }
 
@@ -873,54 +876,57 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 }
 
 export const getAudioStats = async (page: Page) => {
-  const audioStats = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+  const audioStats = await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
 
-    // @ts-expect-error
-    const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
+      // @ts-expect-error
+      const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
 
-    // @ts-expect-error
-    const stats = await roomObj.peer.instance.getStats(null)
-    const filter = {
-      'inbound-rtp': [
-        'audioLevel',
-        'totalAudioEnergy',
-        'totalSamplesDuration',
-        'totalSamplesReceived',
-        'packetsDiscarded',
-        'lastPacketReceivedTimestamp',
-        'bytesReceived',
-        'packetsReceived',
-        'packetsLost',
-        'packetsRetransmitted',
-      ],
-    }
-    const result: any = {}
-    Object.keys(filter).forEach((entry) => {
-      result[entry] = {}
-    })
-
-    stats.forEach((report: any) => {
-      for (const [key, value] of Object.entries(filter)) {
-        if (
-          report.type == key &&
-          report['mediaType'] === 'audio' &&
-          report['trackIdentifier'] === audioTrackId
-        ) {
-          value.forEach((entry) => {
-            if (report[entry]) {
-              result[key][entry] = report[entry]
-            }
-          })
-        }
+      // @ts-expect-error
+      const stats = await roomObj.peer.instance.getStats(null)
+      const filter = {
+        'inbound-rtp': [
+          'audioLevel',
+          'totalAudioEnergy',
+          'totalSamplesDuration',
+          'totalSamplesReceived',
+          'packetsDiscarded',
+          'lastPacketReceivedTimestamp',
+          'bytesReceived',
+          'packetsReceived',
+          'packetsLost',
+          'packetsRetransmitted',
+        ],
       }
-    }, {})
+      const result: any = {}
+      Object.keys(filter).forEach((entry) => {
+        result[entry] = {}
+      })
 
-    return result
+      stats.forEach((report: any) => {
+        for (const [key, value] of Object.entries(filter)) {
+          if (
+            report.type == key &&
+            report['mediaType'] === 'audio' &&
+            report['trackIdentifier'] === audioTrackId
+          ) {
+            value.forEach((entry) => {
+              if (report[entry]) {
+                result[key][entry] = report[entry]
+              }
+            })
+          }
+        }
+      }, {})
+
+      return result
+    },
+    messageAssert: 'audio stats calculated',
+    messageError: 'failed to calculate the audio stats',
   })
   console.log('audioStats', audioStats)
-
   return audioStats
 }
 
@@ -965,12 +971,16 @@ export const expectSDPDirection = async (
 }
 
 export const getRemoteMediaIP = async (page: Page) => {
-  const remoteIP: string = await page.evaluate(() => {
-    // @ts-expect-error
-    const peer: Video.RoomSessionPeer = window._roomObj.peer
-    const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
-    const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
-    return ipLine?.split(' ')[2]
+  const remoteIP: string = await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const peer: Video.RoomSessionPeer = window._roomObj.peer
+      const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
+      const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
+      return ipLine?.split(' ')[2]
+    },
+    messageAssert: 'remote IP is present',
+    messageError: 'failed to get the remote IP',
   })
   return remoteIP
 }
@@ -1720,86 +1730,89 @@ export const expectMemberTalkingEvent = (page: Page) => {
 }
 
 export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
-  return page.evaluate(
-    ({ event }) => {
+  return expectPageEvalToPass(page, {
+    evaluateArgs: { event },
+    evaluateFn: ({ event }) => {
       return new Promise<void>((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         roomObj.on(event, resolve)
       })
     },
-    { event }
-  )
+    messageAssert: '',
+    messageError: '',
+  })
 }
 
 export const expectCFInitialEvents = (
   page: Page,
   extraEvents: Promise<boolean>[] = []
 ) => {
-  const initialEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-
-    const callCreated = new Promise<boolean>((resolve) => {
+  const callCreated = expectPageEvalToPass(page, {
+    evaluateFn: () => {
       // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'created') {
-          resolve(true)
-        }
+      const roomObj: FabricRoomSession = window._roomObj
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.state', (params: any) => {
+          if (params.call_state === 'created') {
+            resolve(true)
+          }
+        })
       })
-    })
-    const callAnswered = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'answered') {
-          resolve(true)
-        }
-      })
-    })
-    const callJoined = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.joined', () => resolve(true))
-    })
-
-    return Promise.all([callJoined, callCreated, callAnswered])
+    },
+    messageAssert: 'call.state with created event received',
+    messageError: 'call.state with created event did not receive',
   })
-  return Promise.all([initialEvents, ...extraEvents])
+
+  const callAnswered = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const roomObj: FabricRoomSession = window._roomObj
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.state', (params: any) => {
+          if (params.call_state === 'answered') {
+            resolve(true)
+          }
+        })
+      })
+    },
+    messageAssert: 'call.state with answered event received',
+    messageError: 'call.state with answered event did not receive',
+  })
+
+  const callJoined = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const roomObj: FabricRoomSession = window._roomObj
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.joined', () => resolve(true))
+      })
+    },
+    messageAssert: 'call.joined event received',
+    messageError: 'call.joined event did not receive',
+  })
+
+  return Promise.all([callCreated, callAnswered, callJoined, ...extraEvents])
 }
 
 export const expectCFFinalEvents = (
   page: Page,
   extraEvents: Promise<unknown>[] = []
 ) => {
-  const finalEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-
-    const callLeft = new Promise((resolve) => {
-      roomObj.on('destroy', () => resolve(true))
-    })
-
-    return callLeft
+  const callLeftEvent = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return new Promise((resolve) => {
+        roomObj.on('destroy', () => resolve(true))
+      })
+    },
+    messageAssert: 'destroy event received',
+    messageError: 'destroy event did not receive',
   })
 
-  return Promise.all([finalEvents, ...extraEvents])
+  return Promise.all([callLeftEvent, ...extraEvents])
 }
-
-// export const expectLayoutChanged = (page: Page, layoutName: string) => {
-//   return page.evaluate(
-//     (options) => {
-//       return new Promise((resolve) => {
-//         // @ts-expect-error
-//         const roomObj: Video.RoomSession = window._roomObj
-//         roomObj.on('layout.changed', ({ layout }: any) => {
-//           if (layout.name === options.layoutName) {
-//             resolve(true)
-//           }
-//         })
-//       })
-//     },
-//     { layoutName }
-//   )
-// }
 
 export const expectLayoutChanged = async (page: Page, layoutName: string) => {
   return await expectPageEvalToPass(page, {
@@ -1879,44 +1892,63 @@ export const expectRoomJoinWithDefaults = async (
 }
 
 export const expectRecordingStarted = (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
-      setTimeout(reject, 10000)
-      // At this point window.__roomObj might not have been set yet
-      // we have to pool it and check
-      const interval = setInterval(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        if (roomObj) {
-          clearInterval(interval)
-          roomObj.on(
-            'recording.started',
-            (recording: Video.RoomSessionRecording) => resolve(recording)
-          )
-        }
-      }, 100)
-    })
+  return expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // TODO: Use Playwright API for polling
+      return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
+        setTimeout(reject, 10000)
+        // At this point window.__roomObj might not have been set yet
+        // we have to pool it and check
+        const interval = setInterval(() => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          if (roomObj) {
+            clearInterval(interval)
+            roomObj.on(
+              'recording.started',
+              (recording: Video.RoomSessionRecording) => resolve(recording)
+            )
+          }
+        }, 100)
+      })
+    },
+    messageAssert: 'recording.started is received',
+    messageError: 'recording.started was not received',
   })
 }
 
 export const expectScreenShareJoined = async (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<any>(async (resolve) => {
+  const memberJoinedEvent = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      return new Promise(async (resolve) => {
+        // @ts-expect-error
+        const roomObj: Video.RoomSession = window._roomObj
+
+        roomObj.on('member.joined', (params) => {
+          if (params.member.type === 'screen') {
+            resolve(true)
+          }
+        })
+      })
+    },
+    messageAssert: 'member.joined with screen type is received',
+    messageError: 'member.joined with screen type did not receive',
+  })
+
+  await expectPageEvalToPass(page, {
+    evaluateFn: () => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
-
-      roomObj.on('member.joined', (params: any) => {
-        if (params.member.type === 'screen') {
-          resolve(true)
-        }
-      })
-
-      await roomObj.startScreenShare({
+      return roomObj.startScreenShare({
         audio: true,
         video: true,
       })
-    })
+    },
+    messageAssert: 'screen share started',
+    messageError: 'failed to start the screen share',
   })
+
+  return memberJoinedEvent
 }
 
 // #endregion
