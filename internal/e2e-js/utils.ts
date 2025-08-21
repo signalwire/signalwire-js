@@ -930,15 +930,20 @@ export const expectSDPDirection = async (
   direction: string,
   value: boolean
 ) => {
-  const peerSDP = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    // @ts-expect-error
-    return roomObj.peer.localSdp
+  await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      // @ts-expect-error
+      return roomObj.peer.localSdp
+    },
+    assertionFn: (peerSDP) => {
+      expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
+      expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+    },
+    messageAssert: 'SDP includes valid direction',
+    messageError: 'SDP does not include valid direction',
   })
-
-  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
 }
 
 export const getRemoteMediaIP = async (page: Page) => {
@@ -1757,21 +1762,42 @@ export const expectCFFinalEvents = (
   return Promise.all([finalEvents, ...extraEvents])
 }
 
-export const expectLayoutChanged = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    (options) => {
-      return new Promise((resolve) => {
+// export const expectLayoutChanged = (page: Page, layoutName: string) => {
+//   return page.evaluate(
+//     (options) => {
+//       return new Promise((resolve) => {
+//         // @ts-expect-error
+//         const roomObj: Video.RoomSession = window._roomObj
+//         roomObj.on('layout.changed', ({ layout }: any) => {
+//           if (layout.name === options.layoutName) {
+//             resolve(true)
+//           }
+//         })
+//       })
+//     },
+//     { layoutName }
+//   )
+// }
+
+export const expectLayoutChanged = async (page: Page, layoutName: string) => {
+  return await expectPageEvalToPass(page, {
+    evaluateArgs: { layoutName },
+    evaluateFn: (params) => {
+      console.log('>> params', params)
+      return new Promise<boolean>((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         roomObj.on('layout.changed', ({ layout }: any) => {
-          if (layout.name === options.layoutName) {
+          if (layout.name === params.layoutName) {
+            console.log('>> resolving', layout.name)
             resolve(true)
           }
         })
       })
     },
-    { layoutName }
-  )
+    messageAssert: 'layout.changed event is received',
+    messageError: 'layout.changed event is not received',
+  })
 }
 
 export const expectRoomJoined = async (
@@ -1877,24 +1903,31 @@ export const expectInteractivityMode = async (
   page: Page,
   mode: 'member' | 'audience'
 ) => {
-  const interactivityMode = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.interactivityMode
+  await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return roomObj.interactivityMode
+    },
+    assertionFn: (interactivityMode) => {
+      expect(interactivityMode).toEqual(mode)
+    },
+    messageAssert: 'interactivity mode is equal',
+    messageError: 'interactivity mode is not equal',
   })
-
-  expect(interactivityMode).toEqual(mode)
 }
 
 export const setLayoutOnPage = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    async (options) => {
+  return expectPageEvalToPass(page, {
+    evaluateArgs: { layoutName },
+    evaluateFn: (options) => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
-      return await roomObj.setLayout({ name: options.layoutName })
+      return roomObj.setLayout({ name: options.layoutName })
     },
-    { layoutName }
-  )
+    messageAssert: 'setLayout passed',
+    messageError: 'setLayout failed',
+  })
 }
 
 export const randomizeRoomName = (prefix: string = 'e2e') => {
@@ -1902,13 +1935,18 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 }
 
 export const expectMemberId = async (page: Page, memberId: string) => {
-  const roomMemberId = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.memberId
+  await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      return roomObj.memberId
+    },
+    assertionFn: (roomMemberId) => {
+      expect(roomMemberId).toEqual(memberId)
+    },
+    messageAssert: 'member id is equal',
+    messageError: 'member id is not equal',
   })
-
-  expect(roomMemberId).toEqual(memberId)
 }
 
 /**
