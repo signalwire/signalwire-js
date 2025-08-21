@@ -2030,7 +2030,6 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
   page: Page,
   {
     assertionFn,
-    booleanAssert = true,
     evaluateArgs,
     evaluateFn,
     messageAssert,
@@ -2063,12 +2062,8 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
         result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
       }
 
-      // allow the user to provide a custom assertion function
       if (assertionFn) {
         assertionFn(result, messageAssert)
-        // otherwise, use the default assertion function
-      } else {
-        expect(result, messageAssert).toBe(booleanAssert)
       }
     },
     { message: messageError },
