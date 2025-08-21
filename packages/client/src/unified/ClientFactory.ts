@@ -165,7 +165,7 @@ export class ClientFactory implements ClientFactoryContract {
   async getClient(params: GetClientParams): Promise<GetClientResult> {
     this.ensureInitialized()
 
-    const { profileId, addressId, createIfNotExists = true } = params
+    const { profileId, addressId } = params
 
     // Determine which profile to use
     let targetProfileId: string | undefined = profileId
@@ -228,21 +228,13 @@ export class ClientFactory implements ClientFactoryContract {
     )
     let isNew = false
 
-    if (!instance && createIfNotExists) {
+    if (!instance) {
       // Create new instance
       instance = await this.instanceManager.createInstance(
         targetProfileId!,
         profile
       )
       isNew = true
-    }
-
-    if (!instance) {
-      throw new ClientFactoryError(
-        `No instance available for profile ${targetProfileId} and createIfNotExists is false`,
-        'NO_INSTANCE_AVAILABLE',
-        { profileId: targetProfileId, createIfNotExists }
-      )
     }
 
     // Update access tracking

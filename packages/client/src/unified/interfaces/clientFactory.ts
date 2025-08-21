@@ -114,8 +114,6 @@ export interface GetClientParams {
   profileId?: string
   /** Address ID to find a suitable profile for. Used if profileId is not provided */
   addressId?: string
-  /** Whether to create a new instance if one doesn't exist */
-  createIfNotExists?: boolean
 }
 
 /**

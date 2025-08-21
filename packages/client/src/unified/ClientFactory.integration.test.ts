@@ -75,18 +75,15 @@ describe.skip('ClientFactory API Integration', () => {
     // This will pass TypeScript compilation if the signatures are correct
     const validParams1: Parameters<typeof factory.getClient>[0] = {
       profileId: 'test',
-      createIfNotExists: true,
     }
 
     const validParams2: Parameters<typeof factory.getClient>[0] = {
       addressId: 'test',
-      createIfNotExists: false,
     }
 
     const validParams3: Parameters<typeof factory.getClient>[0] = {
       profileId: 'test',
       addressId: 'test2',
-      createIfNotExists: true,
     }
 
     expect(validParams1).toBeDefined()
