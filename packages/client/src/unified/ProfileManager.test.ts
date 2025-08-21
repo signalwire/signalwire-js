@@ -994,5 +994,92 @@ describe('ProfileManager Credential Management', () => {
         expect(error).toBeInstanceOf(Error)
       }
     })
+
+    it('should allow unlimited profiles to be added without restrictions', async () => {
+      const staticProfileCount = 100
+      const dynamicProfileCount = 100
+      const totalProfiles = staticProfileCount + dynamicProfileCount
+      
+      const staticProfileIds: string[] = []
+      const dynamicProfileIds: string[] = []
+
+      // Add 100 static profiles
+      for (let i = 0; i < staticProfileCount; i++) {
+        const staticProfile = {
+          type: ProfileType.STATIC,
+          credentialsId: `static-cred-${i}`,
+          credentials: createTestCredentials({
+            satToken: `static-token-${i}`,
+            tokenExpiry: Date.now() + 3600000,
+          }),
+          addressId: `static-addr-${i}`,
+        }
+        
+        const profileId = await profileManager.addProfile(staticProfile)
+        staticProfileIds.push(profileId)
+        expect(profileId).toBeTruthy()
+      }
+
+      // Add 100 dynamic profiles
+      for (let i = 0; i < dynamicProfileCount; i++) {
+        const dynamicProfile = {
+          type: ProfileType.DYNAMIC,
+          credentialsId: `dynamic-cred-${i}`,
+          credentials: createTestCredentials({
+            satToken: `dynamic-token-${i}`,
+            tokenExpiry: Date.now() + 3600000,
+          }),
+          addressId: `dynamic-addr-${i}`,
+        }
+        
+        const profileId = await profileManager.addProfile(dynamicProfile)
+        dynamicProfileIds.push(profileId)
+        expect(profileId).toBeTruthy()
+      }
+
+      // Verify all profiles were created successfully
+      expect(staticProfileIds).toHaveLength(staticProfileCount)
+      expect(dynamicProfileIds).toHaveLength(dynamicProfileCount)
+      expect(new Set(staticProfileIds).size).toBe(staticProfileCount) // All IDs should be unique
+      expect(new Set(dynamicProfileIds).size).toBe(dynamicProfileCount) // All IDs should be unique
+
+      // Verify all profiles can be retrieved
+      const allProfiles = await profileManager.listProfiles()
+      expect(allProfiles).toHaveLength(totalProfiles)
+
+      const staticProfiles = await profileManager.listProfiles(ProfileType.STATIC)
+      const dynamicProfiles = await profileManager.listProfiles(ProfileType.DYNAMIC)
+      
+      expect(staticProfiles).toHaveLength(staticProfileCount)
+      expect(dynamicProfiles).toHaveLength(dynamicProfileCount)
+
+      // Verify individual profile retrieval works for a sample
+      const sampleStaticId = staticProfileIds[0]
+      const sampleDynamicId = dynamicProfileIds[0]
+      
+      const retrievedStaticProfile = await profileManager.getProfile(sampleStaticId)
+      const retrievedDynamicProfile = await profileManager.getProfile(sampleDynamicId)
+      
+      expect(retrievedStaticProfile).toBeTruthy()
+      expect(retrievedStaticProfile?.type).toBe(ProfileType.STATIC)
+      expect(retrievedStaticProfile?.credentialsId).toBe('static-cred-0')
+      
+      expect(retrievedDynamicProfile).toBeTruthy()
+      expect(retrievedDynamicProfile?.type).toBe(ProfileType.DYNAMIC)
+      expect(retrievedDynamicProfile?.credentialsId).toBe('dynamic-cred-0')
+
+      // Test retrieval of profiles at the end of the range to ensure no indexing issues
+      const lastStaticId = staticProfileIds[staticProfileCount - 1]
+      const lastDynamicId = dynamicProfileIds[dynamicProfileCount - 1]
+      
+      const lastStaticProfile = await profileManager.getProfile(lastStaticId)
+      const lastDynamicProfile = await profileManager.getProfile(lastDynamicId)
+      
+      expect(lastStaticProfile).toBeTruthy()
+      expect(lastStaticProfile?.credentialsId).toBe(`static-cred-${staticProfileCount - 1}`)
+      
+      expect(lastDynamicProfile).toBeTruthy()
+      expect(lastDynamicProfile?.credentialsId).toBe(`dynamic-cred-${dynamicProfileCount - 1}`)
+    })
   })
 })
