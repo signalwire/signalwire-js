@@ -1774,28 +1774,7 @@ export const expectLayoutChanged = (page: Page, layoutName: string) => {
   )
 }
 
-export const expectRoomJoined = (
-  page: Page,
-  options: { invokeJoin: boolean } = { invokeJoin: true }
-) => {
-  return page.evaluate(({ invokeJoin }) => {
-    return new Promise<any>(async (resolve, reject) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-
-      roomObj.once('room.joined', (room) => {
-        console.log('Room joined!')
-        resolve(room)
-      })
-
-      if (invokeJoin) {
-        await roomObj.join().catch(reject)
-      }
-    })
-  }, options)
-}
-
-export const expectRoomJoinedV2 = async (
+export const expectRoomJoined = async (
   page: Page,
   options: { invokeJoin: boolean } = { invokeJoin: true }
 ) => {
@@ -1843,23 +1822,6 @@ export const expectRoomJoinWithDefaults = async (
 ) => {
   const { invokeJoin = true, joinAs = 'member' } = options || {}
   const params = await expectRoomJoined(page, { invokeJoin })
-  await expectMemberId(page, params.member_id)
-  const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
-  await expectSDPDirection(page, dir, true)
-  const mode = joinAs === 'audience' ? 'audience' : 'member'
-  await expectInteractivityMode(page, mode)
-  return params
-}
-
-export const expectRoomJoinWithDefaultsV2 = async (
-  page: Page,
-  options?: {
-    invokeJoin?: boolean
-    joinAs?: CreateTestVRTOptions['join_as']
-  }
-) => {
-  const { invokeJoin = true, joinAs = 'member' } = options || {}
-  const params = await expectRoomJoinedV2(page, { invokeJoin })
   await expectMemberId(page, params.member_id)
   const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
   await expectSDPDirection(page, dir, true)
