@@ -712,129 +712,143 @@ interface GetStatsResult {
 }
 
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
-  return await page.evaluate<GetStatsResult>(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    // @ts-expect-error
-    const rtcPeer = roomObj.peer
-
-    // Get the currently active inbound and outbound tracks.
-    const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
-    const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
-    const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
-    const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
-
-    // Default return value
-    const result: GetStatsResult = {
-      inboundRTP: {
-        audio: {
-          packetsReceived: 0,
-          packetsLost: 0,
-          packetsDiscarded: 0,
-        },
-        video: {
-          packetsReceived: 0,
-          packetsLost: 0,
-          packetsDiscarded: 0,
-        },
-      },
-      outboundRTP: {
-        audio: {
-          active: false,
-          packetsSent: 0,
-          targetBitrate: 0,
-          totalPacketSendDelay: 0,
-        },
-        video: {
-          active: false,
-          packetsSent: 0,
-          targetBitrate: 0,
-          totalPacketSendDelay: 0,
-        },
-      },
-    }
-
-    const inboundRTPFilters = {
-      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
-      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
-    }
-
-    const outboundRTPFilters = {
-      audio: [
-        'active',
-        'packetsSent',
-        'targetBitrate',
-        'totalPacketSendDelay',
-      ] as const,
-      video: [
-        'active',
-        'packetsSent',
-        'targetBitrate',
-        'totalPacketSendDelay',
-      ] as const,
-    }
-
-    const handleInboundRTP = (report: any) => {
-      const media = report.mediaType as 'audio' | 'video'
-      if (!media) return
-
-      // Check if trackIdentifier matches the currently active inbound track
-      const expectedTrackId =
-        media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
-
-      if (
-        report.trackIdentifier &&
-        report.trackIdentifier !== expectedTrackId
-      ) {
-        console.log(
-          `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
-        )
-        return
+  let result = {} as GetStatsResult
+  await expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      // @ts-expect-error
+      const roomObj: Video.RoomSession = window._roomObj
+      if (!roomObj) {
+        throw new Error('Room object not found')
       }
 
-      inboundRTPFilters[media].forEach((key) => {
-        result.inboundRTP[media][key] = report[key]
+      // @ts-expect-error
+      const rtcPeer = roomObj.peer
+
+      // Get the currently active inbound and outbound tracks.
+      const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
+      const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
+      const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
+      const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
+
+      // Default return value
+      const result: GetStatsResult = {
+        inboundRTP: {
+          audio: {
+            packetsReceived: 0,
+            packetsLost: 0,
+            packetsDiscarded: 0,
+          },
+          video: {
+            packetsReceived: 0,
+            packetsLost: 0,
+            packetsDiscarded: 0,
+          },
+        },
+        outboundRTP: {
+          audio: {
+            active: false,
+            packetsSent: 0,
+            targetBitrate: 0,
+            totalPacketSendDelay: 0,
+          },
+          video: {
+            active: false,
+            packetsSent: 0,
+            targetBitrate: 0,
+            totalPacketSendDelay: 0,
+          },
+        },
+      }
+
+      const inboundRTPFilters = {
+        audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+        video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+      }
+
+      const outboundRTPFilters = {
+        audio: [
+          'active',
+          'packetsSent',
+          'targetBitrate',
+          'totalPacketSendDelay',
+        ] as const,
+        video: [
+          'active',
+          'packetsSent',
+          'targetBitrate',
+          'totalPacketSendDelay',
+        ] as const,
+      }
+
+      const handleInboundRTP = (report: any) => {
+        const media = report.mediaType as 'audio' | 'video'
+        if (!media) return
+
+        // Check if trackIdentifier matches the currently active inbound track
+        const expectedTrackId =
+          media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
+
+        if (
+          report.trackIdentifier &&
+          report.trackIdentifier !== expectedTrackId
+        ) {
+          console.log(
+            `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+          )
+          return
+        }
+
+        inboundRTPFilters[media].forEach((key) => {
+          result.inboundRTP[media][key] = report[key]
+        })
+      }
+
+      const handleOutboundRTP = (report: any) => {
+        const media = report.mediaType as 'audio' | 'video'
+        if (!media) return
+
+        // Check if trackIdentifier matches the currently active outbound track
+        const expectedTrackId =
+          media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
+        if (
+          report.trackIdentifier &&
+          report.trackIdentifier !== expectedTrackId
+        ) {
+          console.log(
+            `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+          )
+          return
+        }
+
+        outboundRTPFilters[media].forEach((key) => {
+          ;(result.outboundRTP[media] as any)[key] = report[key]
+        })
+      }
+
+      // Iterate over all RTCStats entries
+      const pc: RTCPeerConnection = rtcPeer.instance
+      const stats = await pc.getStats()
+      stats.forEach((report) => {
+        switch (report.type) {
+          case 'inbound-rtp':
+            handleInboundRTP(report)
+            break
+          case 'outbound-rtp':
+            handleOutboundRTP(report)
+            break
+        }
       })
-    }
 
-    const handleOutboundRTP = (report: any) => {
-      const media = report.mediaType as 'audio' | 'video'
-      if (!media) return
-
-      // Check if trackIdentifier matches the currently active outbound track
-      const expectedTrackId =
-        media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
-      if (
-        report.trackIdentifier &&
-        report.trackIdentifier !== expectedTrackId
-      ) {
-        console.log(
-          `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
-        )
-        return
-      }
-
-      outboundRTPFilters[media].forEach((key) => {
-        ;(result.outboundRTP[media] as any)[key] = report[key]
-      })
-    }
-
-    // Iterate over all RTCStats entries
-    const pc: RTCPeerConnection = rtcPeer.instance
-    const stats = await pc.getStats()
-    stats.forEach((report) => {
-      switch (report.type) {
-        case 'inbound-rtp':
-          handleInboundRTP(report)
-          break
-        case 'outbound-rtp':
-          handleOutboundRTP(report)
-          break
-      }
-    })
-
-    return result
+      return result
+    },
+    assertionFn: (value, message) => {
+      result = value
+      expect(result, message).toBeDefined()
+    },
+    messageAssert: 'expect to get RTP stats',
+    messageError: 'failed to get RTP stats',
   })
+  return result
 }
 
 export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
