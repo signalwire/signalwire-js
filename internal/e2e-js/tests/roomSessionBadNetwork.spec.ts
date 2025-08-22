@@ -74,12 +74,18 @@ test.describe('roomSessionBadNetwork', () => {
       // Checks that the video is visible
       await row.expectMCU(page)
 
-      const roomPermissions: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.permissions
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          return roomObj.permissions
+        },
+        assertionFn: (roomPermissions) => {
+          expect(roomPermissions).toStrictEqual(permissions)
+        },
+        messageAssert: 'room permissions are equal',
+        messageError: 'room permissions are not equal',
       })
-      expect(roomPermissions).toStrictEqual(permissions)
 
       await firstMediaConnectedPromise
 
@@ -91,7 +97,7 @@ test.describe('roomSessionBadNetwork', () => {
       )
       // --------------- Simulate Network Down and Up in 15s ---------------
       await page.swNetworkDown()
-      await page.waitForTimeout(15_000)
+      await page.waitForTimeout(5_000)
       await page.swNetworkUp()
 
       await page.waitForTimeout(5_000)

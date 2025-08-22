@@ -861,10 +861,14 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const minAudioPacketsExpected = 40 * seconds
   const minVideoPacketsExpected = 25 * seconds
 
-  expect(last.inboundRTP.video?.packetsReceived).toBeGreaterThan(
+  expect(last.inboundRTP.video?.packetsReceived, {
+    message: 'Last inbound video packets received are greater',
+  }).toBeGreaterThan(
     (first.inboundRTP.video?.packetsReceived || 0) + minVideoPacketsExpected
   )
-  expect(last.inboundRTP.audio?.packetsReceived).toBeGreaterThan(
+  expect(last.inboundRTP.audio?.packetsReceived, {
+    message: 'Last inbound audio packets received are greater',
+  }).toBeGreaterThan(
     (first.inboundRTP.audio?.packetsReceived || 0) + minAudioPacketsExpected
   )
 }
