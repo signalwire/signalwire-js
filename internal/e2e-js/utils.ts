@@ -1733,8 +1733,8 @@ export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
         roomObj.on(event, resolve)
       })
     },
-    messageAssert: '',
-    messageError: '',
+    messageAssert: 'media event is received',
+    messageError: 'media event was not received',
   })
 }
 
