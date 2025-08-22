@@ -18,7 +18,6 @@ import {
   streamIsValid,
   stopTrack,
 } from './utils'
-import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
 import { WebRTCStatsMonitor } from './monitoring/WebRTCStatsMonitor'
 import type {
@@ -44,7 +43,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _watchMediaPacketsTimer: ReturnType<typeof setTimeout>
   private _connectionStateTimer: ReturnType<typeof setTimeout>
   private _resumeTimer?: ReturnType<typeof setTimeout>
-  private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
@@ -387,23 +385,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private resetNeedResume() {
     this.clearResumeTimer()
-    this.startStatsMonitoring()
-    if (this.options.watchMediaPackets) {
-      this.startWatchMediaPackets()
+    
+    // Unified monitoring initialization: start WebRTC stats monitoring when either
+    // watchMediaPackets or enableStatsMonitoring is enabled (both default to true)
+    // This consolidates the monitoring initialization logic
+    if (this.options.watchMediaPackets !== false || this.options.enableStatsMonitoring !== false) {
+      this.startStatsMonitoring()
     }
   }
 
-  stopWatchMediaPackets() {
-    if (this._mediaWatcher) {
-      this._mediaWatcher.stop()
-    }
-  }
 
-  startWatchMediaPackets() {
-    this.stopWatchMediaPackets()
-    this._mediaWatcher = watchRTCPeerMediaPackets(this)
-    this._mediaWatcher?.start()
-  }
 
   async applyMediaConstraints(
     kind: string,
@@ -863,8 +854,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this._remoteStream?.getTracks().forEach((track) => track.stop())
 
     this.instance?.close()
-
-    this.stopWatchMediaPackets()
   }
 
   private _supportsAddTransceiver() {
