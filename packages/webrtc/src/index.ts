@@ -44,5 +44,15 @@ export { BaseConnection, BaseConnectionOptions } from './BaseConnection'
 export { sessionConnectionPoolWorker } from './workers/sessionConnectionPoolWorker'
 export { BaselineManager } from './monitoring/BaselineManager'
 export type { BaselineComparison } from './monitoring/BaselineManager'
+export { RecoveryManager } from './monitoring/RecoveryManager'
+export { MetricsCollector } from './monitoring/MetricsCollector'
+export type { MetricsCollectorOptions } from './monitoring/MetricsCollector'
+export { WebRTCStatsMonitor } from './monitoring/WebRTCStatsMonitor'
 export * from './monitoring/interfaces'
 export * from './monitoring/constants'
+export { IssueDetector } from './monitoring/IssueDetector'
+export { 
+  MONITORING_PRESETS, 
+  QualityUtils, 
+  createWebRTCStatsMonitor 
+} from './monitoring'

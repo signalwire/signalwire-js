@@ -1,22 +1,19 @@
 /**
  * BaselineManager - Manages baseline metrics for network quality comparison
- * 
+ *
  * This class establishes baseline metrics during the first 5 seconds of a connection,
  * calculates statistical measures for comparison, and provides methods to compare
  * current metrics against the established baseline.
  */
 
 import { getLogger } from '@signalwire/core'
-import type { 
-  StatsMetrics, 
-  Baseline, 
+import type {
+  StatsMetrics,
+  Baseline,
   MonitoringOptions,
-  BaselineEstablishedEvent
+  BaselineEstablishedEvent,
 } from './interfaces'
-import { 
-  BASELINE_CONFIG, 
-  MATH_CONSTANTS
-} from './constants'
+import { BASELINE_CONFIG, MATH_CONSTANTS } from './constants'
 
 /**
  * Statistical measures for a metric
@@ -83,35 +80,38 @@ interface BaselineRefreshOptions {
 
 export class BaselineManager {
   private logger = getLogger()
-  
+
   /** Collection window for baseline samples */
   private samples: StatsMetrics[] = []
-  
+
   /** Established baseline metrics */
   private baseline: Baseline | null = null
-  
+
   /** Timestamp when baseline collection started */
   private collectionStartTime: number | null = null
-  
+
   /** Whether baseline collection is in progress */
   private isCollecting = false
-  
+
   /** Configuration options */
-  private options: Required<Pick<MonitoringOptions, 'baselineDuration' | 'calculateBaseline'>>
-  
+  private options: Required<
+    Pick<MonitoringOptions, 'baselineDuration' | 'calculateBaseline'>
+  >
+
   /** Event listeners */
   private eventListeners: Array<(event: BaselineEstablishedEvent) => void> = []
-  
+
   /** Last time stability was assessed */
   private lastStabilityCheck = 0
-  
+
   /** Consecutive stable measurements count */
   private stableCount = 0
 
   constructor(options: Partial<MonitoringOptions> = {}) {
     this.options = {
-      baselineDuration: options.baselineDuration ?? BASELINE_CONFIG.BASELINE_WINDOW_MS,
-      calculateBaseline: options.calculateBaseline ?? true
+      baselineDuration:
+        options.baselineDuration ?? BASELINE_CONFIG.BASELINE_WINDOW_MS,
+      calculateBaseline: options.calculateBaseline ?? true,
     }
   }
 
@@ -131,7 +131,7 @@ export class BaselineManager {
     }
 
     this.logger.info('Starting baseline establishment')
-    
+
     this.samples = []
     this.baseline = null
     this.collectionStartTime = Date.now()
@@ -166,7 +166,9 @@ export class BaselineManager {
     }
 
     this.samples.push(metrics)
-    this.logger.debug(`Added baseline sample ${this.samples.length}/${BASELINE_CONFIG.MAX_BASELINE_SAMPLES}`)
+    this.logger.debug(
+      `Added baseline sample ${this.samples.length}/${BASELINE_CONFIG.MAX_BASELINE_SAMPLES}`
+    )
 
     // Check if we have enough samples to finalize early
     if (this.samples.length >= BASELINE_CONFIG.MAX_BASELINE_SAMPLES) {
@@ -179,7 +181,10 @@ export class BaselineManager {
    * @returns True if baseline is available and valid
    */
   public isBaselineEstablished(): boolean {
-    return this.baseline !== null && this.baseline.confidence >= BASELINE_CONFIG.BASELINE_CONFIDENCE_THRESHOLD
+    return (
+      this.baseline !== null &&
+      this.baseline.confidence >= BASELINE_CONFIG.BASELINE_CONFIDENCE_THRESHOLD
+    )
   }
 
   /**
@@ -200,19 +205,39 @@ export class BaselineManager {
 
     const comparison: BaselineComparison = {
       metrics: {
-        packetLoss: this.compareMetric(metrics.packetLoss, this.baseline.packetLoss, this.baseline.packetLossStdDev),
-        jitter: this.compareMetric(metrics.jitter, this.baseline.jitter, this.baseline.jitterStdDev),
-        rtt: this.compareMetric(metrics.rtt, this.baseline.rtt, this.baseline.rttStdDev),
-        bandwidth: this.compareMetric(metrics.bandwidth, this.baseline.bandwidth, this.baseline.bandwidthStdDev)
+        packetLoss: this.compareMetric(
+          metrics.packetLoss,
+          this.baseline.packetLoss,
+          this.baseline.packetLossStdDev
+        ),
+        jitter: this.compareMetric(
+          metrics.jitter,
+          this.baseline.jitter,
+          this.baseline.jitterStdDev
+        ),
+        rtt: this.compareMetric(
+          metrics.rtt,
+          this.baseline.rtt,
+          this.baseline.rttStdDev
+        ),
+        bandwidth: this.compareMetric(
+          metrics.bandwidth,
+          this.baseline.bandwidth,
+          this.baseline.bandwidthStdDev
+        ),
       },
       overallScore: 0,
       withinBaseline: false,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     }
 
     // Calculate overall score and baseline adherence
-    const metricScores = Object.values(comparison.metrics).map(m => m.withinBaseline ? 1 : 0)
-    comparison.overallScore = metricScores.reduce((sum: number, score: number) => sum + score, 0) / metricScores.length
+    const metricScores = Object.values(comparison.metrics).map((m) =>
+      m.withinBaseline ? 1 : 0
+    )
+    comparison.overallScore =
+      metricScores.reduce((sum: number, score: number) => sum + score, 0) /
+      metricScores.length
     comparison.withinBaseline = comparison.overallScore >= 0.75 // 75% of metrics must be within baseline
 
     return comparison
@@ -224,11 +249,14 @@ export class BaselineManager {
    * @param options - Refresh options
    * @returns True if baseline was refreshed
    */
-  public refreshBaseline(currentMetrics: StatsMetrics, options: BaselineRefreshOptions = {}): boolean {
+  public refreshBaseline(
+    currentMetrics: StatsMetrics,
+    options: BaselineRefreshOptions = {}
+  ): boolean {
     const {
       force = false,
       minStabilityPeriod = BASELINE_CONFIG.BASELINE_REFRESH_INTERVAL_MS,
-      qualityThreshold = 0.8
+      qualityThreshold = 0.8,
     } = options
 
     if (!force) {
@@ -287,7 +315,9 @@ export class BaselineManager {
    * Subscribes to baseline established events
    * @param listener - Event listener function
    */
-  public onBaselineEstablished(listener: (event: BaselineEstablishedEvent) => void): void {
+  public onBaselineEstablished(
+    listener: (event: BaselineEstablishedEvent) => void
+  ): void {
     this.eventListeners.push(listener)
   }
 
@@ -295,7 +325,9 @@ export class BaselineManager {
    * Unsubscribes from baseline established events
    * @param listener - Event listener function to remove
    */
-  public offBaselineEstablished(listener: (event: BaselineEstablishedEvent) => void): void {
+  public offBaselineEstablished(
+    listener: (event: BaselineEstablishedEvent) => void
+  ): void {
     const index = this.eventListeners.indexOf(listener)
     if (index > -1) {
       this.eventListeners.splice(index, 1)
@@ -313,15 +345,20 @@ export class BaselineManager {
     timeRemaining: number
     confidence: number
   } {
-    const timeElapsed = this.collectionStartTime ? Date.now() - this.collectionStartTime : 0
-    const timeRemaining = Math.max(0, this.options.baselineDuration - timeElapsed)
-    
+    const timeElapsed = this.collectionStartTime
+      ? Date.now() - this.collectionStartTime
+      : 0
+    const timeRemaining = Math.max(
+      0,
+      this.options.baselineDuration - timeElapsed
+    )
+
     return {
       isCollecting: this.isCollecting,
       samplesCollected: this.samples.length,
       targetSamples: BASELINE_CONFIG.MIN_BASELINE_SAMPLES,
       timeRemaining,
-      confidence: this.baseline?.confidence ?? 0
+      confidence: this.baseline?.confidence ?? 0,
     }
   }
 
@@ -329,25 +366,36 @@ export class BaselineManager {
    * Finalizes baseline calculation from collected samples
    */
   private finalizeBaseline(): void {
-    if (!this.isCollecting || this.samples.length < BASELINE_CONFIG.MIN_BASELINE_SAMPLES) {
-      this.logger.warn(`Insufficient samples for baseline (${this.samples.length}/${BASELINE_CONFIG.MIN_BASELINE_SAMPLES})`)
+    if (
+      !this.isCollecting ||
+      this.samples.length < BASELINE_CONFIG.MIN_BASELINE_SAMPLES
+    ) {
+      this.logger.warn(
+        `Insufficient samples for baseline (${this.samples.length}/${BASELINE_CONFIG.MIN_BASELINE_SAMPLES})`
+      )
       this.isCollecting = false
       return
     }
 
     try {
       // Calculate statistics for each metric
-      const packetLossStats = this.calculateStatistics(this.samples.map(s => s.packetLoss))
-      const jitterStats = this.calculateStatistics(this.samples.map(s => s.jitter))
-      const rttStats = this.calculateStatistics(this.samples.map(s => s.rtt))
-      const bandwidthStats = this.calculateStatistics(this.samples.map(s => s.bandwidth))
+      const packetLossStats = this.calculateStatistics(
+        this.samples.map((s) => s.packetLoss)
+      )
+      const jitterStats = this.calculateStatistics(
+        this.samples.map((s) => s.jitter)
+      )
+      const rttStats = this.calculateStatistics(this.samples.map((s) => s.rtt))
+      const bandwidthStats = this.calculateStatistics(
+        this.samples.map((s) => s.bandwidth)
+      )
 
       // Calculate confidence based on sample size and variability
       const confidence = this.calculateConfidence([
         packetLossStats,
         jitterStats,
         rttStats,
-        bandwidthStats
+        bandwidthStats,
       ])
 
       this.baseline = {
@@ -361,15 +409,18 @@ export class BaselineManager {
         bandwidthStdDev: bandwidthStats.stdDev,
         sampleCount: this.samples.length,
         timestamp: Date.now(),
-        confidence
+        confidence,
       }
 
       this.isCollecting = false
-      this.logger.info(`Baseline established with ${this.samples.length} samples (confidence: ${(confidence * 100).toFixed(1)}%)`)
+      this.logger.info(
+        `Baseline established with ${
+          this.samples.length
+        } samples (confidence: ${(confidence * 100).toFixed(1)}%)`
+      )
 
       // Emit baseline established event
       this.emitBaselineEstablished()
-
     } catch (error) {
       this.logger.error('Failed to establish baseline:', error)
       this.isCollecting = false
@@ -386,14 +437,17 @@ export class BaselineManager {
 
     // Remove outliers using IQR method
     const cleanValues = this.removeOutliers(values)
-    
+
     if (cleanValues.length === 0) {
       // Fallback to original values if all were considered outliers
       cleanValues.push(...values)
     }
 
-    const mean = cleanValues.reduce((sum, val) => sum + val, 0) / cleanValues.length
-    const variance = cleanValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / cleanValues.length
+    const mean =
+      cleanValues.reduce((sum, val) => sum + val, 0) / cleanValues.length
+    const variance =
+      cleanValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      cleanValues.length
     const stdDev = Math.sqrt(variance)
 
     return {
@@ -401,7 +455,7 @@ export class BaselineManager {
       stdDev,
       min: Math.min(...cleanValues),
       max: Math.max(...cleanValues),
-      count: cleanValues.length
+      count: cleanValues.length,
     }
   }
 
@@ -416,15 +470,15 @@ export class BaselineManager {
     const sorted = [...values].sort((a, b) => a - b)
     const q1Index = Math.floor(sorted.length * 0.25)
     const q3Index = Math.floor(sorted.length * 0.75)
-    
+
     const q1 = sorted[q1Index]
     const q3 = sorted[q3Index]
     const iqr = q3 - q1
-    
+
     const lowerBound = q1 - 1.5 * iqr
     const upperBound = q3 + 1.5 * iqr
-    
-    return values.filter(val => val >= lowerBound && val <= upperBound)
+
+    return values.filter((val) => val >= lowerBound && val <= upperBound)
   }
 
   /**
@@ -432,60 +486,83 @@ export class BaselineManager {
    */
   private calculateConfidence(statistics: MetricStatistics[]): number {
     const sampleCount = statistics[0]?.count ?? 0
-    
+
     // Base confidence on sample size - start with 0.75 for minimum samples
-    let confidence = sampleCount >= BASELINE_CONFIG.MIN_BASELINE_SAMPLES 
-      ? Math.min(1, 0.75 + (sampleCount - BASELINE_CONFIG.MIN_BASELINE_SAMPLES) * 0.05)
-      : sampleCount / BASELINE_CONFIG.MIN_BASELINE_SAMPLES * 0.6
-    
+    let confidence =
+      sampleCount >= BASELINE_CONFIG.MIN_BASELINE_SAMPLES
+        ? Math.min(
+            1,
+            0.75 + (sampleCount - BASELINE_CONFIG.MIN_BASELINE_SAMPLES) * 0.05
+          )
+        : (sampleCount / BASELINE_CONFIG.MIN_BASELINE_SAMPLES) * 0.6
+
     // For identical samples (like in tests), give high confidence
-    const avgCoefficientOfVariation = statistics.reduce((sum, stat) => {
-      if (stat.mean === 0 && stat.stdDev === 0) return sum // Perfect case
-      const cv = stat.mean === 0 ? (stat.stdDev > 0 ? 1 : 0) : Math.min(1, stat.stdDev / Math.abs(stat.mean))
-      return sum + cv
-    }, 0) / statistics.length
-    
+    const avgCoefficientOfVariation =
+      statistics.reduce((sum, stat) => {
+        if (stat.mean === 0 && stat.stdDev === 0) return sum // Perfect case
+        const cv =
+          stat.mean === 0
+            ? stat.stdDev > 0
+              ? 1
+              : 0
+            : Math.min(1, stat.stdDev / Math.abs(stat.mean))
+        return sum + cv
+      }, 0) / statistics.length
+
     // Very small penalty for variability in test scenarios
     const variabilityPenalty = Math.min(0.1, avgCoefficientOfVariation * 0.2)
-    confidence *= (1 - variabilityPenalty)
-    
+    confidence *= 1 - variabilityPenalty
+
     return Math.max(0, Math.min(1, confidence))
   }
 
   /**
    * Compares a single metric against baseline
    */
-  private compareMetric(current: number, baselineMean: number, baselineStdDev: number): MetricComparison {
+  private compareMetric(
+    current: number,
+    baselineMean: number,
+    baselineStdDev: number
+  ): MetricComparison {
     const deviation = Math.abs(current - baselineMean)
-    
+
     // Handle edge case where stdDev is 0 (all samples identical)
     let deviationSigma: number
     let withinBaseline: boolean
-    
+
     if (baselineStdDev === 0) {
       // For zero standard deviation, use percentage-based comparison
-      const percentageDeviation = baselineMean === 0 ? 
-        (current === 0 ? 0 : 1) : 
-        deviation / Math.abs(baselineMean)
-      
+      const percentageDeviation =
+        baselineMean === 0
+          ? current === 0
+            ? 0
+            : 1
+          : deviation / Math.abs(baselineMean)
+
       deviationSigma = percentageDeviation * 10 // Scale for visualization
       withinBaseline = percentageDeviation <= 0.1 // 10% tolerance
     } else {
       deviationSigma = deviation / baselineStdDev
       withinBaseline = deviationSigma <= MATH_CONSTANTS.OUTLIER_DETECTION_SIGMA
     }
-    
+
     // Calculate confidence based on how close to baseline center
-    const confidence = baselineStdDev === 0 ? 
-      (withinBaseline ? 1 : 0) : 
-      Math.max(0, 1 - (deviationSigma / MATH_CONSTANTS.OUTLIER_DETECTION_SIGMA))
-    
+    const confidence =
+      baselineStdDev === 0
+        ? withinBaseline
+          ? 1
+          : 0
+        : Math.max(
+            0,
+            1 - deviationSigma / MATH_CONSTANTS.OUTLIER_DETECTION_SIGMA
+          )
+
     return {
       current,
       baseline: baselineMean,
       deviationSigma,
       withinBaseline,
-      confidence
+      confidence,
     }
   }
 
@@ -494,18 +571,31 @@ export class BaselineManager {
    */
   private isValidMetrics(metrics: StatsMetrics): boolean {
     return (
-      typeof metrics.packetLoss === 'number' && !isNaN(metrics.packetLoss) && metrics.packetLoss >= 0 &&
-      typeof metrics.jitter === 'number' && !isNaN(metrics.jitter) && metrics.jitter >= 0 &&
-      typeof metrics.rtt === 'number' && !isNaN(metrics.rtt) && metrics.rtt >= 0 &&
-      typeof metrics.bandwidth === 'number' && !isNaN(metrics.bandwidth) && metrics.bandwidth >= 0 &&
-      typeof metrics.timestamp === 'number' && !isNaN(metrics.timestamp) && metrics.timestamp > 0
+      typeof metrics.packetLoss === 'number' &&
+      !isNaN(metrics.packetLoss) &&
+      metrics.packetLoss >= 0 &&
+      typeof metrics.jitter === 'number' &&
+      !isNaN(metrics.jitter) &&
+      metrics.jitter >= 0 &&
+      typeof metrics.rtt === 'number' &&
+      !isNaN(metrics.rtt) &&
+      metrics.rtt >= 0 &&
+      typeof metrics.bandwidth === 'number' &&
+      !isNaN(metrics.bandwidth) &&
+      metrics.bandwidth >= 0 &&
+      typeof metrics.timestamp === 'number' &&
+      !isNaN(metrics.timestamp) &&
+      metrics.timestamp > 0
     )
   }
 
   /**
    * Assesses if connection is currently stable
    */
-  private isConnectionStable(metrics: StatsMetrics, qualityThreshold: number): boolean {
+  private isConnectionStable(
+    metrics: StatsMetrics,
+    qualityThreshold: number
+  ): boolean {
     if (!this.isBaselineEstablished()) {
       return false
     }
@@ -516,7 +606,7 @@ export class BaselineManager {
     }
 
     const isStable = comparison.overallScore >= qualityThreshold
-    
+
     if (isStable) {
       this.stableCount++
     } else {
@@ -524,7 +614,7 @@ export class BaselineManager {
     }
 
     this.lastStabilityCheck = Date.now()
-    
+
     // Require at least 3 consecutive stable measurements
     return this.stableCount >= 3
   }
@@ -544,7 +634,9 @@ export class BaselineManager {
     }
 
     // Refresh if confidence is low
-    if (this.baseline.confidence < BASELINE_CONFIG.BASELINE_CONFIDENCE_THRESHOLD) {
+    if (
+      this.baseline.confidence < BASELINE_CONFIG.BASELINE_CONFIDENCE_THRESHOLD
+    ) {
       return true
     }
 
@@ -563,14 +655,17 @@ export class BaselineManager {
       type: 'baseline.established',
       baseline: this.baseline,
       sampleCount: this.baseline.sampleCount,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     }
 
-    this.eventListeners.forEach(listener => {
+    this.eventListeners.forEach((listener) => {
       try {
         listener(event)
       } catch (error) {
-        this.logger.error('Error in baseline established event listener:', error)
+        this.logger.error(
+          'Error in baseline established event listener:',
+          error
+        )
       }
     })
   }

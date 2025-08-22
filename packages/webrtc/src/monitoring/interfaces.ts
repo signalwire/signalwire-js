@@ -14,60 +14,73 @@ export enum NetworkIssueType {
   CONNECTION_UNSTABLE = 'connection_unstable',
   MEDIA_QUALITY_DEGRADED = 'media_quality_degraded',
   ICE_CONNECTION_FAILED = 'ice_connection_failed',
-  ICE_CONNECTION_DISCONNECTED = 'ice_connection_disconnected'
+  ICE_CONNECTION_DISCONNECTED = 'ice_connection_disconnected',
+  NO_INBOUND_PACKETS = 'no_inbound_packets',
 }
+
+/**
+ * Severity levels for network issues
+ */
+export type NetworkIssueSeverityLevel = 'warning' | 'critical'
 
 /**
  * Represents a detected network issue
  */
 export interface NetworkIssue {
   /** Type of the network issue */
-  type: NetworkIssueType;
-  /** Severity level (0-1, where 1 is most severe) */
-  severity: number;
+  type: NetworkIssueType
+  /** Severity level (0-1, where 1 is most severe) - kept for backward compatibility */
+  severity: number
+  /** Severity level as string enum - aligns with specification */
+  severityLevel: NetworkIssueSeverityLevel
   /** Value that triggered the issue */
-  value: number;
+  value: number
   /** Threshold that was exceeded */
-  threshold: number;
+  threshold: number
   /** Timestamp when the issue was detected */
-  timestamp: number;
+  timestamp: number
   /** Whether the issue is currently active */
-  active: boolean;
+  active: boolean
   /** Optional description of the issue */
-  description?: string;
+  description?: string
   /** Media type affected (audio/video) */
-  mediaType?: 'audio' | 'video';
+  mediaType?: 'audio' | 'video'
   /** Track ID if issue is track-specific */
-  trackId?: string;
+  trackId?: string
 }
 
 /**
  * Network quality levels
  */
-export type NetworkQualityLevel = 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+export type NetworkQualityLevel =
+  | 'excellent'
+  | 'good'
+  | 'fair'
+  | 'poor'
+  | 'critical'
 
 /**
  * Represents the overall network quality
  */
 export interface NetworkQuality {
   /** Overall quality level */
-  level: NetworkQualityLevel;
+  level: NetworkQualityLevel
   /** Numeric score (0-100, where 100 is best) */
-  score: number;
+  score: number
   /** Current active issues */
-  issues: NetworkIssue[];
+  issues: NetworkIssue[]
   /** Timestamp of the assessment */
-  timestamp: number;
+  timestamp: number
   /** Quality metrics for audio */
   audio?: {
-    level: NetworkQualityLevel;
-    score: number;
-  };
+    level: NetworkQualityLevel
+    score: number
+  }
   /** Quality metrics for video */
   video?: {
-    level: NetworkQualityLevel;
-    score: number;
-  };
+    level: NetworkQualityLevel
+    score: number
+  }
 }
 
 /**
@@ -75,39 +88,41 @@ export interface NetworkQuality {
  */
 export interface StatsMetrics {
   /** Packet loss rate (0-1) */
-  packetLoss: number;
+  packetLoss: number
   /** Jitter in milliseconds */
-  jitter: number;
+  jitter: number
   /** Round-trip time in milliseconds */
-  rtt: number;
+  rtt: number
   /** Available bandwidth in kbps */
-  bandwidth: number;
+  bandwidth: number
   /** Number of packets sent */
-  packetsSent: number;
+  packetsSent: number
   /** Number of packets received */
-  packetsReceived: number;
+  packetsReceived: number
   /** Number of bytes sent */
-  bytesSent: number;
+  bytesSent: number
   /** Number of bytes received */
-  bytesReceived: number;
+  bytesReceived: number
+  /** Timestamp when last packet was received */
+  lastPacketReceivedTimestamp?: number
   /** Audio level (0-1) for audio tracks */
-  audioLevel?: number;
+  audioLevel?: number
   /** Frame rate for video tracks */
-  frameRate?: number;
+  frameRate?: number
   /** Video resolution width */
-  frameWidth?: number;
+  frameWidth?: number
   /** Video resolution height */
-  frameHeight?: number;
+  frameHeight?: number
   /** Number of freeze events */
-  freezeCount?: number;
+  freezeCount?: number
   /** Total pause duration in seconds */
-  pauseCount?: number;
+  pauseCount?: number
   /** Total freeze duration in seconds */
-  totalFreezesDuration?: number;
+  totalFreezesDuration?: number
   /** Total pause duration in seconds */
-  totalPausesDuration?: number;
+  totalPausesDuration?: number
   /** Timestamp of the metrics */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -115,23 +130,23 @@ export interface StatsMetrics {
  */
 export interface MonitoringThresholds {
   /** Packet loss threshold (0-1) */
-  packetLoss?: number;
+  packetLoss?: number
   /** Jitter threshold in milliseconds */
-  jitter?: number;
+  jitter?: number
   /** RTT threshold in milliseconds */
-  rtt?: number;
+  rtt?: number
   /** Minimum bandwidth in kbps */
-  minBandwidth?: number;
+  minBandwidth?: number
   /** Minimum audio level for detection */
-  minAudioLevel?: number;
+  minAudioLevel?: number
   /** Minimum video frame rate */
-  minFrameRate?: number;
+  minFrameRate?: number
   /** Maximum freeze count */
-  maxFreezeCount?: number;
+  maxFreezeCount?: number
   /** Maximum freeze duration in seconds */
-  maxFreezeDuration?: number;
+  maxFreezeDuration?: number
   /** Custom thresholds for specific metrics */
-  custom?: Record<string, number>;
+  custom?: Record<string, number>
 }
 
 /**
@@ -139,33 +154,33 @@ export interface MonitoringThresholds {
  */
 export interface MonitoringOptions {
   /** Enable monitoring */
-  enabled: boolean;
+  enabled?: boolean
   /** Interval for collecting stats in milliseconds */
-  interval?: number;
+  interval?: number
   /** Enable detailed logging */
-  verbose?: boolean;
+  verbose?: boolean
   /** Thresholds for issue detection */
-  thresholds?: MonitoringThresholds;
+  thresholds?: MonitoringThresholds
   /** Enable automatic recovery attempts */
-  autoRecover?: boolean;
+  autoRecover?: boolean
   /** Maximum recovery attempts */
-  maxRecoveryAttempts?: number;
+  maxRecoveryAttempts?: number
   /** Recovery backoff multiplier */
-  recoveryBackoff?: number;
+  recoveryBackoff?: number
   /** Enable baseline calculation */
-  calculateBaseline?: boolean;
+  calculateBaseline?: boolean
   /** Baseline calculation duration in milliseconds */
-  baselineDuration?: number;
+  baselineDuration?: number
   /** Enable predictive analysis */
-  enablePrediction?: boolean;
+  enablePrediction?: boolean
   /** History size for trend analysis */
-  historySize?: number;
+  historySize?: number
   /** Metrics to monitor */
-  monitoredMetrics?: Array<keyof StatsMetrics>;
+  monitoredMetrics?: Array<keyof StatsMetrics>
   /** Enable adaptive thresholds */
-  adaptiveThresholds?: boolean;
+  adaptiveThresholds?: boolean
   /** Adaptation rate for thresholds (0-1) */
-  adaptationRate?: number;
+  adaptationRate?: number
 }
 
 /**
@@ -173,91 +188,91 @@ export interface MonitoringOptions {
  */
 export interface InboundRTPStats {
   /** Unique identifier for the stats object */
-  id: string;
+  id: string
   /** Timestamp of the stats */
-  timestamp: number;
+  timestamp: number
   /** Media type (audio/video) */
-  kind: 'audio' | 'video';
+  kind: 'audio' | 'video'
   /** Track identifier */
-  trackId?: string;
+  trackId?: string
   /** SSRC identifier */
-  ssrc: number;
+  ssrc: number
   /** Number of packets received */
-  packetsReceived: number;
+  packetsReceived: number
   /** Number of packets lost */
-  packetsLost: number;
+  packetsLost: number
   /** Jitter in seconds */
-  jitter: number;
+  jitter: number
   /** Number of bytes received */
-  bytesReceived: number;
+  bytesReceived: number
   /** Last packet received timestamp */
-  lastPacketReceivedTimestamp?: number;
+  lastPacketReceivedTimestamp?: number
   /** Header bytes received */
-  headerBytesReceived?: number;
+  headerBytesReceived?: number
   /** Packets discarded */
-  packetsDiscarded?: number;
+  packetsDiscarded?: number
   /** FEC packets received */
-  fecPacketsReceived?: number;
+  fecPacketsReceived?: number
   /** FEC packets discarded */
-  fecPacketsDiscarded?: number;
+  fecPacketsDiscarded?: number
   /** Concealed samples */
-  concealedSamples?: number;
+  concealedSamples?: number
   /** Silent concealed samples */
-  silentConcealedSamples?: number;
+  silentConcealedSamples?: number
   /** Concealment events */
-  concealmentEvents?: number;
+  concealmentEvents?: number
   /** Inserted samples for deceleration */
-  insertedSamplesForDeceleration?: number;
+  insertedSamplesForDeceleration?: number
   /** Removed samples for acceleration */
-  removedSamplesForAcceleration?: number;
+  removedSamplesForAcceleration?: number
   /** Audio level */
-  audioLevel?: number;
+  audioLevel?: number
   /** Total audio energy */
-  totalAudioEnergy?: number;
+  totalAudioEnergy?: number
   /** Total samples duration */
-  totalSamplesDuration?: number;
+  totalSamplesDuration?: number
   /** Frames received */
-  framesReceived?: number;
+  framesReceived?: number
   /** Frame width */
-  frameWidth?: number;
+  frameWidth?: number
   /** Frame height */
-  frameHeight?: number;
+  frameHeight?: number
   /** Frames per second */
-  framesPerSecond?: number;
+  framesPerSecond?: number
   /** Frames decoded */
-  framesDecoded?: number;
+  framesDecoded?: number
   /** Key frames decoded */
-  keyFramesDecoded?: number;
+  keyFramesDecoded?: number
   /** Frames dropped */
-  framesDropped?: number;
+  framesDropped?: number
   /** Total decode time */
-  totalDecodeTime?: number;
+  totalDecodeTime?: number
   /** Total inter-frame delay */
-  totalInterFrameDelay?: number;
+  totalInterFrameDelay?: number
   /** Total squared inter-frame delay */
-  totalSquaredInterFrameDelay?: number;
+  totalSquaredInterFrameDelay?: number
   /** Pause count */
-  pauseCount?: number;
+  pauseCount?: number
   /** Total pauses duration */
-  totalPausesDuration?: number;
+  totalPausesDuration?: number
   /** Freeze count */
-  freezeCount?: number;
+  freezeCount?: number
   /** Total freezes duration */
-  totalFreezesDuration?: number;
+  totalFreezesDuration?: number
   /** Content type */
-  contentType?: string;
+  contentType?: string
   /** Estimated playout timestamp */
-  estimatedPlayoutTimestamp?: number;
+  estimatedPlayoutTimestamp?: number
   /** Decoder implementation */
-  decoderImplementation?: string;
+  decoderImplementation?: string
   /** FIR count */
-  firCount?: number;
+  firCount?: number
   /** PLI count */
-  pliCount?: number;
+  pliCount?: number
   /** NACK count */
-  nackCount?: number;
+  nackCount?: number
   /** QP sum */
-  qpSum?: number;
+  qpSum?: number
 }
 
 /**
@@ -265,32 +280,32 @@ export interface InboundRTPStats {
  */
 export interface ConnectionStats {
   /** Connection state */
-  connectionState: RTCPeerConnectionState;
+  connectionState: RTCPeerConnectionState
   /** ICE connection state */
-  iceConnectionState: RTCIceConnectionState;
+  iceConnectionState: RTCIceConnectionState
   /** ICE gathering state */
-  iceGatheringState: RTCIceGatheringState;
+  iceGatheringState: RTCIceGatheringState
   /** Signaling state */
-  signalingState: RTCSignalingState;
+  signalingState: RTCSignalingState
   /** Data channels open */
-  dataChannelsOpened?: number;
+  dataChannelsOpened?: number
   /** Data channels closed */
-  dataChannelsClosed?: number;
+  dataChannelsClosed?: number
   /** Timestamp */
-  timestamp: number;
+  timestamp: number
   /** Selected candidate pair */
   selectedCandidatePair?: {
-    local: RTCIceCandidate;
-    remote: RTCIceCandidate;
-    state: RTCStatsIceCandidatePairState;
-    nominated: boolean;
-    bytesSent: number;
-    bytesReceived: number;
-    totalRoundTripTime: number;
-    currentRoundTripTime: number;
-    availableOutgoingBitrate?: number;
-    availableIncomingBitrate?: number;
-  };
+    local: RTCIceCandidate
+    remote: RTCIceCandidate
+    state: RTCStatsIceCandidatePairState
+    nominated: boolean
+    bytesSent: number
+    bytesReceived: number
+    totalRoundTripTime: number
+    currentRoundTripTime: number
+    availableOutgoingBitrate?: number
+    availableIncomingBitrate?: number
+  }
 }
 
 /**
@@ -298,28 +313,28 @@ export interface ConnectionStats {
  */
 export interface ComputedMetrics {
   /** Packet loss rate (0-1) */
-  packetLossRate: number;
+  packetLossRate: number
   /** Average jitter in milliseconds */
-  averageJitter: number;
+  averageJitter: number
   /** Average RTT in milliseconds */
-  averageRtt: number;
+  averageRtt: number
   /** Current bandwidth in kbps */
-  currentBandwidth: number;
+  currentBandwidth: number
   /** Audio quality score (0-100) */
-  audioQualityScore?: number;
+  audioQualityScore?: number
   /** Video quality score (0-100) */
-  videoQualityScore?: number;
+  videoQualityScore?: number
   /** Overall quality score (0-100) */
-  overallQualityScore: number;
+  overallQualityScore: number
   /** Trend indicators */
   trends: {
-    packetLoss: 'improving' | 'stable' | 'degrading';
-    jitter: 'improving' | 'stable' | 'degrading';
-    rtt: 'improving' | 'stable' | 'degrading';
-    bandwidth: 'improving' | 'stable' | 'degrading';
-  };
+    packetLoss: 'improving' | 'stable' | 'degrading'
+    jitter: 'improving' | 'stable' | 'degrading'
+    rtt: 'improving' | 'stable' | 'degrading'
+    bandwidth: 'improving' | 'stable' | 'degrading'
+  }
   /** Timestamp */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -327,27 +342,27 @@ export interface ComputedMetrics {
  */
 export interface Baseline {
   /** Average packet loss rate */
-  packetLoss: number;
+  packetLoss: number
   /** Average jitter */
-  jitter: number;
+  jitter: number
   /** Average RTT */
-  rtt: number;
+  rtt: number
   /** Average bandwidth */
-  bandwidth: number;
+  bandwidth: number
   /** Standard deviation of packet loss */
-  packetLossStdDev: number;
+  packetLossStdDev: number
   /** Standard deviation of jitter */
-  jitterStdDev: number;
+  jitterStdDev: number
   /** Standard deviation of RTT */
-  rttStdDev: number;
+  rttStdDev: number
   /** Standard deviation of bandwidth */
-  bandwidthStdDev: number;
+  bandwidthStdDev: number
   /** Number of samples used */
-  sampleCount: number;
+  sampleCount: number
   /** Timestamp when baseline was established */
-  timestamp: number;
+  timestamp: number
   /** Confidence level (0-1) */
-  confidence: number;
+  confidence: number
 }
 
 /**
@@ -362,7 +377,7 @@ export enum RecoveryType {
   CHANGE_CODEC = 'change_codec',
   ADJUST_BITRATE = 'adjust_bitrate',
   RECONNECT = 'reconnect',
-  NONE = 'none'
+  NONE = 'none',
 }
 
 /**
@@ -370,41 +385,41 @@ export enum RecoveryType {
  */
 export type RecoveryAction = {
   /** Type of recovery action */
-  type: RecoveryType;
+  type: RecoveryType
   /** Priority of the action (lower is higher priority) */
-  priority: number;
+  priority: number
   /** Delay before attempting in milliseconds */
-  delay?: number;
+  delay?: number
   /** Parameters for the action */
-  params?: Record<string, any>;
+  params?: Record<string, any>
   /** Conditions that must be met */
   conditions?: {
-    minSeverity?: number;
-    issueTypes?: NetworkIssueType[];
-    maxAttempts?: number;
-  };
-};
+    minSeverity?: number
+    issueTypes?: NetworkIssueType[]
+    maxAttempts?: number
+  }
+}
 
 /**
  * Information about a recovery attempt
  */
 export interface RecoveryAttemptInfo {
   /** Type of recovery attempted */
-  type: RecoveryType;
+  type: RecoveryType
   /** Whether the recovery was successful */
-  success: boolean;
+  success: boolean
   /** Timestamp of the attempt */
-  timestamp: number;
+  timestamp: number
   /** Duration of the recovery in milliseconds */
-  duration: number;
+  duration: number
   /** Error if recovery failed */
-  error?: Error;
+  error?: Error
   /** Metrics before recovery */
-  metricsBefore: StatsMetrics;
+  metricsBefore: StatsMetrics
   /** Metrics after recovery */
-  metricsAfter?: StatsMetrics;
+  metricsAfter?: StatsMetrics
   /** Issues that triggered recovery */
-  triggeredBy: NetworkIssue[];
+  triggeredBy: NetworkIssue[]
 }
 
 /**
@@ -412,13 +427,13 @@ export interface RecoveryAttemptInfo {
  */
 export interface NetworkQualityChangedEvent {
   /** Type of the event */
-  type: 'network.quality.changed';
+  type: 'network.quality.changed'
   /** Current network quality */
-  quality: NetworkQuality;
+  quality: NetworkQuality
   /** Previous network quality */
-  previousQuality?: NetworkQuality;
+  previousQuality?: NetworkQuality
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -426,13 +441,13 @@ export interface NetworkQualityChangedEvent {
  */
 export interface NetworkIssueDetectedEvent {
   /** Type of the event */
-  type: 'network.issue.detected';
+  type: 'network.issue.detected'
   /** The detected issue */
-  issue: NetworkIssue;
+  issue: NetworkIssue
   /** Current network quality */
-  quality: NetworkQuality;
+  quality: NetworkQuality
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -440,15 +455,15 @@ export interface NetworkIssueDetectedEvent {
  */
 export interface NetworkIssueResolvedEvent {
   /** Type of the event */
-  type: 'network.issue.resolved';
+  type: 'network.issue.resolved'
   /** The resolved issue */
-  issue: NetworkIssue;
+  issue: NetworkIssue
   /** Duration the issue was active in milliseconds */
-  duration: number;
+  duration: number
   /** Current network quality */
-  quality: NetworkQuality;
+  quality: NetworkQuality
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -456,13 +471,13 @@ export interface NetworkIssueResolvedEvent {
  */
 export interface RecoveryAttemptedEvent {
   /** Type of the event */
-  type: 'network.recovery.attempted';
+  type: 'network.recovery.attempted'
   /** Recovery attempt information */
-  attempt: RecoveryAttemptInfo;
+  attempt: RecoveryAttemptInfo
   /** Current network quality */
-  quality: NetworkQuality;
+  quality: NetworkQuality
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -470,15 +485,15 @@ export interface RecoveryAttemptedEvent {
  */
 export interface StatsCollectedEvent {
   /** Type of the event */
-  type: 'stats.collected';
+  type: 'stats.collected'
   /** Raw statistics */
-  stats: StatsMetrics;
+  stats: StatsMetrics
   /** Computed metrics */
-  computed: ComputedMetrics;
+  computed: ComputedMetrics
   /** Current network quality */
-  quality: NetworkQuality;
+  quality: NetworkQuality
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -486,11 +501,11 @@ export interface StatsCollectedEvent {
  */
 export interface MonitoringStartedEvent {
   /** Type of the event */
-  type: 'monitoring.started';
+  type: 'monitoring.started'
   /** Monitoring options */
-  options: MonitoringOptions;
+  options: MonitoringOptions
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -498,13 +513,13 @@ export interface MonitoringStartedEvent {
  */
 export interface MonitoringStoppedEvent {
   /** Type of the event */
-  type: 'monitoring.stopped';
+  type: 'monitoring.stopped'
   /** Reason for stopping */
-  reason?: string;
+  reason?: string
   /** Final statistics */
-  finalStats?: StatsMetrics;
+  finalStats?: StatsMetrics
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -512,13 +527,13 @@ export interface MonitoringStoppedEvent {
  */
 export interface BaselineEstablishedEvent {
   /** Type of the event */
-  type: 'baseline.established';
+  type: 'baseline.established'
   /** The established baseline */
-  baseline: Baseline;
+  baseline: Baseline
   /** Number of samples used */
-  sampleCount: number;
+  sampleCount: number
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -526,15 +541,15 @@ export interface BaselineEstablishedEvent {
  */
 export interface ThresholdsAdaptedEvent {
   /** Type of the event */
-  type: 'thresholds.adapted';
+  type: 'thresholds.adapted'
   /** Previous thresholds */
-  previousThresholds: MonitoringThresholds;
+  previousThresholds: MonitoringThresholds
   /** New thresholds */
-  newThresholds: MonitoringThresholds;
+  newThresholds: MonitoringThresholds
   /** Reason for adaptation */
-  reason: string;
+  reason: string
   /** Timestamp of the event */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -549,25 +564,27 @@ export type MonitoringEvent =
   | MonitoringStartedEvent
   | MonitoringStoppedEvent
   | BaselineEstablishedEvent
-  | ThresholdsAdaptedEvent;
+  | ThresholdsAdaptedEvent
 
 /**
  * Stats monitor event handler type
  */
-export type MonitoringEventHandler<T extends MonitoringEvent = MonitoringEvent> = (event: T) => void;
+export type MonitoringEventHandler<
+  T extends MonitoringEvent = MonitoringEvent
+> = (event: T) => void
 
 /**
  * Stats history entry
  */
 export interface StatsHistoryEntry {
   /** Raw metrics */
-  metrics: StatsMetrics;
+  metrics: StatsMetrics
   /** Computed metrics */
-  computed: ComputedMetrics;
+  computed: ComputedMetrics
   /** Network quality at the time */
-  quality: NetworkQuality;
+  quality: NetworkQuality
   /** Timestamp */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -575,21 +592,21 @@ export interface StatsHistoryEntry {
  */
 export interface MonitoringState {
   /** Whether monitoring is active */
-  isActive: boolean;
+  isActive: boolean
   /** Current network quality */
-  currentQuality: NetworkQuality;
+  currentQuality: NetworkQuality
   /** Active issues */
-  activeIssues: NetworkIssue[];
+  activeIssues: NetworkIssue[]
   /** Current baseline */
-  baseline?: Baseline;
+  baseline?: Baseline
   /** Stats history */
-  history: StatsHistoryEntry[];
+  history: StatsHistoryEntry[]
   /** Recovery attempts */
-  recoveryAttempts: RecoveryAttemptInfo[];
+  recoveryAttempts: RecoveryAttemptInfo[]
   /** Last stats collection timestamp */
-  lastStatsTimestamp?: number;
+  lastStatsTimestamp?: number
   /** Monitoring start timestamp */
-  startTimestamp?: number;
+  startTimestamp?: number
 }
 
 /**
@@ -597,37 +614,37 @@ export interface MonitoringState {
  */
 export interface MediaTrackStats {
   /** Track ID */
-  trackId: string;
+  trackId: string
   /** Track kind (audio/video) */
-  kind: 'audio' | 'video';
+  kind: 'audio' | 'video'
   /** Whether track is enabled */
-  enabled: boolean;
+  enabled: boolean
   /** Whether track is muted */
-  muted: boolean;
+  muted: boolean
   /** Track ready state */
-  readyState: 'live' | 'ended';
+  readyState: 'live' | 'ended'
   /** Inbound stats if receiving */
-  inbound?: InboundRTPStats;
+  inbound?: InboundRTPStats
   /** Outbound stats if sending */
   outbound?: {
-    id: string;
-    timestamp: number;
-    ssrc: number;
-    packetsSent: number;
-    bytesSent: number;
-    targetBitrate?: number;
-    framesSent?: number;
-    framesEncoded?: number;
-    keyFramesEncoded?: number;
-    totalEncodeTime?: number;
-    totalPacketSendDelay?: number;
-    qualityLimitationReason?: string;
-    qualityLimitationDurations?: Record<string, number>;
-    nackCount?: number;
-    firCount?: number;
-    pliCount?: number;
-    qpSum?: number;
-  };
+    id: string
+    timestamp: number
+    ssrc: number
+    packetsSent: number
+    bytesSent: number
+    targetBitrate?: number
+    framesSent?: number
+    framesEncoded?: number
+    keyFramesEncoded?: number
+    totalEncodeTime?: number
+    totalPacketSendDelay?: number
+    qualityLimitationReason?: string
+    qualityLimitationDurations?: Record<string, number>
+    nackCount?: number
+    firCount?: number
+    pliCount?: number
+    qpSum?: number
+  }
 }
 
 /**
@@ -635,22 +652,22 @@ export interface MediaTrackStats {
  */
 export interface AggregatedMediaStats {
   /** Audio tracks stats */
-  audio: MediaTrackStats[];
+  audio: MediaTrackStats[]
   /** Video tracks stats */
-  video: MediaTrackStats[];
+  video: MediaTrackStats[]
   /** Total bandwidth usage */
   totalBandwidth: {
-    inbound: number;
-    outbound: number;
-  };
+    inbound: number
+    outbound: number
+  }
   /** Aggregate quality scores */
   quality: {
-    audio: number;
-    video: number;
-    overall: number;
-  };
+    audio: number
+    video: number
+    overall: number
+  }
   /** Timestamp */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -658,21 +675,21 @@ export interface AggregatedMediaStats {
  */
 export interface NetworkPrediction {
   /** Predicted quality level */
-  predictedQuality: NetworkQualityLevel;
+  predictedQuality: NetworkQualityLevel
   /** Confidence of prediction (0-1) */
-  confidence: number;
+  confidence: number
   /** Time horizon for prediction in milliseconds */
-  horizon: number;
+  horizon: number
   /** Predicted issues */
   predictedIssues: Array<{
-    type: NetworkIssueType;
-    probability: number;
-    estimatedTime: number;
-  }>;
+    type: NetworkIssueType
+    probability: number
+    estimatedTime: number
+  }>
   /** Recommended actions */
-  recommendations: RecoveryAction[];
+  recommendations: RecoveryAction[]
   /** Timestamp of prediction */
-  timestamp: number;
+  timestamp: number
 }
 
 /**
@@ -680,11 +697,11 @@ export interface NetworkPrediction {
  */
 export interface MonitoringPreset {
   /** Preset name */
-  name: 'strict' | 'balanced' | 'relaxed' | 'custom';
+  name: 'strict' | 'balanced' | 'relaxed' | 'custom'
   /** Preset options */
-  options: MonitoringOptions;
+  options: MonitoringOptions
   /** Description */
-  description: string;
+  description: string
 }
 
 /**
@@ -692,11 +709,11 @@ export interface MonitoringPreset {
  */
 export interface IStatsCollector {
   /** Collect current statistics */
-  collect(): Promise<StatsMetrics>;
+  collect(): Promise<StatsMetrics>
   /** Get specific metric */
-  getMetric(name: keyof StatsMetrics): number | undefined;
+  getMetric(name: keyof StatsMetrics): number | undefined
   /** Reset collector */
-  reset(): void;
+  reset(): void
 }
 
 /**
@@ -704,11 +721,14 @@ export interface IStatsCollector {
  */
 export interface IIssueDetector {
   /** Detect issues from metrics */
-  detect(metrics: StatsMetrics, thresholds: MonitoringThresholds): NetworkIssue[];
+  detect(
+    metrics: StatsMetrics,
+    thresholds: MonitoringThresholds
+  ): NetworkIssue[]
   /** Update detection thresholds */
-  updateThresholds(thresholds: MonitoringThresholds): void;
+  updateThresholds(thresholds: MonitoringThresholds): void
   /** Get current thresholds */
-  getThresholds(): MonitoringThresholds;
+  getThresholds(): MonitoringThresholds
 }
 
 /**
@@ -716,11 +736,14 @@ export interface IIssueDetector {
  */
 export interface IRecoveryManager {
   /** Attempt recovery for issues */
-  attemptRecovery(issues: NetworkIssue[]): Promise<RecoveryAttemptInfo>;
+  attemptRecovery(issues: NetworkIssue[]): Promise<RecoveryAttemptInfo>
   /** Register recovery strategy */
-  registerStrategy(type: RecoveryType, handler: (issues: NetworkIssue[]) => Promise<boolean>): void;
+  registerStrategy(
+    type: RecoveryType,
+    handler: (issues: NetworkIssue[]) => Promise<boolean>
+  ): void
   /** Get recovery history */
-  getHistory(): RecoveryAttemptInfo[];
+  getHistory(): RecoveryAttemptInfo[]
 }
 
 /**
@@ -728,25 +751,92 @@ export interface IRecoveryManager {
  */
 export interface IStatsMonitor {
   /** Start monitoring */
-  start(options?: MonitoringOptions): void;
+  start(options?: MonitoringOptions): void
   /** Stop monitoring */
-  stop(): void;
+  stop(): void
   /** Get current state */
-  getState(): MonitoringState;
+  getState(): MonitoringState
   /** Get current quality */
-  getQuality(): NetworkQuality;
+  getQuality(): NetworkQuality
   /** Get statistics history */
-  getHistory(limit?: number): StatsHistoryEntry[];
+  getHistory(limit?: number): StatsHistoryEntry[]
   /** Force stats collection */
-  collectNow(): Promise<StatsMetrics>;
+  collectNow(): Promise<StatsMetrics>
   /** Update monitoring options */
-  updateOptions(options: Partial<MonitoringOptions>): void;
+  updateOptions(options: Partial<MonitoringOptions>): void
   /** Subscribe to events */
-  on<T extends MonitoringEvent>(event: T['type'], handler: MonitoringEventHandler<T>): void;
+  on<T extends MonitoringEvent>(
+    event: T['type'],
+    handler: MonitoringEventHandler<T>
+  ): void
   /** Unsubscribe from events */
-  off<T extends MonitoringEvent>(event: T['type'], handler: MonitoringEventHandler<T>): void;
+  off<T extends MonitoringEvent>(
+    event: T['type'],
+    handler: MonitoringEventHandler<T>
+  ): void
   /** Get predictions */
-  getPrediction(horizon?: number): NetworkPrediction | null;
+  getPrediction(horizon?: number): NetworkPrediction | null
   /** Trigger manual recovery */
-  triggerRecovery(type: RecoveryType): Promise<RecoveryAttemptInfo>;
+  triggerRecovery(type: RecoveryType): Promise<RecoveryAttemptInfo>
+}
+
+/**
+ * Utility functions for severity conversion
+ */
+export const SeverityUtils = {
+  /**
+   * Convert numeric severity to severity level
+   * @param severity Numeric severity (0-1)
+   * @returns Severity level ('warning' or 'critical')
+   */
+  toSeverityLevel(severity: number): NetworkIssueSeverityLevel {
+    return severity >= 0.7 ? 'critical' : 'warning'
+  },
+
+  /**
+   * Convert severity level to numeric severity
+   * @param level Severity level
+   * @returns Numeric severity (0-1)
+   */
+  toNumericSeverity(level: NetworkIssueSeverityLevel): number {
+    return level === 'critical' ? 0.8 : 0.5
+  },
+
+  /**
+   * Check if severity is critical
+   * @param severity Numeric severity or level
+   */
+  isCritical(severity: number | NetworkIssueSeverityLevel): boolean {
+    return typeof severity === 'number'
+      ? severity >= 0.7
+      : severity === 'critical'
+  },
+
+  /**
+   * Check if severity is warning
+   * @param severity Numeric severity or level
+   */
+  isWarning(severity: number | NetworkIssueSeverityLevel): boolean {
+    if (typeof severity === 'number') {
+      return severity >= 0.3 && severity < 0.7
+    }
+    return severity === 'warning'
+  },
+
+  /**
+   * Create a NetworkIssue with synchronized severity values
+   * @param baseIssue Issue data without severity
+   * @param severity Numeric severity (0-1)
+   * @returns Complete NetworkIssue with both severity fields
+   */
+  createIssueWithSeverity(
+    baseIssue: Omit<NetworkIssue, 'severity' | 'severityLevel'>,
+    severity: number
+  ): NetworkIssue {
+    return {
+      ...baseIssue,
+      severity,
+      severityLevel: this.toSeverityLevel(severity),
+    }
+  },
 }
