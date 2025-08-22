@@ -1,15 +1,5 @@
-// Placeholder interfaces for removed unified module
-interface PaginatedResponse<T> {
-  data: T[]
-  links: {
-    self?: string
-    next?: string
-    prev?: string
-    first?: string
-  }
-}
-
-type CreateHttpClient = <T>(url: string) => Promise<{ body: T }>
+import { PaginatedResponse } from '../unified/interfaces'
+import { CreateHttpClient } from '../unified/createHttpClient'
 
 export function buildPaginatedResult<T>(
   body: PaginatedResponse<T>,

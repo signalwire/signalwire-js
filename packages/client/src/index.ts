@@ -1,5 +1,5 @@
 /**
- * Welcome to the technical documentation for the SignalWire Client JavaScript SDK.
+ * Welcome to the technical documentation for the Unified Client JavaScript SDK(a.k.a Call SDK).
  * @module
  */
 
@@ -21,6 +21,7 @@ export {
   CallStateEventParams,
   CallPlayEventParams,
   CallConnectEventParams,
+  CallRoomEventParams as CoreRoomEventParams,
   ConversationMessageEventName,
   ConversationMessageEvent,
   ConversationEventParams,
@@ -28,6 +29,7 @@ export {
   // EventEmitter,
   SetAudioFlagsParams,
   CallSessionEventParams,
+  CallLayoutChangedEventParams,
   MemberJoinedEventParams,
   MemberUpdatedEventParams,
   MemberLeftEventParams,
@@ -42,7 +44,6 @@ export {
   ConnectionOptions,
   MicrophoneAnalyzer,
 } from '@signalwire/webrtc'
-
 export {
   CallJoinedEventParams,
   RoomSessionObjectEventsHandlerMap,
@@ -50,16 +51,89 @@ export {
   RoomEventNames,
   StartScreenShareOptions,
 } from './utils/interfaces'
+export {
+  // From interfaces/address.ts
+  ResourceType,
+  GetAddressResponse,
+  Address,
+  GetAddressesParams,
+  GetAddressByIdParams,
+  GetAddressByNameParams,
+  GetAddressParams,
+  GetAddressResult,
+  GetAddressesResponse,
+  GetAddressesResult,
+  // From interfaces/capabilities.ts
+  CapabilityOnOffStateContract,
+  MemberCapabilityContract,
+  CallCapabilitiesContract,
+  // From interfaces/conversation.ts
+  ConversationContract,
+  SendConversationMessageParams,
+  SendConversationMessageResponse,
+  SendConversationMessageResult,
+  GetConversationsParams,
+  ConversationResponse,
+  GetConversationsResponse,
+  GetConversationsResult,
+  ConversationSubscribeCallback,
+  ConversationSubscribeResult,
+  ConversationChatMessagesSubscribeParams,
+  ConversationChatMessagesSubscribeResult,
+  JoinConversationParams,
+  JoinConversationResponse,
+  JoinConversationResult,
+  GetMessagesParams,
+  ConversationMessage,
+  GetMessagesResult,
+  ConversationChatMessage,
+  GetConversationChatMessageParams,
+  GetConversationChatMessageResult,
+  GetConversationMessagesResponse,
+  GetConversationMessagesParams,
+  GetConversationMessagesResult,
+  ConversationAPISendMessageParams,
+  ConversationAPIGetMessagesParams,
+  // From interfaces/device.ts
+  RegisterDeviceType,
+  RegisterDeviceParams,
+  UnregisterDeviceParams,
+  RegisterDeviceResponse,
+  RegisterDeviceResult,
+  // From interfaces/incomingCallManager.ts
+  IncomingInviteSource,
+  IncomingInvite,
+  IncomingInviteWithSource,
+  IncomingCallNotification,
+  IncomingCallHandler,
+  IncomingCallHandlers,
+  // From interfaces/wsClient.ts
+  OnlineParams,
+  HandlePushNotificationParams,
+  HandlePushNotificationResult,
+  DialParams,
+  ReattachParams,
+  // From interfaces/index.ts
+  SignalWireClient,
+  SignalWireContract,
+  SignalWireClientParams,
+  GetSubscriberInfoResponse,
+  GetSubscriberInfoResult,
+  PaginatedResponse,
+  PaginatedResult,
+} from './unified'
+
+/**
+ * The Call namespace contains the classes and functions that you need to
+ * create a unified communication application that includes Audio/Video calling
+ * with Chat/Messaging capabilties.
+ */
+export * as Call from './unified'
+export { SignalWire } from './unified'
+export * from './unified'
 
 export { RoomSessionScreenShare } from './RoomSessionScreenShare'
 export { RoomSessionDevice } from './RoomSessionDevice'
-export {
-  BaseRoomSession,
-  BaseRoomSessionOptions,
-  BaseRoomSessionConnection,
-  BaseRoomSessionEvents,
-  createBaseRoomSessionObject,
-} from './BaseRoomSession'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and
@@ -74,49 +148,3 @@ export * as WebRTC from './webrtc'
  */
 export { buildVideoElement } from './buildVideoElement'
 export { LocalVideoOverlay, OverlayMap, UserOverlay } from './VideoOverlays'
-
-/**
- * Device Preference Management
- */
-export { DeviceManager } from './device/DeviceManager'
-export {
-  DeviceType,
-  DevicePreference,
-  DeviceState,
-  DeviceOptions,
-  DevicePreferenceConfig,
-  DeviceManagerEvents,
-  DeviceManagerAPI,
-  RecoveryStrategy,
-  RecoveryResult,
-  DevicePreferenceStorage,
-  DeviceChangeEvent,
-  DeviceChanges,
-  DeviceMonitorEvents,
-  RecoveryAttempt,
-  RecoveryStatus,
-  DeviceRecoveryEngineOptions,
-  RecoveryStrategyDefinition,
-  RecoveryStrategyResult,
-  DeviceRecoveryEngineEvents,
-} from './device/types'
-export {
-  LocalStorageAdapter,
-  MemoryStorageAdapter,
-  createStorageAdapter,
-} from './device/DevicePreferenceStorage'
-export { DeviceMonitor } from './device/DeviceMonitor'
-export { DeviceRecoveryEngine } from './device/DeviceRecoveryEngine'
-
-// Redux exports - temporarily commented out due to build issues
-// export { default as deviceReducer } from './device/deviceSlice'
-// export * from './device/deviceSlice'
-// export * from './device/deviceSelectors'
-
-// Redux integration helpers
-// export * from './device/deviceReduxIntegration'
-
-/**
- * Video namespace contains video room session functionality
- */
-export * as Video from './video'

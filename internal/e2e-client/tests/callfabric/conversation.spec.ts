@@ -46,8 +46,8 @@ test.describe('Conversation Room', () => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
 
-          const from_address_id = (await client.address.getMyAddresses())[0].id
-          console.log('from_address_id:', from_address_id)
+          const from_fabric_address_id = (await client.address.getMyAddresses())[0].id
+          console.log('from_fabric_address_id:', from_fabric_address_id)
 
           const addressId = roomAddress.id
           // Note: subscribe will trigger for call logs too
@@ -59,14 +59,14 @@ test.describe('Conversation Room', () => {
           })
 
           const joinResponse = await client.conversation.join({
-            addressIds: [addressId, from_address_id],
-            fromAddressId: from_address_id,
+            addressIds: [addressId, from_fabric_address_id],
+            fromAddressId: from_fabric_address_id,
           })
 
           client.conversation.sendMessage({
             groupId: joinResponse.group_id,
             text: '1st message from 1st subscriber',
-            fromAddressId: from_address_id,
+            fromAddressId: from_fabric_address_id,
           })
         })
       },
@@ -97,7 +97,7 @@ test.describe('Conversation Room', () => {
         return new Promise<ConversationMessageEventParams>(async (resolve) => {
           // @ts-expect-error
           const client: SignalWireClient = window._client
-          const from_address_id = (await client.address.getMyAddresses())[0].id
+          const from_fabric_address_id = (await client.address.getMyAddresses())[0].id
           // Note: subscribe will trigger for call logs too
           // we need to make sure call logs don't resolve promise
           client.conversation.subscribe((event) => {
@@ -106,14 +106,14 @@ test.describe('Conversation Room', () => {
             }
           })
           const joinResponse = await client.conversation.join({
-            addressIds: [roomAddress.id, from_address_id],
-            fromAddressId: from_address_id,
+            addressIds: [roomAddress.id, from_fabric_address_id],
+            fromAddressId: from_fabric_address_id,
           })
 
           client.conversation.sendMessage({
             groupId: joinResponse.group_id,
             text: '1st message from 2nd subscriber',
-            fromAddressId: from_address_id,
+            fromAddressId: from_fabric_address_id,
           })
         })
       },
@@ -156,7 +156,7 @@ test.describe('Conversation Room', () => {
           text: '1st message from 2nd subscriber',
           ts: expect.anything(),
           type: 'message',
-          from_address_id: expect.anything(),
+          from_fabric_address_id: expect.anything(),
         }),
         expect.objectContaining({
           details: {},
@@ -166,7 +166,7 @@ test.describe('Conversation Room', () => {
           text: '1st message from 1st subscriber',
           ts: expect.anything(),
           type: 'message',
-          from_address_id: expect.anything(),
+          from_fabric_address_id: expect.anything(),
         }),
       ])
     )

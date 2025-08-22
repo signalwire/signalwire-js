@@ -41,14 +41,7 @@ import {
   MemberUpdatedEventNames,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-// CallCapabilitiesContract and CallSession interfaces removed with unified module
-// These types are now placeholders
-interface CallCapabilitiesContract {
-  // Placeholder interface
-}
-interface CallSession {
-  // Placeholder interface
-}
+import { CallCapabilitiesContract, CallSession } from '../../unified'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -158,44 +151,4 @@ export interface CallSessionContract {
    * ```
    */
   hangup(id?: string): Promise<void>
-}
-
-// Re-export missing types that index.ts expects
-export { CallLayoutChangedEventParams, MemberJoinedEventParams, MemberTalkingEventParams, MemberLeftEventParams, CallSessionEventParams, MemberUpdatedEventParams, InternalMemberEntity } from '@signalwire/core'
-
-// Export CallRoom event params as both names for compatibility
-export { CallRoom as CallRoomEventParams } from '@signalwire/core'
-
-// Export CallMember event params (alias for MemberJoinedEventParams)  
-export type CallMemberJoinedEventParams = MemberJoinedEventParams
-export type CallMemberUpdatedEventParams = MemberUpdatedEventParams
-export type CallMemberLeftEventParams = MemberLeftEventParams
-export type CallMemberTalkingEventParams = MemberTalkingEventParams
-export type CallMemberEventParams = MemberJoinedEventParams | MemberUpdatedEventParams | MemberLeftEventParams | MemberTalkingEventParams
-export type CallMemberEntity = InternalMemberEntity
-export type InternalCallMemberEntity = InternalMemberEntity
-
-// Placeholder exports for removed unified/fabric functionality
-export interface SignalWireClient {}
-export interface SignalWireContract {}
-export interface SignalWireClientParams {}
-export interface GetSubscriberInfoResponse {}
-export interface GetSubscriberInfoResult {}
-export interface PaginatedResponse<T> {
-  data: T[]
-  links: {
-    self?: string
-    next?: string
-    prev?: string
-    first?: string
-  }
-}
-export interface PaginatedResult<T> {
-  data: T[]
-  hasNext: boolean
-  hasPrev: boolean
-  nextPage(): Promise<PaginatedResult<T> | undefined>
-  prevPage(): Promise<PaginatedResult<T> | undefined>
-  firstPage(): Promise<PaginatedResult<T> | undefined>
-  self(): Promise<PaginatedResult<T> | undefined>
 }
