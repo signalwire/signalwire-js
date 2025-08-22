@@ -5,16 +5,14 @@
 
 import { DeviceRecoveryEngine } from './DeviceRecoveryEngine'
 import { RecoveryStatus } from './types'
-import type {
-  DeviceType,
-  DeviceState,
-  DevicePreference,
-  RecoveryResult,
-  DeviceRecoveryEngineOptions,
-} from './types'
+import type { DeviceType, DeviceState } from './types'
 
 // Mock navigator.mediaDevices for testing
 const mockEnumerateDevices = jest.fn()
+if (!global.navigator) {
+  //@ts-expect-error
+  global.navigator = {}
+}
 Object.defineProperty(global.navigator, 'mediaDevices', {
   value: {
     enumerateDevices: mockEnumerateDevices,
@@ -24,7 +22,7 @@ Object.defineProperty(global.navigator, 'mediaDevices', {
 
 describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
   let engine: DeviceRecoveryEngine
-  
+
   const mockDevices: MediaDeviceInfo[] = [
     {
       deviceId: 'camera1',
@@ -69,14 +67,15 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
         deviceId: 'missing-camera',
         isAvailable: false,
         isActive: false,
+        lastUpdated: Date.now(),
       }
 
       // Execute recovery - this will succeed due to fallback strategies
       const promise = engine.recoverDevice(deviceType, currentState)
-      
+
       // Wait for the promise to complete
       await promise
-      
+
       expect(startedHandler).toHaveBeenCalledTimes(1)
       expect(capturedEventData).toMatchObject({
         attempt: expect.objectContaining({
@@ -95,6 +94,7 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
         deviceId: 'camera1', // This exists in our mock devices
         isAvailable: false,
         isActive: false,
+        lastUpdated: Date.now(),
       }
 
       const result = await engine.recoverDevice(deviceType, currentState)
@@ -123,6 +123,7 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
         deviceId: 'missing-speaker',
         isAvailable: false,
         isActive: false,
+        lastUpdated: Date.now(),
       }
 
       const result = await engine.recoverDevice(deviceType, currentState)
@@ -144,10 +145,10 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
       engine.on('recovery.cancelled', cancelledHandler)
 
       const deviceType: DeviceType = 'camera'
-      
+
       // Start a recovery (but don't await it immediately)
       const recoveryPromise = engine.recoverDevice(deviceType)
-      
+
       // Cancel it before it completes
       engine.cancelRecovery(deviceType, 'Test cancellation')
 
@@ -169,7 +170,7 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
       engine.on('status.changed', statusHandler)
 
       const deviceType: DeviceType = 'camera'
-      
+
       await engine.recoverDevice(deviceType)
 
       // Should have been called at least once (when recovery completes)
@@ -190,6 +191,7 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
         deviceId: 'camera1',
         isAvailable: false,
         isActive: false,
+        lastUpdated: Date.now(),
       }
 
       await engine.recoverDevice(deviceType, currentState)
@@ -214,23 +216,23 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
   describe('Event Listener Management', () => {
     it('should support adding and removing event listeners', () => {
       const handler = jest.fn()
-      
+
       engine.on('recovery.started', handler)
       expect(engine.listenerCount('recovery.started')).toBe(1)
-      
+
       engine.off('recovery.started', handler)
       expect(engine.listenerCount('recovery.started')).toBe(0)
     })
 
     it('should support once listeners', async () => {
       const handler = jest.fn()
-      
+
       engine.once('recovery.started', handler)
-      
+
       // Trigger two recoveries
       await engine.recoverDevice('camera')
       await engine.recoverDevice('microphone')
-      
+
       // Handler should only be called once
       expect(handler).toHaveBeenCalledTimes(1)
     })
@@ -238,15 +240,15 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
     it('should clean up all listeners on destroy', () => {
       const handler1 = jest.fn()
       const handler2 = jest.fn()
-      
+
       engine.on('recovery.started', handler1)
       engine.on('recovery.failed', handler2)
-      
+
       expect(engine.listenerCount('recovery.started')).toBe(1)
       expect(engine.listenerCount('recovery.failed')).toBe(1)
-      
+
       engine.destroy()
-      
+
       expect(engine.listenerCount('recovery.started')).toBe(0)
       expect(engine.listenerCount('recovery.failed')).toBe(0)
     })
@@ -266,7 +268,7 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
       )
 
       expect(engineWithSession).toBeInstanceOf(DeviceRecoveryEngine)
-      
+
       engineWithSession.destroy()
     })
 
@@ -274,7 +276,7 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
       const engineWithoutSession = new DeviceRecoveryEngine({ debug: false })
 
       expect(engineWithoutSession).toBeInstanceOf(DeviceRecoveryEngine)
-      
+
       engineWithoutSession.destroy()
     })
   })
@@ -292,7 +294,7 @@ describe('DeviceRecoveryEngine EventEmitter Functionality', () => {
     it('should maintain existing API for strategy execution', async () => {
       const strategyName = 'exact-id-match'
       const deviceType: DeviceType = 'camera'
-      
+
       const result = await engine.tryStrategy(strategyName, deviceType)
 
       expect(typeof result.success).toBe('boolean')
