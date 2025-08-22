@@ -1,280 +1,458 @@
 import { uuid } from '@signalwire/core'
-import { CallSession, CallJoinedEventParams } from '@signalwire/client'
-import { test, expect } from '../../fixtures'
+import { CallJoinedEventParams, CallSession } from '@signalwire/client'
+import { test, expect, CustomPage } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
   dialAddress,
   expectLayoutChanged,
   expectMCUVisible,
+  expectPageEvalToPass,
   getStats,
   setLayoutOnPage,
+  waitForFunction,
 } from '../../utils'
+import { JSHandle } from '@playwright/test'
 
 test.describe('CallCall VideoRoom', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
     resource,
   }) => {
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
+    let callObj = {} as JSHandle<CallSession>
+    let callSession = {} as CallJoinedEventParams
+    let page = {} as CustomPage
 
-    const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await test.step('setup page and call', async () => {
+      page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+      const roomName = `e2e_${uuid()}`
+      await resource.createVideoRoomResource(roomName)
 
-    // Dial an address and join a video room
-    const callSession: CallJoinedEventParams = await dialAddress(page, {
-      address: `/public/${roomName}?channel=video`,
+      await createCFClient(page)
+
+      // Dial an address and join a video room
+      callSession = await dialAddress(page, {
+        address: `/public/${roomName}?channel=video`,
+      })
+
+      expect(callSession.room_session).toBeDefined()
+      expect(callSession.room_session.name).toBeDefined()
+      expect(callSession.room_session.display_name).toBeDefined()
+
+      const memberId = callSession.member_id
+      expect(
+        callSession.room_session.members.some(
+          (member) => member.member_id === memberId
+        )
+      ).toBeTruthy()
+
+      await expectMCUVisible(page)
+
+      // --------------- Call Object ------------------------
+      callObj = await waitForFunction(page, () => {
+        if (window._callObj) {
+          return window._callObj
+        } else {
+          throw new Error('Call object not found')
+        }
+      })
     })
 
-    expect(callSession.room_session).toBeDefined()
-    expect(callSession.room_session.name).toBeDefined()
-    expect(callSession.room_session.display_name).toBeDefined()
-    expect(
-      callSession.room_session.members.some(
-        (member) => member.member_id === callSession.member_id
-      )
-    ).toBeTruthy()
-
-    await expectMCUVisible(page)
+    await test.step('sanity check - call object, call session and page are set', async () => {
+      expect(callObj.getProperty('on')).toBeDefined()
+      expect(callObj.getProperty('audioMute')).toBeDefined()
+      expect(callObj.getProperty('leave')).toBeDefined()
+      expect(callSession).toHaveProperty('room_session')
+      expect(callSession).toHaveProperty('member_id')
+      expect(page.goto).toBeDefined()
+      expect(page.evaluate).toBeDefined()
+      expect(page.waitForSelector).toBeDefined()
+    })
 
     // --------------- Muting Audio (self) ---------------
-    await page.evaluate(
-      async ({ callSession }) => {
-        // @ts-expect-error
-        const callObj: CallSession = window._callObj
-
-        const memberUpdatedMuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
+    await test.step('muting audio (self)', async () => {
+      const memberUpdatedMutedEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated.audioMuted', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('audio_muted') &&
-                params.member.audio_muted === true
+                member.member_id === params.callSession.member_id &&
+                member.audio_muted === true
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.audioMuted', (params) => {
+        },
+        messageAssert: 'expect member updated muted event',
+        messageError: 'member updated muted event',
+      })
+
+      const memberUpdatedMuted = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.audio_muted === true
+                member.member_id === params.callSession.member_id &&
+                member.updated.includes('audio_muted') &&
+                member.audio_muted === true
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
+        },
+        messageAssert: 'expect member updated muted',
+        messageError: 'member updated muted',
+      })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+      const audioMuteSelf = waitForFunction(
+        page,
+        async (params) => await params.callObj.audioMute(),
+        { callObj },
+        { message: 'audio mute self' }
+      )
 
-        const memberUpdatedUnmuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
+      await audioMuteSelf
+      await memberUpdatedMuted
+      await memberUpdatedMutedEvent
+    })
+    // --------------- Unmuting Audio (self) ---------------
+    await test.step('unmuting audio (self)', async () => {
+      const memberUpdatedUnmutedEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated.audioMuted', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('audio_muted') &&
-                params.member.audio_muted === false
+                member.member_id === params.callSession.member_id &&
+                member.audio_muted === false
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.audioMuted', (params) => {
+        },
+        messageAssert: 'expect member updated unmuted event',
+        messageError: 'member updated unmuted event',
+      })
+
+      const memberUpdatedUnmuted = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.audio_muted === false
+                member.member_id === params.callSession.member_id &&
+                member.updated.includes('audio_muted') &&
+                member.audio_muted === false
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
+        },
+        messageAssert: 'expect member updated unmuted',
+        messageError: 'member updated unmuted',
+      })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+      const audioUnmuteSelf = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          await params.callObj.audioUnmute()
+          return true
+        },
+        messageAssert: 'expect audio unmute self',
+        messageError: 'audio unmute self',
+      })
 
-        await callObj.audioMute()
-        await callObj.audioUnmute()
-
-        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
-      },
-      { callSession }
-    )
-
+      await audioUnmuteSelf
+      await memberUpdatedUnmuted
+      await memberUpdatedUnmutedEvent
+    })
     // --------------- Muting Video (self) ---------------
-    await page.evaluate(
-      async ({ callSession }) => {
-        // @ts-expect-error
-        const callObj: CallSession = window._callObj
-
-        const memberUpdatedMuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
+    await test.step('muting video (self)', async () => {
+      const memberVideoUpdatedMutedEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated.videoMuted', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('video_muted') &&
-                params.member.updated.includes('visible') &&
-                params.member.video_muted === true &&
-                params.member.visible === false
+                member.member_id === params.callSession.member_id &&
+                member.video_muted === true &&
+                member.visible === false
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.videoMuted', (params) => {
+        },
+        messageAssert: 'expect member video updated muted event',
+        messageError: 'member video updated muted event',
+      })
+
+      const memberVideoUpdatedMuted = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.video_muted === true &&
-                params.member.visible === false
+                member.member_id === params.callSession.member_id &&
+                member.updated.includes('video_muted') &&
+                member.updated.includes('visible') &&
+                member.video_muted === true &&
+                member.visible === false
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
+        },
+        messageAssert: 'expect member video updated muted',
+        messageError: 'member video updated muted',
+      })
+      const videoMuteSelf = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          await params.callObj.videoMute()
+          return true
+        },
+        messageAssert: 'expect video mute self',
+        messageError: 'video mute self',
+      })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+      await videoMuteSelf
+      await memberVideoUpdatedMuted
+      await memberVideoUpdatedMutedEvent
+    })
+    // --------------- Unmuting Video (self) ---------------
 
-        const memberUpdatedUnmuted = new Promise((resolve) => {
-          const memberUpdatedEvent = new Promise((res) => {
-            callObj.on('member.updated', (params) => {
+    await test.step('unmuting video (self)  ', async () => {
+      const memberVideoUpdatedUnmutedEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated.videoMuted', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.updated.includes('video_muted') &&
-                params.member.updated.includes('visible') &&
-                params.member.video_muted === false &&
-                params.member.visible === true
+                member.member_id === params.callSession.member_id &&
+                member.video_muted === false &&
+                member.visible === true
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
-          const memberUpdatedMutedEvent = new Promise((res) => {
-            callObj.on('member.updated.videoMuted', (params) => {
+        },
+        messageAssert: 'expect member video updated unmuted event',
+        messageError: 'member video updated unmuted event',
+      })
+
+      const memberVideoUpdatedUnmuted = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, callSession },
+        evaluateFn: async (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.updated', ({ member }) => {
               if (
-                params.member.member_id === callSession.member_id &&
-                params.member.video_muted === false &&
-                params.member.visible === true
+                member.member_id === params.callSession.member_id &&
+                member.updated.includes('video_muted') &&
+                member.updated.includes('visible') &&
+                member.video_muted === false &&
+                member.visible === true
               ) {
-                res(true)
+                resolve(true)
               }
             })
           })
+        },
+        messageAssert: 'expect member video updated unmuted',
+        messageError: 'member video updated unmuted',
+      })
 
-          Promise.all([memberUpdatedEvent, memberUpdatedMutedEvent]).then(
-            resolve
-          )
-        })
+      const videoUnmuteSelf = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          await params.callObj.videoUnmute()
+          return true
+        },
+        messageAssert: 'expect video unmute self',
+        messageError: 'video unmute self',
+      })
 
-        await callObj.videoMute()
-        await callObj.videoUnmute()
-
-        return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
-      },
-      { callSession }
-    )
+      await videoUnmuteSelf
+      await memberVideoUpdatedUnmuted
+      await memberVideoUpdatedUnmutedEvent
+    })
 
     // --------------- Screenshare ---------------
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const callObj: CallSession = window._callObj
-
-      let screenMemberId: string | undefined
-
-      const screenJoined = new Promise((resolve) => {
-        callObj.on('member.joined', (params) => {
-          if (params.member.type === 'screen') {
-            screenMemberId = params.member.member_id
-            resolve(true)
-          }
-        })
+    await test.step('screen share', async () => {
+      const screenMemberJoined = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          return new Promise<string>((resolve) => {
+            params.callObj.on('member.joined', ({ member }) => {
+              if (member.type === 'screen') {
+                resolve(member.member_id)
+              }
+            })
+          })
+        },
+        assertionFn: (result, message) => {
+          expect(typeof result, message).toBe('string')
+          expect(result, message).toMatch(/^[a-z0-9-]+$/) // is of a uuid
+          expect(result.length, message).toBeGreaterThan(0)
+        },
+        messageAssert: 'expect screen joined result',
+        messageError: 'screen joined',
       })
 
-      const screenLeft = new Promise((resolve) => {
-        callObj.on('member.left', (params) => {
-          if (
-            params.member.type === 'screen' &&
-            params.member.member_id === screenMemberId
-          ) {
-            resolve(true)
-          }
-        })
+      // --------------- Start Screen Share ---------------
+      const screenShareObj = await waitForFunction(
+        page,
+        async (params) =>
+          await params.callObj.startScreenShare({
+            audio: true,
+            video: true,
+          }),
+        { callObj },
+        { message: 'screen share obj' }
+      )
+
+      const screenMemberId = await screenMemberJoined
+
+      // --------------- Check Screen Share ID ---------------
+      await expectPageEvalToPass(page, {
+        evaluateArgs: { screenShareObj, screenMemberId },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            resolve(params.screenMemberId === params.screenShareObj.memberId)
+          })
+        },
+        assertionFn: (result, message) => {
+          expect(screenMemberId).toBeDefined()
+          expect(result, message).toBe(true)
+        },
+        messageAssert: 'expect screen share id check',
+        messageError: 'screen share id check',
       })
 
-      const screenShareObj = await callObj.startScreenShare({
-        audio: true,
-        video: true,
+      const screenMemberLeft = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj, screenMemberId },
+        evaluateFn: async (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('member.left', ({ member }) => {
+              if (
+                member.type === 'screen' &&
+                member.member_id === params.screenMemberId
+              ) {
+                resolve(true)
+              }
+            })
+          })
+        },
+        messageAssert: 'expect screen left',
+        messageError: 'screen left',
       })
 
-      const screenShareIdCheckPromise = new Promise((resolve) => {
-        resolve(screenMemberId === screenShareObj.memberId)
+      const screenRoomLeft = expectPageEvalToPass(page, {
+        evaluateArgs: { screenShareObj },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.screenShareObj.on('room.left', () => resolve(true))
+          })
+        },
+        messageAssert: 'expect screen room left',
+        messageError: 'screen room left',
       })
 
-      const screenRoomLeft = new Promise((resolve) => {
-        screenShareObj.on('room.left', () => resolve(true))
+      const screenShareObjCallLeave = expectPageEvalToPass(page, {
+        evaluateArgs: { screenShareObj },
+        evaluateFn: async (params) => {
+          await params.screenShareObj.leave()
+          return true
+        },
+        messageAssert: 'expect screen share obj left',
+        messageError: 'screen share obj left',
       })
 
-      await new Promise((r) => setTimeout(r, 2000))
-
-      await screenShareObj.leave()
-
-      return Promise.all([
-        screenJoined,
-        screenLeft,
-        screenRoomLeft,
-        screenShareIdCheckPromise,
-      ])
+      // preserve order of these promises
+      await screenMemberJoined
+      await screenShareObjCallLeave
+      await screenRoomLeft
+      await screenMemberLeft
     })
 
     // --------------- Room lock/unlock ---------------
-    await page.evaluate(
-      // @ts-expect-error
-      async ({ callSession }) => {
-        // @ts-expect-error
-        const callObj: CallSession = window._callObj
-
-        const roomUpdatedLocked = new Promise((resolve) => {
-          callObj.on('room.updated', (params) => {
-            if (params.room_session.locked === true) {
-              resolve(true)
-            }
+    await test.step('room lock', async () => {
+      const roomUpdatedLocked = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('room.updated', ({ room_session }) => {
+              if (room_session.locked === true) {
+                resolve(true)
+              }
+            })
           })
-        })
+        },
+        messageAssert: 'expect room updated locked',
+        messageError: 'room updated locked',
+      })
 
-        const roomUpdatedUnlocked = new Promise((resolve) => {
-          callObj.on('room.updated', (params) => {
-            if (params.room_session.locked === false) {
-              resolve(true)
-            }
+      const roomLock = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          await params.callObj.lock()
+          return true
+        },
+        messageAssert: 'expect room lock',
+        messageError: 'room lock',
+      })
+
+      await roomLock
+      await roomUpdatedLocked
+    })
+
+    await test.step('room unlock', async () => {
+      const roomUpdatedUnlocked = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          return new Promise<boolean>((resolve) => {
+            params.callObj.on('room.updated', ({ room_session }) => {
+              if (room_session.locked === false) {
+                resolve(true)
+              }
+            })
           })
-        })
+        },
+        messageAssert: 'expect room updated unlocked',
+        messageError: 'room updated unlocked',
+      })
 
-        await callObj.lock()
-        await roomUpdatedLocked
+      const roomUnlock = expectPageEvalToPass(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => {
+          await params.callObj.unlock()
+          return true
+        },
+        messageAssert: 'expect room unlock',
+        messageError: 'room unlock',
+      })
 
-        await callObj.unlock()
-        await roomUpdatedUnlocked
-      },
-      { callSession }
-    )
+      await roomUnlock
+      await roomUpdatedUnlocked
+    })
 
     // --------------- Set layout ---------------
-    const layoutName = '3x3'
-    const layoutChangedPromise = expectLayoutChanged(page, layoutName)
-    await setLayoutOnPage(page, layoutName)
-    expect(await layoutChangedPromise).toBe(true)
+    await test.step('set layout', async () => {
+      const LAYOUT_NAME = '3x3'
+      const layoutChangedPromise = expectLayoutChanged(page, LAYOUT_NAME)
+      await setLayoutOnPage(page, LAYOUT_NAME)
+      await expect(layoutChangedPromise).resolves.toBe(true)
+    })
 
     /**
      * FIXME: The following APIs are not yet supported by the Call Call SDK
@@ -373,28 +551,35 @@ test.describe('CallCall VideoRoom', () => {
 
     await createCFClient(page)
 
-    // Dial an address and join a video room
-    const callSession = await page.evaluate(async () => {
-      try {
-        const client = window._client!
+    // Dial an address and join a video room using expectPageEvalToPass
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        try {
+          const client = window._client
+          if (!client) {
+            throw new Error('Client not found')
+          }
 
-        const call = await client.dial({
-          to: `/public/invalid-address?channel=video`,
-          rootElement: document.getElementById('rootElement'),
-        })
+          const call = client.dial({
+            to: `/public/invalid-address?channel=video`,
+            rootElement: document.getElementById('rootElement'),
+          })
 
-        // @ts-expect-error
-        window._callObj = call
+          window._callObj = call
 
-        await call.start()
+          await call.start()
 
-        return { success: true }
-      } catch (error) {
-        return { success: false, error }
-      }
+          return { success: true }
+        } catch (error) {
+          return { success: false, error }
+        }
+      },
+      assertionFn: (result, message) => {
+        expect(result.success, message).toBe(false)
+      },
+      messageAssert: 'expect call session to fail on invalid address',
+      messageError: 'call session did not fail as expected',
     })
-
-    expect(callSession.success).toBe(false)
   })
 
   test('should handle joining a room with audio channel only', async ({
@@ -410,14 +595,14 @@ test.describe('CallCall VideoRoom', () => {
     await createCFClient(page)
 
     // Dial an address with audio only channel
-    const callSession = await dialAddress(page, {
+    const callSession: CallJoinedEventParams = await dialAddress(page, {
       address: `/public/${roomName}?channel=audio`,
     })
 
     expect(callSession.room_session).toBeDefined()
     expect(
       callSession.room_session.members.some(
-        (member: any) => member.member_id === callSession.member_id
+        (member) => member.member_id === callSession.member_id
       )
     ).toBeTruthy()
 
