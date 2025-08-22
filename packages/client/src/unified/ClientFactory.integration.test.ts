@@ -21,6 +21,7 @@ function createTestCredentials(overrides?: Partial<SignalWireCredentials>): Sign
         refresh_token: body.refresh_token || 'refresh-token',
       }
     }),
+    host: 'test-host.signalwire.com',
     ...overrides
   }
 }

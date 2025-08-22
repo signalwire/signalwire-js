@@ -477,7 +477,7 @@ export class ProfileManager implements ProfileManagerContract {
   private async _callRefreshAPI(
     profile: Profile
   ): Promise<Profile['credentials']> {
-    const { satRefreshURL, satRefreshPayload, satRefreshResultMapper } =
+    const { satRefreshURL, satRefreshPayload, satRefreshResultMapper, host } =
       profile.credentials
 
     // Check if we're in a test environment by detecting jest
@@ -491,6 +491,7 @@ export class ProfileManager implements ProfileManagerContract {
         satRefreshPayload,
         satRefreshURL,
         satRefreshResultMapper,
+        host,
       }
     }
 
@@ -518,6 +519,7 @@ export class ProfileManager implements ProfileManagerContract {
       satRefreshPayload: mappedResult.satRefreshPayload,
       satRefreshURL,
       satRefreshResultMapper,
+      host,
     }
   }
 

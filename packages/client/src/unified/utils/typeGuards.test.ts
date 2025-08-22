@@ -25,6 +25,7 @@ describe('TypeGuards', () => {
           tokenExpiry: body.expires_at || Date.now() + 3600000,
           satRefreshPayload: body.refresh_payload || {},
         }),
+        host: 'test-host.signalwire.com',
       },
       addressId: 'address-id',
       createdAt: Date.now(),
