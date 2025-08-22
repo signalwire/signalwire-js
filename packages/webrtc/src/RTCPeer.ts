@@ -24,7 +24,7 @@ import { WebRTCStatsMonitor } from './monitoring/WebRTCStatsMonitor'
 import type {
   NetworkQuality,
   StatsHistoryEntry,
-  MonitoringOptions
+  MonitoringOptions,
 } from './monitoring/interfaces'
 const RESUME_TIMEOUT = 12_000
 
@@ -100,9 +100,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     this.rtcConfigPolyfill = this.config
-
-    // Initialize stats monitoring if not disabled
-    this._initializeStatsMonitoring()
   }
 
   get options() {
@@ -390,6 +387,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private resetNeedResume() {
     this.clearResumeTimer()
+    this.startStatsMonitoring()
     if (this.options.watchMediaPackets) {
       this.startWatchMediaPackets()
     }
@@ -836,16 +834,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         }
       } else {
         this.startNegotiation()
-      }
-
-      // Start monitoring after peer connection is established
-      if (this.instance && this._statsMonitor && !this._monitoringEnabled) {
-        // Delay to allow connection to stabilize
-        setTimeout(() => {
-          if (this.instance?.connectionState !== 'closed') {
-            this.startStatsMonitoring()
-          }
-        }, 2000)
       }
     })
   }
@@ -1472,7 +1460,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       if (!this.instance || this.instance.signalingState === 'closed') {
-        throw new Error('Cannot trigger reinvite - peer connection not available')
+        throw new Error(
+          'Cannot trigger reinvite - peer connection not available'
+        )
       }
 
       this.logger.info('Triggering reinvite for connection recovery')
@@ -1497,7 +1487,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public async requestKeyframe(): Promise<void> {
     try {
       const videoSender = this._getSenderByKind('video')
-      
+
       if (!videoSender || !videoSender.track) {
         this.logger.debug('No video sender available for keyframe request')
         return
@@ -1508,7 +1498,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       // Try to use RTCRtpSender.generateKeyFrame() if available (newer browsers)
       if (typeof (videoSender as any).generateKeyFrame === 'function') {
         await (videoSender as any).generateKeyFrame()
-        this.logger.debug('Keyframe requested via RTCRtpSender.generateKeyFrame()')
+        this.logger.debug(
+          'Keyframe requested via RTCRtpSender.generateKeyFrame()'
+        )
         return
       }
 
@@ -1524,16 +1516,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       // Additional fallback: Try to emit a generic event (if needed by application)
       // Note: This is a fallback mechanism for applications that need to handle keyframe requests
       try {
-        (this.call as any).emit?.('keyframe.request', {
+        ;(this.call as any).emit?.('keyframe.request', {
           callId: this.call.id,
           peerId: this.uuid,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         })
       } catch (error) {
         // Event emission failed, but this is not critical for keyframe request
         this.logger.debug('Could not emit keyframe.request event', error)
       }
-
     } catch (error) {
       this.logger.error('Failed to request keyframe', error)
       throw error

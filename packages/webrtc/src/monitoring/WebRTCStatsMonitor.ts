@@ -307,9 +307,7 @@ export class WebRTCStatsMonitor implements IStatsMonitor {
     this.rtcPeer = rtcPeer
 
     // Initialize monitoring components
-    this.metricsCollector = new MetricsCollector(
-      (rtcPeer as any).peerConnection
-    )
+    this.metricsCollector = new MetricsCollector(this.rtcPeer.instance)
     this.issueDetector = new IssueDetector()
     this.recoveryManager = new RecoveryManager(rtcPeer, connection)
     this.baselineManager = new BaselineManager()

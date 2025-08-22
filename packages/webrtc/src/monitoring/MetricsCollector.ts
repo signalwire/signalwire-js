@@ -80,7 +80,7 @@ export class MetricsCollector implements IStatsCollector {
     this.peerConnection = peerConnection
     this.options = {
       historySize: options.historySize ?? HISTORY_LIMITS.METRICS_HISTORY_SIZE,
-      verbose: options.verbose ?? false,
+      verbose: options.verbose ?? true,
       browserOptimizations: options.browserOptimizations ?? true,
       enableComputedMetrics: options.enableComputedMetrics ?? true,
       minCollectionInterval: options.minCollectionInterval ?? 500,
@@ -91,7 +91,7 @@ export class MetricsCollector implements IStatsCollector {
     this.isChrome = this.detectBrowser('Chrome')
     this.isSafari = this.detectBrowser('Safari')
 
-    this.log('MetricsCollector initialized', {
+    this.logger.info('MetricsCollector initialized', {
       browser: this.getBrowserName(),
       options: this.options,
     })
@@ -826,7 +826,12 @@ export class MetricsCollector implements IStatsCollector {
    * @returns True if browser matches
    */
   private detectBrowser(browserName: string): boolean {
-    if (typeof navigator === 'undefined') return false
+    if (
+      typeof navigator === 'undefined' ||
+      typeof navigator.userAgent === 'undefined'
+    ) {
+      return false
+    }
     return navigator.userAgent.indexOf(browserName) !== -1
   }
 
@@ -836,10 +841,17 @@ export class MetricsCollector implements IStatsCollector {
    * @returns Browser name
    */
   private getBrowserName(): string {
-    if (this.isFirefox) return 'Firefox'
-    if (this.isSafari) return 'Safari'
-    if (this.isChrome) return 'Chrome'
-    return 'Unknown'
+    let browserName = ''
+    if (this.isFirefox) {
+      browserName = 'Firefox'
+    }
+    if (this.isChrome) {
+      browserName = `${browserName}|Chrome`
+    }
+    if (this.isSafari) {
+      browserName = `${browserName}|Safari`
+    }
+    return browserName.length ? browserName : 'Unknown'
   }
 
   /**

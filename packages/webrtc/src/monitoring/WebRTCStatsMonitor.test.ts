@@ -37,7 +37,7 @@ const mockPeerConnection = {
 }
 
 const mockRTCPeer = {
-  peerConnection: mockPeerConnection,
+  instance: mockPeerConnection,
 } as unknown as RTCPeer<any>
 
 const mockConnection = {
