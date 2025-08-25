@@ -2104,7 +2104,6 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     messageAssert,
-    messageError,
     interval = [10_000],
     timeoutMs = 10_000,
   }: ExpectPageEvalToPassParams<TArgs, TResult>
@@ -2128,7 +2127,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
         assertionFn(result, messageAssert)
       }
     },
-    { message: messageError },
+    { message: messageAssert },
     { timeout: timeoutMs, interval: interval }
   )
   return result
