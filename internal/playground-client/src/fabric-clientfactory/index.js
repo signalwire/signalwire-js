@@ -1,6 +1,31 @@
-import { ClientFactory, LocalStorageAdapter } from '@signalwire/client'
+import { SignalWire, buildVideoElement, ClientFactory, LocalStorageAdapter } from '@signalwire/client'
+import {
+  enumerateDevices,
+  checkPermissions,
+  getCameraDevicesWithPermissions,
+  getMicrophoneDevicesWithPermissions,
+  getSpeakerDevicesWithPermissions,
+  getMicrophoneDevices,
+  getCameraDevices,
+  getSpeakerDevices,
+  supportsMediaOutput,
+  createDeviceWatcher,
+  createMicrophoneAnalyzer,
+} from '@signalwire/webrtc'
 
-// Global variables
+window.getMicrophoneDevices = getMicrophoneDevices
+window.getCameraDevices = getCameraDevices
+window.getSpeakerDevices = getSpeakerDevices
+window.checkPermissions = checkPermissions
+window.getCameraDevicesWithPermissions = getCameraDevicesWithPermissions
+window.getMicrophoneDevicesWithPermissions = getMicrophoneDevicesWithPermissions
+window.getSpeakerDevicesWithPermissions = getSpeakerDevicesWithPermissions
+
+let roomObj = null
+let client = null
+let micAnalyzer = null
+
+// ClientFactory global variables
 let clientFactory = null
 let profiles = new Map() // Map<profileId, profile>
 let activeClients = new Map() // Map<profileId, client instance>
@@ -8,13 +33,201 @@ let selectedProfileId = null
 let activeCalls = new Map() // Map<profileId, call instance>
 let callStartTime = null
 
-// UI References
-const searchInput = document.getElementById('searchInput')
-const searchType = document.getElementById('searchType')
-const conversationMessageInput = document.getElementById('new-conversation-message')
-const sendMessageBtn = document.getElementById('send-message')
-const credentialsInput = document.getElementById('credentialsInput')
-const profileSelector = document.getElementById('profileSelector')
+const inCallElements = [
+  btnHangup,
+  roomControls,
+  muteSelfBtn,
+  unmuteSelfBtn,
+  muteVideoSelfBtn,
+  unmuteVideoSelfBtn,
+  deafSelfBtn,
+  undeafSelfBtn,
+  raiseHandBtn,
+  lowerHandBtn,
+  controlSliders,
+  controlLayout,
+  hideVMutedBtn,
+  showVMutedBtn,
+  lockRoomBtn,
+  unlockRoomBtn,
+  holdCallBtn,
+  unholdCallBtn,
+  hideScreenShareBtn,
+  showScreenShareBtn,
+  controlRecording,
+  startRecordingBtn,
+  stopRecordingBtn,
+  pauseRecordingBtn,
+  resumeRecordingBtn,
+  controlPlayback,
+  endSelfBtn,
+]
+
+const playbackElements = [
+  stopPlaybackBtn,
+  pausePlaybackBtn,
+  resumePlaybackBtn,
+  playbackVolumeControl,
+  playbackSeekAbsoluteGroup,
+]
+
+window.playbackStarted = () => {
+  playBtn.classList.add('d-none')
+  playBtn.disabled = true
+
+  playbackElements.forEach((button) => {
+    button.classList.remove('d-none')
+    button.disabled = false
+  })
+}
+window.playbackEnded = () => {
+  playBtn.classList.remove('d-none')
+  playBtn.disabled = false
+
+  playbackElements.forEach((button) => {
+    button.classList.add('d-none')
+    button.disabled = true
+  })
+}
+
+async function loadLayouts(currentLayoutId) {
+  try {
+    const { layouts } = await roomObj.getLayouts()
+    const fillSelectElement = (id) => {
+      const layoutEl = document.getElementById(id)
+      layoutEl.innerHTML = ''
+
+      const defOption = document.createElement('option')
+      defOption.value = ''
+      defOption.innerHTML =
+        id === 'layout' ? 'Change layout..' : 'Select layout for ScreenShare..'
+      layoutEl.appendChild(defOption)
+      for (var i = 0; i < layouts.length; i++) {
+        const layout = layouts[i]
+        var opt = document.createElement('option')
+        opt.value = layout
+        opt.innerHTML = layout
+        layoutEl.appendChild(opt)
+      }
+      if (currentLayoutId) {
+        layoutEl.value = currentLayoutId
+      }
+    }
+
+    fillSelectElement('layout')
+    fillSelectElement('ssLayout')
+  } catch (error) {
+    console.warn('Error listing layout', error)
+  }
+}
+
+let currentPositionId = null
+async function loadPositions(layout) {
+  const positionEl = document.getElementById('position')
+  positionEl.innerHTML = ''
+
+  const defOption = document.createElement('option')
+  defOption.value = ''
+  defOption.innerHTML = 'Change position...'
+  positionEl.appendChild(defOption)
+
+  const layers = layout.layers || []
+  for (var i = 0; i < layers.length; i++) {
+    const position = layers[i].position
+    var opt = document.createElement('option')
+    opt.value = position
+    opt.innerHTML = position
+    positionEl.appendChild(opt)
+  }
+  if (currentPositionId) {
+    positionEl.value = currentPositionId
+  }
+}
+
+function setDeviceOptions({ deviceInfos, el, kind }) {
+  if (!deviceInfos || deviceInfos.length === 0) {
+    return
+  }
+
+  // Store the previously selected value so we could restore it after
+  // re-populating the list
+  const selectedValue = el.value
+
+  // Empty the Select
+  el.innerHTML = ''
+
+  deviceInfos.forEach((deviceInfo) => {
+    const option = document.createElement('option')
+
+    option.value = deviceInfo.deviceId
+    option.text = deviceInfo.label || `${kind} ${el.length + 1}`
+
+    el.appendChild(option)
+  })
+
+  el.value = selectedValue || deviceInfos[0].deviceId
+}
+
+async function setAudioInDevicesOptions() {
+  const micOptions = await getMicrophoneDevices()
+
+  setDeviceOptions({
+    deviceInfos: micOptions,
+    el: microphoneSelect,
+    kind: 'microphone',
+  })
+}
+
+async function setAudioOutDevicesOptions() {
+  if (supportsMediaOutput()) {
+    const options = await getSpeakerDevices()
+
+    setDeviceOptions({
+      deviceInfos: options,
+      el: speakerSelect,
+      kind: 'speaker',
+    })
+  }
+}
+
+async function setVideoDevicesOptions() {
+  const options = await getCameraDevices()
+
+  setDeviceOptions({
+    deviceInfos: options,
+    el: cameraSelect,
+    kind: 'camera',
+  })
+}
+
+function initDeviceOptions() {
+  setAudioInDevicesOptions()
+  setAudioOutDevicesOptions()
+  setVideoDevicesOptions()
+}
+
+function meter(el, val) {
+  const canvasWidth = el.width
+  const canvasHeight = el.height
+  const ctx = el.getContext('2d')
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+
+  // Border
+  ctx.beginPath()
+  ctx.rect(0, 0, canvasWidth, canvasHeight)
+  ctx.strokeStyle = '#0f5e39'
+  ctx.stroke()
+
+  // Meter fill
+  ctx.beginPath()
+  ctx.rect(0, canvasHeight, canvasWidth, -val)
+  ctx.stroke()
+  ctx.fillStyle = '#198754'
+  ctx.fill()
+  ctx.stroke()
+}
+
+// ClientFactory Profile Management Functions
 
 /**
  * Initialize the ClientFactory with LocalStorageAdapter
@@ -62,6 +275,7 @@ window.addProfile = async () => {
       await initializeClientFactory()
     }
 
+    const credentialsInput = document.getElementById('credentialsInput')
     const credentialsText = credentialsInput.value.trim()
     if (!credentialsText) {
       showError('Please enter JSON credentials')
@@ -216,8 +430,6 @@ window.clearAllProfiles = async () => {
     // Update UI
     updateProfilesUI()
     updateProfileSelector()
-    clearAddressesUI()
-    clearHistoryUI()
     
     showSuccess('All profiles cleared successfully')
 
@@ -232,83 +444,18 @@ window.clearAllProfiles = async () => {
  */
 window.selectProfile = () => {
   const previousProfileId = selectedProfileId
+  const profileSelector = document.getElementById('profileSelector')
   selectedProfileId = profileSelector.value || null
   
-  // Hide call status when switching profiles
-  if (previousProfileId !== selectedProfileId) {
-    hideCallStatus()
-  }
-  
   // Update connect button state
-  const connectBtn = document.getElementById('btnConnect')
-  connectBtn.disabled = !selectedProfileId
-  
-  // Clear addresses and history when switching profiles
-  clearAddressesUI()
-  clearHistoryUI()
+  updateConnectButtonState()
 }
 
-/**
- * Connect with selected profile and load addresses
- */
-window.connect = async () => {
-  if (!selectedProfileId) {
-    showError('Please select a profile first')
-    return
-  }
-
-  try {
-    if (!clientFactory) {
-      await initializeClientFactory()
-    }
-
-    // Get or create client for the selected profile
-    const { instance: clientInstance, isNew } = await clientFactory.getClient({
-      profileId: selectedProfileId
-    })
-
-    // Store the client instance
-    activeClients.set(selectedProfileId, clientInstance.client)
-    
-    if (isNew) {
-      console.log('Created new client instance for profile:', selectedProfileId)
-    } else {
-      console.log('Using existing client instance for profile:', selectedProfileId)
-    }
-
-    // Store client globally for other functions
-    window.__client = clientInstance.client
-
-    // Load addresses and history
-    await Promise.all([fetchHistories(), fetchAddresses()])
-
-    // Get subscriber info
-    const subscriber = await clientInstance.client.getSubscriberInfo()
-    console.log('>> subscriber', subscriber)
-
-    showSuccess('Connected successfully!')
-
-  } catch (error) {
-    console.error('Failed to connect:', error)
-    showError('Failed to connect: ' + error.message)
-  }
-}
-
-/**
- * Get the active client for the selected profile
- */
-function getActiveClient() {
-  if (!selectedProfileId || !activeClients.has(selectedProfileId)) {
-    return null
-  }
-  return activeClients.get(selectedProfileId)
-}
-
-/**
- * Update profiles list UI
- */
+// Profile management utility functions
 function updateProfilesUI() {
   const profilesList = document.getElementById('profilesList')
+  
+  if (!profilesList) return // Gracefully handle missing element
   
   if (profiles.size === 0) {
     profilesList.innerHTML = `
@@ -355,10 +502,11 @@ function updateProfilesUI() {
   }
 }
 
-/**
- * Update profile selector dropdown
- */
 function updateProfileSelector() {
+  const profileSelector = document.getElementById('profileSelector')
+  
+  if (!profileSelector) return // Gracefully handle missing element
+  
   profileSelector.innerHTML = '<option value="">Select a profile</option>'
   
   for (const [profileId, profile] of profiles) {
@@ -371,9 +519,46 @@ function updateProfileSelector() {
   // Enable/disable selector
   profileSelector.disabled = profiles.size === 0
   
-  // Update connect button
+  // Update connect button - enable if profile is selected OR if host/token are filled for direct connection
+  updateConnectButtonState()
+}
+
+function updateConnectButtonState() {
   const connectBtn = document.getElementById('btnConnect')
-  connectBtn.disabled = !selectedProfileId || profiles.size === 0
+  if (!connectBtn) return
+  
+  const hostEl = document.getElementById('host')
+  const tokenEl = document.getElementById('token')
+  
+  // Enable if profile is selected OR if host and token are filled for direct connection
+  const hasProfile = selectedProfileId && profiles.size > 0
+  const hasDirectConnection = hostEl?.value?.trim() && tokenEl?.value?.trim()
+  
+  connectBtn.disabled = !(hasProfile || hasDirectConnection)
+}
+
+// Utility functions for UI
+function showError(message) {
+  console.error(message)
+  // You can implement a toast notification here
+  alert('Error: ' + message)
+}
+
+function showSuccess(message) {
+  console.log(message)
+  // You can implement a toast notification here
+  alert('Success: ' + message)
+}
+
+function escapeHTML(str) {
+  if (!str) return ''
+  const div = document.createElement('div')
+  div.textContent = str
+  return div.innerHTML
+}
+
+function formatDate(timestamp) {
+  return new Date(timestamp).toLocaleString()
 }
 
 /**
@@ -420,9 +605,8 @@ window.removeProfile = async (profileId) => {
     // If this was the selected profile, clear selection
     if (selectedProfileId === profileId) {
       selectedProfileId = null
-      profileSelector.value = ''
-      clearAddressesUI()
-      clearHistoryUI()
+      const profileSelector = document.getElementById('profileSelector')
+      if (profileSelector) profileSelector.value = ''
     }
     
     // Update UI
@@ -437,10 +621,429 @@ window.removeProfile = async (profileId) => {
   }
 }
 
-// Save in localStorage functionality
+const initializeMicAnalyzer = async (stream) => {
+  if (!stream) {
+    return
+  }
+
+  const el = document.getElementById('mic-meter')
+  micAnalyzer = await createMicrophoneAnalyzer(stream)
+  micAnalyzer.on('volumeChanged', (vol) => {
+    meter(el, vol)
+  })
+  micAnalyzer.on('destroyed', (reason) => {
+    console.log('Microphone analyzer destroyed', reason)
+  })
+}
+
+function restoreUI() {
+  connectStatus.innerHTML = 'Call Disconnected'
+
+  btnDial.classList.remove('d-none')
+  btnDisconnect.classList.remove('d-none')
+
+  inCallElements.forEach((button) => {
+    button.classList.add('d-none')
+    button.disabled = true
+  })
+}
+
+/**
+ * Connect the Fabric client (start the WebSocket connection with Auth).
+ * Supports both ClientFactory profiles and direct connection.
+ */
+window.connect = async () => {
+  const connectStatus = document.getElementById('connectStatus')
+  const btnConnect = document.getElementById('btnConnect')
+  const btnDial = document.getElementById('btnDial')
+  const btnDisconnect = document.getElementById('btnDisconnect')
+  
+  if (connectStatus) connectStatus.innerHTML = 'Connecting...'
+
+  try {
+    // Check if we should use ClientFactory (when a profile is selected)
+    if (selectedProfileId) {
+      console.log('Connecting using ClientFactory profile:', selectedProfileId)
+      
+      if (!clientFactory) {
+        await initializeClientFactory()
+      }
+
+      // Get or create client for the selected profile
+      const { instance: clientInstance, isNew } = await clientFactory.getClient({
+        profileId: selectedProfileId
+      })
+
+      // Store the client instance
+      activeClients.set(selectedProfileId, clientInstance.client)
+      client = clientInstance.client
+      
+      if (isNew) {
+        console.log('Created new client instance for profile:', selectedProfileId)
+      } else {
+        console.log('Using existing client instance for profile:', selectedProfileId)
+      }
+
+      // Store client globally for other functions
+      window.__client = client
+
+      showSuccess('Connected successfully using ClientFactory!')
+
+    } else {
+      // Use direct connection (legacy mode)
+      console.log('Connecting using direct SignalWire client')
+      
+      const hostEl = document.getElementById('host')
+      const tokenEl = document.getElementById('token')
+      
+      if (!hostEl?.value || !tokenEl?.value) {
+        throw new Error('Host and Token are required for direct connection')
+      }
+
+      client = await SignalWire({
+        host: hostEl.value,
+        token: tokenEl.value,
+        logLevel: 'debug',
+        debug: { logWsTraffic: true },
+      })
+      window.__client = client
+
+      /**
+       * Following are the internal SDK session events
+       */
+      client.__wsClient.session.on('session.connected', () => {
+        console.debug('>> session.connected')
+      })
+      client.__wsClient.session.on('session.auth_error', (error) => {
+        console.debug('>> session.auth_error', error)
+      })
+      client.__wsClient.session.on('session.disconnecting', () => {
+        console.debug('>> session.disconnecting')
+      })
+      client.__wsClient.session.on('session.disconnected', () => {
+        console.debug('>> session.disconnected')
+      })
+      client.__wsClient.session.on('session.expiring', () => {
+        console.debug('>> session.expiring')
+      })
+      client.__wsClient.session.on('session.idle', () => {
+        console.debug('>> session.idle')
+      })
+      client.__wsClient.session.on('session.reconnecting', () => {
+        console.debug('>> session.reconnecting')
+      })
+      client.__wsClient.session.on('session.unknown', () => {
+        console.debug('>> session.unknown')
+      })
+    }
+
+    if (connectStatus) connectStatus.innerHTML = 'Connected'
+
+    if (btnConnect) btnConnect.classList.add('d-none')
+    if (btnDial) btnDial.classList.remove('d-none')
+    if (btnDisconnect) btnDisconnect.classList.remove('d-none')
+
+    removeRoomFromURL()
+
+  } catch (error) {
+    console.error('Failed to connect:', error)
+    if (connectStatus) connectStatus.innerHTML = 'Connection Failed'
+    showError('Failed to connect: ' + error.message)
+    
+    // Reset button states on error
+    if (btnConnect) btnConnect.classList.remove('d-none')
+    if (btnDial) btnDial.classList.add('d-none')
+    if (btnDisconnect) btnDisconnect.classList.add('d-none')
+  }
+}
+
+/**
+ * Dial the Fabric Address
+ */
+window.dial = async ({ reattach = false } = {}) => {
+  connectStatus.innerHTML = 'Dialing...'
+
+  // Set a node_id for steering
+  const steeringId = undefined
+
+  const dialer = reattach ? client.reattach : client.dial
+
+  const call = await dialer({
+    nodeId: steeringId,
+    to: document.getElementById('destination').value,
+    rootElement: document.getElementById('rootElement'),
+    fromFabricAddressId: document.getElementById('fromFabricAddressId').value,
+    video: document.getElementById('video').checked,
+    audio: document.getElementById('audio').checked,
+  })
+
+  window.__call = call
+  roomObj = call
+
+  roomObj.on('call.state', (params) => {
+    console.debug('>> call.state', params)
+  })
+  roomObj.on('call.joined', (params) => {
+    console.debug('>> call.joined', params)
+
+    const selfMember = params.room_session.members.find(
+      (member) => member.member_id === params.member_id
+    )
+    if (selfMember) {
+      microphoneVolume.value = selfMember.input_volume
+      speakerVolume.value = selfMember.output_volume
+      inputSensitivity.value = selfMember.input_sensitivity
+    }
+  })
+  roomObj.on('call.updated', (params) => {
+    console.debug('>> call.updated', params)
+  })
+  roomObj.on('call.left', (params) => {
+    console.debug('>> call.left', params)
+  })
+  roomObj.on('call.play', (params) => {
+    console.debug('>> call.play', params)
+  })
+  roomObj.on('call.connect', (params) => {
+    console.debug('>> call.connect', params)
+  })
+  roomObj.on('call.room', (params) => {
+    console.debug('>> call.room', params)
+  })
+
+  roomObj.on('room.subscribed', (params) =>
+    console.debug('>> room.subscribed', params)
+  )
+  roomObj.on('room.joined', (params) => {
+    console.debug('>> room.joined ', params)
+
+    addRoomToURL(params.room_session.name)
+  })
+  roomObj.on('room.updated', (params) =>
+    console.debug('>> room.updated', params)
+  )
+  roomObj.on('room.left', (params) => {
+    console.debug('>> room.left', params)
+  })
+  roomObj.on('room.ended', (params) => {
+    console.debug('>> room.ended', params)
+    hangup()
+  })
+
+  roomObj.on('member.joined', (params) =>
+    console.debug('>> member.joined', params)
+  )
+  roomObj.on('member.updated', (params) =>
+    console.debug('>> member.updated', params)
+  )
+  roomObj.on('member.updated.audioMuted', (params) =>
+    console.debug('>> member.updated.audioMuted', params)
+  )
+  roomObj.on('member.updated.videoMuted', (params) =>
+    console.debug('>> member.updated.videoMuted', params)
+  )
+  roomObj.on('member.updated.deaf', (params) =>
+    console.debug('>> member.updated.deaf', params)
+  )
+  roomObj.on('member.updated.visible', (params) =>
+    console.debug('>> member.updated.visible', params)
+  )
+  roomObj.on('member.updated.inputVolume', (params) =>
+    console.debug('>> member.updated.inputVolume', params)
+  )
+  roomObj.on('member.updated.outputVolume', (params) =>
+    console.debug('>> member.updated.outputVolume', params)
+  )
+  roomObj.on('member.updated.inputSensitivity', (params) =>
+    console.debug('>> member.updated.inputSensitivity', params)
+  )
+  roomObj.on('member.updated.handraised', (params) =>
+    console.debug('>> member.updated.handraised', params)
+  )
+  roomObj.on('member.updated.echoCancellation', (params) =>
+    console.debug('>> member.updated.echoCancellation', params)
+  )
+  roomObj.on('member.updated.autoGain', (params) =>
+    console.debug('>> member.updated.autoGain', params)
+  )
+  roomObj.on('member.updated.noiseSuppression', (params) =>
+    console.debug('>> member.updated.noiseSuppression', params)
+  )
+  roomObj.on('member.left', (params) => console.debug('>> member.left', params))
+  roomObj.on('member.talking', (params) =>
+    console.debug('>> member.talking', params)
+  )
+
+  roomObj.on('media.connected', () => {
+    console.debug('>> media.connected')
+  })
+  roomObj.on('media.reconnecting', () => {
+    console.debug('>> media.reconnecting')
+  })
+  roomObj.on('media.disconnected', () => {
+    console.debug('>> media.disconnected')
+  })
+
+  // CF SDK does not support recording events yet
+  roomObj.on('recording.started', (params) => {
+    console.debug('>> recording.started', params)
+    document.getElementById('recordingState').innerText = 'recording'
+  })
+  roomObj.on('recording.ended', (params) => {
+    console.debug('>> recording.ended', params)
+    document.getElementById('recordingState').innerText = 'completed'
+  })
+  roomObj.on('recording.updated', (params) => {
+    console.debug('>> recording.updated', params)
+    document.getElementById('recordingState').innerText = params.state
+  })
+
+  // CF SDK does not support playback events yet
+  roomObj.on('playback.started', (params) => {
+    console.debug('>> playback.started', params)
+    playbackStarted()
+  })
+  roomObj.on('playback.ended', (params) => {
+    console.debug('>> playback.ended', params)
+    playbackEnded()
+  })
+  roomObj.on('playback.updated', (params) => {
+    console.debug('>> playback.updated', params)
+    if (params.volume) {
+      document.getElementById('playbackVolume').value = params.volume
+    }
+  })
+
+  roomObj.on('layout.changed', (params) => {
+    console.debug('>> layout.changed', params)
+    loadPositions(params.layout)
+  })
+
+  roomObj.on('track', (event) => console.debug('>> DEMO track', event))
+
+  roomObj.on('destroy', () => {
+    console.debug('>> destroy')
+    restoreUI()
+  })
+
+  roomObj.on('microphone.updated', (params) => {
+    console.debug('>> microphone.updated', params)
+  })
+  roomObj.on('camera.updated', (params) => {
+    console.debug('>> camera.updated', params)
+  })
+  roomObj.on('speaker.updated', (params) => {
+    console.debug('>> speaker.updated', params)
+  })
+
+  await call.start()
+  console.debug('Call Obj', call)
+
+  /* --------- Render video element using custom function ---------- */
+  // setTimeout(async () => {
+  //   const { unsubscribe } = await buildVideoElement({
+  //     room: call,
+  //     rootElement: document.getElementById('random1'),
+  //   })
+
+  //   setTimeout(async () => {
+  //     const { element } = await buildVideoElement({
+  //       room: call,
+  //     })
+  //     const root = document.getElementById('random2')
+  //     root.appendChild(element)
+
+  //     setTimeout(() => {
+  //       unsubscribe()
+  //     }, 10000)
+  //   }, 5000)
+  // }, 5000)
+
+  enumerateDevices()
+    .then(initDeviceOptions)
+    .catch((error) => {
+      console.error('EnumerateDevices error', error)
+    })
+
+  const joinHandler = (params) => {
+    connectStatus.innerHTML = 'Call Connected'
+
+    btnConnect.classList.add('d-none')
+    btnDial.classList.add('d-none')
+    btnDisconnect.classList.add('d-none')
+
+    inCallElements.forEach((button) => {
+      button.classList.remove('d-none')
+      button.disabled = false
+    })
+    loadLayouts()
+  }
+  joinHandler()
+}
+
+/**
+ * Hangup the roomObj if present
+ */
+window.hangup = async () => {
+  if (micAnalyzer) {
+    micAnalyzer.destroy()
+  }
+
+  if (roomObj) {
+    await roomObj.hangup()
+  }
+
+  restoreUI()
+
+  removeRoomFromURL()
+}
+
+/**
+ * Disconnect the Call Fabric client
+ */
+window.disconnect = async () => {
+  await client.disconnect()
+  connectStatus.innerHTML = 'Disconnected'
+
+  client = null
+
+  btnConnect.classList.remove('d-none')
+  btnHangup.classList.add('d-none')
+  btnDial.classList.add('d-none')
+  btnDisconnect.classList.add('d-none')
+
+  removeRoomFromURL()
+}
+
+// Set or update the query parameter 'room' with value room.name
+window.addRoomToURL = (roomName) => {
+  const url = new URL(window.location.href)
+  url.searchParams.set('room', roomName)
+  window.history.replaceState({}, '', url)
+}
+
+// Remove the 'room' query parameter
+window.removeRoomFromURL = () => {
+  const url = new URL(window.location.href)
+  url.searchParams.delete('room')
+  window.history.replaceState({}, '', url)
+}
+
 window.saveInLocalStorage = (e) => {
   const key = e.target.name || e.target.id
-  localStorage.setItem('fabric.clientfactory.' + key, e.target.value)
+  let value = e.target.value
+  if (e.target.type === 'checkbox') {
+    value = e.target.checked
+  }
+  
+  // Save to localStorage with appropriate prefix
+  const prefix = key === 'credentialsInput' ? 'fabric.clientfactory.' : 'fabric.ws.'
+  localStorage.setItem(prefix + key, value)
+  
+  // Update connect button state when host or token fields change
+  if (key === 'host' || key === 'token') {
+    updateConnectButtonState()
+  }
 }
 
 // jQuery document.ready equivalent
@@ -458,893 +1061,386 @@ window.ready = (callback) => {
   }
 }
 
-// Device registration functions
-window.registerDeviceSNS = () => {
-  const client = getActiveClient()
-  if (!client) {
-    showError('No active client. Please connect first.')
-    return
+let screenShareObj
+window.startScreenShare = async () => {
+  let opts = {}
+  const ssPos = document.getElementById('ssPosition')?.value || ''
+  if (ssPos.trim()) {
+    opts = {
+      positions: {
+        self: ssPos.trim(),
+      },
+    }
   }
-  return client.registerDevice({
-    deviceType: 'iOS',
-    deviceToken: 'foo',
+  const layout = document.getElementById('ssLayout').value.trim()
+  if (layout) {
+    opts.layout = layout
+  }
+  screenShareObj = await roomObj
+    .startScreenShare({
+      audio: true,
+      video: true,
+      ...opts,
+    })
+    .catch((error) => {
+      console.error('ScreenShare Error', error)
+    })
+
+  screenShareObj.once('destroy', () => {
+    console.debug('>> screenShare destroy')
+  })
+
+  screenShareObj.once('room.left', () => {
+    console.debug('>> screenShare room.left')
+  })
+}
+window.stopScreenShare = () => {
+  screenShareObj.hangup()
+}
+
+window.muteAll = () => {
+  roomObj.audioMute({ memberId: 'all' })
+}
+
+window.unmuteAll = () => {
+  roomObj.audioUnmute({ memberId: 'all' })
+}
+
+window.muteSelf = () => {
+  roomObj.audioMute()
+}
+
+window.unmuteSelf = () => {
+  roomObj.audioUnmute()
+}
+
+window.muteVideoAll = () => {
+  roomObj.videoMute({ memberId: 'all' })
+}
+
+window.unmuteVideoAll = () => {
+  roomObj.videoUnmute({ memberId: 'all' })
+}
+
+window.muteVideoSelf = () => {
+  roomObj.videoMute()
+}
+
+window.unmuteVideoSelf = () => {
+  roomObj.videoUnmute()
+}
+
+window.deafSelf = () => {
+  roomObj.deaf()
+}
+
+window.undeafSelf = () => {
+  roomObj.undeaf()
+}
+
+window.hideVideoMuted = () => {
+  roomObj.hideVideoMuted()
+}
+
+window.showVideoMuted = () => {
+  roomObj.showVideoMuted()
+}
+
+window.raiseHand = () => {
+  roomObj.setRaisedHand({ raised: true })
+}
+
+window.lowerHand = () => {
+  roomObj.setRaisedHand({ raised: false })
+}
+
+window.lockRoom = () => {
+  // roomObj.lock()
+  roomObj.setAudioFlags({
+    echoCancellation: false,
+    autoGain: false,
+    noiseSuppression: false,
   })
 }
 
-window.unregisterDeviceSNS = () => {
-  const client = getActiveClient()
-  if (!client) {
-    showError('No active client. Please connect first.')
+window.unlockRoom = () => {
+  roomObj.unlock()
+}
+
+window.holdCall = () => {
+  roomObj.hold()
+}
+
+window.unholdCall = () => {
+  roomObj.unhold()
+}
+
+window.changeLayout = (select) => {
+  roomObj.setLayout({ name: select.value })
+}
+
+window.changePosition = (select) => {
+  roomObj.setPositions({ positions: { self: select.value } })
+  currentPositionId = select.value
+}
+
+window.changeMicrophone = (select) => {
+  if (!select.value) {
     return
   }
-  return client.unregisterDevice({
-    id: '<UUID>',
+  roomObj.updateMicrophone({ deviceId: select.value }).then(() => {
+    initializeMicAnalyzer(roomObj.localStream)
   })
+}
+
+window.changeCamera = (select) => {
+  if (!select.value) {
+    return
+  }
+  roomObj.updateCamera({ deviceId: select.value })
+}
+
+window.changeSpeaker = (select) => {
+  if (!select.value) {
+    return
+  }
+  roomObj
+    .updateSpeaker({ deviceId: select.value })
+    .then(() => {
+      console.log('Speaker updated!')
+    })
+    .catch(() => {
+      console.error(`Failed to update the speaker with id: ${select.value}`)
+    })
+}
+
+window.rangeInputHandler = (range) => {
+  switch (range.id) {
+    case 'microphoneVolume':
+      roomObj.setInputVolume({ volume: range.value })
+      break
+    case 'speakerVolume':
+      roomObj.setOutputVolume({ volume: range.value })
+      break
+    case 'inputSensitivity':
+      roomObj.setInputSensitivity({ value: range.value })
+      break
+    case 'playbackVolume': {
+      if (!playbackObj) {
+        return console.warn('Invalid playbackObj for `setVolume`')
+      }
+      playbackObj
+        .setVolume(range.value)
+        .then((response) => {
+          console.log('Playback setVolume:', response)
+        })
+        .catch((error) => {
+          console.error('Failed to set the playback volume:', error)
+        })
+      break
+    }
+  }
+}
+
+let recordingObj = null
+window.startRecording = () => {
+  console.debug('>> startRecording')
+  roomObj
+    .startRecording()
+    .then((response) => {
+      console.log('Recording started!', response)
+      recordingObj = response
+    })
+    .catch((error) => {
+      console.error('Failed to start recording:', error)
+    })
+}
+
+window.stopRecording = () => {
+  console.debug('>> stopRecording')
+  recordingObj
+    .stop()
+    .then((response) => {
+      console.log('Recording stopped!', response)
+      recordingObj = null
+    })
+    .catch((error) => {
+      console.error('Failed to stop recording:', error)
+    })
+}
+
+window.pauseRecording = () => {
+  console.debug('>> pauseRecording')
+  recordingObj
+    .pause()
+    .then((response) => {
+      console.log('Recording paused!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to pause recording:', error)
+    })
+}
+
+window.resumeRecording = () => {
+  console.debug('>> resumeRecording')
+  recordingObj
+    .resume()
+    .then((response) => {
+      console.log('Recording resumed!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to resume recording:', error)
+    })
+}
+
+let playbackObj = null
+window.startPlayback = () => {
+  const url = document.getElementById('playbackUrl').value
+  if (!url) {
+    return console.warn('Invalid playback URL')
+  }
+  console.debug('>> startPlayback', url)
+  roomObj
+    .play({ url, volume: 10 })
+    .then((response) => {
+      console.log('Playback started!', response)
+      playbackObj = response
+    })
+    .catch((error) => {
+      console.error('Failed to start playback:', error)
+    })
+}
+
+window.stopPlayback = () => {
+  console.debug('>> stopPlayback')
+  playbackObj
+    .stop()
+    .then((response) => {
+      console.log('Playback stopped!', response)
+      playbackObj = null
+    })
+    .catch((error) => {
+      console.error('Failed to stop playback:', error)
+    })
+}
+
+window.pausePlayback = () => {
+  console.debug('>> pausePlayback')
+  playbackObj
+    .pause()
+    .then((response) => {
+      console.log('Playback paused!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to pause playback:', error)
+    })
+}
+
+window.resumePlayback = () => {
+  console.debug('>> resumePlayback')
+  playbackObj
+    .resume()
+    .then((response) => {
+      console.log('Playback resumed!', response)
+    })
+    .catch((error) => {
+      console.error('Failed to resume playback:', error)
+    })
+}
+
+window.seekPlayback = () => {
+  const value = document.getElementById('playbackSeekAbsolute').value
+  if (!value) {
+    return console.warn('Invalid Seek Value')
+  } else if (!playbackObj) {
+    return console.warn("playbackObj doesn't exist")
+  }
+  console.debug('>> seekPlaybackBtn', value)
+  playbackObj
+    .seek(value)
+    .then(() => {
+      console.log('Playback.seek was successful')
+    })
+    .catch((error) => {
+      console.error('Failed to seek playback:', error)
+    })
+}
+
+window.seekRewindPlayback = () => {
+  if (!playbackObj) {
+    return console.warn("playbackObj doesn't exist")
+  }
+  console.debug('>> seekRewindPlayback')
+  playbackObj
+    .rewind(1000)
+    .then(() => {
+      console.log('Playback.rewind was successful')
+    })
+    .catch((error) => {
+      console.error('Failed to rewind playback:', error)
+    })
+}
+
+window.seekForwardPlayback = () => {
+  if (!playbackObj) {
+    return console.warn("playbackObj doesn't exist")
+  }
+  console.debug('>> seekForwardPlayback')
+  playbackObj
+    .forward(1000)
+    .then(() => {
+      console.log('Playback.forward was successful')
+    })
+    .catch((error) => {
+      console.error('Failed to forward playback:', error)
+    })
 }
 
 /**
- * Auto-fill input values from localStorage on page load
+ * On document ready auto-fill the input values from the localStorage.
  */
 window.ready(async function () {
-  credentialsInput.value = localStorage.getItem('fabric.clientfactory.credentialsInput') || ''
+  // Legacy input fields
+  const hostEl = document.getElementById('host')
+  const tokenEl = document.getElementById('token')
+  const destinationEl = document.getElementById('destination')
+  const fromFabricAddressIdEl = document.getElementById('fromFabricAddressId')
+  const audioEl = document.getElementById('audio')
+  const videoEl = document.getElementById('video')
+  
+  if (hostEl) hostEl.value = localStorage.getItem('fabric.ws.host') || ''
+  if (tokenEl) tokenEl.value = localStorage.getItem('fabric.ws.token') || ''
+  if (destinationEl) destinationEl.value = localStorage.getItem('fabric.ws.destination') || ''
+  if (fromFabricAddressIdEl) fromFabricAddressIdEl.value = localStorage.getItem('fabric.ws.fromFabricAddressId') || ''
+  if (audioEl) audioEl.checked = true
+  if (videoEl) videoEl.checked = localStorage.getItem('fabric.ws.video') === 'true'
+
+  // ClientFactory input fields
+  const credentialsInput = document.getElementById('credentialsInput')
+  if (credentialsInput) {
+    credentialsInput.value = localStorage.getItem('fabric.clientfactory.credentialsInput') || ''
+  }
   
   // Initialize ClientFactory and load existing profiles
   await initializeClientFactory()
-})
 
-// Utility functions
-const escapeHTML = (str) => {
-  const div = document.createElement('div')
-  div.textContent = str
-  return div.innerHTML
-}
-
-const formatDate = (timestamp) => {
-  return new Date(timestamp).toLocaleString()
-}
-
-const showError = (message) => {
-  // You can replace this with a proper toast/notification system
-  console.error(message)
-  alert('Error: ' + message)
-}
-
-const showSuccess = (message) => {
-  // You can replace this with a proper toast/notification system
-  console.log(message)
-  // For now, we'll skip success alerts to avoid spam
-}
-
-// Clear UI functions
-function clearAddressesUI() {
-  const addressesList = document.getElementById('addressesList')
-  const addressesPlaceholder = document.getElementById('addressesPlaceholder')
-  const addressPagination = document.getElementById('addressPagination')
-  
-  addressesList?.classList.add('d-none')
-  addressesPlaceholder?.classList.remove('d-none')
-  addressPagination?.style.setProperty('display', 'none', 'important')
-  
-  if (addressesList) {
-    addressesList.innerHTML = ''
-  }
-}
-
-function clearHistoryUI() {
-  const historiesList = document.getElementById('historiesList')
-  const historyPlaceholder = document.getElementById('historyPlaceholder')
-  
-  historiesList?.classList.add('d-none')
-  historyPlaceholder?.classList.remove('d-none')
-  
-  if (historiesList) {
-    historiesList.innerHTML = ''
-  }
-}
-
-/** ======= Tab utilities start ======= */
-window.toggleTabState = async (activeButtonName) => {
-  const config = [
-    {
-      name: 'Directory',
-      button: document.querySelector('button[name="Directory"]'),
-      card: document.getElementById('addressCard'),
-    },
-    {
-      name: 'History',
-      button: document.querySelector('button[name="History"]'),
-      card: document.getElementById('historyCard'),
-    },
-  ]
-
-  config.forEach(({ name, button, card }) => {
-    if (name === activeButtonName) {
-      button.classList.add('active', 'text-black')
-      button.classList.remove('text-secondary')
-      card.classList.remove('d-none')
-    } else {
-      button.classList.remove('active', 'text-black')
-      button.classList.add('text-secondary')
-      card.classList.add('d-none')
-    }
-  })
-
-  if (activeButtonName === 'History') {
-    await fetchHistories()
-  }
-
-  if (activeButtonName === 'Directory') {
-    await fetchAddresses()
-  }
-}
-
-/** ======= Tab utilities end ======= */
-
-/** ======= Address utilities start ======= */
-const createAddressListItem = (address) => {
-  const displayName = escapeHTML(address.display_name)
-  const type = escapeHTML(address.type)
-
-  const listItem = document.createElement('li')
-  listItem.className = 'list-group-item'
-  listItem.id = address.id
-
-  const container = document.createElement('div')
-  container.className = 'container p-0'
-  listItem.appendChild(container)
-
-  const row = document.createElement('div')
-  row.className = 'row'
-  container.appendChild(row)
-
-  const col1 = document.createElement('div')
-  col1.className = 'col-10'
-  row.appendChild(col1)
-
-  const badge = document.createElement('span')
-  badge.className = 'badge bg-primary me-2'
-  badge.textContent = type
-  col1.appendChild(badge)
-
-  const addressNameLink = document.createElement('button')
-  addressNameLink.textContent = displayName
-  addressNameLink.className = 'btn btn-link p-0'
-  addressNameLink.onclick = () => openMessageModal(address)
-  col1.appendChild(addressNameLink)
-
-  const col2 = document.createElement('div')
-  col2.className = 'col'
-  row.appendChild(col2)
-
-  Object.entries(address.channels).forEach(([channelName, channelValue]) => {
-    const button = document.createElement('button')
-    button.className = 'btn btn-sm btn-success'
-
-    const icon = document.createElement('i')
-    if (channelName !== 'messaging') {
-      button.addEventListener('click', () => dialAddress(channelValue))
-    } else {
-      button.addEventListener('click', () => {
-        subscribeToNewMessages()
-        openMessageModal(address)
-      })
-    }
-    if (channelName === 'messaging') {
-      icon.className = 'bi bi-chat'
-    } else if (channelName === 'video') {
-      icon.className = 'bi bi-camera-video'
-    } else if (channelName === 'audio') {
-      icon.className = 'bi bi-phone'
-    }
-    button.appendChild(icon)
-
-    col2.appendChild(button)
-  })
-
-  const row2 = document.createElement('div')
-  const addressUrl = Object.values(address.channels)[0]
-  let strippedUrl = addressUrl.split('?')[0]
-  row2.textContent = strippedUrl
-  container.appendChild(row2)
-
-  return listItem
-}
-
-function updateAddressUI() {
-  const addressesPlaceholder = document.getElementById('addressesPlaceholder')
-  const addressesList = document.getElementById('addressesList')
-  const addressPagination = document.getElementById('addressPagination')
-  const { data: addresses } = window.__addressData
-
-  if (!addresses || addresses.length === 0) {
-    addressesList.classList.add('d-none')
-    addressesPlaceholder.classList.remove('d-none')
-    addressPagination.style.setProperty('display', 'none', 'important')
-    return
-  }
-
-  addressesPlaceholder.classList.add('d-none')
-  addressesList.classList.remove('d-none')
-  addressPagination.style.removeProperty('display')
-
-  addressesList.innerHTML = ''
-  addresses
-    .map(createAddressListItem)
-    .forEach((item) => addressesList.appendChild(item))
-  subscribeToNewMessages()
-}
-
-async function fetchAddresses() {
-  const client = getActiveClient()
-  if (!client) return
-  
-  try {
-    const searchText = searchInput.value
-    const selectedType = searchType.value
-
-    const addressData = await client.address.getAddresses({
-      type: selectedType === 'all' ? undefined : selectedType,
-      displayName: !searchText.length ? undefined : searchText,
-      pageSize: 10,
-    })
-    window.__addressData = addressData
-    updateAddressUI()
-  } catch (error) {
-    console.error('Unable to fetch addresses', error)
-    showError('Unable to fetch addresses: ' + error.message)
-  }
-}
-
-window.dialAddress = async (address) => {
-  const client = getActiveClient()
-  if (!client) {
-    showError('No active client. Please connect first.')
-    return
-  }
-
-  if (!selectedProfileId) {
-    showError('No profile selected.')
-    return
-  }
-
-  // Check if there's already an active call for this profile
-  if (activeCalls.has(selectedProfileId)) {
-    showError('There is already an active call for this profile.')
-    return
-  }
-
-  try {
-    console.log('Dialing address:', address)
-    updateCallStatus('Dialing...', address)
-    
-    // Start the call
-    const call = await client.dial({
-      to: address,
-      rootElement: document.getElementById('rootElement') || document.body,
-      video: false, // Default to audio only for simplicity
-      audio: true,
-    })
-
-    // Store the call instance
-    activeCalls.set(selectedProfileId, call)
-    callStartTime = Date.now()
-    
-    // Set up call event listeners
-    setupCallEventHandlers(call)
-    
-    // Start the call
-    await call.start()
-    
-    console.log('Call started successfully:', call)
-    showSuccess(`Call started to: ${address}`)
-    
-  } catch (error) {
-    console.error('Failed to dial address:', error)
-    showError('Failed to start call: ' + error.message)
-    updateCallStatus('Call Failed', address)
-    
-    // Clean up on failure
-    activeCalls.delete(selectedProfileId)
-    callStartTime = null
-    hideCallStatus()
-  }
-}
-
-/**
- * Set up event handlers for call instance
- */
-function setupCallEventHandlers(call) {
-  call.on('call.state', (params) => {
-    console.debug('>> call.state', params)
-    updateCallStatus(params.call_state || 'Unknown', call.to)
-  })
-
-  call.on('call.joined', (params) => {
-    console.debug('>> call.joined', params)
-    updateCallStatus('Connected', call.to)
-    showCallStatus()
-    startCallTimer()
-  })
-
-  call.on('call.updated', (params) => {
-    console.debug('>> call.updated', params)
-  })
-
-  call.on('call.left', (params) => {
-    console.debug('>> call.left', params)
-    updateCallStatus('Call Ended', call.to)
-    cleanupCall()
-  })
-
-  call.on('call.connect', (params) => {
-    console.debug('>> call.connect', params)
-    updateCallStatus('Connecting...', call.to)
-  })
-
-  call.on('destroy', () => {
-    console.debug('>> call destroyed')
-    updateCallStatus('Call Ended', call.to)
-    cleanupCall()
-  })
-
-  call.on('media.connected', () => {
-    console.debug('>> media connected')
-    updateCallStatus('Media Connected', call.to)
-  })
-
-  call.on('media.disconnected', () => {
-    console.debug('>> media disconnected')
-    updateCallStatus('Media Disconnected', call.to)
-  })
-}
-
-/**
- * Update call status UI
- */
-function updateCallStatus(status, address) {
-  const callStatusElement = document.getElementById('callStatus')
-  const callAddressElement = document.getElementById('callAddress')
-  
-  if (callStatusElement) {
-    callStatusElement.textContent = status
-  }
-  
-  if (callAddressElement && address) {
-    // Clean up the address display
-    const cleanAddress = address.split('?')[0]
-    callAddressElement.textContent = cleanAddress
-    callAddressElement.title = address // Full address in tooltip
-  }
-}
-
-/**
- * Show the call status card
- */
-function showCallStatus() {
-  const callStatusCard = document.getElementById('callStatusCard')
-  if (callStatusCard) {
-    callStatusCard.classList.remove('d-none')
-  }
-}
-
-/**
- * Hide the call status card
- */
-function hideCallStatus() {
-  const callStatusCard = document.getElementById('callStatusCard')
-  if (callStatusCard) {
-    callStatusCard.classList.add('d-none')
-  }
-  stopCallTimer()
-}
-
-/**
- * Start the call duration timer
- */
-let callTimerInterval = null
-function startCallTimer() {
-  if (callTimerInterval) {
-    clearInterval(callTimerInterval)
-  }
-  
-  callTimerInterval = setInterval(() => {
-    if (callStartTime) {
-      const duration = Date.now() - callStartTime
-      const minutes = Math.floor(duration / 60000)
-      const seconds = Math.floor((duration % 60000) / 1000)
-      const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-      
-      const callDurationElement = document.getElementById('callDuration')
-      if (callDurationElement) {
-        callDurationElement.textContent = formattedTime
-      }
-    }
-  }, 1000)
-}
-
-/**
- * Stop the call duration timer
- */
-function stopCallTimer() {
-  if (callTimerInterval) {
-    clearInterval(callTimerInterval)
-    callTimerInterval = null
-  }
-  
-  const callDurationElement = document.getElementById('callDuration')
-  if (callDurationElement) {
-    callDurationElement.textContent = '00:00'
-  }
-}
-
-/**
- * Clean up call state after call ends
- */
-function cleanupCall() {
-  if (selectedProfileId) {
-    activeCalls.delete(selectedProfileId)
-  }
-  callStartTime = null
-  stopCallTimer()
-  setTimeout(() => {
-    hideCallStatus()
-  }, 3000) // Hide after 3 seconds
-}
-
-/**
- * Hangup the active call
- */
-window.hangupCall = async () => {
-  if (!selectedProfileId || !activeCalls.has(selectedProfileId)) {
-    showError('No active call to hangup.')
-    return
-  }
-
-  try {
-    const call = activeCalls.get(selectedProfileId)
-    console.log('Hanging up call:', call)
-    
-    updateCallStatus('Hanging up...', call.to)
-    
-    await call.hangup()
-    
-    console.log('Call hung up successfully')
-    showSuccess('Call ended successfully')
-    
-  } catch (error) {
-    console.error('Failed to hangup call:', error)
-    showError('Failed to end call: ' + error.message)
-    
-    // Force cleanup even if hangup failed
-    cleanupCall()
-  }
-}
-
-/**
- * Open the execute method modal
- */
-window.openExecuteModal = () => {
-  if (!selectedProfileId || !activeCalls.has(selectedProfileId)) {
-    showError('No active call to execute methods on.')
-    return
-  }
-
-  const executeModal = new bootstrap.Modal(document.getElementById('executeModal'))
-  executeModal.show()
-}
-
-/**
- * Execute a method on the active call
- */
-window.executeMethod = async () => {
-  if (!selectedProfileId || !activeCalls.has(selectedProfileId)) {
-    showError('No active call to execute methods on.')
-    return
-  }
-
-  const methodSelect = document.getElementById('executeMethod')
-  const paramsTextarea = document.getElementById('executeParams')
-  
-  const method = methodSelect.value
-  const paramsText = paramsTextarea.value.trim()
-  
-  if (!method) {
-    showError('Please select a method to execute.')
-    return
-  }
-  
-  let params = {}
-  if (paramsText) {
-    try {
-      params = JSON.parse(paramsText)
-    } catch (error) {
-      showError('Invalid JSON in parameters: ' + error.message)
-      return
-    }
-  }
-
-  try {
-    const call = activeCalls.get(selectedProfileId)
-    console.log(`Executing method "${method}" with params:`, params)
-    
-    // Execute the method based on type
-    let result
-    switch (method) {
-      case 'play':
-        result = await call.play(params)
-        break
-      case 'say':
-        result = await call.say(params)
-        break
-      case 'record':
-        result = await call.record(params)
-        break
-      case 'detect':
-        result = await call.detect(params)
-        break
-      default:
-        // Try to execute as generic method
-        result = await call.execute({ method, params })
-        break
-    }
-    
-    console.log(`Method "${method}" executed successfully:`, result)
-    showSuccess(`Method "${method}" executed successfully`)
-    
-    // Close the modal
-    const executeModal = bootstrap.Modal.getInstance(document.getElementById('executeModal'))
-    executeModal.hide()
-    
-    // Clear the form
-    methodSelect.value = ''
-    paramsTextarea.value = ''
-    
-  } catch (error) {
-    console.error(`Failed to execute method "${method}":`, error)
-    showError(`Failed to execute method "${method}": ` + error.message)
-  }
-}
-
-window.fetchNextAddresses = async () => {
-  const { nextPage } = window.__addressData
-  try {
-    const nextAddresses = await nextPage()
-    window.__addressData = nextAddresses
-    updateAddressUI()
-  } catch (error) {
-    console.error('Unable to fetch next addresses', error)
-  }
-}
-
-window.fetchPrevAddresses = async () => {
-  const { prevPage } = window.__addressData
-  try {
-    const prevAddresses = await prevPage()
-    window.__addressData = prevAddresses
-    updateAddressUI()
-  } catch (error) {
-    console.error('Unable to fetch prev addresses', error)
-  }
-}
-
-let debounceTimeout
-searchInput.addEventListener('input', () => {
-  clearTimeout(debounceTimeout)
-  // Search after 1 seconds when user stops typing
-  debounceTimeout = setTimeout(fetchAddresses, 1000)
-})
-
-searchType.addEventListener('change', fetchAddresses)
-
-sendMessageBtn.addEventListener('click', async () => {
-  const client = getActiveClient()
-  if (!client) {
-    showError('No active client. Please connect first.')
-    return
-  }
-  
-  const address = window.__currentAddress
-  const text = conversationMessageInput.value
-  
-  if (!text.trim()) {
-    showError('Please enter a message')
-    return
-  }
-  
-  try {
-    await client.conversation.sendMessage({
-      addressId: address.id,
-      text,
-    })
-    conversationMessageInput.value = ''
-  } catch (error) {
-    console.error('Failed to send message:', error)
-    showError('Failed to send message: ' + error.message)
+  const urlParams = new URLSearchParams(window.location.search)
+  const room = urlParams.get('room')
+  if (room) {
+    await connect()
+    await dial({ reattach: true })
+  } else {
+    console.log('Room parameter not found')
   }
 })
 
-/** ======= Address utilities end ======= */
-
-/** ======= History utilities start ======= */
-function formatMessageDate(date) {
-  const dateOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: true,
-  }
-  return new Date(date).toLocaleString('en-US', dateOptions)
-}
-
-function createConversationListItem(convo) {
-  const item = document.createElement('li')
-  item.classList.add('list-group-item')
-  item.id = convo.id
-
-  const convoDiv = document.createElement('div')
-  convoDiv.className = 'd-flex align-items-center'
-
-  const labelSpan = document.createElement('span')
-  labelSpan.textContent = 'Conversation name: '
-  labelSpan.className = 'me-1'
-
-  const convoNameLink = document.createElement('button')
-  convoNameLink.textContent = convo.name
-  convoNameLink.className = 'btn btn-link p-0'
-  convoNameLink.onclick = () => openMessageModal(convo)
-
-  convoDiv.appendChild(labelSpan)
-  convoDiv.appendChild(convoNameLink)
-  item.appendChild(convoDiv)
-
-  const lastMessageDiv = document.createElement('div')
-  lastMessageDiv.textContent = `Last message at: ${formatMessageDate(
-    convo.last_message_at
-  )}`
-  lastMessageDiv.classList.add('small', 'text-secondary')
-  item.appendChild(lastMessageDiv)
-  return item
-}
-
-function updateHistoryUI() {
-  const historyPlaceholder = document.getElementById('historyPlaceholder')
-  const historiesList = document.getElementById('historiesList')
-  const { data: histories } = window.__historyData
-
-  if (!histories || histories.length === 0) {
-    historiesList.classList.add('d-none')
-    historyPlaceholder.classList.remove('d-none')
-    return
-  }
-
-  historyPlaceholder.classList.add('d-none')
-  historiesList.classList.remove('d-none')
-
-  historiesList.innerHTML = ''
-  histories
-    .map(createConversationListItem)
-    .forEach((item) => historiesList.appendChild(item))
-}
-
-async function fetchHistories() {
-  const client = getActiveClient()
-  if (!client) return
-  
+window.endSelf = async () => {
   try {
-    const historyData = await client.conversation.getConversations({
-      pageSize: 10,
-    })
-    window.__historyData = historyData
-    updateHistoryUI()
-    subscribeToNewMessages()
+    if (!roomObj) throw new Error('No active room session')
+    console.log('Attempting to end call for self')
+    await roomObj.end()
+    console.log('Call ended for self')
   } catch (error) {
-    console.error('Unable to fetch histories', error)
-    showError('Unable to fetch histories: ' + error.message)
+    console.error('Failed to end call:', error)
   }
 }
-
-function createLiveMessageListItem(msg) {
-  const listItem = document.createElement('li')
-  listItem.classList.add('list-group-item')
-  listItem.id = msg.id
-  const formattedTimestamp = formatMessageDate(msg.ts * 1000)
-  listItem.innerHTML = `
-    <div class="d-flex flex-column">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h6 class="mb-0 text-capitalize">${msg.type ?? 'unknown'}</h6>
-          <p class="mb-1 fst-italic">${msg.conversation_name}</p>
-        <div>
-        <div class="d-flex align-items-center gap-1">
-          <span class="badge bg-info">${msg.subtype ?? 'unknown'}</span>
-          <span class="badge bg-success">${msg.kind ?? 'unknown'}</span>
-        </div>
-      </div>
-      <p class="text-muted small mb-0">${formattedTimestamp}</p>
-    </div>
-  `
-  return listItem
-}
-
-let isConvoSubscribed = false
-function subscribeToNewMessages() {
-  const client = getActiveClient()
-  if (!client || isConvoSubscribed) return
-
-  client.conversation.subscribe((newMsg) => {
-    console.log('New message received!', newMsg)
-
-    // Refetch both histories and directories to update the last message time (no await)
-    Promise.all([fetchHistories(), fetchAddresses()])
-
-    // If message modal is opened, update modal message list
-    const oldMessages = window.__messageData
-    if (
-      oldMessages &&
-      newMsg.conversation_id === oldMessages?.data?.[0]?.conversation_id
-    ) {
-      const messageList = msgModalDiv.querySelector('#messageList')
-      const newListItem = createMessageListItem(newMsg)
-      if (messageList.firstChild) {
-        messageList.insertBefore(newListItem, messageList.firstChild)
-      } else {
-        messageList.appendChild(newListItem)
-      }
-    }
-
-    // Update in call live messages
-    const liveMessageList = document.querySelector('#liveMessageList')
-    const newListItem = createLiveMessageListItem(newMsg)
-    if (liveMessageList.firstChild) {
-      liveMessageList.insertBefore(newListItem, liveMessageList.firstChild)
-    } else {
-      liveMessageList.appendChild(newListItem)
-    }
-  })
-  isConvoSubscribed = true
-}
-
-/** ======= History utilities end ======= */
-
-/** ======= Message utilities start ======= */
-function createMessageListItem(msg) {
-  const listItem = document.createElement('li')
-  listItem.classList.add('list-group-item')
-  listItem.id = msg.id
-  const formattedTimestamp = formatMessageDate(msg.ts * 1000)
-  listItem.innerHTML = `
-    <div class="d-flex flex-column">
-      <div class="d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 text-capitalize">${msg.text}</h6>
-        <div class="d-flex align-items-center gap-1">
-          <span class="badge bg-info">${msg.type}</span>
-          <span class="badge bg-info">${msg.subtype ?? 'unknown'}</span>
-          <span class="badge bg-success">${msg.kind ?? 'unknown'}</span>
-        </div>
-      </div>
-      <p class="text-muted small mb-0">${formattedTimestamp}</p>
-    </div>
-  `
-  return listItem
-}
-
-const msgModalDiv = document.getElementById('messageModal')
-
-msgModalDiv.addEventListener('hidden.bs.modal', clearMessageModal)
-
-function clearMessageModal() {
-  window.__messageData = null
-  const titleH2 = msgModalDiv.querySelector('.title')
-  const typeBadgeSpan = msgModalDiv.querySelector('.type-badge')
-  const contactBtnDiv = msgModalDiv.querySelector('.contact-buttons')
-  const messageList = msgModalDiv.querySelector('#messageList')
-  const loaderListItem = msgModalDiv.querySelector('#messageList li')
-  const avatarImage = msgModalDiv.querySelector('.avatar')
-  titleH2.textContent = ''
-  typeBadgeSpan.textContent = ''
-  contactBtnDiv.classList.add('d-none')
-  // Remove all the message list item except the first one (loader)
-  Array.from(messageList.children)
-    .slice(1)
-    .forEach((item) => item.remove())
-  loaderListItem.classList.remove('d-none')
-  // Set the new image URL to the avatar image for the next time the modal opens
-  const newImageUrl = `https://i.pravatar.cc/125?img=${
-    Math.floor(Math.random() * 70) + 1
-  }`
-  if (avatarImage) {
-    avatarImage.src = newImageUrl
-  }
-  window.__currentAddress = undefined
-}
-
-async function openMessageModal(data) {
-  window.__currentAddress = data
-  const modal = new bootstrap.Modal(msgModalDiv)
-  modal.show()
-
-  const titleH2 = msgModalDiv.querySelector('.title')
-  titleH2.textContent = data.display_name || data.name || 'John Doe'
-
-  if (data.type) {
-    const typeBadgeSpan = msgModalDiv.querySelector('.type-badge')
-    typeBadgeSpan.textContent = data.type
-    typeBadgeSpan.classList.add('badge', 'bg-primary')
-  }
-
-  if (data.channels) {
-    const contactBtnDiv = msgModalDiv.querySelector('.contact-buttons')
-    contactBtnDiv.classList.remove('d-none')
-    if (data.channels.audio) {
-      const audioBtn = contactBtnDiv.querySelector('.btn-dial-audio')
-      audioBtn.classList.remove('d-none')
-      audioBtn.addEventListener('click', () => {
-        dialAddress(data.channels.audio)
-        modal.hide()
-      })
-    }
-    if (data.channels.video) {
-      const videoBtn = contactBtnDiv.querySelector('.btn-dial-video')
-      videoBtn.classList.remove('d-none')
-      videoBtn.addEventListener('click', () => {
-        dialAddress(data.channels.video)
-        modal.hide()
-      })
-    }
-    if (data.channels.messaging) {
-      const messagingBtn = contactBtnDiv.querySelector('.btn-dial-messaging')
-      messagingBtn.classList.remove('d-none')
-      messagingBtn.addEventListener('click', () => {
-        dialAddress(data.channels.messaging)
-        modal.hide()
-      })
-    }
-  }
-
-  // Fetch messages and populate the UI
-  await fetchMessages(data.id)
-}
-
-function updateMessageUI() {
-  const { data: messages } = window.__messageData
-  const messageList = msgModalDiv.querySelector('#messageList')
-  const loaderListItem = messageList.querySelector('li')
-  loaderListItem.classList.add('d-none')
-  if (!messages?.length) {
-    const noMsglistItem = document.createElement('li')
-    noMsglistItem.classList.add('list-group-item')
-    noMsglistItem.innerHTML = `
-      <div class="d-flex justify-content-center">
-          <h6 class="my-2">No messages yet!</h6>
-      </div>
-    `
-    messageList.appendChild(noMsglistItem)
-    return
-  }
-  messages
-    .map(createMessageListItem)
-    .forEach((li) => messageList.appendChild(li))
-}
-
-async function fetchMessages(id) {
-  const client = getActiveClient()
-  if (!client) return
-  
-  try {
-    const messages = await client.conversation.getConversationMessages({
-      addressId: id,
-    })
-    window.__messageData = messages
-    await client.conversation.join({
-      addressId: id,
-    })
-    updateMessageUI()
-  } catch (error) {
-    console.error('Unable to fetch messages', error)
-    showError('Unable to fetch messages: ' + error.message)
-  }
-}
-
-/** ======= Message utilities end ======= */

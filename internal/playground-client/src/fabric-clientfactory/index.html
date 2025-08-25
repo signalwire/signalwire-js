@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ClientFactory Demo</title>
+    <title>SignalWire ClientFactory Demo</title>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -16,9 +16,9 @@
 
     <!-- To style up the demo a little -->
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0"
       crossorigin="anonymous"
     />
     <link
@@ -35,13 +35,12 @@
       <div class="row pt-5">
         <div class="col-12 pb-3">
           <h1>ClientFactory Demo</h1>
-          <p class="text-muted">Multi-profile client management showcase</p>
         </div>
       </div>
       <hr />
       <div class="row py-3">
-        <!-- Profile Management -->
         <div class="col-12 col-md-4">
+          <!-- Profile Management -->
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">
@@ -58,7 +57,7 @@
                   id="credentialsInput"
                   class="form-control"
                   rows="4"
-                  placeholder='{"host": "example.signalwire.com", "token": "your-token", "addressId": "address-id", "displayName": "Profile Name"}'
+                  placeholder='{"satToken": "your-token", "host": "example.signalwire.com", "addressId": "address-id", "displayName": "Profile Name"}'
                   onchange="saveInLocalStorage(event)"
                 ></textarea>
               </div>
@@ -113,349 +112,550 @@
                   <option value="">Select a profile</option>
                 </select>
               </div>
-
-              <!-- Connect Button -->
-              <div class="d-grid gap-2 mb-2">
-                <button
-                  id="btnConnect"
-                  class="btn btn-success"
-                  onclick="connect()"
-                  disabled
-                >
-                  <i class="bi bi-wifi me-1"></i>Load Addresses
-                </button>
-              </div>
-
-              <div class="text-center text-muted">
-                <small>Select a profile to enable connection</small>
-              </div>
             </div>
           </div>
 
-          <!-- Call Status -->
-          <div id="callStatusCard" class="row py-2 px-2 d-none">
-            <div class="card p-0">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>
-                  <i class="bi bi-telephone me-1"></i>Active Call
-                </span>
-                <span id="callDuration" class="badge bg-success">00:00</span>
-              </div>
-              <div class="card-body">
-                <div class="row align-items-center">
-                  <div class="col-8">
-                    <div class="d-flex flex-column">
-                      <span id="callAddress" class="fw-bold text-truncate">No active call</span>
-                      <span id="callStatus" class="text-muted small">Idle</span>
-                    </div>
-                  </div>
-                  <div class="col-4 text-end">
-                    <div class="btn-group" role="group">
-                      <button
-                        id="executeMethodBtn"
-                        class="btn btn-sm btn-outline-primary"
-                        onclick="openExecuteModal()"
-                        title="Execute Method"
-                      >
-                        <i class="bi bi-play-circle"></i>
-                      </button>
-                      <button
-                        id="hangupBtn"
-                        class="btn btn-sm btn-outline-danger"
-                        onclick="hangupCall()"
-                        title="Hangup Call"
-                      >
-                        <i class="bi bi-telephone-x"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Call Status end -->
-
-          <!-- Conversation logs -->
-          <div id="controlConvo" class="row py-2 px-2">
-            <div class="card p-0">
-              <div class="card-header">
-                <i class="bi bi-chat-dots me-1"></i>Conversation logs
-              </div>
-              <div class="card-body px-0 py-1">
-                <div
-                  class="overflow-auto"
-                  style="max-height: 200px; min-height: 100px"
-                >
-                  <ul
-                    id="liveMessageList"
-                    class="list-group list-group-flush mt-0"
-                  ></ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Conversation logs end -->
-        </div>
-        <!-- Profile Management end -->
-
-        <div class="col-12 col-md-8 mt-4 mt-md-1">
-          <!-- Address/History Tabs -->
-          <div id="tabs">
-            <ul class="nav nav-tabs">
-              <li class="nav-item">
-                <button
-                  class="nav-link text-secondary"
-                  name="History"
-                  onclick="toggleTabState('History')"
-                >
-                  <i class="bi bi-clock-history me-1"></i>History
-                </button>
-              </li>
-              <li class="nav-item">
-                <button
-                  class="nav-link active"
-                  name="Directory"
-                  onclick="toggleTabState('Directory')"
-                >
-                  <i class="bi bi-telephone-book me-1"></i>Directory
-                </button>
-              </li>
-            </ul>
-
-            <!-- Addresses -->
-            <div class="card border-top-0 rounded-top-0" id="addressCard">
-              <!-- Filters -->
-              <div class="input-group mt-1 px-2">
-                <span class="input-group-text">
-                  <i class="bi bi-search"></i>
-                </span>
+          <!-- Connect -->
+          <div class="card mt-3">
+            <div class="card-body">
+              <h5>Connect</h5>
+              <div class="form-group">
+                <label for="host">Host</label>
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Search addresses..."
-                  aria-label="Search"
-                  aria-describedby="searchButton"
-                  id="searchInput"
+                  id="host"
+                  placeholder="puc.signalwire.com"
+                  onchange="saveInLocalStorage(event)"
                 />
-                <select class="form-select" id="searchType">
-                  <option value="all" selected>All Types</option>
-                  <option value="subscriber">Subscriber</option>
-                  <option value="room">Room</option>
-                  <option value="call">Call</option>
-                  <option value="app">App</option>
-                </select>
               </div>
-              <!-- Filters end -->
-
-              <div class="card-body" id="addresses">
-                <div class="text-center text-muted py-4" id="addressesPlaceholder">
-                  <i class="bi bi-telephone fs-1 d-block mb-3"></i>
-                  <p>Select a profile and load addresses to get started</p>
+              <div class="form-group">
+                <label for="token">SAT</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="token"
+                  placeholder="Enter passwd"
+                  onchange="saveInLocalStorage(event)"
+                />
+              </div>
+              <div class="form-group">
+                <label for="destination">Address</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="destination"
+                  placeholder="3599"
+                  onchange="saveInLocalStorage(event)"
+                />
+              </div>
+              <div class="form-group">
+                <label for="fromFabricAddressId">From Fabric Address ID</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="fromFabricAddressId"
+                  placeholder="4454-4454-4454-4454"
+                  onchange="saveInLocalStorage(event)"
+                />
+              </div>
+              <div class="form-group">
+                <div>Call Options:</div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    id="audio"
+                    value="1"
+                    onchange="saveInLocalStorage(event)"
+                  />
+                  <label class="form-check-label" for="audio">
+                    Include Audio
+                  </label>
                 </div>
-                <ul class="list-group list-group-flush d-none" id="addressesList"></ul>
-              </div>
-
-              <!-- Pagination -->
-              <div class="d-flex justify-content-center pb-2 gap-2" id="addressPagination" style="display: none !important;">
-                <button
-                  name="fetch-prev-address"
-                  type="button"
-                  class="btn btn-outline-secondary btn-sm"
-                  onclick="fetchPrevAddresses()"
-                >
-                  <i class="bi bi-chevron-left me-1"></i>Prev
-                </button>
-                <span class="align-self-center mx-2 text-muted small" id="paginationInfo">
-                  Page 1
-                </span>
-                <button
-                  name="fetch-next-address"
-                  type="button"
-                  class="btn btn-outline-secondary btn-sm"
-                  onclick="fetchNextAddresses()"
-                >
-                  Next<i class="bi bi-chevron-right ms-1"></i>
-                </button>
-              </div>
-              <!-- Pagination end -->
-            </div>
-            <!-- Addresses end -->
-
-            <!-- History -->
-            <div
-              class="card border-top-0 rounded-top-0 d-none"
-              id="historyCard"
-            >
-              <div class="card-body" id="histories">
-                <div class="text-center text-muted py-4" id="historyPlaceholder">
-                  <i class="bi bi-clock-history fs-1 d-block mb-3"></i>
-                  <p>Your call history will appear here</p>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    id="video"
+                    value="1"
+                    onchange="saveInLocalStorage(event)"
+                  />
+                  <label class="form-check-label" for="video">
+                    Include Video
+                  </label>
                 </div>
-                <ul class="list-group list-group-flush d-none" id="historiesList"></ul>
+              </div>
+              <div class="d-grid gap-2">
+                <button
+                  id="btnConnect"
+                  class="btn btn-primary"
+                  onclick="connect()"
+                >
+                  Connect
+                </button>
+                <button
+                  id="btnDial"
+                  class="btn btn-success d-none"
+                  onclick="dial()"
+                >
+                  Dial Call
+                </button>
+                <button
+                  id="btnHangup"
+                  class="btn btn-danger d-none"
+                  onclick="hangup()"
+                >
+                  Hangup Call
+                </button>
+                <button
+                  id="btnDisconnect"
+                  class="btn btn-warning d-none"
+                  onclick="disconnect()"
+                >
+                  Disconnect
+                </button>
+              </div>
+
+              <div class="text-center mt-3 text-muted">
+                <small
+                  >Status: <span id="connectStatus">Not Connected</span></small
+                >
+                <br>
+                <small class="text-info">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Use profiles above or fill host/token for direct connection
+                </small>
               </div>
             </div>
-            <!-- History end -->
           </div>
-          <!-- Address/History Tabs end -->
+
+          <div id="roomControls" class="card mt-4 d-none">
+            <div class="card-body">
+              <h5>Controls</h5>
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="muteSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="muteSelf()"
+                  disabled="true"
+                >
+                  Mute Self
+                </button>
+                <button
+                  id="unmuteSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="unmuteSelf()"
+                  disabled="true"
+                >
+                  UnMute Self
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="muteVideoSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="muteVideoSelf()"
+                  disabled="true"
+                >
+                  Video Mute Self
+                </button>
+                <button
+                  id="unmuteVideoSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="unmuteVideoSelf()"
+                  disabled="true"
+                >
+                  Video UnMute Self
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="deafSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="deafSelf()"
+                  disabled="true"
+                >
+                  Deaf Self
+                </button>
+                <button
+                  id="undeafSelfBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="undeafSelf()"
+                  disabled="true"
+                >
+                  Undeaf Self
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="hideVMutedBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="hideVideoMuted()"
+                  disabled="true"
+                >
+                  Hide vMuted
+                </button>
+                <button
+                  id="showVMutedBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="showVideoMuted()"
+                  disabled="true"
+                >
+                  Show vMuted
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="raiseHandBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="raiseHand()"
+                  disabled="true"
+                >
+                  Raise hand
+                </button>
+                <button
+                  id="lowerHandBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="lowerHand()"
+                  disabled="true"
+                >
+                  Lower hand
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="lockRoomBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="lockRoom()"
+                  disabled="true"
+                >
+                  Lock room
+                </button>
+                <button
+                  id="unlockRoomBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="unlockRoom()"
+                  disabled="true"
+                >
+                  Unlock room
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="holdCallBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="holdCall()"
+                  disabled="true"
+                >
+                  Hold call
+                </button>
+                <button
+                  id="unholdCallBtn"
+                  class="btn btn-warning px-3 mt-2"
+                  onClick="unholdCall()"
+                  disabled="true"
+                >
+                  Unhold call
+                </button>
+              </div>
+
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="endSelfBtn"
+                  class="btn btn-danger px-3 mt-2 d-none"
+                  onclick="endSelf()"
+                >
+                  End Self
+                </button>
+              </div>
+
+              <h5 class="mt-3" for="layout">Layouts</h5>
+              <div class="col-12">
+                <label for="layout" class="form-label">Layout for room</label>
+                <select
+                  class="form-select"
+                  onchange="changeLayout(this)"
+                  value=""
+                  id="layout"
+                ></select>
+              </div>
+              <div class="col-12">
+                <label for="position" class="form-label">Member position</label>
+                <select
+                  class="form-select"
+                  onchange="changePosition(this)"
+                  value=""
+                  id="position"
+                ></select>
+              </div>
+
+              <h5 class="mt-3">ScreenShare</h5>
+              <div class="col-12">
+                <label for="ssLayout" class="form-label"
+                  >Layout to use for ScreenShare</label
+                >
+                <select class="form-select" value="" id="ssLayout"></select>
+              </div>
+              <div class="form-group">
+                <label for="host">Position</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ssPosition"
+                  placeholder="reserved-1, auto, standard-1 ..."
+                />
+              </div>
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="hideScreenShareBtn"
+                  class="btn btn-success px-3 mt-2"
+                  onClick="startScreenShare()"
+                  disabled="true"
+                >
+                  Start
+                </button>
+                <button
+                  id="showScreenShareBtn"
+                  class="btn btn-danger px-3 mt-2"
+                  onClick="stopScreenShare()"
+                  disabled="true"
+                >
+                  Stop
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <canvas id="mic-meter" width="40" height="100"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-8 mt-4 mt-md-1">
+          <div class="row py-3">
+            <div class="col-12">
+              <div id="rootElement"></div>
+            </div>
+          </div>
+
+          <div id="controlSliders" class="row py-2 d-none">
+            <div class="col-4">
+              <label for="microphoneVolume" class="form-label">
+                Microphone Volume
+              </label>
+              <input
+                type="range"
+                class="form-range"
+                oninput="rangeInputHandler(this)"
+                min="-50"
+                max="50"
+                value="0"
+                id="microphoneVolume"
+              />
+            </div>
+            <div class="col-4">
+              <label for="speakerVolume" class="form-label">
+                Speaker Volume
+              </label>
+              <input
+                type="range"
+                class="form-range"
+                oninput="rangeInputHandler(this)"
+                min="-50"
+                max="50"
+                value="0"
+                id="speakerVolume"
+              />
+            </div>
+            <div class="col-4">
+              <label for="inputSensitivity" class="form-label"
+                >Noise Gate</label
+              >
+              <input
+                type="range"
+                class="form-range"
+                oninput="rangeInputHandler(this)"
+                min="0"
+                max="100"
+                value="100"
+                id="inputSensitivity"
+              />
+            </div>
+          </div>
+
+          <div id="controlLayout" class="row py-2 d-none">
+            <div class="col-4">
+              <label for="cameraSelect" class="form-label">Camera</label>
+              <select
+                class="form-select"
+                value=""
+                id="cameraSelect"
+                onchange="changeCamera(this)"
+              ></select>
+            </div>
+            <div class="col-4">
+              <label for="microphoneSelect" class="form-label"
+                >Microphone</label
+              >
+              <select
+                class="form-select"
+                value=""
+                id="microphoneSelect"
+                onchange="changeMicrophone(this)"
+              ></select>
+            </div>
+            <div class="col-4">
+              <label for="speakerSelect" class="form-label">Speaker</label>
+              <select
+                class="form-select"
+                value=""
+                id="speakerSelect"
+                onchange="changeSpeaker(this)"
+              ></select>
+            </div>
+          </div>
+
+          <div id="controlRecording" class="row py-2 d-none">
+            <h6>Recording (<i id="recordingState">unknown</i>)</h6>
+            <div class="col-12">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="startRecordingBtn"
+                  class="btn btn-success px-3 mt-2 d-none"
+                  onClick="startRecording()"
+                  disabled="true"
+                >
+                  Start Recording
+                </button>
+                <button
+                  id="pauseRecordingBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="pauseRecording()"
+                  disabled="true"
+                >
+                  Pause Recording
+                </button>
+                <button
+                  id="resumeRecordingBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="resumeRecording()"
+                  disabled="true"
+                >
+                  Resume Recording
+                </button>
+                <button
+                  id="stopRecordingBtn"
+                  class="btn btn-danger px-3 mt-2 d-none"
+                  onClick="stopRecording()"
+                  disabled="true"
+                >
+                  Stop Recording
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="controlPlayback" class="row py-2 d-none">
+            <h6>Playback URL</h6>
+            <div class="form-group">
+              <input type="text" class="form-control" id="playbackUrl" />
+            </div>
+            <div class="col-12">
+              <div class="btn-group w-100" role="group">
+                <button
+                  id="playBtn"
+                  class="btn btn-success px-3 mt-2"
+                  onClick="startPlayback()"
+                >
+                  Start Playback
+                </button>
+                <button
+                  id="pausePlaybackBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="pausePlayback()"
+                  disabled="true"
+                >
+                  Pause Playback
+                </button>
+                <button
+                  id="resumePlaybackBtn"
+                  class="btn btn-info px-3 mt-2 d-none"
+                  onClick="resumePlayback()"
+                  disabled="true"
+                >
+                  Resume Playback
+                </button>
+                <button
+                  id="stopPlaybackBtn"
+                  class="btn btn-danger px-3 mt-2 d-none"
+                  onClick="stopPlayback()"
+                  disabled="true"
+                >
+                  Stop Playback
+                </button>
+              </div>
+              <div class="col-12 py-2 d-none" id="playbackSeekAbsoluteGroup">
+                <h6>Playback Seek</h6>
+                <div class="row g-2 align-items-center col-auto">
+                  <div class="col-auto">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="playbackSeekAbsolute"
+                    />
+                  </div>
+                  <div class="col-auto">
+                    <button
+                      id="seekPlaybackBtn"
+                      class="btn btn-danger"
+                      onClick="seekPlayback()"
+                    >
+                      Seek
+                    </button>
+                  </div>
+                  <div class="btn-group col-auto">
+                    <button
+                      id="seekRewindPlaybackBtn"
+                      class="btn btn-info"
+                      onClick="seekRewindPlayback()"
+                    >
+                      Rewind
+                    </button>
+                    <button
+                      id="seekForwardPlaybackBtn"
+                      class="btn btn-success"
+                      onClick="seekForwardPlayback()"
+                    >
+                      Forward
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="playbackVolumeControl" class="col-12 d-none">
+                <label for="playbackVolume" class="form-label">
+                  Playback Volume
+                </label>
+                <input
+                  type="range"
+                  class="form-range"
+                  oninput="rangeInputHandler(this)"
+                  min="-50"
+                  max="50"
+                  value="0"
+                  id="playbackVolume"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <hr />
-      
-      <!-- Hidden container for call media -->
-      <div id="rootElement" style="display: none;"></div>
     </div>
-
-    <!-- Message Modal -->
-    <div
-      class="modal fade"
-      id="messageModal"
-      tabindex="-1"
-      aria-labelledby="messageModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="messageModalLabel">
-              <i class="bi bi-chat-dots me-2"></i>Conversation
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div class="container-fluid p-0">
-              <div class="text-center mb-4">
-                <img
-                  src="https://i.pravatar.cc/125"
-                  alt="Avatar"
-                  class="rounded-circle avatar"
-                  style="min-height: 125px"
-                />
-                <h4 class="title mt-2"></h4>
-                <span class="type-badge"></span>
-                <div class="contact-buttons mt-3 d-none">
-                  <button class="btn btn-success btn-dial-audio d-none me-2">
-                    <i class="bi bi-phone me-1"></i>Call
-                  </button>
-                  <button class="btn btn-primary btn-dial-video d-none me-2">
-                    <i class="bi bi-camera-video me-1"></i>Video
-                  </button>
-                  <button class="btn btn-info btn-dial-messaging d-none">
-                    <i class="bi bi-chat me-1"></i>Chat
-                  </button>
-                </div>
-              </div>
-              <!-- Messages will be loaded here -->
-              <ul
-                id="messageList"
-                class="overflow-auto list-group list-group-flush"
-                style="max-height: calc(100vh - 50vh); min-height: 200px"
-              >
-                <li class="list-group-item">
-                  <div class="d-flex">
-                    <div class="placeholder-glow flex-grow-1">
-                      <span class="placeholder placeholder-lg col-6"></span>
-                      <span class="placeholder placeholder-lg col-12"></span>
-                      <span class="placeholder placeholder-lg col-8 mt-2"></span>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-              <div class="input-group mt-3">
-                <input
-                  type="text"
-                  id="new-conversation-message"
-                  class="form-control"
-                  placeholder="Type your message..."
-                  aria-label="Chat Message"
-                  aria-describedby="send-message"
-                />
-                <button class="btn btn-primary" type="button" id="send-message">
-                  <i class="bi-send"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Message Modal end -->
-
-    <!-- Execute Method Modal -->
-    <div
-      class="modal fade"
-      id="executeModal"
-      tabindex="-1"
-      aria-labelledby="executeModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="executeModalLabel">
-              <i class="bi bi-play-circle me-2"></i>Execute Method on Call
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="executeMethod" class="form-label">Method</label>
-              <select class="form-select" id="executeMethod">
-                <option value="">Select a method</option>
-                <option value="play">Play Audio</option>
-                <option value="say">Text-to-Speech</option>
-                <option value="record">Record Audio</option>
-                <option value="detect">Detect Input</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="executeParams" class="form-label">
-                Parameters (JSON)
-                <small class="text-muted d-block">Enter method parameters as JSON object</small>
-              </label>
-              <textarea
-                class="form-control"
-                id="executeParams"
-                rows="4"
-                placeholder='{"url": "https://example.com/audio.mp3"}'
-              ></textarea>
-            </div>
-            <div class="alert alert-info" role="alert">
-              <small>
-                <strong>Examples:</strong><br>
-                <strong>Play:</strong> {"url": "https://example.com/audio.mp3"}<br>
-                <strong>Say:</strong> {"text": "Hello world"}<br>
-                <strong>Record:</strong> {"format": "mp3", "max_length": 10}
-              </small>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              Cancel
-            </button>
-            <button type="button" class="btn btn-primary" onclick="executeMethod()">
-              Execute
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Execute Method Modal end -->
-
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-      crossorigin="anonymous"
-    ></script>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
