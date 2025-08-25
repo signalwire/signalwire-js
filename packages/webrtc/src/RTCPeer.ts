@@ -1168,6 +1168,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           if (this.instance.connectionState === 'connected') {
             // An ice restart won't change the connectionState so we emit the same event in here
             // since the signalingState is "stable" again.
+            console.log('>> emitMediaConnected 1')
             this.emitMediaConnected()
           }
           break
@@ -1205,6 +1206,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           break
         case 'connected':
           this.clearConnectionStateTimer()
+          console.log('>> emitMediaConnected 2')
           this.emitMediaConnected()
           break
         // case 'closed':

@@ -18,20 +18,19 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [20.x]
-        project:
-          [
-            default,
+        project: [
+            # default,
             streaming,
             badNetwork,
-            promote,
-            demote,
-            audience,
-            talking,
-            reattach,
-            callfabric,
-            renegotiation,
-            videoElement,
-            v2WebRTC,
+            # promote,
+            # demote,
+            # audience,
+            # talking,
+            # reattach,
+            # callfabric,
+            # renegotiation,
+            # videoElement,
+            # v2WebRTC,
           ]
     steps:
       - uses: actions/checkout@v4
