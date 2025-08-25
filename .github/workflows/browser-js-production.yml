@@ -26,6 +26,7 @@ jobs:
             promote,
             demote,
             audience,
+            talking,
             reattach,
             callfabric,
             renegotiation,

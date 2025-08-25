@@ -35,6 +35,10 @@ const reattachTests = [
   'roomSessionReattachWrongCallId.spec.ts',
   'roomSessionReattachWrongProtocol.spec.ts',
 ]
+const talkingTests = [
+  'roomSessionTalkingEventsParticipants.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
+]
 const callfabricTests = [
   'address.spec.ts',
   'agentCustomer.spec.ts',
@@ -61,7 +65,7 @@ const videoElementTests = [
   'buildVideoWithVideoSDK.spec.ts',
   'buildVideoWithFabricSDK.spec.ts',
 ]
-const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
+const v2WebRTCTests = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
 const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
@@ -77,7 +81,7 @@ const useDesktopChrome: PlaywrightTestConfig['use'] = {
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
-  reporter: process.env.CI ? [['github'], ['line']] : [['list'], ['line']],
+  reporter: process.env.CI ? [['github'], ['line']] : [['list']],
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
@@ -100,11 +104,12 @@ const config: PlaywrightTestConfig = {
         ...promoteTests,
         ...demoteTests,
         ...audienceTests,
+        ...talkingTests,
         ...reattachTests,
         ...callfabricTests,
         ...renegotiationTests,
         ...videoElementTests,
-        ...v2WebRTC,
+        ...v2WebRTCTests,
       ],
     },
     {
@@ -133,6 +138,11 @@ const config: PlaywrightTestConfig = {
       testMatch: audienceTests,
     },
     {
+      name: 'talking',
+      use: useDesktopChrome,
+      testMatch: talkingTests,
+    },
+    {
       name: 'reattach',
       use: useDesktopChrome,
       testMatch: reattachTests,
@@ -155,7 +165,7 @@ const config: PlaywrightTestConfig = {
     {
       name: 'v2WebRTC',
       use: useDesktopChrome,
-      testMatch: v2WebRTC,
+      testMatch: v2WebRTCTests,
     },
   ],
 }

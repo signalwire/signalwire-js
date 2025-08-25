@@ -1,4 +1,4 @@
-import { test } from '../fixtures'
+import { test, expect } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -8,6 +8,7 @@ import {
   deleteRoom,
   expectMCUVisible,
   expectRoomJoinWithDefaults,
+  expectToPass,
 } from '../utils'
 
 test.describe('Room Streaming from REST API', () => {
@@ -50,8 +51,17 @@ test.describe('Room Streaming from REST API', () => {
     // Visit the stream page on pageTwo to make sure it's working
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
-    await pageTwo.waitForSelector(`text=${streamName}`, { timeout: 10_000 })
-    console.log('>> Stream is visible on pageTwo')
+
+    await expectToPass(
+      async () => {
+        const locator = pageTwo.getByText(streamName)
+        await pageTwo.reload({ waitUntil: 'domcontentloaded' })
+        await expect(locator).toBeVisible()
+      },
+      { message: 'Stream is not visible' },
+      { timeout: 30_000, interval: [500] }
+    )
+
     await deleteRoom(roomData.id)
   })
 })
