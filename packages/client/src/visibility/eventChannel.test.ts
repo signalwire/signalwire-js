@@ -59,6 +59,26 @@ beforeAll(() => {
   // @ts-ignore
   global.navigator = mockNavigator
   
+  // Mock additional browser APIs
+  Object.defineProperty(global, 'localStorage', {
+    value: {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn(),
+    },
+    configurable: true,
+  })
+  
+  Object.defineProperty(global, 'performance', {
+    value: {
+      now: jest.fn(() => Date.now()),
+      mark: jest.fn(),
+      measure: jest.fn(),
+    },
+    configurable: true,
+  })
+  
   jest.useFakeTimers()
 })
 
