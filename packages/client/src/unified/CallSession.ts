@@ -129,6 +129,29 @@ export class CallSessionConnection
         speakerId: this.options.speakerId,
       }),
     })
+
+    // Initialize visibility worker with Call Fabric-specific configuration
+    const options = this.options as CallSessionOptions
+    if (options.visibilityConfig && options.visibilityConfig.enabled !== false) {
+      const { visibilityWorker } = require('../workers')
+      this.runWorker('visibilityWorker', {
+        worker: visibilityWorker,
+        initialArgs: {
+          instance: this,
+          visibilityConfig: {
+            ...options.visibilityConfig,
+            // Call Fabric specific recovery strategies
+            recoveryStrategies: [
+              'VideoPlay',
+              'KeyframeRequest',
+              'StreamReconnection',
+              'Reinvite',
+              'CallFabricResume',
+            ],
+          },
+        },
+      } as any)
+    }
   }
 
   private executeAction<
