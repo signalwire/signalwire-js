@@ -1727,9 +1727,17 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
-export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
+type ExpectMediaEventParams = Pick<
+  ExpectPageEvalToPassParams<void, void>,
+  'interval' | 'timeoutMs'
+> & { event: MediaEventNames }
+
+export const expectMediaEvent = (
+  page: Page,
+  options: ExpectMediaEventParams
+) => {
   return expectPageEvalToPass(page, {
-    evaluateArgs: { event },
+    evaluateArgs: { event: options.event },
     evaluateFn: ({ event }) => {
       return new Promise<void>((resolve) => {
         // @ts-expect-error
@@ -1739,6 +1747,7 @@ export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
     },
     messageAssert: 'media event is received',
     messageError: 'media event was not received',
+    ...options,
   })
 }
 
@@ -2066,6 +2075,16 @@ export const waitForFunction = async <TArg, TResult>(
   }
 }
 
+interface ExpectPageEvalToPassParams<TArgs, TResult> {
+  assertionFn?: (result: TResult, message: string) => void
+  evaluateArgs?: TArgs
+  evaluateFn: PageFunction<TArgs, TResult>
+  messageAssert: string
+  messageError: string
+  interval?: number[]
+  timeoutMs?: number
+}
+
 /**
  * @description
  * Utility to evaluate a function in the browser context and assert its result using Playwright's expect.
@@ -2082,23 +2101,13 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
   page: Page,
   {
     assertionFn,
-    booleanAssert,
     evaluateArgs,
     evaluateFn,
     messageAssert,
     messageError,
     interval = [10_000],
     timeoutMs = 10_000,
-  }: {
-    assertionFn?: (result: TResult, message: string) => void
-    booleanAssert?: boolean
-    evaluateArgs?: TArgs
-    evaluateFn: PageFunction<TArgs, TResult>
-    messageAssert: string
-    messageError: string
-    interval?: number[]
-    timeoutMs?: number
-  }
+  }: ExpectPageEvalToPassParams<TArgs, TResult>
 ) => {
   // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
   let result = undefined as TResult
@@ -2117,8 +2126,6 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
 
       if (assertionFn) {
         assertionFn(result, messageAssert)
-      } else {
-        expect(result, messageAssert).toBe(booleanAssert)
       }
     },
     { message: messageError },

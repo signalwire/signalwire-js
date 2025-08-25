@@ -49,10 +49,9 @@ test.describe('roomSessionBadNetwork', () => {
       }
       await createTestRoomSession(page, connectionSettings)
 
-      const firstMediaConnectedPromise = expectMediaEvent(
-        page,
-        'media.connected'
-      )
+      const firstMediaConnectedPromise = expectMediaEvent(page, {
+        event: 'media.connected',
+      })
 
       // --------------- Joining the room ---------------
       const joinParams: any = await expectRoomJoinWithDefaults(page, {
@@ -91,13 +90,15 @@ test.describe('roomSessionBadNetwork', () => {
 
       await expectPageReceiveMedia(page)
 
-      const secondMediaConnectedPromise = expectMediaEvent(
-        page,
-        'media.connected'
-      )
+      const secondMediaConnectedPromise = expectMediaEvent(page, {
+        event: 'media.connected',
+        timeoutMs: 40_000, // Longer timeout since we expect the event to be received once the network is up
+        interval: [40_000], // To avoid polling
+      })
       // --------------- Simulate Network Down and Up in 15s ---------------
       await page.swNetworkDown()
-      await page.waitForTimeout(5_000)
+      // FIXME: The down time should be 15 seconds?
+      await page.waitForTimeout(15_000)
       await page.swNetworkUp()
 
       await page.waitForTimeout(5_000)
@@ -122,6 +123,8 @@ test.describe('roomSessionBadNetwork', () => {
           },
           messageAssert: 'member.updated event is received',
           messageError: 'member.updated event was not received',
+          timeoutMs: 40_000,
+          interval: [40_000],
         })
       }
 
