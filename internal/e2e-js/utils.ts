@@ -2082,6 +2082,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
   page: Page,
   {
     assertionFn,
+    booleanAssert,
     evaluateArgs,
     evaluateFn,
     messageAssert,
@@ -2116,6 +2117,8 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
 
       if (assertionFn) {
         assertionFn(result, messageAssert)
+      } else {
+        expect(result, messageAssert).toBe(booleanAssert)
       }
     },
     { message: messageError },
