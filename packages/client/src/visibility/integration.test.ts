@@ -46,12 +46,10 @@ const mockNavigator = {
 
 // Setup global mocks
 beforeAll(() => {
-  // @ts-ignore
-  global.document = mockDocument
-  // @ts-ignore
-  global.window = mockWindow
-  // @ts-ignore
-  global.navigator = mockNavigator
+  // Extend existing global mocks from setupTests
+  Object.assign(global.document, mockDocument)
+  Object.assign(global.window, mockWindow)  
+  Object.assign(global.navigator, mockNavigator)
   
   jest.useFakeTimers()
 })

@@ -99,15 +99,23 @@ class MockBaseRoomSession {
   ])
 }
 
-// Mock getUserMedia
-Object.defineProperty(global.navigator, 'mediaDevices', {
-  value: {
-    getUserMedia: jest.fn().mockResolvedValue({
-      getVideoTracks: () => [{ kind: 'video' }],
-    }),
-  },
-  writable: true,
-})
+// Extend existing navigator.mediaDevices mock from setupTests
+if (global.navigator.mediaDevices) {
+  global.navigator.mediaDevices.getUserMedia = jest.fn().mockResolvedValue({
+    getVideoTracks: () => [{ kind: 'video' }],
+    getAudioTracks: () => [],
+  })
+} else {
+  Object.defineProperty(global.navigator, 'mediaDevices', {
+    value: {
+      getUserMedia: jest.fn().mockResolvedValue({
+        getVideoTracks: () => [{ kind: 'video' }],
+        getAudioTracks: () => [],
+      }),
+    },
+    writable: true,
+  })
+}
 
 describe('Recovery Strategies', () => {
   let mockInstance: MockBaseRoomSession
