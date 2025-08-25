@@ -44,7 +44,7 @@ test.describe('roomSessionBadNetwork', () => {
           join_as: row.join_as,
           auto_create_room: true,
           permissions,
-        } as const,
+        },
         initialEvents: ['member.updated'],
       }
       await createTestRoomSession(page, connectionSettings)
