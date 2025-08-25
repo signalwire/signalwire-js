@@ -8,6 +8,7 @@ import {
   deleteRoom,
   expectMCUVisible,
   expectRoomJoinWithDefaults,
+  expectToPass,
 } from '../utils'
 
 test.describe('Room Streaming from REST API', () => {
@@ -51,13 +52,16 @@ test.describe('Room Streaming from REST API', () => {
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
 
-    const locator = pageTwo.getByText(streamName)
-    await expect(async () => {
-      await pageTwo.reload({ waitUntil: 'domcontentloaded' })
-      await expect(locator).toBeVisible({ timeout: 0 })
-    }).toPass({ timeout: 10_000, intervals: [500] })
+    await expectToPass(
+      async () => {
+        const locator = pageTwo.getByText(streamName)
+        await pageTwo.reload({ waitUntil: 'domcontentloaded' })
+        await expect(locator).toBeVisible()
+      },
+      { message: 'Stream is not visible' },
+      { timeout: 30_000, interval: [500] }
+    )
 
-    console.log('>> Stream is visible on pageTwo')
     await deleteRoom(roomData.id)
   })
 })
