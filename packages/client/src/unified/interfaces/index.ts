@@ -2,13 +2,22 @@ import { Conversation } from '../Conversation'
 import { Address } from './address'
 import { HTTPClientContract } from './httpClient'
 import { WSClientContract, WSClientOptions } from './wsClient'
+import { SignalWireStorageContract } from '@signalwire/core'
 
-export interface SignalWireClientParams extends WSClientOptions {}
+export interface SignalWireClientParams extends WSClientOptions {
+  /** Optional client ID for multi-instance support. Defaults to 'default' */
+  clientId?: string
+  /** Optional storage implementation for persisting client data */
+  storage?: SignalWireStorageContract
+}
 
 export interface SignalWireContract
   extends WSClientContract,
     Omit<HTTPClientContract, 'getAddresses' | 'getAddress' | 'getMyAddresses'> {
-  address: Pick<HTTPClientContract, 'getAddresses' | 'getAddress' | 'getMyAddresses'>
+  address: Pick<
+    HTTPClientContract,
+    'getAddresses' | 'getAddress' | 'getMyAddresses'
+  >
   conversation: {
     getConversations: Conversation['getConversations']
     getMessages: Conversation['getMessages']
@@ -83,3 +92,4 @@ export * from './device'
 export * from './httpClient'
 export * from './incomingCallManager'
 export * from './wsClient'
+export * from './clientFactory'

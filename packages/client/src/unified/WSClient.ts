@@ -30,10 +30,14 @@ import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
   private _disconnected: boolean = false
+  private storage: WSClientOptions['storage']
 
   constructor(private wsClientOptions: WSClientOptions) {
     const client = createWSClient(wsClientOptions)
     super(client)
+
+    // Store the storage implementation for later use
+    this.storage = wsClientOptions.storage
 
     this._incomingCallManager = new IncomingCallManager({
       client: this,
@@ -206,7 +210,14 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
-      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+      // Use provided storage or fallback to session storage
+      if (this.storage) {
+        this.storage.deleteSession(PREVIOUS_CALLID_STORAGE_KEY).catch(() => {
+          // Ignore errors when removing call ID
+        })
+      } else {
+        getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+      }
       call.destroy()
     })
 
@@ -319,7 +330,13 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   public dial(params: DialParams) {
     // TODO: Do we need this remove item here?
     // in case the user left the previous call with hangup, and is not reattaching
-    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+    if (this.storage) {
+      this.storage.deleteSession(PREVIOUS_CALLID_STORAGE_KEY).catch(() => {
+        // Ignore errors when removing call ID
+      })
+    } else {
+      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+    }
     return this.buildOutboundCall(params)
   }
 
@@ -341,10 +358,24 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
           reject('Unknown notification type')
         }
         this.logger.debug('handlePushNotification', params)
+        const decryptedData = decrypted as {
+          params: {
+            params: {
+              callID: string
+              sdp: string
+              caller_id_name: string
+              caller_id_number: string
+              callee_id_name: string
+              callee_id_number: string
+              display_direction: string
+            }
+          }
+          node_id: string
+        }
         const {
           params: { params: payload },
           node_id: nodeId,
-        } = decrypted
+        } = decryptedData
         try {
           // Catch the error temporarly
           try {

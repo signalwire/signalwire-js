@@ -37,6 +37,8 @@ export {
   MemberEventParams,
   MemberEntity,
   InternalMemberEntity,
+  SignalWireStorageContract,
+  StorageInfo,
 } from '@signalwire/core'
 
 export {

@@ -50,7 +50,7 @@ export class JWTSession extends BaseJWTSession {
     const { protocolKey } = sessionStorageManager(this.options.token)
     if (protocolKey) {
       this.logger.trace('Search protocol for', protocolKey)
-      return getStorage()?.getItem(protocolKey) ?? ''
+      return (await getStorage()?.getItem(protocolKey)) ?? ''
     }
     return ''
   }
@@ -86,7 +86,7 @@ export class JWTSession extends BaseJWTSession {
   protected override async retrieveSwAuthorizationState() {
     const { authStateKey } = sessionStorageManager(this.options.token)
     if (authStateKey) {
-      return getStorage()?.getItem(authStateKey) ?? ''
+      return (await getStorage()?.getItem(authStateKey)) ?? ''
     }
     return ''
   }
