@@ -485,8 +485,15 @@ export const leaveRoom = async (page: Page) => {
         rootEl: document.getElementById('rootElement')?.childElementCount ?? 0,
       }
     },
-    messageAssert: 'Room left',
-    messageError: 'Unable to leave the room',
+    assertionFn: (leaveResult) => {
+      expect(leaveResult.videos, {
+        message: 'Expected no video elements to remain',
+      }).toBe(0)
+      expect(leaveResult.rootEl, {
+        message: 'Expected no root elements to remain',
+      }).toBe(0)
+    },
+    message: 'Expected to leave the room successfully',
   })
 }
 
@@ -668,8 +675,10 @@ export const disconnectClient = (page: Page) => {
         await client.disconnect()
       }
     },
-    messageAssert: 'client disconnected',
-    messageError: 'client disconnect failed',
+    assertionFn(result) {
+      expect(result).toBeUndefined()
+    },
+    message: 'Expected client to disconnect successfully',
   })
 }
 
@@ -847,8 +856,15 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
 
       return result
     },
-    messageAssert: 'expect to get RTP stats',
-    messageError: 'failed to get RTP stats',
+    assertionFn: (stats) => {
+      expect(stats.inboundRTP, {
+        message: 'Expected inbound RTP stats to be defined',
+      }).toBeDefined()
+      expect(stats.outboundRTP, {
+        message: 'Expected outbound RTP stats to be defined',
+      }).toBeDefined()
+    },
+    message: 'Expected to get RTP stats',
   })
 }
 
@@ -921,8 +937,15 @@ export const getAudioStats = async (page: Page) => {
 
       return result
     },
-    messageAssert: 'audio stats calculated',
-    messageError: 'failed to calculate the audio stats',
+    assertionFn: (stats) => {
+      expect(stats['inbound-rtp'], {
+        message: 'Expected inbound RTP stats to be defined',
+      }).toBeDefined()
+      expect(stats['outbound-rtp'], {
+        message: 'Expected outbound RTP stats to be defined',
+      }).toBeDefined()
+    },
+    message: 'Expected to get audio RTP stats',
   })
   console.log('audioStats', audioStats)
   return audioStats
@@ -953,7 +976,7 @@ export const expectSDPDirection = async (
   value: boolean
 ) => {
   await expectPageEvalToPass(page, {
-    evaluateFn: () => {
+    evaluateFn: (): string => {
       // @ts-expect-error
       const roomObj: Video.RoomSession = window._roomObj
       // @ts-expect-error
@@ -963,8 +986,7 @@ export const expectSDPDirection = async (
       expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
       expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
     },
-    messageAssert: 'SDP includes valid direction',
-    messageError: 'SDP does not include valid direction',
+    message: 'Expected SDP direction to match',
   })
 }
 
@@ -977,8 +999,10 @@ export const getRemoteMediaIP = async (page: Page) => {
       const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
       return ipLine?.split(' ')[2]
     },
-    messageAssert: 'remote IP is present',
-    messageError: 'failed to get the remote IP',
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected remote IP to be present',
   })
   return remoteIP
 }
@@ -1722,8 +1746,10 @@ export const expectMemberTalkingEvent = (page: Page) => {
         roomObj.on('member.talking', resolve)
       })
     },
-    messageAssert: 'member.talking is recived',
-    messageError: 'member.talking is not received',
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected member.talking event to be received',
   })
 }
 
@@ -1745,8 +1771,10 @@ export const expectMediaEvent = (
         roomObj.on(event, resolve)
       })
     },
-    messageAssert: 'media event is received',
-    messageError: 'media event was not received',
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected media event to be received',
     ...options,
   })
 }
@@ -1767,8 +1795,10 @@ export const expectCFInitialEvents = (
         })
       })
     },
-    messageAssert: 'call.state with created event received',
-    messageError: 'call.state with created event did not receive',
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected call.state with created event to be received',
   })
 
   const callAnswered = expectPageEvalToPass(page, {
@@ -1783,8 +1813,10 @@ export const expectCFInitialEvents = (
         })
       })
     },
-    messageAssert: 'call.state with answered event received',
-    messageError: 'call.state with answered event did not receive',
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected call.state with answered event to be received',
   })
 
   const callJoined = expectPageEvalToPass(page, {
@@ -1795,8 +1827,11 @@ export const expectCFInitialEvents = (
         roomObj.on('call.joined', () => resolve(true))
       })
     },
-    messageAssert: 'call.joined event received',
-    messageError: 'call.joined event did not receive',
+
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected call.joined event to be received',
   })
 
   return Promise.all([callCreated, callAnswered, callJoined, ...extraEvents])
@@ -1814,8 +1849,10 @@ export const expectCFFinalEvents = (
         roomObj.on('destroy', () => resolve(true))
       })
     },
-    messageAssert: 'destroy event received',
-    messageError: 'destroy event did not receive',
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected destroy event to be received',
   })
 
   return Promise.all([callLeftEvent, ...extraEvents])
@@ -1825,20 +1862,20 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
   return await expectPageEvalToPass(page, {
     evaluateArgs: { layoutName },
     evaluateFn: (params) => {
-      console.log('>> params', params)
       return new Promise<boolean>((resolve) => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
         roomObj.on('layout.changed', ({ layout }: any) => {
           if (layout.name === params.layoutName) {
-            console.log('>> resolving', layout.name)
             resolve(true)
           }
         })
       })
     },
-    messageAssert: 'layout.changed event is received',
-    messageError: 'layout.changed event is not received',
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected layout.changed event to be received',
   })
 }
 
@@ -1856,19 +1893,23 @@ export const expectRoomJoined = async (
         })
       })
     },
-    messageAssert: 'room.joined event is received',
-    messageError: 'room.joined event is not received',
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected room.joined event to be received',
   })
 
   if (options.invokeJoin) {
     await expectPageEvalToPass(page, {
-      evaluateFn: async () => {
+      evaluateFn: () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        await roomObj.join()
+        return roomObj.join()
       },
-      messageAssert: 'room is joined',
-      messageError: 'unable to join the room',
+      assertionFn: (result) => {
+        expect(result).toBeDefined()
+      },
+      message: 'Expected room to be joined',
     })
   }
 
@@ -1919,8 +1960,10 @@ export const expectRecordingStarted = (page: Page) => {
         }, 100)
       })
     },
-    messageAssert: 'recording.started is received',
-    messageError: 'recording.started was not received',
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected recording.started event to be received',
   })
 }
 
@@ -1938,8 +1981,10 @@ export const expectScreenShareJoined = async (page: Page) => {
         })
       })
     },
-    messageAssert: 'member.joined with screen type is received',
-    messageError: 'member.joined with screen type did not receive',
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected member.joined event to be received',
   })
 
   await expectPageEvalToPass(page, {
@@ -1951,8 +1996,10 @@ export const expectScreenShareJoined = async (page: Page) => {
         video: true,
       })
     },
-    messageAssert: 'screen share started',
-    messageError: 'failed to start the screen share',
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected screen share to be started',
   })
 
   return memberJoinedEvent
@@ -1973,8 +2020,7 @@ export const expectInteractivityMode = async (
     assertionFn: (interactivityMode) => {
       expect(interactivityMode).toEqual(mode)
     },
-    messageAssert: 'interactivity mode is equal',
-    messageError: 'interactivity mode is not equal',
+    message: 'Expected interactivity mode to be equal',
   })
 }
 
@@ -1986,8 +2032,10 @@ export const setLayoutOnPage = (page: Page, layoutName: string) => {
       const roomObj: Video.RoomSession = window._roomObj
       return roomObj.setLayout({ name: options.layoutName })
     },
-    messageAssert: 'setLayout passed',
-    messageError: 'setLayout failed',
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected setLayout to be called',
   })
 }
 
@@ -2005,8 +2053,7 @@ export const expectMemberId = async (page: Page, memberId: string) => {
     assertionFn: (roomMemberId) => {
       expect(roomMemberId).toEqual(memberId)
     },
-    messageAssert: 'member id is equal',
-    messageError: 'member id is not equal',
+    message: 'Expected member id to be equal',
   })
 }
 
@@ -2076,11 +2123,10 @@ export const waitForFunction = async <TArg, TResult>(
 }
 
 interface ExpectPageEvalToPassParams<TArgs, TResult> {
-  assertionFn?: (result: TResult, message: string) => void
+  assertionFn: (result: TResult) => void
   evaluateArgs?: TArgs
   evaluateFn: PageFunction<TArgs, TResult>
-  messageAssert: string
-  messageError: string
+  message: string
   interval?: number[]
   timeoutMs?: number
 }
@@ -2103,7 +2149,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     assertionFn,
     evaluateArgs,
     evaluateFn,
-    messageAssert,
+    message,
     interval = [10_000],
     timeoutMs = 10_000,
   }: ExpectPageEvalToPassParams<TArgs, TResult>
@@ -2123,11 +2169,9 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
         result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
       }
 
-      if (assertionFn) {
-        assertionFn(result, messageAssert)
-      }
+      assertionFn(result)
     },
-    { message: messageAssert },
+    { message },
     { timeout: timeoutMs, interval: interval }
   )
   return result
