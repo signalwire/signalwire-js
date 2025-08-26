@@ -11,6 +11,7 @@
     "changeset": "changeset",
     "clean": "npm exec --ws -- npx rimraf node_modules && npm exec --ws -- npx rimraf dist && npx rimraf node_modules",
     "test": "npm exec --ws npm run test",
+    "prepare": "npm run build",
     "build": "npm exec --ws -- npx rimraf dist && sw-build-all",
     "prettier": "prettier --write .",
     "release:dev": "sw-release --development",
