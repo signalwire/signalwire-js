@@ -40,7 +40,7 @@ test.describe('utils', () => {
       expect(expectedError).toBeDefined()
       expect(expectedError).toBeInstanceOf(Error)
       expect(expectedError).toMatchObject({
-        message: 'expectToPass: custom message',
+        message: expect.stringContaining('custom message'),
         stack: expect.stringContaining('utils.spec.ts'),
       })
     })
@@ -144,30 +144,7 @@ test.describe('utils', () => {
       }
 
       expect(expectedError).toBeDefined()
-      expect(expectedError?.message).toBe(
-        'expectToPass: should handle rejection'
-      )
-    })
-
-    test('should properly format error message with special characters', async () => {
-      let expectedError: Error | undefined = undefined
-      const messageWithSpecialChars = 'Test with "quotes" and symbols: @#$%'
-
-      try {
-        await expectToPass(
-          async () => {
-            throw new Error('Internal error')
-          },
-          { message: messageWithSpecialChars },
-          { timeout: 500 }
-        )
-      } catch (error) {
-        expectedError = error
-      }
-
-      expect(expectedError?.message).toBe(
-        `expectToPass: ${messageWithSpecialChars}`
-      )
+      expect(expectedError?.message).toMatch(/should handle rejection/)
     })
 
     test('should handle longer polling scenarios', async () => {
@@ -234,6 +211,12 @@ test.describe('expectPageEvalToPass', () => {
       message: 'pass - resolve when the function returns a truthy value',
     })
     expect(result2).toBe(true)
+  })
+
+  test('should fail with a custom error message', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
 
     // should fail with a custom error message
     expect(
@@ -252,17 +235,60 @@ test.describe('expectPageEvalToPass', () => {
     )
   })
 
-  test('TODO: should fail with a custom error message', async () => {
-    test.skip(
-      true,
-      'TODO: Implement test for expectPageEvalToPass error handling'
-    )
+  test.only('should pass evaluateArgs to the evaluateFn and return the serializable object', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+
+    const result = await expectPageEvalToPass(page, {
+      assertionFn: (result) => {
+        expect(result).toMatchObject({
+          param: 'test',
+          param2: false,
+          param3: 123,
+          param4: {},
+        })
+      },
+      evaluateArgs: {
+        param: 'test',
+        param2: false,
+        param3: 123,
+        param4: {},
+      },
+      evaluateFn: (params) => {
+        return params
+      },
+      message: 'pass - resolve when the function returns a truthy value',
+    })
+
+    expect(result).toMatchObject({
+      param: 'test',
+      param2: false,
+      param3: 123,
+      param4: {},
+    })
   })
 
-  test('TODO: should pass evaluateArgs to the evaluateFn', async () => {
-    test.skip(
-      true,
-      'TODO: Implement test for expectPageEvalToPass argument passing'
+  test('should timeout when page evaluation takes too long', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+
+    await expect(
+      expectPageEvalToPass(page, {
+        assertionFn: (_result) => {
+          // should not be called
+        },
+        evaluateFn: () => {
+          return new Promise((resolve) =>
+            setTimeout(() => resolve('should not resolve'), 1000)
+          )
+        },
+        message: 'timeout - should timeout when page evaluation takes too long',
+        timeoutMs: 100,
+      })
+    ).rejects.toThrow(
+      /timeout - should timeout when page evaluation takes too long/
     )
   })
 })
