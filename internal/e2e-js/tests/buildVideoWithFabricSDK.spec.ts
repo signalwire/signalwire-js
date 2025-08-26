@@ -1,8 +1,4 @@
-import {
-  OverlayMap,
-  LocalVideoOverlay,
-  FabricRoomSession,
-} from '@signalwire/js'
+import { OverlayMap, LocalVideoOverlay } from '@signalwire/js'
 import { test, expect, Page } from '../fixtures'
 import {
   SERVER_URL,
@@ -11,6 +7,7 @@ import {
   expectMCUVisible,
   expectPageEvalToPass,
   randomizeRoomName,
+  waitForFunction,
 } from '../utils'
 
 test.describe('buildVideoElement with CallFabric SDK', () => {
@@ -91,22 +88,22 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     })
 
     // Build a video element
-    const { element } = await page.evaluate(async () => {
-      return new Promise<any>(async (resolve, _reject) => {
-        // @ts-expect-error
+    const element = await waitForFunction(page, () => {
+      return new Promise<HTMLElement>(async (resolve, _reject) => {
         const call = window._roomObj
-        // @ts-expect-error
+        if (!call) {
+          throw new Error('Room object is not defined')
+        }
         const { element } = await window._SWJS.buildVideoElement({
           room: call,
         })
-        // @ts-expect-error
-        window._element = element
-
-        resolve({ element })
+        resolve(element)
       })
     })
+    expect(element, {
+      message: 'Expected built HTMLElement to be defined',
+    }).toBeDefined()
 
-    expect(element).toBeDefined()
     await expect(page.locator('div.mcuLayers > *')).toHaveCount(0)
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
@@ -115,12 +112,14 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     expect(await getOverlayMapSize(page)).toBeGreaterThanOrEqual(1)
     expect(await getLocalVideoOverlay(page)).toBeDefined()
 
-    await page.evaluate(() => {
-      // @ts-expect-error
-      const element = window._element
-      document.body.appendChild(element)
-      // @ts-expect-error
-      delete window._element
+    await expectPageEvalToPass(page, {
+      evaluateArgs: element,
+      evaluateFn: (element) => {
+        document.body.appendChild(element)
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to append element to DOM',
     })
 
     await expectMCUVisible(page)
@@ -166,24 +165,29 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     })
 
     // Create and expect only video overlay
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const room = window._roomObj
+    const unsubscribe = await waitForFunction(
+      page,
+      async () => {
+        const room = window._roomObj
+        if (!room) {
+          throw new Error('Room object is not defined')
+        }
+        const rootElement = document.createElement('div')
+        rootElement.id = 'rootElement2'
+        document.body.appendChild(rootElement)
 
-      const rootElement = document.createElement('div')
-      rootElement.id = 'rootElement2'
-      document.body.appendChild(rootElement)
-
-      // @ts-expect-error
-      const { unsubscribe } = await window._SWJS.buildVideoElement({
-        room,
-        rootElement,
-        applyMemberOverlay: false,
-      })
-
-      // @ts-expect-error
-      window._unsubscribe = unsubscribe
-    })
+        const { unsubscribe } = await window._SWJS.buildVideoElement({
+          room,
+          rootElement,
+          applyMemberOverlay: false,
+        })
+        return unsubscribe
+      },
+      undefined,
+      {
+        message: 'Expected to create second video element',
+      }
+    )
 
     await test.step('rootElement2: should have correct DOM elements and overlayMap', async () => {
       await expect(page.locator('div.mcuLayers > *')).toHaveCount(3)
@@ -200,20 +204,25 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     })
 
     // Create and expect only member overlay
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const room = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const room = window._roomObj
+        if (!room) {
+          throw new Error('Room object is not defined')
+        }
+        const { element } = await window._SWJS.buildVideoElement({
+          room,
+          applyLocalVideoOverlay: false,
+        })
 
-      // @ts-expect-error
-      const { element } = await window._SWJS.buildVideoElement({
-        room,
-        applyLocalVideoOverlay: false,
-      })
-
-      const rootElement = document.createElement('div')
-      rootElement.id = 'rootElement3'
-      document.body.appendChild(rootElement)
-      rootElement.append(element)
+        const rootElement = document.createElement('div')
+        rootElement.id = 'rootElement3'
+        document.body.appendChild(rootElement)
+        rootElement.append(element)
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to create third (member-only) overlay',
     })
 
     await test.step('rootElement3: should have correct DOM elements and overlayMap', async () => {
@@ -232,13 +241,14 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     })
 
     // Unsubscribe from the 2nd video element
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const unsubscribe = window._unsubscribe
-      unsubscribe()
-
-      // @ts-expect-error
-      delete window._unsubscribe
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { unsubscribe },
+      evaluateFn: async ({ unsubscribe }) => {
+        unsubscribe()
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to unsubscribe second video element',
     })
 
     await test.step('unsubscribe2: should have correct DOM elements and overlayMap', async () => {
@@ -283,11 +293,14 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     await createCFClient(page)
 
-    // Create and expect 1 video elements
-    await page.evaluate(
-      async ({ roomName }) => {
-        return new Promise<any>(async (resolve, _reject) => {
-          const client = window._client!
+    // Create a video element
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        return new Promise(async (resolve, _reject) => {
+          const client = window._client
+          if (!client) {
+            throw new Error('Client is not defined')
+          }
 
           const call = await client.dial({
             to: `/public/${roomName}?channel=video`,
@@ -296,13 +309,12 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
           call.on('room.joined', resolve)
 
-          // @ts-expect-error
           window._roomObj = call
 
           const rootElement = document.createElement('div')
           rootElement.id = 'rootElement2'
           document.body.appendChild(rootElement)
-          // @ts-expect-error
+
           await window._SWJS.buildVideoElement({
             room: call,
             rootElement,
@@ -311,8 +323,9 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
           await call.start()
         })
       },
-      { roomName }
-    )
+      assertionFn: (ok) => expect(ok).toBeDefined(),
+      message: 'Expected to create video element before room.joined',
+    })
 
     await expectMCUVisible(page)
 
@@ -341,15 +354,26 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     })
 
     // Create a video element with the same rootElement
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const room = window._roomObj
+        if (!room) {
+          throw new Error('Room object is not defined')
+        }
 
-      // @ts-expect-error
-      await window._SWJS.buildVideoElement({
-        room: call,
-        rootElement: document.getElementById('rootElement'),
-      })
+        const rootElement = document.getElementById('rootElement')
+        if (!rootElement) {
+          throw new Error('Root element is not defined')
+        }
+
+        await window._SWJS.buildVideoElement({
+          room,
+          rootElement,
+        })
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to build video element with same rootElement',
     })
 
     await expectMCUVisible(page)
@@ -411,32 +435,36 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     })
 
     await test.step('should return the element with getMemberOverlay', async () => {
-      const memberOneId = await pageOne.evaluate(() => {
-        // @ts-expect-error
-        return window._roomObj.memberId
+      const memberOneId = await expectPageEvalToPass(pageOne, {
+        evaluateFn: () => {
+          return window._roomObj?.memberId
+        },
+        assertionFn: (id) => expect(id).toBeDefined(),
+        message: 'Expected memberOneId to be defined',
       })
-      const memberTwoId = await pageTwo.evaluate(() => {
-        // @ts-expect-error
-        return window._roomObj.memberId
+      const memberTwoId = await expectPageEvalToPass(pageTwo, {
+        evaluateFn: () => {
+          return window._roomObj?.memberId
+        },
+        assertionFn: (id) => expect(id).toBeDefined(),
+        message: 'Expected memberTwoId to be defined',
       })
-      expect(memberOneId).toBeDefined()
-      expect(memberTwoId).toBeDefined()
 
-      const [memberOneElement, memberTwoElement] = await pageOne.evaluate(
-        ({ memberOneId, memberTwoId }) => {
-          // @ts-expect-error
-          const room: FabricRoomSession = window._roomObj
-
+      await expectPageEvalToPass(pageOne, {
+        evaluateArgs: { memberOneId, memberTwoId },
+        evaluateFn: ({ memberOneId, memberTwoId }) => {
+          const room = window._roomObj
           return [
-            room.getMemberOverlay(memberOneId),
-            room.getMemberOverlay(memberTwoId),
+            room?.getMemberOverlay(memberOneId!),
+            room?.getMemberOverlay(memberTwoId!),
           ]
         },
-        { memberOneId, memberTwoId }
-      )
-
-      expect(memberOneElement).toBeDefined()
-      expect(memberTwoElement).toBeDefined()
+        assertionFn: ([el1, el2]) => {
+          expect(el1).toBeDefined()
+          expect(el2).toBeDefined()
+        },
+        message: 'Expected member overlay elements to be defined',
+      })
     })
   })
 })

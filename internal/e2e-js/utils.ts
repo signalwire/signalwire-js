@@ -1,4 +1,5 @@
 import type {
+  buildVideoElement,
   DialParams,
   FabricRoomSession,
   SignalWire,
@@ -24,7 +25,9 @@ declare global {
   interface Window {
     _SWJS: {
       SignalWire: typeof SignalWire
+      buildVideoElement: typeof buildVideoElement
     }
+    _roomObj?: Video.RoomSession | FabricRoomSession
     _client?: SignalWireClient
   }
 }
@@ -289,7 +292,6 @@ export const createTestRoomSession = async (
       // @ts-expect-error
       window.jwt_token = options.API_TOKEN
 
-      // @ts-expect-error
       window._roomObj = roomSession
 
       return Promise.resolve(roomSession)
@@ -349,7 +351,6 @@ export const createTestRoomSessionWithJWT = async (
       // @ts-expect-error
       window.jwt_token = options.API_TOKEN
 
-      // @ts-expect-error
       window._roomObj = roomSession
 
       return Promise.resolve(roomSession)
@@ -471,9 +472,7 @@ export const deleteRoom = async (id: string) => {
 export const leaveRoom = async (page: Page) => {
   return expectPageEvalToPass(page, {
     evaluateFn: async () => {
-      const roomObj: Video.RoomSession | FabricRoomSession =
-        // @ts-expect-error
-        window._roomObj
+      const roomObj = window._roomObj
       console.log('Fixture roomObj', roomObj)
       if (roomObj && roomObj?.roomSessionId) {
         console.log('Fixture has room', roomObj.roomSessionId)
@@ -632,7 +631,6 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           call.on('room.joined', resolve)
         }
 
-        // @ts-expect-error
         window._roomObj = call
 
         if (shouldStartCall) {
