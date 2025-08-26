@@ -310,11 +310,14 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public async dial(params: DialParams) {
+    console.log('>> dial', params)
     return new Promise<FabricRoomSession>(async (resolve, reject) => {
       try {
         // in case the user left the previous call with hangup, and is not reattaching
         getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+        console.log('>> dial2', params)
         const call = this.buildOutboundCall(params)
+        console.log('>> call', call)
         resolve(call)
       } catch (error) {
         this.logger.error('Unable to connect and dial a call', error)

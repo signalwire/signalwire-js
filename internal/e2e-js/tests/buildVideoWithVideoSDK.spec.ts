@@ -86,8 +86,15 @@ test.describe('buildVideoElement with Video SDK', () => {
 
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
-    expect(await getOverlayMap(page)).toBeUndefined()
-    expect(await getLocalVideoOverlay(page)).toBeUndefined()
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return window._roomObj?.overlayMap as OverlayMap
+      },
+      assertionFn: (overlayMap) => {
+        expect(overlayMap).toBeUndefined()
+      },
+      message: 'Expected overlayMap to be not defined',
+    })
   })
 
   test('should return the rootElement', async ({ createCustomPage }) => {

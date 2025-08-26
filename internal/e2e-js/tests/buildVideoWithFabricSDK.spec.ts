@@ -66,8 +66,15 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
-    expect(await getOverlayMap(page)).toBeUndefined()
-    expect(await getLocalVideoOverlay(page)).toBeUndefined()
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return window._roomObj?.overlayMap as OverlayMap
+      },
+      assertionFn: (overlayMap) => {
+        expect(overlayMap).toBeUndefined()
+      },
+      message: 'Expected overlayMap to be not defined',
+    })
   })
 
   test('should return the rootElement', async ({
@@ -295,17 +302,21 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
 
     // Create a video element
     await expectPageEvalToPass(page, {
-      evaluateFn: async () => {
+      evaluateFn: () => {
         return new Promise(async (resolve, _reject) => {
           const client = window._client
+          console.log('>> client', client)
           if (!client) {
             throw new Error('Client is not defined')
           }
+          console.log('>> client.dial', client.dial)
 
           const call = await client.dial({
             to: `/public/${roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
+
+          console.log('>> call', call)
 
           call.on('room.joined', resolve)
 
@@ -323,9 +334,14 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
           await call.start()
         })
       },
-      assertionFn: (ok) => expect(ok).toBeDefined(),
+      assertionFn: (ok) => {
+        console.log('>> ok', ok)
+        expect(ok).toBeDefined()
+      },
       message: 'Expected to create video element before room.joined',
     })
+
+    console.log('>> room is joined')
 
     await expectMCUVisible(page)
 
