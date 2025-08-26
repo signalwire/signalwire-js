@@ -150,7 +150,7 @@ All specifications are designed to integrate with:
 - > 95% device recovery success rate
 - >80% network issue recovery on first attempt
 - <5 second recovery time for standard issues
-- > 90% code coverage for new features
+- >90% code coverage for new features
 
 ### User Experience Metrics
 
