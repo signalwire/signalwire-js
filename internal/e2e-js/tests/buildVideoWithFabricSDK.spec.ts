@@ -9,26 +9,45 @@ import {
   createCFClient,
   dialAddress,
   expectMCUVisible,
+  expectPageEvalToPass,
   randomizeRoomName,
 } from '../utils'
 
 test.describe('buildVideoElement with CallFabric SDK', () => {
   const getOverlayMap = (page: Page) =>
-    page.evaluate<OverlayMap>(() => {
-      // @ts-expect-error
-      return window._roomObj.overlayMap
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        // @ts-expect-error
+        return window._roomObj.overlayMap as OverlayMap
+      },
+      assertionFn: (overlayMap) => {
+        expect(overlayMap).toBeDefined()
+      },
+      message: 'Expected overlayMap to be defined',
     })
 
   const getOverlayMapSize = (page: Page) =>
-    page.evaluate<number>(() => {
-      // @ts-expect-error
-      return window._roomObj.overlayMap.size
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        // @ts-expect-error
+        return (window._roomObj.overlayMap as OverlayMap).size
+      },
+      assertionFn: (overlayMapSize) => {
+        expect(overlayMapSize).toBeDefined()
+      },
+      message: 'Expected overlayMap size to be defined',
     })
 
   const getLocalVideoOverlay = (page: Page) =>
-    page.evaluate<LocalVideoOverlay>(() => {
-      // @ts-expect-error
-      return window._roomObj.localVideoOverlay
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        // @ts-expect-error
+        return window._roomObj.localVideoOverlay as LocalVideoOverlay
+      },
+      assertionFn: (localVideoOverlay) => {
+        expect(localVideoOverlay).toBeDefined()
+      },
+      message: 'Expected localVideoOverlay to be defined',
     })
 
   test('should not render any video if rootElement is not passed', async ({
