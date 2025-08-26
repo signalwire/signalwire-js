@@ -235,7 +235,7 @@ test.describe('expectPageEvalToPass', () => {
     )
   })
 
-  test.only('should pass evaluateArgs to the evaluateFn and return the serializable object', async ({
+  test('should pass evaluateArgs to the evaluateFn and return the serializable object', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
