@@ -274,7 +274,7 @@ test.describe('expectPageEvalToPass', () => {
   }) => {
     const page = await createCustomPage({ name: '[page]' })
 
-    const result = await expect(
+    await expect(
       expectPageEvalToPass(page, {
         assertionFn: (_result) => {
           // should not be called
@@ -290,7 +290,5 @@ test.describe('expectPageEvalToPass', () => {
     ).rejects.toThrow(
       /timeout - should timeout when page evaluation takes too long/
     )
-
-    expect(result).toBeUndefined()
   })
 })
