@@ -61,12 +61,15 @@ test.describe('CallCall VideoRoom', () => {
       await expectMCUVisible(page)
 
       // --------------- Call Object ------------------------
-      callObj = await waitForFunction(page, () => {
-        if (window._callObj) {
-          return window._callObj
-        } else {
-          throw new Error('Call object not found')
-        }
+      callObj = await waitForFunction(page, {
+        evaluateFn: () => {
+          if (window._callObj) {
+            return window._callObj
+          } else {
+            throw new Error('Call object not found')
+          }
+        },
+        message: 'call object',
       })
     })
 
@@ -142,12 +145,11 @@ test.describe('CallCall VideoRoom', () => {
         message: 'expect member updated muted',
       })
 
-      const audioMuteSelf = waitForFunction(
-        page,
-        async (params) => await params.callObj.audioMute(),
-        { callObj },
-        { message: 'audio mute self' }
-      )
+      const audioMuteSelf = waitForFunction(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) => await params.callObj.audioMute(),
+        message: 'audio mute self',
+      })
 
       await audioMuteSelf
       await memberUpdatedMuted
@@ -359,16 +361,15 @@ test.describe('CallCall VideoRoom', () => {
       })
 
       // --------------- Start Screen Share ---------------
-      const screenShareObj = await waitForFunction(
-        page,
-        async (params) =>
+      const screenShareObj = await waitForFunction(page, {
+        evaluateArgs: { callObj },
+        evaluateFn: async (params) =>
           await params.callObj.startScreenShare({
             audio: true,
             video: true,
           }),
-        { callObj },
-        { message: 'screen share obj' }
-      )
+        message: 'screen share obj',
+      })
 
       const screenMemberId = await screenMemberJoined
 
