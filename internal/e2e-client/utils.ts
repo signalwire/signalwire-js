@@ -471,28 +471,26 @@ interface DialAddressParams {
 
 export const dialAddress = <TReturn = any>(
   page: Page,
-  params: DialAddressParams
+  params: DialAddressParams = {
+    address: '',
+    dialOptions: {},
+    reattach: false,
+    shouldPassRootElement: true,
+    shouldStartCall: true,
+    shouldWaitForJoin: true,
+  }
 ) => {
-  const {
-    address,
-    dialOptions = {},
-    reattach = false,
-    shouldPassRootElement = true,
-    shouldStartCall = true,
-    shouldWaitForJoin = true,
-  } = params
+  type EvaluateArgs = Omit<DialAddressParams, 'dialOptions'> & {
+    dialOptions: string
+  }
 
-  return expectPageEvalToPass(page, {
+  return expectPageEvalToPass<EvaluateArgs, TReturn>(page, {
     assertionFn: (result) => {
       expect(result, 'dialAddress result should be defined').toBeDefined()
     },
     evaluateArgs: {
-      address,
-      dialOptions: JSON.stringify(dialOptions),
-      reattach,
-      shouldPassRootElement,
-      shouldStartCall,
-      shouldWaitForJoin,
+      ...params,
+      dialOptions: JSON.stringify(params.dialOptions),
     },
     evaluateFn: async ({
       address,
@@ -502,7 +500,7 @@ export const dialAddress = <TReturn = any>(
       shouldStartCall,
       shouldWaitForJoin,
     }) => {
-      return new Promise<TReturn>(async (resolve, _reject) => {
+      return new Promise<any>(async (resolve, _reject) => {
         if (!window._client) {
           throw new Error('Client is not defined')
         }
@@ -520,7 +518,7 @@ export const dialAddress = <TReturn = any>(
 
         if (shouldWaitForJoin) {
           call.on('room.joined', (params) => {
-            resolve(params as TReturn)
+            resolve(params)
           })
         }
 
@@ -531,11 +529,10 @@ export const dialAddress = <TReturn = any>(
         }
 
         if (!shouldWaitForJoin) {
-          resolve(call as TReturn)
+          resolve(call)
         }
       })
     },
-
     message: 'expect dialAddress to succeed',
   })
 }
