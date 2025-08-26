@@ -45,6 +45,18 @@ test.describe('utils', () => {
       })
     })
 
+    test('should timeout when waiting for a promise to resolve', async () => {
+      expect(
+        expectToPass(
+          async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+          },
+          { message: 'expect timeout' },
+          { timeout: 100 }
+        )
+      ).rejects.toThrow('Timeout 100ms exceeded while waiting on the predicate')
+    })
+
     test('should respect custom timeout option', async ({
       createCustomPage,
     }) => {
@@ -276,8 +288,9 @@ test.describe('expectPageEvalToPass', () => {
 
     await expect(
       expectPageEvalToPass(page, {
-        assertionFn: (_result) => {
-          // should not be called
+        assertionFn: (result) => {
+          // should never be called
+          expect(result).not.toMatch('should not resolve')
         },
         evaluateFn: () => {
           return new Promise((resolve) =>
@@ -288,7 +301,7 @@ test.describe('expectPageEvalToPass', () => {
         timeoutMs: 100,
       })
     ).rejects.toThrow(
-      /timeout - should timeout when page evaluation takes too long/
+      'timeout - should timeout when page evaluation takes too long'
     )
   })
 })
