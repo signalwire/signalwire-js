@@ -61,8 +61,8 @@ export function createVisibilityChannel(
 
     // Get current visibility state
     const getCurrentVisibilityState = (): VisibilityState => ({
-      hidden: document.hidden,
-      visibilityState: document.visibilityState,
+      hidden: typeof document !== 'undefined' ? document.hidden : false,
+      visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'visible',
       timestamp: Date.now(),
     })
 
@@ -79,7 +79,7 @@ export function createVisibilityChannel(
     // Handle focus events
     const handleFocus = () => {
       const now = Date.now()
-      const wasHidden = document.hidden
+      const wasHidden = typeof document !== 'undefined' ? document.hidden : false
       const hiddenDuration = lastBlurTime ? now - lastBlurTime : 0
       
       lastBlurTime = null
@@ -123,11 +123,15 @@ export function createVisibilityChannel(
     }
 
     // Register core event listeners
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleFocus)
-    window.addEventListener('blur', handleBlur)
-    window.addEventListener('pageshow', handlePageShow)
-    window.addEventListener('pagehide', handlePageHide)
+    if (typeof document !== 'undefined' && document.addEventListener) {
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    }
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('focus', handleFocus)
+      window.addEventListener('blur', handleBlur)
+      window.addEventListener('pageshow', handlePageShow)
+      window.addEventListener('pagehide', handlePageHide)
+    }
 
     // Setup wake detection if enabled
     if (config.enabled !== false) {
@@ -151,11 +155,15 @@ export function createVisibilityChannel(
 
     // Cleanup function
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
-      window.removeEventListener('blur', handleBlur)
-      window.removeEventListener('pageshow', handlePageShow)
-      window.removeEventListener('pagehide', handlePageHide)
+      if (typeof document !== 'undefined' && document.removeEventListener) {
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+      }
+      if (typeof window !== 'undefined' && window.removeEventListener) {
+        window.removeEventListener('focus', handleFocus)
+        window.removeEventListener('blur', handleBlur)
+        window.removeEventListener('pageshow', handlePageShow)
+        window.removeEventListener('pagehide', handlePageHide)
+      }
 
       if (wakeDetectionInterval) {
         clearInterval(wakeDetectionInterval)
@@ -176,6 +184,9 @@ export function createDeviceChangeChannel(
 
     const checkDevices = async () => {
       try {
+        if (!navigator?.mediaDevices?.enumerateDevices) {
+          return
+        }
         const devices = await navigator.mediaDevices.enumerateDevices()
         const changes = detectDeviceChanges(previousDevices, devices)
         

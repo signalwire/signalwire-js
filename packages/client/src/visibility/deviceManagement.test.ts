@@ -141,13 +141,14 @@ beforeAll(() => {
   })
 
   // Mock localStorage
-  Object.defineProperty(window, 'localStorage', {
+  Object.defineProperty(global, 'localStorage', {
+    configurable: true,
     writable: true,
     value: {
-      getItem: (key: string) => mockStorage.get(key) || null,
-      setItem: (key: string, value: string) => mockStorage.set(key, value),
-      removeItem: (key: string) => mockStorage.delete(key),
-      clear: () => mockStorage.clear(),
+      getItem: jest.fn((key: string) => mockStorage.get(key) || null),
+      setItem: jest.fn((key: string, value: string) => { mockStorage.set(key, value) }),
+      removeItem: jest.fn((key: string) => { mockStorage.delete(key) }),
+      clear: jest.fn(() => mockStorage.clear()),
     }
   })
 

@@ -123,11 +123,15 @@ global.WebSocket = WebSocket
 
 // Browser APIs needed by visibility features
 if (typeof navigator === 'undefined') {
-  global.navigator = {}
+  Object.defineProperty(global, 'navigator', {
+    value: {},
+    configurable: true,
+    writable: true
+  })
 }
 
-// Extend navigator with visibility feature requirements
-Object.assign(global.navigator, {
+// Define navigator properties individually to handle getter-only properties
+const navigatorProps = {
   userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
   platform: 'Linux x86_64',
   maxTouchPoints: 0,
@@ -136,18 +140,30 @@ Object.assign(global.navigator, {
   languages: ['en-US', 'en'],
   language: 'en-US',
   cookieEnabled: true,
+}
+
+// Define each property with configurable descriptors
+Object.keys(navigatorProps).forEach(key => {
+  Object.defineProperty(global.navigator, key, {
+    value: navigatorProps[key as keyof typeof navigatorProps],
+    configurable: true,
+    writable: true
+  })
 })
 
 // Mock navigator.permissions
 Object.defineProperty(navigator, 'permissions', {
+  configurable: true,
+  writable: true,
   value: {
     query: jest.fn(() => Promise.resolve({ state: 'granted' })),
   },
-  configurable: true,
 })
 
 // Mock navigator.mediaDevices with extended functionality
 Object.defineProperty(navigator, 'mediaDevices', {
+  configurable: true,
+  writable: true,
   value: {
     enumerateDevices: jest.fn().mockResolvedValue([
       {
@@ -181,16 +197,16 @@ Object.defineProperty(navigator, 'mediaDevices', {
     getUserMedia: jest.fn((constraints) => {
       const tracks = []
       if (constraints.audio) {
-        tracks.push(new global.MediaStreamTrack('audio'))
+        tracks.push(new (global.MediaStreamTrack as any)('audio'))
       }
       if (constraints.video) {
-        tracks.push(new global.MediaStreamTrack('video'))
+        tracks.push(new (global.MediaStreamTrack as any)('video'))
       }
       const stream = new global.MediaStream(tracks)
       return Promise.resolve(stream)
     }),
     getDisplayMedia: jest.fn(() => {
-      const tracks = [new global.MediaStreamTrack('video')]
+      const tracks = [new (global.MediaStreamTrack as any)('video')]
       const stream = new global.MediaStream(tracks)
       return Promise.resolve(stream)
     }),
@@ -198,11 +214,12 @@ Object.defineProperty(navigator, 'mediaDevices', {
     removeEventListener: jest.fn(),
     ondevicechange: null,
   },
-  configurable: true,
 })
 
 // Mock localStorage
 Object.defineProperty(global, 'localStorage', {
+  configurable: true,
+  writable: true,
   value: {
     getItem: jest.fn(),
     setItem: jest.fn(),
@@ -211,11 +228,12 @@ Object.defineProperty(global, 'localStorage', {
     length: 0,
     key: jest.fn(),
   },
-  configurable: true,
 })
 
 // Mock document APIs needed by visibility features
 Object.defineProperty(global, 'document', {
+  configurable: true,
+  writable: true,
   value: {
     hidden: false,
     visibilityState: 'visible',
@@ -250,11 +268,12 @@ Object.defineProperty(global, 'document', {
       right: 100,
     })),
   },
-  configurable: true,
 })
 
 // Mock window APIs
 Object.defineProperty(global, 'window', {
+  configurable: true,
+  writable: true,
   value: {
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
@@ -281,26 +300,28 @@ Object.defineProperty(global, 'window', {
       measure: jest.fn(),
     },
   },
-  configurable: true,
 })
 
 // Mock URL constructor
 Object.defineProperty(global, 'URL', {
+  configurable: true,
+  writable: true,
   value: class URL {
     constructor(url: string, base?: string) {
       Object.assign(this, new (require('url').URL)(url, base))
     }
   },
-  configurable: true,
 })
 
 // Mock requestAnimationFrame
 Object.defineProperty(global, 'requestAnimationFrame', {
-  value: jest.fn((cb) => setTimeout(cb, 16)),
   configurable: true,
+  writable: true,
+  value: jest.fn((cb) => setTimeout(cb, 16)),
 })
 
 Object.defineProperty(global, 'cancelAnimationFrame', {
-  value: jest.fn((id) => clearTimeout(id)),
   configurable: true,
+  writable: true,
+  value: jest.fn((id) => clearTimeout(id)),
 })
