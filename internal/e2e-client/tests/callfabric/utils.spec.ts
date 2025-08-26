@@ -230,7 +230,7 @@ test.describe('expectPageEvalToPass', () => {
   }) => {
     const page = await createCustomPage({ name: '[page]' })
 
-    expect(
+    await expect(
       expectPageEvalToPass(page, {
         assertionFn: (result: unknown) => {
           // should not be called because the evaluateFn throws an error
