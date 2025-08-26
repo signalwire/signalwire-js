@@ -225,7 +225,7 @@ test.describe('expectPageEvalToPass', () => {
     expect(result2).toBe(true)
   })
 
-  test('should throw when the evaluateFn throws an error', async ({
+  test.only('should throw when the evaluateFn throws an error', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
@@ -242,7 +242,11 @@ test.describe('expectPageEvalToPass', () => {
           expect(false).toBe(true)
         },
         evaluateFn: () => {
-          throw new Error('test error')
+          return new Promise((_resolve, reject) => {
+            setTimeout(() => {
+              reject(new Error('test error'))
+            }, 100)
+          })
         },
         message: 'expect error',
       })
