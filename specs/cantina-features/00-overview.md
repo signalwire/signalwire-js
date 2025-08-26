@@ -148,7 +148,7 @@ All specifications are designed to integrate with:
 ### Technical Metrics
 
 - > 95% device recovery success rate
-- > 80% network issue recovery on first attempt
+- >80% network issue recovery on first attempt
 - <5 second recovery time for standard issues
 - > 90% code coverage for new features
 
