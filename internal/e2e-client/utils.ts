@@ -9,7 +9,8 @@ import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
-import { Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
@@ -21,6 +22,7 @@ declare global {
       SignalWire: typeof SignalWire
     }
     _client?: SignalWireClient
+    _callObj?: CallSession
   }
 }
 
@@ -58,22 +60,24 @@ export const createTestServer = async (
     logLevel: 'silent',
     resolve: {
       alias: {
-        '@signalwire/client': path.resolve(__dirname, '../../packages/client/src'),
+        '@signalwire/client': path.resolve(
+          __dirname,
+          '../../packages/client/src'
+        ),
         '@signalwire/core': path.resolve(__dirname, '../../packages/core/src'),
-        '@signalwire/webrtc': path.resolve(__dirname, '../../packages/webrtc/src'),
+        '@signalwire/webrtc': path.resolve(
+          __dirname,
+          '../../packages/webrtc/src'
+        ),
         '@signalwire/js': path.resolve(__dirname, '../../packages/js/src'),
       },
     },
     optimizeDeps: {
-      include: [
-        '@signalwire/client',
-        '@signalwire/core',
-        '@signalwire/webrtc',
-      ],
+      include: ['@signalwire/client', '@signalwire/core', '@signalwire/webrtc'],
     },
     define: {
       'process.env': '{}',
-      'process': '{}',
+      process: '{}',
     },
   })
 
@@ -113,6 +117,7 @@ interface CreateTestVRTOptions {
   end_room_session_on_leave?: boolean
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createTestVRTToken = async (body: CreateTestVRTOptions) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/video/room_tokens`,
@@ -134,6 +139,7 @@ interface CreateTestJWTOptions {
   refresh_token?: string
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createTestJWTToken = async (body: CreateTestJWTOptions) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/relay/rest/jwt`,
@@ -164,7 +170,9 @@ export const createTestSATToken = async (reference?: string) => {
       }),
     }
   )
-  const data = await response.json()
+  const data = (await response.json()) as {
+    token: string
+  }
   return data.token
 }
 
@@ -209,6 +217,7 @@ interface CreateTestCRTOptions {
   channels: Record<string, { read?: boolean; write?: boolean }>
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createTestCRTToken = async (body: CreateTestCRTOptions) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/chat/tokens`,
@@ -295,6 +304,7 @@ export const createRoom = async (body: CreateOrUpdateRoomOptions) => {
   return response.json()
 }
 
+// TODO: This is not used anywhere, remove it?
 export const createStreamForRoom = async (name: string, url: string) => {
   const room = await getRoomByName(name)
   if (!room) {
@@ -320,6 +330,7 @@ export const createStreamForRoom = async (name: string, url: string) => {
   return data
 }
 
+// TODO: This is not used anywhere, remove it?
 export const deleteRoom = async (id: string) => {
   return await fetch(`https://${process.env.API_HOST}/api/video/rooms/${id}`, {
     method: 'DELETE',
@@ -332,10 +343,8 @@ export const deleteRoom = async (id: string) => {
 
 export const leaveRoom = async (page: Page) => {
   return page.evaluate(async () => {
-    const callObj: CallSession =
-      // @ts-expect-error
-      window._callObj
-    console.log('Fixture callObj', callObj)
+    const callObj = window._callObj
+
     if (callObj && callObj?.roomSessionId) {
       console.log('Fixture has room', callObj.roomSessionId)
       await callObj.leave()
@@ -362,6 +371,7 @@ export const createCFClient = async (
   params?: CreateCFClientParams
 ) => {
   const sat = await createTestSATToken(params?.reference)
+  expect(sat, 'SAT token created').toBeDefined()
   return createCFClientWithToken(page, sat, params)
 }
 
@@ -386,10 +396,18 @@ const createCFClientWithToken = async (
 
   const { attachSagaMonitor = false } = params || {}
 
-  const swClient = await page.evaluate(
-    async (options) => {
+  const swClient = (await expectPageEvalToPass(page, {
+    assertionFn: (client) => {
+      expect(client, 'SignalWire client should be defined').toBeDefined()
+    },
+    evaluateArgs: {
+      RELAY_HOST: process.env.RELAY_HOST,
+      API_TOKEN: sat,
+      attachSagaMonitor,
+    },
+    evaluateFn: async (options) => {
       const _runningWorkers: any[] = []
-      // @ts-expect-error
+      // @ts-expect-error - _runningWorkers is not defined in the window object
       window._runningWorkers = _runningWorkers
       const addTask = (task: any) => {
         if (!_runningWorkers.includes(task)) {
@@ -416,6 +434,16 @@ const createCFClientWithToken = async (
       }
 
       const SignalWire = window._SWJS.SignalWire
+      if (!SignalWire) {
+        throw new Error('SignalWire is not defined')
+      }
+      if (!options.RELAY_HOST) {
+        throw new Error('Relay host is not defined')
+      }
+      if (!options.API_TOKEN) {
+        throw new Error('API token is not defined')
+      }
+
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
@@ -426,12 +454,8 @@ const createCFClientWithToken = async (
       window._client = client
       return client
     },
-    {
-      RELAY_HOST: process.env.RELAY_HOST,
-      API_TOKEN: sat,
-      attachSagaMonitor,
-    }
-  )
+    message: 'expect SignalWire client to be created',
+  })) as SignalWireContract
 
   return swClient
 }
@@ -444,17 +468,31 @@ interface DialAddressParams {
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
 }
-export const dialAddress = (page: Page, params: DialAddressParams) => {
-  const {
-    address,
-    dialOptions = {},
-    reattach = false,
-    shouldPassRootElement = true,
-    shouldStartCall = true,
-    shouldWaitForJoin = true,
-  } = params
-  return page.evaluate(
-    async ({
+
+export const dialAddress = <TReturn = any>(
+  page: Page,
+  params: DialAddressParams = {
+    address: '',
+    dialOptions: {},
+    reattach: false,
+    shouldPassRootElement: true,
+    shouldStartCall: true,
+    shouldWaitForJoin: true,
+  }
+) => {
+  type EvaluateArgs = Omit<DialAddressParams, 'dialOptions'> & {
+    dialOptions: string
+  }
+
+  return expectPageEvalToPass<EvaluateArgs, TReturn>(page, {
+    assertionFn: (result) => {
+      expect(result, 'dialAddress result should be defined').toBeDefined()
+    },
+    evaluateArgs: {
+      ...params,
+      dialOptions: JSON.stringify(params.dialOptions),
+    },
+    evaluateFn: async ({
       address,
       dialOptions,
       reattach,
@@ -463,7 +501,9 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
       shouldWaitForJoin,
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
-        // @ts-expect-error
+        if (!window._client) {
+          throw new Error('Client is not defined')
+        }
         const client: SignalWireContract = window._client
 
         const dialer = reattach ? client.reattach : client.dial
@@ -477,10 +517,11 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
         })
 
         if (shouldWaitForJoin) {
-          call.on('room.joined', resolve)
+          call.on('room.joined', (params) => {
+            resolve(params)
+          })
         }
 
-        // @ts-expect-error
         window._callObj = call
 
         if (shouldStartCall) {
@@ -492,15 +533,8 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
         }
       })
     },
-    {
-      address,
-      dialOptions: JSON.stringify(dialOptions),
-      reattach,
-      shouldPassRootElement,
-      shouldStartCall,
-      shouldWaitForJoin,
-    }
-  )
+    message: 'expect dialAddress to succeed',
+  })
 }
 
 export const reloadAndReattachAddress = async (
@@ -515,8 +549,7 @@ export const reloadAndReattachAddress = async (
 
 export const disconnectClient = (page: Page) => {
   return page.evaluate(async () => {
-    // @ts-expect-error
-    const client: SignalWireContract = window._client
+    const client = window._client
 
     if (!client) {
       console.log('Client is not available')
@@ -537,7 +570,7 @@ export const expectMCUVisible = async (page: Page) => {
 
 export const expectMCUNotVisible = async (page: Page) => {
   const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
-  expect(mcuVideo).toBeNull()
+  expect(mcuVideo, 'MCU video should be null').toBeNull()
 }
 
 export const expectMCUVisibleForAudience = async (page: Page) => {
@@ -573,131 +606,143 @@ interface GetStatsResult {
 }
 
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
-  return await page.evaluate<GetStatsResult>(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
-    // @ts-expect-error
-    const rtcPeer = callObj.peer
-
-    // Get the currently active inbound and outbound tracks.
-    const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
-    const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
-    const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
-    const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
-
-    // Default return value
-    const result: GetStatsResult = {
-      inboundRTP: {
-        audio: {
-          packetsReceived: 0,
-          packetsLost: 0,
-          packetsDiscarded: 0,
-        },
-        video: {
-          packetsReceived: 0,
-          packetsLost: 0,
-          packetsDiscarded: 0,
-        },
-      },
-      outboundRTP: {
-        audio: {
-          active: false,
-          packetsSent: 0,
-          targetBitrate: 0,
-          totalPacketSendDelay: 0,
-        },
-        video: {
-          active: false,
-          packetsSent: 0,
-          targetBitrate: 0,
-          totalPacketSendDelay: 0,
-        },
-      },
-    }
-
-    const inboundRTPFilters = {
-      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
-      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
-    }
-
-    const outboundRTPFilters = {
-      audio: [
-        'active',
-        'packetsSent',
-        'targetBitrate',
-        'totalPacketSendDelay',
-      ] as const,
-      video: [
-        'active',
-        'packetsSent',
-        'targetBitrate',
-        'totalPacketSendDelay',
-      ] as const,
-    }
-
-    const handleInboundRTP = (report: any) => {
-      const media = report.mediaType as 'audio' | 'video'
-      if (!media) return
-
-      // Check if trackIdentifier matches the currently active inbound track
-      const expectedTrackId =
-        media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
-
-      if (
-        report.trackIdentifier &&
-        report.trackIdentifier !== expectedTrackId
-      ) {
-        console.log(
-          `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
-        )
-        return
+  let result = {} as GetStatsResult
+  await expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
       }
 
-      inboundRTPFilters[media].forEach((key) => {
-        result.inboundRTP[media][key] = report[key]
+      // @ts-expect-error - peer is not defined in the call object
+      const rtcPeer = callObj.peer
+
+      // Get the currently active inbound and outbound tracks.
+      const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
+      const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
+      const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
+      const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
+
+      // Default return value
+      const result: GetStatsResult = {
+        inboundRTP: {
+          audio: {
+            packetsReceived: 0,
+            packetsLost: 0,
+            packetsDiscarded: 0,
+          },
+          video: {
+            packetsReceived: 0,
+            packetsLost: 0,
+            packetsDiscarded: 0,
+          },
+        },
+        outboundRTP: {
+          audio: {
+            active: false,
+            packetsSent: 0,
+            targetBitrate: 0,
+            totalPacketSendDelay: 0,
+          },
+          video: {
+            active: false,
+            packetsSent: 0,
+            targetBitrate: 0,
+            totalPacketSendDelay: 0,
+          },
+        },
+      }
+
+      const inboundRTPFilters = {
+        audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+        video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+      }
+
+      const outboundRTPFilters = {
+        audio: [
+          'active',
+          'packetsSent',
+          'targetBitrate',
+          'totalPacketSendDelay',
+        ] as const,
+        video: [
+          'active',
+          'packetsSent',
+          'targetBitrate',
+          'totalPacketSendDelay',
+        ] as const,
+      }
+
+      const handleInboundRTP = (report: any) => {
+        const media = report.mediaType as 'audio' | 'video'
+        if (!media) return
+
+        // Check if trackIdentifier matches the currently active inbound track
+        const expectedTrackId =
+          media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
+
+        if (
+          report.trackIdentifier &&
+          report.trackIdentifier !== expectedTrackId
+        ) {
+          console.log(
+            `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+          )
+          return
+        }
+
+        inboundRTPFilters[media].forEach((key) => {
+          result.inboundRTP[media][key] = report[key]
+        })
+      }
+
+      const handleOutboundRTP = (report: any) => {
+        const media = report.mediaType as 'audio' | 'video'
+        if (!media) return
+
+        // Check if trackIdentifier matches the currently active outbound track
+        const expectedTrackId =
+          media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
+        if (
+          report.trackIdentifier &&
+          report.trackIdentifier !== expectedTrackId
+        ) {
+          console.log(
+            `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+          )
+          return
+        }
+
+        outboundRTPFilters[media].forEach((key) => {
+          ;(result.outboundRTP[media] as any)[key] = report[key]
+        })
+      }
+
+      // Iterate over all RTCStats entries
+      const pc: RTCPeerConnection = rtcPeer.instance
+      const stats = await pc.getStats()
+      stats.forEach((report) => {
+        switch (report.type) {
+          case 'inbound-rtp':
+            handleInboundRTP(report)
+            break
+          case 'outbound-rtp':
+            handleOutboundRTP(report)
+            break
+        }
       })
-    }
 
-    const handleOutboundRTP = (report: any) => {
-      const media = report.mediaType as 'audio' | 'video'
-      if (!media) return
-
-      // Check if trackIdentifier matches the currently active outbound track
-      const expectedTrackId =
-        media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
-      if (
-        report.trackIdentifier &&
-        report.trackIdentifier !== expectedTrackId
-      ) {
-        console.log(
-          `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
-        )
-        return
-      }
-
-      outboundRTPFilters[media].forEach((key) => {
-        ;(result.outboundRTP[media] as any)[key] = report[key]
-      })
-    }
-
-    // Iterate over all RTCStats entries
-    const pc: RTCPeerConnection = rtcPeer.instance
-    const stats = await pc.getStats()
-    stats.forEach((report) => {
-      switch (report.type) {
-        case 'inbound-rtp':
-          handleInboundRTP(report)
-          break
-        case 'outbound-rtp':
-          handleOutboundRTP(report)
-          break
-      }
-    })
-
-    return result
+      return result
+    },
+    assertionFn: (result) => {
+      expect(result, 'expect RTP stats to be defined').toBeDefined()
+    },
+    message: 'expect to get RTP stats',
   })
+  return result
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const first = await getStats(page)
   await page.waitForTimeout(delay)
@@ -707,23 +752,31 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const minAudioPacketsExpected = 40 * seconds
   const minVideoPacketsExpected = 25 * seconds
 
-  expect(last.inboundRTP.video?.packetsReceived).toBeGreaterThan(
+  expect(
+    last.inboundRTP.video?.packetsReceived,
+    'last inbound video packets received should be greater than first inbound video packets received'
+  ).toBeGreaterThan(
     (first.inboundRTP.video?.packetsReceived || 0) + minVideoPacketsExpected
   )
-  expect(last.inboundRTP.audio?.packetsReceived).toBeGreaterThan(
+  expect(
+    last.inboundRTP.audio?.packetsReceived,
+    'last inbound audio packets received should be greater than first inbound audio packets received'
+  ).toBeGreaterThan(
     (first.inboundRTP.audio?.packetsReceived || 0) + minAudioPacketsExpected
   )
 }
 
 export const getAudioStats = async (page: Page) => {
   const audioStats = await page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
 
-    // @ts-expect-error
+    // @ts-expect-error - peer is not defined in the call object
     const audioTrackId = callObj.peer._getReceiverByKind('audio').track.id
 
-    // @ts-expect-error
+    // @ts-expect-error - peer is not defined in the call object
     const stats = await callObj.peer.instance.getStats(null)
     const filter = {
       'inbound-rtp': [
@@ -775,9 +828,14 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeGreaterThan(value)
+    expect(
+      totalAudioEnergy,
+      'totalAudioEnergy should be greater than value'
+    ).toBeGreaterThan(value)
   } else {
-    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
+    console.warn(
+      'Warning - totalAudioEnergy was not present in the audioStats.'
+    )
   }
 }
 
@@ -786,22 +844,33 @@ export const expectPageReceiveAudio = async (page: Page) => {
   await expectTotalAudioEnergyToBeGreaterThan(page, 0.5)
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectSDPDirection = async (
   page: Page,
   direction: string,
   value: boolean
 ) => {
   const peerSDP = await page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
-    // @ts-expect-error
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+
+    // @ts-expect-error - peer is not defined in the call object
     return callObj.peer.localSdp
   })
 
-  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+  expect(
+    peerSDP.split('m=')[1].includes(direction),
+    'peerSDP should include direction in m= section 1'
+  ).toBe(value)
+  expect(
+    peerSDP.split('m=')[2].includes(direction),
+    'peerSDP should include direction in m= section 2'
+  ).toBe(value)
 }
 
+// TODO: This is not used anywhere, remove it?
 export const getRemoteMediaIP = async (page: Page) => {
   const remoteIP: string = await page.evaluate(() => {
     // @ts-expect-error
@@ -919,6 +988,7 @@ export async function expectStatWithPolling(
 
 export type StatusEvents = 'initiated' | 'ringing' | 'answered' | 'completed'
 
+// TODO: This is not used anywhere, remove it?
 export const createCallWithCompatibilityApi = async (
   resource: string,
   inlineLaml: string,
@@ -935,7 +1005,7 @@ export const createCallWithCompatibilityApi = async (
   data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`)
 
   const vertoDomain = process.env.VERTO_DOMAIN
-  expect(vertoDomain).toBeDefined()
+  expect(vertoDomain, 'vertoDomain should be defined').toBeDefined()
 
   let to = `verto:${resource}@${vertoDomain}`
   if (codecs) {
@@ -992,6 +1062,7 @@ export const createCallWithCompatibilityApi = async (
   return undefined
 }
 
+// TODO: This is not used anywhere, remove it?
 export const getDialConferenceLaml = (conferenceNameBase: string) => {
   const conferenceName = randomizeRoomName(conferenceNameBase)
   const conferenceRegion = process.env.LAML_CONFERENCE_REGION ?? ''
@@ -1012,6 +1083,7 @@ export const getDialConferenceLaml = (conferenceNameBase: string) => {
   return inlineLaml
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectv2HasReceivedAudio = async (
   page: Page,
   minTotalAudioEnergy: number,
@@ -1079,14 +1151,20 @@ export const expectv2HasReceivedAudio = async (
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
+    expect(
+      totalAudioEnergy,
+      'totalAudioEnergy should be greater than minTotalAudioEnergy'
+    ).toBeGreaterThan(minTotalAudioEnergy)
   } else {
-    console.log('Warning: totalAudioEnergy was missing from the report!')
+    console.warn('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
-      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+      expect(
+        packetsReceived,
+        'packetsReceived should be greater than minPacketsReceived'
+      ).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log('Warning: packetsReceived was missing from the report!')
+      console.warn('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
@@ -1095,6 +1173,7 @@ export const expectv2HasReceivedAudio = async (
   }
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectv2HasReceivedSilence = async (
   page: Page,
   maxTotalAudioEnergy: number,
@@ -1162,14 +1241,20 @@ export const expectv2HasReceivedSilence = async (
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
+    expect(
+      totalAudioEnergy,
+      'totalAudioEnergy should be less than maxTotalAudioEnergy'
+    ).toBeLessThan(maxTotalAudioEnergy)
   } else {
-    console.log('Warning: totalAudioEnergy was missing from the report!')
+    console.warn('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
-      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+      expect(
+        packetsReceived,
+        'packetsReceived should be greater than minPacketsReceived'
+      ).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log('Warning: packetsReceived was missing from the report!')
+      console.warn('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
@@ -1178,6 +1263,7 @@ export const expectv2HasReceivedSilence = async (
   }
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectedMinPackets = (
   packetRate: number,
   callDurationMs: number,
@@ -1196,10 +1282,12 @@ export const expectedMinPackets = (
   return minPackets
 }
 
+// TODO: This is not used anywhere, remove it?
 export const randomizeResourceName = (prefix: string = 'e2e') => {
   return `res-${prefix}${uuid()}`
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectInjectRelayHost = async (page: Page, host: string) => {
   await page.evaluate(
     async (params) => {
@@ -1405,10 +1493,8 @@ export const createVideoRoomResource = async (name?: string) => {
     }
   )
   const data = (await response.json()) as Resource
+  expect(data.id, 'Video Room resource created').toBeDefined()
   console.log('>> Resource VideoRoom created:', data.id, name)
-  if (!data.id) {
-    throw new Error('Failed to create Video Room resource')
-  }
   return data
 }
 
@@ -1558,22 +1644,28 @@ export const deleteResource = async (id: string) => {
 
 // #region Utilities for Events assertion
 
+// TODO: This is not used anywhere, remove it?
 export const expectMemberTalkingEvent = (page: Page) => {
   return page.evaluate(async () => {
     return new Promise((resolve) => {
-      // @ts-expect-error
       const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
       callObj.on('member.talking', resolve)
     })
   })
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
   return page.evaluate(
     ({ event }) => {
       return new Promise<void>((resolve) => {
-        // @ts-expect-error
         const callObj = window._callObj
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
         callObj.on(event, resolve)
       })
     },
@@ -1586,8 +1678,10 @@ export const expectCFInitialEvents = (
   extraEvents: Promise<boolean>[] = []
 ) => {
   const initialEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
 
     const callCreated = new Promise<boolean>((resolve) => {
       callObj.on('call.state', (params) => {
@@ -1617,8 +1711,10 @@ export const expectCFFinalEvents = (
   extraEvents: Promise<unknown>[] = []
 ) => {
   const finalEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const callObj: CallSession = window._callObj
+    const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
 
     const callLeft = new Promise((resolve) => {
       callObj.on('destroy', () => resolve(true))
@@ -1630,21 +1726,27 @@ export const expectCFFinalEvents = (
   return Promise.all([finalEvents, ...extraEvents])
 }
 
-export const expectLayoutChanged = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    (options) => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const callObj: CallSession = window._callObj
-        callObj.on('layout.changed', ({ layout }: any) => {
-          if (layout.name === options.layoutName) {
+export const expectLayoutChanged = async (page: Page, layoutName: string) => {
+  return await expectPageEvalToPass(page, {
+    assertionFn: (result) => {
+      expect(result, 'expect layout changed result').toBe(true)
+    },
+    evaluateArgs: { layoutName },
+    evaluateFn: (params) => {
+      return new Promise<boolean>((resolve) => {
+        const callObj = window._callObj
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
+        callObj.on('layout.changed', ({ layout }) => {
+          if (layout.name === params.layoutName) {
             resolve(true)
           }
         })
       })
     },
-    { layoutName }
-  )
+    message: 'expect layout changed result',
+  })
 }
 
 export const expectRoomJoined = (
@@ -1653,8 +1755,10 @@ export const expectRoomJoined = (
 ) => {
   return page.evaluate(({ invokeJoin }) => {
     return new Promise<any>(async (resolve, reject) => {
-      // @ts-expect-error
-      const callObj: CallSession = window._callObj
+      const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
 
       callObj.once('room.joined', (room) => {
         console.log('Room joined!')
@@ -1668,62 +1772,187 @@ export const expectRoomJoined = (
   }, options)
 }
 
-export const expectScreenShareJoined = async (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<any>(async (resolve) => {
-      // @ts-expect-error
-      const callObj: CallSession = window._callObj
-
-      callObj.on('member.joined', (params) => {
-        if (params.member.type === 'screen') {
-          resolve(true)
-        }
-      })
-
-      await callObj.startScreenShare({
-        audio: true,
-        video: true,
-      })
-    })
-  })
-}
-
 // #endregion
 
+// TODO: This is not used anywhere, remove it?
 export const expectInteractivityMode = async (
   page: Page,
   mode: 'member' | 'audience'
 ) => {
   const interactivityMode = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
+    // @ts-expect-error - interactivityMode is not defined in the CallSession interface
     return callObj.interactivityMode
   })
 
-  expect(interactivityMode).toEqual(mode)
+  expect(
+    interactivityMode,
+    'interactivityMode should be equal to mode'
+  ).toEqual(mode)
 }
 
-export const setLayoutOnPage = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    async (options) => {
-      // @ts-expect-error
-      const callObj = window._callObj
-      return await callObj.setLayout({ name: options.layoutName })
+export const setLayoutOnPage = async (page: Page, layoutName: string) => {
+  const layoutChanged = await expectPageEvalToPass(page, {
+    assertionFn: (result) => {
+      expect(result, 'layout changed result should be true').toBe(true)
     },
-    { layoutName }
-  )
+    evaluateArgs: { layoutName },
+    evaluateFn: async (params) => {
+      const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
+      await callObj.setLayout({ name: params.layoutName })
+      return true
+    },
+    message: 'expect set layout',
+  })
+  return layoutChanged
 }
 
 export const randomizeRoomName = (prefix: string = 'e2e') => {
   return `${prefix}${uuid()}`
 }
 
+// TODO: This is not used anywhere, remove it?
 export const expectMemberId = async (page: Page, memberId: string) => {
   const roomMemberId = await page.evaluate(async () => {
-    // @ts-expect-error
     const callObj = window._callObj
+    if (!callObj) {
+      throw new Error('Call object not found')
+    }
     return callObj.memberId
   })
 
-  expect(roomMemberId).toEqual(memberId)
+  expect(roomMemberId, 'roomMemberId should be equal to memberId').toBe(
+    memberId
+  )
+}
+
+/**
+ * @description
+ * Uses the expect().toPass() Playwright with a default timeout
+ *
+ */
+export const expectToPass = async (
+  assertion: () => Promise<void>,
+  assertionMessage: string | { message: string },
+  options?: { interval?: number[]; timeout?: number }
+) => {
+  const mergedOptions = {
+    interval: [10_000], // 10 seconds to avoid polling
+    timeout: 10_000,
+    ...options,
+  }
+  return await expect(assertion, assertionMessage).toPass(mergedOptions)
+}
+/**
+ * @description
+ * Waits for a function to return a truthy value or not throw within the page context.
+ *
+ * This utility wraps Playwright's `page.waitForFunction` and is useful for polling the browser context
+ * until a certain condition is met. In this wrapper the interval and timeout are set to the same value by default.
+ * This is to avoid polling, and have a default timeout of 10 seconds.
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Returns when the pageFunction returns a truthy value. It resolves to a JSHandle of the truthy value.
+ * - The JSHandle can be passed to other Playwright functions, like `page.evaluate` or `page.evaluateHandle`.
+ */
+
+export const waitForFunction = async <TArgs, TResult>(
+  page: Page,
+  {
+    evaluateArgs,
+    evaluateFn,
+    message,
+    interval = [10_000],
+    timeoutMs = 10_000,
+  }: {
+    evaluateArgs?: TArgs
+    evaluateFn: PageFunction<TArgs, TResult>
+    message: string
+    interval?: number[]
+    timeoutMs?: number
+  }
+) => {
+  try {
+    const mergedOptions = {
+      interval: interval ?? [10_000], // 10 seconds to avoid polling
+      timeout: timeoutMs ?? 10_000,
+      message,
+    }
+    if (evaluateArgs) {
+      return await page.waitForFunction(evaluateFn, evaluateArgs, mergedOptions)
+    } else {
+      // FIXME: remove the type assertion
+      return await page.waitForFunction(
+        evaluateFn as PageFunction<void, TResult>,
+        mergedOptions
+      )
+    }
+  } catch (error) {
+    // TODO: improve error message and logging
+    if (message) {
+      throw new Error(`waitForFunction: ${message} - ${error}`)
+    } else {
+      throw new Error(`waitForFunction: ${error}`)
+    }
+  }
+}
+
+/**
+ * @description
+ * Utility to evaluate a function in the browser context and assert its result using Playwright's expect.
+ *
+ * This function wraps a call to `page.evaluate` and uses the expectToPass utility to assert that a promise resolves
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Only serializable values can be returned
+ * - The assertion function should use the `expect` function to assert the result
+ * -  Throws timeout error if the promise does not resolve within the timeout
+ */
+export const expectPageEvalToPass = async <TArgs, TResult>(
+  page: Page,
+  {
+    assertionFn,
+    evaluateArgs,
+    evaluateFn,
+    message,
+    interval = [10_000],
+    timeoutMs = 10_000,
+  }: {
+    assertionFn: (result: TResult) => void
+    evaluateArgs?: TArgs
+    evaluateFn: PageFunction<TArgs, TResult>
+    message: string
+    interval?: number[]
+    timeoutMs?: number
+  }
+) => {
+  // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
+  let result = undefined as TResult
+  await expectToPass(
+    async () => {
+      // evaluate the function with the provided arguments
+      if (evaluateArgs) {
+        result = await page.evaluate(
+          evaluateFn as PageFunction<TArgs, TResult>,
+          evaluateArgs
+        )
+      } else {
+        // evaluate the function without arguments
+        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
+      }
+
+      assertionFn(result)
+    },
+    { message: message },
+    { timeout: timeoutMs, interval: interval }
+  )
+  return result
 }
