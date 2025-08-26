@@ -470,7 +470,10 @@ interface DialAddressParams {
   shouldPassRootElement?: boolean
 }
 
-export const dialAddress = async (page: Page, params: DialAddressParams) => {
+export const dialAddress = <TReturn = any>(
+  page: Page,
+  params: DialAddressParams
+) => {
   const {
     address,
     dialOptions = {},
@@ -497,7 +500,7 @@ export const dialAddress = async (page: Page, params: DialAddressParams) => {
       shouldStartCall,
       shouldWaitForJoin,
     }) => {
-      return new Promise<any>(async (resolve, _reject) => {
+      return new Promise<TReturn>(async (resolve, _reject) => {
         if (!window._client) {
           throw new Error('Client is not defined')
         }
@@ -515,7 +518,7 @@ export const dialAddress = async (page: Page, params: DialAddressParams) => {
 
         if (shouldWaitForJoin) {
           call.on('room.joined', (params) => {
-            resolve(params)
+            resolve(params as TReturn)
           })
         }
 
@@ -526,15 +529,14 @@ export const dialAddress = async (page: Page, params: DialAddressParams) => {
         }
 
         if (!shouldWaitForJoin) {
-          resolve(call)
+          resolve(call as TReturn)
         }
       })
     },
-    assertionFn(result, message) {
-      expect(result, message).toBeDefined()
+    assertionFn(result) {
+      expect(result).toBeDefined()
     },
-    messageAssert: 'expect dialAddress to succeed',
-    messageError: 'failed to dial address',
+    message: 'expect dialAddress to succeed',
   })
 }
 
