@@ -1863,37 +1863,43 @@ export const expectToPass = async (
  * - The JSHandle can be passed to other Playwright functions, like `page.evaluate` or `page.evaluateHandle`.
  */
 
-export const waitForFunction = async <TArg, TResult>(
+export const waitForFunction = async <TArgs, TResult>(
   page: Page,
-  fn: PageFunction<TArg, TResult>,
-  arg?: TArg,
-  options?: {
+  {
+    evaluateArgs,
+    evaluateFn,
+    message,
+    interval = [10_000],
+    timeoutMs = 10_000,
+  }: {
+    evaluateArgs?: TArgs
+    evaluateFn: PageFunction<TArgs, TResult>
+    message: string
     interval?: number[]
-    timeout?: number
-    message?: string
+    timeoutMs?: number
   }
 ) => {
   try {
     const mergedOptions = {
-      interval: [10_000], // 10 seconds to avoid polling
-      timeout: 10_000,
-      ...options,
+      interval: interval ?? [10_000], // 10 seconds to avoid polling
+      timeout: timeoutMs ?? 10_000,
+      message,
     }
-    if (arg) {
-      return await page.waitForFunction(fn, arg, mergedOptions)
+    if (evaluateArgs) {
+      return await page.waitForFunction(evaluateFn, evaluateArgs, mergedOptions)
     } else {
       // FIXME: remove the type assertion
       return await page.waitForFunction(
-        fn as PageFunction<void, TResult>,
+        evaluateFn as PageFunction<void, TResult>,
         mergedOptions
       )
     }
   } catch (error) {
     // TODO: improve error message and logging
-    if (options?.message) {
-      throw new Error(`waitForFunction: ${options.message} `)
+    if (message) {
+      throw new Error(`waitForFunction: ${message} - ${error}`)
     } else {
-      throw new Error('waitForFunction:', error)
+      throw new Error(`waitForFunction: ${error}`)
     }
   }
 }
