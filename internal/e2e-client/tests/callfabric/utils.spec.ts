@@ -274,14 +274,14 @@ test.describe('expectPageEvalToPass', () => {
   }) => {
     const page = await createCustomPage({ name: '[page]' })
 
-    await expect(
+    const result = await expect(
       expectPageEvalToPass(page, {
         assertionFn: (_result) => {
           // should not be called
         },
         evaluateFn: () => {
           return new Promise((resolve) =>
-            setTimeout(() => resolve('should not resolve'), 1000)
+            setTimeout(() => resolve('should not resolve'), 5000)
           )
         },
         message: 'timeout - should timeout when page evaluation takes too long',
@@ -290,5 +290,7 @@ test.describe('expectPageEvalToPass', () => {
     ).rejects.toThrow(
       /timeout - should timeout when page evaluation takes too long/
     )
+
+    expect(result).toBeUndefined()
   })
 })
