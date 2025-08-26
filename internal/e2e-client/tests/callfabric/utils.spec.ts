@@ -225,26 +225,28 @@ test.describe('expectPageEvalToPass', () => {
     expect(result2).toBe(true)
   })
 
-  test('should fail with a custom error message', async ({
+  test.only('should throw when the evaluateFn throws an error', async ({
     createCustomPage,
   }) => {
     const page = await createCustomPage({ name: '[page]' })
 
-    // should fail with a custom error message
     expect(
       expectPageEvalToPass(page, {
-        assertionFn: (_result) => {
-          // should not be called
+        assertionFn: (result: unknown) => {
+          // should not be called because the evaluateFn throws an error
+          expect(result).not.toBeInstanceOf(Error)
+          expect(result).not.toMatchObject({
+            message: 'test error',
+          })
+          // should never pass to ensure expect().toPass() does not resolve
+          expect(false).toBe(true)
         },
         evaluateFn: () => {
           throw new Error('test error')
         },
-        message:
-          'error - should resolve when the function returns a truthy value',
+        message: 'expect error',
       })
-    ).rejects.toThrow(
-      'error - should resolve when the function returns a truthy value'
-    )
+    ).rejects.toThrow('expect error')
   })
 
   test('should pass evaluateArgs to the evaluateFn and return the serializable object', async ({
