@@ -397,6 +397,9 @@ const createCFClientWithToken = async (
   const { attachSagaMonitor = false } = params || {}
 
   const swClient = (await expectPageEvalToPass(page, {
+    assertionFn: (client) => {
+      expect(client, 'SignalWire client should be defined').toBeDefined()
+    },
     evaluateArgs: {
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
@@ -451,11 +454,7 @@ const createCFClientWithToken = async (
       window._client = client
       return client
     },
-    assertionFn: (client, message) => {
-      expect(client, message).toBeDefined()
-    },
-    messageAssert: 'expect SignalWire client to be created',
-    messageError: 'failed to create SignalWire client',
+    message: 'expect SignalWire client to be created',
   })) as SignalWireContract
 
   return swClient
@@ -484,6 +483,9 @@ export const dialAddress = <TReturn = any>(
   } = params
 
   return expectPageEvalToPass(page, {
+    assertionFn: (result) => {
+      expect(result, 'dialAddress result should be defined').toBeDefined()
+    },
     evaluateArgs: {
       address,
       dialOptions: JSON.stringify(dialOptions),
@@ -533,9 +535,7 @@ export const dialAddress = <TReturn = any>(
         }
       })
     },
-    assertionFn(result) {
-      expect(result).toBeDefined()
-    },
+
     message: 'expect dialAddress to succeed',
   })
 }
@@ -573,7 +573,7 @@ export const expectMCUVisible = async (page: Page) => {
 
 export const expectMCUNotVisible = async (page: Page) => {
   const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
-  expect(mcuVideo).toBeNull()
+  expect(mcuVideo, 'MCU video should be null').toBeNull()
 }
 
 export const expectMCUVisibleForAudience = async (page: Page) => {
@@ -737,12 +737,10 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
 
       return result
     },
-    assertionFn: (value, message) => {
-      result = value
-      expect(result, message).toBeDefined()
+    assertionFn: (result) => {
+      expect(result, 'expect RTP stats to be defined').toBeDefined()
     },
-    messageAssert: 'expect to get RTP stats',
-    messageError: 'failed to get RTP stats',
+    message: 'expect to get RTP stats',
   })
   return result
 }
@@ -757,10 +755,16 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const minAudioPacketsExpected = 40 * seconds
   const minVideoPacketsExpected = 25 * seconds
 
-  expect(last.inboundRTP.video?.packetsReceived).toBeGreaterThan(
+  expect(
+    last.inboundRTP.video?.packetsReceived,
+    'last inbound video packets received should be greater than first inbound video packets received'
+  ).toBeGreaterThan(
     (first.inboundRTP.video?.packetsReceived || 0) + minVideoPacketsExpected
   )
-  expect(last.inboundRTP.audio?.packetsReceived).toBeGreaterThan(
+  expect(
+    last.inboundRTP.audio?.packetsReceived,
+    'last inbound audio packets received should be greater than first inbound audio packets received'
+  ).toBeGreaterThan(
     (first.inboundRTP.audio?.packetsReceived || 0) + minAudioPacketsExpected
   )
 }
@@ -827,9 +831,14 @@ export const expectTotalAudioEnergyToBeGreaterThan = async (
 
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeGreaterThan(value)
+    expect(
+      totalAudioEnergy,
+      'totalAudioEnergy should be greater than value'
+    ).toBeGreaterThan(value)
   } else {
-    console.log('Warning - totalAudioEnergy was not present in the audioStats.')
+    console.warn(
+      'Warning - totalAudioEnergy was not present in the audioStats.'
+    )
   }
 }
 
@@ -854,8 +863,14 @@ export const expectSDPDirection = async (
     return callObj.peer.localSdp
   })
 
-  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+  expect(
+    peerSDP.split('m=')[1].includes(direction),
+    'peerSDP should include direction in m= section 1'
+  ).toBe(value)
+  expect(
+    peerSDP.split('m=')[2].includes(direction),
+    'peerSDP should include direction in m= section 2'
+  ).toBe(value)
 }
 
 // TODO: This is not used anywhere, remove it?
@@ -993,7 +1008,7 @@ export const createCallWithCompatibilityApi = async (
   data.append('From', `${process.env.VOICE_DIAL_FROM_NUMBER}`)
 
   const vertoDomain = process.env.VERTO_DOMAIN
-  expect(vertoDomain).toBeDefined()
+  expect(vertoDomain, 'vertoDomain should be defined').toBeDefined()
 
   let to = `verto:${resource}@${vertoDomain}`
   if (codecs) {
@@ -1139,14 +1154,20 @@ export const expectv2HasReceivedAudio = async (
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
+    expect(
+      totalAudioEnergy,
+      'totalAudioEnergy should be greater than minTotalAudioEnergy'
+    ).toBeGreaterThan(minTotalAudioEnergy)
   } else {
-    console.log('Warning: totalAudioEnergy was missing from the report!')
+    console.warn('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
-      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+      expect(
+        packetsReceived,
+        'packetsReceived should be greater than minPacketsReceived'
+      ).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log('Warning: packetsReceived was missing from the report!')
+      console.warn('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
@@ -1223,14 +1244,20 @@ export const expectv2HasReceivedSilence = async (
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
   if (totalAudioEnergy) {
-    expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
+    expect(
+      totalAudioEnergy,
+      'totalAudioEnergy should be less than maxTotalAudioEnergy'
+    ).toBeLessThan(maxTotalAudioEnergy)
   } else {
-    console.log('Warning: totalAudioEnergy was missing from the report!')
+    console.warn('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
-      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+      expect(
+        packetsReceived,
+        'packetsReceived should be greater than minPacketsReceived'
+      ).toBeGreaterThan(minPacketsReceived)
     } else {
-      console.log('Warning: packetsReceived was missing from the report!')
+      console.warn('Warning: packetsReceived was missing from the report!')
       /* We don't make this test fail, because the absence of packetsReceived
        * is a symptom of an issue with RTCStats, rather than an indication
        * of lack of RTP flow.
@@ -1704,6 +1731,9 @@ export const expectCFFinalEvents = (
 
 export const expectLayoutChanged = async (page: Page, layoutName: string) => {
   return await expectPageEvalToPass(page, {
+    assertionFn: (result) => {
+      expect(result, 'expect layout changed result').toBe(true)
+    },
     evaluateArgs: { layoutName },
     evaluateFn: (params) => {
       return new Promise<boolean>((resolve) => {
@@ -1718,8 +1748,7 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
         })
       })
     },
-    messageAssert: 'expect layout changed result',
-    messageError: 'layout changed',
+    message: 'expect layout changed result',
   })
 }
 
@@ -1762,11 +1791,17 @@ export const expectInteractivityMode = async (
     return callObj.interactivityMode
   })
 
-  expect(interactivityMode).toEqual(mode)
+  expect(
+    interactivityMode,
+    'interactivityMode should be equal to mode'
+  ).toEqual(mode)
 }
 
 export const setLayoutOnPage = async (page: Page, layoutName: string) => {
   const layoutChanged = await expectPageEvalToPass(page, {
+    assertionFn: (result) => {
+      expect(result, 'layout changed result should be true').toBe(true)
+    },
     evaluateArgs: { layoutName },
     evaluateFn: async (params) => {
       const callObj = window._callObj
@@ -1776,8 +1811,7 @@ export const setLayoutOnPage = async (page: Page, layoutName: string) => {
       await callObj.setLayout({ name: params.layoutName })
       return true
     },
-    messageAssert: 'expect set layout',
-    messageError: 'set layout',
+    message: 'expect set layout',
   })
   return layoutChanged
 }
@@ -1796,7 +1830,9 @@ export const expectMemberId = async (page: Page, memberId: string) => {
     return callObj.memberId
   })
 
-  expect(roomMemberId).toBe(memberId)
+  expect(roomMemberId, 'roomMemberId should be equal to memberId').toBe(
+    memberId
+  )
 }
 
 /**
@@ -1874,8 +1910,8 @@ export const waitForFunction = async <TArg, TResult>(
  * @note
  * - The function is evaluated in the browser context, so only serializable values can be passed.
  * - Only serializable values can be returned
- * - If a custom assertion function is not provided, the result is expected to strictly equal `booleanAssert`.
- * - Throws an error with the provided message if the assertion fails or times out.
+ * - The assertion function should use the `expect` function to assert the result
+ * -  Throws timeout error if the promise does not resolve within the timeout
  */
 export const expectPageEvalToPass = async <TArgs, TResult>(
   page: Page,
@@ -1888,7 +1924,6 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     timeoutMs = 10_000,
   }: {
     assertionFn: (result: TResult) => void
-    booleanAssert?: boolean
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
     message: string
