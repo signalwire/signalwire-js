@@ -216,32 +216,35 @@ test.describe('expectPageEvalToPass', () => {
     const page = await createCustomPage({ name: '[page]' })
 
     const result = await expectPageEvalToPass(page, {
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
       evaluateFn: () => true,
-      messageAssert: 'pass - resolve when the function returns a truthy value',
-      messageError:
-        'error - should resolve when the function returns a truthy value',
+      message: 'pass - resolve when the function returns a truthy value',
     })
 
     expect(result).toBe(true)
 
     // with promise
     const result2 = await expectPageEvalToPass(page, {
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
       evaluateFn: () => Promise.resolve(true),
-      messageAssert: 'pass - resolve when the function returns a truthy value',
-      messageError:
-        'error - should resolve when the function returns a truthy value',
+      message: 'pass - resolve when the function returns a truthy value',
     })
     expect(result2).toBe(true)
 
     // should fail with a custom error message
     expect(
       expectPageEvalToPass(page, {
+        assertionFn: (_result) => {
+          // should not be called
+        },
         evaluateFn: () => {
           throw new Error('test error')
         },
-        messageAssert:
-          'pass - resolve when the function returns a truthy value',
-        messageError:
+        message:
           'error - should resolve when the function returns a truthy value',
       })
     ).rejects.toThrow(
