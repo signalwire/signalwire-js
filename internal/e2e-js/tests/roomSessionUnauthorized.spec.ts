@@ -6,6 +6,7 @@ import {
   randomizeRoomName,
   expectMCUVisibleForAudience,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession unauthorized methods for audience', () => {
@@ -51,21 +52,25 @@ test.describe('RoomSession unauthorized methods for audience', () => {
     // Checks that the video is visible, as audience
     await expectMCUVisibleForAudience(page)
 
-    const roomPermissions: any = await page.evaluate(() => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.permissions
+    await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        return roomObj.permissions
+      },
+      assertionFn: (roomPermissions) =>
+        expect(roomPermissions).toStrictEqual(audiencePermissions),
+      message: 'Expected audience permissions to match',
     })
-    expect(roomPermissions).toStrictEqual(audiencePermissions)
 
     // --------------- Unmuting Audio (self) and expecting 403 ---------------
-    const errorCode: any = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj.audioUnmute().catch((error) => error)
-
-      return error.code
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj.audioUnmute().catch((error) => error)
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('403'),
+      message: 'Expected audioUnmute for audience to fail with 403',
     })
-    expect(errorCode).toBe('403')
   })
 })
