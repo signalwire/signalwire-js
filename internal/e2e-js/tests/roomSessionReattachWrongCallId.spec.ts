@@ -8,6 +8,7 @@ import {
   expectMCUVisible,
   expectMCUVisibleForAudience,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 type Test = {
@@ -67,12 +68,15 @@ test.describe('RoomSessionReattachWrongCallId', () => {
       // Checks that the video is visible
       await row.expectMCU(page)
 
-      const roomPermissions: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.permissions
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj = window._roomObj as Video.RoomSession
+          return roomObj.permissions
+        },
+        assertionFn: (roomPermissions) =>
+          expect(roomPermissions).toStrictEqual(permissions),
+        message: 'Expected room permissions to match',
       })
-      expect(roomPermissions).toStrictEqual(permissions)
 
       // --------------- Reattaching ---------------
       await page.waitForTimeout(2000)
@@ -80,14 +84,17 @@ test.describe('RoomSessionReattachWrongCallId', () => {
       await page.reload()
 
       // ----- Inject wrong callId --
-      await page.evaluate(
-        async ({ mockId, roomName }) => {
+      await expectPageEvalToPass(page, {
+        evaluateArgs: { mockId: uuid(), roomName },
+        evaluateFn: async ({ mockId, roomName }) => {
           const key = `ci-${roomName}`
           window.sessionStorage.setItem(key, mockId)
           console.log(`Injected callId for ${key} with value ${mockId}`)
+          return true
         },
-        { mockId: uuid(), roomName }
-      )
+        assertionFn: (ok) => expect(ok).toBe(true),
+        message: 'Expected to inject bogus callId into sessionStorage',
+      })
 
       const reattachConnectionSettings = {
         vrt: {
@@ -103,12 +110,14 @@ test.describe('RoomSessionReattachWrongCallId', () => {
       await createTestRoomSession(page, reattachConnectionSettings)
 
       // ----- Join the room with a bogus call ID and expect an error --
-      const joinError: any = await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        const error = await roomObj.join().catch((error) => error)
-
-        return error
+      const joinError: any = await expectPageEvalToPass(page, {
+        evaluateFn: async () => {
+          const roomObj = window._roomObj as Video.RoomSession
+          const error = await roomObj.join().catch((error) => error)
+          return error
+        },
+        assertionFn: (err) => expect(err).toBeDefined(),
+        message: 'Expected join() to return error for wrong callId',
       })
 
       expect(joinError.code).toBe('81')
