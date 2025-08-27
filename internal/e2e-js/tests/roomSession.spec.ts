@@ -8,6 +8,7 @@ import {
   expectLayoutChanged,
   expectMCUVisible,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -77,21 +78,24 @@ test.describe('RoomSession', () => {
     // Checks that the video is visible
     await expectMCUVisible(page)
 
-    const roomPermissions: any = await page.evaluate(() => {
-      // @ts-expect-error
-      const roomObj: VideoRoomSession = window._roomObj
-      return roomObj.permissions
+    const roomPermissions = await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        const roomObj = window._roomObj as VideoRoomSession
+        return roomObj.permissions
+      },
+      assertionFn: (perms) => expect(perms).toBeDefined(),
+      message: 'Expected room permissions to be available',
     })
     expect(roomPermissions).toStrictEqual(permissions)
 
     // --------------- Muting Audio (self) ---------------
-    await page.evaluate(
-      async ({ joinParams }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { joinParams },
+      evaluateFn: async ({ joinParams }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated', (params: any) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('audio_muted') &&
@@ -103,7 +107,7 @@ test.describe('RoomSession', () => {
         })
 
         const memberUpdatedUnmuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated', (params: any) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('audio_muted') &&
@@ -119,17 +123,18 @@ test.describe('RoomSession', () => {
 
         return Promise.all([memberUpdatedMuted, memberUpdatedUnmuted])
       },
-      { joinParams }
-    )
+      assertionFn: (res) => expect(res).toHaveLength(2),
+      message: 'Expected audio mute/unmute member.updated events',
+    })
 
     // --------------- Muting Video (self) ---------------
-    await page.evaluate(
-      async ({ joinParams }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { joinParams },
+      evaluateFn: async ({ joinParams }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const memberUpdatedMuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated', (params: any) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('video_muted') &&
@@ -143,7 +148,7 @@ test.describe('RoomSession', () => {
         })
 
         const memberUpdatedUnnuted = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated', (params: any) => {
             if (
               params.member.id === joinParams.member_id &&
               params.member.updated.includes('video_muted') &&
@@ -161,108 +166,107 @@ test.describe('RoomSession', () => {
 
         return Promise.all([memberUpdatedMuted, memberUpdatedUnnuted])
       },
-      { joinParams }
-    )
+      assertionFn: (res) => expect(res).toHaveLength(2),
+      message: 'Expected video mute/unmute member.updated events',
+    })
 
     // --------------- Session Recording ---------------
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: VideoRoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as VideoRoomSession
 
-      const recordingStarted = new Promise((resolve, reject) => {
-        roomObj.on('recording.started', (params) => {
-          if (params.state === 'recording') {
-            resolve(true)
-          } else {
-            reject(new Error('[recording.started] state is not "recording"'))
-          }
+        const recordingStarted = new Promise((resolve, reject) => {
+          roomObj.on('recording.started', (params: any) => {
+            if (params.state === 'recording') {
+              resolve(true)
+            } else {
+              reject(new Error('[recording.started] state is not "recording"'))
+            }
+          })
         })
-      })
 
-      const roomUpdatedStarted = new Promise((resolve, reject) => {
-        roomObj.on('room.updated', (params) => {
-          if (
-            params.room.recording === true &&
-            // The type is incorrectly inferred within this
-            // test. `params` is being inferred as
-            // `VideoRoomEventParams` instead of
-            // `RoomSessionUpdated`
-            // @ts-expect-error
-            params.room?.updated.includes('recording')
-          ) {
-            resolve(true)
-          } else {
-            reject(new Error('[room.updated] state is not "recording"'))
-          }
+        const roomUpdatedStarted = new Promise((resolve, reject) => {
+          roomObj.on('room.updated', (params: any) => {
+            if (
+              params.room.recording === true &&
+              params.room?.updated.includes('recording')
+            ) {
+              resolve(true)
+            } else {
+              reject(new Error('[room.updated] state is not "recording"'))
+            }
+          })
         })
-      })
 
-      let recordingPaused = false
-      const roomUpdatedPaused = new Promise((resolve, reject) => {
-        roomObj.on('recording.updated', (params) => {
-          if (params.state === 'paused' && recordingPaused === false) {
-            recordingPaused = true
-            resolve(true)
-          } else {
-            reject(new Error('[recording.updated] state is not "paused"'))
-          }
+        let recordingPaused = false
+        const roomUpdatedPaused = new Promise((resolve, reject) => {
+          roomObj.on('recording.updated', (params: any) => {
+            if (params.state === 'paused' && recordingPaused === false) {
+              recordingPaused = true
+              resolve(true)
+            } else {
+              reject(new Error('[recording.updated] state is not "paused"'))
+            }
+          })
         })
-      })
 
-      const roomUpdatedResumed = new Promise((resolve, reject) => {
-        roomObj.on('recording.updated', (params) => {
-          if (params.state === 'recording' && recordingPaused === true) {
-            resolve(true)
-          } else if (params.state === 'paused' && recordingPaused === true) {
-            console.log(
-              '[recording.updated] Still waiting for recording to resume...'
-            )
-          } else {
-            reject(
-              new Error(
-                '[recording.updated] state is not "paused" or "recording"'
+        const roomUpdatedResumed = new Promise((resolve, reject) => {
+          roomObj.on('recording.updated', (params: any) => {
+            if (params.state === 'recording' && recordingPaused === true) {
+              resolve(true)
+            } else if (params.state === 'paused' && recordingPaused === true) {
+              console.log(
+                '[recording.updated] Still waiting for recording to resume...'
               )
-            )
-          }
+            } else {
+              reject(
+                new Error(
+                  '[recording.updated] state is not "paused" or "recording"'
+                )
+              )
+            }
+          })
         })
-      })
 
-      const recordingEnded = new Promise((resolve, reject) => {
-        roomObj.on('recording.ended', (params) => {
-          if (params.state === 'completed') {
-            resolve(true)
-          } else {
-            reject(new Error('[recording.ended] state is not "completed"'))
-          }
+        const recordingEnded = new Promise((resolve, reject) => {
+          roomObj.on('recording.ended', (params: any) => {
+            if (params.state === 'completed') {
+              resolve(true)
+            } else {
+              reject(new Error('[recording.ended] state is not "completed"'))
+            }
+          })
         })
-      })
 
-      const recObj = await roomObj.startRecording()
+        const recObj = await roomObj.startRecording()
 
-      await new Promise((r) => setTimeout(r, 1000))
-      await recObj.pause()
-      await new Promise((r) => setTimeout(r, 1000))
-      await recObj.resume()
-      await new Promise((r) => setTimeout(r, 1000))
-      await recObj.stop()
+        await new Promise((r) => setTimeout(r, 1000))
+        await recObj.pause()
+        await new Promise((r) => setTimeout(r, 1000))
+        await recObj.resume()
+        await new Promise((r) => setTimeout(r, 1000))
+        await recObj.stop()
 
-      return Promise.all([
-        recordingStarted,
-        roomUpdatedStarted,
-        roomUpdatedPaused,
-        roomUpdatedResumed,
-        recordingEnded,
-      ])
+        return Promise.all([
+          recordingStarted,
+          roomUpdatedStarted,
+          roomUpdatedPaused,
+          roomUpdatedResumed,
+          recordingEnded,
+        ])
+      },
+      assertionFn: (res) => expect(res).toHaveLength(5),
+      message: 'Expected recording lifecycle events to fire',
     })
 
     // --------------- Playback ---------------
-    await page.evaluate(
-      async ({ PLAYBACK_URL }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { PLAYBACK_URL: process.env.PLAYBACK_URL },
+      evaluateFn: async ({ PLAYBACK_URL }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const playbackStarted = new Promise((resolve, reject) => {
-          roomObj.on('playback.started', (params) => {
+          roomObj.on('playback.started', (params: any) => {
             if (params.state === 'playing') {
               resolve(true)
             } else {
@@ -272,7 +276,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackEnded = new Promise((resolve, reject) => {
-          roomObj.on('playback.ended', (params) => {
+          roomObj.on('playback.ended', (params: any) => {
             if (params.state === 'completed') {
               resolve(true)
             } else {
@@ -283,7 +287,7 @@ test.describe('RoomSession', () => {
 
         let hasPaused = false
         const playbackPaused = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params) => {
+          roomObj.on('playback.updated', (params: any) => {
             if (params.state === 'paused') {
               hasPaused = true
               resolve(true)
@@ -292,7 +296,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackResume = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params) => {
+          roomObj.on('playback.updated', (params: any) => {
             if (params.state === 'playing' && hasPaused) {
               resolve(true)
             }
@@ -300,7 +304,7 @@ test.describe('RoomSession', () => {
         })
 
         const playbackVolume = new Promise((resolve) => {
-          roomObj.on('playback.updated', (params) => {
+          roomObj.on('playback.updated', (params: any) => {
             if (params.volume === -50) {
               resolve(true)
             }
@@ -324,66 +328,73 @@ test.describe('RoomSession', () => {
           playbackResume,
         ])
       },
-      { PLAYBACK_URL: process.env.PLAYBACK_URL }
-    )
+      assertionFn: (res) => expect(res).toHaveLength(5),
+      message: 'Expected playback lifecycle events to fire',
+    })
 
     // --------------- Screenshare ---------------
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: VideoRoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as VideoRoomSession
 
-      let screenMemberId: string
-      const screenJoined = new Promise((resolve) => {
-        roomObj.on('member.joined', (params: any) => {
-          if (params.member.type === 'screen') {
-            screenMemberId = params.member.id
-            resolve(true)
-          }
+        let screenMemberId: string
+        const screenJoined = new Promise((resolve) => {
+          roomObj.on('member.joined', (params: any) => {
+            if (params.member.type === 'screen') {
+              screenMemberId = params.member.id
+              resolve(true)
+            }
+          })
         })
-      })
 
-      const screenLeft = new Promise((resolve) => {
-        roomObj.on('member.left', (params) => {
-          if (
-            params.member.type === 'screen' &&
-            params.member.id === screenMemberId
-          ) {
-            resolve(true)
-          }
+        const screenLeft = new Promise((resolve) => {
+          roomObj.on('member.left', (params: any) => {
+            if (
+              params.member.type === 'screen' &&
+              params.member.id === screenMemberId
+            ) {
+              resolve(true)
+            }
+          })
         })
-      })
 
-      const screenShareObj = await roomObj.startScreenShare({
-        audio: true,
-        video: true,
-      })
+        const screenShareObj = await roomObj.startScreenShare({
+          audio: true,
+          video: true,
+        })
 
-      const screenShareIdCheckPromise = new Promise((resolve) => {
-        resolve(screenMemberId === screenShareObj.memberId)
-      })
+        const screenShareIdCheckPromise = new Promise((resolve) => {
+          resolve(screenMemberId === screenShareObj.memberId)
+        })
 
-      const screenRoomLeft = new Promise((resolve) => {
-        screenShareObj.on('room.left', () => resolve(true))
-      })
+        const screenRoomLeft = new Promise((resolve) => {
+          screenShareObj.on('room.left', () => resolve(true))
+        })
 
-      await new Promise((r) => setTimeout(r, 2000))
+        await new Promise((r) => setTimeout(r, 2000))
 
-      await screenShareObj.leave()
+        await screenShareObj.leave()
 
-      return Promise.all([
-        screenJoined,
-        screenLeft,
-        screenRoomLeft,
-        screenShareIdCheckPromise,
-      ])
+        return Promise.all([
+          screenJoined,
+          screenLeft,
+          screenRoomLeft,
+          screenShareIdCheckPromise,
+        ])
+      },
+      assertionFn: (res) => expect(res).toHaveLength(4),
+      message: 'Expected screen share to join and leave',
     })
 
     const expectRoomMeta = async (expected: any) => {
       // --------------- Get Room Meta ---------------
-      const currentMeta: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
-        return roomObj.getMeta()
+      const currentMeta: any = await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj: VideoRoomSession = (window as any)._roomObj
+          return roomObj.getMeta()
+        },
+        assertionFn: (res) => expect(res).toBeDefined(),
+        message: 'Expected to get room meta',
       })
       expect(currentMeta.meta).toStrictEqual(expected)
     }
@@ -392,13 +403,13 @@ test.describe('RoomSession', () => {
 
     // --------------- Set Room Meta ---------------
     const meta = { something: 'xx-yy-zzz' }
-    const resultMeta = await page.evaluate(
-      async ({ meta }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    const resultMeta = await expectPageEvalToPass(page, {
+      evaluateArgs: { meta },
+      evaluateFn: async ({ meta }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const setRoomMeta = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
+          roomObj.on('room.updated', (params: any) => {
             if (params.room_session.updated?.includes('meta')) {
               resolve(params.room_session.meta)
             }
@@ -409,23 +420,22 @@ test.describe('RoomSession', () => {
 
         return setRoomMeta
       },
-      {
-        meta,
-      }
-    )
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to set room meta',
+    })
     expect(meta).toStrictEqual(resultMeta)
 
     await expectRoomMeta(resultMeta)
 
     // --------------- Update Room Meta ---------------
     const metaUpdate = { updatedKey: 'ii-oo' }
-    const resultMetaUpdate = await page.evaluate(
-      async ({ meta }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    const resultMetaUpdate = await expectPageEvalToPass(page, {
+      evaluateArgs: { meta: metaUpdate },
+      evaluateFn: async ({ meta }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const setRoomMeta = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
+          roomObj.on('room.updated', (params: any) => {
             if (params.room_session.updated?.includes('meta')) {
               resolve(params.room_session.meta)
             }
@@ -436,10 +446,9 @@ test.describe('RoomSession', () => {
 
         return setRoomMeta
       },
-      {
-        meta: metaUpdate,
-      }
-    )
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to update room meta',
+    })
     // Updates should be partial. In this case we're testing
     // that on top of having the newly added key via
     // `updateMeta` we also have the keys set via `setMeta`
@@ -453,13 +462,13 @@ test.describe('RoomSession', () => {
 
     // --------------- Delete Room Meta ---------------
     const metaDelete = ['updatedKey']
-    const resultMetaDelete = await page.evaluate(
-      async ({ keys }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    const resultMetaDelete = await expectPageEvalToPass(page, {
+      evaluateArgs: { keys: metaDelete },
+      evaluateFn: async ({ keys }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const deleteRoomMeta = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
+          roomObj.on('room.updated', (params: any) => {
             if (params.room_session.updated?.includes('meta')) {
               resolve(params.room_session.meta)
             }
@@ -470,10 +479,9 @@ test.describe('RoomSession', () => {
 
         return deleteRoomMeta
       },
-      {
-        keys: metaDelete,
-      }
-    )
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to delete room meta keys',
+    })
     // Deletions should be partial. In this case we're
     // checking that we are only deleting the key added on
     // the "update" step and other keys remain untouched.
@@ -485,10 +493,13 @@ test.describe('RoomSession', () => {
 
     const expectRoomMemberMeta = async (expected: any) => {
       // --------------- Get Room Meta ---------------
-      const initialMeta: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
-        return roomObj.getMemberMeta()
+      const initialMeta: any = await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj = window._roomObj as VideoRoomSession
+          return roomObj.getMemberMeta()
+        },
+        assertionFn: (res) => expect(res).toBeDefined(),
+        message: 'Expected to get member meta',
       })
       expect(initialMeta.meta).toStrictEqual(expected)
     }
@@ -497,13 +508,13 @@ test.describe('RoomSession', () => {
 
     // --------------- Set Member Meta ---------------
     const memberMeta = { memMeta: 'xx-yy-zzz' }
-    const resultMemberMeta = await page.evaluate(
-      async ({ meta }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    const resultMemberMeta = await expectPageEvalToPass(page, {
+      evaluateArgs: { meta: memberMeta },
+      evaluateFn: async ({ meta }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const setMemberMeta = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated', (params: any) => {
             if (params.member.updated?.includes('meta')) {
               resolve(params.member.meta)
             }
@@ -514,23 +525,22 @@ test.describe('RoomSession', () => {
 
         return setMemberMeta
       },
-      {
-        meta: memberMeta,
-      }
-    )
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to set member meta',
+    })
     expect(memberMeta).toStrictEqual(resultMemberMeta)
 
     expectRoomMemberMeta(resultMemberMeta)
 
     // --------------- Update Member Meta ---------------
     const memberMetaUpdate = { updatedMemberKey: 'ii-oo' }
-    const resultMemberMetaUpdate = await page.evaluate(
-      async ({ meta }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    const resultMemberMetaUpdate = await expectPageEvalToPass(page, {
+      evaluateArgs: { meta: memberMetaUpdate },
+      evaluateFn: async ({ meta }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const updateMemberMeta = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated', (params: any) => {
             if (params.member.updated?.includes('meta')) {
               resolve(params.member.meta)
             }
@@ -541,10 +551,9 @@ test.describe('RoomSession', () => {
 
         return updateMemberMeta
       },
-      {
-        meta: memberMetaUpdate,
-      }
-    )
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to update member meta',
+    })
     // Updates should be partial. In this case we're testing
     // that on top of having the newly added key via
     // `updateMeta` we also have the keys set via `setMeta`
@@ -558,13 +567,13 @@ test.describe('RoomSession', () => {
 
     // --------------- Delete Room Meta ---------------
     const memberMetaDelete = ['updatedMemberKey']
-    const resultMemberMetaDelete = await page.evaluate(
-      async ({ keys }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+    const resultMemberMetaDelete = await expectPageEvalToPass(page, {
+      evaluateArgs: { keys: memberMetaDelete },
+      evaluateFn: async ({ keys }) => {
+        const roomObj = window._roomObj as VideoRoomSession
 
         const deleteMemberRoomMeta = new Promise((resolve) => {
-          roomObj.on('member.updated', (params) => {
+          roomObj.on('member.updated', (params: any) => {
             if (params.member.updated?.includes('meta')) {
               resolve(params.member.meta)
             }
@@ -575,10 +584,9 @@ test.describe('RoomSession', () => {
 
         return deleteMemberRoomMeta
       },
-      {
-        keys: memberMetaDelete,
-      }
-    )
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to delete member meta keys',
+    })
     // Deletions should be partial. In this case we're
     // checking that we are only deleting the key added on
     // the "update" step and other keys remain untouched.
@@ -636,8 +644,7 @@ test.describe('RoomSession', () => {
     // --------------- Start recording and playback from 1st room ---------------
     await pageOne.evaluate(
       async ({ playbackURL }) => {
-        // @ts-expect-error
-        const roomObj: VideoRoomSession = window._roomObj
+        const roomObj = window._roomObj as VideoRoomSession
 
         const recordingStarted = new Promise((resolve, reject) => {
           roomObj.on('recording.started', (params) => {
@@ -675,8 +682,7 @@ test.describe('RoomSession', () => {
 
     // --------------- Getting the recordings from the 2nd room ---------------
     const recordings: any = await pageTwo.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: VideoRoomSession = window._roomObj
+      const roomObj = window._roomObj as VideoRoomSession
       const payload = await roomObj.getRecordings()
 
       return Promise.all(
@@ -720,8 +726,7 @@ test.describe('RoomSession', () => {
 
     // --------------- Getting the playbacks from the 2nd room ---------------
     const playbacks = await pageTwo.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: VideoRoomSession = window._roomObj
+      const roomObj = window._roomObj as VideoRoomSession
       const payload = await roomObj.getPlaybacks()
 
       return Promise.all(
