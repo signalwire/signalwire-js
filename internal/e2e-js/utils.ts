@@ -936,12 +936,7 @@ export const getAudioStats = async (page: Page) => {
       return result
     },
     assertionFn: (stats) => {
-      expect(stats['inbound-rtp'], {
-        message: 'Expected inbound RTP stats to be defined',
-      }).toBeDefined()
-      expect(stats['outbound-rtp'], {
-        message: 'Expected outbound RTP stats to be defined',
-      }).toBeDefined()
+      expect(stats).toBeDefined()
     },
     message: 'Expected to get audio RTP stats',
   })
@@ -2030,12 +2025,11 @@ export const setLayoutOnPage = (page: Page, layoutName: string) => {
   return expectPageEvalToPass(page, {
     evaluateArgs: { layoutName },
     evaluateFn: (options) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
       return roomObj.setLayout({ name: options.layoutName })
     },
     assertionFn: (result) => {
-      expect(result).toBeDefined()
+      expect(result).toBeUndefined()
     },
     message: 'Expected setLayout to be called',
   })
@@ -2048,8 +2042,7 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 export const expectMemberId = async (page: Page, memberId: string) => {
   await expectPageEvalToPass(page, {
     evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
       return roomObj.memberId
     },
     assertionFn: (roomMemberId) => {

@@ -105,22 +105,25 @@ test.describe('RoomSession promote/demote methods', () => {
             }
           })
         }),
-      messageAssert: 'member.joined event is recived',
-      messageError: 'member.joined event is not recived',
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'member.joined event is not recived',
     })
 
     await expectPageEvalToPass(pageOne, {
       evaluateArgs: { promoteMemberId: audienceId },
       evaluateFn: ({ promoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.promote({
+        const roomObj = window._roomObj as Video.RoomSession
+        return roomObj.promote({
           memberId: promoteMemberId,
           permissions: ['room.list_available_layouts'],
         })
       },
-      messageAssert: 'audience is promoted',
-      messageError: 'audience is not promoted',
+      assertionFn: (result) => {
+        expect(result).toBeUndefined()
+      },
+      message: 'audience is not promoted',
     })
 
     await Promise.all([promisePromotedRoomJoined, memberJoinedEventPromise])
@@ -141,8 +144,7 @@ test.describe('RoomSession promote/demote methods', () => {
       evaluateArgs: { demoteMemberId: audienceId },
       evaluateFn: ({ demoteMemberId }) => {
         return new Promise((resolve, reject) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
+          const roomObj = window._roomObj as Video.RoomSession
           roomObj.on('layout.changed', ({ layout }) => {
             for (const layer of layout.layers) {
               if (
@@ -158,15 +160,16 @@ test.describe('RoomSession promote/demote methods', () => {
           })
         })
       },
-      messageAssert: 'layout.changed event is received',
-      messageError: 'layout.changed event is not received',
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'layout.changed event is not received',
     })
 
     const memberLeftEventPromise = expectPageEvalToPass(pageOne, {
       evaluateFn: () => {
         return new Promise((resolve, reject) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
+          const roomObj = window._roomObj as Video.RoomSession
           roomObj.on('member.left', ({ member }) => {
             if (member.name === 'e2e_audience') {
               resolve(true)
@@ -176,21 +179,24 @@ test.describe('RoomSession promote/demote methods', () => {
           })
         })
       },
-      messageAssert: 'member.left event is received',
-      messageError: 'member.left event is not received',
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'member.left event is not received',
     })
 
     await expectPageEvalToPass(pageOne, {
       evaluateArgs: { demoteMemberId: audienceId },
       evaluateFn: async ({ demoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         await roomObj.demote({
           memberId: demoteMemberId,
         })
       },
-      messageAssert: 'member is demoted',
-      messageError: 'member is not demoted',
+      assertionFn: (result) => {
+        expect(result).toBeUndefined()
+      },
+      message: 'member is not demoted',
     })
 
     const [audienceRoomJoined] = await Promise.all([
