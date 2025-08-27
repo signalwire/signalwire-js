@@ -1892,6 +1892,8 @@ export const expectRoomJoined = async (
       expect(result).toBeDefined()
     },
     message: 'Expected room.joined event to be received',
+    timeoutMs: 50_000,
+    interval: [50_000],
   })
 
   if (options.invokeJoin) {
