@@ -8,6 +8,7 @@ import {
   expectMCUVisibleForAudience,
   getRemoteMediaIP,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 type Test = {
@@ -65,12 +66,16 @@ test.describe('RoomSessionReattach', () => {
       // Checks that the video is visible
       await row.expectMCU(page)
 
-      const roomPermissions: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.permissions
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          return roomObj.permissions
+        },
+        assertionFn: (roomPermissions) =>
+          expect(roomPermissions).toStrictEqual(permissions),
+        message: 'Expected room permissions to match',
       })
-      expect(roomPermissions).toStrictEqual(permissions)
 
       const initialRemoteIP = await getRemoteMediaIP(page)
 
