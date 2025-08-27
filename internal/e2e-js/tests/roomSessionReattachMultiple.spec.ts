@@ -8,6 +8,7 @@ import {
   expectMCUVisibleForAudience,
   deleteRoom,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 type Test = {
@@ -65,12 +66,15 @@ test.describe('RoomSessionReattach', () => {
       expect(joinParams.room.name).toBe(roomName)
       await row.expectMCU(page)
 
-      const roomPermissions: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.permissions
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj = window._roomObj as Video.RoomSession
+          return roomObj.permissions
+        },
+        assertionFn: (roomPermissions) =>
+          expect(roomPermissions).toStrictEqual(permissions),
+        message: 'Expected room permissions to match',
       })
-      expect(roomPermissions).toStrictEqual(permissions)
 
       // --------------- Reattaching ---------------
       await page.reload()
