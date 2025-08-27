@@ -6,7 +6,6 @@ import type {
   SignalWireClient,
   SignalWireContract,
   Video,
-  VideoRoomSubscribedEventParams,
 } from '@signalwire/js'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
@@ -1882,9 +1881,8 @@ export const expectRoomJoined = async (
 ) => {
   const roomJoinedEventPromise = expectPageEvalToPass(page, {
     evaluateFn: () => {
-      return new Promise<VideoRoomSubscribedEventParams>((resolve, _reject) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+      return new Promise<any>((resolve, _reject) => {
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.once('room.joined', (room) => {
           resolve(room)
         })

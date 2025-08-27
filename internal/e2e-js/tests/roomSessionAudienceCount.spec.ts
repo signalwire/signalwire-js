@@ -6,6 +6,7 @@ import {
   createTestRoomSession,
   randomizeRoomName,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession Audience Count', () => {
@@ -20,7 +21,7 @@ test.describe('RoomSession Audience Count', () => {
       createCustomPage({ name: '[page5]' }),
     ])
     const [pageOne, pageTwo, pageThree, pageFour, pageFive] = allPages
-    const audiencePages = [pageTwo, pageThree, pageFour, pageFive]
+    const audiencePages = [pageTwo, pageThree, pageFour, pageFive] as const
     const expectedAudienceCount = audiencePages.length
     await Promise.all(allPages.map((page) => page.goto(SERVER_URL)))
 
@@ -56,34 +57,39 @@ test.describe('RoomSession Audience Count', () => {
     const expectAudienceCount = (page: Page) => {
       return {
         getTotals: () => {
-          return page.evaluate(() => {
-            return {
-              // @ts-expect-error
-              totalFromAudienceCount: window.__totalFromAudienceCount,
-            }
+          return expectPageEvalToPass(page, {
+            evaluateFn: () => {
+              return {
+                totalFromAudienceCount: (window as any)
+                  .__totalFromAudienceCount,
+              }
+            },
+            assertionFn: (res) => expect(res).toBeDefined(),
+            message: 'Expected audience totals to be readable',
           })
         },
         waitFor: (count: number) => {
-          return page.evaluate(
-            ({ count }) => {
-              return new Promise(async (resolve) => {
-                // @ts-expect-error
-                window.__totalFromAudienceCount = 0
-
-                // @ts-expect-error
-                const roomObj: Video.RoomSession = window._roomObj
-
-                roomObj.on('room.audienceCount', (params) => {
-                  // @ts-expect-error
-                  window.__totalFromAudienceCount = params.total
+          return expectPageEvalToPass(page, {
+            evaluateArgs: { count },
+            evaluateFn: ({ count }) => {
+              return new Promise((resolve) => {
+                ;(window as any).__totalFromAudienceCount = 0
+                const roomObj = window._roomObj as Video.RoomSession
+                roomObj.on('room.audienceCount', (params: any) => {
+                  ;(window as any).__totalFromAudienceCount = params.total
                   if (params.total === count) {
                     resolve(params)
                   }
                 })
               })
             },
-            { count }
-          )
+            assertionFn: (params) => {
+              expect(params).toBeDefined()
+            },
+            timeoutMs: 50_000,
+            interval: [50_000],
+            message: 'Expected room.audienceCount to reach expected total',
+          })
         },
       }
     }

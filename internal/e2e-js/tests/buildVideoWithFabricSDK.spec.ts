@@ -1,4 +1,4 @@
-import { OverlayMap, LocalVideoOverlay } from '@signalwire/js'
+import { OverlayMap } from '@signalwire/js'
 import { test, expect, Page } from '../fixtures'
 import {
   SERVER_URL,
@@ -14,8 +14,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
   const getOverlayMap = (page: Page) =>
     expectPageEvalToPass(page, {
       evaluateFn: () => {
-        // @ts-expect-error
-        return window._roomObj.overlayMap as OverlayMap
+        return window._roomObj?.overlayMap
       },
       assertionFn: (overlayMap) => {
         expect(overlayMap).toBeDefined()
@@ -26,8 +25,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
   const getOverlayMapSize = (page: Page) =>
     expectPageEvalToPass(page, {
       evaluateFn: () => {
-        // @ts-expect-error
-        return (window._roomObj.overlayMap as OverlayMap).size
+        return window._roomObj?.overlayMap?.size
       },
       assertionFn: (overlayMapSize) => {
         expect(overlayMapSize).toBeDefined()
@@ -38,8 +36,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
   const getLocalVideoOverlay = (page: Page) =>
     expectPageEvalToPass(page, {
       evaluateFn: () => {
-        // @ts-expect-error
-        return window._roomObj.localVideoOverlay as LocalVideoOverlay
+        return window._roomObj?.localVideoOverlay
       },
       assertionFn: (localVideoOverlay) => {
         expect(localVideoOverlay).toBeDefined()
@@ -240,7 +237,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
       ).toHaveLength(1)
       expect(await getOverlayMapSize(page)).toBe(1)
       expect(await getLocalVideoOverlay(page)).toBeDefined()
-      expect((await getLocalVideoOverlay(page)).domElement).not.toBeDefined()
+      expect((await getLocalVideoOverlay(page))?.domElement).not.toBeDefined()
     })
 
     // Unsubscribe from the 2nd video element
@@ -281,7 +278,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
       ).toHaveLength(1)
       expect(await getOverlayMapSize(page)).toBe(0)
       expect(await getLocalVideoOverlay(page)).toBeDefined()
-      expect((await getLocalVideoOverlay(page)).domElement).not.toBeDefined()
+      expect((await getLocalVideoOverlay(page))?.domElement).not.toBeDefined()
     })
   })
 
