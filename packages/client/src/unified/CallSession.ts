@@ -13,7 +13,6 @@ import {
   SetAudioFlagsParams,
   toSnakeCaseKeys,
   CallLayoutChangedEventParams,
-  CallSessionMethods,
 } from '@signalwire/core'
 import {
   BaseRoomSessionConnection,
@@ -25,6 +24,7 @@ import {
   CallSessionContract,
   CallSessionEvents,
   RequestMemberParams,
+  CallSessionMethods,
 } from '../utils/interfaces'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'

@@ -39,9 +39,13 @@ import {
   CallSessionEventParams,
   MemberUpdatedEventParams,
   MemberUpdatedEventNames,
+  CallSessionMethods as CoreCallSessionMethods,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract, CallSession } from '../../unified'
+
+// Re-export CallSessionMethods locally to ensure proper type resolution
+export type CallSessionMethods = CoreCallSessionMethods
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
