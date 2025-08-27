@@ -6,6 +6,7 @@ import {
   randomizeRoomName,
   expectMCUVisible,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession Lock/Unlock', () => {
@@ -40,13 +41,13 @@ test.describe('RoomSession Lock/Unlock', () => {
     await expectMCUVisible(page)
 
     // --------------- Lock the room ---------------
-    await page.evaluate(
-      async ({ roomSessionId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { roomSessionId: joinParams.room_session.id },
+      evaluateFn: async ({ roomSessionId }) => {
+        const roomObj: Video.RoomSession = (window as any)._roomObj
 
         const roomLocked = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
+          roomObj.on('room.updated', (params: any) => {
             if (
               params.room_session.id === roomSessionId &&
               params.room_session.locked === true
@@ -60,8 +61,9 @@ test.describe('RoomSession Lock/Unlock', () => {
 
         return roomLocked
       },
-      { roomSessionId: joinParams.room_session.id }
-    )
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected room to be locked',
+    })
 
     /**
      * Check the MCU content??
@@ -70,13 +72,13 @@ test.describe('RoomSession Lock/Unlock', () => {
     await page.waitForTimeout(1000)
 
     // --------------- Unlock the room ---------------
-    await page.evaluate(
-      async ({ roomSessionId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { roomSessionId: joinParams.room_session.id },
+      evaluateFn: async ({ roomSessionId }) => {
+        const roomObj: Video.RoomSession = (window as any)._roomObj
 
         const roomUnlocked = new Promise((resolve) => {
-          roomObj.on('room.updated', (params) => {
+          roomObj.on('room.updated', (params: any) => {
             if (
               params.room_session.id === roomSessionId &&
               params.room_session.locked === false
@@ -90,7 +92,8 @@ test.describe('RoomSession Lock/Unlock', () => {
 
         return roomUnlocked
       },
-      { roomSessionId: joinParams.room_session.id }
-    )
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected room to be unlocked',
+    })
   })
 })
