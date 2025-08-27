@@ -285,7 +285,7 @@ test.describe('buildVideoElement with CallFabric SDK', () => {
     })
   })
 
-  test.only('should render the video even if the function is called before call.start', async ({
+  test('should render the video even if the function is called before call.start', async ({
     createCustomPage,
     resource,
   }) => {
