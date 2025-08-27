@@ -8,6 +8,7 @@ import {
   expectMCUVisibleForAudience,
   expectRoomJoinWithDefaults,
   expectRoomJoined,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession with custom local stream', () => {
@@ -27,10 +28,13 @@ test.describe('RoomSession with custom local stream', () => {
       console.error('Invalid VRT. Exiting..')
       process.exit(4)
     }
-    const beforeJoin = await page.evaluate(
-      async (options) => {
-        // @ts-expect-error
-        const Video = window._SWJS.Video
+    const beforeJoin = await expectPageEvalToPass(page, {
+      evaluateArgs: {
+        RELAY_HOST: process.env.RELAY_HOST,
+        API_TOKEN: vrt,
+      },
+      evaluateFn: async (options) => {
+        const Video = (window as any)._SWJS.Video
 
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
@@ -40,7 +44,7 @@ test.describe('RoomSession with custom local stream', () => {
         const roomSession = new Video.RoomSession({
           host: options.RELAY_HOST,
           token: options.API_TOKEN,
-          rootElement: document.getElementById('rootElement'),
+          rootElement: document.getElementById('rootElement')!,
           logLevel: 'debug',
           debug: {
             logWsTraffic: true,
@@ -48,7 +52,6 @@ test.describe('RoomSession with custom local stream', () => {
           localStream: stream,
         })
 
-        // @ts-expect-error
         window._roomObj = roomSession
 
         return {
@@ -56,24 +59,25 @@ test.describe('RoomSession with custom local stream', () => {
           trackIds: stream.getTracks().map((t) => t.id),
         }
       },
-      {
-        RELAY_HOST: process.env.RELAY_HOST,
-        API_TOKEN: vrt,
-      }
-    )
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to create room with custom local stream',
+    })
 
     // Join the room and expect the MCU (without local overlay) to be visible
     await expectRoomJoined(page)
     await expectMCUVisibleForAudience(page)
 
-    const afterJoin = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const stream = roomObj.localStream
-      return {
-        id: stream?.id,
-        trackIds: stream?.getTracks().map((t) => t.id),
-      }
+    const afterJoin = await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        const roomObj: Video.RoomSession = (window as any)._roomObj
+        const stream = roomObj.localStream
+        return {
+          id: stream?.id,
+          trackIds: stream?.getTracks().map((t: MediaStreamTrack) => t.id),
+        }
+      },
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to read local stream after join',
     })
 
     // Make sure streamId and trackIds are equal before/after join
@@ -97,33 +101,39 @@ test.describe('RoomSession with custom local stream', () => {
     await expectRoomJoinWithDefaults(page)
     await expectMCUVisibleForAudience(page)
 
-    const before = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const stream = roomObj.localStream
-      return {
-        id: stream?.id,
-        trackIds: stream?.getTracks().map((t) => t.id),
-      }
+    const before = await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        const roomObj: Video.RoomSession = (window as any)._roomObj
+        const stream = roomObj.localStream
+        return {
+          id: stream?.id,
+          trackIds: stream?.getTracks().map((t: MediaStreamTrack) => t.id),
+        }
+      },
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to read local stream before setLocalStream',
     })
 
-    const after = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+    const after = await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj: Video.RoomSession = (window as any)._roomObj
 
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      })
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true,
+        })
 
-      // Set newStream
-      await roomObj.setLocalStream(newStream)
-      const stream = roomObj.localStream
+        // Set newStream
+        await roomObj.setLocalStream(newStream)
+        const stream = roomObj.localStream
 
-      return {
-        id: stream?.id,
-        trackIds: stream?.getTracks().map((t) => t.id),
-      }
+        return {
+          id: stream?.id,
+          trackIds: stream?.getTracks().map((t: MediaStreamTrack) => t.id),
+        }
+      },
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected to set and read new local stream',
     })
 
     expect(before.id).toBe(after.id)
