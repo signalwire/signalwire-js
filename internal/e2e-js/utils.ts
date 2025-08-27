@@ -1751,29 +1751,33 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
-type ExpectMediaEventParams = Pick<
-  ExpectPageEvalToPassParams<void, void>,
-  'interval' | 'timeoutMs'
+type ExpectMediaEventParams = Partial<
+  Pick<
+    ExpectPageEvalToPassParams<void, void>,
+    'interval' | 'timeoutMs' | 'message'
+  >
 > & { event: MediaEventNames }
 
 export const expectMediaEvent = (
   page: Page,
   options: ExpectMediaEventParams
 ) => {
+  const { message, ...rest } = options
   return expectPageEvalToPass(page, {
     evaluateArgs: { event: options.event },
     evaluateFn: ({ event }) => {
-      return new Promise<void>((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on(event, resolve)
+      return new Promise<boolean>((resolve) => {
+        const roomObj = window._roomObj as Video.RoomSession
+        roomObj.on(event, () => {
+          resolve(true)
+        })
       })
     },
     assertionFn: (result) => {
-      expect(result).toBeDefined()
+      expect(result).toBe(true)
     },
-    message: 'Expected media event to be received',
-    ...options,
+    message: message ?? 'Expected media event to be received',
+    ...rest,
   })
 }
 
