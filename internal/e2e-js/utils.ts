@@ -2085,38 +2085,40 @@ export const expectToPass = async (
  * - Returns when the pageFunction returns a truthy value. It resolves to a JSHandle of the truthy value.
  * - The JSHandle can be passed to other Playwright functions, like `page.evaluate` or `page.evaluateHandle`.
  */
-export const waitForFunction = async <TArg, TResult>(
+export const waitForFunction = async <TArgs, TResult>(
   page: Page,
-  fn: PageFunction<TArg, TResult>,
-  arg?: TArg,
-  options?: {
+  {
+    evaluateArgs,
+    evaluateFn,
+    message,
+    interval = [10_000],
+    timeoutMs = 10_000,
+  }: {
+    evaluateArgs?: TArgs
+    evaluateFn: PageFunction<TArgs, TResult>
+    message: string
     interval?: number[]
-    timeout?: number
-    message?: string
+    timeoutMs?: number
   }
 ) => {
   try {
     const mergedOptions = {
-      interval: [10_000], // 10 seconds to avoid polling
-      timeout: 10_000,
-      ...options,
+      interval: interval ?? [10_000], // 10 seconds to avoid polling
+      timeout: timeoutMs ?? 10_000,
+      message,
     }
-    if (arg) {
-      return await page.waitForFunction(fn, arg, mergedOptions)
+    if (evaluateArgs) {
+      return await page.waitForFunction(evaluateFn, evaluateArgs, mergedOptions)
     } else {
       // FIXME: remove the type assertion
       return await page.waitForFunction(
-        fn as PageFunction<void, TResult>,
+        evaluateFn as PageFunction<void, TResult>,
         mergedOptions
       )
     }
   } catch (error) {
     // TODO: improve error message and logging
-    if (options?.message) {
-      throw new Error(`waitForFunction: ${options.message} `)
-    } else {
-      throw new Error('waitForFunction:', error)
-    }
+    throw new Error(`waitForFunction: ${message} - ${error}`)
   }
 }
 
@@ -2138,8 +2140,8 @@ interface ExpectPageEvalToPassParams<TArgs, TResult> {
  * @note
  * - The function is evaluated in the browser context, so only serializable values can be passed.
  * - Only serializable values can be returned
- * - If a custom assertion function is not provided, the result is expected to strictly equal `booleanAssert`.
- * - Throws an error with the provided message if the assertion fails or times out.
+ * - The assertion function should use the `expect` function to assert the result
+ * -  Throws timeout error if the promise does not resolve within the timeout
  */
 export const expectPageEvalToPass = async <TArgs, TResult>(
   page: Page,
@@ -2169,7 +2171,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
 
       assertionFn(result)
     },
-    { message },
+    { message: message },
     { timeout: timeoutMs, interval: interval }
   )
   return result

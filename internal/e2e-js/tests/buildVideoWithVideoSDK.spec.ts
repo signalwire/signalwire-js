@@ -112,21 +112,21 @@ test.describe('buildVideoElement with Video SDK', () => {
     await expectRoomJoinWithDefaults(page)
 
     // Build a video element
-    const element = await waitForFunction(page, () => {
-      return new Promise<HTMLElement>(async (resolve, _reject) => {
-        const call = window._roomObj
-        if (!call) {
-          throw new Error('Room object is not defined')
-        }
-        const { element } = await window._SWJS.buildVideoElement({
-          room: call,
+    const element = await waitForFunction(page, {
+      evaluateFn: () => {
+        return new Promise<HTMLElement>(async (resolve, _reject) => {
+          const call = window._roomObj
+          if (!call) {
+            throw new Error('Room object is not defined')
+          }
+          const { element } = await window._SWJS.buildVideoElement({
+            room: call,
+          })
+          resolve(element)
         })
-        resolve(element)
-      })
-    })
-    expect(element, {
+      },
       message: 'Expected built HTMLElement to be defined',
-    }).toBeDefined()
+    })
 
     await expect(page.locator('div.mcuLayers > *')).toHaveCount(0)
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
@@ -202,9 +202,8 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Create and expect only video overlay
-    const unsubscribe = await waitForFunction(
-      page,
-      async () => {
+    const unsubscribe = await waitForFunction(page, {
+      evaluateFn: async () => {
         const room = window._roomObj
         if (!room) {
           throw new Error('Room object is not defined')
@@ -220,11 +219,8 @@ test.describe('buildVideoElement with Video SDK', () => {
         })
         return unsubscribe
       },
-      undefined,
-      {
-        message: 'Expected to create second video element',
-      }
-    )
+      message: 'Expected to create second video element',
+    })
 
     await test.step('rootElement2: should have correct DOM elements and overlayMap', async () => {
       await expect(page.locator('div.mcuLayers > *')).toHaveCount(3)
