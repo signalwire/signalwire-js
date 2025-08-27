@@ -6,6 +6,7 @@ import {
   randomizeRoomName,
   expectMCUVisible,
   expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession methods on non existing members', () => {
@@ -48,234 +49,273 @@ test.describe('RoomSession methods on non existing members', () => {
     // Checks that the video is visible, as audience
     await expectMCUVisible(page)
 
-    const roomPermissions: any = await page.evaluate(() => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.permissions
+    await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        return roomObj.permissions
+      },
+      assertionFn: (roomPermissions) =>
+        expect(roomPermissions).toStrictEqual(member_permissions),
+      message: 'Expected room permissions to match',
     })
-    expect(roomPermissions).toStrictEqual(member_permissions)
 
     // --------------- Muting Audio member and expecting 404 ---------------
-    let errorCode: any = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .audioMute({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .audioMute({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message: 'Expected audioMute on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- Unmuting Audio member and expecting 403 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .audioUnmute({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .audioUnmute({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('403'),
+      message: 'Expected audioUnmute on non-existing member to fail with 403',
     })
-    expect(errorCode).toBe('403')
 
     // --------------- Muting Video member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .videoMute({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .videoMute({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message: 'Expected videoMute on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- Unmuting Video member and expecting 403 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .videoUnmute({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .videoUnmute({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('403'),
+      message: 'Expected videoUnmute on non-existing member to fail with 403',
     })
-    expect(errorCode).toBe('403')
 
     // --------------- Deaf member and expecting 403 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .deaf({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .deaf({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('403'),
+      message: 'Expected deaf on non-existing member to fail with 403',
     })
-    expect(errorCode).toBe('403')
 
     // --------------- Undeaf member and expecting 403 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .undeaf({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .undeaf({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('403'),
+      message: 'Expected undeaf on non-existing member to fail with 403',
     })
-    expect(errorCode).toBe('403')
 
     // --------------- set input volume for member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .setInputVolume({
-          memberId: 'non-exisisting-member',
-          volume: 25,
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .setInputVolume({
+            memberId: 'non-exisisting-member',
+            volume: 25,
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message:
+        'Expected setInputVolume on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- set output volume for member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .setOutputVolume({
-          memberId: 'non-exisisting-member',
-          volume: 25,
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .setOutputVolume({
+            memberId: 'non-exisisting-member',
+            volume: 25,
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message:
+        'Expected setOutputVolume on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- set input sensitivity for member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .setInputSensitivity({
-          memberId: 'non-exisisting-member',
-          value: 60,
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .setInputSensitivity({
+            memberId: 'non-exisisting-member',
+            value: 60,
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message:
+        'Expected setInputSensitivity on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- set position member and expecting 403 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .setMemberPosition({
-          memberId: 'non-exisisting-member',
-          position: 'reserved-1',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .setMemberPosition({
+            memberId: 'non-exisisting-member',
+            position: 'reserved-1',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('403'),
+      message:
+        'Expected setMemberPosition on non-existing member to fail with 403',
     })
-    expect(errorCode).toBe('403')
 
     // --------------- set meta for member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .setMemberMeta({
-          memberId: 'non-exisisting-member',
-          meta: {
-            foo: 'bar',
-          },
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .setMemberMeta({
+            memberId: 'non-exisisting-member',
+            meta: {
+              foo: 'bar',
+            },
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message: 'Expected setMemberMeta on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- get meta for member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .getMemberMeta({
-          memberId: 'non-exisisting-member',
-        })
-        .then(console.log)
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .getMemberMeta({
+            memberId: 'non-exisisting-member',
+          })
+          .then(console.log)
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message: 'Expected getMemberMeta on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- update meta for member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .updateMemberMeta({
-          memberId: 'non-exisisting-member',
-          meta: {
-            foo2: 'bar2',
-          },
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .updateMemberMeta({
+            memberId: 'non-exisisting-member',
+            meta: {
+              foo2: 'bar2',
+            },
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message:
+        'Expected updateMemberMeta on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- delete meta for member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .deleteMemberMeta({
-          memberId: 'non-exisisting-member',
-          keys: ['foo', 'foo2'],
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .deleteMemberMeta({
+            memberId: 'non-exisisting-member',
+            keys: ['foo', 'foo2'],
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message:
+        'Expected deleteMemberMeta on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- remove member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .removeMember({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .removeMember({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message: 'Expected removeMember on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
 
     // --------------- promote member and expecting 404 ---------------
     // errorCode = await page.evaluate(async () => {
@@ -292,17 +332,19 @@ test.describe('RoomSession methods on non existing members', () => {
     // expect(errorCode).toBe('404')
 
     // --------------- demote member and expecting 404 ---------------
-    errorCode = await page.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      const error = await roomObj
-        .demote({
-          memberId: 'non-exisisting-member',
-        })
-        .catch((error) => error)
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        const error = await roomObj
+          .demote({
+            memberId: 'non-exisisting-member',
+          })
+          .catch((error) => error)
 
-      return error.code
+        return error.code
+      },
+      assertionFn: (code) => expect(code).toBe('404'),
+      message: 'Expected demote on non-existing member to fail with 404',
     })
-    expect(errorCode).toBe('404')
   })
 })
