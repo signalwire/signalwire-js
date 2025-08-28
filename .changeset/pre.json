@@ -1,0 +1,24 @@
+{
+  "mode": "pre",
+  "tag": "dev.202508280008.28ab4f7",
+  "initialVersions": {
+    "@sw-internal/e2e-client": "0.0.20",
+    "@sw-internal/playground-client": "0.0.15",
+    "@sw-internal/playground-js": "0.0.15",
+    "@sw-internal/stack-tests": "1.0.5",
+    "@signalwire/client": "0.0.1",
+    "@signalwire/core": "4.3.1",
+    "@signalwire/webrtc": "3.14.1",
+    "@sw-internal/build": "0.0.4",
+    "@sw-internal/build-all": "0.0.3",
+    "@sw-internal/common": "0.0.4",
+    "@sw-internal/release": "0.0.6",
+    "@sw-internal/test": "0.0.5"
+  },
+  "changesets": [
+    "bright-wombats-flash",
+    "fast-humans-prove",
+    "tender-mugs-type",
+    "twelve-cycles-attack"
+  ]
+}
