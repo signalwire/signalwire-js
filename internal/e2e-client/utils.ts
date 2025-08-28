@@ -480,6 +480,19 @@ export const dialAddress = <TReturn = any>(
     shouldWaitForJoin: true,
   }
 ) => {
+  const defaultParams: DialAddressParams = {
+    address: '',
+    dialOptions: {},
+    reattach: false,
+    shouldPassRootElement: true,
+    shouldStartCall: true,
+    shouldWaitForJoin: true,
+  }
+  const mergedParams: DialAddressParams = {
+    ...defaultParams,
+    ...params,
+  }
+
   type EvaluateArgs = Omit<DialAddressParams, 'dialOptions'> & {
     dialOptions: string
   }
@@ -489,8 +502,12 @@ export const dialAddress = <TReturn = any>(
       expect(result, 'dialAddress result should be defined').toBeDefined()
     },
     evaluateArgs: {
-      ...params,
-      dialOptions: JSON.stringify(params.dialOptions),
+      address: mergedParams.address,
+      dialOptions: JSON.stringify(mergedParams.dialOptions),
+      reattach: mergedParams.reattach,
+      shouldPassRootElement: mergedParams.shouldPassRootElement,
+      shouldStartCall: mergedParams.shouldStartCall,
+      shouldWaitForJoin: mergedParams.shouldWaitForJoin,
     },
     evaluateFn: async ({
       address,
