@@ -2,6 +2,7 @@ require('dotenv').config()
 
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
+const chatPubSubTests = ['chat.spec.ts', 'pubSub.spec.ts']
 const streamingTests = [
   'roomSessionStreamingAPI.spec.ts',
   'roomSessionStreaming.spec.ts',
@@ -27,6 +28,28 @@ const audienceTests = [
   'roomSessionTalkingEventsToAudience.spec.ts',
   'roomSessionUnauthorized.spec.ts',
 ]
+const joinFlowTests = [
+  'roomSessionJoinFrom.spec.ts',
+  'roomSessionJoinUntil.spec.ts',
+]
+const talkingTests = [
+  'roomSessionTalkingEventsParticipant.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
+]
+const removeMemberTests = [
+  'roomSessionRemoveAfterSecondsElapsed.spec.ts',
+  'roomSessionRemoveAllMembers.spec.ts',
+  'roomSessionRemoveAt.spec.ts',
+]
+const deviceTests = [
+  'roomSessionDevices.spec.ts',
+  'roomSessionLocalStream.spec.ts',
+]
+const interactionTests = [
+  'roomSessionLockUnlock.spec.ts',
+  'roomSessionRaiseHand.spec.ts',
+  'roomSessionMethodsOnNonExistingMembers.spec.ts',
+]
 const reattachTests = [
   'roomSessionReattach.spec.ts',
   'roomSessionReattachBadAuth.spec.ts',
@@ -34,10 +57,6 @@ const reattachTests = [
   'roomSessionReattachScreenshare.spec.ts',
   'roomSessionReattachWrongCallId.spec.ts',
   'roomSessionReattachWrongProtocol.spec.ts',
-]
-const talkingTests = [
-  'roomSessionTalkingEventsParticipants.spec.ts',
-  'roomSessionTalkingEventsToAudience.spec.ts',
 ]
 const callfabricTests = [
   'address.spec.ts',
@@ -99,18 +118,28 @@ const config: PlaywrightTestConfig = {
       name: 'default',
       use: useDesktopChrome,
       testIgnore: [
+        ...chatPubSubTests,
         ...badNetworkTests,
         ...streamingTests,
         ...promoteTests,
         ...demoteTests,
         ...audienceTests,
         ...talkingTests,
+        ...removeMemberTests,
+        ...joinFlowTests,
+        ...deviceTests,
+        ...interactionTests,
         ...reattachTests,
         ...callfabricTests,
         ...renegotiationTests,
         ...videoElementTests,
         ...v2WebRTCTests,
       ],
+    },
+    {
+      name: 'chatPubSub',
+      use: useDesktopChrome,
+      testMatch: chatPubSubTests,
     },
     {
       name: 'streaming',
@@ -141,6 +170,26 @@ const config: PlaywrightTestConfig = {
       name: 'talking',
       use: useDesktopChrome,
       testMatch: talkingTests,
+    },
+    {
+      name: 'removeMember',
+      use: useDesktopChrome,
+      testMatch: removeMemberTests,
+    },
+    {
+      name: 'joinFlow',
+      use: useDesktopChrome,
+      testMatch: joinFlowTests,
+    },
+    {
+      name: 'devices',
+      use: useDesktopChrome,
+      testMatch: deviceTests,
+    },
+    {
+      name: 'interactions',
+      use: useDesktopChrome,
+      testMatch: interactionTests,
     },
     {
       name: 'reattach',

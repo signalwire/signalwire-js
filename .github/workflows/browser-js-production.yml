@@ -21,12 +21,17 @@ jobs:
         project:
           [
             default,
+            chatPubSub,
             streaming,
             badNetwork,
             promote,
             demote,
             audience,
             talking,
+            removeMember,
+            joinFlow,
+            devices,
+            interactions,
             reattach,
             callfabric,
             renegotiation,
