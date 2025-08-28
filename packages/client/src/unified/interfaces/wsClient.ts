@@ -4,7 +4,7 @@ import {
   IncomingCallHandlers,
 } from './incomingCallManager'
 import { CallSession } from '../CallSession'
-import { CallSessionEvents } from 'packages/client/src/utils/interfaces'
+import { CallSessionEvents } from '../../utils/interfaces'
 
 export interface WSClientContract {
   /**

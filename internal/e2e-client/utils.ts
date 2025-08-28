@@ -4,18 +4,20 @@ import type {
   SignalWire,
   SignalWireClient,
   SignalWireContract,
+  CallSessionEvents,
+  CallSessionEventParams,
 } from '@signalwire/client'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
 import { Page } from '@playwright/test'
-import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { EventEmitter } from 'events'
+import { CallStateManager } from './CallStateManage'
 
 declare global {
   interface Window {
@@ -24,13 +26,7 @@ declare global {
     }
     _client?: SignalWireClient
     _callObj?: CallSession
-    _callState?: {
-      history: any[]
-      update(event: string, payload: any): void
-      getState(): any
-      getSelfState(): any
-      logHistory(): void
-    }
+    _callState?: CallStateManager
   }
 }
 
@@ -450,58 +446,7 @@ const createCFClientWithToken = async (
 export const createCallStateUtility = (page: Page) => {
   return page.evaluate(() => {
     // Initialize the global _callState with a state utility that keeps the history of the call state
-    window._callState = {
-      history: [],
-
-      update(event: string, payload: any) {
-        const timestamp = Date.now()
-
-        let newState
-
-        if (!event.startsWith('member')) {
-          newState = {
-            ...this.getState(),
-            ...payload,
-          }
-        } else {
-          newState = {
-            ...this.getState(),
-          }
-          const memberIndex = newState.room_session.members.findIndex(
-            (m: any) => m.member_id == payload.member.member_id
-          )
-          if (memberIndex >= 0) {
-            newState.room_session.members[memberIndex] = {
-              ...newState.room_session.members[memberIndex],
-              ...payload.member,
-            }
-          }
-        }
-
-        const entry = { event, payload, timestamp, state: newState }
-
-        // Add to history
-        this.history.push(entry)
-      },
-
-      getState() {
-        return this.history.length
-          ? { ...this.history[this.history.length - 1].state }
-          : null
-      },
-      getSelfState() {
-        const state = this.getState()
-        return state?.room_session?.members.find(
-          (m: any) => m.member_id == state.member_id
-        )
-      },
-      logHistory() {
-        console.log(
-          'Call State History:',
-          JSON.stringify(this.history, null, 2)
-        )
-      },
-    }
+    window._callState = new CallStateManager()
 
     return window._callState
   })
@@ -585,13 +530,13 @@ export function dialAddress(
       return new Promise<any>(async (resolve, _reject) => {
         // @ts-expect-error
         const client: SignalWireContract = window._client
-        const listenHandlers: any = {}
+        const listenHandlers: Partial<CallSessionEvents> = {}
 
         // If shouldListenToEvent is true, add listeners for all events to update window._callState
         if (shouldListenToEvent && window._callState) {
           console.log('Adding call event listeners...')
           // Define all events to listen to
-          const eventsToListen = [
+          const eventsToListen: (keyof CallSessionEvents)[] = [
             'call.joined',
             'call.state',
             'call.left',
@@ -625,11 +570,11 @@ export function dialAddress(
             'recording.ended',
             'room.subscribed',
             'room.left',
-          ]
-
+          ] as (keyof CallSessionEvents)[]
           // Add listeners for each event
           eventsToListen.forEach((eventName) => {
-            listenHandlers[eventName] = (params: any) => {
+            // @ts-expect-error we have eventNames that are not currently emitted
+            listenHandlers[eventName] = (params: CallSessionEventParams) => {
               console.log(`Event ${eventName} received`)
               window._callState?.update(eventName, params)
             }

@@ -50,6 +50,7 @@ export {
   RoomSessionObjectEvents,
   RoomEventNames,
   StartScreenShareOptions,
+  CallSessionEvents,
 } from './utils/interfaces'
 export {
   // From interfaces/address.ts
