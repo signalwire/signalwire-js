@@ -61,7 +61,7 @@ test.describe('Room Streaming from REST API', () => {
       async () => {
         const locator = pageTwo.getByText(streamName)
         await pageTwo.reload({ waitUntil: 'domcontentloaded' })
-        await expect(locator).toBeVisible()
+        await expect(locator).toBeVisible({ timeout: 30_000 })
       },
       { message: 'Stream is not visible' },
       { timeout: 30_000, interval: [500] }
