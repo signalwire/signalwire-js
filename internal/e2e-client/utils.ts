@@ -623,8 +623,7 @@ interface GetStatsResult {
 }
 
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
-  let result = {} as GetStatsResult
-  await expectPageEvalToPass(page, {
+  return await expectPageEvalToPass(page, {
     evaluateFn: async () => {
       const callObj = window._callObj
       if (!callObj) {
@@ -756,7 +755,6 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
     },
     message: 'expect to get RTP stats',
   })
-  return result
 }
 
 // TODO: This is not used anywhere, remove it?
