@@ -6,7 +6,8 @@ import {
   randomizeRoomName,
   createTestVRTToken,
   expectMCUVisibleForAudience,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectRoomJoined,
   expectPageEvalToPass,
 } from '../utils'
@@ -98,7 +99,12 @@ test.describe('RoomSession with custom local stream', () => {
     }
 
     await createTestRoomSession(page, connectionSettings)
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined with custom stream',
+    })
+    await joinRoom(page, { message: 'Joining room with custom stream' })
+    await joinedPromise
+
     await expectMCUVisibleForAudience(page)
 
     const before = await expectPageEvalToPass(page, {

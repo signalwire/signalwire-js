@@ -6,7 +6,8 @@ import {
   createOrUpdateRoom,
   deleteRoom,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -90,7 +91,11 @@ test.describe('RoomSession join_from', () => {
       await buildRoomSession()
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoinWithDefaults(page)
+      const joinedPromise = expectRoomJoinedEvent(page, {
+        message: 'Waiting for room.joined after join_from window',
+      })
+      await joinRoom(page, { message: 'Joining room after join_from window' })
+      const joinParams = await joinedPromise
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()

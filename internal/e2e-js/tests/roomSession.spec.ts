@@ -7,7 +7,8 @@ import {
   setLayoutOnPage,
   expectLayoutChanged,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -63,7 +64,9 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const roomJoinedPromise = expectRoomJoinedEvent(page)
+    await joinRoom(page)
+    const joinParams = await roomJoinedPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -636,7 +639,11 @@ test.describe('RoomSession', () => {
     ])
 
     // --------------- Joining the 1st room ---------------
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible
     await expectMCUVisible(pageOne)
@@ -675,7 +682,11 @@ test.describe('RoomSession', () => {
     )
 
     // --------------- Joining the 2nd room ---------------
-    await expectRoomJoinWithDefaults(pageTwo)
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo' })
+    await pageTwoJoinedPromise
 
     // Checks that the video is visible
     await expectMCUVisible(pageTwo)

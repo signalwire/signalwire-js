@@ -12,7 +12,8 @@ import {
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -65,12 +66,19 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo, {
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo as audience',
     })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo as audience' })
+    const pageTwoRoomJoined = await pageTwoJoinedPromise
     const audienceId = pageTwoRoomJoined.member_id
     await expectMCUVisibleForAudience(pageTwo)
     await expectPageReceiveAudio(pageTwo)
@@ -86,9 +94,8 @@ test.describe('RoomSession promote/demote methods', () => {
     ])
     expect(layoutChangedResults).toStrictEqual([true, true])
 
-    const promisePromotedRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
-      invokeJoin: false,
-      joinAs: 'member',
+    const promisePromotedRoomJoined = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo after promote',
     })
 
     // -------- Promote audience from pageOne and resolve on `member.joined` ------
@@ -132,13 +139,10 @@ test.describe('RoomSession promote/demote methods', () => {
     await pageTwo.waitForTimeout(2000)
 
     // -------- Demote to audience from pageOne and resolve on `member.left` and `layout.changed` with position off-canvas ------
-    const demotedMemberJoinedEventPromise = expectRoomJoinWithDefaults(
-      pageTwo,
-      {
-        invokeJoin: false,
-        joinAs: 'audience',
-      }
-    )
+    const demotedMemberJoinedEventPromise = expectRoomJoinedEvent(pageTwo, {
+      joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo after demote',
+    })
 
     const layoutChangedEventPromise = expectPageEvalToPass(pageOne, {
       evaluateArgs: { demoteMemberId: audienceId },

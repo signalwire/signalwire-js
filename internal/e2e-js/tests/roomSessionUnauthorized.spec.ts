@@ -5,7 +5,8 @@ import {
   createTestRoomSession,
   randomizeRoomName,
   expectMCUVisibleForAudience,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -41,9 +42,12 @@ test.describe('RoomSession unauthorized methods for audience', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page, {
+    const joinedPromise = expectRoomJoinedEvent(page, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined as audience',
     })
+    await joinRoom(page, { message: 'Joining room as audience' })
+    const joinParams = await joinedPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
