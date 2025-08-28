@@ -5,7 +5,8 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -100,7 +101,12 @@ test.describe('RoomSession Audience Count', () => {
       expectedAudienceCount
     )
 
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      joinAs: 'member',
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
 
     const expectorPageTwo = expectAudienceCount(pageTwo)
     const audienceCountPageTwoPromise = expectorPageTwo.waitFor(
@@ -108,18 +114,26 @@ test.describe('RoomSession Audience Count', () => {
     )
 
     // join as audience on pageTwo and resolve on `room.joined`
-    const joinTwoParams = await expectRoomJoinWithDefaults(pageTwo, {
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo as audience',
     })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo as audience' })
+    const joinTwoParams = await pageTwoJoinedPromise
     // expect to have only 1 audience in the room at the moment
+    // @ts-expect-error FIXME: Check why `audience_count` is not exposed on the RoomSessionEntity
     expect(joinTwoParams.room_session.audience_count).toBe(1)
 
     const [_, ...pageThreeToFive] = audiencePages
     // join as audiences on pageThree to pageFive and resolve on `room.joined`
     await Promise.all(
-      pageThreeToFive.map((page) =>
-        expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
-      )
+      pageThreeToFive.map((page, index) => {
+        expectRoomJoinedEvent(page, {
+          joinAs: 'audience',
+          message: `Waiting for room.joined on page${index + 3} as audience`,
+        })
+        return joinRoom(page, { message: 'Joining room as audience' })
+      })
     )
 
     // wait for all the room.audienceCount

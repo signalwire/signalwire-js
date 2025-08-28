@@ -6,6 +6,7 @@ import type {
   SignalWireClient,
   SignalWireContract,
   Video,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/js'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
@@ -1745,16 +1746,11 @@ export const expectMemberTalkingEvent = (page: Page) => {
   })
 }
 
-type ExpectMediaEventParams = Partial<
-  Pick<
-    ExpectPageEvalToPassParams<void, void>,
-    'interval' | 'timeoutMs' | 'message'
-  >
-> & { event: MediaEventNames }
-
 export const expectMediaEvent = (
   page: Page,
-  options: ExpectMediaEventParams
+  options: Partial<BaseExpectPageEvalToPassParams> & {
+    event: MediaEventNames
+  }
 ) => {
   const { message, ...rest } = options
   return expectPageEvalToPass(page, {
@@ -1872,6 +1868,48 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
       expect(result).toBe(true)
     },
     message: 'Expected layout.changed event to be received',
+  })
+}
+
+export const expectRoomJoinedEvent = async (
+  page: Page,
+  options?: Partial<BaseExpectPageEvalToPassParams> & { joinAs?: string }
+) => {
+  const { joinAs = 'member', ...rest } = options || {}
+  return await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      return new Promise<VideoRoomSubscribedEventParams>((resolve, _reject) => {
+        const roomObj = window._roomObj as Video.RoomSession
+        roomObj.once('room.joined', resolve)
+      })
+    },
+    assertionFn: async (result) => {
+      expect(result).toBeDefined()
+      await expectMemberId(page, result.member_id)
+      const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+      await expectSDPDirection(page, dir, true)
+      const mode = joinAs === 'audience' ? 'audience' : 'member'
+      await expectInteractivityMode(page, mode)
+    },
+    message: 'Expected room.joined event to be received',
+    ...rest,
+  })
+}
+
+export const joinRoom = async (
+  page: Page,
+  options?: BaseExpectPageEvalToPassParams
+) => {
+  return await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      const roomObj = window._roomObj as Video.RoomSession
+      return roomObj.join()
+    },
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected room to be joined',
+    ...options,
   })
 }
 
@@ -2119,13 +2157,17 @@ export const waitForFunction = async <TArgs, TResult>(
   }
 }
 
-interface ExpectPageEvalToPassParams<TArgs, TResult> {
-  assertionFn: (result: TResult) => void
-  evaluateArgs?: TArgs
-  evaluateFn: PageFunction<TArgs, TResult>
+interface BaseExpectPageEvalToPassParams {
   message: string
   interval?: number[]
   timeoutMs?: number
+}
+
+interface ExpectPageEvalToPassParams<TArgs, TResult>
+  extends BaseExpectPageEvalToPassParams {
+  assertionFn: (result: TResult) => void
+  evaluateArgs?: TArgs
+  evaluateFn: PageFunction<TArgs, TResult>
 }
 
 /**
