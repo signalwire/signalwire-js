@@ -5,7 +5,8 @@ import {
   createTestRoomSession,
   randomizeRoomName,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -30,7 +31,11 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await createTestRoomSession(page, memberSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const joinedPromise = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (raise/lower priority)',
+    })
+    await joinRoom(page, { message: 'Joining room (raise/lower priority)' })
+    const joinParams = await joinedPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -86,7 +91,11 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await createTestRoomSession(page, memberSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const joinedPromise2 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (raise/lower hand)',
+    })
+    await joinRoom(page, { message: 'Joining room (raise/lower hand)' })
+    const joinParams = await joinedPromise2
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()

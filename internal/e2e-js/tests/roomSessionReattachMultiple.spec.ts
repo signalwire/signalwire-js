@@ -7,7 +7,8 @@ import {
   expectMCUVisible,
   expectMCUVisibleForAudience,
   deleteRoom,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -48,9 +49,12 @@ test.describe('RoomSessionReattach', () => {
       }
       await createTestRoomSession(page, connectionSettings)
 
-      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+      const joinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Joining room as ${row.join_as}` })
+      const joinParams: any = await joinedPromise
       const roomId = joinParams.room_session.room_id
 
       expect(joinParams.room).toBeDefined()
@@ -83,9 +87,12 @@ test.describe('RoomSessionReattach', () => {
 
       console.time(`time-reattach-${row.join_as}`)
       // Join again
-      const reattachParams: any = await expectRoomJoinWithDefaults(page, {
+      const rejoinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined after reattach (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Rejoining room as ${row.join_as}` })
+      const reattachParams: any = await rejoinedPromise
       console.timeEnd(`time-reattach-${row.join_as}`)
 
       expect(reattachParams.room).toBeDefined()
@@ -114,9 +121,12 @@ test.describe('RoomSessionReattach', () => {
 
       console.time(`time-reattach-${row.join_as}-2`)
       // Join again
-      const reattachParams2: any = await expectRoomJoinWithDefaults(page, {
+      const rejoinedPromise2 = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined after reattach-2 (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Rejoining room (2) as ${row.join_as}` })
+      const reattachParams2: any = await rejoinedPromise2
       console.timeEnd(`time-reattach-${row.join_as}-2`)
 
       expect(reattachParams2.room).toBeDefined()

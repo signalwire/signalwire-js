@@ -8,7 +8,8 @@ import {
   expectMCUVisibleForAudience,
   getRemoteMediaIP,
   expectScreenShareJoined,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -45,16 +46,19 @@ test.describe('RoomSessionReattach', () => {
       await createTestRoomSession(page, connectionSettings)
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+      const joinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Joining room as ${row.join_as}` })
+      const joinParams = await joinedPromise
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()
       if (row.join_as === 'member') {
         expect(
           joinParams.room.members.some(
-            (member: any) => member.id === joinParams.member_id
+            (member) => member.id === joinParams.member_id
           )
         ).toBeTruthy()
       }
@@ -90,9 +94,12 @@ test.describe('RoomSessionReattach', () => {
 
       console.time('reattach')
       // Join again
-      const reattachParams: any = await expectRoomJoinWithDefaults(page, {
+      const rejoinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined after reattach (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Rejoining room as ${row.join_as}` })
+      const reattachParams: any = await rejoinedPromise
       console.timeEnd('reattach')
 
       expect(reattachParams.room).toBeDefined()

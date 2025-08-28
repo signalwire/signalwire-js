@@ -8,7 +8,6 @@ import {
   expectMCUVisibleForAudience,
   expectRoomJoinedEvent,
   joinRoom,
-  expectRoomJoined,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -65,12 +64,14 @@ test.describe('RoomSession with custom local stream', () => {
     })
 
     // Join the room and expect the MCU (without local overlay) to be visible
-    await expectRoomJoined(page)
+    const joinPromise = expectRoomJoinedEvent(page)
+    await joinRoom(page)
+    await joinPromise
     await expectMCUVisibleForAudience(page)
 
     const afterJoin = await expectPageEvalToPass(page, {
       evaluateFn: () => {
-        const roomObj: Video.RoomSession = (window as any)._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         const stream = roomObj.localStream
         return {
           id: stream?.id,
@@ -109,7 +110,7 @@ test.describe('RoomSession with custom local stream', () => {
 
     const before = await expectPageEvalToPass(page, {
       evaluateFn: () => {
-        const roomObj: Video.RoomSession = (window as any)._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         const stream = roomObj.localStream
         return {
           id: stream?.id,

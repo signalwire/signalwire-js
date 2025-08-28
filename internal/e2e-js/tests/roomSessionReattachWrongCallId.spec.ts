@@ -7,7 +7,8 @@ import {
   randomizeRoomName,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -49,16 +50,19 @@ test.describe('RoomSessionReattachWrongCallId', () => {
       await createTestRoomSession(page, connectionSettings)
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+      const joinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Joining room as ${row.join_as}` })
+      const joinParams = await joinedPromise
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()
       if (row.join_as === 'member') {
         expect(
           joinParams.room.members.some(
-            (member: any) => member.id === joinParams.member_id
+            (member) => member.id === joinParams.member_id
           )
         ).toBeTruthy()
       }

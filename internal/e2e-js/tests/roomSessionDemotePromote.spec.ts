@@ -8,7 +8,8 @@ import {
   expectMemberId,
   randomizeRoomName,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession demote participant and then promote again', () => {
@@ -48,13 +49,21 @@ test.describe('RoomSession demote participant and then promote again', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2nd tab as member and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined: any = await expectRoomJoinWithDefaults(pageTwo)
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo' })
+    const pageTwoRoomJoined: any = await pageTwoJoinedPromise
 
     const participant2Id = pageTwoRoomJoined.member_id
     await expectMemberId(pageTwo, participant2Id)
@@ -68,8 +77,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     const promiseDemotedRoomJoined = pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.once('room.joined', resolve)
       })
     })
@@ -144,8 +152,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
 
     const promisePromotedRoomJoined = pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.once('room.joined', resolve)
       })
     })
@@ -153,8 +160,7 @@ test.describe('RoomSession demote participant and then promote again', () => {
     // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {

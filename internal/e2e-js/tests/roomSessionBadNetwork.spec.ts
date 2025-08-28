@@ -8,7 +8,8 @@ import {
   expectMCUVisibleForAudience,
   expectPageReceiveMedia,
   expectMediaEvent,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -57,9 +58,12 @@ test.describe('roomSessionBadNetwork', () => {
       })
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+      const joinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Joining room as ${row.join_as}` })
+      const joinParams: any = await joinedPromise
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()

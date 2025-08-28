@@ -5,7 +5,8 @@ import {
   createTestRoomSession,
   expectMCUVisible,
   expectPageEvalToPass,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   randomizeRoomName,
   waitForFunction,
 } from '../utils'
@@ -79,7 +80,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room without passing the rootElement
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise1 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (no rootElement)',
+    })
+    await joinRoom(page, { message: 'Joining room (no rootElement)' })
+    await joinedPromise1
 
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
@@ -106,7 +111,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room without passing the rootElement
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise2 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (return rootElement)',
+    })
+    await joinRoom(page, { message: 'Joining room (return rootElement)' })
+    await joinedPromise2
 
     // Build a video element
     const element = await waitForFunction(page, {
@@ -180,7 +189,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room and expect both video and member overlays
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise3 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (multiple video elements)',
+    })
+    await joinRoom(page, { message: 'Joining room (multiple video elements)' })
+    await joinedPromise3
 
     await expectMCUVisible(page)
 
@@ -343,7 +356,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise4 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (build before join)',
+    })
+    await joinRoom(page, { message: 'Joining room (build before join)' })
+    await joinedPromise4
 
     await expectMCUVisible(page)
 
@@ -366,8 +383,16 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(page, { roomName })
 
     // Join a video room with rootElement
-    await expectRoomJoinWithDefaults(page)
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise5 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (same rootElement 1)',
+    })
+    await joinRoom(page, { message: 'Joining room (same rootElement 1)' })
+    await joinedPromise5
+    const joinedPromise6 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (same rootElement 2)',
+    })
+    await joinRoom(page, { message: 'Joining room (same rootElement 2)' })
+    await joinedPromise6
 
     // Create a video element with the same rootElement
     await expectPageEvalToPass(page, {
@@ -415,7 +440,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(pageOne, { roomName })
 
     // Join a video room from pageOne
-    await expectRoomJoinWithDefaults(pageOne)
+    const joinedPromise7 = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined (multi user pageOne)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room (multi user pageOne)' })
+    await joinedPromise7
     await expectMCUVisible(pageOne)
 
     await test.step('should have correct DOM elements and overlayMap with one member', async () => {
@@ -429,7 +458,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(pageTwo, { roomName })
 
     // Join a video room from pageTwo
-    await expectRoomJoinWithDefaults(pageTwo)
+    const joinedPromise8 = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined (multi user pageTwo)',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room (multi user pageTwo)' })
+    await joinedPromise8
     await expectMCUVisible(pageTwo)
 
     await test.step('should have correct DOM elements and overlayMap with two members', async () => {

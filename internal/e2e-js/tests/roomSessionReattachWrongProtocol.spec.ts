@@ -5,7 +5,8 @@ import {
   createTestRoomSession,
   randomizeRoomName,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSessionReattachWrongProtocol', () => {
@@ -29,7 +30,11 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await expectRoomJoinWithDefaults(page)
+    const joinedPromise = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (wrong protocol)',
+    })
+    await joinRoom(page, { message: 'Joining room (wrong protocol test)' })
+    const joinParams = await joinedPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()

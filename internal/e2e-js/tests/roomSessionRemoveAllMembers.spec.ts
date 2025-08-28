@@ -6,7 +6,8 @@ import {
   expectMCUVisible,
   expectPageReceiveAudio,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession removeAllMembers method', () => {
@@ -41,7 +42,18 @@ test.describe('RoomSession removeAllMembers method', () => {
       })
     )
 
-    await Promise.all(allPages.map((page) => expectRoomJoinWithDefaults(page)))
+    await Promise.all(
+      allPages.map((page, index) => {
+        const joined = expectRoomJoinedEvent(page, {
+          message: `Waiting for room.joined on page${
+            index + 1
+          } (removeAllMembers)`,
+        })
+        return joinRoom(page, {
+          message: `Joining room on page${index + 1} (removeAllMembers)`,
+        }).then(() => joined)
+      })
+    )
     await Promise.all(allPages.map((page) => expectMCUVisible(page)))
     await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
 
@@ -49,8 +61,7 @@ test.describe('RoomSession removeAllMembers method', () => {
 
     const promiseWaitForMember2Left = pageTwo.evaluate(() => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('room.left', () => {
           resolve(true)
         })
@@ -59,8 +70,7 @@ test.describe('RoomSession removeAllMembers method', () => {
 
     const promiseWaitForMember3Left = pageThree.evaluate(() => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('room.left', () => {
           resolve(true)
         })
@@ -68,8 +78,7 @@ test.describe('RoomSession removeAllMembers method', () => {
     })
 
     await pageOne.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
 
       const promiseWaitForMember1Left = new Promise((resolve) => {
         roomObj.on('room.left', () => {

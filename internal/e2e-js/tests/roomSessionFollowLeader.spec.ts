@@ -7,7 +7,8 @@ import {
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession end_room_session_on_leave feature', () => {
@@ -46,11 +47,17 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
 
     // Last page is audience
     await Promise.all(
-      allPages.map((page, i) =>
-        i === allPages.length - 1
-          ? expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
-          : expectRoomJoinWithDefaults(page, { joinAs: 'member' })
-      )
+      allPages.map(async (page, i) => {
+        const joinAs = i === allPages.length - 1 ? 'audience' : 'member'
+        const p = expectRoomJoinedEvent(page, {
+          joinAs,
+          message: `Waiting for room.joined on page${i + 1} (${joinAs})`,
+        })
+        await joinRoom(page, {
+          message: `Joining room on page${i + 1} (${joinAs})`,
+        })
+        return await p
+      })
     )
     await Promise.all(
       allPages.map((page, i) =>
@@ -65,8 +72,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
 
     const promiseWaitForMember2Left = pageTwo.evaluate(() => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('room.left', () => {
           resolve(true)
         })
@@ -75,8 +81,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
 
     const promiseWaitForMember3Left = pageThree.evaluate(() => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('room.left', () => {
           resolve(true)
         })
@@ -84,9 +89,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     })
 
     await pageOne.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-
+      const roomObj = window._roomObj as Video.RoomSession
       const promiseWaitForMember1Left = new Promise((resolve) => {
         roomObj.on('room.left', () => {
           resolve(true)

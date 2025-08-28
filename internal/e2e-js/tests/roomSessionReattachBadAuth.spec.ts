@@ -6,7 +6,8 @@ import {
   createTestRoomSessionWithJWT,
   randomizeRoomName,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectPageEvalToPass,
 } from '../utils'
 
@@ -31,13 +32,17 @@ test.describe('RoomSessionReattachBadAuth', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await expectRoomJoinWithDefaults(page)
+    const joinedPromise = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (bad auth reattach)',
+    })
+    await joinRoom(page, { message: 'Joining room (bad auth reattach)' })
+    const joinParams = await joinedPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
     expect(
       joinParams.room.members.some(
-        (member: any) => member.id === joinParams.member_id
+        (member) => member.id === joinParams.member_id
       )
     ).toBeTruthy()
     expect(joinParams.room_session.name).toBe(roomName)

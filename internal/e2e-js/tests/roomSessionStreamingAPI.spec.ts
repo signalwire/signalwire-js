@@ -7,7 +7,8 @@ import {
   createStreamForRoom,
   deleteRoom,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectToPass,
 } from '../utils'
 
@@ -43,7 +44,11 @@ test.describe('Room Streaming from REST API', () => {
 
     // Create and join room from the 1st tab and resolve on 'room.joined'
     await createTestRoomSession(pageOne, connectionSettings)
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined (streaming api)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room (streaming api)' })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)

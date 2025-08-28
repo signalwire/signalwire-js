@@ -1913,67 +1913,6 @@ export const joinRoom = async (
   })
 }
 
-export const expectRoomJoined = async (
-  page: Page,
-  options: { invokeJoin: boolean } = { invokeJoin: true }
-) => {
-  const roomJoinedEventPromise = expectPageEvalToPass(page, {
-    evaluateFn: () => {
-      return new Promise<any>((resolve, _reject) => {
-        const roomObj = window._roomObj as Video.RoomSession
-        roomObj.once('room.joined', (room) => {
-          resolve(room)
-        })
-      })
-    },
-    assertionFn: (result) => {
-      expect(result).toBeDefined()
-    },
-    message: 'Expected room.joined event to be received',
-    timeoutMs: 50_000,
-    interval: [50_000],
-  })
-
-  if (options.invokeJoin) {
-    await expectPageEvalToPass(page, {
-      evaluateFn: () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.join()
-      },
-      assertionFn: (result) => {
-        expect(result).toBeDefined()
-      },
-      message: 'Expected room to be joined',
-    })
-  }
-
-  const roomJoinedEvent = await roomJoinedEventPromise
-
-  if (!roomJoinedEvent) {
-    throw new Error('Room joined event is undefined')
-  }
-
-  return roomJoinedEvent
-}
-
-export const expectRoomJoinWithDefaults = async (
-  page: Page,
-  options?: {
-    invokeJoin?: boolean
-    joinAs?: CreateTestVRTOptions['join_as']
-  }
-) => {
-  const { invokeJoin = true, joinAs = 'member' } = options || {}
-  const params = await expectRoomJoined(page, { invokeJoin })
-  await expectMemberId(page, params.member_id)
-  const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
-  await expectSDPDirection(page, dir, true)
-  const mode = joinAs === 'audience' ? 'audience' : 'member'
-  await expectInteractivityMode(page, mode)
-  return params
-}
-
 export const expectRecordingStarted = (page: Page) => {
   return expectPageEvalToPass(page, {
     evaluateFn: () => {

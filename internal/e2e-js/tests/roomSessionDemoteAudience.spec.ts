@@ -7,7 +7,8 @@ import {
   expectInteractivityMode,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession demote method', () => {
@@ -46,15 +47,22 @@ test.describe('RoomSession demote method', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2st tab as audience and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined: any = await expectRoomJoinWithDefaults(pageTwo, {
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo (audience)',
     })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo (audience)' })
+    const pageTwoRoomJoined: any = await pageTwoJoinedPromise
 
     // Checks that the video is visible on pageTwo
     await expectMCUVisibleForAudience(pageTwo)
