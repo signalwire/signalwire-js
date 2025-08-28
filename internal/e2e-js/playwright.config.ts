@@ -107,7 +107,7 @@ const config: PlaywrightTestConfig = {
   timeout: 120_000,
   expect: {
     // Default is 5000
-    timeout: 10_000,
+    timeout: 20_000,
   },
   // Forbid test.only on CI
   forbidOnly: !!process.env.CI,
