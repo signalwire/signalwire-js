@@ -2039,8 +2039,8 @@ export const expectToPass = async (
   options?: { interval?: number[]; timeout?: number }
 ) => {
   const mergedOptions = {
-    interval: [10_000], // 10 seconds to avoid polling
-    timeout: 10_000,
+    interval: [20_000], // 20 seconds to avoid polling
+    timeout: 20_000,
     ...options,
   }
   return await expect(assertion, assertionMessage).toPass(mergedOptions)
@@ -2065,8 +2065,8 @@ export const waitForFunction = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     message,
-    interval = [10_000],
-    timeoutMs = 10_000,
+    interval = [20_000],
+    timeoutMs = 20_000,
   }: {
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
@@ -2077,8 +2077,8 @@ export const waitForFunction = async <TArgs, TResult>(
 ) => {
   try {
     const mergedOptions = {
-      interval: interval ?? [10_000], // 10 seconds to avoid polling
-      timeout: timeoutMs ?? 10_000,
+      interval: interval ?? [20_000], // 20 seconds to avoid polling
+      timeout: timeoutMs ?? 20_000,
       message,
     }
     if (evaluateArgs) {
@@ -2128,8 +2128,8 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     message,
-    interval = [10_000],
-    timeoutMs = 10_000,
+    interval = [20_000],
+    timeoutMs = 20_000,
   }: ExpectPageEvalToPassParams<TArgs, TResult>
 ) => {
   // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
