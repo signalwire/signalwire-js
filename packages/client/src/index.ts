@@ -3,7 +3,7 @@
  * @module
  */
 
-export {
+export type {
   BaseComponentOptions,
   BaseConnectionState,
   ClientEvents,
@@ -39,12 +39,12 @@ export {
   InternalMemberEntity,
 } from '@signalwire/core'
 
-export {
+export type {
   BaseConnectionOptions,
   ConnectionOptions,
   MicrophoneAnalyzer,
 } from '@signalwire/webrtc'
-export {
+export type {
   CallJoinedEventParams,
   RoomSessionObjectEventsHandlerMap,
   RoomSessionObjectEvents,
@@ -52,7 +52,7 @@ export {
   StartScreenShareOptions,
   CallSessionEvents,
 } from './utils/interfaces'
-export {
+export type {
   // From interfaces/address.ts
   ResourceType,
   GetAddressResponse,
