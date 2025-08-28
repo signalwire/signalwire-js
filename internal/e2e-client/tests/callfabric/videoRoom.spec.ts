@@ -86,14 +86,14 @@ test.describe('CallCall VideoRoom', () => {
         callObj.getProperty('leave'),
         'call object leave should be defined'
       ).toBeDefined()
-      expect(callSession).toHaveProperty(
-        'room_session',
+      expect(
+        callSession,
         'call session room session should be defined'
-      )
-      expect(callSession).toHaveProperty(
-        'member_id',
+      ).toHaveProperty('room_session')
+      expect(
+        callSession,
         'call session member id should be defined'
-      )
+      ).toHaveProperty('member_id')
       expect(page.goto, 'page goto should be defined').toBeDefined()
       expect(page.evaluate, 'page evaluate should be defined').toBeDefined()
       expect(
