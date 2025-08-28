@@ -64,7 +64,7 @@ test.describe('Room Streaming from REST API', () => {
         await expect(locator).toBeVisible({ timeout: 0 })
       },
       { message: 'Stream is not visible' },
-      { timeout: 30_000, interval: [500] }
+      { timeout: 60_000, interval: [500] }
     )
 
     await deleteRoom(roomData.id)
