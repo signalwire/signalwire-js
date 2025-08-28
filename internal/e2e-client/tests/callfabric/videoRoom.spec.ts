@@ -344,9 +344,6 @@ test.describe('CallCall VideoRoom', () => {
     // --------------- Screenshare ---------------
     await test.step('screen share', async () => {
       const screenMemberJoined = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'screen joined result resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           return new Promise<string>((resolve) => {
@@ -356,6 +353,10 @@ test.describe('CallCall VideoRoom', () => {
               }
             })
           })
+        },
+        assertionFn: (result) => {
+          // should be a string uuid type
+          expect(result, 'screen joined result resolved').toBeDefined()
         },
         message: 'expect screen joined result',
       })
