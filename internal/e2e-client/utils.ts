@@ -397,9 +397,6 @@ const createCFClientWithToken = async (
   const { attachSagaMonitor = false } = params || {}
 
   const swClient = (await expectPageEvalToPass(page, {
-    assertionFn: (client) => {
-      expect(client, 'SignalWire client should be defined').toBeDefined()
-    },
     evaluateArgs: {
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
@@ -454,6 +451,9 @@ const createCFClientWithToken = async (
       window._client = client
       return client
     },
+    assertionFn: (client) => {
+      expect(client, 'SignalWire client should be defined').toBeDefined()
+    },
     message: 'expect SignalWire client to be created',
   })) as SignalWireContract
 
@@ -498,9 +498,6 @@ export const dialAddress = <TReturn = any>(
   }
 
   return expectPageEvalToPass<EvaluateArgs, TReturn>(page, {
-    assertionFn: (result) => {
-      expect(result, 'dialAddress result should be defined').toBeDefined()
-    },
     evaluateArgs: {
       address: mergedParams.address,
       dialOptions: JSON.stringify(mergedParams.dialOptions),
@@ -549,6 +546,9 @@ export const dialAddress = <TReturn = any>(
           resolve(call)
         }
       })
+    },
+    assertionFn: (result) => {
+      expect(result, 'dialAddress result should be defined').toBeDefined()
     },
     message: 'expect dialAddress to succeed',
   })
@@ -1743,9 +1743,6 @@ export const expectCFFinalEvents = (
 
 export const expectLayoutChanged = async (page: Page, layoutName: string) => {
   return await expectPageEvalToPass(page, {
-    assertionFn: (result) => {
-      expect(result, 'expect layout changed result').toBe(true)
-    },
     evaluateArgs: { layoutName },
     evaluateFn: (params) => {
       return new Promise<boolean>((resolve) => {
@@ -1759,6 +1756,9 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
           }
         })
       })
+    },
+    assertionFn: (result) => {
+      expect(result, 'expect layout changed result').toBe(true)
     },
     message: 'expect layout changed result',
   })
@@ -1811,9 +1811,6 @@ export const expectInteractivityMode = async (
 
 export const setLayoutOnPage = async (page: Page, layoutName: string) => {
   const layoutChanged = await expectPageEvalToPass(page, {
-    assertionFn: (result) => {
-      expect(result, 'layout changed result should be true').toBe(true)
-    },
     evaluateArgs: { layoutName },
     evaluateFn: async (params) => {
       const callObj = window._callObj
@@ -1822,6 +1819,9 @@ export const setLayoutOnPage = async (page: Page, layoutName: string) => {
       }
       await callObj.setLayout({ name: params.layoutName })
       return true
+    },
+    assertionFn: (result) => {
+      expect(result, 'layout changed result should be true').toBe(true)
     },
     message: 'expect set layout',
   })
