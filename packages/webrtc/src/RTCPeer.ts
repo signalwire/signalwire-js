@@ -1241,6 +1241,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+      this.logger.debug('Track event:', event)
       // @ts-expect-error
       this.call.emit('track', event)
 
@@ -1282,6 +1283,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private emitMediaConnected() {
+    this.logger.debug('Emitting media.connected event')
     this.call.emit('media.connected')
   }
 
