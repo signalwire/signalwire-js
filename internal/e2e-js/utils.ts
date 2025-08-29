@@ -685,16 +685,24 @@ export const disconnectClient = (page: Page) => {
 // #region Utilities for the MCU
 
 export const expectMCUVisible = async (page: Page) => {
-  await page.waitForSelector('div[id^="sw-sdk-"] > video')
+  await expect(
+    page.locator('div[id^="sw-sdk-"] > video'),
+    'Expected MCU video to be visible'
+  ).toBeVisible({ timeout: 20_000 })
 }
 
 export const expectMCUNotVisible = async (page: Page) => {
-  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
-  expect(mcuVideo).toBeNull()
+  await expect(
+    page.locator('div[id^="sw-sdk-"] > video'),
+    'Expected MCU video to be hidden'
+  ).toBeHidden({ timeout: 20_000 })
 }
 
 export const expectMCUVisibleForAudience = async (page: Page) => {
-  await page.waitForSelector('#rootElement video')
+  await expect(
+    page.locator('#rootElement video'),
+    'Expected audience video to be visible'
+  ).toBeVisible({ timeout: 20_000 })
 }
 
 // #endregion
