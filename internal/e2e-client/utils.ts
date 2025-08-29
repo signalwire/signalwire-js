@@ -397,9 +397,6 @@ const createCFClientWithToken = async (
   const { attachSagaMonitor = false } = params || {}
 
   const swClient = (await expectPageEvalToPass(page, {
-    assertionFn: (client) => {
-      expect(client, 'SignalWire client should be defined').toBeDefined()
-    },
     evaluateArgs: {
       RELAY_HOST: process.env.RELAY_HOST,
       API_TOKEN: sat,
@@ -454,6 +451,9 @@ const createCFClientWithToken = async (
       window._client = client
       return client
     },
+    assertionFn: (client) => {
+      expect(client, 'SignalWire client should be defined').toBeDefined()
+    },
     message: 'expect SignalWire client to be created',
   })) as SignalWireContract
 
@@ -480,17 +480,31 @@ export const dialAddress = <TReturn = any>(
     shouldWaitForJoin: true,
   }
 ) => {
+  const defaultParams: DialAddressParams = {
+    address: '',
+    dialOptions: {},
+    reattach: false,
+    shouldPassRootElement: true,
+    shouldStartCall: true,
+    shouldWaitForJoin: true,
+  }
+  const mergedParams: DialAddressParams = {
+    ...defaultParams,
+    ...params,
+  }
+
   type EvaluateArgs = Omit<DialAddressParams, 'dialOptions'> & {
     dialOptions: string
   }
 
   return expectPageEvalToPass<EvaluateArgs, TReturn>(page, {
-    assertionFn: (result) => {
-      expect(result, 'dialAddress result should be defined').toBeDefined()
-    },
     evaluateArgs: {
-      ...params,
-      dialOptions: JSON.stringify(params.dialOptions),
+      address: mergedParams.address,
+      dialOptions: JSON.stringify(mergedParams.dialOptions),
+      reattach: mergedParams.reattach,
+      shouldPassRootElement: mergedParams.shouldPassRootElement,
+      shouldStartCall: mergedParams.shouldStartCall,
+      shouldWaitForJoin: mergedParams.shouldWaitForJoin,
     },
     evaluateFn: async ({
       address,
@@ -532,6 +546,9 @@ export const dialAddress = <TReturn = any>(
           resolve(call)
         }
       })
+    },
+    assertionFn: (result) => {
+      expect(result, 'dialAddress result should be defined').toBeDefined()
     },
     message: 'expect dialAddress to succeed',
   })
@@ -606,8 +623,7 @@ interface GetStatsResult {
 }
 
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
-  let result = {} as GetStatsResult
-  await expectPageEvalToPass(page, {
+  return await expectPageEvalToPass(page, {
     evaluateFn: async () => {
       const callObj = window._callObj
       if (!callObj) {
@@ -739,7 +755,6 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
     },
     message: 'expect to get RTP stats',
   })
-  return result
 }
 
 // TODO: This is not used anywhere, remove it?
@@ -1728,9 +1743,6 @@ export const expectCFFinalEvents = (
 
 export const expectLayoutChanged = async (page: Page, layoutName: string) => {
   return await expectPageEvalToPass(page, {
-    assertionFn: (result) => {
-      expect(result, 'expect layout changed result').toBe(true)
-    },
     evaluateArgs: { layoutName },
     evaluateFn: (params) => {
       return new Promise<boolean>((resolve) => {
@@ -1744,6 +1756,9 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
           }
         })
       })
+    },
+    assertionFn: (result) => {
+      expect(result, 'expect layout changed result').toBe(true)
     },
     message: 'expect layout changed result',
   })
@@ -1796,9 +1811,6 @@ export const expectInteractivityMode = async (
 
 export const setLayoutOnPage = async (page: Page, layoutName: string) => {
   const layoutChanged = await expectPageEvalToPass(page, {
-    assertionFn: (result) => {
-      expect(result, 'layout changed result should be true').toBe(true)
-    },
     evaluateArgs: { layoutName },
     evaluateFn: async (params) => {
       const callObj = window._callObj
@@ -1807,6 +1819,9 @@ export const setLayoutOnPage = async (page: Page, layoutName: string) => {
       }
       await callObj.setLayout({ name: params.layoutName })
       return true
+    },
+    assertionFn: (result) => {
+      expect(result, 'layout changed result should be true').toBe(true)
     },
     message: 'expect set layout',
   })

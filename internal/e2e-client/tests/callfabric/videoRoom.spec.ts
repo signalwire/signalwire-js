@@ -86,14 +86,14 @@ test.describe('CallCall VideoRoom', () => {
         callObj.getProperty('leave'),
         'call object leave should be defined'
       ).toBeDefined()
-      expect(callSession).toHaveProperty(
-        'room_session',
+      expect(
+        callSession,
         'call session room session should be defined'
-      )
-      expect(callSession).toHaveProperty(
-        'member_id',
+      ).toHaveProperty('room_session')
+      expect(
+        callSession,
         'call session member id should be defined'
-      )
+      ).toHaveProperty('member_id')
       expect(page.goto, 'page goto should be defined').toBeDefined()
       expect(page.evaluate, 'page evaluate should be defined').toBeDefined()
       expect(
@@ -105,9 +105,6 @@ test.describe('CallCall VideoRoom', () => {
     // --------------- Muting Audio (self) ---------------
     await test.step('muting audio (self)', async () => {
       const memberUpdatedMutedEvent = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member updated muted event resolved').toBe(true)
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
@@ -121,13 +118,13 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'member updated muted event resolved').toBe(true)
+        },
         message: 'expect member updated muted event',
       })
 
       const memberUpdatedMuted = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member updated muted resolved').toBe(true)
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
@@ -141,6 +138,9 @@ test.describe('CallCall VideoRoom', () => {
               }
             })
           })
+        },
+        assertionFn: (result) => {
+          expect(result, 'member updated muted resolved').toBe(true)
         },
         message: 'expect member updated muted',
       })
@@ -158,9 +158,6 @@ test.describe('CallCall VideoRoom', () => {
     // --------------- Unmuting Audio (self) ---------------
     await test.step('unmuting audio (self)', async () => {
       const memberUpdatedUnmutedEvent = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member updated unmuted event resolved').toBe(true)
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
@@ -174,13 +171,13 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'member updated unmuted event resolved').toBe(true)
+        },
         message: 'expect member updated unmuted event',
       })
 
       const memberUpdatedUnmuted = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member updated unmuted resolved').toBe(true)
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
@@ -195,17 +192,20 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'member updated unmuted resolved').toBe(true)
+        },
         message: 'expect member updated unmuted',
       })
 
       const audioUnmuteSelf = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member video updated muted event resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           await params.callObj.audioUnmute()
           return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'member video updated muted event resolved').toBe(true)
         },
         message: 'expect audio unmute self',
       })
@@ -217,9 +217,6 @@ test.describe('CallCall VideoRoom', () => {
     // --------------- Muting Video (self) ---------------
     await test.step('muting video (self)', async () => {
       const memberVideoUpdatedMutedEvent = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member video updated muted event resolved').toBe(true)
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
@@ -234,15 +231,13 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'member video updated muted event resolved').toBe(true)
+        },
         message: 'expect member video updated muted event',
       })
 
       const memberVideoUpdatedMuted = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member video updated unmuted event resolved').toBe(
-            true
-          )
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
@@ -259,16 +254,21 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'member video updated unmuted event resolved').toBe(
+            true
+          )
+        },
         message: 'expect member video updated muted',
       })
       const videoMuteSelf = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'video mute self resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           await params.callObj.videoMute()
           return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'video mute self resolved').toBe(true)
         },
         message: 'expect video mute self',
       })
@@ -281,9 +281,6 @@ test.describe('CallCall VideoRoom', () => {
 
     await test.step('unmuting video (self)  ', async () => {
       const memberVideoUpdatedUnmutedEvent = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'member video updated unmuted resolved').toBe(true)
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
@@ -298,13 +295,13 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'member video updated unmuted resolved').toBe(true)
+        },
         message: 'expect member video updated unmuted event',
       })
 
       const memberVideoUpdatedUnmuted = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'video unmute self resolved').toBe(true)
-        },
         evaluateArgs: { callObj, callSession },
         evaluateFn: async (params) => {
           return new Promise<boolean>((resolve) => {
@@ -321,17 +318,20 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'video unmute self resolved').toBe(true)
+        },
         message: 'expect member video updated unmuted',
       })
 
       const videoUnmuteSelf = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'video unmute self resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           await params.callObj.videoUnmute()
           return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'video unmute self resolved').toBe(true)
         },
         message: 'expect video unmute self',
       })
@@ -344,9 +344,6 @@ test.describe('CallCall VideoRoom', () => {
     // --------------- Screenshare ---------------
     await test.step('screen share', async () => {
       const screenMemberJoined = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'screen joined result resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           return new Promise<string>((resolve) => {
@@ -356,6 +353,10 @@ test.describe('CallCall VideoRoom', () => {
               }
             })
           })
+        },
+        assertionFn: (result) => {
+          // should be a string uuid type
+          expect(result, 'screen joined result resolved').toBeDefined()
         },
         message: 'expect screen joined result',
       })
@@ -375,22 +376,19 @@ test.describe('CallCall VideoRoom', () => {
 
       // --------------- Check Screen Share ID ---------------
       await expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'screen left resolved').toBe(true)
-        },
         evaluateArgs: { screenShareObj, screenMemberId },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
             resolve(params.screenMemberId === params.screenShareObj.memberId)
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'screen left resolved').toBe(true)
+        },
         message: 'expect screen share id check',
       })
 
       const screenMemberLeft = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'screen member left resolved').toBe(true)
-        },
         evaluateArgs: { callObj, screenMemberId },
         evaluateFn: async (params) => {
           return new Promise<boolean>((resolve) => {
@@ -404,30 +402,33 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'screen member left resolved').toBe(true)
+        },
         message: 'expect screen left',
       })
 
       const screenRoomLeft = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'screen room left resolved').toBe(true)
-        },
         evaluateArgs: { screenShareObj },
         evaluateFn: (params) => {
           return new Promise<boolean>((resolve) => {
             params.screenShareObj.on('room.left', () => resolve(true))
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'screen room left resolved').toBe(true)
+        },
         message: 'expect screen room left',
       })
 
       const screenShareObjCallLeave = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'screen share obj left resolved').toBe(true)
-        },
         evaluateArgs: { screenShareObj },
         evaluateFn: async (params) => {
           await params.screenShareObj.leave()
           return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'screen share obj left resolved').toBe(true)
         },
         message: 'expect screen share obj left',
       })
@@ -442,9 +443,6 @@ test.describe('CallCall VideoRoom', () => {
     // --------------- Room lock/unlock ---------------
     await test.step('room lock', async () => {
       const roomUpdatedLocked = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'room updated locked resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           return new Promise<boolean>((resolve) => {
@@ -455,17 +453,20 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'room updated locked resolved').toBe(true)
+        },
         message: 'expect room updated locked',
       })
 
       const roomLock = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'room updated unlocked resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           await params.callObj.lock()
           return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'room updated unlocked resolved').toBe(true)
         },
         message: 'expect room lock',
       })
@@ -476,9 +477,6 @@ test.describe('CallCall VideoRoom', () => {
 
     await test.step('room unlock', async () => {
       const roomUpdatedUnlocked = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'room updated unlocked resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           return new Promise<boolean>((resolve) => {
@@ -489,17 +487,20 @@ test.describe('CallCall VideoRoom', () => {
             })
           })
         },
+        assertionFn: (result) => {
+          expect(result, 'room updated unlocked resolved').toBe(true)
+        },
         message: 'expect room updated unlocked',
       })
 
       const roomUnlock = expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'room updated unlocked resolved').toBe(true)
-        },
         evaluateArgs: { callObj },
         evaluateFn: async (params) => {
           await params.callObj.unlock()
           return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'room updated unlocked resolved').toBe(true)
         },
         message: 'expect room unlock',
       })
@@ -615,12 +616,6 @@ test.describe('CallCall VideoRoom', () => {
 
     // Dial an address and join a video room using expectPageEvalToPass
     await expectPageEvalToPass(page, {
-      assertionFn: (result) => {
-        expect(
-          result.success,
-          'call session should return success as false'
-        ).toBe(false)
-      },
       evaluateFn: async () => {
         try {
           const client = window._client
@@ -641,6 +636,12 @@ test.describe('CallCall VideoRoom', () => {
         } catch (error) {
           return { success: false, error }
         }
+      },
+      assertionFn: (result) => {
+        expect(
+          result.success,
+          'call session should return success as false'
+        ).toBe(false)
       },
       message: 'expect call session to fail on invalid address',
     })
