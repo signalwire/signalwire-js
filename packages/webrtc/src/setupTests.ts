@@ -14,6 +14,18 @@ if (typeof navigator === 'undefined') {
   global.navigator = {}
 }
 
+// Extend navigator with additional properties needed by visibility features
+Object.assign(global.navigator, {
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+  platform: 'Linux x86_64',
+  maxTouchPoints: 0,
+  hardwareConcurrency: 4,
+  onLine: true,
+  languages: ['en-US', 'en'],
+  language: 'en-US',
+  cookieEnabled: true,
+})
+
 const SUPPORTED_CONSTRAINTS = JSON.parse(
   '{"aspectRatio":true,"autoGainControl":true,"brightness":true,"channelCount":true,"colorTemperature":true,"contrast":true,"deviceId":true,"echoCancellation":true,"exposureCompensation":true,"exposureMode":true,"exposureTime":true,"facingMode":true,"focusDistance":true,"focusMode":true,"frameRate":true,"groupId":true,"height":true,"iso":true,"latency":true,"noiseSuppression":true,"pointsOfInterest":true,"sampleRate":true,"sampleSize":true,"saturation":true,"sharpness":true,"torch":true,"volume":true,"whiteBalanceMode":true,"width":true,"zoom":true}'
 )
@@ -80,6 +92,7 @@ Object.defineProperty(navigator, 'permissions', {
   value: {
     query: jest.fn(() => ({})),
   },
+  configurable: true,
 })
 
 Object.defineProperty(navigator, 'mediaDevices', {
@@ -110,5 +123,95 @@ Object.defineProperty(navigator, 'mediaDevices', {
       stream.addTrack(_newTrack('video'))
       return stream
     }),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    ondevicechange: null,
   },
+  configurable: true,
+})
+
+// Mock localStorage
+Object.defineProperty(global, 'localStorage', {
+  value: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn(),
+    length: 0,
+    key: jest.fn(),
+  },
+  configurable: true,
+})
+
+// Mock document APIs needed by visibility features
+Object.defineProperty(global, 'document', {
+  value: {
+    hidden: false,
+    visibilityState: 'visible',
+    hasFocus: jest.fn(() => true),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    querySelectorAll: jest.fn(() => []),
+    querySelector: jest.fn(),
+    createElement: jest.fn(() => ({
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      play: jest.fn().mockResolvedValue(undefined),
+      pause: jest.fn(),
+      remove: jest.fn(),
+    })),
+  },
+  configurable: true,
+})
+
+// Mock window APIs
+Object.defineProperty(global, 'window', {
+  value: {
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    focus: jest.fn(),
+    blur: jest.fn(),
+    screen: {
+      width: 1920,
+      height: 1080,
+    },
+    location: {
+      href: 'http://localhost',
+      origin: 'http://localhost',
+      protocol: 'http:',
+      host: 'localhost',
+      hostname: 'localhost',
+      port: '',
+      pathname: '/',
+      search: '',
+      hash: '',
+    },
+    performance: {
+      now: jest.fn(() => Date.now()),
+      mark: jest.fn(),
+      measure: jest.fn(),
+    },
+  },
+  configurable: true,
+})
+
+// Mock URL constructor
+Object.defineProperty(global, 'URL', {
+  value: class URL {
+    constructor(url: string, base?: string) {
+      Object.assign(this, new (require('url').URL)(url, base))
+    }
+  },
+  configurable: true,
+})
+
+// Mock requestAnimationFrame
+Object.defineProperty(global, 'requestAnimationFrame', {
+  value: jest.fn((cb) => setTimeout(cb, 16)),
+  configurable: true,
+})
+
+Object.defineProperty(global, 'cancelAnimationFrame', {
+  value: jest.fn((id) => clearTimeout(id)),
+  configurable: true,
 })

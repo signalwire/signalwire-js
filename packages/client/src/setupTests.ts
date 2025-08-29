@@ -120,3 +120,208 @@ class MockAudio {
 global.Audio = MockAudio as any
 
 global.WebSocket = WebSocket
+
+// Browser APIs needed by visibility features
+if (typeof navigator === 'undefined') {
+  Object.defineProperty(global, 'navigator', {
+    value: {},
+    configurable: true,
+    writable: true
+  })
+}
+
+// Define navigator properties individually to handle getter-only properties
+const navigatorProps = {
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+  platform: 'Linux x86_64',
+  maxTouchPoints: 0,
+  hardwareConcurrency: 4,
+  onLine: true,
+  languages: ['en-US', 'en'],
+  language: 'en-US',
+  cookieEnabled: true,
+}
+
+// Define each property with configurable descriptors
+Object.keys(navigatorProps).forEach(key => {
+  Object.defineProperty(global.navigator, key, {
+    value: navigatorProps[key as keyof typeof navigatorProps],
+    configurable: true,
+    writable: true
+  })
+})
+
+// Mock navigator.permissions
+Object.defineProperty(navigator, 'permissions', {
+  configurable: true,
+  writable: true,
+  value: {
+    query: jest.fn(() => Promise.resolve({ state: 'granted' })),
+  },
+})
+
+// Mock navigator.mediaDevices with extended functionality
+Object.defineProperty(navigator, 'mediaDevices', {
+  configurable: true,
+  writable: true,
+  value: {
+    enumerateDevices: jest.fn().mockResolvedValue([
+      {
+        deviceId: 'default',
+        kind: 'audioinput',
+        label: 'Default - Built-in Microphone',
+        groupId: 'group1',
+      },
+      {
+        deviceId: 'camera1',
+        kind: 'videoinput',
+        label: 'Built-in Camera',
+        groupId: 'group2',
+      },
+      {
+        deviceId: 'speaker1',
+        kind: 'audiooutput',
+        label: 'Built-in Speakers',
+        groupId: 'group3',
+      },
+    ]),
+    getSupportedConstraints: jest.fn().mockReturnValue({
+      deviceId: true,
+      facingMode: true,
+      frameRate: true,
+      height: true,
+      width: true,
+      audio: true,
+      video: true,
+    }),
+    getUserMedia: jest.fn((constraints) => {
+      const tracks = []
+      if (constraints.audio) {
+        tracks.push(new (global.MediaStreamTrack as any)('audio'))
+      }
+      if (constraints.video) {
+        tracks.push(new (global.MediaStreamTrack as any)('video'))
+      }
+      const stream = new global.MediaStream(tracks)
+      return Promise.resolve(stream)
+    }),
+    getDisplayMedia: jest.fn(() => {
+      const tracks = [new (global.MediaStreamTrack as any)('video')]
+      const stream = new global.MediaStream(tracks)
+      return Promise.resolve(stream)
+    }),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    ondevicechange: null,
+  },
+})
+
+// Mock localStorage
+Object.defineProperty(global, 'localStorage', {
+  configurable: true,
+  writable: true,
+  value: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn(),
+    length: 0,
+    key: jest.fn(),
+  },
+})
+
+// Mock document APIs needed by visibility features
+Object.defineProperty(global, 'document', {
+  configurable: true,
+  writable: true,
+  value: {
+    hidden: false,
+    visibilityState: 'visible',
+    hasFocus: jest.fn(() => true),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    querySelectorAll: jest.fn(() => []),
+    querySelector: jest.fn(),
+    createElement: jest.fn(() => ({
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      play: jest.fn().mockResolvedValue(undefined),
+      pause: jest.fn(),
+      remove: jest.fn(),
+      getBoundingClientRect: jest.fn(() => ({
+        width: 100,
+        height: 100,
+        top: 0,
+        left: 0,
+        bottom: 100,
+        right: 100,
+      })),
+      clientWidth: 100,
+      clientHeight: 100,
+    })),
+    getBoundingClientRect: jest.fn(() => ({
+      width: 100,
+      height: 100,
+      top: 0,
+      left: 0,
+      bottom: 100,
+      right: 100,
+    })),
+  },
+})
+
+// Mock window APIs
+Object.defineProperty(global, 'window', {
+  configurable: true,
+  writable: true,
+  value: {
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    focus: jest.fn(),
+    blur: jest.fn(),
+    screen: {
+      width: 1920,
+      height: 1080,
+    },
+    location: {
+      href: 'http://localhost',
+      origin: 'http://localhost',
+      protocol: 'http:',
+      host: 'localhost',
+      hostname: 'localhost',
+      port: '',
+      pathname: '/',
+      search: '',
+      hash: '',
+    },
+    performance: {
+      now: jest.fn(() => Date.now()),
+      mark: jest.fn(),
+      measure: jest.fn(),
+    },
+  },
+})
+
+// Mock URL constructor
+Object.defineProperty(global, 'URL', {
+  configurable: true,
+  writable: true,
+  value: class URL {
+    constructor(url: string, base?: string) {
+      Object.assign(this, new (require('url').URL)(url, base))
+    }
+  },
+})
+
+// Mock requestAnimationFrame
+Object.defineProperty(global, 'requestAnimationFrame', {
+  configurable: true,
+  writable: true,
+  value: jest.fn((cb) => setTimeout(cb, 16)),
+})
+
+Object.defineProperty(global, 'cancelAnimationFrame', {
+  configurable: true,
+  writable: true,
+  value: jest.fn((id) => clearTimeout(id)),
+})
