@@ -125,7 +125,7 @@ export class Conversation {
           body: {
             group_id: groupId,
             text,
-            from_address_id: fromAddressId,
+            from_fabric_address_id: fromAddressId,
             metadata: params.metadata,
             details: params.details,
           },
@@ -266,14 +266,14 @@ export class Conversation {
 
       chatMessages = await Promise.all(
         chatMessages.map(async (message) => {
-          if (!message.from_address_id) {
+          if (!message.from_fabric_address_id) {
             // nothing to lookup
             return message
           }
 
           return {
             ...message,
-            user_name: await this.lookupUsername(message.from_address_id)(),
+            user_name: await this.lookupUsername(message.from_fabric_address_id)(),
           }
         })
       )
@@ -355,7 +355,7 @@ export class Conversation {
       return {
         group_id: body.group_id,
         addressIds: body.fabric_address_ids,
-        from_address_id: body.from_fabric_address_id,
+        from_fabric_address_id: body.from_fabric_address_id,
       }
     } catch (error) {
       throw new Error('Error joining a conversation!', error)
