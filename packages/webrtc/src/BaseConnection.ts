@@ -47,6 +47,13 @@ import {
   INVITE_VERSION,
   VIDEO_CONSTRAINTS,
 } from './utils/constants'
+import type {
+  NetworkQuality,
+  StatsHistoryEntry,
+  MonitoringOptions,
+  NetworkIssue,
+  RecoveryAttemptInfo,
+} from './monitoring/interfaces'
 
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
@@ -76,6 +83,7 @@ export class BaseConnection<
   private rtcPeerMap = new Map<string, RTCPeer<EventTypes>>()
   private sessionAuthTask: Task
   protected resuming = false
+  private _networkQuality: NetworkQuality | null = null
 
   constructor(options: BaseConnectionOptions) {
     super(options)
@@ -205,6 +213,10 @@ export class BaseConnection<
 
   get peer() {
     return this.getRTCPeerById(this.activeRTCPeerId)
+  }
+
+  get networkQuality() {
+    return this._networkQuality
   }
 
   set peer(rtcPeer: RTCPeer<EventTypes> | undefined) {
@@ -1147,6 +1159,17 @@ export class BaseConnection<
     this.emit(this.state, this)
 
     switch (state) {
+      case 'active': {
+        // Start monitoring when connection becomes active
+        if (this.peer && this.options.enableStatsMonitoring !== false) {
+          try {
+            this.peer.startStatsMonitoring()
+          } catch (error) {
+            this.logger.error('Failed to start stats monitoring when connection became active', error)
+          }
+        }
+        break
+      }
       case 'purge': {
         this._finalize()
         break
@@ -1245,16 +1268,104 @@ export class BaseConnection<
     const rtcPeer = new RTCPeer(this, type)
     this.appendRTCPeer(rtcPeer)
     this.runRTCPeerWorkers(rtcPeer.uuid)
+    this._setupPeerMonitoringListeners(rtcPeer)
     
     return rtcPeer
   }
 
+  /**
+   * Setup monitoring event listeners for an RTCPeer
+   * @private
+   */
+  private _setupPeerMonitoringListeners(rtcPeer: RTCPeer<EventTypes>) {
+    // Set up listeners for monitoring events from the peer
+    // These events will be forwarded to the application consumers
+    const setupListener = (eventName: string, handler: (...args: any[]) => void) => {
+      // @ts-expect-error - Monitoring events are not in the base event types
+      rtcPeer.call?.on?.(eventName, handler)
+    }
+
+    // Listen for network quality changes from this peer
+    setupListener('network.quality.changed', (params: { quality: NetworkQuality; previousQuality?: NetworkQuality; timestamp: number }) => {
+      this._onNetworkQualityChanged(params)
+    })
+
+    // Listen for network issues detected from this peer  
+    setupListener('network.issue.detected', (params: { issue: NetworkIssue; quality: NetworkQuality; timestamp: number }) => {
+      this.emit('network.issue.detected', params)
+    })
+
+    // Listen for network issues resolved from this peer
+    setupListener('network.issue.resolved', (params: { issue: NetworkIssue; duration: number; quality: NetworkQuality; timestamp: number }) => {
+      this.emit('network.issue.resolved', params)
+    })
+
+    // Listen for recovery attempts from this peer
+    setupListener('network.recovery.attempted', (params: { attempt: RecoveryAttemptInfo; quality: NetworkQuality; timestamp: number }) => {
+      this.emit('network.recovery.attempted', params)
+    })
+  }
+
+  /**
+   * Handle network quality changes from RTCPeer instances
+   * @private
+   */
+  private _onNetworkQualityChanged(params: { quality: NetworkQuality; previousQuality?: NetworkQuality; timestamp: number }) {
+    // Update the cached network quality for the active peer
+    if (this.active) {
+      this._networkQuality = params.quality
+    }
+
+    // Forward the event to application consumers
+    this.emit('network.quality.changed', params)
+
+    // Emit specific quality level events based on the current quality state
+    const { quality } = params
+    if (quality.issues && quality.issues.length > 0) {
+      const criticalIssues = quality.issues.filter(issue => issue.severityLevel === 'critical')
+      const warningIssues = quality.issues.filter(issue => issue.severityLevel === 'warning')
+
+      // Emit specific events based on issue severity
+      if (criticalIssues.length >= 3 || (criticalIssues.length >= 1 && warningIssues.length >= 2)) {
+        // Tier 3: Critical condition - ICE restart level
+        this.emit('networkQualityCritical', {
+          issues: quality.issues,
+          quality,
+          requiresUserAction: false,
+          recoveryActions: ['ice_restart', 'reinvite']
+        })
+      } else if (criticalIssues.length >= 1 || warningIssues.length >= 2) {
+        // Tier 2: Degraded condition - Recovery level
+        this.emit('networkQualityDegraded', {
+          issues: quality.issues,
+          quality,
+          recoveryActions: ['keyframe_request']
+        })
+      } else if (warningIssues.length >= 1) {
+        // Tier 1: Warning condition
+        this.emit('networkQualityWarning', {
+          issues: quality.issues,
+          quality
+        })
+      }
+    }
+  }
+
   /** @internal */
   protected _finalize() {
+    // Stop monitoring for all peers before cleanup
     this.rtcPeerMap.forEach((rtcPeer) => {
+      try {
+        rtcPeer.stopStatsMonitoring()
+      } catch (error) {
+        this.logger.debug('Error stopping stats monitoring during finalize', error)
+      }
       rtcPeer.stop()
     })
     this.rtcPeerMap.clear()
+    
+    // Clear cached network quality
+    this._networkQuality = null
   }
 
   /**
@@ -1444,6 +1555,63 @@ export class BaseConnection<
     return this.updateMedia({
       video: { direction },
     })
+  }
+
+  /**
+   * Enable WebRTC stats monitoring for all peers in this connection
+   * @param options Optional monitoring configuration
+   */
+  public enableStatsMonitoring(options?: MonitoringOptions): void {
+    this.rtcPeerMap.forEach((rtcPeer) => {
+      try {
+        rtcPeer.startStatsMonitoring(options)
+      } catch (error) {
+        this.logger.error('Failed to enable stats monitoring for peer', rtcPeer.uuid, error)
+      }
+    })
+  }
+
+  /**
+   * Disable WebRTC stats monitoring for all peers in this connection
+   */
+  public disableStatsMonitoring(): void {
+    this.rtcPeerMap.forEach((rtcPeer) => {
+      try {
+        rtcPeer.stopStatsMonitoring()
+      } catch (error) {
+        this.logger.error('Failed to disable stats monitoring for peer', rtcPeer.uuid, error)
+      }
+    })
+  }
+
+  /**
+   * Get current network quality for the active peer
+   * @returns Current network quality or null if not available
+   */
+  public getNetworkQuality(): NetworkQuality | null {
+    // Return cached quality if available
+    if (this._networkQuality) {
+      return this._networkQuality
+    }
+
+    // Otherwise try to get it from the active peer
+    if (this.peer) {
+      return this.peer.getNetworkQuality()
+    }
+
+    return null
+  }
+
+  /**
+   * Get WebRTC stats history from the active peer
+   * @param limit Optional limit on number of entries to return
+   * @returns Array of stats history entries
+   */
+  public getStatsHistory(limit?: number): StatsHistoryEntry[] {
+    if (this.peer) {
+      return this.peer.getStatsHistory(limit)
+    }
+    return []
   }
 
   public async hold() {
