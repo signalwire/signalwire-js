@@ -55,6 +55,15 @@ export class CallSessionConnection
   private _currentLayoutEvent: CallLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
+  private _localVideoTrack: MediaStreamTrack | null = null
+
+  get localVideoTrack() {
+    return this._localVideoTrack
+  }
+
+  set localVideoTrack(track: MediaStreamTrack | null) {
+    this._localVideoTrack = track
+  }
 
   constructor(options: CallSessionOptions) {
     super(options)
@@ -250,11 +259,21 @@ export class CallSessionConnection
   }
 
   public async videoUnmute(params?: MemberCommandParams) {
-    return this.executeAction<BaseRPCResult>({
+    const isLocal = !params?.memberId || params.memberId === this.memberId;
+    const result = await this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'video',
       memberId: params?.memberId,
-    })
+    });
+
+    if (isLocal && this.localVideoTrack?.readyState === 'ended') {
+      const deviceId = this.localVideoTrack.getSettings().deviceId;
+      if (deviceId) {
+        await this.updateCamera({ deviceId: { exact: deviceId } });
+      }
+    }
+
+    return result;
   }
 
   public async deaf(params?: MemberCommandParams) {
@@ -420,6 +439,26 @@ export class CallSessionConnection
       method: 'call.end',
       memberId: params?.memberId,
     });
+  }
+
+  public async updateCamera(constraints: MediaTrackConstraints): Promise<void> {
+    const newTrack = (await navigator.mediaDevices.getUserMedia({ video: constraints })).getVideoTracks()[0];
+
+    const sender = this.peer?.instance?.getSenders().find((s) => s.track?.kind === 'video');
+    if (sender) {
+      await sender.replaceTrack(newTrack);
+    }
+
+    this.localVideoTrack = newTrack;
+
+    const self = this.member;
+    if (self.videoMuted) {
+      this.stopOutboundVideo();
+    }
+  }
+
+  public stopOutboundVideo(): void {
+    this.localVideoTrack?.stop();
   }
 }
 

@@ -107,6 +107,8 @@ export interface CallSessionContract {
   playbacks?: [] // TODO: Finalize the type when the feature is ready
   /** Fields that have changed in this room session */
   updated?: Array<Exclude<keyof CallSessionContract, 'updated'>>
+  /** The local video track */
+  localVideoTrack?: MediaStreamTrack
 
   /**
    * Puts the microphone on mute. The other participants will not hear audio
@@ -515,6 +517,15 @@ export interface CallSessionContract {
    * ```
    */
   end(params?: MemberCommandParams): Promise<void>
+  /**
+   * Updates the camera with new constraints, and handles stopping outbound video if muted.
+   * @param constraints The new media track constraints for the camera.
+   */
+  updateCamera(constraints: MediaTrackConstraints): Promise<void>
+  /**
+   * Stops the outbound video track.
+   */
+  stopOutboundVideo(): void
 }
 
 /**
@@ -554,7 +565,7 @@ export type InternalCallSessionEntity = {
  * List of possible capabilities returned by the server
  */
 export type Capability =
-  // Self
+// Self
   | 'self'
   | 'self.mute'
   | 'self.mute.audio'
