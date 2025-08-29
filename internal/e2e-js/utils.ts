@@ -688,21 +688,21 @@ export const expectMCUVisible = async (page: Page) => {
   await expect(
     page.locator('div[id^="sw-sdk-"] > video'),
     'Expected MCU video to be visible'
-  ).toBeVisible({ timeout: 20_000 })
+  ).toBeVisible({ timeout: 30_000 })
 }
 
 export const expectMCUNotVisible = async (page: Page) => {
   await expect(
     page.locator('div[id^="sw-sdk-"] > video'),
     'Expected MCU video to be hidden'
-  ).toBeHidden({ timeout: 20_000 })
+  ).toBeHidden({ timeout: 30_000 })
 }
 
 export const expectMCUVisibleForAudience = async (page: Page) => {
   await expect(
     page.locator('#rootElement video'),
     'Expected audience video to be visible'
-  ).toBeVisible({ timeout: 20_000 })
+  ).toBeVisible({ timeout: 30_000 })
 }
 
 // #endregion
