@@ -30,6 +30,8 @@ import {
   RoomSessionScreenShareEvents,
 } from './RoomSessionScreenShare'
 import * as workers from './video/workers'
+import { DeviceManager } from './device/DeviceManager'
+import type { DevicePreferenceConfig } from './device/types'
 
 export interface BaseRoomSession<
   EventTypes extends EventEmitter.ValidEventTypes = BaseRoomSessionEvents
@@ -37,7 +39,13 @@ export interface BaseRoomSession<
     BaseConnection<EventTypes>,
     BaseComponentContract {}
 
-export interface BaseRoomSessionOptions extends BaseConnectionOptions {}
+export interface BaseRoomSessionOptions extends BaseConnectionOptions {
+  /**
+   * Device preference management configuration
+   * If provided, enables device preference management with DeviceManager
+   */
+  devicePreferences?: DevicePreferenceConfig
+}
 
 export class BaseRoomSessionConnection<
     EventTypes extends EventEmitter.ValidEventTypes = BaseRoomSessionEvents
@@ -49,6 +57,7 @@ export class BaseRoomSessionConnection<
   private _audioEl: AudioElement
   private _overlayMap: OverlayMap
   private _localVideoOverlay: LocalVideoOverlay
+  private _deviceManager?: DeviceManager
 
   get audioEl() {
     return this._audioEl
@@ -72,6 +81,24 @@ export class BaseRoomSessionConnection<
 
   get screenShareList() {
     return Array.from(this._screenShareList)
+  }
+
+  /**
+   * Access to the device manager instance (lazy initialization)
+   * Only available if devicePreferences config was provided during initialization
+   */
+  get deviceManager(): DeviceManager | undefined {
+    const config = (this.options as BaseRoomSessionOptions)?.devicePreferences
+
+    if (!config) {
+      return undefined
+    }
+
+    if (!this._deviceManager) {
+      this._deviceManager = new DeviceManager(this as any, config)
+    }
+
+    return this._deviceManager
   }
 
   private _attachSpeakerTrackListener() {
@@ -126,6 +153,12 @@ export class BaseRoomSessionConnection<
   protected override _finalize() {
     this._screenShareList.clear()
 
+    // Clean up device manager if it exists
+    if (this._deviceManager) {
+      this._deviceManager.destroy()
+      this._deviceManager = undefined
+    }
+
     super._finalize()
   }
 
@@ -152,6 +185,13 @@ export class BaseRoomSessionConnection<
     this.runWorker('memberListUpdated', {
       worker: workers.memberListUpdatedWorker,
     })
+
+    // Register device preference worker if device management is enabled
+    if ((this.options as BaseRoomSessionOptions)?.devicePreferences) {
+      this.runWorker('devicePreferenceWorker', {
+        worker: workers.devicePreferenceWorker,
+      })
+    }
   }
 
   /** @internal */
@@ -245,7 +285,69 @@ export class BaseRoomSessionConnection<
     })
   }
 
-  updateSpeaker({ deviceId }: { deviceId: string }) {
+  /**
+   * Enhanced updateCamera method with device preference integration
+   * @param constraints - Media track constraints including deviceId
+   * @param preference - Optional device preference to save
+   * @returns Promise<void>
+   */
+  async updateCamera(
+    constraints: MediaTrackConstraints,
+    preference?: Partial<import('./device/types').DevicePreference>
+  ): Promise<void> {
+    // If device manager is enabled and a deviceId is specified, use it for preference management
+    if (
+      this.deviceManager &&
+      constraints.deviceId &&
+      typeof constraints.deviceId === 'string'
+    ) {
+      await this.deviceManager.setCamera(constraints.deviceId, preference)
+    } else {
+      // Fallback to standard behavior
+      await super.updateCamera(constraints)
+    }
+  }
+
+  /**
+   * Enhanced updateMicrophone method with device preference integration
+   * @param constraints - Media track constraints including deviceId
+   * @param preference - Optional device preference to save
+   * @returns Promise<void>
+   */
+  async updateMicrophone(
+    constraints: MediaTrackConstraints,
+    preference?: Partial<import('./device/types').DevicePreference>
+  ): Promise<void> {
+    // If device manager is enabled and a deviceId is specified, use it for preference management
+    if (
+      this.deviceManager &&
+      constraints.deviceId &&
+      typeof constraints.deviceId === 'string'
+    ) {
+      await this.deviceManager.setMicrophone(constraints.deviceId, preference)
+    } else {
+      // Fallback to standard behavior
+      await super.updateMicrophone(constraints)
+    }
+  }
+
+  /**
+   * Enhanced updateSpeaker method with device preference integration
+   * @param opts - Options with deviceId
+   * @param preference - Optional device preference to save
+   * @returns Promise<undefined>
+   */
+  async updateSpeaker(
+    { deviceId }: { deviceId: string },
+    preference?: Partial<import('./device/types').DevicePreference>
+  ): Promise<undefined> {
+    // If device manager is enabled, use it for preference management
+    if (this.deviceManager) {
+      await this.deviceManager.setSpeaker(deviceId, preference)
+      return undefined
+    }
+
+    // Fallback to standard behavior
     const prevId = this.audioEl.sinkId as string
     this.once(
       // @ts-expect-error
@@ -274,11 +376,17 @@ export class BaseRoomSessionConnection<
   }
 }
 
+type DeviceEventNames =
+  | 'device.preference.update.failed'
+  | 'device.preference.clear.failed'
+  | 'device.recovery.failed'
+
 type BaseRoomSessionEventsHandlerMap = Record<
   BaseConnectionState,
   (params: BaseRoomSession<BaseRoomSessionEvents>) => void
 > &
-  Record<MediaEventNames, () => void>
+  Record<MediaEventNames, () => void> &
+  Record<DeviceEventNames, (params: any) => void>
 
 export type BaseRoomSessionEvents = {
   [k in keyof BaseRoomSessionEventsHandlerMap]: BaseRoomSessionEventsHandlerMap[k]
