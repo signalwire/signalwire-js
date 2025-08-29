@@ -53,11 +53,11 @@ export function deserializeWithFunctions(json: string): unknown {
         // Use Function constructor to safely evaluate the function string
         // This handles both regular functions and arrow functions
         const functionString = value.__value
-        
+
         // Check if it's an arrow function
         if (functionString.includes('=>')) {
           // For arrow functions, wrap in parentheses and evaluate
-          return eval(`(${functionString})`)
+          return (0, eval)(`(${functionString})`)
         } else {
           // For regular functions, use Function constructor
           return new Function('return ' + functionString)()

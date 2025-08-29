@@ -4,6 +4,7 @@ import {
   ManagedInstance,
   InstanceManagerContract,
   InstanceInUseError,
+  GetClientParamsOptions,
 } from './interfaces/clientFactory'
 
 /**
@@ -12,7 +13,6 @@ import {
  */
 export class InstanceManager implements InstanceManagerContract {
   private instances = new Map<string, ManagedInstance>()
-  private profileInstances = new Map<string, string>() // profileId -> instanceId
   private accessUpdateIntervals = new Map<string, NodeJS.Timeout>()
 
   /**
@@ -22,31 +22,26 @@ export class InstanceManager implements InstanceManagerContract {
    * @returns Created instance
    */
   async createInstance(
-    profileId: string,
-    profile: Profile
+    profile: Profile,
+    options: GetClientParamsOptions
   ): Promise<ManagedInstance> {
+    // instance ID should be same as profile Id
+    const instanceId = profile.id
+
     // Check if an instance already exists for this profile
-    const existingInstanceId = this.profileInstances.get(profileId)
-    if (existingInstanceId && this.instances.has(existingInstanceId)) {
-      const existingInstance = this.instances.get(existingInstanceId)!
-      await this.updateInstanceAccess(existingInstanceId)
+    if (this.instances.has(instanceId)) {
+      const existingInstance = this.instances.get(instanceId)!
+      await this.updateInstanceAccess(instanceId)
+      //@ts-expect-error __wsClient is not public exposed
+      await existingInstance.client.__wsClient.connect()
       return existingInstance
     }
 
-    // Generate unique instance ID
-    const instanceId = this.generateInstanceId()
-
     try {
-      // Create SignalWire client instance with params from profile credentials
-      // Extract project from satRefreshPayload if needed
-      const projectId = profile.credentials.satRefreshPayload?.project_id || 
-                       profile.credentials.satRefreshPayload?.projectId ||
-                       'default-project'
-      
       const clientParams = {
         token: profile.credentials.satToken,
-        project: projectId,
-        // Additional params can be added here based on profile details
+        host: profile.credentials.host,
+        ...options,
       }
       const client = await createSignalWireClient(clientParams)
 
@@ -54,7 +49,7 @@ export class InstanceManager implements InstanceManagerContract {
       const now = new Date()
       const managedInstance: ManagedInstance = {
         id: instanceId,
-        profileId,
+        profileId: profile.id,
         client,
         createdAt: now,
         lastAccessedAt: now,
@@ -64,17 +59,14 @@ export class InstanceManager implements InstanceManagerContract {
 
       // Store instance
       this.instances.set(instanceId, managedInstance)
-      this.profileInstances.set(profileId, instanceId)
 
       // Set up periodic access tracking updates
       this.setupAccessTracking(instanceId)
 
       return managedInstance
     } catch (error) {
-      // Clean up on failure
-      this.profileInstances.delete(profileId)
       throw new Error(
-        `Failed to create instance for profile ${profileId}: ${error}`
+        `Failed to create instance for profile ${profile.id}: ${error}`
       )
     }
   }
@@ -112,7 +104,6 @@ export class InstanceManager implements InstanceManagerContract {
 
     // Remove from maps
     this.instances.delete(instanceId)
-    this.profileInstances.delete(instance.profileId)
 
     return true
   }
@@ -139,12 +130,7 @@ export class InstanceManager implements InstanceManagerContract {
   async getInstanceByProfile(
     profileId: string
   ): Promise<ManagedInstance | null> {
-    const instanceId = this.profileInstances.get(profileId)
-    if (!instanceId) {
-      return null
-    }
-
-    return this.getInstance(instanceId)
+    return this.getInstance(profileId)
   }
 
   /**
@@ -227,14 +213,6 @@ export class InstanceManager implements InstanceManagerContract {
   }
 
   /**
-   * Generate a unique instance ID
-   * @returns Unique instance identifier
-   */
-  private generateInstanceId(): string {
-    return `instance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  }
-
-  /**
    * Clean up all resources when the manager is being destroyed
    */
   async dispose(): Promise<void> {
@@ -252,7 +230,6 @@ export class InstanceManager implements InstanceManagerContract {
 
     // Clear all maps
     this.instances.clear()
-    this.profileInstances.clear()
     this.accessUpdateIntervals.clear()
   }
 }

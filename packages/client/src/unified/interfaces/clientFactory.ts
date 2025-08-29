@@ -1,4 +1,4 @@
-import { SignalWireClient } from './index'
+import { SignalWireClient, SignalWireClientParams } from './index'
 import { ResourceType } from './address'
 import { SignalWireStorageContract } from '@signalwire/core'
 
@@ -97,7 +97,10 @@ export interface ManagedInstance {
  * Parameters for adding profiles
  */
 export interface AddProfilesParams {
-  profiles: Omit<Profile, 'id' | 'createdAt' | 'updatedAt' | 'lastUsed' | 'addressId'>[]
+  profiles: Omit<
+    Profile,
+    'id' | 'createdAt' | 'updatedAt' | 'lastUsed' | 'addressId'
+  >[]
 }
 
 /**
@@ -107,6 +110,11 @@ export interface RemoveProfilesParams {
   profileIds: string[]
 }
 
+export type GetClientParamsOptions = Omit<
+  SignalWireClientParams,
+  'host' | 'token'
+>
+
 /**
  * Parameters for getting a client instance
  */
@@ -115,6 +123,8 @@ export interface GetClientParams {
   profileId?: string
   /** Address ID to find a suitable profile for. Used if profileId is not provided */
   addressId?: string
+  /** Signalwire client options */
+  options: GetClientParamsOptions
 }
 
 /**
@@ -285,9 +295,13 @@ export interface InstanceManagerContract {
    * Create a new client instance
    * @param profileId - Profile ID to use for the instance
    * @param profile - Profile data
+   * @param options - SignalwireClient options
    * @returns Created instance
    */
-  createInstance(profileId: string, profile: Profile): Promise<ManagedInstance>
+  createInstance(
+    profile: Profile,
+    options: GetClientParamsOptions
+  ): Promise<ManagedInstance>
 
   /**
    * Dispose of a client instance

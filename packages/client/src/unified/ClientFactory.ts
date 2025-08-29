@@ -238,7 +238,7 @@ export class ClientFactory implements ClientFactoryContract {
   async getClient(params: GetClientParams): Promise<GetClientResult> {
     this.ensureInitialized()
 
-    const { profileId, addressId } = params
+    const { profileId, addressId, options } = params
 
     // Determine which profile to use
     let targetProfileId: string | undefined = profileId
@@ -304,8 +304,8 @@ export class ClientFactory implements ClientFactoryContract {
     if (!instance) {
       // Create new instance
       instance = await this.instanceManager.createInstance(
-        targetProfileId!,
-        profile
+        profile,
+        options
       )
       isNew = true
     }

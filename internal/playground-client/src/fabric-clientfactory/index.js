@@ -1,4 +1,9 @@
-import { SignalWire, buildVideoElement, ClientFactory, LocalStorageAdapter } from '@signalwire/client'
+import {
+  SignalWire,
+  buildVideoElement,
+  ClientFactory,
+  LocalStorageAdapter,
+} from '@signalwire/client'
 import {
   enumerateDevices,
   checkPermissions,
@@ -237,12 +242,12 @@ async function initializeClientFactory() {
 
   clientFactory = ClientFactory.getInstance()
   const storage = new LocalStorageAdapter()
-  
+
   await clientFactory.init(storage)
-  
+
   // Load existing profiles
   await loadExistingProfiles()
-  
+
   return clientFactory
 }
 
@@ -253,11 +258,11 @@ async function loadExistingProfiles() {
   try {
     const existingProfiles = await clientFactory.listProfiles()
     profiles.clear()
-    
+
     for (const profile of existingProfiles) {
       profiles.set(profile.id, profile)
     }
-    
+
     updateProfilesUI()
     updateProfileSelector()
   } catch (error) {
@@ -297,16 +302,21 @@ window.addProfile = async () => {
     }
 
     // Handle satRefreshResultMapper as string (eval to function)
-    if (credentialsData.satRefreshResultMapper && typeof credentialsData.satRefreshResultMapper === 'string') {
+    if (
+      credentialsData.satRefreshResultMapper &&
+      typeof credentialsData.satRefreshResultMapper === 'string'
+    ) {
       try {
-        credentialsData.satRefreshResultMapper = eval(`(${credentialsData.satRefreshResultMapper})`)
+        credentialsData.satRefreshResultMapper = eval(
+          `(${credentialsData.satRefreshResultMapper})`
+        )
       } catch (evalError) {
-        console.warn('Failed to eval satRefreshResultMapper, using default mapper:', evalError)
-        credentialsData.satRefreshResultMapper = (body) => ({
-          satToken: body.satToken || body.token,
-          tokenExpiry: body.tokenExpiry || body.expires_at || (Date.now() + 3600000),
-          satRefreshPayload: body.satRefreshPayload || {}
-        })
+        console.error(
+          'Failed to eval satRefreshResultMapper, using default mapper:',
+          evalError
+        )
+        showError('Failed to eval satRefreshResultMapper')
+        return
       }
     }
 
@@ -314,15 +324,19 @@ window.addProfile = async () => {
     const credentials = {
       satToken: credentialsData.satToken,
       satRefreshPayload: credentialsData.satRefreshPayload || {},
-      satRefreshURL: credentialsData.satRefreshUrl || credentialsData.satRefreshURL,
-      satRefreshResultMapper: credentialsData.satRefreshResultMapper || ((body) => ({
-        satToken: body.satToken || body.token,
-        tokenExpiry: body.tokenExpiry || body.expires_at || (Date.now() + 3600000),
-        satRefreshPayload: body.satRefreshPayload || {}
-      })),
-      tokenExpiry: credentialsData.tokenExpiry || (Date.now() + 3600000) // 1 hour default
+      satRefreshURL:
+        credentialsData.satRefreshUrl || credentialsData.satRefreshURL,
+      satRefreshResultMapper:
+        credentialsData.satRefreshResultMapper ||
+        ((body) => ({
+          satToken: body.satToken || body.token,
+          tokenExpiry:
+            body.tokenExpiry || body.expires_at || Date.now() + 3600000,
+          satRefreshPayload: body.satRefreshPayload || {},
+        })),
+      tokenExpiry: credentialsData.tokenExpiry || Date.now() + 3600000, // 1 hour default
     }
-    
+
     // Add host if provided (helps with API calls)
     if (credentialsData.host) {
       credentials.host = credentialsData.host
@@ -335,25 +349,14 @@ window.addProfile = async () => {
       credentials: credentials,
     }
 
-    // If addressId is provided, use it directly (backward compatibility)
-    if (credentialsData.addressId) {
-      profileData.addressId = credentialsData.addressId
-      profileData.addressDetails = {
-        type: credentialsData.type || 'subscriber',
-        name: credentialsData.name || credentialsData.displayName || 'Unknown',
-        displayName: credentialsData.displayName || credentialsData.name || 'Unknown',
-        channels: credentialsData.channels || 1
-      }
-    }
-
     // Add profiles using ClientFactory
     console.log('Adding profile with data:', profileData)
     const addedProfiles = await clientFactory.addProfiles({
-      profiles: [profileData]
+      profiles: [profileData],
     })
 
     console.log('Added profiles result:', addedProfiles)
-    
+
     if (addedProfiles.length === 0) {
       // Check if we need to provide addressId manually
       console.error('No profiles were created. This usually means:')
@@ -372,12 +375,11 @@ window.addProfile = async () => {
     // Update UI
     updateProfilesUI()
     updateProfileSelector()
-    
+
     // Clear input
     credentialsInput.value = ''
-    
-    showSuccess(`Successfully added ${addedProfiles.length} profile(s)`)
 
+    showSuccess(`Successfully added ${addedProfiles.length} profile(s)`)
   } catch (error) {
     console.error('Failed to add profile:', error)
     showError('Failed to add profile: ' + error.message)
@@ -388,7 +390,11 @@ window.addProfile = async () => {
  * Clear all profiles
  */
 window.clearAllProfiles = async () => {
-  if (!confirm('Are you sure you want to clear all profiles? This will also dispose all active clients.')) {
+  if (
+    !confirm(
+      'Are you sure you want to clear all profiles? This will also dispose all active clients.'
+    )
+  ) {
     return
   }
 
@@ -412,7 +418,10 @@ window.clearAllProfiles = async () => {
       try {
         await client.disconnect?.()
       } catch (error) {
-        console.warn(`Failed to disconnect client for profile ${profileId}:`, error)
+        console.warn(
+          `Failed to disconnect client for profile ${profileId}:`,
+          error
+        )
       }
     }
     activeClients.clear()
@@ -426,13 +435,12 @@ window.clearAllProfiles = async () => {
     // Clear local state
     profiles.clear()
     selectedProfileId = null
-    
+
     // Update UI
     updateProfilesUI()
     updateProfileSelector()
-    
-    showSuccess('All profiles cleared successfully')
 
+    showSuccess('All profiles cleared successfully')
   } catch (error) {
     console.error('Failed to clear profiles:', error)
     showError('Failed to clear profiles: ' + error.message)
@@ -446,7 +454,7 @@ window.selectProfile = () => {
   const previousProfileId = selectedProfileId
   const profileSelector = document.getElementById('profileSelector')
   selectedProfileId = profileSelector.value || null
-  
+
   // Update connect button state
   updateConnectButtonState()
 }
@@ -454,9 +462,9 @@ window.selectProfile = () => {
 // Profile management utility functions
 function updateProfilesUI() {
   const profilesList = document.getElementById('profilesList')
-  
+
   if (!profilesList) return // Gracefully handle missing element
-  
+
   if (profiles.size === 0) {
     profilesList.innerHTML = `
       <li class="list-group-item text-muted text-center py-3">
@@ -468,7 +476,7 @@ function updateProfilesUI() {
   }
 
   profilesList.innerHTML = ''
-  
+
   for (const [profileId, profile] of profiles) {
     const listItem = document.createElement('li')
     listItem.className = 'list-group-item'
@@ -477,16 +485,28 @@ function updateProfilesUI() {
         <div class="flex-grow-1">
           <div class="d-flex align-items-center mb-1">
             <span class="badge bg-primary me-2">${profile.type}</span>
-            <strong class="text-truncate">${escapeHTML(profile.addressDetails?.displayName || profile.addressId)}</strong>
+            <strong class="text-truncate">${escapeHTML(
+              profile.addressDetails?.displayName || profile.addressId
+            )}</strong>
           </div>
           <div class="text-muted small">
             <div>Address: ${escapeHTML(profile.addressId)}</div>
-            <div>Type: ${escapeHTML(profile.addressDetails?.type || 'unknown')}</div>
-            ${profile.lastUsed ? `<div>Last used: ${formatDate(profile.lastUsed)}</div>` : ''}
+            <div>Type: ${escapeHTML(
+              profile.addressDetails?.type || 'unknown'
+            )}</div>
+            ${
+              profile.lastUsed
+                ? `<div>Last used: ${formatDate(profile.lastUsed)}</div>`
+                : ''
+            }
           </div>
         </div>
         <div class="d-flex align-items-center gap-2">
-          ${activeClients.has(profileId) ? '<i class="bi bi-circle-fill text-success" title="Active client"></i>' : '<i class="bi bi-circle text-muted" title="No active client"></i>'}
+          ${
+            activeClients.has(profileId)
+              ? '<i class="bi bi-circle-fill text-success" title="Active client"></i>'
+              : '<i class="bi bi-circle text-muted" title="No active client"></i>'
+          }
           <button 
             class="btn btn-outline-danger btn-sm" 
             onclick="removeProfile('${profileId}')"
@@ -497,28 +517,30 @@ function updateProfilesUI() {
         </div>
       </div>
     `
-    
+
     profilesList.appendChild(listItem)
   }
 }
 
 function updateProfileSelector() {
   const profileSelector = document.getElementById('profileSelector')
-  
+
   if (!profileSelector) return // Gracefully handle missing element
-  
+
   profileSelector.innerHTML = '<option value="">Select a profile</option>'
-  
+
   for (const [profileId, profile] of profiles) {
     const option = document.createElement('option')
     option.value = profileId
-    option.textContent = `${profile.addressDetails?.displayName || profile.addressId} (${profile.addressDetails?.type || 'unknown'})`
+    option.textContent = `${
+      profile.addressDetails?.displayName || profile.addressId
+    } (${profile.addressDetails?.type || 'unknown'})`
     profileSelector.appendChild(option)
   }
-  
+
   // Enable/disable selector
   profileSelector.disabled = profiles.size === 0
-  
+
   // Update connect button - enable if profile is selected OR if host/token are filled for direct connection
   updateConnectButtonState()
 }
@@ -526,14 +548,14 @@ function updateProfileSelector() {
 function updateConnectButtonState() {
   const connectBtn = document.getElementById('btnConnect')
   if (!connectBtn) return
-  
+
   const hostEl = document.getElementById('host')
   const tokenEl = document.getElementById('token')
-  
+
   // Enable if profile is selected OR if host and token are filled for direct connection
   const hasProfile = selectedProfileId && profiles.size > 0
   const hasDirectConnection = hostEl?.value?.trim() && tokenEl?.value?.trim()
-  
+
   connectBtn.disabled = !(hasProfile || hasDirectConnection)
 }
 
@@ -592,29 +614,31 @@ window.removeProfile = async (profileId) => {
         await client.disconnect?.()
         activeClients.delete(profileId)
       } catch (error) {
-        console.warn(`Failed to disconnect client for profile ${profileId}:`, error)
+        console.warn(
+          `Failed to disconnect client for profile ${profileId}:`,
+          error
+        )
       }
     }
 
     // Remove from ClientFactory
     await clientFactory.removeProfiles({ profileIds: [profileId] })
-    
+
     // Remove from local state
     profiles.delete(profileId)
-    
+
     // If this was the selected profile, clear selection
     if (selectedProfileId === profileId) {
       selectedProfileId = null
       const profileSelector = document.getElementById('profileSelector')
       if (profileSelector) profileSelector.value = ''
     }
-    
+
     // Update UI
     updateProfilesUI()
     updateProfileSelector()
-    
-    showSuccess('Profile removed successfully')
 
+    showSuccess('Profile removed successfully')
   } catch (error) {
     console.error('Failed to remove profile:', error)
     showError('Failed to remove profile: ' + error.message)
@@ -657,45 +681,56 @@ window.connect = async () => {
   const btnConnect = document.getElementById('btnConnect')
   const btnDial = document.getElementById('btnDial')
   const btnDisconnect = document.getElementById('btnDisconnect')
-  
+
   if (connectStatus) connectStatus.innerHTML = 'Connecting...'
 
   try {
     // Check if we should use ClientFactory (when a profile is selected)
     if (selectedProfileId) {
       console.log('Connecting using ClientFactory profile:', selectedProfileId)
-      
+
       if (!clientFactory) {
         await initializeClientFactory()
       }
 
       // Get or create client for the selected profile
-      const { instance: clientInstance, isNew } = await clientFactory.getClient({
-        profileId: selectedProfileId
-      })
+      const { instance: clientInstance, isNew } = await clientFactory.getClient(
+        {
+          profileId: selectedProfileId,
+          options: {
+            logLevel: 'debug',
+            debug: { logWsTraffic: true },
+          },
+        }
+      )
 
       // Store the client instance
       activeClients.set(selectedProfileId, clientInstance.client)
       client = clientInstance.client
-      
+
       if (isNew) {
-        console.log('Created new client instance for profile:', selectedProfileId)
+        console.log(
+          'Created new client instance for profile:',
+          selectedProfileId
+        )
       } else {
-        console.log('Using existing client instance for profile:', selectedProfileId)
+        console.log(
+          'Using existing client instance for profile:',
+          selectedProfileId
+        )
       }
 
       // Store client globally for other functions
       window.__client = client
 
       showSuccess('Connected successfully using ClientFactory!')
-
     } else {
       // Use direct connection (legacy mode)
       console.log('Connecting using direct SignalWire client')
-      
+
       const hostEl = document.getElementById('host')
       const tokenEl = document.getElementById('token')
-      
+
       if (!hostEl?.value || !tokenEl?.value) {
         throw new Error('Host and Token are required for direct connection')
       }
@@ -744,12 +779,11 @@ window.connect = async () => {
     if (btnDisconnect) btnDisconnect.classList.remove('d-none')
 
     removeRoomFromURL()
-
   } catch (error) {
     console.error('Failed to connect:', error)
     if (connectStatus) connectStatus.innerHTML = 'Connection Failed'
     showError('Failed to connect: ' + error.message)
-    
+
     // Reset button states on error
     if (btnConnect) btnConnect.classList.remove('d-none')
     if (btnDial) btnDial.classList.add('d-none')
@@ -1035,11 +1069,12 @@ window.saveInLocalStorage = (e) => {
   if (e.target.type === 'checkbox') {
     value = e.target.checked
   }
-  
+
   // Save to localStorage with appropriate prefix
-  const prefix = key === 'credentialsInput' ? 'fabric.clientfactory.' : 'fabric.ws.'
+  const prefix =
+    key === 'credentialsInput' ? 'fabric.clientfactory.' : 'fabric.ws.'
   localStorage.setItem(prefix + key, value)
-  
+
   // Update connect button state when host or token fields change
   if (key === 'host' || key === 'token') {
     updateConnectButtonState()
@@ -1407,20 +1442,25 @@ window.ready(async function () {
   const fromFabricAddressIdEl = document.getElementById('fromFabricAddressId')
   const audioEl = document.getElementById('audio')
   const videoEl = document.getElementById('video')
-  
+
   if (hostEl) hostEl.value = localStorage.getItem('fabric.ws.host') || ''
   if (tokenEl) tokenEl.value = localStorage.getItem('fabric.ws.token') || ''
-  if (destinationEl) destinationEl.value = localStorage.getItem('fabric.ws.destination') || ''
-  if (fromFabricAddressIdEl) fromFabricAddressIdEl.value = localStorage.getItem('fabric.ws.fromFabricAddressId') || ''
+  if (destinationEl)
+    destinationEl.value = localStorage.getItem('fabric.ws.destination') || ''
+  if (fromFabricAddressIdEl)
+    fromFabricAddressIdEl.value =
+      localStorage.getItem('fabric.ws.fromFabricAddressId') || ''
   if (audioEl) audioEl.checked = true
-  if (videoEl) videoEl.checked = localStorage.getItem('fabric.ws.video') === 'true'
+  if (videoEl)
+    videoEl.checked = localStorage.getItem('fabric.ws.video') === 'true'
 
   // ClientFactory input fields
   const credentialsInput = document.getElementById('credentialsInput')
   if (credentialsInput) {
-    credentialsInput.value = localStorage.getItem('fabric.clientfactory.credentialsInput') || ''
+    credentialsInput.value =
+      localStorage.getItem('fabric.clientfactory.credentialsInput') || ''
   }
-  
+
   // Initialize ClientFactory and load existing profiles
   await initializeClientFactory()
 
