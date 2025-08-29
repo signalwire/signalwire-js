@@ -44,6 +44,17 @@ test.describe('Room Streaming from REST API', () => {
 
     // Create and join room from the 1st tab and resolve on 'room.joined'
     await createTestRoomSession(pageOne, connectionSettings)
+
+    const assertStream = expectToPass(
+      async () => {
+        const locator = pageTwo.getByText(streamName)
+        await pageTwo.reload({ waitUntil: 'domcontentloaded' })
+        await expect(locator).toBeVisible({ timeout: 0 })
+      },
+      { message: 'Stream is not visible' },
+      { timeout: 60_000, interval: [500] }
+    )
+
     const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
       message: 'Waiting for room.joined (streaming api)',
     })
@@ -57,15 +68,7 @@ test.describe('Room Streaming from REST API', () => {
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
 
-    await expectToPass(
-      async () => {
-        const locator = pageTwo.getByText(streamName)
-        await pageTwo.reload({ waitUntil: 'domcontentloaded' })
-        await expect(locator).toBeVisible({ timeout: 0 })
-      },
-      { message: 'Stream is not visible' },
-      { timeout: 60_000, interval: [500] }
-    )
+    await assertStream
 
     await deleteRoom(roomData.id)
   })
