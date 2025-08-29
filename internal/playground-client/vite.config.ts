@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { IncomingMessage, ServerResponse } from 'node:http'
 
+
 // ESM-friendly approach as compared to the Node's __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -58,9 +59,6 @@ export default defineConfig({
   base: process.env.VITE_BASE ?? '/',
   resolve: {
     alias: {
-      '@signalwire/client': path.resolve(__dirname, '../../packages/client/src'),
-      '@signalwire/core': path.resolve(__dirname, '../../packages/core/src'),
-      '@signalwire/webrtc': path.resolve(__dirname, '../../packages/webrtc/src'),
     },
   },
   optimizeDeps: {

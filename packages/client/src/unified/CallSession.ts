@@ -196,8 +196,9 @@ export class CallSessionConnection
     return new Promise<void>(async (resolve, reject) => {
       try {
         this.once('room.subscribed', (params) => {
-          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
-          resolve()
+          getStorage()
+            ?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
+            ?.then(() => resolve())
         })
 
         this.once('destroy', () => {
@@ -206,8 +207,12 @@ export class CallSessionConnection
         })
 
         if (this.options.attach) {
+          // Use provided storage or fallback to session storage
+
           this.options.prevCallId =
-            getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+            (await getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY)) ??
+            undefined
+
           this.logger.debug(
             `Trying to reattach to previous call: ${this.options.prevCallId}`
           )
@@ -419,7 +424,7 @@ export class CallSessionConnection
     await this.executeAction<BaseRPCResult>({
       method: 'call.end',
       memberId: params?.memberId,
-    });
+    })
   }
 }
 
