@@ -1,11 +1,12 @@
 import { test, expect } from '../fixtures'
-import type { Video } from '@signalwire/js'
+import type { VideoRoomSession } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
   randomizeRoomName,
+  expectPageEvalToPass,
 } from '../utils'
 
 interface TestConfig {
@@ -68,23 +69,31 @@ test.describe('RoomSession join_until', () => {
       await page.waitForTimeout(delay)
 
       // --------------- Joining the room ---------------
-      const joinError: any = await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        const error = await roomObj.join().catch((error) => error)
-
-        return error
+      const joinError = await expectPageEvalToPass(page, {
+        evaluateFn: async () => {
+          const roomObj = window._roomObj as VideoRoomSession
+          const error = await roomObj.join().catch((error) => error)
+          return error
+        },
+        assertionFn: (error) => {
+          expect(error).toBeDefined()
+        },
+        message: 'Expected join to fail after join_until',
       })
 
       expect(joinError.code).toEqual('403')
       expect(joinError.message).toEqual('Unauthorized')
 
       // Checks that all the elements added by the SDK are not there.
-      const targetElementsCount = await page.evaluate(() => {
-        return {
-          videos: Array.from(document.querySelectorAll('video')).length,
-          rootEl: document.getElementById('rootElement')!.childElementCount,
-        }
+      const targetElementsCount = await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          return {
+            videos: Array.from(document.querySelectorAll('video')).length,
+            rootEl: document.getElementById('rootElement')!.childElementCount,
+          }
+        },
+        assertionFn: (res) => expect(res).toBeDefined(),
+        message: 'Expected no SDK elements in DOM after denied join',
       })
       expect(targetElementsCount.videos).toBe(0)
       expect(targetElementsCount.rootEl).toBe(0)

@@ -4,7 +4,8 @@ import {
   SERVER_URL,
   createTestRoomSession,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSessionDevices', () => {
@@ -25,7 +26,11 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const p1 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (devices updated)',
+    })
+    await joinRoom(page, { message: 'Joining room (devices updated)' })
+    const joinParams = await p1
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -79,7 +84,11 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const p2 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (devices disconnected)',
+    })
+    await joinRoom(page, { message: 'Joining room (devices disconnected)' })
+    const joinParams = await p2
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -135,7 +144,11 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const p3 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (speaker updated)',
+    })
+    await joinRoom(page, { message: 'Joining room (speaker updated)' })
+    const joinParams = await p3
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -200,7 +213,11 @@ test.describe('RoomSessionDevices', () => {
     })
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const p4 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (speaker disconnected)',
+    })
+    await joinRoom(page, { message: 'Joining room (speaker disconnected)' })
+    const joinParams = await p4
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()

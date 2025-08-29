@@ -9,7 +9,8 @@ import {
   randomizeRoomName,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession demote participant, reattach and then promote again', () => {
@@ -48,10 +49,18 @@ test.describe('RoomSession demote participant, reattach and then promote again',
       createTestRoomSession(pageTwo, participant2Settings),
     ])
 
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined: any = await expectRoomJoinWithDefaults(pageTwo)
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo' })
+    const pageTwoRoomJoined: any = await pageTwoJoinedPromise
     const participant2Id = pageTwoRoomJoined.member_id
     await expectMemberId(pageTwo, participant2Id)
     await expectMCUVisible(pageTwo)
@@ -62,8 +71,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
 
     const promiseAudienceRoomJoined = pageTwo.evaluate<any>(() => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.once('room.joined', resolve)
       })
     })
@@ -72,8 +80,7 @@ test.describe('RoomSession demote participant, reattach and then promote again',
     // and resolve on `member.left` amd `layout.changed` with position off-canvas ---------------
     await pageOne.evaluate(
       async ({ demoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
 
         const waitForLayoutChangedDemotedInvisible = new Promise(
           (resolve, reject) => {
@@ -150,9 +157,12 @@ test.describe('RoomSession demote participant, reattach and then promote again',
 
     console.time('reattach')
     // Join again
-    const reattachParams: any = await expectRoomJoinWithDefaults(pageTwo, {
+    const rejoinedPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo after reattach',
     })
+    await joinRoom(pageTwo, { message: 'Rejoining room on pageTwo (audience)' })
+    const reattachParams: any = await rejoinedPromise
     console.timeEnd('reattach')
 
     expect(reattachParams.room).toBeDefined()
@@ -174,14 +184,13 @@ test.describe('RoomSession demote participant, reattach and then promote again',
 
     // --------------- Time to promote again at PageTwo ---------------
 
-    const promisePromotedRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
-      invokeJoin: false,
+    const promisePromotedRoomJoined = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo after promote',
     })
 
     const promiseMemberWaitingForMemberJoin = pageOne.evaluate(
       async ({ promoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
 
         const waitForMemberJoined = new Promise((resolve, reject) => {
           roomObj.on('member.joined', ({ member }) => {

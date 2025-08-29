@@ -8,7 +8,8 @@ import {
   createStreamForRoom,
   randomizeRoomName,
   deleteRoom,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('Room Session Auto Stream', () => {
@@ -36,7 +37,11 @@ test.describe('Room Session Auto Stream', () => {
     await createStreamForRoom(roomName, streamingURL)
 
     await createTestRoomSession(pageOne, connectionSettings)
-    await expectRoomJoinWithDefaults(pageOne)
+    const joinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined (auto stream)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room (auto stream)' })
+    await joinedPromise
 
     await expectMCUVisible(pageOne)
 

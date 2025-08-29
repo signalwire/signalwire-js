@@ -4,7 +4,8 @@ import {
   createTestRoomSession,
   expectMCUVisible,
   expectMemberTalkingEvent,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession talking events to participant', () => {
@@ -43,13 +44,21 @@ test.describe('RoomSession talking events to participant', () => {
       createTestRoomSession(pageTwo, member2Settings),
     ])
 
-    await expectRoomJoinWithDefaults(pageTwo)
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo' })
+    await pageTwoJoinedPromise
 
     await expectMCUVisible(pageTwo)
 
     const talkingTruePromisePageTwo = expectMemberTalkingEvent(pageTwo)
 
-    const joinParams: any = await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    const joinParams: any = await pageOneJoinedPromise
 
     await expectMCUVisible(pageOne)
 

@@ -2,7 +2,8 @@ import { Video } from '@signalwire/js'
 import { test, expect } from '../fixtures'
 import {
   createTestRoomSession,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   leaveRoom,
   randomizeRoomName,
   SERVER_URL,
@@ -26,7 +27,11 @@ test.describe('RoomSession', () => {
       attachSagaMonitor: true,
     })
 
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (cleanup)',
+    })
+    await joinRoom(page, { message: 'Joining room (cleanup)' })
+    await joinedPromise
 
     await test.step('the room should have workers and listeners attached', async () => {
       const watchers: Record<string, number> = await page.evaluate(() => {

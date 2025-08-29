@@ -6,6 +6,7 @@ import {
   createOrUpdateRoom,
   deleteRoom,
   randomizeRoomName,
+  expectPageEvalToPass,
 } from '../utils'
 
 interface TestConfig {
@@ -69,29 +70,37 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
       })
 
       // --------------- Joining the room and wait first `room.joined` and then `room.left` ---------------
-      await page.evaluate(async () => {
-        return new Promise(async (resolve) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
-          roomObj.on('room.joined', () => {
-            roomObj.on('room.left', () => {
-              resolve(true)
+      await expectPageEvalToPass(page, {
+        evaluateFn: async () => {
+          return new Promise(async (resolve) => {
+            const roomObj = window._roomObj as Video.RoomSession
+            roomObj.on('room.joined', () => {
+              roomObj.on('room.left', () => {
+                resolve(true)
+              })
             })
-          })
 
-          await roomObj.join()
-        })
+            await roomObj.join()
+          })
+        },
+        assertionFn: (ok) => expect(ok).toBe(true),
+        message: 'Expected to join and then receive room.left',
       })
 
       // Checks that all the elements added by the SDK are gone.
-      const targetElementsCount = await page.evaluate(() => {
-        return {
-          videos: Array.from(document.querySelectorAll('video')).length,
-          rootEl: document.getElementById('rootElement')!.childElementCount,
-        }
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          return {
+            videos: Array.from(document.querySelectorAll('video')).length,
+            rootEl: document.getElementById('rootElement')!.childElementCount,
+          }
+        },
+        assertionFn: (counts: any) => {
+          expect(counts.videos).toBe(0)
+          expect(counts.rootEl).toBe(0)
+        },
+        message: 'Expected SDK elements to be removed after room.left',
       })
-      expect(targetElementsCount.videos).toBe(0)
-      expect(targetElementsCount.rootEl).toBe(0)
 
       if (row.cleanup) {
         await deleteRoom(roomData.id)

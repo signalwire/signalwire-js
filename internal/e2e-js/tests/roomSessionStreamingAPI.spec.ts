@@ -1,4 +1,4 @@
-import { test } from '../fixtures'
+import { test, expect } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
@@ -7,7 +7,9 @@ import {
   createStreamForRoom,
   deleteRoom,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
+  expectToPass,
 } from '../utils'
 
 test.describe('Room Streaming from REST API', () => {
@@ -42,7 +44,11 @@ test.describe('Room Streaming from REST API', () => {
 
     // Create and join room from the 1st tab and resolve on 'room.joined'
     await createTestRoomSession(pageOne, connectionSettings)
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined (streaming api)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room (streaming api)' })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
@@ -50,8 +56,17 @@ test.describe('Room Streaming from REST API', () => {
     // Visit the stream page on pageTwo to make sure it's working
     const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
     await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
-    await pageTwo.waitForSelector(`text=${streamName}`, { timeout: 10_000 })
-    console.log('>> Stream is visible on pageTwo')
+
+    await expectToPass(
+      async () => {
+        const locator = pageTwo.getByText(streamName)
+        await pageTwo.reload({ waitUntil: 'domcontentloaded' })
+        await expect(locator).toBeVisible({ timeout: 0 })
+      },
+      { message: 'Stream is not visible' },
+      { timeout: 60_000, interval: [500] }
+    )
+
     await deleteRoom(roomData.id)
   })
 })

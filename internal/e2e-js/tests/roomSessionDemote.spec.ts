@@ -6,7 +6,8 @@ import {
   expectMemberId,
   expectMCUVisible,
   expectPageReceiveAudio,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession demote participant', () => {
@@ -41,10 +42,18 @@ test.describe('RoomSession demote participant', () => {
       createTestRoomSession(pageTwo, participant2Settings),
     ])
 
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo)
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo' })
+    const pageTwoRoomJoined = await pageTwoJoinedPromise
     const participant2Id = pageTwoRoomJoined.member_id
     await expectMemberId(pageTwo, participant2Id)
     await expectMCUVisible(pageTwo)
@@ -52,9 +61,9 @@ test.describe('RoomSession demote participant', () => {
     // Wait five seconds before demoting
     await pageOne.waitForTimeout(5000)
 
-    const promiseAudienceRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
-      invokeJoin: false,
+    const promiseAudienceRoomJoined = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo after demote',
     })
 
     // Demote participant on pageTwo to audience from pageOne

@@ -5,7 +5,8 @@ import {
   createTestRoomSession,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession talking events to audience', () => {
@@ -44,7 +45,12 @@ test.describe('RoomSession talking events to audience', () => {
     ])
 
     // --------------- Joining from the 2nd tab as audience and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageTwo, { joinAs: 'audience' })
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo (audience)',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo (audience)' })
+    await pageTwoJoinedPromise
 
     // Checks that the video is visible on pageTwo
     await expectMCUVisibleForAudience(pageTwo)
@@ -52,16 +58,14 @@ test.describe('RoomSession talking events to audience', () => {
     // --------------- Resolve when audience receives member.talking ----------
     const audienceMemberTalkingPromise = pageTwo.evaluate(async () => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('member.talking', resolve)
       })
     })
 
     const waitForMemberJoined = pageTwo.evaluate(async () => {
       return new Promise((resolve, reject) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('member.joined', ({ member }) => {
           if (member.name === 'e2e_member') {
             resolve(true)
@@ -75,7 +79,11 @@ test.describe('RoomSession talking events to audience', () => {
     await pageTwo.waitForTimeout(1000)
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne (member)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne (member)' })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)

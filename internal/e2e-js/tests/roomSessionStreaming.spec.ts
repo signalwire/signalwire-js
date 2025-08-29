@@ -5,7 +5,8 @@ import {
   createTestRoomSession,
   expectMCUVisible,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession', () => {
@@ -48,13 +49,21 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining from the 1st tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne (streaming)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne (streaming)' })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2nd tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageTwo)
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo (streaming)',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo (streaming)' })
+    await pageTwoJoinedPromise
 
     const streamingURL = `${process.env.RTMP_SERVER}${process.env.RTMP_STREAM_NAME}`
 
@@ -133,7 +142,13 @@ test.describe('RoomSession', () => {
     })
 
     // --------------- Joining from the 3rd tab and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageThree)
+    const pageThreeJoinedPromise = expectRoomJoinedEvent(pageThree, {
+      message: 'Waiting for room.joined on pageThree (streaming)',
+    })
+    await joinRoom(pageThree, {
+      message: 'Joining room on pageThree (streaming)',
+    })
+    await pageThreeJoinedPromise
 
     const { streamsOnJoined, streamsOnGet, streamOnEnd } =
       await pageThreeStreamPromise

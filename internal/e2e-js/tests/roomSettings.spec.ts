@@ -7,7 +7,8 @@ import {
   CreateOrUpdateRoomOptions,
   randomizeRoomName,
   expectRecordingStarted,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 interface TestConfig {
@@ -80,8 +81,12 @@ test.describe('Room Settings', () => {
       })
 
       // --------------- wait for room.joined or recording.started event---------------
+      const joinedPromise = expectRoomJoinedEvent(page, {
+        message: 'Waiting for room.joined in roomSettings',
+      })
+      await joinRoom(page, { message: 'Joining room in roomSettings' })
       let params = await Promise.race([
-        expectRoomJoinWithDefaults(page),
+        joinedPromise,
         expectRecordingStarted(page),
       ])
       // Run custom expectations for each run

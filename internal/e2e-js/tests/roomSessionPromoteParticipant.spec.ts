@@ -4,7 +4,8 @@ import {
   createTestRoomSession,
   SERVER_URL,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession promote myself', () => {
@@ -28,7 +29,13 @@ test.describe('RoomSession promote myself', () => {
     await createTestRoomSession(pageOne, memberSettings)
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne (promote myself)',
+    })
+    await joinRoom(pageOne, {
+      message: 'Joining room on pageOne (promote myself)',
+    })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
