@@ -42,7 +42,7 @@ export interface GetConversationsParams {
 export interface ConversationResponse {
   group_id: string
   created_at: number
-  from_address_id: string
+  from_fabric_address_id: string
   last_message_at: number
   metadata: Record<string, unknown>
   name: string
@@ -80,7 +80,7 @@ export interface JoinConversationParams {
 export interface JoinConversationResponse {
   group_id: string
   addressIds: string[]
-  from_address_id: string
+  from_fabric_address_id: string
 }
 
 export type JoinConversationResult = JoinConversationResponse
@@ -94,7 +94,7 @@ export interface GetMessagesParams {
 
 export interface ConversationMessage {
   id: string
-  from_address_id: string
+  from_fabric_address_id: string
   group_id: string
   ts: number
   metadata?: Record<string, unknown>
