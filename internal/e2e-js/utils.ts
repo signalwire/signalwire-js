@@ -666,8 +666,7 @@ export const reloadAndReattachAddress = async (
 export const disconnectClient = (page: Page) => {
   return expectPageEvalToPass(page, {
     evaluateFn: async () => {
-      // @ts-expect-error
-      const client: SignalWireContract = window._client
+      const client = window._client
 
       if (client) {
         await client.disconnect()
@@ -728,8 +727,7 @@ interface GetStatsResult {
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
   return expectPageEvalToPass(page, {
     evaluateFn: async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj
       if (!roomObj) {
         throw new Error('Room object not found')
       }
@@ -890,8 +888,7 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
 export const getAudioStats = async (page: Page) => {
   const audioStats = await expectPageEvalToPass(page, {
     evaluateFn: async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
 
       // @ts-expect-error
       const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
@@ -970,8 +967,7 @@ export const expectSDPDirection = async (
 ) => {
   await expectPageEvalToPass(page, {
     evaluateFn: (): string => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
       // @ts-expect-error
       return roomObj.peer.localSdp
     },
@@ -1734,8 +1730,7 @@ export const expectMemberTalkingEvent = (page: Page) => {
   return expectPageEvalToPass(page, {
     evaluateFn: () => {
       return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('member.talking', resolve)
       })
     },
@@ -1777,8 +1772,7 @@ export const expectCFInitialEvents = (
 ) => {
   const callCreated = expectPageEvalToPass(page, {
     evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj = window._roomObj as FabricRoomSession
       return new Promise<boolean>((resolve) => {
         roomObj.on('call.state', (params: any) => {
           if (params.call_state === 'created') {
@@ -1795,8 +1789,7 @@ export const expectCFInitialEvents = (
 
   const callAnswered = expectPageEvalToPass(page, {
     evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj = window._roomObj as FabricRoomSession
       return new Promise<boolean>((resolve) => {
         roomObj.on('call.state', (params: any) => {
           if (params.call_state === 'answered') {
@@ -1813,8 +1806,7 @@ export const expectCFInitialEvents = (
 
   const callJoined = expectPageEvalToPass(page, {
     evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: FabricRoomSession = window._roomObj
+      const roomObj = window._roomObj as FabricRoomSession
       return new Promise<boolean>((resolve) => {
         roomObj.on('call.joined', () => resolve(true))
       })
@@ -1835,8 +1827,7 @@ export const expectCFFinalEvents = (
 ) => {
   const callLeftEvent = expectPageEvalToPass(page, {
     evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
       return new Promise((resolve) => {
         roomObj.on('destroy', () => resolve(true))
       })
@@ -1855,8 +1846,7 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
     evaluateArgs: { layoutName },
     evaluateFn: (params) => {
       return new Promise<boolean>((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('layout.changed', ({ layout }: any) => {
           if (layout.name === params.layoutName) {
             resolve(true)
@@ -1892,6 +1882,8 @@ export const expectRoomJoinedEvent = async (
       await expectInteractivityMode(page, mode)
     },
     message: 'Expected room.joined event to be received',
+    timeoutMs: 30_000,
+    interval: [30_000],
     ...rest,
   })
 }
@@ -1922,8 +1914,7 @@ export const expectRecordingStarted = (page: Page) => {
         // At this point window.__roomObj might not have been set yet
         // we have to pool it and check
         const interval = setInterval(() => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
+          const roomObj = window._roomObj as Video.RoomSession
           if (roomObj) {
             clearInterval(interval)
             roomObj.on(
@@ -1945,8 +1936,7 @@ export const expectScreenShareJoined = async (page: Page) => {
   const memberJoinedEvent = expectPageEvalToPass(page, {
     evaluateFn: () => {
       return new Promise(async (resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
 
         roomObj.on('member.joined', (params) => {
           if (params.member.type === 'screen') {
@@ -1963,8 +1953,7 @@ export const expectScreenShareJoined = async (page: Page) => {
 
   await expectPageEvalToPass(page, {
     evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
       return roomObj.startScreenShare({
         audio: true,
         video: true,
@@ -1987,8 +1976,7 @@ export const expectInteractivityMode = async (
 ) => {
   await expectPageEvalToPass(page, {
     evaluateFn: () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+      const roomObj = window._roomObj as Video.RoomSession
       return roomObj.interactivityMode
     },
     assertionFn: (interactivityMode) => {
