@@ -148,3 +148,10 @@ export * as WebRTC from './webrtc'
  */
 export { buildVideoElement } from './buildVideoElement'
 export { LocalVideoOverlay, OverlayMap, UserOverlay } from './VideoOverlays'
+
+/**
+ * The Visibility namespace provides intelligent handling of browser visibility changes,
+ * tab focus events, and device wake scenarios to ensure optimal WebRTC performance
+ * and resource utilization.
+ */
+export * as Visibility from './visibility'

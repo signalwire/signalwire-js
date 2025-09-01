@@ -94,6 +94,33 @@ export class VideoRoomSessionConnection
     this.runWorker('videoWorker', {
       worker: workers.videoWorker,
     })
+
+    // Initialize visibility worker with Video Room-specific configuration
+    const options = this.options as VideoRoomSessionOptions
+    if (options.visibilityConfig && options.visibilityConfig.enabled !== false) {
+      const { visibilityWorker } = require('../workers')
+      this.runWorker('visibilityWorker', {
+        worker: visibilityWorker,
+        initialArgs: {
+          instance: this,
+          visibilityConfig: {
+            ...options.visibilityConfig,
+            // Video Room specific recovery strategies
+            recoveryStrategies: [
+              'VideoPlay',
+              'KeyframeRequest',
+              'LayoutRefresh',
+            ],
+            // Callback for layout recovery
+            onLayoutRecovery: () => {
+              // Force refresh the current layout if available
+              // Note: setLayout is available on the extended VideoRoomSessionAPI
+              // This will be handled by the recovery strategies
+            },
+          },
+        },
+      } as any)
+    }
   }
 
   /** @internal */
