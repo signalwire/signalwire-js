@@ -467,6 +467,7 @@ interface DialAddressParams {
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
+  timeoutMs?: number
 }
 
 export const dialAddress = <TReturn = any>(
@@ -478,6 +479,7 @@ export const dialAddress = <TReturn = any>(
     shouldPassRootElement: true,
     shouldStartCall: true,
     shouldWaitForJoin: true,
+    timeoutMs: 15000,
   }
 ) => {
   const defaultParams: DialAddressParams = {
@@ -487,7 +489,9 @@ export const dialAddress = <TReturn = any>(
     shouldPassRootElement: true,
     shouldStartCall: true,
     shouldWaitForJoin: true,
+    timeoutMs: 15000,
   }
+
   const mergedParams: DialAddressParams = {
     ...defaultParams,
     ...params,
@@ -550,6 +554,7 @@ export const dialAddress = <TReturn = any>(
     assertionFn: (result) => {
       expect(result, 'dialAddress result should be defined').toBeDefined()
     },
+    timeoutMs: mergedParams.timeoutMs,
     message: 'expect dialAddress to succeed',
   })
 }
