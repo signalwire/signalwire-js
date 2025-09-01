@@ -55,37 +55,37 @@ test.describe('CallFabric Incoming Call over WebSocket', () => {
 
       await client.online({
         incomingCallHandlers: {
-          websocket: (notification) => {
+          websocket: async (notification) => {
             console.log(
               'Callee received incoming call:',
               notification.invite.details
             )
 
             // Accept the call
-            notification.invite
-              .accept({
-                rootElement: document.getElementById('rootElement')!,
-                audio: true,
-                video: true,
-              })
-              .then(async (calleeCall) => {
-                // @ts-expect-error
-                window._calleeCall = calleeCall
+            const calleeCall = notification.invite.accept({
+              rootElement: document.getElementById('rootElement')!,
+              audio: true,
+              video: true,
+            })
 
-                // Set up event listeners
-                calleeCall.on('call.state', (state) => {
-                  console.log('Callee call state:', state.call_state)
-                })
+            // @ts-expect-error
+            window._calleeCall = calleeCall
 
-                calleeCall.on('destroy', () => {
-                  console.log('Callee call destroyed')
-                  // @ts-expect-error
-                  window._calleeCallDestroyed(true)
-                })
+            // Set up event listeners
+            calleeCall.on('call.state', (state) => {
+              console.log('Callee call state:', state.call_state)
+            })
 
-                // @ts-expect-error
-                window._calleeCallAnswered(true)
-              })
+            calleeCall.on('destroy', () => {
+              console.log('Callee call destroyed')
+              // @ts-expect-error
+              window._calleeCallDestroyed(true)
+            })
+
+            await calleeCall.start()
+
+            // @ts-expect-error
+            window._calleeCallAnswered(true)
           },
         },
       })
@@ -94,6 +94,7 @@ test.describe('CallFabric Incoming Call over WebSocket', () => {
     // In Caller: dial the callee address with "?channel=video"
     const callerDialPromise = dialAddress(callerPage, {
       address: calleeAddress ?? '',
+      timeoutMs: 9000,
     })
 
     // Wait for both the caller to connect and callee to answer
