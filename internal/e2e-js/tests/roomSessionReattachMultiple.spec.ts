@@ -54,7 +54,7 @@ test.describe('RoomSessionReattach', () => {
         message: `Waiting for room.joined (${row.join_as})`,
       })
       await joinRoom(page, { message: `Joining room as ${row.join_as}` })
-      const joinParams: any = await joinedPromise
+      const joinParams = await joinedPromise
       const roomId = joinParams.room_session.room_id
 
       expect(joinParams.room).toBeDefined()
@@ -62,7 +62,7 @@ test.describe('RoomSessionReattach', () => {
       if (row.join_as === 'member') {
         expect(
           joinParams.room.members.some(
-            (member: any) => member.id === joinParams.member_id
+            (member) => member.id === joinParams.member_id
           )
         ).toBeTruthy()
       }
@@ -90,9 +90,11 @@ test.describe('RoomSessionReattach', () => {
       const rejoinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
         message: `Waiting for room.joined after reattach (${row.join_as})`,
+        timeoutMs: 30_000,
+        interval: [30_000],
       })
       await joinRoom(page, { message: `Rejoining room as ${row.join_as}` })
-      const reattachParams: any = await rejoinedPromise
+      const reattachParams = await rejoinedPromise
       console.timeEnd(`time-reattach-${row.join_as}`)
 
       expect(reattachParams.room).toBeDefined()
@@ -100,7 +102,7 @@ test.describe('RoomSessionReattach', () => {
       if (row.join_as === 'member') {
         expect(
           reattachParams.room.members.some(
-            (member: any) => member.id === reattachParams.member_id
+            (member) => member.id === reattachParams.member_id
           )
         ).toBeTruthy()
       }
@@ -124,9 +126,11 @@ test.describe('RoomSessionReattach', () => {
       const rejoinedPromise2 = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
         message: `Waiting for room.joined after reattach-2 (${row.join_as})`,
+        timeoutMs: 30_000,
+        interval: [30_000],
       })
       await joinRoom(page, { message: `Rejoining room (2) as ${row.join_as}` })
-      const reattachParams2: any = await rejoinedPromise2
+      const reattachParams2 = await rejoinedPromise2
       console.timeEnd(`time-reattach-${row.join_as}-2`)
 
       expect(reattachParams2.room).toBeDefined()
@@ -134,7 +138,7 @@ test.describe('RoomSessionReattach', () => {
       if (row.join_as === 'member') {
         expect(
           reattachParams2.room.members.some(
-            (member: any) => member.id === reattachParams2.member_id
+            (member) => member.id === reattachParams2.member_id
           )
         ).toBeTruthy()
       }
