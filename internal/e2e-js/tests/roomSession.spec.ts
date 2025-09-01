@@ -66,13 +66,15 @@ test.describe('RoomSession', () => {
     // --------------- Joining the room ---------------
     const roomJoinedPromise = expectRoomJoinedEvent(page)
     await joinRoom(page)
+    console.log('>> Room is joined')
     const joinParams = await roomJoinedPromise
+    console.log('>> room.joined event is received')
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
     expect(
       joinParams.room.members.some(
-        (member: any) => member.id === joinParams.member_id
+        (member) => member.id === joinParams.member_id
       )
     ).toBeTruthy()
     expect(joinParams.room_session.name).toBe(roomName)
