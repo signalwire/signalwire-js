@@ -26,6 +26,7 @@ By default we'll use the `SW_TEST_CONFIG` environment variable to load the confi
 | `env`  | :white_check_mark:  | :white_check_mark:  | :white_check_mark:  |
 | `ignoreTests` | :white_check_mark:  | :white_check_mark:  | :white_check_mark:  |
 | `ignoreFiles`  | :x:  | :x:  | :white_check_mark:  |
+| `includeFiles`  | :x:  | :x:  | :white_check_mark:  |
 
 ### `env` (`Object`): Environment Variables
 You can define the environment variables to be used in your tests in a single spot using JS Object notation.
@@ -62,3 +63,13 @@ Example:
 ```
 SW_TEST_CONFIG='{ "ignoreFiles": ["voice.test.ts"] }'
 ```
+
+### `includeFiles` (`string[]`): Include Files by name.
+Any files that match the given name will be used.
+
+Example:
+```
+SW_TEST_CONFIG='{ "includeFiles": ["voiceCollect/withAllListeners.test.ts", "voicePlayback/withPlaybackListeners.test.ts"] }'
+```
+
+This is optional. If missing or empty it will be considered as "include all" (unless listed in `ignoredFiles`).
