@@ -1874,12 +1874,16 @@ export const expectRoomJoinedEvent = async (
       })
     },
     assertionFn: async (result) => {
+      console.log('>> result of room.joined event: ', result)
       expect(result).toBeDefined()
       await expectMemberId(page, result.member_id)
+      console.log('>> expected member_id to matched')
       const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
       await expectSDPDirection(page, dir, true)
+      console.log('>> expected sdp direction to matched')
       const mode = joinAs === 'audience' ? 'audience' : 'member'
       await expectInteractivityMode(page, mode)
+      console.log('>> expected interactivity mode to matched')
     },
     message: 'Expected room.joined event to be received',
     timeoutMs: 30_000,
