@@ -4,6 +4,13 @@ export class CallStateManager {
   constructor() {}
 
   update(event: string, payload: any) {
+
+    let safePayload = {}
+
+    try {
+      safePayload = JSON.parse(JSON.stringify(payload))
+    } catch { }
+    
     const timestamp = Date.now()
 
     let newState
@@ -11,7 +18,7 @@ export class CallStateManager {
     if (!event.startsWith('member')) {
       newState = {
         ...this.getState(),
-        ...payload,
+        ...safePayload,
       }
     } else {
       newState = {

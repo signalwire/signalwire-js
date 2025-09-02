@@ -466,51 +466,6 @@ const createCFClientWithToken = async (
   return swClient
 }
 
-// export const createCallStateUtility = (page: Page) => {
-//   return page.evaluate(() => {
-//     // Initialize the global _callState with a state utility that keeps the history of the call state
-//     window._callState = new CallStateManager()
-
-//     return window._callState
-//   })
-// }
-
-// export const waitSefState = async (
-//   page: Page,
-//   criteria: any,
-//   options?: {
-//     interval?: number[]
-//     timeout?: number
-//     message?: string
-//   }
-// ) => {
-//   try {
-//     return page.waitForFunction(
-//       (criteria) => {
-//         if (!criteria) return true
-
-//         if (typeof criteria !== 'object') {
-//           const self = window._callState?.getSelfState()
-//           return Object.keys(criteria).every(
-//             (key) => self[key] === criteria[key]
-//           )
-//         }
-
-//         return false
-//       },
-//       criteria,
-//       { timeout: 5_000, ...options }
-//     )
-//   } catch (error) {
-//     page.evaluate(() => window._callState?.logHistory())
-//     if (options?.message) {
-//       throw new Error(`waitSefState: ${options.message} `)
-//     } else {
-//       throw new Error('waitSefState:', error)
-//     }
-//   }
-// }
-
 export const createCallStateUtility = (page: Page) => {
   return page.evaluate(() => {
     // Initialize the global _callState with a state utility that keeps the history of the call state
@@ -611,43 +566,72 @@ export const dialAddress = <TReturn = any>(
           console.log('Adding call event listeners...')
           // Define all events to listen to
           const eventsToListen: (keyof CallSessionEvents)[] = [
+            // Core Call Events
             'call.joined',
-            'call.state',
-            'call.left',
             'call.updated',
+            'call.left',
+            'call.state',
             'call.play',
             'call.connect',
             'call.room',
+            'room.joined',
+            'room.subscribed',
+            'room.updated',
+            'room.left',
+
             'member.joined',
-            'member.left',
             'member.updated',
-            'member.talking',
             'member.updated.audioMuted',
             'member.updated.videoMuted',
             'member.updated.deaf',
             'member.updated.visible',
+            'member.updated.onHold',
             'member.updated.inputVolume',
             'member.updated.outputVolume',
             'member.updated.inputSensitivity',
             'member.updated.handraised',
             'member.updated.echoCancellation',
             'member.updated.autoGain',
+            'member.updated.noiseCancellation',
             'member.updated.noiseSuppression',
+            'member.left',
+            'member.talking',
+            'memberList.updated',
+            'media.connected',
+            'media.reconnecting',
+            'media.disconnected',
+            'connecting',
+            'connected',
+            'disconnected',
+            'disconnecting',
+            'reconnecting',
+            'reconnected',
+            'active',
+            'answering',
+            'early',
+            'hangup',
+            'held',
+            'new',
+            'purge',
+            'recovering',
+            'requesting',
+            'ringing',
+            'trying',
             'layout.changed',
-            'stream.started',
-            'stream.ended',
-            'playback.started',
-            'playback.updated',
-            'playback.ended',
-            'recording.started',
-            'recording.updated',
-            'recording.ended',
-            'room.subscribed',
-            'room.left',
+            'device.updated',
+            'device.disconnected',
+            'track',
+            'destroy',
+            'camera.updated',
+            'camera.disconnected',
+            'microphone.updated',
+            'microphone.disconnected',
+            'speaker.updated',
+            'speaker.disconnected',
           ] as (keyof CallSessionEvents)[]
           // Add listeners for each event
           eventsToListen.forEach((eventName) => {
-            // @ts-expect-error we have eventNames that are not currently emitted
+            // @ts-expect-error not all event have params
             listenHandlers[eventName] = (params: CallSessionEventParams) => {
               console.log(`Event ${eventName} received`)
               window._callState?.update(eventName, params)
