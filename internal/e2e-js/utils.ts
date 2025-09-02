@@ -1868,22 +1868,40 @@ export const expectRoomJoinedEvent = async (
   const { joinAs = 'member', ...rest } = options || {}
   return await expectPageEvalToPass(page, {
     evaluateFn: () => {
-      return new Promise<VideoRoomSubscribedEventParams>((resolve, _reject) => {
+      return new Promise<
+        VideoRoomSubscribedEventParams & {
+          roomMemberId: string
+          localSdp: string
+          interactivityMode: string
+        }
+      >((resolve, _reject) => {
         const roomObj = window._roomObj as Video.RoomSession
-        roomObj.once('room.joined', resolve)
+        roomObj.once('room.joined', (params) => {
+          resolve({
+            ...params,
+            roomMemberId: roomObj.memberId,
+            // @ts-expect-error Property 'peer' does not exist on type 'RoomSession'
+            localSdp: roomObj.peer.localSdp,
+            interactivityMode: roomObj.interactivityMode,
+          })
+        })
       })
     },
-    assertionFn: async (result) => {
-      console.log('>> result of room.joined event: ', result)
+    assertionFn: async ({
+      roomMemberId,
+      localSdp,
+      interactivityMode,
+      ...result
+    }) => {
       expect(result).toBeDefined()
-      await expectMemberId(page, result.member_id)
-      console.log('>> expected member_id to matched')
+      expect(roomMemberId).toEqual(result.member_id)
+
       const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
-      await expectSDPDirection(page, dir, true)
-      console.log('>> expected sdp direction to matched')
+      expect(localSdp.split('m=')[1].includes(dir)).toBe(true)
+      expect(localSdp.split('m=')[2].includes(dir)).toBe(true)
+
       const mode = joinAs === 'audience' ? 'audience' : 'member'
-      await expectInteractivityMode(page, mode)
-      console.log('>> expected interactivity mode to matched')
+      expect(interactivityMode).toEqual(mode)
     },
     message: 'Expected room.joined event to be received',
     timeoutMs: 30_000,
@@ -1897,12 +1915,13 @@ export const joinRoom = async (
   options?: BaseExpectPageEvalToPassParams
 ) => {
   return await expectPageEvalToPass(page, {
-    evaluateFn: () => {
+    evaluateFn: async () => {
       const roomObj = window._roomObj as Video.RoomSession
-      return roomObj.join()
+      await roomObj.join()
+      return true
     },
     assertionFn: (result) => {
-      expect(result).toBeDefined()
+      expect(result).toBe(true)
     },
     message: 'Expected room to be joined',
     ...options,
@@ -2028,10 +2047,10 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 export const expectToPass = async (
   assertion: () => Promise<void>,
   assertionMessage: string | { message: string },
-  options?: { interval?: number[]; timeout?: number }
+  options?: { intervals?: number[]; timeout?: number }
 ) => {
   const mergedOptions = {
-    interval: [10_000], // 20 seconds to avoid polling
+    intervals: [10_000], // 10 seconds to avoid polling
     timeout: 10_000,
     ...options,
   }
@@ -2096,7 +2115,7 @@ interface BaseExpectPageEvalToPassParams {
 
 interface ExpectPageEvalToPassParams<TArgs, TResult>
   extends BaseExpectPageEvalToPassParams {
-  assertionFn: (result: TResult) => void
+  assertionFn: (result: TResult) => void | Promise<void>
   evaluateArgs?: TArgs
   evaluateFn: PageFunction<TArgs, TResult>
 }
@@ -2139,10 +2158,10 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
         result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
       }
 
-      assertionFn(result)
+      await assertionFn(result)
     },
     { message: message },
-    { timeout: timeoutMs, interval: interval }
+    { timeout: timeoutMs, intervals: interval }
   )
   return result
 }
