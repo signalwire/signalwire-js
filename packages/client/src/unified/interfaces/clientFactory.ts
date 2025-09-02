@@ -87,10 +87,7 @@ export interface ManagedInstance {
   lastAccessedAt: Date
 
   /** Number of times this instance has been accessed */
-  accessCount: number
-
-  /** Whether the instance is currently connected */
-  isConnected: boolean
+  usageCount: number
 }
 
 /**
@@ -141,8 +138,6 @@ export interface GetClientResult {
  */
 export interface DisposeClientParams {
   instanceId: string
-  /** Whether to force disposal even if the client is connected */
-  force?: boolean
 }
 
 /**
@@ -192,9 +187,8 @@ export interface ClientFactoryContract {
   /**
    * Dispose of a client instance
    * @param params - Disposal parameters
-   * @returns Whether the instance was successfully disposed
    */
-  disposeClient(params: DisposeClientParams): Promise<boolean>
+  disposeClient(params: DisposeClientParams): Promise<void>
 
   /**
    * List all active client instances
@@ -309,7 +303,7 @@ export interface InstanceManagerContract {
    * @param force - Whether to force disposal
    * @returns Whether the instance was disposed
    */
-  disposeInstance(instanceId: string, force?: boolean): Promise<boolean>
+  disposeInstance(instanceId: string): Promise<void>
 
   /**
    * Get an existing instance

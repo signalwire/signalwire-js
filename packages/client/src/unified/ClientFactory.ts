@@ -26,7 +26,7 @@ import { ResourceType } from './interfaces/address'
  * Singleton factory for managing SignalWire client instances and authentication profiles.
  * Provides a centralized way to create, manage, and dispose of client instances.
  */
-export class ClientFactory implements ClientFactoryContract {
+export class ClientFactory implements   ClientFactoryContract {
   private static instance: ClientFactory | null = null
   private profileManager: ProfileManager
   private instanceManager: InstanceManager
@@ -192,7 +192,7 @@ export class ClientFactory implements ClientFactoryContract {
         )
         if (instance) {
           // Try to dispose the instance first
-          await this.instanceManager.disposeInstance(instance.id, false)
+          await this.instanceManager.disposeInstance(instance.id)
         }
 
         const removed = await this.profileManager.removeProfile(profileId)
@@ -324,13 +324,13 @@ export class ClientFactory implements ClientFactoryContract {
    * @param params - Disposal parameters
    * @returns Whether the instance was successfully disposed
    */
-  async disposeClient(params: DisposeClientParams): Promise<boolean> {
+  async disposeClient(params: DisposeClientParams): Promise<void > {
     this.ensureInitialized()
 
-    const { instanceId, force = false } = params
+    const { instanceId } = params
 
     try {
-      return await this.instanceManager.disposeInstance(instanceId, force)
+      return await this.instanceManager.disposeInstance(instanceId)
     } catch (error) {
       if (error instanceof Error) {
         throw error
@@ -338,7 +338,7 @@ export class ClientFactory implements ClientFactoryContract {
       throw new ClientFactoryError(
         `Failed to dispose instance ${instanceId}: ${error}`,
         'DISPOSE_FAILED',
-        { instanceId, force }
+        { instanceId }
       )
     }
   }

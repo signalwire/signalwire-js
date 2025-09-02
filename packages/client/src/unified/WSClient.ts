@@ -30,14 +30,10 @@ import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
   private _disconnected: boolean = false
-  private storage: WSClientOptions['storage']
 
   constructor(private wsClientOptions: WSClientOptions) {
     const client = createWSClient(wsClientOptions)
     super(client)
-
-    // Store the storage implementation for later use
-    this.storage = wsClientOptions.storage
 
     this._incomingCallManager = new IncomingCallManager({
       client: this,
@@ -210,14 +206,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
-      // Use provided storage or fallback to session storage
-      if (this.storage) {
-        this.storage.deleteSession(PREVIOUS_CALLID_STORAGE_KEY).catch(() => {
-          // Ignore errors when removing call ID
-        })
-      } else {
-        getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-      }
+      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
       call.destroy()
     })
 
@@ -328,15 +317,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public dial(params: DialParams) {
-    // TODO: Do we need this remove item here?
     // in case the user left the previous call with hangup, and is not reattaching
-    if (this.storage) {
-      this.storage.deleteSession(PREVIOUS_CALLID_STORAGE_KEY).catch(() => {
-        // Ignore errors when removing call ID
-      })
-    } else {
-      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-    }
+    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+
     return this.buildOutboundCall(params)
   }
 

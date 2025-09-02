@@ -35,23 +35,6 @@ export const SignalWire = (() => {
     // Singleton behavior for backward compatibility
     if (!instance) {
       instance = createSignalWireClient(params)
-        .then((client) => {
-          // Wrap the disconnect method to reset the singleton instance
-          const originalDisconnect = client.disconnect
-          client.disconnect = async () => {
-            await originalDisconnect()
-            instance = null // Reset the singleton instance on disconnect
-          }
-          return client
-        })
-        .catch((error) => {
-          /**
-           * Reset the instance to null explicitly since
-           * Promises are immutable: once rejected, a Promise remains rejected forever.
-           */
-          instance = null
-          throw error
-        })
     }
     return instance
   }
@@ -64,7 +47,12 @@ export const SignalWire = (() => {
 export async function createSignalWireClient(
   params: SignalWireClientParams
 ): Promise<SignalWireClient> {
-  const { clientId = 'default', storage, ...restParams } = params
+  const {
+    clientId = 'default',
+    storage,
+    shouldDisconnect,
+    ...restParams
+  } = params
 
   // Create storage wrapper if storage is provided
   const wrappedStorage = storage
@@ -92,8 +80,9 @@ export async function createSignalWireClient(
     unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
     getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
     disconnect: async () => {
-      await wsClient.disconnect()
-      // Note: For multi-instance, we don't reset any singleton state
+      if (!shouldDisconnect || shouldDisconnect?.()) {
+        return wsClient.disconnect()
+      }
     },
     online: wsClient.online.bind(wsClient),
     offline: wsClient.offline.bind(wsClient),

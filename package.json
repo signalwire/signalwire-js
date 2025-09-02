@@ -10,8 +10,9 @@
   "scripts": {
     "changeset": "changeset",
     "clean": "npm exec --ws -- npx rimraf node_modules && npm exec --ws -- npx rimraf dist && npx rimraf node_modules",
+    "clean:vite-cache": "npx rimraf ./internal/**/node_modules/.vite",
     "test": "npm exec --ws npm run test",
-    "build": "npm exec --ws -- npx rimraf dist && sw-build-all",
+    "build": "npm run clean:vite-cache && npm exec --ws -- npx rimraf dist && sw-build-all",
     "prettier": "prettier --write .",
     "release:dev": "sw-release --development",
     "release:beta": "sw-release --beta",

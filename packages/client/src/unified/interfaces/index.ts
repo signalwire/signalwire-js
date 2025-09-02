@@ -9,6 +9,8 @@ export interface SignalWireClientParams extends WSClientOptions {
   clientId?: string
   /** Optional storage implementation for persisting client data */
   storage?: SignalWireStorageContract
+
+  shouldDisconnect?: () => boolean
 }
 
 export interface SignalWireContract

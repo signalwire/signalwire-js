@@ -3,7 +3,6 @@ import {
   Profile,
   ManagedInstance,
   InstanceManagerContract,
-  InstanceInUseError,
   GetClientParamsOptions,
 } from './interfaces/clientFactory'
 
@@ -13,7 +12,6 @@ import {
  */
 export class InstanceManager implements InstanceManagerContract {
   private instances = new Map<string, ManagedInstance>()
-  private accessUpdateIntervals = new Map<string, NodeJS.Timeout>()
 
   /**
    * Create a new client instance
@@ -30,17 +28,23 @@ export class InstanceManager implements InstanceManagerContract {
 
     // Check if an instance already exists for this profile
     if (this.instances.has(instanceId)) {
-      const existingInstance = this.instances.get(instanceId)!
-      await this.updateInstanceAccess(instanceId)
-      //@ts-expect-error __wsClient is not public exposed
-      await existingInstance.client.__wsClient.connect()
-      return existingInstance
+      const existingInstance = await this.getInstance(instanceId)
+      return existingInstance!
     }
 
     try {
       const clientParams = {
         token: profile.credentials.satToken,
         host: profile.credentials.host,
+        shouldDisconnect: () => {
+          const managed = this.instances.get(instanceId)
+          if ((managed?.usageCount ?? 0) > 1) {
+            // prevent the WebSocket disconnection if the instance is used by other
+            return false
+          }
+          this.disposeInstance(managed!.id)
+          return true
+        },
         ...options,
       }
       const client = await createSignalWireClient(clientParams)
@@ -53,15 +57,13 @@ export class InstanceManager implements InstanceManagerContract {
         client,
         createdAt: now,
         lastAccessedAt: now,
-        accessCount: 1,
-        isConnected: true, // Assumes connection is successful if creation succeeds
+        usageCount: 0,
       }
 
       // Store instance
       this.instances.set(instanceId, managedInstance)
 
-      // Set up periodic access tracking updates
-      this.setupAccessTracking(instanceId)
+      // Access tracking setup removed - not implemented yet
 
       return managedInstance
     } catch (error) {
@@ -74,38 +76,20 @@ export class InstanceManager implements InstanceManagerContract {
   /**
    * Dispose of a client instance
    * @param instanceId - Instance ID to dispose
-   * @param force - Whether to force disposal
    * @returns Whether the instance was disposed
    */
-  async disposeInstance(instanceId: string, force = false): Promise<boolean> {
+  async disposeInstance(instanceId: string): Promise<void> {
     const instance = this.instances.get(instanceId)
     if (!instance) {
-      return false
+      return
     }
 
-    // Check if instance is connected and force is not specified
-    if (instance.isConnected && !force) {
-      throw new InstanceInUseError(instanceId)
-    }
-
-    try {
-      // Disconnect the client
-      await instance.client.disconnect()
-    } catch (error) {
-      console.warn(
-        `Error disconnecting client for instance ${instanceId}:`,
-        error
-      )
-      // Continue with disposal even if disconnect fails
-    }
-
-    // Clean up tracking
-    this.cleanupAccessTracking(instanceId)
+    // Access tracking cleanup removed - not implemented yet
 
     // Remove from maps
     this.instances.delete(instanceId)
 
-    return true
+    return
   }
 
   /**
@@ -115,6 +99,7 @@ export class InstanceManager implements InstanceManagerContract {
    */
   async getInstance(instanceId: string): Promise<ManagedInstance | null> {
     const instance = this.instances.get(instanceId)
+
     if (instance) {
       await this.updateInstanceAccess(instanceId)
       return instance
@@ -155,81 +140,21 @@ export class InstanceManager implements InstanceManagerContract {
 
     // Update access information
     instance.lastAccessedAt = new Date()
-    instance.accessCount += 1
-
-    // Check connection status
-    // Note: This is a simplified check. In a real implementation,
-    // you might want to add a method to check the actual connection status
-    try {
-      // Attempt to call a lightweight method to verify connection
-      // For now, we'll assume the connection is alive unless proven otherwise
-      instance.isConnected = true
-    } catch (error) {
-      instance.isConnected = false
-      console.warn(`Instance ${instanceId} appears to be disconnected:`, error)
-    }
-  }
-
-  /**
-   * Set up periodic access tracking for an instance
-   * @param instanceId - Instance identifier
-   */
-  private setupAccessTracking(instanceId: string): void {
-    // Clear any existing interval
-    this.cleanupAccessTracking(instanceId)
-
-    // Set up new interval for periodic access updates
-    const interval = setInterval(async () => {
-      const instance = this.instances.get(instanceId)
-      if (!instance) {
-        this.cleanupAccessTracking(instanceId)
-        return
-      }
-
-      // Perform lightweight connection check
-      try {
-        // This could be expanded to perform actual connectivity checks
-        // For now, we'll just update the tracking information
-        instance.lastAccessedAt = new Date()
-      } catch (error) {
-        console.warn(`Periodic check failed for instance ${instanceId}:`, error)
-        instance.isConnected = false
-      }
-    }, 30000) // Check every 30 seconds
-
-    this.accessUpdateIntervals.set(instanceId, interval)
-  }
-
-  /**
-   * Clean up access tracking for an instance
-   * @param instanceId - Instance identifier
-   */
-  private cleanupAccessTracking(instanceId: string): void {
-    const interval = this.accessUpdateIntervals.get(instanceId)
-    if (interval) {
-      clearInterval(interval)
-      this.accessUpdateIntervals.delete(instanceId)
-    }
+    instance.usageCount += 1
   }
 
   /**
    * Clean up all resources when the manager is being destroyed
    */
   async dispose(): Promise<void> {
-    // Clean up all intervals
-    for (const [instanceId] of this.accessUpdateIntervals) {
-      this.cleanupAccessTracking(instanceId)
-    }
-
     // Dispose of all instances
     const disposePromises = Array.from(this.instances.keys()).map(
-      (instanceId) => this.disposeInstance(instanceId, true)
+      (instanceId) => this.disposeInstance(instanceId)
     )
 
     await Promise.allSettled(disposePromises)
 
     // Clear all maps
     this.instances.clear()
-    this.accessUpdateIntervals.clear()
   }
 }
