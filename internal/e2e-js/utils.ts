@@ -1923,7 +1923,9 @@ export const joinRoom = async (
   return await expectPageEvalToPass(page, {
     evaluateFn: async () => {
       const roomObj = window._roomObj as Video.RoomSession
+      console.log('>> joining room')
       await roomObj.join()
+      console.log('>> room joined')
       return true
     },
     assertionFn: (result) => {
