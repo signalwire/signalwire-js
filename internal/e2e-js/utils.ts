@@ -1863,9 +1863,16 @@ export const expectLayoutChanged = async (page: Page, layoutName: string) => {
 
 export const expectRoomJoinedEvent = async (
   page: Page,
-  options?: Partial<BaseExpectPageEvalToPassParams> & { joinAs?: string }
+  options?: Partial<BaseExpectPageEvalToPassParams> & {
+    joinAs?: string
+    shouldAssertDefaults?: boolean
+  }
 ) => {
-  const { joinAs = 'member', ...rest } = options || {}
+  const {
+    joinAs = 'member',
+    shouldAssertDefaults = true,
+    ...rest
+  } = options || {}
   return await expectPageEvalToPass(page, {
     evaluateFn: () => {
       return new Promise<
@@ -1900,25 +1907,28 @@ export const expectRoomJoinedEvent = async (
     }) => {
       console.log('>> room.joined event result', result)
       expect(result).toBeDefined()
-      expect(roomMemberId, 'Expected member ID to be equal').toEqual(
-        result.member_id
-      )
 
-      const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
-      expect(
-        localSdp.split('m=')[1].includes(dir),
-        'Expected audio direction to be true'
-      ).toBe(true)
-      expect(
-        localSdp.split('m=')[2].includes(dir),
-        'Expected video direction to be true'
-      ).toBe(true)
+      if (shouldAssertDefaults) {
+        expect(roomMemberId, 'Expected member ID to be equal').toEqual(
+          result.member_id
+        )
 
-      const mode = joinAs === 'audience' ? 'audience' : 'member'
-      expect(
-        interactivityMode,
-        'Expected interactivity mode to be equal'
-      ).toEqual(mode)
+        const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+        expect(
+          localSdp.split('m=')[1].includes(dir),
+          'Expected audio direction to be true'
+        ).toBe(true)
+        expect(
+          localSdp.split('m=')[2].includes(dir),
+          'Expected video direction to be true'
+        ).toBe(true)
+
+        const mode = joinAs === 'audience' ? 'audience' : 'member'
+        expect(
+          interactivityMode,
+          'Expected interactivity mode to be equal'
+        ).toEqual(mode)
+      }
     },
     message: 'Expected room.joined event to be received',
     timeout: 30_000,

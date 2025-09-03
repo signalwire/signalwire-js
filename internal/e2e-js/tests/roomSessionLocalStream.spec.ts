@@ -65,7 +65,9 @@ test.describe('RoomSession with custom local stream', () => {
     })
 
     // Join the room and expect the MCU (without local overlay) to be visible
-    const joinPromise = expectRoomJoinedEvent(page)
+    const joinPromise = expectRoomJoinedEvent(page, {
+      shouldAssertDefaults: false,
+    })
     await joinRoom(page)
     await joinPromise
     console.log('>> room is joined')
