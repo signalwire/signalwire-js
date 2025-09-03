@@ -58,8 +58,7 @@ export default defineConfig({
   plugins: [listPlugin()],
   base: process.env.VITE_BASE ?? '/',
   resolve: {
-    alias: {
-    },
+    alias: {},
   },
   optimizeDeps: {
     include: ['@signalwire/client', '@signalwire/core', '@signalwire/webrtc'],
