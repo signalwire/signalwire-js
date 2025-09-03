@@ -1860,10 +1860,10 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 export const expectToPass = async (
   assertion: () => Promise<void>,
   assertionMessage: string | { message: string },
-  options?: { interval?: number[]; timeout?: number }
+  options?: { intervals?: number[]; timeout?: number }
 ) => {
   const mergedOptions = {
-    interval: [10_000], // 10 seconds to avoid polling
+    intervals: [10_000], // 10 seconds to avoid polling
     timeout: 10_000,
     ...options,
   }
@@ -1943,14 +1943,14 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     message,
-    interval = [10_000],
+    intervals = [10_000],
     timeoutMs = 10_000,
   }: {
     assertionFn: (result: TResult) => void
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
     message: string
-    interval?: number[]
+    intervals?: number[]
     timeoutMs?: number
   }
 ) => {
@@ -1972,7 +1972,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
       assertionFn(result)
     },
     { message: message },
-    { timeout: timeoutMs, interval: interval }
+    { timeout: timeoutMs, intervals: intervals }
   )
   return result
 }
