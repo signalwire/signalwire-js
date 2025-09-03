@@ -131,15 +131,16 @@ describe('ClientFactory', () => {
     mockInstanceManager = {
       createInstance: jest
         .fn()
-        .mockImplementation((profileId: string, profile: Profile) => {
-          const instanceId = `instance-${profileId}`
+        .mockImplementation((profile: Profile, options?: any) => {
+          const instanceId = profile.id // Use profile.id as instance ID (matches current implementation)
+          const now = Date.now()
           const instance = {
             id: instanceId,
-            profileId,
+            profileId: profile.id,
             client: { mockClient: true },
-            createdAt: Date.now(),
-            lastAccessed: Date.now(),
-            isActive: true,
+            createdAt: now,
+            lastAccessedAt: now,
+            usageCount: 0,
           }
           createdInstances.set(instanceId, instance)
           return Promise.resolve(instance)
@@ -157,10 +158,9 @@ describe('ClientFactory', () => {
       }),
       disposeInstance: jest
         .fn()
-        .mockImplementation((instanceId: string, force: boolean) => {
-          const existed = createdInstances.has(instanceId)
+        .mockImplementation((instanceId: string) => {
           createdInstances.delete(instanceId)
-          return Promise.resolve(existed)
+          return Promise.resolve()
         }),
       updateInstanceAccess: jest.fn().mockResolvedValue(undefined),
       listInstances: jest.fn().mockImplementation(() => {
@@ -553,14 +553,16 @@ describe('ClientFactory', () => {
             id: expect.any(String),
             profileId: profile.id,
             client: expect.any(Object),
-            isActive: true,
+            createdAt: expect.any(Number),
+            lastAccessedAt: expect.any(Number),
+            usageCount: expect.any(Number),
           }),
           isNew: true,
         })
 
         expect(mockInstanceManager.createInstance).toHaveBeenCalledWith(
-          profile.id,
-          profile
+          profile,
+          undefined
         )
         expect(mockInstanceManager.updateInstanceAccess).toHaveBeenCalledWith(
           result.instance.id
@@ -605,14 +607,13 @@ describe('ClientFactory', () => {
         )
         const result = await factory.getClient({ profileId: profile.id })
 
-        const disposed = await factory.disposeClient({
+        await factory.disposeClient({
           instanceId: result.instance.id,
         })
 
-        expect(disposed).toBe(true)
+        // disposeClient returns void, so we just verify it didn't throw
         expect(mockInstanceManager.disposeInstance).toHaveBeenCalledWith(
-          result.instance.id,
-          false
+          result.instance.id
         )
       })
 
