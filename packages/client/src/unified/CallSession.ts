@@ -13,6 +13,7 @@ import {
   SetAudioFlagsParams,
   toSnakeCaseKeys,
   CallLayoutChangedEventParams,
+  CallJoinedEventParams,
   CallSessionMethods,
 } from '@signalwire/core'
 import {
@@ -55,6 +56,21 @@ export class CallSessionConnection
   private _currentLayoutEvent: CallLayoutChangedEventParams
   //describes what are methods are allow for the user in a call segment
   private _capabilities?: CallCapabilitiesContract
+  private _localVideoTrack: MediaStreamTrack | null = null
+  private _instanceMap: Map<string, CallSessionMember> = new Map() // Internal storage for instanceMap
+
+  // Override instanceMap as a public getter to match parent class
+  public get instanceMap(): Map<string, CallSessionMember> {
+    return this._instanceMap
+  }
+
+  get localVideoTrack() {
+    return this._localVideoTrack
+  }
+
+  set localVideoTrack(track: MediaStreamTrack | null) {
+    this._localVideoTrack = track
+  }
 
   constructor(options: CallSessionOptions) {
     super(options)
@@ -144,7 +160,7 @@ export class CallSessionConnection
     const targetMember =
       !memberId || memberId === 'all'
         ? this.member
-        : this.instanceMap.get<CallSessionMember>(memberId)
+        : this.instanceMap.get(memberId)
 
     if (!targetMember) {
       throw new Error(
@@ -195,7 +211,7 @@ export class CallSessionConnection
   public async start() {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        this.once('room.subscribed', (params) => {
+        this.once('room.subscribed', (params: CallJoinedEventParams) => {
           getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
           resolve()
         })
@@ -250,11 +266,36 @@ export class CallSessionConnection
   }
 
   public async videoUnmute(params?: MemberCommandParams) {
-    return this.executeAction<BaseRPCResult>({
+    const isLocal = !params?.memberId || params.memberId === this.memberId
+    const result = await this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'video',
       memberId: params?.memberId,
     })
+
+    if (isLocal) {
+      try {
+        if (!this.localVideoTrack || this.localVideoTrack.readyState === 'ended') {
+          const deviceId = this.localVideoTrack?.getSettings().deviceId
+          if (deviceId) {
+            // Re-apply the camera with the current deviceId to ensure a fresh track
+            await this.updateCamera({ deviceId: { exact: deviceId } })
+          } else {
+            // If no deviceId is available, request a new video stream with default constraints
+            await this.updateCamera({})
+          }
+        }
+        // Ensure the track is enabled and signaled
+        this.startOutboundVideo()
+        // Trigger WebRTC signaling to update the remote peer
+        await this.signalSdpUpdate()
+      } catch (error) {
+        this.logger.error('Failed to unmute video:', error)
+        throw error
+      }
+    }
+
+    return result
   }
 
   public async deaf(params?: MemberCommandParams) {
@@ -363,7 +404,7 @@ export class CallSessionConnection
       const targetMember =
         key === 'self'
           ? this.member
-          : this.instanceMap.get<CallSessionMember>(key)
+          : this.instanceMap.get(key)
 
       if (targetMember) {
         targets.push({
@@ -420,6 +461,72 @@ export class CallSessionConnection
       method: 'call.end',
       memberId: params?.memberId,
     });
+  }
+
+  public async updateCamera(constraints: MediaTrackConstraints): Promise<void> {
+    try {
+      const newTrack = (await navigator.mediaDevices.getUserMedia({ video: constraints })).getVideoTracks()[0]
+
+      const sender = this.peer?.instance?.getSenders().find((s) => s.track?.kind === 'video')
+      if (sender) {
+        await sender.replaceTrack(newTrack)
+      } else {
+        this.logger.warn('No video sender found for track replacement')
+      }
+
+      this.localVideoTrack = newTrack
+
+      const self = this.member
+      if (self.videoMuted) {
+        this.stopOutboundVideo()
+      }
+
+      // Trigger WebRTC signaling to update the remote peer
+      await this.signalSdpUpdate()
+    } catch (error) {
+      this.logger.error('Failed to update camera:', error)
+      throw error
+    }
+  }
+
+  public startOutboundVideo(): void {
+    if (this.localVideoTrack) {
+      this.localVideoTrack.enabled = true
+    } else {
+      this.logger.warn('No local video track available to enable')
+    }
+  }
+
+  public stopOutboundVideo(): void {
+    if (this.localVideoTrack) {
+      this.localVideoTrack.enabled = false
+    }
+  }
+
+  // Add method to trigger WebRTC signaling
+  private async signalSdpUpdate(): Promise<void> {
+    if (!this.peer?.instance) {
+      this.logger.warn('No peer connection available for SDP update')
+      return
+    }
+
+    try {
+      const offer = await this.peer.instance.createOffer()
+      await this.peer.instance.setLocalDescription(offer)
+      // Assuming a method to send the SDP to the signaling server
+      await this.sendSdpToServer(offer)
+    } catch (error) {
+      this.logger.error('Failed to update SDP:', error)
+      throw error
+    }
+  }
+
+  // Placeholder for sending SDP to the signaling server
+  private async sendSdpToServer(sdp: RTCSessionDescriptionInit): Promise<void> {
+    // This is a placeholder; implement the actual signaling logic based on your backend
+    this.logger.debug('Sending SDP update:', sdp)
+    // Example: await this.execute({ method: 'call.sdp.update', params: { sdp } });
+    // Replace with your actual signaling implementation
   }
 }
 
