@@ -1900,14 +1900,25 @@ export const expectRoomJoinedEvent = async (
     }) => {
       console.log('>> room.joined event result', result)
       expect(result).toBeDefined()
-      expect(roomMemberId).toEqual(result.member_id)
+      expect(roomMemberId, 'Expected member ID to be equal').toEqual(
+        result.member_id
+      )
 
       const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
-      expect(localSdp.split('m=')[1].includes(dir)).toBe(true)
-      expect(localSdp.split('m=')[2].includes(dir)).toBe(true)
+      expect(
+        localSdp.split('m=')[1].includes(dir),
+        'Expected audio direction to be true'
+      ).toBe(true)
+      expect(
+        localSdp.split('m=')[2].includes(dir),
+        'Expected video direction to be true'
+      ).toBe(true)
 
       const mode = joinAs === 'audience' ? 'audience' : 'member'
-      expect(interactivityMode).toEqual(mode)
+      expect(
+        interactivityMode,
+        'Expected interactivity mode to be equal'
+      ).toEqual(mode)
     },
     message: 'Expected room.joined event to be received',
     timeout: 30_000,
