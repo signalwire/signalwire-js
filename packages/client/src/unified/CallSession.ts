@@ -72,7 +72,7 @@ export class CallSessionConnection
       deleteAll: () => {
         this._instanceMap.clear();
       },
-    }) as unknown as InstanceMap; // Use type assertion to avoid TS2352
+    }) as unknown as InstanceMap;
   }
 
   get localVideoTrack() {
@@ -135,6 +135,9 @@ export class CallSessionConnection
 
   set member(member: CallSessionMember) {
     this._member = member;
+    if (member && member.memberId) {
+      this._instanceMap.set(member.memberId, member); // Ensure self is in instanceMap
+    }
   }
 
   get member(): CallSessionMember {
@@ -163,12 +166,22 @@ export class CallSessionConnection
   ) {
     const { method, channel, memberId, extraParams = {} } = params;
 
-    const targetMember =
-      !memberId || memberId === 'all'
-        ? this.member
-        : this.instanceMap.get(memberId);
+    let targetMember: CallSessionMember | undefined;
+    if (!memberId || memberId === 'all') {
+      targetMember = this.member;
+    } else {
+      targetMember = this.instanceMap.get(memberId);
+      // Fallback for self if not found in map
+      if (!targetMember && memberId === this.memberId) {
+        targetMember = this.member;
+      }
+    }
 
     if (!targetMember) {
+      this.logger.error(
+        `Member ${memberId ?? 'self'} not found in instanceMap. Available members:`,
+        this.instanceMap.getAll().map(([key]) => key) // Use tuple destructuring
+      );
       throw new Error(
         memberId && memberId !== 'all'
           ? `Member ${memberId} not found`
@@ -246,6 +259,7 @@ export class CallSessionConnection
   }
 
   public async audioMute(params?: MemberCommandParams) {
+    this.logger.debug('Audio mute for', params?.memberId ?? 'local member (self)');
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'audio',
@@ -254,6 +268,7 @@ export class CallSessionConnection
   }
 
   public async audioUnmute(params?: MemberCommandParams) {
+    this.logger.debug('Audio unmute for', params?.memberId ?? 'local member (self)');
     return this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'audio',
@@ -262,6 +277,7 @@ export class CallSessionConnection
   }
 
   public async videoMute(params?: MemberCommandParams) {
+    this.logger.debug('Video mute for', params?.memberId ?? 'local member (self)');
     return this.executeAction<BaseRPCResult>({
       method: 'call.mute',
       channel: 'video',
@@ -271,6 +287,7 @@ export class CallSessionConnection
 
   public async videoUnmute(params?: MemberCommandParams) {
     const isLocal = !params?.memberId || params.memberId === this.memberId;
+    this.logger.debug('Video unmute for', params?.memberId ?? 'local member (self)');
     const result = await this.executeAction<BaseRPCResult>({
       method: 'call.unmute',
       channel: 'video',
