@@ -1881,6 +1881,7 @@ export const expectRoomJoinedEvent = async (
           return
         }
         roomObj.once('room.joined', (params) => {
+          console.log('>> room.joined event is received')
           resolve({
             ...params,
             roomMemberId: roomObj.memberId,
@@ -1897,6 +1898,7 @@ export const expectRoomJoinedEvent = async (
       interactivityMode,
       ...result
     }) => {
+      console.log('>> room.joined event result', result)
       expect(result).toBeDefined()
       expect(roomMemberId).toEqual(result.member_id)
 

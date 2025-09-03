@@ -68,6 +68,8 @@ test.describe('RoomSession with custom local stream', () => {
     const joinPromise = expectRoomJoinedEvent(page)
     await joinRoom(page)
     await joinPromise
+    console.log('>> room is joined')
+
     await expectMCUVisibleForAudience(page)
 
     const afterJoin = await expectPageEvalToPass(page, {
