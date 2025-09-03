@@ -28,19 +28,20 @@ test.describe('RoomSession with custom local stream', () => {
       console.error('Invalid VRT. Exiting..')
       process.exit(4)
     }
+
     const beforeJoin = await expectPageEvalToPass(page, {
       evaluateArgs: {
         RELAY_HOST: process.env.RELAY_HOST,
         API_TOKEN: vrt,
       },
       evaluateFn: async (options) => {
-        const Video = (window as any)._SWJS.Video
-
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: false,
         })
 
+        // @ts-expect-error
+        const Video = window._SWJS.Video
         const roomSession = new Video.RoomSession({
           host: options.RELAY_HOST,
           token: options.API_TOKEN,

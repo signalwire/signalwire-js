@@ -1874,8 +1874,12 @@ export const expectRoomJoinedEvent = async (
           localSdp: string
           interactivityMode: string
         }
-      >((resolve, _reject) => {
+      >((resolve, reject) => {
         const roomObj = window._roomObj as Video.RoomSession
+        if (!roomObj) {
+          reject(new Error('Room object not initialized'))
+          return
+        }
         roomObj.once('room.joined', (params) => {
           resolve({
             ...params,
