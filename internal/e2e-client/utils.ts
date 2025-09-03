@@ -1888,29 +1888,29 @@ export const waitForFunction = async <TArgs, TResult>(
   {
     evaluateArgs,
     evaluateFn,
+    polling,
     message,
-    interval = [10_000],
-    timeoutMs = 10_000,
+    timeoutMs,
   }: {
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
-    message: string
-    interval?: number[]
+    message?: string
+    polling?: number
     timeoutMs?: number
   }
 ) => {
   try {
     const mergedOptions = {
-      interval: interval ?? [10_000], // 10 seconds to avoid polling
+      polling: polling ?? 10_000, // 10 seconds to avoid polling
       timeout: timeoutMs ?? 10_000,
-      message,
-    }
+    } satisfies Parameters<Page['waitForFunction']>[2]
     if (evaluateArgs) {
       return await page.waitForFunction(evaluateFn, evaluateArgs, mergedOptions)
     } else {
       // FIXME: remove the type assertion
       return await page.waitForFunction(
         evaluateFn as PageFunction<void, TResult>,
+        undefined,
         mergedOptions
       )
     }
