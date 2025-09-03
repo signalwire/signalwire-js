@@ -100,7 +100,7 @@ test.describe('utils', () => {
           // Pass on 3rd attempt
         },
         { message: 'should use custom intervals' },
-        { interval: [100, 200, 300], timeout: 10000 }
+        { intervals: [100, 200, 300], timeout: 10000 }
       )
 
       expect(attemptCount).toBe(3)
@@ -177,6 +177,50 @@ test.describe('utils', () => {
       )
 
       expect(attemptCount).toBeGreaterThan(1)
+    })
+
+    test('should only poll once if the intervals and timeout are the same', async () => {
+      let attemptCount = 0
+      try {
+        await expectToPass(
+          async () => {
+            attemptCount++
+            if (attemptCount < 2) {
+              // when rejected, expectToPass will poll again
+              return Promise.reject(new Error('Not ready yet'))
+            }
+          },
+          {
+            message:
+              'should only poll once if the intervals and timeout are the same',
+          },
+          { timeout: 1000, intervals: [1000] }
+        )
+      } catch (error) {}
+
+      expect(attemptCount).toBe(1)
+    })
+
+    test('it should poll at least twice if the intervals are different from the timeout', async () => {
+      let attemptCount = 0
+      await expectToPass(
+        async () => {
+          attemptCount++
+          if (attemptCount < 3) {
+            // when rejected, expectToPass will poll again
+            return Promise.reject(new Error('Not ready yet'))
+          }
+          return
+        },
+        {
+          message:
+            'should poll at least twice if the intervals are different from the timeout',
+        },
+        { timeout: 1000, intervals: [10, 10, 20] }
+      )
+
+      expect(attemptCount).toBeGreaterThan(1)
+      expect(attemptCount).toBe(3)
     })
   })
 })
@@ -309,5 +353,64 @@ test.describe('expectPageEvalToPass', () => {
     ).rejects.toThrow(
       'timeout - should timeout when page evaluation takes too long'
     )
+  })
+
+  test('should poll at multiple times if the intervals are different from the timeout', async ({
+    createCustomPage,
+  }) => {
+    let attemptCount = 0
+    const page = await createCustomPage({ name: '[page]' })
+
+    const result = await expectPageEvalToPass(page, {
+      evaluateArgs: {
+        attemptCount,
+      },
+      evaluateFn: () => {
+        return 'anything'
+      },
+      assertionFn: () => {
+        // increment attemptCount when the assertionFn is called
+        attemptCount++
+        // this assertion should fail and trigger the polling until it succeeds
+        expect(attemptCount).toBe(10)
+      },
+      message:
+        'should poll at least twice if the intervals are different from the timeout',
+      intervals: [10],
+      timeoutMs: 1000,
+    })
+
+    // should return the result of the evaluateFn
+    expect(result).toBe('anything')
+  })
+
+  test('it should poll only once if the intervals and timeout are the same', async ({
+    createCustomPage,
+  }) => {
+    let attemptCount = 0
+    const page = await createCustomPage({ name: '[page]' })
+    try {
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          return 'anything'
+        },
+        assertionFn: (result) => {
+          // should only be called once
+          attemptCount++
+          // this assertion should fail and trigger the polling
+          expect(result).toBe('should not resolve')
+        },
+        message:
+          'should poll only once if the intervals and timeout are the same',
+        intervals: [1000],
+        timeoutMs: 1000,
+      })
+    } catch (error) {
+      // should throw an error due to the timeout
+      expect(error.message).toContain(
+        'Timeout 1000ms exceeded while waiting on the predicate'
+      )
+    }
+    expect(attemptCount).toBe(1)
   })
 })
