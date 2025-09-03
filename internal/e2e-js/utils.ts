@@ -983,8 +983,8 @@ export const getRemoteMediaIP = async (page: Page) => {
   const remoteIP: string = await expectPageEvalToPass(page, {
     evaluateFn: () => {
       // @ts-expect-error
-      const peer: Video.RoomSessionPeer = window._roomObj.peer
-      const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
+      const peer = window._roomObj?.peer
+      const lines = peer?.instance?.remoteDescription?.sdp?.split('\r\n')
       const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
       return ipLine?.split(' ')[2]
     },
@@ -1932,7 +1932,7 @@ export const expectRecordingStarted = (page: Page) => {
   return expectPageEvalToPass(page, {
     evaluateFn: () => {
       // TODO: Use Playwright API for polling
-      return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
+      return new Promise<boolean>((resolve, reject) => {
         setTimeout(reject, 10000)
         // At this point window.__roomObj might not have been set yet
         // we have to pool it and check
@@ -1942,14 +1942,14 @@ export const expectRecordingStarted = (page: Page) => {
             clearInterval(interval)
             roomObj.on(
               'recording.started',
-              (recording: Video.RoomSessionRecording) => resolve(recording)
+              (_recording: Video.RoomSessionRecording) => resolve(true)
             )
           }
         }, 100)
       })
     },
     assertionFn: (result) => {
-      expect(result).toBeDefined()
+      expect(result).toBe(true)
     },
     message: 'Expected recording.started event to be received',
   })
@@ -1975,15 +1975,16 @@ export const expectScreenShareJoined = async (page: Page) => {
   })
 
   await expectPageEvalToPass(page, {
-    evaluateFn: () => {
+    evaluateFn: async () => {
       const roomObj = window._roomObj as Video.RoomSession
-      return roomObj.startScreenShare({
+      await roomObj.startScreenShare({
         audio: true,
         video: true,
       })
+      return true
     },
     assertionFn: (result) => {
-      expect(result).toBeDefined()
+      expect(result).toBe(true)
     },
     message: 'Expected screen share to be started',
   })
@@ -2012,12 +2013,13 @@ export const expectInteractivityMode = async (
 export const setLayoutOnPage = (page: Page, layoutName: string) => {
   return expectPageEvalToPass(page, {
     evaluateArgs: { layoutName },
-    evaluateFn: (options) => {
+    evaluateFn: async (options) => {
       const roomObj = window._roomObj as Video.RoomSession
-      return roomObj.setLayout({ name: options.layoutName })
+      await roomObj.setLayout({ name: options.layoutName })
+      return true
     },
     assertionFn: (result) => {
-      expect(result).toBeUndefined()
+      expect(result).toBe(true)
     },
     message: 'Expected setLayout to be called',
   })

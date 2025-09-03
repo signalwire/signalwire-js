@@ -120,15 +120,16 @@ test.describe('RoomSession promote/demote methods', () => {
 
     await expectPageEvalToPass(pageOne, {
       evaluateArgs: { promoteMemberId: audienceId },
-      evaluateFn: ({ promoteMemberId }) => {
+      evaluateFn: async ({ promoteMemberId }) => {
         const roomObj = window._roomObj as Video.RoomSession
-        return roomObj.promote({
+        await roomObj.promote({
           memberId: promoteMemberId,
           permissions: ['room.list_available_layouts'],
         })
+        return true
       },
       assertionFn: (result) => {
-        expect(result).toBeUndefined()
+        expect(result).toBe(true)
       },
       message: 'audience is not promoted',
     })
@@ -196,9 +197,10 @@ test.describe('RoomSession promote/demote methods', () => {
         await roomObj.demote({
           memberId: demoteMemberId,
         })
+        return true
       },
       assertionFn: (result) => {
-        expect(result).toBeUndefined()
+        expect(result).toBe(true)
       },
       message: 'member is not demoted',
     })

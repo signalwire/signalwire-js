@@ -61,14 +61,15 @@ test.describe('RoomSession Update Media', () => {
 
     await test.step('it should update media with audio "inactive" and video "sendonly"', async () => {
       await expectPageEvalToPass(page, {
-        evaluateFn: () => {
+        evaluateFn: async () => {
           const roomSession = window._roomObj as Video.RoomSession
-          return roomSession.updateMedia({
+          await roomSession.updateMedia({
             audio: { direction: 'inactive' },
             video: { direction: 'sendonly' },
           })
+          return true
         },
-        assertionFn: (ok) => expect(ok).toBeUndefined(),
+        assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (inactive/sendonly)',
         timeoutMs: 30_000,
         interval: [30_000],
@@ -94,11 +95,12 @@ test.describe('RoomSession Update Media', () => {
 
     await test.step('it should update media with video direction "sendrecv"', async () => {
       await expectPageEvalToPass(page, {
-        evaluateFn: () => {
+        evaluateFn: async () => {
           const roomSession = window._roomObj as Video.RoomSession
-          return roomSession.setVideoDirection('sendrecv')
+          await roomSession.setVideoDirection('sendrecv')
+          return true
         },
-        assertionFn: (ok) => expect(ok).toBeUndefined(),
+        assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected setVideoDirection to apply sendrecv',
       })
 
@@ -121,14 +123,15 @@ test.describe('RoomSession Update Media', () => {
 
     await test.step('it should update media with audio "sendrecv" and video "recvonly"', async () => {
       await expectPageEvalToPass(page, {
-        evaluateFn: () => {
+        evaluateFn: async () => {
           const roomSession = window._roomObj as Video.RoomSession
-          return roomSession.updateMedia({
+          await roomSession.updateMedia({
             audio: { direction: 'sendrecv' },
             video: { direction: 'recvonly' },
           })
+          return true
         },
-        assertionFn: (ok) => expect(ok).toBeUndefined(),
+        assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (sendrecv/recvonly)',
         timeoutMs: 30_000,
         interval: [30_000],
@@ -179,14 +182,15 @@ test.describe('RoomSession Update Media', () => {
 
     await test.step('it should update media with audio "sendonly" and video "inactive"', async () => {
       await expectPageEvalToPass(page, {
-        evaluateFn: () => {
+        evaluateFn: async () => {
           const roomSession = window._roomObj as Video.RoomSession
-          return roomSession.updateMedia({
+          await roomSession.updateMedia({
             audio: { direction: 'sendonly' },
             video: { direction: 'inactive' },
           })
+          return true
         },
-        assertionFn: (ok) => expect(ok).toBeUndefined(),
+        assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (sendonly/inactive)',
         timeoutMs: 30_000,
         interval: [30_000],
@@ -214,11 +218,12 @@ test.describe('RoomSession Update Media', () => {
 
     await test.step('it should update media with audio direction "sendrecv"', async () => {
       await expectPageEvalToPass(page, {
-        evaluateFn: () => {
+        evaluateFn: async () => {
           const roomSession = window._roomObj as Video.RoomSession
-          return roomSession.setAudioDirection('sendrecv')
+          await roomSession.setAudioDirection('sendrecv')
+          return true
         },
-        assertionFn: (ok) => expect(ok).toBeUndefined(),
+        assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected setAudioDirection to apply sendrecv',
       })
 
@@ -241,14 +246,15 @@ test.describe('RoomSession Update Media', () => {
 
     await test.step('it should update media with audio "recvonly" and video "sendrecv"', async () => {
       await expectPageEvalToPass(page, {
-        evaluateFn: () => {
+        evaluateFn: async () => {
           const roomSession = window._roomObj as Video.RoomSession
-          return roomSession.updateMedia({
+          await roomSession.updateMedia({
             audio: { direction: 'recvonly' },
             video: { direction: 'sendrecv' },
           })
+          return true
         },
-        assertionFn: (ok) => expect(ok).toBeUndefined(),
+        assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (recvonly/sendrecv)',
         timeoutMs: 30_000,
         interval: [30_000],

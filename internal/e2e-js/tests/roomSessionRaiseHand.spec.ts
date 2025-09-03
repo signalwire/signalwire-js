@@ -51,7 +51,7 @@ test.describe('RoomSession Raise/Lower hand', () => {
       evaluateFn: async ({ roomSessionId }) => {
         const roomObj = window._roomObj as Video.RoomSession
 
-        const roomUpdated = new Promise((resolve) => {
+        const roomUpdated = new Promise<boolean>((resolve) => {
           roomObj.on('room.updated', (params) => {
             if (
               params.room_session.id === roomSessionId &&
@@ -110,7 +110,7 @@ test.describe('RoomSession Raise/Lower hand', () => {
       evaluateFn: async ({ roomSessionId }) => {
         const roomObj = window._roomObj as Video.RoomSession
 
-        const memberUpdated = new Promise((resolve) => {
+        const memberUpdated = new Promise<boolean>((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
               params.room_session_id === roomSessionId &&
@@ -137,7 +137,7 @@ test.describe('RoomSession Raise/Lower hand', () => {
       evaluateFn: async ({ roomSessionId }) => {
         const roomObj = window._roomObj as Video.RoomSession
 
-        const memberUpdated = new Promise((resolve) => {
+        const memberUpdated = new Promise<boolean>((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
               params.room_session_id === roomSessionId &&

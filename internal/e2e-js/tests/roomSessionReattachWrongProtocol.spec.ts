@@ -60,7 +60,6 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
 
     // --------------- Reattaching ---------------
     await page.reload()
-    console.log('>> page reloaded')
 
     await createTestRoomSession(page, connectionSettings)
 
@@ -81,12 +80,11 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     //   })
     // }, joinParams.room_session.name)
 
-    console.log('>> calling reattach')
     const reattachParams: any = await expectPageEvalToPass(page, {
       evaluateArgs: joinParams.room_session.name,
       evaluateFn: (roomName) => {
         console.log('Joining again room:', roomName)
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
           const roomObj = window._roomObj as Video.RoomSession
           roomObj.on('room.joined', resolve)
 
@@ -96,11 +94,10 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
           window.sessionStorage.setItem(key, state)
           console.log(`Injected protocol for ${key} with value ${state}`)
 
-          return roomObj.join()
+          await roomObj.join()
         })
       },
       assertionFn: (params) => {
-        console.log('>> reattachParams', params)
         expect(params).toBeDefined()
       },
       message: 'Expected to rejoin with new protocol state',

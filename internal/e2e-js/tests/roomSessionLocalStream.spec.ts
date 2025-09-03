@@ -123,7 +123,7 @@ test.describe('RoomSession with custom local stream', () => {
 
     const after = await expectPageEvalToPass(page, {
       evaluateFn: async () => {
-        const roomObj: Video.RoomSession = (window as any)._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
 
         const newStream = await navigator.mediaDevices.getUserMedia({
           audio: true,

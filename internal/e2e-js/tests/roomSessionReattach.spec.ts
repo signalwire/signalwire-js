@@ -72,8 +72,7 @@ test.describe('RoomSessionReattach', () => {
 
       await expectPageEvalToPass(page, {
         evaluateFn: () => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
+          const roomObj = window._roomObj as Video.RoomSession
           return roomObj.permissions
         },
         assertionFn: (roomPermissions) =>
