@@ -90,8 +90,8 @@ test.describe('RoomSessionReattach', () => {
       const rejoinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
         message: `Waiting for room.joined after reattach (${row.join_as})`,
-        timeoutMs: 30_000,
-        interval: [30_000],
+        timeout: 30_000,
+        intervals: [30_000],
       })
       await joinRoom(page, { message: `Rejoining room as ${row.join_as}` })
       const reattachParams = await rejoinedPromise
@@ -126,8 +126,8 @@ test.describe('RoomSessionReattach', () => {
       const rejoinedPromise2 = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
         message: `Waiting for room.joined after reattach-2 (${row.join_as})`,
-        timeoutMs: 30_000,
-        interval: [30_000],
+        timeout: 30_000,
+        intervals: [30_000],
       })
       await joinRoom(page, { message: `Rejoining room (2) as ${row.join_as}` })
       const reattachParams2 = await rejoinedPromise2

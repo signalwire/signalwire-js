@@ -1904,8 +1904,8 @@ export const expectRoomJoinedEvent = async (
       expect(interactivityMode).toEqual(mode)
     },
     message: 'Expected room.joined event to be received',
-    timeoutMs: 30_000,
-    interval: [30_000],
+    timeout: 30_000,
+    intervals: [30_000],
     ...rest,
   })
 }
@@ -2059,6 +2059,12 @@ export const expectToPass = async (
   return await expect(assertion, assertionMessage).toPass(mergedOptions)
 }
 
+interface WaitForFunctionParams<TArgs, TResult>
+  extends BaseExpectPageEvalToPassParams {
+  evaluateArgs?: TArgs
+  evaluateFn: PageFunction<TArgs, TResult>
+}
+
 /**
  * @description
  * Waits for a function to return a truthy value or not throw within the page context.
@@ -2078,20 +2084,14 @@ export const waitForFunction = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     message,
-    interval = [10_000],
-    timeoutMs = 10_000,
-  }: {
-    evaluateArgs?: TArgs
-    evaluateFn: PageFunction<TArgs, TResult>
-    message: string
-    interval?: number[]
-    timeoutMs?: number
-  }
+    intervals = [10_000],
+    timeout = 10_000,
+  }: WaitForFunctionParams<TArgs, TResult>
 ) => {
   try {
     const mergedOptions = {
-      interval: interval ?? [10_000], // 20 seconds to avoid polling
-      timeout: timeoutMs ?? 10_000,
+      intervals: intervals ?? [10_000], // 10 seconds to avoid polling
+      timeout: timeout ?? 10_000,
       message,
     }
     if (evaluateArgs) {
@@ -2111,8 +2111,8 @@ export const waitForFunction = async <TArgs, TResult>(
 
 interface BaseExpectPageEvalToPassParams {
   message: string
-  interval?: number[]
-  timeoutMs?: number
+  intervals?: number[]
+  timeout?: number
 }
 
 interface ExpectPageEvalToPassParams<TArgs, TResult>
@@ -2141,8 +2141,8 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     message,
-    interval = [10_000],
-    timeoutMs = 10_000,
+    intervals = [10_000],
+    timeout = 10_000,
   }: ExpectPageEvalToPassParams<TArgs, TResult>
 ) => {
   // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
@@ -2163,7 +2163,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
       await assertionFn(result)
     },
     { message: message },
-    { timeout: timeoutMs, intervals: interval }
+    { timeout, intervals }
   )
   return result
 }

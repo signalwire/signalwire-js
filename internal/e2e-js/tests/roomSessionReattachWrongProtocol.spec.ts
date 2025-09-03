@@ -64,22 +64,6 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // Try to join but expect to join with a different callId/memberId
-    // const reattachParams: any = await page.evaluate((roomName) => {
-    //   console.log('Joining again room:', roomName)
-    //   return new Promise((resolve) => {
-    //     const roomObj = window._roomObj as Video.RoomSession
-    //     roomObj.on('room.joined', resolve)
-
-    //     // Inject wrong values for protocol ID
-    //     const key = `pt-${roomName}`
-    //     const state = btoa('wrong protocol')
-    //     window.sessionStorage.setItem(key, state)
-    //     console.log(`Injected protocol for ${key} with value ${state}`)
-
-    //     return roomObj.join()
-    //   })
-    // }, joinParams.room_session.name)
-
     const reattachParams: any = await expectPageEvalToPass(page, {
       evaluateArgs: joinParams.room_session.name,
       evaluateFn: (roomName) => {
@@ -101,8 +85,8 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
         expect(params).toBeDefined()
       },
       message: 'Expected to rejoin with new protocol state',
-      timeoutMs: 30_000,
-      interval: [30_000],
+      timeout: 30_000,
+      intervals: [30_000],
     })
 
     expect(reattachParams.room).toBeDefined()

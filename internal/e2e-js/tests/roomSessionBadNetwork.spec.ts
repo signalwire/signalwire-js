@@ -52,8 +52,8 @@ test.describe('roomSessionBadNetwork', () => {
 
       const firstMediaConnectedPromise = expectMediaEvent(page, {
         event: 'media.connected',
-        timeoutMs: 15_000,
-        interval: [15_000],
+        timeout: 15_000,
+        intervals: [15_000],
         message: 'first media.connected event was not received',
       })
 
@@ -97,8 +97,8 @@ test.describe('roomSessionBadNetwork', () => {
 
       const secondMediaConnectedPromise = expectMediaEvent(page, {
         event: 'media.connected',
-        timeoutMs: 50_000, // Longer timeout since we expect the event to be received once the network is up
-        interval: [50_000], // To avoid polling
+        timeout: 50_000, // Longer timeout since we expect the event to be received once the network is up
+        intervals: [50_000], // To avoid polling
         message: 'second media.connected event was not received',
       })
 

@@ -71,8 +71,8 @@ test.describe('RoomSession Update Media', () => {
         },
         assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (inactive/sendonly)',
-        timeoutMs: 30_000,
-        interval: [30_000],
+        timeout: 30_000,
+        intervals: [30_000],
       })
 
       lastAudioPacketsSent = await waitForStabilizedStats(page, {
@@ -133,8 +133,8 @@ test.describe('RoomSession Update Media', () => {
         },
         assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (sendrecv/recvonly)',
-        timeoutMs: 30_000,
-        interval: [30_000],
+        timeout: 30_000,
+        intervals: [30_000],
       })
 
       await expectStatWithPolling(page, {
@@ -192,8 +192,8 @@ test.describe('RoomSession Update Media', () => {
         },
         assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (sendonly/inactive)',
-        timeoutMs: 30_000,
-        interval: [30_000],
+        timeout: 30_000,
+        intervals: [30_000],
       })
 
       await expectStatWithPolling(page, {
@@ -256,8 +256,8 @@ test.describe('RoomSession Update Media', () => {
         },
         assertionFn: (ok) => expect(ok).toBe(true),
         message: 'Expected updateMedia to apply directions (recvonly/sendrecv)',
-        timeoutMs: 30_000,
-        interval: [30_000],
+        timeout: 30_000,
+        intervals: [30_000],
       })
 
       await waitForStabilizedStats(page, {

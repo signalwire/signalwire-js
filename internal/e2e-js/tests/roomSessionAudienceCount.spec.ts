@@ -87,8 +87,8 @@ test.describe('RoomSession Audience Count', () => {
             assertionFn: (params) => {
               expect(params).toBeDefined()
             },
-            timeoutMs: 50_000,
-            interval: [50_000],
+            timeout: 50_000,
+            intervals: [50_000],
             message: 'Expected room.audienceCount to reach expected total',
           })
         },
