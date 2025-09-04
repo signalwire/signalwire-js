@@ -56,13 +56,3 @@ jobs:
     needs: tests
     uses: ./.github/workflows/realtime-api-production.yml
     secrets: inherit
-  run-browser-client-staging:
-    name: Browser Client SDK staging
-    needs: tests
-    uses: ./.github/workflows/browser-client-staging.yml
-    secrets: inherit
-  run-browser-client-production:
-    name: Browser Client SDK production
-    needs: tests
-    uses: ./.github/workflows/browser-client-production.yml
-    secrets: inherit
