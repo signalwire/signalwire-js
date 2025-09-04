@@ -53,7 +53,7 @@ test.describe('Room Streaming from REST API', () => {
     await expectMCUVisible(pageOne)
 
     // Visit the stream page and wait for the stream to be visible on pageTwo
-    test.step('Visit the stream check URL and expect the stream to be visible on pageTwo', async () => {
+    await test.step('Visit the stream check URL and expect the stream to be visible on pageTwo', async () => {
       await expect
         .poll(
           async () => {

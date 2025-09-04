@@ -62,13 +62,13 @@ const test = baseTest.extend<CustomFixture>({
        * Invoke `.leave()` only if we have a valid `roomSessionId`.
        * Then double check the SDK elements got properly removed from the DOM.
        */
-      await Promise.allSettled(context.pages().map(leaveRoom))
+      await Promise.all(context.pages().map(leaveRoom))
 
       /**
        * The Call Fabric SDK does not destory the client when the call is finished.
        * Make sure we cleanup the client as well.
        */
-      await Promise.allSettled(context.pages().map(disconnectClient))
+      await Promise.all(context.pages().map(disconnectClient))
     }
   },
   createCustomVanillaPage: async ({ context }, use) => {
