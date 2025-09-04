@@ -205,10 +205,10 @@ test.describe('expectPageEvalToPass', () => {
     const page = await createCustomPage({ name: '[page]' })
 
     const result = await expectPageEvalToPass(page, {
+      evaluateFn: () => true,
       assertionFn: (result) => {
         expect(result).toBe(true)
       },
-      evaluateFn: () => true,
       message: 'pass - resolve when the function returns a truthy value',
     })
 
@@ -216,10 +216,10 @@ test.describe('expectPageEvalToPass', () => {
 
     // with promise
     const result2 = await expectPageEvalToPass(page, {
+      evaluateFn: () => Promise.resolve(true),
       assertionFn: (result) => {
         expect(result).toBe(true)
       },
-      evaluateFn: () => Promise.resolve(true),
       message: 'pass - resolve when the function returns a truthy value',
     })
     expect(result2).toBe(true)
@@ -232,6 +232,13 @@ test.describe('expectPageEvalToPass', () => {
 
     await expect(
       expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          return new Promise((_resolve, reject) => {
+            setTimeout(() => {
+              reject(new Error('test error'))
+            }, 100)
+          })
+        },
         assertionFn: (result: unknown) => {
           // should not be called because the evaluateFn throws an error
           expect(result).not.toBeInstanceOf(Error)
@@ -240,13 +247,6 @@ test.describe('expectPageEvalToPass', () => {
           })
           // should never pass to ensure expect().toPass() does not resolve
           expect(false).toBe(true)
-        },
-        evaluateFn: () => {
-          return new Promise((_resolve, reject) => {
-            setTimeout(() => {
-              reject(new Error('test error'))
-            }, 100)
-          })
         },
         message: 'expect error',
       })
@@ -259,14 +259,6 @@ test.describe('expectPageEvalToPass', () => {
     const page = await createCustomPage({ name: '[page]' })
 
     const result = await expectPageEvalToPass(page, {
-      assertionFn: (result) => {
-        expect(result).toMatchObject({
-          param: 'test',
-          param2: false,
-          param3: 123,
-          param4: {},
-        })
-      },
       evaluateArgs: {
         param: 'test',
         param2: false,
@@ -275,6 +267,14 @@ test.describe('expectPageEvalToPass', () => {
       },
       evaluateFn: (params) => {
         return params
+      },
+      assertionFn: (result) => {
+        expect(result).toMatchObject({
+          param: 'test',
+          param2: false,
+          param3: 123,
+          param4: {},
+        })
       },
       message: 'pass - resolve when the function returns a truthy value',
     })
@@ -294,14 +294,14 @@ test.describe('expectPageEvalToPass', () => {
 
     await expect(
       expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          // should never be called
-          expect(result).not.toMatch('should not resolve')
-        },
         evaluateFn: () => {
           return new Promise((resolve) =>
             setTimeout(() => resolve('should not resolve'), 5000)
           )
+        },
+        assertionFn: (result) => {
+          // should never be called
+          expect(result).not.toMatch('should not resolve')
         },
         message: 'timeout - should timeout when page evaluation takes too long',
         timeoutMs: 100,

@@ -57,11 +57,7 @@ export default defineConfig({
   plugins: [listPlugin()],
   base: process.env.VITE_BASE ?? '/',
   resolve: {
-    alias: {
-      '@signalwire/client': path.resolve(__dirname, '../../packages/client/src'),
-      '@signalwire/core': path.resolve(__dirname, '../../packages/core/src'),
-      '@signalwire/webrtc': path.resolve(__dirname, '../../packages/webrtc/src'),
-    },
+    alias: {},
   },
   optimizeDeps: {
     include: ['@signalwire/client', '@signalwire/core', '@signalwire/webrtc'],
