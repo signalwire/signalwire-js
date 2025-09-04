@@ -1,11 +1,12 @@
 import { uuid } from '@signalwire/core'
 import { CallSession, CallJoinedEventParams } from '@signalwire/client'
-import { test, expect } from '../../fixtures'
+import { test, expect, CustomPage } from '../../fixtures'
 import {
   SERVER_URL,
   createCFClient,
   dialAddress,
   expectMCUVisible,
+  expectPageEvalToPass,
 } from '../../utils'
 
 test.describe('CallCall Audio Flags', () => {
@@ -13,133 +14,285 @@ test.describe('CallCall Audio Flags', () => {
     createCustomPage,
     resource,
   }) => {
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
+    let page = {} as CustomPage
+    let roomName = ''
+    let roomSessionBefore = {} as CallJoinedEventParams
+    let roomSessionAfter = {} as CallJoinedEventParams
+    let memberId = ''
 
-    const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await test.step('setup page, room and initial call', async () => {
+      page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
 
-    await createCFClient(page)
+      roomName = `e2e_${uuid()}`
+      await resource.createVideoRoomResource(roomName)
 
-    // Dial an address and join a video room
-    const roomSessionBefore: CallJoinedEventParams = await dialAddress(page, {
-      address: `/public/${roomName}?channel=video`,
-    })
-    expect(roomSessionBefore.room_session).toBeDefined()
-    await expectMCUVisible(page)
-    const memberId = roomSessionBefore.member_id
+      await createCFClient(page)
 
-    // --------------- Set audio flags (self) ---------------
-    await test.step('change audio flags', async () => {
-      await page.evaluate(async (memberId) => {
-        // @ts-expect-error
-        const callObj: CallSession = window._callObj
-
-        const memberUpdatedEvent = new Promise((res) => {
-          callObj.on('member.updated', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('noise_suppression') &&
-              params.member.updated.includes('echo_cancellation') &&
-              params.member.updated.includes('auto_gain') &&
-              params.member.auto_gain === false &&
-              params.member.echo_cancellation === false &&
-              params.member.noise_suppression === false
-            ) {
-              res(true)
-            }
-          })
-        })
-        const memberUpdatedAutoGainEvent = new Promise((res) => {
-          callObj.on('member.updated.autoGain', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('auto_gain') &&
-              params.member.auto_gain === false
-            ) {
-              res(true)
-            }
-          })
-        })
-        const memberUpdatedEchoCancellationEvent = new Promise((res) => {
-          callObj.on('member.updated.echoCancellation', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('echo_cancellation') &&
-              params.member.echo_cancellation === false
-            ) {
-              res(true)
-            }
-          })
-        })
-        const memberUpdatedNoiseSuppressionEvent = new Promise((res) => {
-          callObj.on('member.updated.noiseSuppression', (params) => {
-            if (
-              params.member.member_id === memberId &&
-              params.member.updated.includes('noise_suppression') &&
-              params.member.noise_suppression === false
-            ) {
-              res(true)
-            }
-          })
-        })
-
-        await callObj.setAudioFlags({
-          autoGain: false,
-          echoCancellation: false,
-          noiseSuppression: false,
-        })
-
-        return Promise.all([
-          memberUpdatedEvent,
-          memberUpdatedAutoGainEvent,
-          memberUpdatedEchoCancellationEvent,
-          memberUpdatedNoiseSuppressionEvent,
-        ])
-      }, memberId)
-    })
-
-    const roomSessionAfter =
-      await test.step('reload page and reattach', async () => {
-        await page.reload({ waitUntil: 'domcontentloaded' })
-        await createCFClient(page)
-
-        // Reattach to an address to join the same call session
-        const roomSession: CallJoinedEventParams = await page.evaluate(
-          async ({ roomName }) => {
-            return new Promise(async (resolve, _reject) => {
-              const client = window._client!
-
-              const call = await client.reattach({
-                to: `/public/${roomName}?channel=video`,
-                rootElement: document.getElementById('rootElement'),
-              })
-
-              call.on('call.joined', resolve)
-
-              // @ts-expect-error
-              window._callObj = call
-              await call.start()
-            })
-          },
-          { roomName }
-        )
-
-        return roomSession
+      // Dial an address and join a video room
+      roomSessionBefore = await dialAddress(page, {
+        address: `/public/${roomName}?channel=video`,
       })
 
+      expect(
+        roomSessionBefore.room_session,
+        'room session should be defined'
+      ).toBeDefined()
+      await expectMCUVisible(page)
+
+      memberId = roomSessionBefore.member_id
+      expect(memberId, 'member ID should be defined').toBeDefined()
+    })
+
+    await test.step('change audio flags', async () => {
+      // Set up all event listeners first
+      const memberUpdatedEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { memberId },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            const callObj = window._callObj
+
+            if (!callObj) {
+              throw new Error('Call object not found')
+            }
+
+            callObj.on('member.updated', (eventParams) => {
+              if (
+                eventParams.member.member_id === params.memberId &&
+                eventParams.member.updated.includes('noise_suppression') &&
+                eventParams.member.updated.includes('echo_cancellation') &&
+                eventParams.member.updated.includes('auto_gain') &&
+                eventParams.member.auto_gain === false &&
+                eventParams.member.echo_cancellation === false &&
+                eventParams.member.noise_suppression === false
+              ) {
+                resolve(true)
+              }
+            })
+          })
+        },
+        assertionFn: (result) => {
+          expect(result, 'member updated event should resolve').toBe(true)
+        },
+        message: 'expect member updated event',
+      })
+
+      const memberUpdatedAutoGainEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { memberId },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            const callObj = window._callObj
+
+            if (!callObj) {
+              throw new Error('Call object not found')
+            }
+
+            callObj.on('member.updated.autoGain', (eventParams) => {
+              if (
+                eventParams.member.member_id === params.memberId &&
+                eventParams.member.updated.includes('auto_gain') &&
+                eventParams.member.auto_gain === false
+              ) {
+                resolve(true)
+              }
+            })
+          })
+        },
+        assertionFn: (result) => {
+          expect(result, 'auto gain updated event should resolve').toBe(true)
+        },
+        message: 'expect member updated auto gain event',
+      })
+
+      const memberUpdatedEchoCancellationEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { memberId },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            const callObj = window._callObj
+
+            if (!callObj) {
+              throw new Error('Call object not found')
+            }
+
+            callObj.on('member.updated.echoCancellation', (eventParams) => {
+              if (
+                eventParams.member.member_id === params.memberId &&
+                eventParams.member.updated.includes('echo_cancellation') &&
+                eventParams.member.echo_cancellation === false
+              ) {
+                resolve(true)
+              }
+            })
+          })
+        },
+        assertionFn: (result) => {
+          expect(result, 'echo cancellation updated event should resolve').toBe(
+            true
+          )
+        },
+        message: 'expect member updated echo cancellation event',
+      })
+
+      const memberUpdatedNoiseSuppressionEvent = expectPageEvalToPass(page, {
+        evaluateArgs: { memberId },
+        evaluateFn: (params) => {
+          return new Promise<boolean>((resolve) => {
+            const callObj = window._callObj
+
+            if (!callObj) {
+              throw new Error('Call object not found')
+            }
+
+            callObj.on('member.updated.noiseSuppression', (eventParams) => {
+              if (
+                eventParams.member.member_id === params.memberId &&
+                eventParams.member.updated.includes('noise_suppression') &&
+                eventParams.member.noise_suppression === false
+              ) {
+                resolve(true)
+              }
+            })
+          })
+        },
+        assertionFn: (result) => {
+          expect(result, 'noise suppression updated event should resolve').toBe(
+            true
+          )
+        },
+        message: 'expect member updated noise suppression event',
+      })
+
+      // Trigger the audio flags change
+      await expectPageEvalToPass(page, {
+        evaluateFn: async () => {
+          const callObj = window._callObj
+
+          if (!callObj) {
+            throw new Error('Call object not found')
+          }
+
+          await callObj.setAudioFlags({
+            autoGain: false,
+            echoCancellation: false,
+            noiseSuppression: false,
+          })
+          return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'audio flags should be set successfully').toBe(true)
+        },
+        message: 'expect audio flags to be set',
+      })
+
+      // Wait for all events to complete
+      await memberUpdatedEvent
+      await memberUpdatedAutoGainEvent
+      await memberUpdatedEchoCancellationEvent
+      await memberUpdatedNoiseSuppressionEvent
+    })
+
+    await test.step('reload page and reattach', async () => {
+      await page.reload({ waitUntil: 'domcontentloaded' })
+      await createCFClient(page)
+
+      // Set up the reattach call
+      await expectPageEvalToPass(page, {
+        evaluateArgs: { roomName },
+        evaluateFn: async (params) => {
+          const client = window._client
+
+          if (!client) {
+            throw new Error('Client not found')
+          }
+
+          const call = client.reattach({
+            to: `/public/${params.roomName}?channel=video`,
+            rootElement: document.getElementById('rootElement'),
+          })
+
+          window._callObj = call
+          return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'reattach call should be created successfully').toBe(
+            true
+          )
+        },
+        message: 'expect reattach call to be created',
+      })
+
+      // Set up listener for call.joined event
+      const callJoinedEvent = expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          return new Promise<CallJoinedEventParams>((resolve) => {
+            const call = window._callObj
+
+            if (!call) {
+              throw new Error('Call object not found')
+            }
+
+            call.on('call.joined', (params) => resolve(params))
+          })
+        },
+        assertionFn: (result) => {
+          expect(result, 'call joined event should be received').toBeDefined()
+          expect(
+            result.room_session,
+            'call joined should include room session'
+          ).toBeDefined()
+        },
+        message: 'expect call joined event',
+      })
+
+      // Start the reattach call
+      await expectPageEvalToPass(page, {
+        evaluateFn: async () => {
+          const call = window._callObj
+
+          if (!call) {
+            throw new Error('Call object not found')
+          }
+
+          await call.start()
+          return true
+        },
+        assertionFn: (result) => {
+          expect(result, 'call should start successfully').toBe(true)
+        },
+        message: 'expect reattach call to start',
+      })
+
+      // Wait for the call.joined event to complete
+      roomSessionAfter = await callJoinedEvent
+    })
+
     await test.step('assert room state', async () => {
-      expect(roomSessionAfter.room_session).toBeDefined()
-      expect(roomSessionAfter.call_id).toEqual(roomSessionBefore.call_id)
+      expect(
+        roomSessionAfter.room_session,
+        'room session after reattach should be defined'
+      ).toBeDefined()
+      expect(
+        roomSessionAfter.call_id,
+        'call ID should match original call'
+      ).toEqual(roomSessionBefore.call_id)
 
       const selfMember = roomSessionAfter.room_session.members.find(
         (member) => member.member_id === roomSessionAfter.member_id
       )
 
-      expect(selfMember).toBeDefined()
-      expect(selfMember?.auto_gain).toBe(false)
-      expect(selfMember?.echo_cancellation).toBe(false)
-      expect(selfMember?.noise_suppression).toBe(false)
+      expect(selfMember, 'self member should be found').toBeDefined()
+      expect(
+        selfMember?.auto_gain,
+        'auto gain should be false after reattach'
+      ).toBe(false)
+      expect(
+        selfMember?.echo_cancellation,
+        'echo cancellation should be false after reattach'
+      ).toBe(false)
+      expect(
+        selfMember?.noise_suppression,
+        'noise suppression should be false after reattach'
+      ).toBe(false)
     })
   })
 
