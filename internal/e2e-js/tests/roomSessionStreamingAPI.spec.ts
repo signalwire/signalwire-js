@@ -9,7 +9,6 @@ import {
   expectMCUVisible,
   expectRoomJoinedEvent,
   joinRoom,
-  expectToPass,
 } from '../utils'
 
 test.describe('Room Streaming from REST API', () => {
@@ -53,23 +52,27 @@ test.describe('Room Streaming from REST API', () => {
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
-    // Visit the stream page on pageTwo to make sure it's working
-    test.step('Visit the stream check URL', async () => {
-      const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
-      await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
-    })
-
-    // Wait for the stream to be visible on pageTwo
-    test.step('Expect the stream to be visible on pageTwo', async () => {
-      await expectToPass(
-        async () => {
-          const locator = pageTwo.getByText(streamName)
-          await pageTwo.reload({ waitUntil: 'domcontentloaded' })
-          await expect(locator).toBeVisible({ timeout: 0 })
-        },
-        { message: 'Stream is not visible' },
-        { timeout: 60_000, intervals: [500] }
-      )
+    // Visit the stream page and wait for the stream to be visible on pageTwo
+    test.step('Visit the stream check URL and expect the stream to be visible on pageTwo', async () => {
+      await expect
+        .poll(
+          async () => {
+            try {
+              await pageTwo.goto(process.env.STREAM_CHECK_URL!, {
+                waitUntil: 'domcontentloaded',
+              })
+              return await pageTwo.getByText(streamName).isVisible()
+            } catch {
+              return false
+            }
+          },
+          {
+            timeout: 60_000,
+            intervals: [1000],
+            message: 'Stream is not visible after 60s',
+          }
+        )
+        .toBe(true)
     })
 
     await deleteRoom(roomData.id)
