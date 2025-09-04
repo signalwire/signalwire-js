@@ -482,7 +482,7 @@ export const leaveRoom = async (page: Page) => {
       }
 
       return {
-        videos: Array.from(document.querySelectorAll('video')).length,
+        videos: Array.from(document.querySelectorAll('video'))?.length ?? 0,
         rootEl: document.getElementById('rootElement')?.childElementCount ?? 0,
       }
     },
