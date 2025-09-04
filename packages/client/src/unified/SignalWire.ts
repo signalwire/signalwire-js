@@ -22,10 +22,10 @@ export const SignalWire = (() => {
   let instance: Promise<SignalWireClient> | null = null
 
   return (params: SignalWireClientParams): Promise<SignalWireClient> => {
-    const { clientId = 'default', storage } = params
+    const { profileId } = params
 
-    // Only use singleton pattern if using default clientId and no custom storage
-    const useSingleton = clientId === 'default' && !storage
+    // Only use singleton pattern if using profileId
+    const useSingleton = !profileId
 
     if (!useSingleton) {
       // For non-default clientId or custom storage, always create a new instance
@@ -47,19 +47,14 @@ export const SignalWire = (() => {
 export async function createSignalWireClient(
   params: SignalWireClientParams
 ): Promise<SignalWireClient> {
-  const {
-    clientId = 'default',
-    storage,
-    shouldDisconnect,
-    ...restParams
-  } = params
+  const { profileId, storage, shouldDisconnect, ...restParams } = params
 
   // Create storage wrapper if storage is provided
-  const wrappedStorage = storage
-    ? new StorageWrapper(storage, clientId)
-    : undefined
+  const wrappedStorage =
+    storage && profileId ? new StorageWrapper(storage, profileId) : undefined
 
   const options = {
+    profileId,
     maxApiRequestRetries: DEFAULT_API_REQUEST_RETRIES,
     apiRequestRetriesDelay: DEFAULT_API_REQUEST_RETRIES_DELAY,
     apiRequestRetriesDelayIncrement:

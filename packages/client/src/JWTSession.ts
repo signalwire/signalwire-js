@@ -47,7 +47,10 @@ export class JWTSession extends BaseJWTSession {
       return ''
     }
 
-    const { protocolKey } = sessionStorageManager(this.options.token)
+    const { protocolKey } = sessionStorageManager(
+      this.options.token,
+      this.options.profileId
+    )
     if (protocolKey) {
       this.logger.trace('Search protocol for', protocolKey)
       return (await getStorage()?.getItem(protocolKey)) ?? ''
@@ -60,7 +63,10 @@ export class JWTSession extends BaseJWTSession {
       return
     }
 
-    const { protocolKey } = sessionStorageManager(this.options.token)
+    const { protocolKey } = sessionStorageManager(
+      this.options.token,
+      this.options.profileId
+    )
     if (protocolKey) {
       this.logger.trace('Persist protocol', protocolKey, this.relayProtocol)
       getStorage()?.setItem(protocolKey, this.relayProtocol)
@@ -68,7 +74,10 @@ export class JWTSession extends BaseJWTSession {
   }
 
   override removeRelayProtocol() {
-    const { protocolKey } = sessionStorageManager(this.options.token)
+    const { protocolKey } = sessionStorageManager(
+      this.options.token,
+      this.options.profileId
+    )
     if (protocolKey) {
       this.logger.debug('Remove protocol', protocolKey, this.relayProtocol)
       getStorage()?.removeItem(protocolKey)
@@ -76,7 +85,10 @@ export class JWTSession extends BaseJWTSession {
   }
 
   override removePrevCallId() {
-    const { callIdKey } = sessionStorageManager(this.options.token)
+    const { callIdKey } = sessionStorageManager(
+      this.options.token,
+      this.options.profileId
+    )
     if (callIdKey) {
       this.logger.debug('Remove Call', callIdKey)
       getStorage()?.removeItem(callIdKey)
@@ -84,7 +96,10 @@ export class JWTSession extends BaseJWTSession {
   }
 
   protected override async retrieveSwAuthorizationState() {
-    const { authStateKey } = sessionStorageManager(this.options.token)
+    const { authStateKey } = sessionStorageManager(
+      this.options.token,
+      this.options.profileId
+    )
     if (authStateKey) {
       return (await getStorage()?.getItem(authStateKey)) ?? ''
     }
@@ -98,7 +113,10 @@ export class JWTSession extends BaseJWTSession {
       return
     }
 
-    const { authStateKey } = sessionStorageManager(this.options.token)
+    const { authStateKey } = sessionStorageManager(
+      this.options.token,
+      this.options.profileId
+    )
     if (authStateKey) {
       this.logger.trace('Persist auth state', authStateKey, state)
       getStorage()?.setItem(authStateKey, state)
@@ -106,7 +124,10 @@ export class JWTSession extends BaseJWTSession {
   }
 
   override removeSwAuthorizationState() {
-    const { authStateKey } = sessionStorageManager(this.options.token)
+    const { authStateKey } = sessionStorageManager(
+      this.options.token,
+      this.options.profileId
+    )
     if (authStateKey) {
       this.logger.trace('Remove auth state', authStateKey)
       getStorage()?.removeItem(authStateKey)

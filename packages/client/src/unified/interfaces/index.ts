@@ -5,8 +5,8 @@ import { WSClientContract, WSClientOptions } from './wsClient'
 import { SignalWireStorageContract } from '@signalwire/core'
 
 export interface SignalWireClientParams extends WSClientOptions {
-  /** Optional client ID for multi-instance support. Defaults to 'default' */
-  clientId?: string
+  /** Optional profileId ID for multi-instance support. Defaults to 'default' */
+  profileId?: string
   /** Optional storage implementation for persisting client data */
   storage?: SignalWireStorageContract
 

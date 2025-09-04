@@ -36,6 +36,7 @@ export class InstanceManager implements InstanceManagerContract {
       const clientParams = {
         token: profile.credentials.satToken,
         host: profile.credentials.host,
+        profileId: profile.id,
         shouldDisconnect: () => {
           const managed = this.instances.get(instanceId)
           if ((managed?.usageCount ?? 0) > 1) {
