@@ -23,9 +23,6 @@ test.describe('Addresses', () => {
 
     await test.step('query multiple addresses and select one for comparison', async () => {
       addressToCompare = await expectPageEvalToPass(page, {
-        assertionFn: (result) => {
-          expect(result, 'second address should be defined').toBeDefined()
-        },
         evaluateFn: async () => {
           const client = window._client
 
@@ -35,7 +32,10 @@ test.describe('Addresses', () => {
 
           const response = await client.address.getAddresses()
 
-          return response.data[1]
+          return response.data[1] as GetAddressResponse
+        },
+        assertionFn: (result) => {
+          expect(result, 'second address should be defined').toBeDefined()
         },
         message: 'expect to get multiple addresses',
       })
@@ -170,11 +170,22 @@ test.describe('Addresses', () => {
 
       // Verify addresses are sorted in ascending order
       for (let i = 0; i < addressNames.length - 1; i++) {
+        const addressNameCurrent = addressNames[i]
+        const addressNameNext = addressNames[i + 1]
         expect(
-          addressNames[i] <= addressNames[i + 1],
-          `address '${addressNames[i]}' should come before or equal '${
-            addressNames[i + 1]
-          }' in ascending order`
+          addressNameCurrent,
+          'address name current should be defined'
+        ).toBeDefined()
+        expect(
+          addressNameNext,
+          'address name next should be defined'
+        ).toBeDefined()
+        if (!addressNameCurrent || !addressNameNext) {
+          throw new Error('Address name current or next is undefined')
+        }
+        expect(
+          addressNameCurrent <= addressNameNext,
+          `address '${addressNameCurrent}' should come before or equal '${addressNameNext}' in ascending order`
         ).toBeTruthy()
       }
     })
@@ -221,7 +232,12 @@ test.describe('Addresses', () => {
 
       const isSorted = (arr: string[]) => {
         for (let i = 0; i < arr.length - 1; i++) {
-          if (arr[i] < arr[i + 1]) {
+          const addressNameCurrent = arr[i]
+          const addressNameNext = arr[i + 1]
+          if (!addressNameCurrent || !addressNameNext) {
+            return false
+          }
+          if (addressNameCurrent < addressNameNext) {
             return false
           }
         }
