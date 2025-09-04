@@ -114,6 +114,94 @@ export type CallSessionEventsHandlerMap = Record<
 export type CallSessionEvents = {
   [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]
 }
+export interface CallListeners {
+  // Core Call Events
+  'call.joined': (stream: CallJoinedEventParams) => void
+  'call.updated': (stream: CallUpdatedEventParams) => void
+  'call.left': (stream: CallLeftEventParams) => void
+  'call.state': (stream: CallStateEventParams) => void
+  'call.play': (stream: CallPlayEventParams) => void
+  'call.connect': (stream: CallConnectEventParams) => void
+  'call.room': (stream: CallSessionEventParams) => void
+
+  // Room Events
+  'room.joined': (params: InternalCallJoinedEventParams) => void
+  'room.subscribed': (params: InternalCallJoinedEventParams) => void
+  'room.updated': (params: CallUpdatedEventParams) => void
+  'room.left': (params?: CallLeftEventParams) => void
+
+  // Member Events
+  'member.joined': (params: MemberJoinedEventParams) => void
+  'member.updated': (params: MemberUpdatedEventParams) => void
+  'member.updated.audioMuted': (params: MemberUpdatedEventParams) => void
+  'member.updated.videoMuted': (params: MemberUpdatedEventParams) => void
+  'member.updated.deaf': (params: MemberUpdatedEventParams) => void
+  'member.updated.visible': (params: MemberUpdatedEventParams) => void
+  'member.updated.onHold': (params: MemberUpdatedEventParams) => void
+  'member.updated.inputVolume': (params: MemberUpdatedEventParams) => void
+  'member.updated.outputVolume': (params: MemberUpdatedEventParams) => void
+  'member.updated.inputSensitivity': (params: MemberUpdatedEventParams) => void
+  'member.updated.handraised': (params: MemberUpdatedEventParams) => void
+  'member.updated.echoCancellation': (params: MemberUpdatedEventParams) => void
+  'member.updated.autoGain': (params: MemberUpdatedEventParams) => void
+  'member.updated.noiseCancellation': (params: MemberUpdatedEventParams) => void
+  'member.updated.noiseSuppression': (params: MemberUpdatedEventParams) => void
+  'member.left': (params: MemberLeftEventParams) => void
+  'member.talking': (params: MemberTalkingEventParams) => void
+  'memberList.updated': (params: CallMemberListUpdatedParams) => void
+
+  // Media Events (the ones that caused the original conflict!)
+  'media.connected': () => void
+  'media.reconnecting': () => void
+  'media.disconnected': () => void
+
+  // Connection Events
+  connecting: (params: CallSession) => void
+  connected: (params: CallSession) => void
+  disconnected: (params: CallSession) => void
+  disconnecting: (params: CallSession) => void
+  reconnecting: (params: CallSession) => void
+  reconnected: (params: CallSession) => void
+
+  // Additional BaseConnectionState events
+  active: (params: CallSession) => void
+  answering: (params: CallSession) => void
+  early: (params: CallSession) => void
+  hangup: (params: CallSession) => void
+  held: (params: CallSession) => void
+  new: (params: CallSession) => void
+  purge: (params: CallSession) => void
+  recovering: (params: CallSession) => void
+  requesting: (params: CallSession) => void
+  ringing: (params: CallSession) => void
+  trying: (params: CallSession) => void
+
+  // Layout Events
+  'layout.changed': (params: CallLayoutChangedEventParams) => void
+
+  // Device Events
+  'device.updated': (params: DeviceUpdatedEventParams) => void
+  'device.disconnected': (params: DeviceDisconnectedEventParams) => void
+
+  // Track Events
+  track: (event: RTCTrackEvent) => void
+
+  // Lifecycle Events
+  destroy: () => void
+
+  //
+  'camera.updated': (params: DeviceUpdatedEventParams) => void
+  'camera.disconnected': (params: DeviceDisconnectedEventParams) => void
+  'microphone.updated': (params: DeviceUpdatedEventParams) => void
+  'microphone.disconnected': (params: DeviceDisconnectedEventParams) => void
+  'speaker.updated': (params: DeviceUpdatedEventParams) => void
+  'speaker.disconnected': (params: DeviceDisconnectedEventParams) => void
+}
+
+//@ts-ignore
+function checkTypes(listener: CallListeners): CallSessionEvents {
+  return listener
+}
 
 export interface CallSessionContract {
   /** The `layout.changed` event based on the current room layout */
