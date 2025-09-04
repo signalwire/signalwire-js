@@ -12,7 +12,9 @@ import {
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -64,12 +66,19 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo, {
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo as audience',
     })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo as audience' })
+    const pageTwoRoomJoined = await pageTwoJoinedPromise
     const audienceId = pageTwoRoomJoined.member_id
     await expectMCUVisibleForAudience(pageTwo)
     await expectPageReceiveAudio(pageTwo)
@@ -85,18 +94,16 @@ test.describe('RoomSession promote/demote methods', () => {
     ])
     expect(layoutChangedResults).toStrictEqual([true, true])
 
-    const promisePromotedRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
-      invokeJoin: false,
-      joinAs: 'member',
+    const promisePromotedRoomJoined = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo after promote',
     })
 
-    // --------------- Promote audience from pageOne and resolve on `member.joined` ---------------
-    const promisePromoterMemberJoined = pageOne.evaluate(
-      async ({ promoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-
-        const waitForMemberJoined = new Promise((resolve, reject) => {
+    // -------- Promote audience from pageOne and resolve on `member.joined` ------
+    const memberJoinedEventPromise = expectPageEvalToPass(pageOne, {
+      evaluateFn: () =>
+        new Promise((resolve, reject) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
           roomObj.on('member.joined', ({ member }) => {
             if (member.name === 'e2e_audience') {
               resolve(true)
@@ -104,59 +111,70 @@ test.describe('RoomSession promote/demote methods', () => {
               reject(new Error('[member.joined] Name is not "e2e_audience"'))
             }
           })
-        })
+        }),
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'member.joined event is not recived',
+    })
 
+    await expectPageEvalToPass(pageOne, {
+      evaluateArgs: { promoteMemberId: audienceId },
+      evaluateFn: async ({ promoteMemberId }) => {
+        const roomObj = window._roomObj as Video.RoomSession
         await roomObj.promote({
           memberId: promoteMemberId,
           permissions: ['room.list_available_layouts'],
         })
-
-        return waitForMemberJoined
+        return true
       },
-      { promoteMemberId: audienceId }
-    )
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'audience is not promoted',
+    })
 
-    await Promise.all([promisePromoterMemberJoined, promisePromotedRoomJoined])
+    await Promise.all([promisePromotedRoomJoined, memberJoinedEventPromise])
 
     // Promotion done.
     await pageTwo.waitForTimeout(2000)
 
-    // Demote to audience again from pageOne
-    // and resolve on `member.left`
-    // and `layout.changed` with position off-canvas
-
-    const promiseDemotedRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
-      invokeJoin: false,
+    // -------- Demote to audience from pageOne and resolve on `member.left` and `layout.changed` with position off-canvas ------
+    const demotedMemberJoinedEventPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo after demote',
     })
 
-    const promiseMemberWaitingForMemberLeft = pageOne.evaluate(
-      async ({ demoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-
-        const waitForLayoutChangedDemotedInvisible = new Promise(
-          (resolve, reject) => {
-            roomObj.on('layout.changed', ({ layout }) => {
-              for (const layer of layout.layers) {
-                // console.log("Layer member ID:", layer.member_id, "Demoted member ID:", demoteMemberId, " Position:", layer.position)
-                if (
-                  layer.member_id === demoteMemberId &&
-                  layer.visible === true
-                ) {
-                  reject(
-                    new Error(
-                      '[layout.changed] Demoted member is still visible'
-                    )
-                  )
-                }
+    const layoutChangedEventPromise = expectPageEvalToPass(pageOne, {
+      evaluateArgs: { demoteMemberId: audienceId },
+      evaluateFn: ({ demoteMemberId }) => {
+        return new Promise((resolve, reject) => {
+          const roomObj = window._roomObj as Video.RoomSession
+          roomObj.on('layout.changed', ({ layout }) => {
+            for (const layer of layout.layers) {
+              if (
+                layer.member_id === demoteMemberId &&
+                layer.visible === true
+              ) {
+                reject(
+                  new Error('[layout.changed] Demoted member is still visible')
+                )
               }
-              resolve(true)
-            })
-          }
-        )
+            }
+            resolve(true)
+          })
+        })
+      },
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'layout.changed event is not received',
+    })
 
-        const waitForMemberLeft = new Promise((resolve, reject) => {
+    const memberLeftEventPromise = expectPageEvalToPass(pageOne, {
+      evaluateFn: () => {
+        return new Promise((resolve, reject) => {
+          const roomObj = window._roomObj as Video.RoomSession
           roomObj.on('member.left', ({ member }) => {
             if (member.name === 'e2e_audience') {
               resolve(true)
@@ -165,22 +183,32 @@ test.describe('RoomSession promote/demote methods', () => {
             }
           })
         })
+      },
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'member.left event is not received',
+    })
 
+    await expectPageEvalToPass(pageOne, {
+      evaluateArgs: { demoteMemberId: audienceId },
+      evaluateFn: async ({ demoteMemberId }) => {
+        const roomObj = window._roomObj as Video.RoomSession
         await roomObj.demote({
           memberId: demoteMemberId,
         })
-
-        return Promise.all([
-          waitForLayoutChangedDemotedInvisible,
-          waitForMemberLeft,
-        ])
+        return true
       },
-      { demoteMemberId: audienceId }
-    )
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'member is not demoted',
+    })
 
-    const [audienceRoomJoined, _] = await Promise.all([
-      promiseDemotedRoomJoined,
-      promiseMemberWaitingForMemberLeft,
+    const [audienceRoomJoined] = await Promise.all([
+      demotedMemberJoinedEventPromise,
+      layoutChangedEventPromise,
+      memberLeftEventPromise,
     ])
 
     await pageTwo.waitForTimeout(2000)

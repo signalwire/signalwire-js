@@ -7,7 +7,8 @@ import {
   expectInteractivityMode,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession promote updating member meta', () => {
@@ -46,15 +47,27 @@ test.describe('RoomSession promote updating member meta', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      joinAs: 'member',
+      message: 'Waiting for room.joined on pageOne (promote meta)',
+    })
+    await joinRoom(pageOne, {
+      message: 'Joining room on pageOne (promote meta)',
+    })
+    await pageOneJoinedPromise
 
     // Checks that the video is visible on pageOne
     await expectMCUVisible(pageOne)
 
     // --------------- Joining from the 2st tab as audience and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo, {
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo (promote meta)',
     })
+    await joinRoom(pageTwo, {
+      message: 'Joining room on pageTwo (promote meta)',
+    })
+    const pageTwoRoomJoined = await pageTwoJoinedPromise
 
     // Checks that the video is visible on pageTwo
     await expectMCUVisibleForAudience(pageTwo)

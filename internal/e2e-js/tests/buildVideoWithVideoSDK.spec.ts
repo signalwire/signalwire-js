@@ -1,30 +1,48 @@
-import { OverlayMap, LocalVideoOverlay, VideoRoomSession } from '@signalwire/js'
+import { OverlayMap } from '@signalwire/js'
 import { test, expect, Page } from '../fixtures'
 import {
   SERVER_URL,
   createTestRoomSession,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
+  expectRoomJoinedEvent,
+  joinRoom,
   randomizeRoomName,
+  waitForFunction,
 } from '../utils'
 
 test.describe('buildVideoElement with Video SDK', () => {
   const getOverlayMap = (page: Page) =>
-    page.evaluate<OverlayMap>(() => {
-      // @ts-expect-error
-      return window._roomObj.overlayMap
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return window._roomObj?.overlayMap
+      },
+      assertionFn: (overlayMap) => {
+        expect(overlayMap).toBeDefined()
+      },
+      message: 'Expected overlayMap to be defined',
     })
 
   const getOverlayMapSize = (page: Page) =>
-    page.evaluate<number>(() => {
-      // @ts-expect-error
-      return window._roomObj.overlayMap.size
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return window._roomObj?.overlayMap?.size
+      },
+      assertionFn: (overlayMapSize) => {
+        expect(overlayMapSize).toBeDefined()
+      },
+      message: 'Expected overlayMap size to be defined',
     })
 
   const getLocalVideoOverlay = (page: Page) =>
-    page.evaluate<LocalVideoOverlay>(() => {
-      // @ts-expect-error
-      return window._roomObj.localVideoOverlay
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return window._roomObj?.localVideoOverlay
+      },
+      assertionFn: (localVideoOverlay) => {
+        expect(localVideoOverlay).toBeDefined()
+      },
+      message: 'Expected localVideoOverlay to be defined',
     })
 
   const createRoomSession = (page: Page, options: any) => {
@@ -62,12 +80,23 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room without passing the rootElement
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise1 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (no rootElement)',
+    })
+    await joinRoom(page, { message: 'Joining room (no rootElement)' })
+    await joinedPromise1
 
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
-    expect(await getOverlayMap(page)).toBeUndefined()
-    expect(await getLocalVideoOverlay(page)).toBeUndefined()
+    expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return window._roomObj?.overlayMap as OverlayMap
+      },
+      assertionFn: (overlayMap) => {
+        expect(overlayMap).toBeUndefined()
+      },
+      message: 'Expected overlayMap to be not defined',
+    })
   })
 
   test('should return the rootElement', async ({ createCustomPage }) => {
@@ -82,25 +111,29 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room without passing the rootElement
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise2 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (return rootElement)',
+    })
+    await joinRoom(page, { message: 'Joining room (return rootElement)' })
+    await joinedPromise2
 
     // Build a video element
-    const { element } = await page.evaluate(async () => {
-      return new Promise<any>(async (resolve, _reject) => {
-        // @ts-expect-error
-        const call = window._roomObj
-        // @ts-expect-error
-        const { element } = await window._SWJS.buildVideoElement({
-          room: call,
+    const element = await waitForFunction(page, {
+      evaluateFn: () => {
+        return new Promise<HTMLElement>(async (resolve, _reject) => {
+          const call = window._roomObj
+          if (!call) {
+            throw new Error('Room object is not defined')
+          }
+          const { element } = await window._SWJS.buildVideoElement({
+            room: call,
+          })
+          resolve(element)
         })
-        // @ts-expect-error
-        window._element = element
-
-        resolve({ element })
-      })
+      },
+      message: 'Expected built HTMLElement to be defined',
     })
 
-    expect(element).toBeDefined()
     await expect(page.locator('div.mcuLayers > *')).toHaveCount(0)
     expect(await page.$$('div[id^="sw-sdk-"] > video')).toHaveLength(0)
     expect(await page.$$('div[id^="sw-overlay-"]')).toHaveLength(0)
@@ -109,12 +142,14 @@ test.describe('buildVideoElement with Video SDK', () => {
     expect(await getOverlayMapSize(page)).toBeGreaterThanOrEqual(1)
     expect(await getLocalVideoOverlay(page)).toBeDefined()
 
-    await page.evaluate(() => {
-      // @ts-expect-error
-      const element = window._element
-      document.body.appendChild(element)
-      // @ts-expect-error
-      delete window._element
+    await expectPageEvalToPass(page, {
+      evaluateArgs: element,
+      evaluateFn: (element) => {
+        document.body.appendChild(element)
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to append element to DOM',
     })
 
     await expectMCUVisible(page)
@@ -154,7 +189,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Join a video room and expect both video and member overlays
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise3 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (multiple video elements)',
+    })
+    await joinRoom(page, { message: 'Joining room (multiple video elements)' })
+    await joinedPromise3
 
     await expectMCUVisible(page)
 
@@ -173,23 +212,24 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Create and expect only video overlay
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const room = window._roomObj
+    const unsubscribe = await waitForFunction(page, {
+      evaluateFn: async () => {
+        const room = window._roomObj
+        if (!room) {
+          throw new Error('Room object is not defined')
+        }
+        const rootElement = document.createElement('div')
+        rootElement.id = 'rootElement2'
+        document.body.appendChild(rootElement)
 
-      const rootElement = document.createElement('div')
-      rootElement.id = 'rootElement2'
-      document.body.appendChild(rootElement)
-
-      // @ts-expect-error
-      const { unsubscribe } = await window._SWJS.buildVideoElement({
-        room,
-        rootElement,
-        applyMemberOverlay: false,
-      })
-
-      // @ts-expect-error
-      window._unsubscribe = unsubscribe
+        const { unsubscribe } = await window._SWJS.buildVideoElement({
+          room,
+          rootElement,
+          applyMemberOverlay: false,
+        })
+        return unsubscribe
+      },
+      message: 'Expected to create second video element',
     })
 
     await test.step('rootElement2: should have correct DOM elements and overlayMap', async () => {
@@ -207,20 +247,25 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     // Create and expect only member overlay
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const room = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const room = window._roomObj
+        if (!room) {
+          throw new Error('Room object is not defined')
+        }
+        const { element } = await window._SWJS.buildVideoElement({
+          room,
+          applyLocalVideoOverlay: false,
+        })
 
-      // @ts-expect-error
-      const { element } = await window._SWJS.buildVideoElement({
-        room,
-        applyLocalVideoOverlay: false,
-      })
-
-      const rootElement = document.createElement('div')
-      rootElement.id = 'rootElement3'
-      document.body.appendChild(rootElement)
-      rootElement.append(element)
+        const rootElement = document.createElement('div')
+        rootElement.id = 'rootElement3'
+        document.body.appendChild(rootElement)
+        rootElement.append(element)
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to create third (member-only) overlay',
     })
 
     await test.step('rootElement3: should have correct DOM elements and overlayMap', async () => {
@@ -235,17 +280,18 @@ test.describe('buildVideoElement with Video SDK', () => {
       ).toHaveLength(1)
       expect(await getOverlayMapSize(page)).toBe(1)
       expect(await getLocalVideoOverlay(page)).toBeDefined()
-      expect((await getLocalVideoOverlay(page)).domElement).not.toBeDefined()
+      expect((await getLocalVideoOverlay(page))?.domElement).not.toBeDefined()
     })
 
     // Unsubscribe from the 2nd video element
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const unsubscribe = window._unsubscribe
-      unsubscribe()
-
-      // @ts-expect-error
-      delete window._unsubscribe
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { unsubscribe },
+      evaluateFn: async ({ unsubscribe }) => {
+        unsubscribe()
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to unsubscribe second video element',
     })
 
     await test.step('unsubscribe2: should have correct DOM elements and overlayMap', async () => {
@@ -275,7 +321,7 @@ test.describe('buildVideoElement with Video SDK', () => {
       ).toHaveLength(1)
       expect(await getOverlayMapSize(page)).toBe(0)
       expect(await getLocalVideoOverlay(page)).toBeDefined()
-      expect((await getLocalVideoOverlay(page)).domElement).not.toBeDefined()
+      expect((await getLocalVideoOverlay(page))?.domElement).not.toBeDefined()
     })
   })
 
@@ -290,21 +336,31 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(page, { roomName })
 
     // Create a video element
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const room = window._roomObj
-      const rootElement = document.createElement('div')
-      rootElement.id = 'rootElement2'
-      document.body.appendChild(rootElement)
-      // @ts-expect-error
-      await window._SWJS.buildVideoElement({
-        room,
-        rootElement,
-      })
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const room = window._roomObj
+        if (!room) {
+          throw new Error('Room object is not defined')
+        }
+        const rootElement = document.createElement('div')
+        rootElement.id = 'rootElement2'
+        document.body.appendChild(rootElement)
+        await window._SWJS.buildVideoElement({
+          room,
+          rootElement,
+        })
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to create video element before room.joined',
     })
 
     // Join a video room
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise4 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (build before join)',
+    })
+    await joinRoom(page, { message: 'Joining room (build before join)' })
+    await joinedPromise4
 
     await expectMCUVisible(page)
 
@@ -327,19 +383,38 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(page, { roomName })
 
     // Join a video room with rootElement
-    await expectRoomJoinWithDefaults(page)
-    await expectRoomJoinWithDefaults(page)
+    const joinedPromise5 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (same rootElement 1)',
+    })
+    await joinRoom(page, { message: 'Joining room (same rootElement 1)' })
+    await joinedPromise5
+    const joinedPromise6 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (same rootElement 2)',
+    })
+    await joinRoom(page, { message: 'Joining room (same rootElement 2)' })
+    await joinedPromise6
 
     // Create a video element with the same rootElement
-    await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const room = window._roomObj
+        if (!room) {
+          throw new Error('Room object is not defined')
+        }
 
-      // @ts-expect-error
-      await window._SWJS.buildVideoElement({
-        room: call,
-        rootElement: document.getElementById('rootElement'),
-      })
+        const rootElement = document.getElementById('rootElement')
+        if (!rootElement) {
+          throw new Error('Root element is not defined')
+        }
+
+        await window._SWJS.buildVideoElement({
+          room,
+          rootElement,
+        })
+        return true
+      },
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected to build video element with same rootElement',
     })
 
     await expectMCUVisible(page)
@@ -365,7 +440,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(pageOne, { roomName })
 
     // Join a video room from pageOne
-    await expectRoomJoinWithDefaults(pageOne)
+    const joinedPromise7 = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined (multi user pageOne)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room (multi user pageOne)' })
+    await joinedPromise7
     await expectMCUVisible(pageOne)
 
     await test.step('should have correct DOM elements and overlayMap with one member', async () => {
@@ -379,7 +458,11 @@ test.describe('buildVideoElement with Video SDK', () => {
     await createRoomSession(pageTwo, { roomName })
 
     // Join a video room from pageTwo
-    await expectRoomJoinWithDefaults(pageTwo)
+    const joinedPromise8 = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined (multi user pageTwo)',
+    })
+    await joinRoom(pageTwo, { message: 'Joining room (multi user pageTwo)' })
+    await joinedPromise8
     await expectMCUVisible(pageTwo)
 
     await test.step('should have correct DOM elements and overlayMap with two members', async () => {
@@ -397,32 +480,36 @@ test.describe('buildVideoElement with Video SDK', () => {
     })
 
     await test.step('should return the element with getMemberOverlay', async () => {
-      const memberOneId = await pageOne.evaluate(() => {
-        // @ts-expect-error
-        return window._roomObj.memberId
+      const memberOneId = await expectPageEvalToPass(pageOne, {
+        evaluateFn: () => {
+          return window._roomObj?.memberId
+        },
+        assertionFn: (id) => expect(id).toBeDefined(),
+        message: 'Expected memberOneId to be defined',
       })
-      const memberTwoId = await pageTwo.evaluate(() => {
-        // @ts-expect-error
-        return window._roomObj.memberId
+      const memberTwoId = await expectPageEvalToPass(pageTwo, {
+        evaluateFn: () => {
+          return window._roomObj?.memberId
+        },
+        assertionFn: (id) => expect(id).toBeDefined(),
+        message: 'Expected memberTwoId to be defined',
       })
-      expect(memberOneId).toBeDefined()
-      expect(memberTwoId).toBeDefined()
 
-      const [memberOneElement, memberTwoElement] = await pageOne.evaluate(
-        ({ memberOneId, memberTwoId }) => {
-          // @ts-expect-error
-          const room: VideoRoomSession = window._roomObj
-
+      await expectPageEvalToPass(pageOne, {
+        evaluateArgs: { memberOneId, memberTwoId },
+        evaluateFn: ({ memberOneId, memberTwoId }) => {
+          const room = window._roomObj
           return [
-            room.getMemberOverlay(memberOneId),
-            room.getMemberOverlay(memberTwoId),
+            room?.getMemberOverlay(memberOneId!),
+            room?.getMemberOverlay(memberTwoId!),
           ]
         },
-        { memberOneId, memberTwoId }
-      )
-
-      expect(memberOneElement).toBeDefined()
-      expect(memberTwoElement).toBeDefined()
+        assertionFn: ([el1, el2]) => {
+          expect(el1).toBeDefined()
+          expect(el2).toBeDefined()
+        },
+        message: 'Expected member overlay elements to be defined',
+      })
     })
   })
 })

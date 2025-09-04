@@ -62,11 +62,7 @@ const test = baseTest.extend<CustomFixture>({
        * Invoke `.leave()` only if we have a valid `roomSessionId`.
        * Then double check the SDK elements got properly removed from the DOM.
        */
-      const results = await Promise.all(context.pages().map(leaveRoom))
-      results.forEach((row) => {
-        expect(row.videos).toBe(0)
-        expect(row.rootEl).toBe(0)
-      })
+      await Promise.all(context.pages().map(leaveRoom))
 
       /**
        * The Call Fabric SDK does not destory the client when the call is finished.

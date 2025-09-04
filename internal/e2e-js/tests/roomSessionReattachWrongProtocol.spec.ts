@@ -5,7 +5,9 @@ import {
   createTestRoomSession,
   randomizeRoomName,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectPageEvalToPass,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSessionReattachWrongProtocol', () => {
@@ -29,7 +31,9 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await expectRoomJoinWithDefaults(page)
+    const joinPromise = expectRoomJoinedEvent(page)
+    await joinRoom(page)
+    const joinParams = await joinPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -44,12 +48,15 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     // Checks that the video is visible
     await expectMCUVisible(page)
 
-    const roomPermissions: any = await page.evaluate(() => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.permissions
+    await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        return roomObj.permissions
+      },
+      assertionFn: (roomPermissions) =>
+        expect(roomPermissions).toStrictEqual(permissions),
+      message: 'Expected room permissions to match',
     })
-    expect(roomPermissions).toStrictEqual(permissions)
 
     // --------------- Reattaching ---------------
     await page.reload()
@@ -57,22 +64,30 @@ test.describe('RoomSessionReattachWrongProtocol', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // Try to join but expect to join with a different callId/memberId
-    const reattachParams: any = await page.evaluate((roomName) => {
-      console.log('Joining again room:', roomName)
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj = window._roomObj
-        roomObj.on('room.joined', resolve)
+    const reattachParams: any = await expectPageEvalToPass(page, {
+      evaluateArgs: joinParams.room_session.name,
+      evaluateFn: (roomName) => {
+        console.log('Joining again room:', roomName)
+        return new Promise(async (resolve) => {
+          const roomObj = window._roomObj as Video.RoomSession
+          roomObj.on('room.joined', resolve)
 
-        // Inject wrong values for protocol ID
-        const key = `pt-${roomName}`
-        const state = btoa('wrong protocol')
-        window.sessionStorage.setItem(key, state)
-        console.log(`Injected protocol for ${key} with value ${state}`)
+          // Inject wrong values for protocol ID
+          const key = `pt-${roomName}`
+          const state = 'wrong protocol'
+          window.sessionStorage.setItem(key, state)
+          console.log(`Injected protocol for ${key} with value ${state}`)
 
-        return roomObj.join()
-      })
-    }, joinParams.room_session.name)
+          await roomObj.join()
+        })
+      },
+      assertionFn: (params) => {
+        expect(params).toBeDefined()
+      },
+      message: 'Expected to rejoin with new protocol state',
+      timeout: 30_000,
+      intervals: [30_000],
+    })
 
     expect(reattachParams.room).toBeDefined()
     expect(reattachParams.room_session).toBeDefined()

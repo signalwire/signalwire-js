@@ -12,7 +12,8 @@ import {
   expectMCUVisibleForAudience,
   expectPageReceiveAudio,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('RoomSession promote/demote methods', () => {
@@ -64,12 +65,19 @@ test.describe('RoomSession promote/demote methods', () => {
       createTestRoomSession(pageTwo, audienceSettings),
     ])
 
-    await expectRoomJoinWithDefaults(pageOne)
+    const pageOneJoinedPromise = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined on pageOne',
+    })
+    await joinRoom(pageOne, { message: 'Joining room on pageOne' })
+    await pageOneJoinedPromise
     await expectMCUVisible(pageOne)
 
-    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo, {
+    const pageTwoJoinedPromise = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo (audience)',
     })
+    await joinRoom(pageTwo, { message: 'Joining room on pageTwo (audience)' })
+    const pageTwoRoomJoined = await pageTwoJoinedPromise
     const pageTwoMemberId = pageTwoRoomJoined.member_id
     await expectMCUVisibleForAudience(pageTwo)
     await expectPageReceiveAudio(pageTwo)
@@ -146,14 +154,18 @@ test.describe('RoomSession promote/demote methods', () => {
     await createTestRoomSession(pageTwo, promotedSettings)
 
     console.time('reattach')
-    const reattachParams: any = await expectRoomJoinWithDefaults(pageTwo)
+    const rejoinedPromise = expectRoomJoinedEvent(pageTwo, {
+      message: 'Waiting for room.joined on pageTwo after reattach',
+    })
+    await joinRoom(pageTwo, { message: 'Rejoining room on pageTwo' })
+    const reattachParams = await rejoinedPromise
     console.timeEnd('reattach')
 
     expect(reattachParams.room).toBeDefined()
     expect(reattachParams.room_session).toBeDefined()
     expect(
       reattachParams.room.members.some(
-        (member: any) => member.id === reattachParams.member_id
+        (member) => member.id === reattachParams.member_id
       )
     ).toBeTruthy()
     expect(reattachParams.room_session.name).toBe(roomName)
@@ -171,9 +183,9 @@ test.describe('RoomSession promote/demote methods', () => {
     // and resolve on `member.left`
     // and `layout.changed` with position off-canvas
 
-    const promiseAudienceRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
-      invokeJoin: false,
+    const promiseAudienceRoomJoined = expectRoomJoinedEvent(pageTwo, {
       joinAs: 'audience',
+      message: 'Waiting for room.joined on pageTwo after demote',
     })
 
     const promiseMemberWaitingForMemberLeft = pageOne.evaluate(

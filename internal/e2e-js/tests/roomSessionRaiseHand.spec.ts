@@ -5,7 +5,9 @@ import {
   createTestRoomSession,
   randomizeRoomName,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSession Raise/Lower hand', () => {
@@ -29,7 +31,11 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await createTestRoomSession(page, memberSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const joinedPromise = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (raise/lower priority)',
+    })
+    await joinRoom(page, { message: 'Joining room (raise/lower priority)' })
+    const joinParams = await joinedPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -40,12 +46,12 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await expectMCUVisible(page)
 
     // --------------- Set hand raise priority ---------------
-    await page.evaluate(
-      async ({ roomSessionId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { roomSessionId: joinParams.room_session.id },
+      evaluateFn: async ({ roomSessionId }) => {
+        const roomObj = window._roomObj as Video.RoomSession
 
-        const roomUpdated = new Promise((resolve) => {
+        const roomUpdated = new Promise<boolean>((resolve) => {
           roomObj.on('room.updated', (params) => {
             if (
               params.room_session.id === roomSessionId &&
@@ -60,8 +66,9 @@ test.describe('RoomSession Raise/Lower hand', () => {
 
         return roomUpdated
       },
-      { roomSessionId: joinParams.room_session.id }
-    )
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: 'Expected prioritize_handraise to be set to true',
+    })
   })
 
   test("should join a room and be able to raise/lower member's hand", async ({
@@ -84,7 +91,11 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await createTestRoomSession(page, memberSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams = await expectRoomJoinWithDefaults(page)
+    const joinedPromise2 = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (raise/lower hand)',
+    })
+    await joinRoom(page, { message: 'Joining room (raise/lower hand)' })
+    const joinParams = await joinedPromise2
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
@@ -94,12 +105,12 @@ test.describe('RoomSession Raise/Lower hand', () => {
     await expectMCUVisible(page)
 
     // --------------- Raise a member's hand ---------------
-    await page.evaluate(
-      async ({ roomSessionId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { roomSessionId: joinParams.room_session.id },
+      evaluateFn: async ({ roomSessionId }) => {
+        const roomObj = window._roomObj as Video.RoomSession
 
-        const memberUpdated = new Promise((resolve) => {
+        const memberUpdated = new Promise<boolean>((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
               params.room_session_id === roomSessionId &&
@@ -114,18 +125,19 @@ test.describe('RoomSession Raise/Lower hand', () => {
 
         return memberUpdated
       },
-      { roomSessionId: joinParams.room_session.id }
-    )
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: "Expected member's hand to be raised",
+    })
 
     await page.waitForTimeout(1000)
 
     // --------------- Lower a member's hand ---------------
-    await page.evaluate(
-      async ({ roomSessionId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await expectPageEvalToPass(page, {
+      evaluateArgs: { roomSessionId: joinParams.room_session.id },
+      evaluateFn: async ({ roomSessionId }) => {
+        const roomObj = window._roomObj as Video.RoomSession
 
-        const memberUpdated = new Promise((resolve) => {
+        const memberUpdated = new Promise<boolean>((resolve) => {
           roomObj.on('member.updated', (params) => {
             if (
               params.room_session_id === roomSessionId &&
@@ -140,7 +152,8 @@ test.describe('RoomSession Raise/Lower hand', () => {
 
         return memberUpdated
       },
-      { roomSessionId: joinParams.room_session.id }
-    )
+      assertionFn: (ok) => expect(ok).toBe(true),
+      message: "Expected member's hand to be lowered",
+    })
   })
 })

@@ -3,7 +3,8 @@ import type { Video } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
   expectMCUVisible,
   randomizeRoomName,
 } from '../utils'
@@ -51,7 +52,11 @@ test.describe('Room Session Multiple Streams', () => {
     }
 
     await createTestRoomSession(pageOne, connectionSettings)
-    await expectRoomJoinWithDefaults(pageOne)
+    const joinedPromise1 = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined (multiple streams A)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room (multiple streams A)' })
+    await joinedPromise1
 
     await expectMCUVisible(pageOne)
 
@@ -90,7 +95,11 @@ test.describe('Room Session Multiple Streams', () => {
     }
 
     await createTestRoomSession(pageOne, connectionSettings)
-    await expectRoomJoinWithDefaults(pageOne)
+    const joinedPromise2 = expectRoomJoinedEvent(pageOne, {
+      message: 'Waiting for room.joined (multiple streams B)',
+    })
+    await joinRoom(pageOne, { message: 'Joining room (multiple streams B)' })
+    await joinedPromise2
 
     await expectMCUVisible(pageOne)
 

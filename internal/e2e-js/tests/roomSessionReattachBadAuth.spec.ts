@@ -6,7 +6,9 @@ import {
   createTestRoomSessionWithJWT,
   randomizeRoomName,
   expectMCUVisible,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
+  expectPageEvalToPass,
 } from '../utils'
 
 test.describe('RoomSessionReattachBadAuth', () => {
@@ -30,13 +32,17 @@ test.describe('RoomSessionReattachBadAuth', () => {
     await createTestRoomSession(page, connectionSettings)
 
     // --------------- Joining the room ---------------
-    const joinParams: any = await expectRoomJoinWithDefaults(page)
+    const joinedPromise = expectRoomJoinedEvent(page, {
+      message: 'Waiting for room.joined (bad auth reattach)',
+    })
+    await joinRoom(page, { message: 'Joining room (bad auth reattach)' })
+    const joinParams = await joinedPromise
 
     expect(joinParams.room).toBeDefined()
     expect(joinParams.room_session).toBeDefined()
     expect(
       joinParams.room.members.some(
-        (member: any) => member.id === joinParams.member_id
+        (member) => member.id === joinParams.member_id
       )
     ).toBeTruthy()
     expect(joinParams.room_session.name).toBe(roomName)
@@ -45,16 +51,23 @@ test.describe('RoomSessionReattachBadAuth', () => {
     // Checks that the video is visible
     await expectMCUVisible(page)
 
-    const roomPermissions: any = await page.evaluate(() => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return roomObj.permissions
+    await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        return roomObj.permissions
+      },
+      assertionFn: (roomPermissions) =>
+        expect(roomPermissions).toStrictEqual(permissions),
+      message: 'Expected room permissions to match',
     })
-    expect(roomPermissions).toStrictEqual(permissions)
 
-    const jwtToken: string = await page.evaluate(() => {
-      // @ts-expect-error
-      return window.jwt_token
+    const jwtToken: string = await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        // @ts-expect-error
+        return window.jwt_token
+      },
+      assertionFn: (token) => expect(token).toBeDefined(),
+      message: 'Expected JWT token to be defined',
     })
 
     // --------------- Reattaching ---------------
@@ -63,19 +76,25 @@ test.describe('RoomSessionReattachBadAuth', () => {
     await createTestRoomSessionWithJWT(page, connectionSettings, jwtToken)
 
     // Join again but with a bogus authorization_state
-    const joinResponse: any = await page.evaluate(async (roomName) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+    const joinResponse: any = await expectPageEvalToPass(page, {
+      evaluateArgs: joinParams.room_session.name,
+      evaluateFn: async (roomName) => {
+        const roomObj = window._roomObj as Video.RoomSession
 
-      // Inject wrong values for authorization state
-      const key = `as-${roomName}`
-      const state = btoa('just wrong')
-      window.sessionStorage.setItem(key, state)
-      console.log(`Injected authorization state for ${key} with value ${state}`)
+        // Inject wrong values for authorization state
+        const key = `as-${roomName}`
+        const state = btoa('just wrong')
+        window.sessionStorage.setItem(key, state)
+        console.log(
+          `Injected authorization state for ${key} with value ${state}`
+        )
 
-      // Now try to reattach, which should not succeed
-      return roomObj.join().catch((error) => error)
-    }, joinParams.room_session.name)
+        // Now try to reattach, which should not succeed
+        return roomObj.join().catch((error) => error)
+      },
+      assertionFn: (res) => expect(res).toBeDefined(),
+      message: 'Expected join() to return an error object',
+    })
 
     const { code, message } = joinResponse
     expect([-32002, '27']).toContain(code)

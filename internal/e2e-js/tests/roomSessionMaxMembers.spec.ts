@@ -7,7 +7,8 @@ import {
   createRoom,
   randomizeRoomName,
   deleteRoom,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
 } from '../utils'
 
 test.describe('Room Session Max Members', () => {
@@ -46,8 +47,24 @@ test.describe('Room Session Max Members', () => {
     )
 
     await Promise.all([
-      expectRoomJoinWithDefaults(pageOne),
-      expectRoomJoinWithDefaults(pageTwo),
+      (async () => {
+        const p = expectRoomJoinedEvent(pageOne, {
+          message: 'Waiting for room.joined (max members pageOne)',
+        })
+        await joinRoom(pageOne, {
+          message: 'Joining room (max members pageOne)',
+        })
+        await p
+      })(),
+      (async () => {
+        const p = expectRoomJoinedEvent(pageTwo, {
+          message: 'Waiting for room.joined (max members pageTwo)',
+        })
+        await joinRoom(pageTwo, {
+          message: 'Joining room (max members pageTwo)',
+        })
+        await p
+      })(),
     ])
 
     await Promise.all([expectMCUVisible(pageOne), expectMCUVisible(pageTwo)])
@@ -55,12 +72,10 @@ test.describe('Room Session Max Members', () => {
     await pageOne.waitForTimeout(2000)
 
     // setting up an expected rejection for the 3rd member
-    const joinRoom = pageThree.evaluate(() => {
+    const roomJoined = pageThree.evaluate(() => {
       return new Promise<any>(async (resolve, reject) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.once('room.joined', resolve)
-
         try {
           await roomObj.join()
         } catch (e) {
@@ -69,7 +84,7 @@ test.describe('Room Session Max Members', () => {
       })
     })
 
-    await expect(joinRoom).rejects.toBeTruthy()
+    await expect(roomJoined).rejects.toBeTruthy()
 
     await deleteRoom(roomData.id)
   })

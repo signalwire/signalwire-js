@@ -1,12 +1,14 @@
 import { test, expect } from '../fixtures'
-import type { Video } from '@signalwire/js'
+import type { VideoRoomSession } from '@signalwire/js'
 import {
   SERVER_URL,
   createTestRoomSession,
   createOrUpdateRoom,
   deleteRoom,
   randomizeRoomName,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
+  expectPageEvalToPass,
 } from '../utils'
 
 interface TestConfig {
@@ -70,12 +72,14 @@ test.describe('RoomSession join_from', () => {
       await buildRoomSession()
 
       // --------------- Joining the room and expect an error ---------------
-      const joinError: any = await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        const error = await roomObj.join().catch((error) => error)
-
-        return error
+      const joinError = await expectPageEvalToPass(page, {
+        evaluateFn: async () => {
+          const roomObj = window._roomObj as VideoRoomSession
+          const error = await roomObj.join().catch((error) => error)
+          return error
+        },
+        assertionFn: (error) => expect(error).toBeDefined(),
+        message: 'Expected join to fail before join_from',
       })
 
       expect(joinError.code).toEqual('403')
@@ -87,7 +91,11 @@ test.describe('RoomSession join_from', () => {
       await buildRoomSession()
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoinWithDefaults(page)
+      const joinedPromise = expectRoomJoinedEvent(page, {
+        message: 'Waiting for room.joined after join_from window',
+      })
+      await joinRoom(page, { message: 'Joining room after join_from window' })
+      const joinParams = await joinedPromise
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()

@@ -8,7 +8,9 @@ import {
   expectMCUVisibleForAudience,
   expectPageReceiveMedia,
   expectMediaEvent,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
+  expectPageEvalToPass,
 } from '../utils'
 
 type Test = {
@@ -48,15 +50,20 @@ test.describe('roomSessionBadNetwork', () => {
       }
       await createTestRoomSession(page, connectionSettings)
 
-      const firstMediaConnectedPromise = expectMediaEvent(
-        page,
-        'media.connected'
-      )
+      const firstMediaConnectedPromise = expectMediaEvent(page, {
+        event: 'media.connected',
+        timeout: 15_000,
+        intervals: [15_000],
+        message: 'first media.connected event was not received',
+      })
 
       // --------------- Joining the room ---------------
-      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+      const joinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Joining room as ${row.join_as}` })
+      const joinParams: any = await joinedPromise
 
       expect(joinParams.room).toBeDefined()
       expect(joinParams.room_session).toBeDefined()
@@ -73,21 +80,28 @@ test.describe('roomSessionBadNetwork', () => {
       // Checks that the video is visible
       await row.expectMCU(page)
 
-      const roomPermissions: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.permissions
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj = window._roomObj as Video.RoomSession
+          return roomObj.permissions
+        },
+        assertionFn: (roomPermissions) => {
+          expect(roomPermissions).toStrictEqual(permissions)
+        },
+        message: 'room permissions are not equal',
       })
-      expect(roomPermissions).toStrictEqual(permissions)
 
       await firstMediaConnectedPromise
 
       await expectPageReceiveMedia(page)
 
-      const secondMediaConnectedPromise = expectMediaEvent(
-        page,
-        'media.connected'
-      )
+      const secondMediaConnectedPromise = expectMediaEvent(page, {
+        event: 'media.connected',
+        timeout: 50_000, // Longer timeout since we expect the event to be received once the network is up
+        intervals: [50_000], // To avoid polling
+        message: 'second media.connected event was not received',
+      })
+
       // --------------- Simulate Network Down and Up in 15s ---------------
       await page.swNetworkDown()
       await page.waitForTimeout(15_000)
@@ -104,22 +118,33 @@ test.describe('roomSessionBadNetwork', () => {
       await expectPageReceiveMedia(page)
 
       // Make sure we still receive events from the room
-      const makeMemberUpdatedPromise = () =>
-        page.evaluate(async () => {
-          return new Promise((resolve) => {
-            // @ts-expect-error
-            const roomObj: Video.RoomSession = window._roomObj
-            roomObj.on('member.updated', resolve)
-          })
+      const makeMemberUpdatedPromise = () => {
+        return expectPageEvalToPass(page, {
+          evaluateFn: () => {
+            return new Promise((resolve) => {
+              const roomObj = window._roomObj as Video.RoomSession
+              roomObj.on('member.updated', resolve)
+            })
+          },
+          assertionFn: (result) => {
+            expect(result).toBeDefined()
+          },
+          message: 'member.updated event was not received',
         })
+      }
 
       const promise1 = makeMemberUpdatedPromise()
 
       // --------------- Muting Member ---------------
-      await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        await roomObj.audioMute()
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj = window._roomObj as Video.RoomSession
+          return roomObj.audioMute()
+        },
+        assertionFn: (result) => {
+          expect(result).toBeUndefined()
+        },
+        message: 'audio mute failed',
       })
 
       const memberMuted: any = await promise1
@@ -127,11 +152,16 @@ test.describe('roomSessionBadNetwork', () => {
 
       const promise2 = makeMemberUpdatedPromise()
 
-      // --------------- Muting Member ---------------
-      await page.evaluate(async () => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        await roomObj.audioUnmute()
+      // --------------- Unmuting Member ---------------
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj = window._roomObj as Video.RoomSession
+          return roomObj.audioUnmute()
+        },
+        assertionFn: (result) => {
+          expect(result).toBeUndefined()
+        },
+        message: 'audio unmute failed',
       })
 
       const memberUnmuted: any = await promise2

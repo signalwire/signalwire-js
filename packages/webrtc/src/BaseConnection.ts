@@ -1141,7 +1141,7 @@ export class BaseConnection<
     this.prevState = this.state
     this.state = state
     this.logger.trace(
-      `Call ${this.id} state change from ${this.prevState} to ${this.state}`
+      `Call ${this.callId} state change from ${this.prevState} to ${this.state}`
     )
 
     this.emit(this.state, this)
@@ -1245,7 +1245,7 @@ export class BaseConnection<
     const rtcPeer = new RTCPeer(this, type)
     this.appendRTCPeer(rtcPeer)
     this.runRTCPeerWorkers(rtcPeer.uuid)
-    
+
     return rtcPeer
   }
 

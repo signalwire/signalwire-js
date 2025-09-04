@@ -1,27 +1,33 @@
 import type {
+  buildVideoElement,
   DialParams,
   FabricRoomSession,
   SignalWire,
   SignalWireClient,
   SignalWireContract,
   Video,
+  VideoRoomSubscribedEventParams,
 } from '@signalwire/js'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
-import { expect } from './fixtures'
+import { expect, test } from './fixtures'
 import { Page } from '@playwright/test'
+import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import { clearInterval } from 'timers'
 import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { EventEmitter } from 'events'
+
 declare global {
   interface Window {
     _SWJS: {
       SignalWire: typeof SignalWire
+      buildVideoElement: typeof buildVideoElement
     }
+    _roomObj?: Video.RoomSession | FabricRoomSession
     _client?: SignalWireClient
   }
 }
@@ -229,83 +235,84 @@ export const createTestRoomSession = async (
     attachSagaMonitor?: boolean
   }
 ) => {
-  const vrt = await createTestVRTToken(options.vrt)
-  if (!vrt) {
-    console.error('Invalid VRT. Exiting..')
-    process.exit(4)
-  }
-  const roomSession: Video.RoomSession = await page.evaluate(
-    (options) => {
-      const _runningWorkers: any[] = []
-      // @ts-expect-error
-      window._runningWorkers = _runningWorkers
-      const addTask = (task: any) => {
-        if (!_runningWorkers.includes(task)) {
-          _runningWorkers.push(task)
-        }
-      }
-      const removeTask = (task: any) => {
-        const index = _runningWorkers.indexOf(task)
-        if (index > -1) {
-          _runningWorkers.splice(index, 1)
-        }
-      }
-
-      const sagaMonitor = {
-        effectResolved: (_effectId: number, result: any) => {
-          if (result?.toPromise) {
-            addTask(result)
-            // Remove the task when it completes or is cancelled
-            result.toPromise().finally(() => {
-              removeTask(result)
-            })
-          }
-        },
-      }
-
-      // @ts-expect-error
-      const Video = window._SWJS.Video
-      const roomSession = new Video.RoomSession({
-        host: options.RELAY_HOST,
-        token: options.API_TOKEN,
-        ...(options.shouldPassRootElement && {
-          rootElement: document.getElementById('rootElement'),
-        }),
-        logLevel: 'debug',
-        debug: {
-          logWsTraffic: true,
-        },
-        ...(options.attachSagaMonitor && { sagaMonitor }),
-        ...options.roomSessionOptions,
-      })
-
-      options.initialEvents?.forEach((event) => {
-        roomSession.once(event, () => {})
-      })
-
-      // @ts-expect-error
-      window.jwt_token = options.API_TOKEN
-
-      // @ts-expect-error
-      window._roomObj = roomSession
-
-      return Promise.resolve(roomSession)
-    },
-    {
-      RELAY_HOST:
-        options.vrt.join_as === 'audience'
-          ? process.env.RELAY_AUDIENCE_HOST
-          : process.env.RELAY_HOST,
-      API_TOKEN: vrt,
-      initialEvents: options.initialEvents,
-      CI: process.env.CI,
-      roomSessionOptions: options.roomSessionOptions,
-      shouldPassRootElement: options.shouldPassRootElement ?? true,
-      attachSagaMonitor: options.attachSagaMonitor ?? false,
+  return test.step('Create RoomSession', async () => {
+    const vrt = await createTestVRTToken(options.vrt)
+    if (!vrt) {
+      console.error('Invalid VRT. Exiting..')
+      process.exit(4)
     }
-  )
+    const roomSession: Video.RoomSession = await page.evaluate(
+      (options) => {
+        const _runningWorkers: any[] = []
+        // @ts-expect-error
+        window._runningWorkers = _runningWorkers
+        const addTask = (task: any) => {
+          if (!_runningWorkers.includes(task)) {
+            _runningWorkers.push(task)
+          }
+        }
+        const removeTask = (task: any) => {
+          const index = _runningWorkers.indexOf(task)
+          if (index > -1) {
+            _runningWorkers.splice(index, 1)
+          }
+        }
 
-  return roomSession
+        const sagaMonitor = {
+          effectResolved: (_effectId: number, result: any) => {
+            if (result?.toPromise) {
+              addTask(result)
+              // Remove the task when it completes or is cancelled
+              result.toPromise().finally(() => {
+                removeTask(result)
+              })
+            }
+          },
+        }
+
+        // @ts-expect-error
+        const Video = window._SWJS.Video
+        const roomSession = new Video.RoomSession({
+          host: options.RELAY_HOST,
+          token: options.API_TOKEN,
+          ...(options.shouldPassRootElement && {
+            rootElement: document.getElementById('rootElement'),
+          }),
+          logLevel: 'debug',
+          debug: {
+            logWsTraffic: true,
+          },
+          ...(options.attachSagaMonitor && { sagaMonitor }),
+          ...options.roomSessionOptions,
+        })
+
+        options.initialEvents?.forEach((event) => {
+          roomSession.once(event, () => {})
+        })
+
+        // @ts-expect-error
+        window.jwt_token = options.API_TOKEN
+
+        window._roomObj = roomSession
+
+        return Promise.resolve(roomSession)
+      },
+      {
+        RELAY_HOST:
+          options.vrt.join_as === 'audience'
+            ? process.env.RELAY_AUDIENCE_HOST
+            : process.env.RELAY_HOST,
+        API_TOKEN: vrt,
+        initialEvents: options.initialEvents,
+        CI: process.env.CI,
+        roomSessionOptions: options.roomSessionOptions,
+        shouldPassRootElement: options.shouldPassRootElement ?? true,
+        attachSagaMonitor: options.attachSagaMonitor ?? false,
+      }
+    )
+
+    return roomSession
+  })
 }
 
 export const createTestRoomSessionWithJWT = async (
@@ -346,7 +353,6 @@ export const createTestRoomSessionWithJWT = async (
       // @ts-expect-error
       window.jwt_token = options.API_TOKEN
 
-      // @ts-expect-error
       window._roomObj = roomSession
 
       return Promise.resolve(roomSession)
@@ -466,20 +472,29 @@ export const deleteRoom = async (id: string) => {
 }
 
 export const leaveRoom = async (page: Page) => {
-  return page.evaluate(async () => {
-    const roomObj: Video.RoomSession | FabricRoomSession =
-      // @ts-expect-error
-      window._roomObj
-    console.log('Fixture roomObj', roomObj)
-    if (roomObj && roomObj?.roomSessionId) {
-      console.log('Fixture has room', roomObj.roomSessionId)
-      await roomObj.leave()
-    }
+  return expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const roomObj = window._roomObj
+      console.log('Fixture roomObj', roomObj)
+      if (roomObj && roomObj?.roomSessionId) {
+        console.log('Fixture has room', roomObj.roomSessionId)
+        await roomObj.leave()
+      }
 
-    return {
-      videos: Array.from(document.querySelectorAll('video')).length,
-      rootEl: document.getElementById('rootElement')?.childElementCount ?? 0,
-    }
+      return {
+        videos: Array.from(document.querySelectorAll('video'))?.length ?? 0,
+        rootEl: document.getElementById('rootElement')?.childElementCount ?? 0,
+      }
+    },
+    assertionFn: (leaveResult) => {
+      expect(leaveResult.videos, {
+        message: 'Expected no video elements to remain',
+      }).toBe(0)
+      expect(leaveResult.rootEl, {
+        message: 'Expected no root elements to remain',
+      }).toBe(0)
+    },
+    message: 'Expected to leave the room successfully',
   })
 }
 
@@ -618,7 +633,6 @@ export const dialAddress = (page: Page, params: DialAddressParams) => {
           call.on('room.joined', resolve)
         }
 
-        // @ts-expect-error
         window._roomObj = call
 
         if (shouldStartCall) {
@@ -652,14 +666,18 @@ export const reloadAndReattachAddress = async (
 }
 
 export const disconnectClient = (page: Page) => {
-  return page.evaluate(async () => {
-    // @ts-expect-error
-    const client: SignalWireContract = window._client
+  return expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const client = window._client
 
-    if (client) {
-      await client.disconnect()
-      console.log('Client disconnected')
-    }
+      if (client) {
+        await client.disconnect()
+      }
+    },
+    assertionFn(result) {
+      expect(result).toBeUndefined()
+    },
+    message: 'Expected client to disconnect successfully',
   })
 }
 
@@ -668,16 +686,22 @@ export const disconnectClient = (page: Page) => {
 // #region Utilities for the MCU
 
 export const expectMCUVisible = async (page: Page) => {
-  await page.waitForSelector('div[id^="sw-sdk-"] > video')
+  return test.step('Expect MCU video to be visible', async () => {
+    await page.waitForSelector('div[id^="sw-sdk-"] > video')
+  })
 }
 
 export const expectMCUNotVisible = async (page: Page) => {
-  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
-  expect(mcuVideo).toBeNull()
+  return test.step('Expect MCU video to NOT be visible', async () => {
+    const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+    expect(mcuVideo).toBeNull()
+  })
 }
 
 export const expectMCUVisibleForAudience = async (page: Page) => {
-  await page.waitForSelector('#rootElement video')
+  return test.step('Expect MCU video to be visible for audience', async () => {
+    await page.waitForSelector('#rootElement video')
+  })
 }
 
 // #endregion
@@ -709,128 +733,142 @@ interface GetStatsResult {
 }
 
 export const getStats = async (page: Page): Promise<GetStatsResult> => {
-  return await page.evaluate<GetStatsResult>(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    // @ts-expect-error
-    const rtcPeer = roomObj.peer
-
-    // Get the currently active inbound and outbound tracks.
-    const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
-    const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
-    const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
-    const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
-
-    // Default return value
-    const result: GetStatsResult = {
-      inboundRTP: {
-        audio: {
-          packetsReceived: 0,
-          packetsLost: 0,
-          packetsDiscarded: 0,
-        },
-        video: {
-          packetsReceived: 0,
-          packetsLost: 0,
-          packetsDiscarded: 0,
-        },
-      },
-      outboundRTP: {
-        audio: {
-          active: false,
-          packetsSent: 0,
-          targetBitrate: 0,
-          totalPacketSendDelay: 0,
-        },
-        video: {
-          active: false,
-          packetsSent: 0,
-          targetBitrate: 0,
-          totalPacketSendDelay: 0,
-        },
-      },
-    }
-
-    const inboundRTPFilters = {
-      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
-      video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
-    }
-
-    const outboundRTPFilters = {
-      audio: [
-        'active',
-        'packetsSent',
-        'targetBitrate',
-        'totalPacketSendDelay',
-      ] as const,
-      video: [
-        'active',
-        'packetsSent',
-        'targetBitrate',
-        'totalPacketSendDelay',
-      ] as const,
-    }
-
-    const handleInboundRTP = (report: any) => {
-      const media = report.mediaType as 'audio' | 'video'
-      if (!media) return
-
-      // Check if trackIdentifier matches the currently active inbound track
-      const expectedTrackId =
-        media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
-
-      if (
-        report.trackIdentifier &&
-        report.trackIdentifier !== expectedTrackId
-      ) {
-        console.log(
-          `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
-        )
-        return
+  return expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const roomObj = window._roomObj
+      if (!roomObj) {
+        throw new Error('Room object not found')
       }
 
-      inboundRTPFilters[media].forEach((key) => {
-        result.inboundRTP[media][key] = report[key]
+      // @ts-expect-error
+      const rtcPeer = roomObj.peer
+
+      // Get the currently active inbound and outbound tracks.
+      const inboundAudioTrackId = rtcPeer._getReceiverByKind('audio')?.track.id
+      const inboundVideoTrackId = rtcPeer._getReceiverByKind('video')?.track.id
+      const outboundAudioTrackId = rtcPeer._getSenderByKind('audio')?.track.id
+      const outboundVideoTrackId = rtcPeer._getSenderByKind('video')?.track.id
+
+      // Default return value
+      const result: GetStatsResult = {
+        inboundRTP: {
+          audio: {
+            packetsReceived: 0,
+            packetsLost: 0,
+            packetsDiscarded: 0,
+          },
+          video: {
+            packetsReceived: 0,
+            packetsLost: 0,
+            packetsDiscarded: 0,
+          },
+        },
+        outboundRTP: {
+          audio: {
+            active: false,
+            packetsSent: 0,
+            targetBitrate: 0,
+            totalPacketSendDelay: 0,
+          },
+          video: {
+            active: false,
+            packetsSent: 0,
+            targetBitrate: 0,
+            totalPacketSendDelay: 0,
+          },
+        },
+      }
+
+      const inboundRTPFilters = {
+        audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+        video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+      }
+
+      const outboundRTPFilters = {
+        audio: [
+          'active',
+          'packetsSent',
+          'targetBitrate',
+          'totalPacketSendDelay',
+        ] as const,
+        video: [
+          'active',
+          'packetsSent',
+          'targetBitrate',
+          'totalPacketSendDelay',
+        ] as const,
+      }
+
+      const handleInboundRTP = (report: any) => {
+        const media = report.mediaType as 'audio' | 'video'
+        if (!media) return
+
+        // Check if trackIdentifier matches the currently active inbound track
+        const expectedTrackId =
+          media === 'audio' ? inboundAudioTrackId : inboundVideoTrackId
+
+        if (
+          report.trackIdentifier &&
+          report.trackIdentifier !== expectedTrackId
+        ) {
+          console.log(
+            `inbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+          )
+          return
+        }
+
+        inboundRTPFilters[media].forEach((key) => {
+          result.inboundRTP[media][key] = report[key]
+        })
+      }
+
+      const handleOutboundRTP = (report: any) => {
+        const media = report.mediaType as 'audio' | 'video'
+        if (!media) return
+
+        // Check if trackIdentifier matches the currently active outbound track
+        const expectedTrackId =
+          media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
+        if (
+          report.trackIdentifier &&
+          report.trackIdentifier !== expectedTrackId
+        ) {
+          console.log(
+            `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
+          )
+          return
+        }
+
+        outboundRTPFilters[media].forEach((key) => {
+          ;(result.outboundRTP[media] as any)[key] = report[key]
+        })
+      }
+
+      // Iterate over all RTCStats entries
+      const pc: RTCPeerConnection = rtcPeer.instance
+      const stats = await pc.getStats()
+      stats.forEach((report) => {
+        switch (report.type) {
+          case 'inbound-rtp':
+            handleInboundRTP(report)
+            break
+          case 'outbound-rtp':
+            handleOutboundRTP(report)
+            break
+        }
       })
-    }
 
-    const handleOutboundRTP = (report: any) => {
-      const media = report.mediaType as 'audio' | 'video'
-      if (!media) return
-
-      // Check if trackIdentifier matches the currently active outbound track
-      const expectedTrackId =
-        media === 'audio' ? outboundAudioTrackId : outboundVideoTrackId
-      if (
-        report.trackIdentifier &&
-        report.trackIdentifier !== expectedTrackId
-      ) {
-        console.log(
-          `outbound-rtp trackIdentifier "${report.trackIdentifier}" and trackId "${expectedTrackId}" are different for "${media}"`
-        )
-        return
-      }
-
-      outboundRTPFilters[media].forEach((key) => {
-        ;(result.outboundRTP[media] as any)[key] = report[key]
-      })
-    }
-
-    // Iterate over all RTCStats entries
-    const pc: RTCPeerConnection = rtcPeer.instance
-    const stats = await pc.getStats()
-    stats.forEach((report) => {
-      switch (report.type) {
-        case 'inbound-rtp':
-          handleInboundRTP(report)
-          break
-        case 'outbound-rtp':
-          handleOutboundRTP(report)
-          break
-      }
-    })
-
-    return result
+      return result
+    },
+    assertionFn: (stats) => {
+      expect(stats.inboundRTP, {
+        message: 'Expected inbound RTP stats to be defined',
+      }).toBeDefined()
+      expect(stats.outboundRTP, {
+        message: 'Expected outbound RTP stats to be defined',
+      }).toBeDefined()
+    },
+    message: 'Expected to get RTP stats',
   })
 }
 
@@ -843,63 +881,71 @@ export const expectPageReceiveMedia = async (page: Page, delay = 5_000) => {
   const minAudioPacketsExpected = 40 * seconds
   const minVideoPacketsExpected = 25 * seconds
 
-  expect(last.inboundRTP.video?.packetsReceived).toBeGreaterThan(
+  expect(last.inboundRTP.video?.packetsReceived, {
+    message: 'Last inbound video packets received are greater',
+  }).toBeGreaterThan(
     (first.inboundRTP.video?.packetsReceived || 0) + minVideoPacketsExpected
   )
-  expect(last.inboundRTP.audio?.packetsReceived).toBeGreaterThan(
+  expect(last.inboundRTP.audio?.packetsReceived, {
+    message: 'Last inbound audio packets received are greater',
+  }).toBeGreaterThan(
     (first.inboundRTP.audio?.packetsReceived || 0) + minAudioPacketsExpected
   )
 }
 
 export const getAudioStats = async (page: Page) => {
-  const audioStats = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
+  const audioStats = await expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const roomObj = window._roomObj as Video.RoomSession
 
-    // @ts-expect-error
-    const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
+      // @ts-expect-error
+      const audioTrackId = roomObj.peer._getReceiverByKind('audio').track.id
 
-    // @ts-expect-error
-    const stats = await roomObj.peer.instance.getStats(null)
-    const filter = {
-      'inbound-rtp': [
-        'audioLevel',
-        'totalAudioEnergy',
-        'totalSamplesDuration',
-        'totalSamplesReceived',
-        'packetsDiscarded',
-        'lastPacketReceivedTimestamp',
-        'bytesReceived',
-        'packetsReceived',
-        'packetsLost',
-        'packetsRetransmitted',
-      ],
-    }
-    const result: any = {}
-    Object.keys(filter).forEach((entry) => {
-      result[entry] = {}
-    })
-
-    stats.forEach((report: any) => {
-      for (const [key, value] of Object.entries(filter)) {
-        if (
-          report.type == key &&
-          report['mediaType'] === 'audio' &&
-          report['trackIdentifier'] === audioTrackId
-        ) {
-          value.forEach((entry) => {
-            if (report[entry]) {
-              result[key][entry] = report[entry]
-            }
-          })
-        }
+      // @ts-expect-error
+      const stats = await roomObj.peer.instance.getStats(null)
+      const filter = {
+        'inbound-rtp': [
+          'audioLevel',
+          'totalAudioEnergy',
+          'totalSamplesDuration',
+          'totalSamplesReceived',
+          'packetsDiscarded',
+          'lastPacketReceivedTimestamp',
+          'bytesReceived',
+          'packetsReceived',
+          'packetsLost',
+          'packetsRetransmitted',
+        ],
       }
-    }, {})
+      const result: any = {}
+      Object.keys(filter).forEach((entry) => {
+        result[entry] = {}
+      })
 
-    return result
+      stats.forEach((report: any) => {
+        for (const [key, value] of Object.entries(filter)) {
+          if (
+            report.type == key &&
+            report['mediaType'] === 'audio' &&
+            report['trackIdentifier'] === audioTrackId
+          ) {
+            value.forEach((entry) => {
+              if (report[entry]) {
+                result[key][entry] = report[entry]
+              }
+            })
+          }
+        }
+      }, {})
+
+      return result
+    },
+    assertionFn: (stats) => {
+      expect(stats).toBeDefined()
+    },
+    message: 'Expected to get audio RTP stats',
   })
   console.log('audioStats', audioStats)
-
   return audioStats
 }
 
@@ -927,24 +973,33 @@ export const expectSDPDirection = async (
   direction: string,
   value: boolean
 ) => {
-  const peerSDP = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    // @ts-expect-error
-    return roomObj.peer.localSdp
+  await expectPageEvalToPass(page, {
+    evaluateFn: (): string => {
+      const roomObj = window._roomObj as Video.RoomSession
+      // @ts-expect-error
+      return roomObj.peer.localSdp
+    },
+    assertionFn: (peerSDP) => {
+      expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
+      expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
+    },
+    message: 'Expected SDP direction to match',
   })
-
-  expect(peerSDP.split('m=')[1].includes(direction)).toBe(value)
-  expect(peerSDP.split('m=')[2].includes(direction)).toBe(value)
 }
 
 export const getRemoteMediaIP = async (page: Page) => {
-  const remoteIP: string = await page.evaluate(() => {
-    // @ts-expect-error
-    const peer: Video.RoomSessionPeer = window._roomObj.peer
-    const lines = peer.instance?.remoteDescription?.sdp?.split('\r\n')
-    const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
-    return ipLine?.split(' ')[2]
+  const remoteIP: string = await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // @ts-expect-error
+      const peer = window._roomObj?.peer
+      const lines = peer?.instance?.remoteDescription?.sdp?.split('\r\n')
+      const ipLine = lines?.find((line: any) => line.includes('c=IN IP4'))
+      return ipLine?.split(' ')[2]
+    },
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected remote IP to be present',
   })
   return remoteIP
 }
@@ -1680,174 +1735,298 @@ export const deleteResource = async (id: string) => {
 // #region Utilities for Events assertion
 
 export const expectMemberTalkingEvent = (page: Page) => {
-  return page.evaluate(async () => {
-    return new Promise((resolve) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      roomObj.on('member.talking', resolve)
-    })
+  return expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      return new Promise((resolve) => {
+        const roomObj = window._roomObj as Video.RoomSession
+        roomObj.on('member.talking', resolve)
+      })
+    },
+    assertionFn: (result) => {
+      expect(result).toBeDefined()
+    },
+    message: 'Expected member.talking event to be received',
   })
 }
 
-export const expectMediaEvent = (page: Page, event: MediaEventNames) => {
-  return page.evaluate(
-    ({ event }) => {
-      return new Promise<void>((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on(event, resolve)
+export const expectMediaEvent = (
+  page: Page,
+  options: Partial<BaseExpectPageEvalToPassParams> & {
+    event: MediaEventNames
+  }
+) => {
+  const { message, ...rest } = options
+  return expectPageEvalToPass(page, {
+    evaluateArgs: { event: options.event },
+    evaluateFn: ({ event }) => {
+      return new Promise<boolean>((resolve) => {
+        const roomObj = window._roomObj as Video.RoomSession
+        roomObj.on(event, () => {
+          resolve(true)
+        })
       })
     },
-    { event }
-  )
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: message ?? 'Expected media event to be received',
+    ...rest,
+  })
 }
 
 export const expectCFInitialEvents = (
   page: Page,
   extraEvents: Promise<boolean>[] = []
 ) => {
-  const initialEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-
-    const callCreated = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'created') {
-          resolve(true)
-        }
+  const callCreated = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      const roomObj = window._roomObj as FabricRoomSession
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.state', (params: any) => {
+          if (params.call_state === 'created') {
+            resolve(true)
+          }
+        })
       })
-    })
-    const callAnswered = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.state', (params: any) => {
-        if (params.call_state === 'answered') {
-          resolve(true)
-        }
-      })
-    })
-    const callJoined = new Promise<boolean>((resolve) => {
-      // @ts-expect-error
-      roomObj.on('call.joined', () => resolve(true))
-    })
-
-    return Promise.all([callJoined, callCreated, callAnswered])
+    },
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected call.state with created event to be received',
   })
-  return Promise.all([initialEvents, ...extraEvents])
+
+  const callAnswered = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      const roomObj = window._roomObj as FabricRoomSession
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.state', (params: any) => {
+          if (params.call_state === 'answered') {
+            resolve(true)
+          }
+        })
+      })
+    },
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected call.state with answered event to be received',
+  })
+
+  const callJoined = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      const roomObj = window._roomObj as FabricRoomSession
+      return new Promise<boolean>((resolve) => {
+        roomObj.on('call.joined', () => resolve(true))
+      })
+    },
+
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected call.joined event to be received',
+  })
+
+  return Promise.all([callCreated, callAnswered, callJoined, ...extraEvents])
 }
 
 export const expectCFFinalEvents = (
   page: Page,
   extraEvents: Promise<unknown>[] = []
 ) => {
-  const finalEvents = page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-
-    const callLeft = new Promise((resolve) => {
-      roomObj.on('destroy', () => resolve(true))
-    })
-
-    return callLeft
+  const callLeftEvent = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      const roomObj = window._roomObj as Video.RoomSession
+      return new Promise((resolve) => {
+        roomObj.on('destroy', () => resolve(true))
+      })
+    },
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected destroy event to be received',
   })
 
-  return Promise.all([finalEvents, ...extraEvents])
+  return Promise.all([callLeftEvent, ...extraEvents])
 }
 
-export const expectLayoutChanged = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    (options) => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+export const expectLayoutChanged = async (page: Page, layoutName: string) => {
+  return await expectPageEvalToPass(page, {
+    evaluateArgs: { layoutName },
+    evaluateFn: (params) => {
+      return new Promise<boolean>((resolve) => {
+        const roomObj = window._roomObj as Video.RoomSession
         roomObj.on('layout.changed', ({ layout }: any) => {
-          if (layout.name === options.layoutName) {
+          if (layout.name === params.layoutName) {
             resolve(true)
           }
         })
       })
     },
-    { layoutName }
-  )
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected layout.changed event to be received',
+  })
 }
 
-export const expectRoomJoined = (
+export const expectRoomJoinedEvent = async (
   page: Page,
-  options: { invokeJoin: boolean } = { invokeJoin: true }
-) => {
-  return page.evaluate(({ invokeJoin }) => {
-    return new Promise<any>(async (resolve, reject) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-
-      roomObj.once('room.joined', (room) => {
-        console.log('Room joined!')
-        resolve(room)
-      })
-
-      if (invokeJoin) {
-        await roomObj.join().catch(reject)
-      }
-    })
-  }, options)
-}
-
-export const expectRoomJoinWithDefaults = async (
-  page: Page,
-  options?: {
-    invokeJoin?: boolean
-    joinAs?: CreateTestVRTOptions['join_as']
+  options?: Partial<BaseExpectPageEvalToPassParams> & {
+    joinAs?: string
+    shouldAssertDefaults?: boolean
   }
 ) => {
-  const { invokeJoin = true, joinAs = 'member' } = options || {}
-  const params = await expectRoomJoined(page, { invokeJoin })
-  await expectMemberId(page, params.member_id)
-  const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
-  await expectSDPDirection(page, dir, true)
-  const mode = joinAs === 'audience' ? 'audience' : 'member'
-  await expectInteractivityMode(page, mode)
-  return params
+  return test.step('Expect room.joined event', async () => {
+    const {
+      joinAs = 'member',
+      shouldAssertDefaults = true,
+      ...rest
+    } = options || {}
+    return await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return new Promise<
+          VideoRoomSubscribedEventParams & {
+            roomMemberId: string
+            localSdp: string
+            interactivityMode: string
+          }
+        >((resolve, reject) => {
+          const roomObj = window._roomObj as Video.RoomSession
+          if (!roomObj) {
+            reject(new Error('Room object not initialized'))
+            return
+          }
+          roomObj.once('room.joined', (params) => {
+            resolve({
+              ...params,
+              roomMemberId: roomObj.memberId,
+              // @ts-expect-error Property 'peer' does not exist on type 'RoomSession'
+              localSdp: roomObj.peer.localSdp,
+              interactivityMode: roomObj.interactivityMode,
+            })
+          })
+        })
+      },
+      assertionFn: async ({
+        roomMemberId,
+        localSdp,
+        interactivityMode,
+        ...result
+      }) => {
+        expect(result).toBeDefined()
+
+        if (shouldAssertDefaults) {
+          expect(roomMemberId, 'Expected member ID to be equal').toEqual(
+            result.member_id
+          )
+
+          const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+          expect(
+            localSdp.split('m=')[1].includes(dir),
+            'Expected audio direction to be true'
+          ).toBe(true)
+          expect(
+            localSdp.split('m=')[2].includes(dir),
+            'Expected video direction to be true'
+          ).toBe(true)
+
+          const mode = joinAs === 'audience' ? 'audience' : 'member'
+          expect(
+            interactivityMode,
+            'Expected interactivity mode to be equal'
+          ).toEqual(mode)
+        }
+      },
+      message: 'Expected room.joined event to be received',
+      timeout: 30_000,
+      intervals: [30_000],
+      ...rest,
+    })
+  })
+}
+
+export const joinRoom = async (
+  page: Page,
+  options?: BaseExpectPageEvalToPassParams
+) => {
+  return test.step('Join the room', async () => {
+    return await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        await roomObj.join()
+        return true
+      },
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'Expected room to be joined',
+      ...options,
+    })
+  })
 }
 
 export const expectRecordingStarted = (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<Video.RoomSessionRecording>((resolve, reject) => {
-      setTimeout(reject, 10000)
-      // At this point window.__roomObj might not have been set yet
-      // we have to pool it and check
-      const interval = setInterval(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        if (roomObj) {
-          clearInterval(interval)
-          roomObj.on(
-            'recording.started',
-            (recording: Video.RoomSessionRecording) => resolve(recording)
-          )
-        }
-      }, 100)
-    })
+  return expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      // TODO: Use Playwright API for polling
+      return new Promise<boolean>((resolve, reject) => {
+        setTimeout(reject, 10000)
+        // At this point window.__roomObj might not have been set yet
+        // we have to pool it and check
+        const interval = setInterval(() => {
+          const roomObj = window._roomObj as Video.RoomSession
+          if (roomObj) {
+            clearInterval(interval)
+            roomObj.on(
+              'recording.started',
+              (_recording: Video.RoomSessionRecording) => resolve(true)
+            )
+          }
+        }, 100)
+      })
+    },
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected recording.started event to be received',
   })
 }
 
 export const expectScreenShareJoined = async (page: Page) => {
-  return page.evaluate(() => {
-    return new Promise<any>(async (resolve) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
+  const memberJoinedEvent = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      return new Promise(async (resolve) => {
+        const roomObj = window._roomObj as Video.RoomSession
 
-      roomObj.on('member.joined', (params: any) => {
-        if (params.member.type === 'screen') {
-          resolve(true)
-        }
+        roomObj.on('member.joined', (params) => {
+          if (params.member.type === 'screen') {
+            resolve(true)
+          }
+        })
       })
+    },
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected member.joined event to be received',
+  })
 
+  await expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const roomObj = window._roomObj as Video.RoomSession
       await roomObj.startScreenShare({
         audio: true,
         video: true,
       })
-    })
+      return true
+    },
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected screen share to be started',
   })
+
+  return memberJoinedEvent
 }
 
 // #endregion
@@ -1856,24 +2035,31 @@ export const expectInteractivityMode = async (
   page: Page,
   mode: 'member' | 'audience'
 ) => {
-  const interactivityMode = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.interactivityMode
+  await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      const roomObj = window._roomObj as Video.RoomSession
+      return roomObj.interactivityMode
+    },
+    assertionFn: (interactivityMode) => {
+      expect(interactivityMode).toEqual(mode)
+    },
+    message: 'Expected interactivity mode to be equal',
   })
-
-  expect(interactivityMode).toEqual(mode)
 }
 
 export const setLayoutOnPage = (page: Page, layoutName: string) => {
-  return page.evaluate(
-    async (options) => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-      return await roomObj.setLayout({ name: options.layoutName })
+  return expectPageEvalToPass(page, {
+    evaluateArgs: { layoutName },
+    evaluateFn: async (options) => {
+      const roomObj = window._roomObj as Video.RoomSession
+      await roomObj.setLayout({ name: options.layoutName })
+      return true
     },
-    { layoutName }
-  )
+    assertionFn: (result) => {
+      expect(result).toBe(true)
+    },
+    message: 'Expected setLayout to be called',
+  })
 }
 
 export const randomizeRoomName = (prefix: string = 'e2e') => {
@@ -1881,11 +2067,140 @@ export const randomizeRoomName = (prefix: string = 'e2e') => {
 }
 
 export const expectMemberId = async (page: Page, memberId: string) => {
-  const roomMemberId = await page.evaluate(async () => {
-    // @ts-expect-error
-    const roomObj: Video.RoomSession = window._roomObj
-    return roomObj.memberId
+  await expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      const roomObj = window._roomObj as Video.RoomSession
+      return roomObj.memberId
+    },
+    assertionFn: (roomMemberId) => {
+      expect(roomMemberId).toEqual(memberId)
+    },
+    message: 'Expected member id to be equal',
   })
+}
 
-  expect(roomMemberId).toEqual(memberId)
+/**
+ * @description
+ * Uses the expect().toPass() Playwright with a default timeout
+ */
+export const expectToPass = async (
+  assertion: () => Promise<void>,
+  assertionMessage: string | { message: string },
+  options?: { intervals?: number[]; timeout?: number }
+) => {
+  const mergedOptions = {
+    intervals: [10_000], // 10 seconds to avoid polling
+    timeout: 10_000,
+    ...options,
+  }
+  return await expect(assertion, assertionMessage).toPass(mergedOptions)
+}
+
+interface WaitForFunctionParams<TArgs, TResult>
+  extends BaseExpectPageEvalToPassParams {
+  evaluateArgs?: TArgs
+  evaluateFn: PageFunction<TArgs, TResult>
+}
+
+/**
+ * @description
+ * Waits for a function to return a truthy value or not throw within the page context.
+ *
+ * This utility wraps Playwright's `page.waitForFunction` and is useful for polling the browser context
+ * until a certain condition is met. In this wrapper the interval and timeout are set to the same value by default.
+ * This is to avoid polling, and have a default timeout of 10 seconds.
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Returns when the pageFunction returns a truthy value. It resolves to a JSHandle of the truthy value.
+ * - The JSHandle can be passed to other Playwright functions, like `page.evaluate` or `page.evaluateHandle`.
+ */
+export const waitForFunction = async <TArgs, TResult>(
+  page: Page,
+  {
+    evaluateArgs,
+    evaluateFn,
+    message,
+    intervals = [10_000],
+    timeout = 10_000,
+  }: WaitForFunctionParams<TArgs, TResult>
+) => {
+  try {
+    const mergedOptions = {
+      intervals: intervals ?? [10_000], // 10 seconds to avoid polling
+      timeout: timeout ?? 10_000,
+      message,
+    }
+    if (evaluateArgs) {
+      return await page.waitForFunction(evaluateFn, evaluateArgs, mergedOptions)
+    } else {
+      // FIXME: remove the type assertion
+      return await page.waitForFunction(
+        evaluateFn as PageFunction<void, TResult>,
+        mergedOptions
+      )
+    }
+  } catch (error) {
+    // TODO: improve error message and logging
+    throw new Error(`waitForFunction: ${message} - ${error}`)
+  }
+}
+
+interface BaseExpectPageEvalToPassParams {
+  message: string
+  intervals?: number[]
+  timeout?: number
+}
+
+interface ExpectPageEvalToPassParams<TArgs, TResult>
+  extends BaseExpectPageEvalToPassParams {
+  assertionFn: (result: TResult) => void | Promise<void>
+  evaluateArgs?: TArgs
+  evaluateFn: PageFunction<TArgs, TResult>
+}
+
+/**
+ * @description
+ * Utility to evaluate a function in the browser context and assert its result using Playwright's expect.
+ *
+ * This function wraps a call to `page.evaluate` and uses the expectToPass utility to assert that a promise resolves
+ *
+ * @note
+ * - The function is evaluated in the browser context, so only serializable values can be passed.
+ * - Only serializable values can be returned
+ * - The assertion function should use the `expect` function to assert the result
+ * -  Throws timeout error if the promise does not resolve within the timeout
+ */
+export const expectPageEvalToPass = async <TArgs, TResult>(
+  page: Page,
+  {
+    assertionFn,
+    evaluateArgs,
+    evaluateFn,
+    message,
+    intervals = [10_000],
+    timeout = 10_000,
+  }: ExpectPageEvalToPassParams<TArgs, TResult>
+) => {
+  // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
+  let result = undefined as TResult
+  await expectToPass(
+    async () => {
+      // evaluate the function with the provided arguments
+      if (evaluateArgs) {
+        result = await page.evaluate(
+          evaluateFn as PageFunction<TArgs, TResult>,
+          evaluateArgs
+        )
+      } else {
+        // evaluate the function without arguments
+        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
+      }
+
+      await assertionFn(result)
+    },
+    { message: message },
+    { timeout, intervals }
+  )
+  return result
 }

@@ -7,7 +7,9 @@ import {
   expectMCUVisible,
   expectMCUVisibleForAudience,
   deleteRoom,
-  expectRoomJoinWithDefaults,
+  expectRoomJoinedEvent,
+  joinRoom,
+  expectPageEvalToPass,
 } from '../utils'
 
 type Test = {
@@ -47,9 +49,12 @@ test.describe('RoomSessionReattach', () => {
       }
       await createTestRoomSession(page, connectionSettings)
 
-      const joinParams: any = await expectRoomJoinWithDefaults(page, {
+      const joinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined (${row.join_as})`,
       })
+      await joinRoom(page, { message: `Joining room as ${row.join_as}` })
+      const joinParams = await joinedPromise
       const roomId = joinParams.room_session.room_id
 
       expect(joinParams.room).toBeDefined()
@@ -57,7 +62,7 @@ test.describe('RoomSessionReattach', () => {
       if (row.join_as === 'member') {
         expect(
           joinParams.room.members.some(
-            (member: any) => member.id === joinParams.member_id
+            (member) => member.id === joinParams.member_id
           )
         ).toBeTruthy()
       }
@@ -65,12 +70,15 @@ test.describe('RoomSessionReattach', () => {
       expect(joinParams.room.name).toBe(roomName)
       await row.expectMCU(page)
 
-      const roomPermissions: any = await page.evaluate(() => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        return roomObj.permissions
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const roomObj = window._roomObj as Video.RoomSession
+          return roomObj.permissions
+        },
+        assertionFn: (roomPermissions) =>
+          expect(roomPermissions).toStrictEqual(permissions),
+        message: 'Expected room permissions to match',
       })
-      expect(roomPermissions).toStrictEqual(permissions)
 
       // --------------- Reattaching ---------------
       await page.reload()
@@ -79,9 +87,14 @@ test.describe('RoomSessionReattach', () => {
 
       console.time(`time-reattach-${row.join_as}`)
       // Join again
-      const reattachParams: any = await expectRoomJoinWithDefaults(page, {
+      const rejoinedPromise = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined after reattach (${row.join_as})`,
+        timeout: 30_000,
+        intervals: [30_000],
       })
+      await joinRoom(page, { message: `Rejoining room as ${row.join_as}` })
+      const reattachParams = await rejoinedPromise
       console.timeEnd(`time-reattach-${row.join_as}`)
 
       expect(reattachParams.room).toBeDefined()
@@ -89,7 +102,7 @@ test.describe('RoomSessionReattach', () => {
       if (row.join_as === 'member') {
         expect(
           reattachParams.room.members.some(
-            (member: any) => member.id === reattachParams.member_id
+            (member) => member.id === reattachParams.member_id
           )
         ).toBeTruthy()
       }
@@ -110,9 +123,14 @@ test.describe('RoomSessionReattach', () => {
 
       console.time(`time-reattach-${row.join_as}-2`)
       // Join again
-      const reattachParams2: any = await expectRoomJoinWithDefaults(page, {
+      const rejoinedPromise2 = expectRoomJoinedEvent(page, {
         joinAs: row.join_as,
+        message: `Waiting for room.joined after reattach-2 (${row.join_as})`,
+        timeout: 30_000,
+        intervals: [30_000],
       })
+      await joinRoom(page, { message: `Rejoining room (2) as ${row.join_as}` })
+      const reattachParams2 = await rejoinedPromise2
       console.timeEnd(`time-reattach-${row.join_as}-2`)
 
       expect(reattachParams2.room).toBeDefined()
@@ -120,7 +138,7 @@ test.describe('RoomSessionReattach', () => {
       if (row.join_as === 'member') {
         expect(
           reattachParams2.room.members.some(
-            (member: any) => member.id === reattachParams2.member_id
+            (member) => member.id === reattachParams2.member_id
           )
         ).toBeTruthy()
       }
