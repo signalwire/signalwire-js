@@ -1728,19 +1728,23 @@ export const expectCFInitialEvents = (
 
 export const expectCFFinalEvents = (
   page: Page,
-  extraEvents: Promise<unknown>[] = []
+  extraEvents: Promise<boolean>[] = []
 ) => {
-  const finalEvents = page.evaluate(async () => {
-    const callObj = window._callObj
-    if (!callObj) {
-      throw new Error('Call object not found')
-    }
+  const finalEvents = expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
 
-    const callLeft = new Promise((resolve) => {
-      callObj.on('destroy', () => resolve(true))
-    })
-
-    return callLeft
+      return await new Promise<boolean>((resolve) => {
+        callObj.on('destroy', () => resolve(true))
+      })
+    },
+    assertionFn: (result) => {
+      expect(result, 'expect call to emit destroy event').toBe(true)
+    },
+    message: 'expect call to emit destroy event',
   })
 
   return Promise.all([finalEvents, ...extraEvents])
