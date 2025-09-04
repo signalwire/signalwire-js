@@ -11,7 +11,7 @@ import type {
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
-import { expect } from './fixtures'
+import { expect, test } from './fixtures'
 import { Page } from '@playwright/test'
 import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
@@ -235,82 +235,84 @@ export const createTestRoomSession = async (
     attachSagaMonitor?: boolean
   }
 ) => {
-  const vrt = await createTestVRTToken(options.vrt)
-  if (!vrt) {
-    console.error('Invalid VRT. Exiting..')
-    process.exit(4)
-  }
-  const roomSession: Video.RoomSession = await page.evaluate(
-    (options) => {
-      const _runningWorkers: any[] = []
-      // @ts-expect-error
-      window._runningWorkers = _runningWorkers
-      const addTask = (task: any) => {
-        if (!_runningWorkers.includes(task)) {
-          _runningWorkers.push(task)
-        }
-      }
-      const removeTask = (task: any) => {
-        const index = _runningWorkers.indexOf(task)
-        if (index > -1) {
-          _runningWorkers.splice(index, 1)
-        }
-      }
-
-      const sagaMonitor = {
-        effectResolved: (_effectId: number, result: any) => {
-          if (result?.toPromise) {
-            addTask(result)
-            // Remove the task when it completes or is cancelled
-            result.toPromise().finally(() => {
-              removeTask(result)
-            })
-          }
-        },
-      }
-
-      // @ts-expect-error
-      const Video = window._SWJS.Video
-      const roomSession = new Video.RoomSession({
-        host: options.RELAY_HOST,
-        token: options.API_TOKEN,
-        ...(options.shouldPassRootElement && {
-          rootElement: document.getElementById('rootElement'),
-        }),
-        logLevel: 'debug',
-        debug: {
-          logWsTraffic: true,
-        },
-        ...(options.attachSagaMonitor && { sagaMonitor }),
-        ...options.roomSessionOptions,
-      })
-
-      options.initialEvents?.forEach((event) => {
-        roomSession.once(event, () => {})
-      })
-
-      // @ts-expect-error
-      window.jwt_token = options.API_TOKEN
-
-      window._roomObj = roomSession
-
-      return Promise.resolve(roomSession)
-    },
-    {
-      RELAY_HOST:
-        options.vrt.join_as === 'audience'
-          ? process.env.RELAY_AUDIENCE_HOST
-          : process.env.RELAY_HOST,
-      API_TOKEN: vrt,
-      initialEvents: options.initialEvents,
-      CI: process.env.CI,
-      roomSessionOptions: options.roomSessionOptions,
-      shouldPassRootElement: options.shouldPassRootElement ?? true,
-      attachSagaMonitor: options.attachSagaMonitor ?? false,
+  return test.step('Create RoomSession', async () => {
+    const vrt = await createTestVRTToken(options.vrt)
+    if (!vrt) {
+      console.error('Invalid VRT. Exiting..')
+      process.exit(4)
     }
-  )
+    const roomSession: Video.RoomSession = await page.evaluate(
+      (options) => {
+        const _runningWorkers: any[] = []
+        // @ts-expect-error
+        window._runningWorkers = _runningWorkers
+        const addTask = (task: any) => {
+          if (!_runningWorkers.includes(task)) {
+            _runningWorkers.push(task)
+          }
+        }
+        const removeTask = (task: any) => {
+          const index = _runningWorkers.indexOf(task)
+          if (index > -1) {
+            _runningWorkers.splice(index, 1)
+          }
+        }
 
-  return roomSession
+        const sagaMonitor = {
+          effectResolved: (_effectId: number, result: any) => {
+            if (result?.toPromise) {
+              addTask(result)
+              // Remove the task when it completes or is cancelled
+              result.toPromise().finally(() => {
+                removeTask(result)
+              })
+            }
+          },
+        }
+
+        // @ts-expect-error
+        const Video = window._SWJS.Video
+        const roomSession = new Video.RoomSession({
+          host: options.RELAY_HOST,
+          token: options.API_TOKEN,
+          ...(options.shouldPassRootElement && {
+            rootElement: document.getElementById('rootElement'),
+          }),
+          logLevel: 'debug',
+          debug: {
+            logWsTraffic: true,
+          },
+          ...(options.attachSagaMonitor && { sagaMonitor }),
+          ...options.roomSessionOptions,
+        })
+
+        options.initialEvents?.forEach((event) => {
+          roomSession.once(event, () => {})
+        })
+
+        // @ts-expect-error
+        window.jwt_token = options.API_TOKEN
+
+        window._roomObj = roomSession
+
+        return Promise.resolve(roomSession)
+      },
+      {
+        RELAY_HOST:
+          options.vrt.join_as === 'audience'
+            ? process.env.RELAY_AUDIENCE_HOST
+            : process.env.RELAY_HOST,
+        API_TOKEN: vrt,
+        initialEvents: options.initialEvents,
+        CI: process.env.CI,
+        roomSessionOptions: options.roomSessionOptions,
+        shouldPassRootElement: options.shouldPassRootElement ?? true,
+        attachSagaMonitor: options.attachSagaMonitor ?? false,
+      }
+    )
+
+    return roomSession
+  })
 }
 
 export const createTestRoomSessionWithJWT = async (
@@ -684,16 +686,22 @@ export const disconnectClient = (page: Page) => {
 // #region Utilities for the MCU
 
 export const expectMCUVisible = async (page: Page) => {
-  await page.waitForSelector('div[id^="sw-sdk-"] > video')
+  return test.step('Expect MCU video to be visible', async () => {
+    await page.waitForSelector('div[id^="sw-sdk-"] > video')
+  })
 }
 
 export const expectMCUNotVisible = async (page: Page) => {
-  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
-  expect(mcuVideo).toBeNull()
+  return test.step('Expect MCU video to NOT be visible', async () => {
+    const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+    expect(mcuVideo).toBeNull()
+  })
 }
 
 export const expectMCUVisibleForAudience = async (page: Page) => {
-  await page.waitForSelector('#rootElement video')
+  return test.step('Expect MCU video to be visible for audience', async () => {
+    await page.waitForSelector('#rootElement video')
+  })
 }
 
 // #endregion
@@ -1868,72 +1876,72 @@ export const expectRoomJoinedEvent = async (
     shouldAssertDefaults?: boolean
   }
 ) => {
-  const {
-    joinAs = 'member',
-    shouldAssertDefaults = true,
-    ...rest
-  } = options || {}
-  return await expectPageEvalToPass(page, {
-    evaluateFn: () => {
-      return new Promise<
-        VideoRoomSubscribedEventParams & {
-          roomMemberId: string
-          localSdp: string
-          interactivityMode: string
-        }
-      >((resolve, reject) => {
-        const roomObj = window._roomObj as Video.RoomSession
-        if (!roomObj) {
-          reject(new Error('Room object not initialized'))
-          return
-        }
-        roomObj.once('room.joined', (params) => {
-          console.log('>> room.joined event is received')
-          resolve({
-            ...params,
-            roomMemberId: roomObj.memberId,
-            // @ts-expect-error Property 'peer' does not exist on type 'RoomSession'
-            localSdp: roomObj.peer.localSdp,
-            interactivityMode: roomObj.interactivityMode,
+  return test.step('Expect room.joined event', async () => {
+    const {
+      joinAs = 'member',
+      shouldAssertDefaults = true,
+      ...rest
+    } = options || {}
+    return await expectPageEvalToPass(page, {
+      evaluateFn: () => {
+        return new Promise<
+          VideoRoomSubscribedEventParams & {
+            roomMemberId: string
+            localSdp: string
+            interactivityMode: string
+          }
+        >((resolve, reject) => {
+          const roomObj = window._roomObj as Video.RoomSession
+          if (!roomObj) {
+            reject(new Error('Room object not initialized'))
+            return
+          }
+          roomObj.once('room.joined', (params) => {
+            resolve({
+              ...params,
+              roomMemberId: roomObj.memberId,
+              // @ts-expect-error Property 'peer' does not exist on type 'RoomSession'
+              localSdp: roomObj.peer.localSdp,
+              interactivityMode: roomObj.interactivityMode,
+            })
           })
         })
-      })
-    },
-    assertionFn: async ({
-      roomMemberId,
-      localSdp,
-      interactivityMode,
-      ...result
-    }) => {
-      console.log('>> room.joined event result', result)
-      expect(result).toBeDefined()
+      },
+      assertionFn: async ({
+        roomMemberId,
+        localSdp,
+        interactivityMode,
+        ...result
+      }) => {
+        expect(result).toBeDefined()
 
-      if (shouldAssertDefaults) {
-        expect(roomMemberId, 'Expected member ID to be equal').toEqual(
-          result.member_id
-        )
+        if (shouldAssertDefaults) {
+          expect(roomMemberId, 'Expected member ID to be equal').toEqual(
+            result.member_id
+          )
 
-        const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
-        expect(
-          localSdp.split('m=')[1].includes(dir),
-          'Expected audio direction to be true'
-        ).toBe(true)
-        expect(
-          localSdp.split('m=')[2].includes(dir),
-          'Expected video direction to be true'
-        ).toBe(true)
+          const dir = joinAs === 'audience' ? 'recvonly' : 'sendrecv'
+          expect(
+            localSdp.split('m=')[1].includes(dir),
+            'Expected audio direction to be true'
+          ).toBe(true)
+          expect(
+            localSdp.split('m=')[2].includes(dir),
+            'Expected video direction to be true'
+          ).toBe(true)
 
-        const mode = joinAs === 'audience' ? 'audience' : 'member'
-        expect(
-          interactivityMode,
-          'Expected interactivity mode to be equal'
-        ).toEqual(mode)
-      }
-    },
-    message: 'Expected room.joined event to be received',
-    timeout: 30_000,
-    intervals: [30_000],
-    ...rest,
+          const mode = joinAs === 'audience' ? 'audience' : 'member'
+          expect(
+            interactivityMode,
+            'Expected interactivity mode to be equal'
+          ).toEqual(mode)
+        }
+      },
+      message: 'Expected room.joined event to be received',
+      timeout: 30_000,
+      intervals: [30_000],
+      ...rest,
+    })
   })
 }
 
@@ -1941,19 +1949,19 @@ export const joinRoom = async (
   page: Page,
   options?: BaseExpectPageEvalToPassParams
 ) => {
-  return await expectPageEvalToPass(page, {
-    evaluateFn: async () => {
-      const roomObj = window._roomObj as Video.RoomSession
-      console.log('>> joining room')
-      await roomObj.join()
-      console.log('>> room joined')
-      return true
-    },
-    assertionFn: (result) => {
-      expect(result).toBe(true)
-    },
-    message: 'Expected room to be joined',
-    ...options,
+  return test.step('Join the room', async () => {
+    return await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const roomObj = window._roomObj as Video.RoomSession
+        await roomObj.join()
+        return true
+      },
+      assertionFn: (result) => {
+        expect(result).toBe(true)
+      },
+      message: 'Expected room to be joined',
+      ...options,
+    })
   })
 }
 

@@ -54,18 +54,23 @@ test.describe('Room Streaming from REST API', () => {
     await expectMCUVisible(pageOne)
 
     // Visit the stream page on pageTwo to make sure it's working
-    const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
-    await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
+    test.step('Visit the stream check URL', async () => {
+      const STREAM_CHECK_URL = process.env.STREAM_CHECK_URL!
+      await pageTwo.goto(STREAM_CHECK_URL, { waitUntil: 'domcontentloaded' })
+    })
 
-    await expectToPass(
-      async () => {
-        const locator = pageTwo.getByText(streamName)
-        await pageTwo.reload({ waitUntil: 'domcontentloaded' })
-        await expect(locator).toBeVisible({ timeout: 0 })
-      },
-      { message: 'Stream is not visible' },
-      { timeout: 60_000, intervals: [500] }
-    )
+    // Wait for the stream to be visible on pageTwo
+    test.step('Expect the stream to be visible on pageTwo', async () => {
+      await expectToPass(
+        async () => {
+          const locator = pageTwo.getByText(streamName)
+          await pageTwo.reload({ waitUntil: 'domcontentloaded' })
+          await expect(locator).toBeVisible({ timeout: 0 })
+        },
+        { message: 'Stream is not visible' },
+        { timeout: 60_000, intervals: [500] }
+      )
+    })
 
     await deleteRoom(roomData.id)
   })
