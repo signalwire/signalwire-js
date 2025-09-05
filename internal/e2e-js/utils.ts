@@ -668,11 +668,11 @@ export const disconnectClient = (page: Page) => {
 // #region Utilities for the MCU
 
 export const expectMCUVisible = async (page: Page) => {
-  await page.waitForSelector('div[id^="sw-sdk-"] > video')
+  await page.waitForSelector('.mcuLayers video')
 }
 
 export const expectMCUNotVisible = async (page: Page) => {
-  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+  const mcuVideo = await page.$('.mcuLayers video')
   expect(mcuVideo).toBeNull()
 }
 
