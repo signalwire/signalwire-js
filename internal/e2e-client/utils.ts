@@ -1728,19 +1728,23 @@ export const expectCFInitialEvents = (
 
 export const expectCFFinalEvents = (
   page: Page,
-  extraEvents: Promise<unknown>[] = []
+  extraEvents: Promise<boolean>[] = []
 ) => {
-  const finalEvents = page.evaluate(async () => {
-    const callObj = window._callObj
-    if (!callObj) {
-      throw new Error('Call object not found')
-    }
+  const finalEvents = expectPageEvalToPass(page, {
+    evaluateFn: async () => {
+      const callObj = window._callObj
+      if (!callObj) {
+        throw new Error('Call object not found')
+      }
 
-    const callLeft = new Promise((resolve) => {
-      callObj.on('destroy', () => resolve(true))
-    })
-
-    return callLeft
+      return await new Promise<boolean>((resolve) => {
+        callObj.on('destroy', () => resolve(true))
+      })
+    },
+    assertionFn: (result) => {
+      expect(result, 'expect call to emit destroy event').toBe(true)
+    },
+    message: 'expect call to emit destroy event',
   })
 
   return Promise.all([finalEvents, ...extraEvents])
@@ -1860,10 +1864,10 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 export const expectToPass = async (
   assertion: () => Promise<void>,
   assertionMessage: string | { message: string },
-  options?: { interval?: number[]; timeout?: number }
+  options?: { intervals?: number[]; timeout?: number }
 ) => {
   const mergedOptions = {
-    interval: [10_000], // 10 seconds to avoid polling
+    intervals: [10_000], // 10 seconds to avoid polling
     timeout: 10_000,
     ...options,
   }
@@ -1888,29 +1892,29 @@ export const waitForFunction = async <TArgs, TResult>(
   {
     evaluateArgs,
     evaluateFn,
+    polling,
     message,
-    interval = [10_000],
-    timeoutMs = 10_000,
+    timeoutMs,
   }: {
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
-    message: string
-    interval?: number[]
+    message?: string
+    polling?: number
     timeoutMs?: number
   }
 ) => {
   try {
     const mergedOptions = {
-      interval: interval ?? [10_000], // 10 seconds to avoid polling
+      polling: polling ?? 10_000, // 10 seconds to avoid polling
       timeout: timeoutMs ?? 10_000,
-      message,
-    }
+    } satisfies Parameters<Page['waitForFunction']>[2]
     if (evaluateArgs) {
       return await page.waitForFunction(evaluateFn, evaluateArgs, mergedOptions)
     } else {
       // FIXME: remove the type assertion
       return await page.waitForFunction(
         evaluateFn as PageFunction<void, TResult>,
+        undefined,
         mergedOptions
       )
     }
@@ -1943,14 +1947,14 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     message,
-    interval = [10_000],
+    intervals = [10_000],
     timeoutMs = 10_000,
   }: {
     assertionFn: (result: TResult) => void
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
     message: string
-    interval?: number[]
+    intervals?: number[]
     timeoutMs?: number
   }
 ) => {
@@ -1972,7 +1976,7 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
       assertionFn(result)
     },
     { message: message },
-    { timeout: timeoutMs, interval: interval }
+    { timeout: timeoutMs, intervals: intervals }
   )
   return result
 }

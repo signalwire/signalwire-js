@@ -1,4 +1,9 @@
-import { expectPageEvalToPass, expectToPass, SERVER_URL } from '../../utils'
+import {
+  expectPageEvalToPass,
+  expectToPass,
+  SERVER_URL,
+  waitForFunction,
+} from '../../utils'
 import { test, expect } from '../../fixtures'
 
 test.describe('utils', () => {
@@ -100,7 +105,7 @@ test.describe('utils', () => {
           // Pass on 3rd attempt
         },
         { message: 'should use custom intervals' },
-        { interval: [100, 200, 300], timeout: 10000 }
+        { intervals: [100, 200, 300], timeout: 10000 }
       )
 
       expect(attemptCount).toBe(3)
@@ -178,23 +183,159 @@ test.describe('utils', () => {
 
       expect(attemptCount).toBeGreaterThan(1)
     })
+
+    test('should only poll once if the intervals and timeout are the same', async () => {
+      let attemptCount = 0
+      try {
+        await expectToPass(
+          async () => {
+            attemptCount++
+            if (attemptCount < 2) {
+              // when rejected, expectToPass will poll again
+              return Promise.reject(new Error('Not ready yet'))
+            }
+          },
+          {
+            message:
+              'should only poll once if the intervals and timeout are the same',
+          },
+          { timeout: 1000, intervals: [1000] }
+        )
+      } catch (error) {}
+
+      expect(attemptCount).toBe(1)
+    })
+
+    test('it should poll at least twice if the intervals are different from the timeout', async () => {
+      let attemptCount = 0
+      await expectToPass(
+        async () => {
+          attemptCount++
+          if (attemptCount < 3) {
+            // when rejected, expectToPass will poll again
+            return Promise.reject(new Error('Not ready yet'))
+          }
+          return
+        },
+        {
+          message:
+            'should poll at least twice if the intervals are different from the timeout',
+        },
+        { timeout: 1000, intervals: [10, 10, 20] }
+      )
+
+      expect(attemptCount).toBeGreaterThan(1)
+      expect(attemptCount).toBe(3)
+    })
   })
 })
 
 test.describe('waitForFunction', () => {
-  test('TODO: should resolve when the function returns a truthy value', async () => {
-    test.skip(
-      true,
-      'TODO: Implement test for waitForFunction resolving on truthy value'
+  test.setTimeout(5000)
+  test('should resolve when the function returns a truthy value', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    const resultJSHandle = await waitForFunction(page, {
+      evaluateFn: async () => {
+        return await new Promise<boolean>((resolve) => {
+          setTimeout(() => {
+            resolve(true)
+          }, 1000)
+        })
+      },
+      message: 'should resolve when the function returns a truthy value',
+    })
+    expect(await resultJSHandle.jsonValue()).toBe(true)
+  })
+
+  test('should timeout if the function never returns truthy', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    expect(
+      waitForFunction(page, {
+        evaluateFn: async () => {
+          return await new Promise<boolean>((resolve) => {
+            setTimeout(() => {
+              resolve(false)
+            }, 1000)
+          })
+        },
+      })
+    ).rejects.toThrow(
+      'waitForFunction: Error: page.waitForFunction: Test ended.'
     )
   })
 
-  test('TODO: should timeout if the function never returns truthy', async () => {
-    test.skip(true, 'TODO: Implement test for waitForFunction timeout behavior')
+  test('should pass arguments to the page function', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    const resultJSHandle = await waitForFunction(page, {
+      evaluateArgs: { param: 'test' },
+      evaluateFn: (args: { param: string }) => {
+        return args.param
+      },
+      message: 'should pass arguments to the page function',
+    })
+    expect(await resultJSHandle.jsonValue()).toBe('test')
   })
 
-  test('TODO: should pass arguments to the page function', async () => {
-    test.skip(true, 'TODO: Implement test for waitForFunction argument passing')
+  test('should poll with polling parameter until the function returns a truthy value', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    const resultJSHandle = await waitForFunction(page, {
+      evaluateFn: () => {
+        interface Window extends Global {
+          attemptCount: number
+        }
+        const win = window as unknown as Window
+        if (win.attemptCount === undefined) {
+          win.attemptCount = 0
+        }
+        if (win.attemptCount < 10) {
+          win.attemptCount += 1
+        }
+
+        // will poll until the attemptCount is 10 as the waitForFunction needs to return a truthy value
+        return win.attemptCount === 10 ? win.attemptCount : false
+      },
+      message: 'should poll until the function returns a truthy value',
+      polling: 10,
+      timeoutMs: 1000,
+    })
+    expect(await resultJSHandle.jsonValue()).toBe(10)
+  })
+
+  test('should not poll if the polling and timeout are the same', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+    try {
+      await waitForFunction(page, {
+        evaluateFn: () => {
+          interface Window extends Global {
+            attemptCount: number
+          }
+          const win = window as unknown as Window
+          if (win.attemptCount === undefined) {
+            win.attemptCount = 0
+          }
+          win.attemptCount += 1
+          return win.attemptCount === 10 ? win.attemptCount : false
+        },
+        message: 'should not poll if the polling and timeout are the same',
+        polling: 1000,
+        timeoutMs: 1000,
+      })
+    } catch (error) {
+      // should throw a timeout error as the truthy value is not returned within the timeout
+      expect(error.message).toContain(
+        'TimeoutError: page.waitForFunction: Timeout 1000ms exceeded'
+      )
+    }
   })
 })
 
@@ -309,5 +450,64 @@ test.describe('expectPageEvalToPass', () => {
     ).rejects.toThrow(
       'timeout - should timeout when page evaluation takes too long'
     )
+  })
+
+  test('should poll at multiple times if the intervals are different from the timeout', async ({
+    createCustomPage,
+  }) => {
+    let attemptCount = 0
+    const page = await createCustomPage({ name: '[page]' })
+
+    const result = await expectPageEvalToPass(page, {
+      evaluateArgs: {
+        attemptCount,
+      },
+      evaluateFn: () => {
+        return 'anything'
+      },
+      assertionFn: () => {
+        // increment attemptCount when the assertionFn is called
+        attemptCount++
+        // this assertion should fail and trigger the polling until it succeeds
+        expect(attemptCount).toBe(10)
+      },
+      message:
+        'should poll at least twice if the intervals are different from the timeout',
+      intervals: [10],
+      timeoutMs: 1000,
+    })
+
+    // should return the result of the evaluateFn
+    expect(result).toBe('anything')
+  })
+
+  test('it should poll only once if the intervals and timeout are the same', async ({
+    createCustomPage,
+  }) => {
+    let attemptCount = 0
+    const page = await createCustomPage({ name: '[page]' })
+    try {
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          return 'anything'
+        },
+        assertionFn: (result) => {
+          // should only be called once
+          attemptCount++
+          // this assertion should fail and trigger the polling
+          expect(result).toBe('should not resolve')
+        },
+        message:
+          'should poll only once if the intervals and timeout are the same',
+        intervals: [1000],
+        timeoutMs: 1000,
+      })
+    } catch (error) {
+      // should throw an error due to the timeout
+      expect(error.message).toContain(
+        'Timeout 1000ms exceeded while waiting on the predicate'
+      )
+    }
+    expect(attemptCount).toBe(1)
   })
 })
