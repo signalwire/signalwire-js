@@ -6,7 +6,7 @@ import { PREVIOUS_CALLID_STORAGE_KEY } from '../unified/utils/constants'
 const mutateStorageKey = (key: string) => `@signalwire:${key}`
 
 export const getCallIdKey = (profileId?: string) =>
-  `${PREVIOUS_CALLID_STORAGE_KEY}${profileId ? ':'+profileId : ''}`
+  `${PREVIOUS_CALLID_STORAGE_KEY}${profileId ? ':' + profileId : ''}`
 /**
  * Note: ready to support RN with a "storage.native.ts" file.
  */
@@ -58,8 +58,8 @@ export const getStorage = () => {
 }
 
 export const sessionStorageManager = (token: string, profileId?: string) => {
-  let keySuffix: string | false = false
-  
+  let keySuffix = ''
+
   try {
     // First try to decode JWT header to check token type
     let tokenType = 'unknown'
@@ -68,29 +68,25 @@ export const sessionStorageManager = (token: string, profileId?: string) => {
       tokenType = jwtHeader.typ || 'unknown'
     } catch {
       // Header decode failed, try to infer from token prefix
-      if (token.startsWith('SAT') || token.startsWith('PT')) {
+      if (token.startsWith('SAT')) {
         tokenType = 'SAT'
       }
     }
-    
+
     if (tokenType === 'SAT') {
       // For SAT tokens, always use "SAT" as the suffix
       keySuffix = `SAT${profileId ? ':' + profileId : ''}`
-    } else {
-      // For other tokens (like VRT), decode payload to get the 'r' field
-      const jwtPayload = jwtDecode<{ r?: string }>(token)
-      keySuffix = jwtPayload.r ? `${jwtPayload.r}${profileId ? ':' + profileId : ''}` : false
     }
   } catch {
     if (process.env.NODE_ENV !== 'production') {
       getLogger().error('[sessionStorageManager] error decoding JWT', token)
     }
-    keySuffix = false
+    keySuffix = ''
   }
 
   return {
-    authStateKey: keySuffix ? `as-${keySuffix}` : false,
-    protocolKey: keySuffix ? `pt-${keySuffix}` : false,
-    callIdKey: keySuffix ? `ci-${keySuffix}` : false,
+    authStateKey: `as-${keySuffix}`,
+    protocolKey: `pt-${keySuffix}`,
+    callIdKey: `ci-${keySuffix}`,
   }
 }
