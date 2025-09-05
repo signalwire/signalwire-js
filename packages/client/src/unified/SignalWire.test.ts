@@ -137,10 +137,10 @@ describe('SignalWire', () => {
     expect(client).toBeDefined()
   })
 
-  describe('Multi-instance support with clientId and storage', () => {
-    it('should create new instances when different clientId is provided', async () => {
-      const client1 = await SignalWire({ ...mockParams, clientId: 'client1' })
-      const client2 = await SignalWire({ ...mockParams, clientId: 'client2' })
+  describe('Multi-instance support with profileId and storage', () => {
+    it('should create new instances when different profileId is provided', async () => {
+      const client1 = await SignalWire({ ...mockParams, profileId: 'profile1' })
+      const client2 = await SignalWire({ ...mockParams, profileId: 'profile2' })
 
       expect(client1).not.toBe(client2)
       expect(WSClient).toHaveBeenCalledTimes(2)
@@ -152,20 +152,20 @@ describe('SignalWire', () => {
       expect(wsClientCalls[1][0].storage).toBeUndefined()
     })
 
-    it('should create new instance when storage is provided', async () => {
+    it('should create new instance when storage is provided with profileId', async () => {
       const storage = new LocalStorageAdapter()
-      const client1 = await SignalWire({ ...mockParams, storage })
-      const client2 = await SignalWire({ ...mockParams, storage })
+      const client1 = await SignalWire({ ...mockParams, storage, profileId: 'profile1' })
+      const client2 = await SignalWire({ ...mockParams, storage, profileId: 'profile2' })
 
       expect(client1).not.toBe(client2)
       expect(WSClient).toHaveBeenCalledTimes(2)
       expect(HTTPClient).toHaveBeenCalledTimes(2)
     })
 
-    it('should maintain singleton when using default clientId without storage', async () => {
+    it('should maintain singleton when no profileId is provided', async () => {
       // Note: Due to singleton being cached across tests, we can't reliably test WSClient call counts
       // Instead, focus on the singleton behavior
-      const client1 = await SignalWire({ ...mockParams, clientId: 'default' })
+      const client1 = await SignalWire({ ...mockParams })
       const client2 = await SignalWire({ ...mockParams })
 
       expect(client1).toBe(client2)
@@ -177,7 +177,7 @@ describe('SignalWire', () => {
       const storage = new LocalStorageAdapter()
       const client = await SignalWire({
         ...mockParams,
-        clientId: 'test-client',
+        profileId: 'test-profile',
         storage,
       })
 
@@ -203,9 +203,9 @@ describe('SignalWire', () => {
       await client1.disconnect()
     })
 
-    it('should support new constructor with clientId parameter', async () => {
-      const params1 = { ...mockParams, clientId: 'unique-client-1' }
-      const params2 = { ...mockParams, clientId: 'unique-client-2' }
+    it('should support new constructor with profileId parameter', async () => {
+      const params1 = { ...mockParams, profileId: 'unique-profile-1' }
+      const params2 = { ...mockParams, profileId: 'unique-profile-2' }
 
       const client1 = await SignalWire(params1)
       const client2 = await SignalWire(params2)
@@ -214,7 +214,7 @@ describe('SignalWire', () => {
       expect(WSClient).toHaveBeenCalledTimes(2)
       expect(HTTPClient).toHaveBeenCalledTimes(2)
 
-      // Verify that clients are created - implementation may not pass clientId directly
+      // Verify that clients are created - implementation may not pass profileId directly
       const wsClientCalls = (WSClient as jest.Mock).mock.calls
       expect(wsClientCalls).toHaveLength(2)
       expect(wsClientCalls[0][0]).toMatchObject({
@@ -232,7 +232,7 @@ describe('SignalWire', () => {
 
     it('should support new constructor with storage parameter', async () => {
       const storage = new LocalStorageAdapter()
-      const params = { ...mockParams, storage }
+      const params = { ...mockParams, storage, profileId: 'storage-profile' }
 
       const client = await SignalWire(params)
 
@@ -252,11 +252,11 @@ describe('SignalWire', () => {
       await client.disconnect()
     })
 
-    it('should support both clientId and storage parameters together', async () => {
+    it('should support both profileId and storage parameters together', async () => {
       const storage = new LocalStorageAdapter()
       const params = {
         ...mockParams,
-        clientId: 'test-client-with-storage',
+        profileId: 'test-profile-with-storage',
         storage,
       }
 
@@ -267,16 +267,16 @@ describe('SignalWire', () => {
       expect(HTTPClient).toHaveBeenCalledTimes(1)
 
       const wsClientCall = (WSClient as jest.Mock).mock.calls[0][0]
-      // Note: clientId may not be directly passed to WSClient in current implementation
+      // Note: profileId may not be directly passed to WSClient in current implementation
       expect(wsClientCall.storage).toBeInstanceOf(StorageWrapper)
 
       await client.disconnect()
     })
 
-    it('should create separate instances for different clientId values', async () => {
-      const client1 = await SignalWire({ ...mockParams, clientId: 'client-a' })
-      const client2 = await SignalWire({ ...mockParams, clientId: 'client-b' })
-      const client3 = await SignalWire({ ...mockParams, clientId: 'client-a' }) // Same as client1
+    it('should create separate instances for different profileId values', async () => {
+      const client1 = await SignalWire({ ...mockParams, profileId: 'profile-a' })
+      const client2 = await SignalWire({ ...mockParams, profileId: 'profile-b' })
+      const client3 = await SignalWire({ ...mockParams, profileId: 'profile-a' }) // Same as profile1
 
       expect(client1).not.toBe(client2)
       // Note: Current implementation may create new instances instead of reusing
@@ -288,12 +288,9 @@ describe('SignalWire', () => {
       await client3.disconnect()
     })
 
-    it('should handle default clientId properly', async () => {
-      const clientDefault1 = await SignalWire({
-        ...mockParams,
-        clientId: 'default',
-      })
-      const clientDefault2 = await SignalWire(mockParams) // No clientId = 'default'
+    it('should handle no profileId properly (singleton behavior)', async () => {
+      const clientDefault1 = await SignalWire(mockParams) // No profileId
+      const clientDefault2 = await SignalWire(mockParams) // No profileId
 
       expect(clientDefault1).toBe(clientDefault2)
 
@@ -322,7 +319,7 @@ describe('SignalWire', () => {
     it('should create StorageWrapper when storage is provided', async () => {
       const client = await SignalWire({
         ...mockParams,
-        clientId: 'storage-test',
+        profileId: 'storage-test',
         storage: mockStorage,
       })
 
@@ -341,14 +338,14 @@ describe('SignalWire', () => {
     it('should use swcf: prefix for storage operations through wrapper', async () => {
       const client = await SignalWire({
         ...mockParams,
-        clientId: 'prefix-test',
+        profileId: 'prefix-test',
         storage: mockStorage,
       })
 
       const wsClientCall = (WSClient as jest.Mock).mock.calls[0][0]
       const storageWrapper = wsClientCall.storage as StorageWrapper
 
-      // Test that storage wrapper adds prefix (including clientId)
+      // Test that storage wrapper adds prefix (including profileId)
       await storageWrapper.set('test-key', 'test-value')
       expect(mockStorage.set).toHaveBeenCalledWith(
         'swcf:prefix-test:test-key',
@@ -364,7 +361,7 @@ describe('SignalWire', () => {
     it('should not create storage wrapper when no storage provided', async () => {
       const client = await SignalWire({
         ...mockParams,
-        clientId: 'no-storage-test',
+        profileId: 'no-storage-test',
       })
 
       const wsClientCall = (WSClient as jest.Mock).mock.calls[0][0]
@@ -386,7 +383,7 @@ describe('SignalWire', () => {
       // Should still create client even if storage has issues
       const client = await SignalWire({
         ...mockParams,
-        clientId: 'faulty-storage-test',
+        profileId: 'faulty-storage-test',
         storage: faultyStorage,
       })
 
@@ -398,14 +395,14 @@ describe('SignalWire', () => {
   })
 
   describe('Phase 1 Features - Multi-instance Management', () => {
-    it('should maintain separate instance state for different clientIds', async () => {
+    it('should maintain separate instance state for different profileIds', async () => {
       const client1 = await SignalWire({
         ...mockParams,
-        clientId: 'instance-1',
+        profileId: 'instance-1',
       })
       const client2 = await SignalWire({
         ...mockParams,
-        clientId: 'instance-2',
+        profileId: 'instance-2',
       })
 
       // Each should have its own WSClient and HTTPClient instances
@@ -424,18 +421,18 @@ describe('SignalWire', () => {
       expect(mockDisconnect).toHaveBeenCalledTimes(2)
     })
 
-    it('should reuse instances for the same clientId', async () => {
+    it('should create new instances for the same profileId', async () => {
       const client1 = await SignalWire({
         ...mockParams,
-        clientId: 'reuse-test',
+        profileId: 'reuse-test',
       })
       const client2 = await SignalWire({
         ...mockParams,
-        clientId: 'reuse-test',
+        profileId: 'reuse-test',
       })
 
-      // Note: Current implementation may not reuse instances yet
-      // This tests the concept even if reuse isn't fully implemented
+      // Note: Current implementation creates new instances each time
+      // when profileId is provided
       expect(WSClient).toHaveBeenCalled()
       expect(HTTPClient).toHaveBeenCalled()
 
@@ -446,14 +443,14 @@ describe('SignalWire', () => {
     })
 
     it('should handle mixed usage of singleton and multi-instance', async () => {
-      // Use unique client IDs to avoid interference from other tests
+      // Use unique profile IDs to avoid interference from other tests
       const multiClient1 = await SignalWire({
         ...mockParams,
-        clientId: 'mixed-test-multi-1',
+        profileId: 'mixed-test-multi-1',
       })
       const multiClient2 = await SignalWire({
         ...mockParams,
-        clientId: 'mixed-test-multi-2',
+        profileId: 'mixed-test-multi-2',
       })
 
       // Test singleton behavior (may reuse existing singleton from other tests)
@@ -471,15 +468,15 @@ describe('SignalWire', () => {
     })
 
     it('should properly clean up instances on disconnect', async () => {
-      const client1 = await SignalWire({ ...mockParams, clientId: 'cleanup-1' })
-      const client2 = await SignalWire({ ...mockParams, clientId: 'cleanup-2' })
+      const client1 = await SignalWire({ ...mockParams, profileId: 'cleanup-1' })
+      const client2 = await SignalWire({ ...mockParams, profileId: 'cleanup-2' })
 
       await client1.disconnect()
 
-      // Creating a new client with the same ID should create a new instance
+      // Creating a new client with the same profileId should create a new instance
       const client1New = await SignalWire({
         ...mockParams,
-        clientId: 'cleanup-1',
+        profileId: 'cleanup-1',
       })
 
       expect(client1New).not.toBe(client1)

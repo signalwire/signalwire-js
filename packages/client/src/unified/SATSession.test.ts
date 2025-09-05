@@ -8,6 +8,25 @@ jest.mock('uuid', () => {
   }
 })
 
+// Mock window for Node.js environment
+Object.defineProperty(global, 'window', {
+  value: {
+    localStorage: {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn(),
+    },
+    sessionStorage: {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(), 
+      clear: jest.fn(),
+    },
+  },
+  writable: true,
+})
+
 describe('SATSession', () => {
   const host = 'ws://localhost:8080'
   const project = '2506edbc-35c4-4d9f-a5f0-45a03d82dab1'
