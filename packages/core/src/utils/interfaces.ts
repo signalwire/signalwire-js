@@ -104,6 +104,9 @@ export interface SessionOptions {
   /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
   token: string
   /** SignalWire contexts, e.g. 'home', 'office'.. */
+  /** @internal */
+  profileId?: string
+
   contexts?: string[]
   /** An alias for contexts - Topics has more priority over contexts */
   topics?: string[]

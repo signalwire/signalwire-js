@@ -26,8 +26,7 @@ import {
   CallSessionEvents,
   RequestMemberParams,
 } from '../utils/interfaces'
-import { getStorage } from '../utils/storage'
-import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { getCallIdKey, getStorage } from '../utils/storage'
 import { fabricWorker } from './workers'
 import { CallSessionMember } from './CallSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
@@ -196,18 +195,24 @@ export class CallSessionConnection
     return new Promise<void>(async (resolve, reject) => {
       try {
         this.once('room.subscribed', (params) => {
-          getStorage()?.setItem(PREVIOUS_CALLID_STORAGE_KEY, params.call_id)
-          resolve()
+          getStorage()
+            ?.setItem(getCallIdKey(this.options.profileId), params.call_id)
+            ?.then(() => resolve())
         })
 
         this.once('destroy', () => {
-          getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+          getStorage()?.removeItem(getCallIdKey(this.options.profileId))
           reject(new Error('Failed to start the call', { cause: this.cause }))
         })
 
         if (this.options.attach) {
+          // Use provided storage or fallback to session storage
+
           this.options.prevCallId =
-            getStorage()?.getItem(PREVIOUS_CALLID_STORAGE_KEY) ?? undefined
+            (await getStorage()?.getItem(
+              getCallIdKey(this.options.profileId)
+            )) ?? undefined
+
           this.logger.debug(
             `Trying to reattach to previous call: ${this.options.prevCallId}`
           )
@@ -419,7 +424,7 @@ export class CallSessionConnection
     await this.executeAction<BaseRPCResult>({
       method: 'call.end',
       memberId: params?.memberId,
-    });
+    })
   }
 }
 

@@ -1,5 +1,20 @@
 import { sessionStorageManager } from './storage'
 
+// Mock window for Node.js environment
+Object.defineProperty(global, 'window', {
+  value: {
+    sessionStorage: {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn(),
+      length: 0,
+      key: jest.fn(),
+    },
+  },
+  writable: true,
+})
+
 describe('sessionStorageManager', () => {
   it('should return expected keys', () => {
     const token =

@@ -24,8 +24,7 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { getStorage } from '../utils/storage'
-import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { getCallIdKey, getStorage } from '../utils/storage'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -201,12 +200,12 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
       fromCallAddressId: params.fromCallAddressId,
+      profileId: this.wsClientOptions.profileId,
     })
 
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
-      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
       call.destroy()
     })
 
@@ -240,6 +239,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       prevCallId: payload.callID,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      profileId: this.wsClientOptions.profileId,
     })
 
     // WebRTC connection left the room.
@@ -317,9 +317,9 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
   }
 
   public dial(params: DialParams) {
-    // TODO: Do we need this remove item here?
     // in case the user left the previous call with hangup, and is not reattaching
-    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+    getStorage()?.removeItem(getCallIdKey(this.options.profileId))
+
     return this.buildOutboundCall(params)
   }
 
@@ -341,10 +341,24 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
           reject('Unknown notification type')
         }
         this.logger.debug('handlePushNotification', params)
+        const decryptedData = decrypted as {
+          params: {
+            params: {
+              callID: string
+              sdp: string
+              caller_id_name: string
+              caller_id_number: string
+              callee_id_name: string
+              callee_id_number: string
+              display_direction: string
+            }
+          }
+          node_id: string
+        }
         const {
           params: { params: payload },
           node_id: nodeId,
-        } = decrypted
+        } = decryptedData
         try {
           // Catch the error temporarly
           try {

@@ -98,6 +98,8 @@ export interface ConnectionOptions {
   nodeId?: string
   /** @internal */
   fromCallAddressId?: string
+  /** @internal */
+  profileId?: string
 
   layout?: string
   positions?: VideoPositions

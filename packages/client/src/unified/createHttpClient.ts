@@ -74,7 +74,7 @@ type CreateHttpClientOptions = RequestInit &
 
 interface HttpClientRequestInit extends Omit<RequestInit, 'body'> {
   body?: Record<string, unknown>
-  searchParams?: Record<string, any>
+  searchParams?: Record<string, string | number | boolean>
 }
 
 export type CreateHttpClient = ReturnType<typeof createHttpClient>
@@ -101,11 +101,14 @@ export const createHttpClient = (
       ...options?.headers,
     }
 
-    const reqInit = getRequestInit({
-      ...globalOptions,
+    // Omit body from globalOptions as it may be incompatible type
+    const { body: globalBody, ...globalOptionsWithoutBody } = globalOptions
+    const combinedOptions: HttpClientRequestInit = {
+      ...globalOptionsWithoutBody,
       ...options,
       headers,
-    })
+    }
+    const reqInit = getRequestInit(combinedOptions)
     // reqInit.mode = 'no-cors'
     // reqInit.credentials = 'include'
 
@@ -174,7 +177,7 @@ const getBody = (body: unknown) => {
   return typeof body === 'string' ? body : JSON.stringify(body)
 }
 
-const getRequestInit = (options: any): RequestInit => {
+const getRequestInit = (options: HttpClientRequestInit): RequestInit => {
   return Object.entries(options).reduce((reducer, [key, value]) => {
     if (key === 'body') {
       return {
@@ -199,14 +202,14 @@ const getUrl = ({
 }: {
   baseUrl: string
   path: string
-  searchParams?: Record<string, any>
+  searchParams?: Record<string, string | number | boolean>
 }) => {
   const url = new URL(path, baseUrl)
 
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
       if (value != undefined) {
-        url.searchParams.append(key, value)
+        url.searchParams.append(key, String(value))
       }
     })
   }
