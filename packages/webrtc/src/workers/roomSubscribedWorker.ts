@@ -74,7 +74,9 @@ export const roomSubscribedWorker: SDKWorker<
     )
 
     instance.emit('room.subscribed', action.payload)
+    getLogger().debug('room.subscribed event emitted', rtcPeerId)
     instance.emit('room.joined', transformPayload.call(instance, clonedPayload))
+    getLogger().debug('room.joined event emitted', rtcPeerId)
 
     getLogger().debug('roomSubscribedWorker ended', rtcPeerId)
   } finally {

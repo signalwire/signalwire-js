@@ -11,7 +11,7 @@ import {
 } from '../utils'
 
 test.describe('Room Session Max Members', () => {
-  test('Should fail to join when max_member is reached', async ({
+  test('should fail to join when max_member is reached', async ({
     createCustomPage,
   }) => {
     const allPages = await Promise.all([
@@ -45,31 +45,33 @@ test.describe('Room Session Max Members', () => {
       })
     )
 
-    await Promise.all([
-      expectRoomJoinWithDefaults(pageOne),
-      expectRoomJoinWithDefaults(pageTwo),
-    ])
-
-    await Promise.all([expectMCUVisible(pageOne), expectMCUVisible(pageTwo)])
-
-    await pageOne.waitForTimeout(2000)
-
-    // setting up an expected rejection for the 3rd member
-    const joinRoom = pageThree.evaluate(() => {
-      return new Promise<any>(async (resolve, reject) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.once('room.joined', resolve)
-
-        try {
-          await roomObj.join()
-        } catch (e) {
-          reject(e)
-        }
-      })
+    await test.step('joining a room from pageOne', async () => {
+      await expectRoomJoinWithDefaults(pageOne)
+      await expectMCUVisible(pageOne)
     })
 
-    await expect(joinRoom).rejects.toBeTruthy()
+    await test.step('joining a room from pageTwo', async () => {
+      await expectRoomJoinWithDefaults(pageTwo)
+      await expectMCUVisible(pageTwo)
+    })
+
+    // setting up an expected rejection for the 3rd member
+    await test.step('joining a room from pageThree', async () => {
+      const joinRoom = pageThree.evaluate(() => {
+        return new Promise<any>(async (resolve, reject) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          roomObj.once('room.joined', resolve)
+
+          try {
+            await roomObj.join()
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+      await expect(joinRoom).rejects.toBeTruthy()
+    })
 
     await deleteRoom(roomData.id)
   })
