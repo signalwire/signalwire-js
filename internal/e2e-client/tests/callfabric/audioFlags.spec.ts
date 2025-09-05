@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { CallSession, CallJoinedEventParams } from '@signalwire/client'
+import { CallJoinedEventParams } from '@signalwire/client'
 import { test, expect, CustomPage } from '../../fixtures'
 import {
   SERVER_URL,
