@@ -456,11 +456,7 @@ describe('StorageWrapper', () => {
             refresh_token: 'refresh-token-value',
           },
           satRefreshURL: 'https://api.signalwire.com/auth/refresh',
-          satRefreshResultMapper: (body: Record<string, any>) => ({
-            satToken: body.access_token || 'token',
-            tokenExpiry: body.expires_at || Date.now() + 3600000,
-            satRefreshPayload: body.refresh_payload || {},
-          }),
+          satRefreshResultMapper: 'default',
           host: 'test-host.signalwire.com',
         }
 

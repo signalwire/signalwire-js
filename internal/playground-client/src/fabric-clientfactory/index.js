@@ -301,24 +301,7 @@ window.addProfile = async () => {
       return
     }
 
-    // Handle satRefreshResultMapper as string (eval to function)
-    if (
-      credentialsData.satRefreshResultMapper &&
-      typeof credentialsData.satRefreshResultMapper === 'string'
-    ) {
-      try {
-        credentialsData.satRefreshResultMapper = eval(
-          `(${credentialsData.satRefreshResultMapper})`
-        )
-      } catch (evalError) {
-        console.error(
-          'Failed to eval satRefreshResultMapper, using default mapper:',
-          evalError
-        )
-        showError('Failed to eval satRefreshResultMapper')
-        return
-      }
-    }
+
 
     // Create credentials object
     const credentials = {
@@ -326,14 +309,7 @@ window.addProfile = async () => {
       satRefreshPayload: credentialsData.satRefreshPayload || {},
       satRefreshURL:
         credentialsData.satRefreshUrl || credentialsData.satRefreshURL,
-      satRefreshResultMapper:
-        credentialsData.satRefreshResultMapper ||
-        ((body) => ({
-          satToken: body.satToken || body.token,
-          tokenExpiry:
-            body.tokenExpiry || body.expires_at || Date.now() + 3600000,
-          satRefreshPayload: body.satRefreshPayload || {},
-        })),
+      satRefreshResultMapper: credentialsData.satRefreshResultMapper,
       tokenExpiry: credentialsData.tokenExpiry || Date.now() + 3600000, // 1 hour default
     }
 

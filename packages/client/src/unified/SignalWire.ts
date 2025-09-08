@@ -22,7 +22,6 @@ export const SignalWire = (() => {
   let instance: Promise<SignalWireClient> | null = null
 
   return (params: SignalWireClientParams): Promise<SignalWireClient> => {
-    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', params)
     const { profileId } = params
 
     // Only use singleton pattern if using profileId
@@ -49,11 +48,6 @@ export async function createSignalWireClient(
   params: SignalWireClientParams
 ): Promise<SignalWireClient> {
   const { profileId, storage, shouldDisconnect, ...restParams } = params
-  console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', {
-    profileId,
-    storage,
-    shouldDisconnect,
-  })
   // Create storage wrapper if storage is provided
   const wrappedStorage =
     storage && profileId ? new StorageWrapper(storage, profileId) : undefined
@@ -80,12 +74,9 @@ export async function createSignalWireClient(
     unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
     getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
     disconnect: async () => {
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', !shouldDisconnect)
       if (!shouldDisconnect) {
-        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', shouldDisconnect)
         return wsClient.disconnect()
       } else if (shouldDisconnect()) {
-        console.log('###############################', shouldDisconnect)
         return wsClient.disconnect()
       }
     },

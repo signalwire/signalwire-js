@@ -1,19 +1,7 @@
 import { Profile, ProfileType } from '../interfaces/clientFactory'
 import type { ResourceType } from '../interfaces/address'
+import { isValidMapperName } from './satRefreshMappers'
 
-/**
- * Check if a value is a serialized function marker
- */
-function isSerializedFunctionMarker(value: unknown): boolean {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    '__type' in value &&
-    '__value' in value &&
-    (value as any).__type === 'function' &&
-    typeof (value as any).__value === 'string'
-  )
-}
 
 /**
  * Valid resource types
@@ -76,10 +64,10 @@ export function isValidProfile(data: unknown): data is Profile {
     return false
   }
 
-  // satRefreshResultMapper can be a function, undefined, or a serialized function marker
+  // satRefreshResultMapper must be a valid string mapper name
   if (
-    typeof credentials.satRefreshResultMapper !== 'function' &&
-    !isSerializedFunctionMarker(credentials.satRefreshResultMapper)
+    typeof credentials.satRefreshResultMapper !== 'string' ||
+    !isValidMapperName(credentials.satRefreshResultMapper)
   ) {
     return false
   }
