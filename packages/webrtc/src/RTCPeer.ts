@@ -1241,7 +1241,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
-      this.logger.debug('Track event:', event)
+      this.logger.debug('Track event:', event, event.track.kind)
       // @ts-expect-error
       this.call.emit('track', event)
 
