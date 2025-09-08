@@ -668,6 +668,7 @@ export const disconnectClient = (page: Page) => {
 // #region Utilities for the MCU
 
 export const expectMCUVisible = async (page: Page) => {
+  console.log('Waiting for MCU video to be visible...')
   await page.waitForSelector('.mcuLayers video')
 }
 
