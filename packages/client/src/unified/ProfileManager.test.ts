@@ -34,13 +34,7 @@ function createTestCredentials(
       project_id: 'project-123',
     },
     satRefreshURL: 'https://api.signalwire.com/auth/refresh',
-    satRefreshResultMapper: (body: Record<string, any>) => ({
-      satToken: body.access_token || `refreshed_token_${Date.now()}`,
-      tokenExpiry: body.expires_at || Date.now() + 3600000,
-      satRefreshPayload: {
-        refresh_token: body.refresh_token || 'refresh-token',
-      },
-    }),
+    satRefreshResultMapper: 'default',
     ...overrides,
   }
 }

@@ -1,6 +1,7 @@
 import { SignalWireClient, SignalWireClientParams } from './index'
 import { ResourceType } from './address'
 import { SignalWireStorageContract } from '@signalwire/core'
+import { RefreshMapper } from 'packages/client/src/unified/utils/satRefreshMappers'
 
 /**
  * Public type for authentication credentials
@@ -12,12 +13,8 @@ export interface SignalWireCredentials {
   satRefreshPayload: Record<string, any>
   /** URL for refresh token endpoint */
   satRefreshURL: string
-  /** Function to map refresh response to credentials */
-  satRefreshResultMapper: (body: Record<string, any>) => {
-    satToken: string
-    tokenExpiry: number
-    satRefreshPayload: Record<string, any>
-  }
+  /** String identifier for predefined mapper function */
+  satRefreshResultMapper: RefreshMapper
   /** Token expiry timestamp */
   tokenExpiry: number
   host: string

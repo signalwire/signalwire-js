@@ -13,6 +13,7 @@ import {
   isStringArray,
   safeJsonParse,
 } from './utils/typeGuards'
+import { resolveSatRefreshResultMapper } from './utils/satRefreshMappers'
 import {
   serializeWithFunctions,
   safeJsonParseWithFunctions,
@@ -73,10 +74,17 @@ export class ProfileManager implements ProfileManagerContract {
       throw new ProfileExistsError(profileId)
     }
 
+    // Ensure satRefreshResultMapper is a valid string, use default if not provided
+    const resolvedCredentials = {
+      ...profile.credentials,
+      satRefreshResultMapper: profile.credentials.satRefreshResultMapper || 'default',
+    }
+
     // Create complete profile
     const now = Date.now()
     const completeProfile: Profile = {
       ...profile,
+      credentials: resolvedCredentials,
       id: profileId,
       createdAt: now,
       updatedAt: now,
@@ -477,8 +485,8 @@ export class ProfileManager implements ProfileManagerContract {
   private async _callRefreshAPI(
     profile: Profile
   ): Promise<Profile['credentials']> {
-    const { satRefreshURL, satRefreshPayload, satRefreshResultMapper, host } =
-      profile.credentials
+    const { satRefreshURL, satRefreshPayload, satRefreshResultMapper, host } = profile.credentials
+    const mapperFunction = resolveSatRefreshResultMapper(satRefreshResultMapper)
 
     // Check if we're in a test environment by detecting jest
     if (typeof jest !== 'undefined') {
@@ -511,7 +519,7 @@ export class ProfileManager implements ProfileManagerContract {
     const responseBody = await response.json()
 
     // Use the custom mapper to extract the credentials from the response
-    const mappedResult = satRefreshResultMapper(responseBody)
+    const mappedResult = mapperFunction(responseBody)
 
     return {
       satToken: mappedResult.satToken,

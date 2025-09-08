@@ -20,11 +20,7 @@ describe('TypeGuards', () => {
           refresh_token: 'refresh-token',
         },
         satRefreshURL: 'https://api.signalwire.com/auth/refresh',
-        satRefreshResultMapper: (body: Record<string, any>) => ({
-          satToken: body.access_token || 'token',
-          tokenExpiry: body.expires_at || Date.now() + 3600000,
-          satRefreshPayload: body.refresh_payload || {},
-        }),
+        satRefreshResultMapper: 'default',
         host: 'test-host.signalwire.com',
       },
       addressId: 'address-id',
@@ -151,32 +147,25 @@ describe('TypeGuards', () => {
       expect(isValidProfile(missingCredentials)).toBe(false)
     })
 
-    it('should handle serialized function markers in credentials', () => {
-      // Test with serialized function marker
+    it('should handle valid string mapper names in credentials', () => {
+      // Test with valid mapper name
       expect(
         isValidProfile({
           ...validProfile,
           credentials: {
             ...validProfile.credentials,
-            satRefreshResultMapper: {
-              __type: 'function',
-              __value:
-                '(body) => ({ satToken: body.access_token, tokenExpiry: body.expires_at, satRefreshPayload: body.refresh_payload })',
-            },
+            satRefreshResultMapper: 'oauth',
           },
         })
       ).toBe(true)
 
-      // Test with invalid serialized function marker
+      // Test with invalid mapper name
       expect(
         isValidProfile({
           ...validProfile,
           credentials: {
             ...validProfile.credentials,
-            satRefreshResultMapper: {
-              __type: 'invalid',
-              __value: 'some string',
-            },
+            satRefreshResultMapper: 'invalid-mapper',
           },
         })
       ).toBe(false)
@@ -532,11 +521,7 @@ describe('TypeGuards', () => {
             refresh_token: 'refresh-token',
           },
           satRefreshURL: 'https://api.signalwire.com/auth/refresh',
-          satRefreshResultMapper: (body: Record<string, any>) => ({
-            satToken: body.access_token || 'token',
-            tokenExpiry: body.expires_at || Date.now() + 3600000,
-            satRefreshPayload: body.refresh_payload || {},
-          }),
+          satRefreshResultMapper: 'oauth',
         },
         addressId: 'address-id',
         createdAt: Date.now(),
@@ -547,22 +532,10 @@ describe('TypeGuards', () => {
       const json = serializeWithFunctions(validProfile)
       const result = safeJsonParseWithFunctions(json, isValidProfile)
 
-      // The result should be valid and the function should be preserved
+      // The result should be valid and the string mapper name should be preserved
       expect(result).not.toBeNull()
-      expect(typeof result?.credentials.satRefreshResultMapper).toBe('function')
-
-      // Test that the reconstructed function works
-      const testBody = {
-        access_token: 'new-token',
-        expires_at: 123456,
-        refresh_payload: { test: true },
-      }
-      const mappedResult = result?.credentials.satRefreshResultMapper(testBody)
-      expect(mappedResult).toEqual({
-        satToken: 'new-token',
-        tokenExpiry: 123456,
-        satRefreshPayload: { test: true },
-      })
+      expect(typeof result?.credentials.satRefreshResultMapper).toBe('string')
+      expect(result?.credentials.satRefreshResultMapper).toBe('oauth')
     })
 
     it('should work with isStringArray validator', () => {
