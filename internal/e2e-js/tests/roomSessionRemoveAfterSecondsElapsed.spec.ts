@@ -49,9 +49,11 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
 
       const removeAfter = 5
       if (!row.autoCreateRoom) {
-        roomData = await createOrUpdateRoom({
-          name: row.roomName,
-          remove_after_seconds_elapsed: removeAfter,
+        await test.step('create room with remove_after_seconds_elapsed', async () => {
+          roomData = await createOrUpdateRoom({
+            name: row.roomName,
+            remove_after_seconds_elapsed: removeAfter,
+          })
         })
       }
 
@@ -69,29 +71,35 @@ test.describe('RoomSession remove_after_seconds_elapsed', () => {
       })
 
       // --------------- Joining the room and wait first `room.joined` and then `room.left` ---------------
-      await page.evaluate(async () => {
-        return new Promise(async (resolve) => {
-          // @ts-expect-error
-          const roomObj: Video.RoomSession = window._roomObj
-          roomObj.on('room.joined', () => {
-            roomObj.on('room.left', () => {
-              resolve(true)
+      await test.step('join the room and wait for room.left', async () => {
+        await page.evaluate(async () => {
+          return new Promise(async (resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.joined', () => {
+              console.log('room.joined event received')
+              roomObj.on('room.left', () => {
+                console.log('room.left event received')
+                resolve(true)
+              })
             })
-          })
 
-          await roomObj.join()
+            await roomObj.join()
+          })
         })
       })
 
       // Checks that all the elements added by the SDK are gone.
-      const targetElementsCount = await page.evaluate(() => {
-        return {
-          videos: Array.from(document.querySelectorAll('video')).length,
-          rootEl: document.getElementById('rootElement')!.childElementCount,
-        }
+      await test.step('check video and rootElement are removed', async () => {
+        const targetElementsCount = await page.evaluate(() => {
+          return {
+            videos: Array.from(document.querySelectorAll('video')).length,
+            rootEl: document.getElementById('rootElement')!.childElementCount,
+          }
+        })
+        expect(targetElementsCount.videos).toBe(0)
+        expect(targetElementsCount.rootEl).toBe(0)
       })
-      expect(targetElementsCount.videos).toBe(0)
-      expect(targetElementsCount.rootEl).toBe(0)
 
       if (row.cleanup) {
         await deleteRoom(roomData.id)
