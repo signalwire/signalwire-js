@@ -44,59 +44,76 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       })
     )
 
-    // Last page is audience
-    await Promise.all(
-      allPages.map((page, i) =>
-        i === allPages.length - 1
-          ? expectRoomJoinWithDefaults(page, { joinAs: 'audience' })
-          : expectRoomJoinWithDefaults(page, { joinAs: 'member' })
-      )
-    )
-    await Promise.all(
-      allPages.map((page, i) =>
-        i === allPages.length - 1
-          ? expectMCUVisibleForAudience(page)
-          : expectMCUVisible(page)
-      )
-    )
-    await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
+    await test.step('join room from page1 as a member', async () => {
+      await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
+      await expectMCUVisible(pageOne)
+      await expectPageReceiveAudio(pageOne)
+    })
 
-    await pageOne.waitForTimeout(2000)
+    await test.step('join room from page2 as a member', async () => {
+      await expectRoomJoinWithDefaults(pageTwo, { joinAs: 'member' })
+      await expectMCUVisible(pageTwo)
+      await expectPageReceiveAudio(pageTwo)
+    })
 
-    const promiseWaitForMember2Left = pageTwo.evaluate(() => {
-      return new Promise((resolve) => {
+    await test.step('join room from page3 as an audience', async () => {
+      await expectRoomJoinWithDefaults(pageThree, { joinAs: 'audience' })
+      await expectMCUVisibleForAudience(pageThree)
+      await expectPageReceiveAudio(pageThree)
+    })
+
+    const roomLeftEventPromisePage1 =
+      test.step('room.left event on page1', () => {
+        return pageOne.evaluate(() => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
+        })
+      })
+
+    const roomLeftEventPromisePage2 =
+      test.step('room.left event on page2', () => {
+        return pageTwo.evaluate(() => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
+        })
+      })
+
+    const roomLeftEventPromisePage3 =
+      test.step('room.left event on page3', () => {
+        return pageThree.evaluate(() => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
+        })
+      })
+
+    // Leaving the room from pageOne should make all members leave the room
+    await test.step('leader leave the room', async () => {
+      await pageOne.evaluate(async () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
-          resolve(true)
-        })
+        await roomObj.leave()
       })
     })
 
-    const promiseWaitForMember3Left = pageThree.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
-          resolve(true)
-        })
-      })
-    })
-
-    await pageOne.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-
-      const promiseWaitForMember1Left = new Promise((resolve) => {
-        roomObj.on('room.left', () => {
-          resolve(true)
-        })
-      })
-
-      await roomObj.leave()
-      return await promiseWaitForMember1Left
-    })
-
-    await Promise.all([promiseWaitForMember2Left, promiseWaitForMember3Left])
+    await Promise.all([
+      roomLeftEventPromisePage1,
+      roomLeftEventPromisePage2,
+      roomLeftEventPromisePage3,
+    ])
   })
 })
