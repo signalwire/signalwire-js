@@ -5,7 +5,7 @@ import {
   createTestRoomSession,
   expectMCUVisible,
   expectMCUVisibleForAudience,
-  expectPageReceiveAudio,
+  expectStatWithPolling,
   randomizeRoomName,
   expectRoomJoinWithDefaults,
 } from '../utils'
@@ -47,19 +47,31 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
     await test.step('join room from page1 as a member', async () => {
       await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
       await expectMCUVisible(pageOne)
-      await expectPageReceiveAudio(pageOne)
+      await expectStatWithPolling(pageOne, {
+        propertyPath: 'inboundRTP.audio.packetsReceived',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
     })
 
     await test.step('join room from page2 as a member', async () => {
       await expectRoomJoinWithDefaults(pageTwo, { joinAs: 'member' })
       await expectMCUVisible(pageTwo)
-      await expectPageReceiveAudio(pageTwo)
+      await expectStatWithPolling(pageTwo, {
+        propertyPath: 'inboundRTP.audio.packetsReceived',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
     })
 
     await test.step('join room from page3 as an audience', async () => {
       await expectRoomJoinWithDefaults(pageThree, { joinAs: 'audience' })
       await expectMCUVisibleForAudience(pageThree)
-      await expectPageReceiveAudio(pageThree)
+      await expectStatWithPolling(pageThree, {
+        propertyPath: 'inboundRTP.audio.packetsReceived',
+        matcher: 'toBeGreaterThan',
+        expected: 0,
+      })
     })
 
     const roomLeftEventPromisePage1 =
