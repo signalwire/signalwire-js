@@ -141,11 +141,11 @@ class MockStorage implements SignalWireStorageContract {
 describe('StorageWrapper', () => {
   let mockStorage: MockStorage
   let wrapper: StorageWrapper
-  const clientId = 'test-client-123'
+  const profileId = 'test-client-123'
 
   beforeEach(() => {
     mockStorage = new MockStorage()
-    wrapper = new StorageWrapper(mockStorage, clientId)
+    wrapper = new StorageWrapper(mockStorage, profileId)
   })
 
   describe('Key Prefixing', () => {
@@ -153,13 +153,13 @@ describe('StorageWrapper', () => {
       await wrapper.set('myKey', 'myValue')
 
       // Check that the underlying storage has the prefixed key
-      const prefixedKey = `swcf:${clientId}:myKey`
+      const prefixedKey = `swcf:${profileId}:myKey`
       expect(await mockStorage.has(prefixedKey)).toBe(true)
       expect(await mockStorage.get(prefixedKey)).toBe('myValue')
     })
 
     it('should retrieve values with automatic unprefixing', async () => {
-      const prefixedKey = `swcf:${clientId}:myKey`
+      const prefixedKey = `swcf:${profileId}:myKey`
       await mockStorage.set(prefixedKey, 'myValue')
 
       const value = await wrapper.get('myKey')
@@ -277,7 +277,7 @@ describe('StorageWrapper', () => {
     it('should handle session storage with prefixing', async () => {
       await wrapper.setSession('sessionKey', 'sessionValue')
 
-      const prefixedKey = `swcf:${clientId}:sessionKey`
+      const prefixedKey = `swcf:${profileId}:sessionKey`
       expect(await mockStorage.hasSession(prefixedKey)).toBe(true)
 
       const value = await wrapper.getSession('sessionKey')
@@ -301,7 +301,7 @@ describe('StorageWrapper', () => {
 
   describe('Undefined Storage Handling', () => {
     it('should handle undefined storage gracefully', async () => {
-      const wrapperNoStorage = new StorageWrapper(undefined, clientId)
+      const wrapperNoStorage = new StorageWrapper(undefined, profileId)
 
       // Get operations should return null
       expect(await wrapperNoStorage.get('key')).toBeNull()
@@ -329,7 +329,7 @@ describe('StorageWrapper', () => {
     })
 
     it('should return unavailable storage info when storage is undefined', async () => {
-      const wrapperNoStorage = new StorageWrapper(undefined, clientId)
+      const wrapperNoStorage = new StorageWrapper(undefined, profileId)
       const info = await wrapperNoStorage.getStorageInfo()
 
       expect(info.type).toBe('custom')
@@ -359,11 +359,11 @@ describe('StorageWrapper', () => {
         expect(allKeys.every((key) => key.includes('swcf:'))).toBe(true)
       })
 
-      it('should follow swcf:clientId:key pattern', async () => {
+      it('should follow swcf:profileId:key pattern', async () => {
         const testKey = 'my-test-key'
         await wrapper.set(testKey, 'value')
 
-        const expectedKey = `swcf:${clientId}:${testKey}`
+        const expectedKey = `swcf:${profileId}:${testKey}`
         expect(await mockStorage.has(expectedKey)).toBe(true)
       })
 
@@ -371,7 +371,7 @@ describe('StorageWrapper', () => {
         const complexKey = 'profile:user-123:credentials:refresh-token'
         await wrapper.set(complexKey, 'token-value')
 
-        const expectedKey = `swcf:${clientId}:${complexKey}`
+        const expectedKey = `swcf:${profileId}:${complexKey}`
         expect(await mockStorage.has(expectedKey)).toBe(true)
         expect(await wrapper.get(complexKey)).toBe('token-value')
       })
@@ -389,7 +389,7 @@ describe('StorageWrapper', () => {
         }
 
         for (const key of nestedKeys) {
-          const expectedKey = `swcf:${clientId}:${key}`
+          const expectedKey = `swcf:${profileId}:${key}`
           expect(await mockStorage.has(expectedKey)).toBe(true)
           expect(await wrapper.get(key)).toBe(`value-for-${key}`)
         }
@@ -408,7 +408,7 @@ describe('StorageWrapper', () => {
 
         await wrapper.set(`profiles:${profileId}`, profileData)
 
-        const expectedKey = `swcf:${clientId}:profiles:${profileId}`
+        const expectedKey = `swcf:${profileId}:profiles:${profileId}`
         expect(await mockStorage.has(expectedKey)).toBe(true)
 
         const retrieved = await wrapper.get(`profiles:${profileId}`)
@@ -459,14 +459,14 @@ describe('StorageWrapper', () => {
           satRefreshResultMapper: (body: Record<string, any>) => ({
             satToken: body.access_token || 'token',
             tokenExpiry: body.expires_at || Date.now() + 3600000,
-            satRefreshPayload: body.refresh_payload || {}
+            satRefreshPayload: body.refresh_payload || {},
           }),
           host: 'test-host.signalwire.com',
         }
 
         await wrapper.set(`credentials:${credentialsId}`, credentials)
 
-        const expectedKey = `swcf:${clientId}:credentials:${credentialsId}`
+        const expectedKey = `swcf:${profileId}:credentials:${credentialsId}`
         expect(await mockStorage.has(expectedKey)).toBe(true)
 
         const retrieved = await wrapper.get(`credentials:${credentialsId}`)
@@ -633,7 +633,7 @@ describe('StorageWrapper', () => {
 
         // Verify all keys use correct prefix
         for (const [key] of batchData) {
-          const expectedStorageKey = `swcf:${clientId}:${key}`
+          const expectedStorageKey = `swcf:${profileId}:${key}`
           expect(await mockStorage.has(expectedStorageKey)).toBe(true)
         }
 

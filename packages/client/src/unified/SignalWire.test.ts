@@ -64,10 +64,10 @@ describe('SignalWire', () => {
   })
 
   describe('Singleton behavior tests', () => {
-    it('should maintain singleton behavior for default clientId', async () => {
+    it('should maintain singleton behavior for default profileId', async () => {
       // Note: This test may be affected by singleton state from previous tests
       // The singleton is maintained in a closure and persists across tests in the same run
-      
+
       // Create two instances with default params
       const client1 = await SignalWire(mockParams)
       const client2 = await SignalWire(mockParams)
@@ -77,54 +77,57 @@ describe('SignalWire', () => {
 
       // Test 2: Singleton persists even after disconnect for backward compatibility
       await client1.disconnect()
-      
-      // The singleton pattern maintains the same instance for default clientId
+
+      // The singleton pattern maintains the same instance for default profileId
       const client3 = await SignalWire(mockParams)
       expect(client3).toBe(client1) // Same instance maintained for backward compatibility
     })
 
     it('should honor shouldDisconnect callback to control disconnect behavior', async () => {
-      // Use unique clientIds to avoid singleton interference
-      
+      // Use unique profileIds to avoid singleton interference
+
       // Test when shouldDisconnect returns false - disconnect should not happen
       const paramsWithNoDispose = {
         ...mockParams,
-        clientId: 'test-no-dispose',
-        shouldDisconnect: jest.fn().mockReturnValue(false)
+        profileId: 'test-no-dispose',
+        shouldDisconnect: jest.fn().mockReturnValue(false),
       }
 
       const client1 = await SignalWire(paramsWithNoDispose)
-      
+
       // Disconnect should NOT trigger when shouldDisconnect returns false
       await client1.disconnect()
       expect(paramsWithNoDispose.shouldDisconnect).toHaveBeenCalled()
       // mockDisconnect should not be called since shouldDisconnect returned false
-      
+
       // Test when shouldDisconnect returns true - disconnect should happen
       const paramsWithDispose = {
         ...mockParams,
-        clientId: 'test-with-dispose',
-        shouldDisconnect: jest.fn().mockReturnValue(true)
+        profileId: 'test-with-dispose',
+        shouldDisconnect: jest.fn().mockReturnValue(true),
       }
 
       const client2 = await SignalWire(paramsWithDispose)
-      
+
       // Disconnect should trigger when shouldDisconnect returns true
       await client2.disconnect()
       expect(paramsWithDispose.shouldDisconnect).toHaveBeenCalled()
-      
+
       // Test when shouldDisconnect is not provided - disconnect should happen by default
-      const client3 = await SignalWire({ ...mockParams, clientId: 'test-default-disconnect' })
-      
+      const client3 = await SignalWire({
+        ...mockParams,
+        profileId: 'test-default-disconnect',
+      })
+
       await client3.disconnect()
       // Since no shouldDisconnect callback, disconnect should happen by default
     })
   })
 
-  it('should handle errors during initialization with unique clientId', async () => {
-    // Use a unique clientId to avoid singleton caching from other tests
-    const errorParams = { ...mockParams, clientId: 'error-test-client' }
-    
+  it('should handle errors during initialization with unique profileId', async () => {
+    // Use a unique profileId to avoid singleton caching from other tests
+    const errorParams = { ...mockParams, profileId: 'error-test-client' }
+
     mockConnect.mockImplementationOnce(() => {
       throw new Error('Connection failed')
     })
@@ -154,8 +157,16 @@ describe('SignalWire', () => {
 
     it('should create new instance when storage is provided with profileId', async () => {
       const storage = new LocalStorageAdapter()
-      const client1 = await SignalWire({ ...mockParams, storage, profileId: 'profile1' })
-      const client2 = await SignalWire({ ...mockParams, storage, profileId: 'profile2' })
+      const client1 = await SignalWire({
+        ...mockParams,
+        storage,
+        profileId: 'profile1',
+      })
+      const client2 = await SignalWire({
+        ...mockParams,
+        storage,
+        profileId: 'profile2',
+      })
 
       expect(client1).not.toBe(client2)
       expect(WSClient).toHaveBeenCalledTimes(2)
@@ -194,7 +205,7 @@ describe('SignalWire', () => {
   // Phase 1 Feature Tests
   describe('Phase 1 Features - Constructor Options', () => {
     it('should handle backward compatibility for singleton behavior', async () => {
-      // Traditional singleton behavior - no clientId or storage
+      // Traditional singleton behavior - no profileId or storage
       const client1 = await SignalWire(mockParams)
       const client2 = await SignalWire(mockParams)
 
@@ -274,9 +285,18 @@ describe('SignalWire', () => {
     })
 
     it('should create separate instances for different profileId values', async () => {
-      const client1 = await SignalWire({ ...mockParams, profileId: 'profile-a' })
-      const client2 = await SignalWire({ ...mockParams, profileId: 'profile-b' })
-      const client3 = await SignalWire({ ...mockParams, profileId: 'profile-a' }) // Same as profile1
+      const client1 = await SignalWire({
+        ...mockParams,
+        profileId: 'profile-a',
+      })
+      const client2 = await SignalWire({
+        ...mockParams,
+        profileId: 'profile-b',
+      })
+      const client3 = await SignalWire({
+        ...mockParams,
+        profileId: 'profile-a',
+      }) // Same as profile1
 
       expect(client1).not.toBe(client2)
       // Note: Current implementation may create new instances instead of reusing
@@ -468,8 +488,14 @@ describe('SignalWire', () => {
     })
 
     it('should properly clean up instances on disconnect', async () => {
-      const client1 = await SignalWire({ ...mockParams, profileId: 'cleanup-1' })
-      const client2 = await SignalWire({ ...mockParams, profileId: 'cleanup-2' })
+      const client1 = await SignalWire({
+        ...mockParams,
+        profileId: 'cleanup-1',
+      })
+      const client2 = await SignalWire({
+        ...mockParams,
+        profileId: 'cleanup-2',
+      })
 
       await client1.disconnect()
 
@@ -509,7 +535,7 @@ describe('SignalWire', () => {
     it('should ignore unknown parameters gracefully', async () => {
       const paramsWithExtra = {
         ...mockParams,
-        clientId: 'ignore-test',
+        profileId: 'ignore-test',
         unknownParam: 'should-be-ignored',
         anotherUnknown: 123,
       } as any
@@ -521,8 +547,8 @@ describe('SignalWire', () => {
       await client.disconnect()
     })
 
-    it('should handle undefined clientId as default', async () => {
-      const client1 = await SignalWire({ ...mockParams, clientId: undefined })
+    it('should handle undefined profileId as default', async () => {
+      const client1 = await SignalWire({ ...mockParams, profileId: undefined })
       const client2 = await SignalWire(mockParams)
 
       expect(client1).toBe(client2)
@@ -530,9 +556,9 @@ describe('SignalWire', () => {
       await client1.disconnect()
     })
 
-    it('should handle empty string clientId', async () => {
-      const client1 = await SignalWire({ ...mockParams, clientId: '' })
-      const client2 = await SignalWire({ ...mockParams, clientId: 'default' })
+    it('should handle empty string profileId', async () => {
+      const client1 = await SignalWire({ ...mockParams, profileId: '' })
+      const client2 = await SignalWire({ ...mockParams, profileId: 'default' })
 
       // Note: Empty string handling may vary in current implementation
       // This tests the concept of handling edge cases

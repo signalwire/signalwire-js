@@ -25,8 +25,8 @@ import { LocalStorageAdapter, StorageWrapper } from '@signalwire/client'
 const adapter = new LocalStorageAdapter()
 
 // Wrap it with client-specific prefixing
-const clientId = 'my-client-123'
-const storage = new StorageWrapper(adapter, clientId)
+const profileId = 'my-client-123'
+const storage = new StorageWrapper(adapter, profileId)
 
 // Use persistent storage
 await storage.set('userPreferences', { theme: 'dark', volume: 0.8 })
@@ -70,7 +70,7 @@ console.log(info)
 
 ## Key Prefixing
 
-The `StorageWrapper` automatically prefixes all keys with `swcf:${clientId}:` to ensure data isolation between different client instances. This means:
+The `StorageWrapper` automatically prefixes all keys with `swcf:${profileId}:` to ensure data isolation between different client instances. This means:
 
 - Key `userPrefs` becomes `swcf:my-client-123:userPrefs` in the underlying storage
 - Only keys with the correct prefix are returned by list operations

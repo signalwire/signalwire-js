@@ -2,7 +2,7 @@ import { SignalWireStorageContract, StorageInfo } from '@signalwire/core'
 
 /**
  * A wrapper that adds client-specific prefixing to any storage implementation.
- * All keys are automatically prefixed with `swcf:${clientId}:` to ensure isolation
+ * All keys are automatically prefixed with `swcf:${profileId}:` to ensure isolation
  * between different client instances.
  */
 export class StorageWrapper implements SignalWireStorageContract {
@@ -11,13 +11,13 @@ export class StorageWrapper implements SignalWireStorageContract {
   /**
    * Creates a new StorageWrapper instance
    * @param storage - The underlying storage implementation (can be undefined)
-   * @param clientId - The client identifier for key prefixing
+   * @param profileId - The client identifier for key prefixing
    */
   constructor(
     private readonly storage: SignalWireStorageContract | undefined,
-    clientId: string
+    profileId: string
   ) {
-    this.prefix = `swcf:${clientId}:`
+    this.prefix = `swcf:${profileId}:`
   }
 
   /**

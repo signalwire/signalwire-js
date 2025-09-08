@@ -12,23 +12,24 @@ import {
 /**
  * Legacy singleton SignalWire function - kept for backward compatibility
  *
- * @param params - SignalWire client parameters including optional clientId and storage
+ * @param params - SignalWire client parameters including optional profileId and storage
  * @returns Promise resolving to SignalWireClient
  *
- * Note: Singleton behavior is maintained only when clientId is 'default' (or omitted)
+ * Note: Singleton behavior is maintained only when profileId is 'default' (or omitted)
  * and no custom storage is provided. Otherwise, a new instance is created each time.
  */
 export const SignalWire = (() => {
   let instance: Promise<SignalWireClient> | null = null
 
   return (params: SignalWireClientParams): Promise<SignalWireClient> => {
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', params)
     const { profileId } = params
 
     // Only use singleton pattern if using profileId
     const useSingleton = !profileId
 
     if (!useSingleton) {
-      // For non-default clientId or custom storage, always create a new instance
+      // For non-default profileId or custom storage, always create a new instance
       return createSignalWireClient(params)
     }
 
@@ -48,7 +49,11 @@ export async function createSignalWireClient(
   params: SignalWireClientParams
 ): Promise<SignalWireClient> {
   const { profileId, storage, shouldDisconnect, ...restParams } = params
-
+  console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', {
+    profileId,
+    storage,
+    shouldDisconnect,
+  })
   // Create storage wrapper if storage is provided
   const wrappedStorage =
     storage && profileId ? new StorageWrapper(storage, profileId) : undefined
@@ -75,7 +80,12 @@ export async function createSignalWireClient(
     unregisterDevice: httpClient.unregisterDevice.bind(httpClient),
     getSubscriberInfo: httpClient.getSubscriberInfo.bind(httpClient),
     disconnect: async () => {
-      if (!shouldDisconnect || shouldDisconnect?.()) {
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', !shouldDisconnect)
+      if (!shouldDisconnect) {
+        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', shouldDisconnect)
+        return wsClient.disconnect()
+      } else if (shouldDisconnect()) {
+        console.log('###############################', shouldDisconnect)
         return wsClient.disconnect()
       }
     },

@@ -72,11 +72,7 @@ export const sessionStorageManager = (token: string, profileId?: string) => {
         tokenType = 'SAT'
       }
     }
-
-    if (tokenType === 'SAT') {
-      // For SAT tokens, always use "SAT" as the suffix
-      keySuffix = `SAT${profileId ? ':' + profileId : ''}`
-    }
+    keySuffix = `${tokenType}${profileId ? ':' + profileId : ''}`
   } catch {
     if (process.env.NODE_ENV !== 'production') {
       getLogger().error('[sessionStorageManager] error decoding JWT', token)

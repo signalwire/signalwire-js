@@ -1,4 +1,8 @@
-import { SessionOptions, UserOptions, SignalWireStorageContract } from '@signalwire/core'
+import {
+  SessionOptions,
+  UserOptions,
+  SignalWireStorageContract,
+} from '@signalwire/core'
 import {
   IncomingCallHandler,
   IncomingCallHandlers,
@@ -151,6 +155,6 @@ export type CallUserOptions = Omit<
 export interface WSClientOptions extends DefaultCallParams, CallUserOptions {
   /** Call back function to receive the incoming call */
   incomingCallHandlers?: IncomingCallHandlers
-  /** Optional storage implementation for persisting client data (wrapped with clientId prefix) */
+  /** Optional storage implementation for persisting client data (wrapped with profileId prefix) */
   storage?: SignalWireStorageContract
 }
