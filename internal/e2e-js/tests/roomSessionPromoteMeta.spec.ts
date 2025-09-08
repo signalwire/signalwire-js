@@ -130,7 +130,7 @@ test.describe('RoomSession promote updating member meta', () => {
             meta: { vip: true },
           })
         },
-        { promoteMemberId: pageTwoRoomJoined.memberId }
+        { promoteMemberId: pageTwoRoomJoined.member_id }
       )
     })
 
