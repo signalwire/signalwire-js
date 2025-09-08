@@ -398,7 +398,7 @@ describe('StorageWrapper', () => {
 
     describe('Profile Storage Keys', () => {
       it('should store profiles with consistent key pattern', async () => {
-        const profileId = 'profile-123'
+        const profileId = 'test-client-123'
         const profileData = {
           id: profileId,
           type: 'STATIC',
@@ -407,7 +407,7 @@ describe('StorageWrapper', () => {
         }
 
         await wrapper.set(`profiles:${profileId}`, profileData)
-
+        console.log(mockStorage)
         const expectedKey = `swcf:${profileId}:profiles:${profileId}`
         expect(await mockStorage.has(expectedKey)).toBe(true)
 
