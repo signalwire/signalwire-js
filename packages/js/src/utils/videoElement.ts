@@ -128,7 +128,7 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
         currentOverlayIds.add(overlayId)
 
         if (!location) {
-          getLogger().warn('Local video overlay location not found')
+          getLogger().warn('Local video overlay location not found', memberId)
           localVideoOverlay.status = 'hidden'
           if (myLayerEl) {
             // Should we remove it from the DOM and the OverlayMap?
