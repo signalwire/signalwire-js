@@ -470,7 +470,7 @@ interface DialAddressParams {
   timeoutMs?: number
 }
 
-export const dialAddress = <TReturn = any>(
+export const dialAddress = async <TReturn = any>(
   page: Page,
   params: DialAddressParams = {
     address: '',
@@ -481,7 +481,7 @@ export const dialAddress = <TReturn = any>(
     shouldWaitForJoin: true,
     timeoutMs: 15000,
   }
-) => {
+): Promise<TReturn> => {
   const defaultParams: DialAddressParams = {
     address: '',
     dialOptions: {},
@@ -497,66 +497,107 @@ export const dialAddress = <TReturn = any>(
     ...params,
   }
 
-  type EvaluateArgs = Omit<DialAddressParams, 'dialOptions'> & {
-    dialOptions: string
-  }
+  let joinEventPromise: Promise<TReturn> | null = null
 
-  return expectPageEvalToPass<EvaluateArgs, TReturn>(page, {
+  // Step 1: Create call object and assign to window._callObj
+  await expectPageEvalToPass(page, {
     evaluateArgs: {
       address: mergedParams.address,
       dialOptions: JSON.stringify(mergedParams.dialOptions),
       reattach: mergedParams.reattach,
       shouldPassRootElement: mergedParams.shouldPassRootElement,
-      shouldStartCall: mergedParams.shouldStartCall,
-      shouldWaitForJoin: mergedParams.shouldWaitForJoin,
     },
-    evaluateFn: async ({
-      address,
-      dialOptions,
-      reattach,
-      shouldPassRootElement,
-      shouldStartCall,
-      shouldWaitForJoin,
-    }) => {
-      return new Promise<any>(async (resolve, _reject) => {
-        if (!window._client) {
-          throw new Error('Client is not defined')
-        }
-        const client: SignalWireContract = window._client
+    evaluateFn: ({ address, dialOptions, reattach, shouldPassRootElement }) => {
+      if (!window._client) {
+        throw new Error('Client is not defined')
+      }
+      const client = window._client
 
-        const dialer = reattach ? client.reattach : client.dial
+      const dialer = reattach ? client.reattach : client.dial
 
-        const call = dialer({
-          to: address,
-          ...(shouldPassRootElement && {
-            rootElement: document.getElementById('rootElement')!,
-          }),
-          ...JSON.parse(dialOptions),
-        })
-
-        if (shouldWaitForJoin) {
-          call.on('room.joined', (params) => {
-            resolve(params)
-          })
-        }
-
-        window._callObj = call
-
-        if (shouldStartCall) {
-          await call.start()
-        }
-
-        if (!shouldWaitForJoin) {
-          resolve(call)
-        }
+      const call = dialer({
+        to: address,
+        ...(shouldPassRootElement && {
+          rootElement: document.getElementById('rootElement')!,
+        }),
+        ...JSON.parse(dialOptions),
       })
+
+      window._callObj = call
+      return true
     },
     assertionFn: (result) => {
-      expect(result, 'dialAddress result should be defined').toBeDefined()
+      expect(result, 'call object should be created and assigned').toBe(true)
     },
-    timeoutMs: mergedParams.timeoutMs,
-    message: 'expect dialAddress to succeed',
+    message: 'expect to create call object and assign to window._callObj',
   })
+
+  // Step 2: Set up room.joined event listener (if shouldWaitForJoin)
+  if (mergedParams.shouldWaitForJoin) {
+    joinEventPromise = expectPageEvalToPass<{}, TReturn>(page, {
+      evaluateFn: () => {
+        return new Promise<TReturn>((resolve) => {
+          const callObj = window._callObj
+
+          if (!callObj) {
+            throw new Error('Call object not found')
+          }
+
+          callObj.on('room.joined', (params) => {
+            resolve(params as TReturn)
+          })
+        })
+      },
+      assertionFn: (result) => {
+        expect(result, 'room.joined event should be received').toBeDefined()
+      },
+      timeoutMs: mergedParams.timeoutMs,
+      message: 'expect to receive room.joined event',
+    })
+  }
+
+  // Step 3: Start the call (if shouldStartCall)
+  if (mergedParams.shouldStartCall) {
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const callObj = window._callObj
+
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
+
+        await callObj.start()
+        return true
+      },
+      assertionFn: (result) => {
+        expect(result, 'call should start successfully').toBe(true)
+      },
+      message: 'expect to start the call',
+    })
+  }
+
+  // Step 4: Return appropriate result
+  if (mergedParams.shouldWaitForJoin && joinEventPromise) {
+    // Wait for the room.joined event and return the params
+    return await joinEventPromise
+  } else {
+    // Return the call object
+    return await expectPageEvalToPass<{}, TReturn>(page, {
+      evaluateFn: () => {
+        const callObj = window._callObj
+
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
+
+        return callObj as TReturn
+      },
+      assertionFn: (result) => {
+        expect(result, 'call object should be returned').toBeDefined()
+      },
+      message: 'expect to return call object',
+    })
+  }
 }
 
 export const reloadAndReattachAddress = async (
