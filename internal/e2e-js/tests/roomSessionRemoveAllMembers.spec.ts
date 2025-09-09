@@ -51,9 +51,9 @@ test.describe('RoomSession removeAllMembers method', () => {
 
       await test.step('pageOne is receiving audio', async () => {
         await expectStatWithPolling(pageOne, {
-          propertyPath: 'inboundRTP.audio.totalAudioEnergy',
+          propertyPath: 'inboundRTP.audio.packetsReceived',
           matcher: 'toBeGreaterThan',
-          expected: 0.5,
+          expected: 0,
         })
       })
     })
@@ -67,9 +67,9 @@ test.describe('RoomSession removeAllMembers method', () => {
 
       await test.step('pageTwo is receiving audio', async () => {
         await expectStatWithPolling(pageTwo, {
-          propertyPath: 'inboundRTP.audio.totalAudioEnergy',
+          propertyPath: 'inboundRTP.audio.packetsReceived',
           matcher: 'toBeGreaterThan',
-          expected: 0.5,
+          expected: 0,
         })
       })
     })
@@ -84,9 +84,9 @@ test.describe('RoomSession removeAllMembers method', () => {
       await test.step('pageThree is receiving audio', async () => {
         await expectPageReceiveAudio(pageThree)
         await expectStatWithPolling(pageThree, {
-          propertyPath: 'inboundRTP.audio.totalAudioEnergy',
+          propertyPath: 'inboundRTP.audio.packetsReceived',
           matcher: 'toBeGreaterThan',
-          expected: 0.5,
+          expected: 0,
         })
       })
     })

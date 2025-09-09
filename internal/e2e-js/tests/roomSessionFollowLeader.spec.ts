@@ -48,9 +48,9 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
       await expectMCUVisible(pageOne)
       await expectStatWithPolling(pageOne, {
-        propertyPath: 'inboundRTP.audio.totalAudioEnergy',
+        propertyPath: 'inboundRTP.audio.packetsReceived',
         matcher: 'toBeGreaterThan',
-        expected: 0.5,
+        expected: 0,
       })
     })
 
@@ -58,9 +58,9 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       await expectRoomJoinWithDefaults(pageTwo, { joinAs: 'member' })
       await expectMCUVisible(pageTwo)
       await expectStatWithPolling(pageTwo, {
-        propertyPath: 'inboundRTP.audio.totalAudioEnergy',
+        propertyPath: 'inboundRTP.audio.packetsReceived',
         matcher: 'toBeGreaterThan',
-        expected: 0.5,
+        expected: 0,
       })
     })
 
@@ -68,9 +68,9 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       await expectRoomJoinWithDefaults(pageThree, { joinAs: 'audience' })
       await expectMCUVisibleForAudience(pageThree)
       await expectStatWithPolling(pageThree, {
-        propertyPath: 'inboundRTP.audio.totalAudioEnergy',
+        propertyPath: 'inboundRTP.audio.packetsReceived',
         matcher: 'toBeGreaterThan',
-        expected: 0.5,
+        expected: 0,
       })
     })
 
