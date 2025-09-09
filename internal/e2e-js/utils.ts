@@ -1042,7 +1042,7 @@ export async function expectStatWithPolling(
   page: Page,
   params: ExpectStatWithPollingParams
 ) {
-  const { propertyPath, matcher, expected, message, timeout = 10000 } = params
+  const { propertyPath, matcher, expected, message, timeout = 10_000 } = params
 
   const defaultMessage = `Expected \`${propertyPath}\` ${matcher} ${expected}`
   await expect

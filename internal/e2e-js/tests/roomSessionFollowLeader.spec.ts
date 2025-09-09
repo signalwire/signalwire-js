@@ -50,7 +50,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       await expectStatWithPolling(pageOne, {
         propertyPath: 'inboundRTP.audio.totalAudioEnergy',
         matcher: 'toBeGreaterThan',
-        expected: 0,
+        expected: 0.5,
       })
     })
 
@@ -60,7 +60,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       await expectStatWithPolling(pageTwo, {
         propertyPath: 'inboundRTP.audio.totalAudioEnergy',
         matcher: 'toBeGreaterThan',
-        expected: 0,
+        expected: 0.5,
       })
     })
 
@@ -70,7 +70,7 @@ test.describe('RoomSession end_room_session_on_leave feature', () => {
       await expectStatWithPolling(pageThree, {
         propertyPath: 'inboundRTP.audio.totalAudioEnergy',
         matcher: 'toBeGreaterThan',
-        expected: 0,
+        expected: 0.5,
       })
     })
 
