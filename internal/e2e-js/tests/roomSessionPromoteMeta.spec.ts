@@ -46,73 +46,93 @@ test.describe('RoomSession promote updating member meta', () => {
     ])
 
     // --------------- Joining from the 1st tab as member and resolve on 'room.joined' ---------------
-    await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
+    await test.step('join room from pageOne as a member', async () => {
+      await expectRoomJoinWithDefaults(pageOne, { joinAs: 'member' })
+    })
 
     // Checks that the video is visible on pageOne
-    await expectMCUVisible(pageOne)
+    await test.step('expect video to be visible on pageOne', async () => {
+      await expectMCUVisible(pageOne)
+    })
 
     // --------------- Joining from the 2st tab as audience and resolve on 'room.joined' ---------------
-    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo, {
-      joinAs: 'audience',
-    })
-
-    // Checks that the video is visible on pageTwo
-    await expectMCUVisibleForAudience(pageTwo)
-
-    // ------- Promote audience from pageOne and resolve on `member.joined` and pageTwo room.joined ----
-    const promiseAudienceRoomSubscribed = pageTwo.evaluate(() => {
-      return new Promise((resolve, reject) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-
-        roomObj.once('room.joined', ({ room_session }) => {
-          for (let member of room_session.members) {
-            if (member.name === 'e2e_audience_meta') {
-              if (member.meta && member.meta['vip'] === true) {
-                resolve(true)
-              } else {
-                reject(new Error('[room.joined] missing meta'))
-              }
-            }
-          }
-          reject(
-            new Error('[room.joined] missing meta after checking all members')
-          )
+    const pageTwoRoomJoined =
+      await test.step('join room from pageTwo as an audience', async () => {
+        return expectRoomJoinWithDefaults(pageTwo, {
+          joinAs: 'audience',
         })
       })
+
+    // Checks that the video is visible on pageTwo
+    await test.step('expect video to be visible on pageTwo', async () => {
+      await expectMCUVisibleForAudience(pageTwo)
     })
 
-    const promisePromoterRoomJoined = pageOne.evaluate(
-      async ({ promoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    // ------- Promote audience from pageOne and resolve on `member.joined` and pageTwo room.joined ----
+    const promiseAudienceRoomSubscribed =
+      test.step('pageTwo should receive room.joined event with correct meta', () => {
+        return pageTwo.evaluate(() => {
+          return new Promise((resolve, reject) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
 
-        const waitForMemberJoined = new Promise((resolve, reject) => {
-          roomObj.on('member.joined', ({ member }) => {
-            if (member.name === 'e2e_audience_meta') {
-              if (member.meta && member.meta['vip'] === true) {
-                resolve(true)
-              } else {
-                reject(new Error('[member.joined] missing meta'))
+            roomObj.once('room.joined', ({ room_session }) => {
+              for (let member of room_session.members) {
+                if (member.name === 'e2e_audience_meta') {
+                  if (member.meta && member.meta['vip'] === true) {
+                    resolve(true)
+                  } else {
+                    reject(new Error('[room.joined] missing meta'))
+                  }
+                }
               }
-            } else {
               reject(
-                new Error('[member.joined] Name is not "e2e_audience_meta"')
+                new Error(
+                  '[room.joined] missing meta after checking all members'
+                )
               )
-            }
+            })
           })
         })
+      })
 
-        await roomObj.promote({
-          memberId: promoteMemberId,
-          permissions: ['room.list_available_layouts'],
-          meta: { vip: true },
+    const promisePromoterRoomJoined =
+      test.step('pageOne should receive member.joined event with correct meta', () => {
+        return pageOne.evaluate(async () => {
+          return new Promise((resolve, reject) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('member.joined', ({ member }) => {
+              if (member.name === 'e2e_audience_meta') {
+                if (member.meta && member.meta['vip'] === true) {
+                  resolve(true)
+                } else {
+                  reject(new Error('[member.joined] missing meta'))
+                }
+              } else {
+                reject(
+                  new Error('[member.joined] Name is not "e2e_audience_meta"')
+                )
+              }
+            })
+          })
         })
+      })
 
-        return waitForMemberJoined
-      },
-      { promoteMemberId: pageTwoRoomJoined.member_id }
-    )
+    await test.step('promote audience to member from pageOne', async () => {
+      return pageOne.evaluate(
+        async ({ promoteMemberId }) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          await roomObj.promote({
+            memberId: promoteMemberId,
+            permissions: ['room.list_available_layouts'],
+            meta: { vip: true },
+          })
+        },
+        { promoteMemberId: pageTwoRoomJoined.member_id }
+      )
+    })
 
     await Promise.all([
       promiseAudienceRoomSubscribed,
@@ -122,9 +142,13 @@ test.describe('RoomSession promote updating member meta', () => {
     await pageTwo.waitForTimeout(2000)
 
     // --------------- Make sure on pageTwo we have a member now ---------------
-    await expectInteractivityMode(pageTwo, 'member')
+    await test.step('make sure pageTwo is now a member', async () => {
+      await expectInteractivityMode(pageTwo, 'member')
+    })
 
     // --------------- Check SDP/RTCPeer on audience (now member so sendrecv) ---------------
-    await expectSDPDirection(pageTwo, 'sendrecv', true)
+    await test.step('expect pageTwo to have sendrecv SDP', async () => {
+      await expectSDPDirection(pageTwo, 'sendrecv', true)
+    })
   })
 })

@@ -41,75 +41,99 @@ test.describe('RoomSession demote participant', () => {
       createTestRoomSession(pageTwo, participant2Settings),
     ])
 
-    await expectRoomJoinWithDefaults(pageOne)
-    await expectMCUVisible(pageOne)
+    await test.step('join room from pageOne as a member', async () => {
+      await expectRoomJoinWithDefaults(pageOne)
+      await expectMCUVisible(pageOne)
+    })
 
-    const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo)
-    const participant2Id = pageTwoRoomJoined.member_id
-    await expectMemberId(pageTwo, participant2Id)
-    await expectMCUVisible(pageTwo)
+    const participant2Id =
+      await test.step('join room from pageTwo as a member', async () => {
+        const pageTwoRoomJoined = await expectRoomJoinWithDefaults(pageTwo)
+        const participant2Id = pageTwoRoomJoined.member_id
+        await expectMemberId(pageTwo, participant2Id)
+        await expectMCUVisible(pageTwo)
+        return participant2Id
+      })
 
     // Wait five seconds before demoting
     await pageOne.waitForTimeout(5000)
 
-    const promiseAudienceRoomJoined = expectRoomJoinWithDefaults(pageTwo, {
-      invokeJoin: false,
-      joinAs: 'audience',
-    })
+    const promiseAudienceRoomJoined =
+      test.step('wait for room.joined event on demoted participant', async () => {
+        expectRoomJoinWithDefaults(pageTwo, {
+          invokeJoin: false,
+          joinAs: 'audience',
+        })
+      })
+
+    const layoutChangeEventPromise =
+      test.step('wait for layout.changed', async () => {
+        await pageOne.evaluate(
+          async ({ demoteMemberId }) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+
+            return new Promise((resolve, reject) => {
+              roomObj.on('layout.changed', ({ layout }) => {
+                for (const layer of layout.layers) {
+                  if (
+                    layer.member_id === demoteMemberId &&
+                    layer.visible === true
+                  ) {
+                    reject(
+                      new Error(
+                        '[layout.changed] Demoted member is still visible'
+                      )
+                    )
+                  }
+                }
+                resolve(true)
+              })
+            })
+          },
+          { demoteMemberId: participant2Id }
+        )
+      })
+
+    const memberLeftEventPromise =
+      test.step('wait for member.left event on demoted participant', async () => {
+        await pageOne.evaluate(async () => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
+          return new Promise((resolve, reject) => {
+            roomObj.on('member.left', ({ member }) => {
+              if (member.name === 'e2e_participant_to_demote') {
+                resolve(true)
+              } else {
+                reject(
+                  new Error(
+                    '[member.left] Name is not "e2e_participant_to_demote"'
+                  )
+                )
+              }
+            })
+          })
+        })
+      })
 
     // Demote participant on pageTwo to audience from pageOne
     // and resolve on `member.left` amd `layout.changed` with
     // position off-canvas
-    await pageOne.evaluate(
-      async ({ demoteMemberId }) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
+    await test.step('demote participant from pageOne', async () => {
+      await pageOne.evaluate(
+        async ({ demoteMemberId }) => {
+          // @ts-expect-error
+          const roomObj: Video.RoomSession = window._roomObj
 
-        const waitForLayoutChangedDemotedInvisible = new Promise(
-          (resolve, reject) => {
-            roomObj.on('layout.changed', ({ layout }) => {
-              for (const layer of layout.layers) {
-                if (
-                  layer.member_id === demoteMemberId &&
-                  layer.visible === true
-                ) {
-                  reject(
-                    new Error(
-                      '[layout.changed] Demoted member is still visible'
-                    )
-                  )
-                }
-              }
-              resolve(true)
-            })
-          }
-        )
-
-        const waitForMemberLeft = new Promise((resolve, reject) => {
-          roomObj.on('member.left', ({ member }) => {
-            if (member.name === 'e2e_participant_to_demote') {
-              resolve(true)
-            } else {
-              reject(
-                new Error(
-                  '[member.left] Name is not "e2e_participant_to_demote"'
-                )
-              )
-            }
+          await roomObj.demote({
+            memberId: demoteMemberId,
           })
-        })
+        },
+        { demoteMemberId: participant2Id }
+      )
+    })
 
-        await roomObj.demote({
-          memberId: demoteMemberId,
-        })
-
-        return Promise.all([
-          waitForLayoutChangedDemotedInvisible,
-          waitForMemberLeft,
-        ])
-      },
-      { demoteMemberId: participant2Id }
-    )
+    Promise.all([layoutChangeEventPromise, memberLeftEventPromise])
 
     // Expect same member ID as before demote
     await expectMemberId(pageTwo, participant2Id)

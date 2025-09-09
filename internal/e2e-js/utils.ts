@@ -668,11 +668,12 @@ export const disconnectClient = (page: Page) => {
 // #region Utilities for the MCU
 
 export const expectMCUVisible = async (page: Page) => {
-  await page.waitForSelector('div[id^="sw-sdk-"] > video')
+  console.log('Waiting for MCU video to be visible...')
+  await page.waitForSelector('.mcuLayers video')
 }
 
 export const expectMCUNotVisible = async (page: Page) => {
-  const mcuVideo = await page.$('div[id^="sw-sdk-"] > video')
+  const mcuVideo = await page.$('.mcuLayers video')
   expect(mcuVideo).toBeNull()
 }
 
@@ -688,6 +689,7 @@ interface RTPInboundMediaStats {
   packetsReceived: number
   packetsLost: number
   packetsDiscarded?: number
+  totalAudioEnergy?: number
 }
 
 interface RTPOutboundMediaStats {
@@ -728,6 +730,7 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
           packetsReceived: 0,
           packetsLost: 0,
           packetsDiscarded: 0,
+          totalAudioEnergy: 0,
         },
         video: {
           packetsReceived: 0,
@@ -752,7 +755,12 @@ export const getStats = async (page: Page): Promise<GetStatsResult> => {
     }
 
     const inboundRTPFilters = {
-      audio: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
+      audio: [
+        'packetsReceived',
+        'packetsLost',
+        'packetsDiscarded',
+        'totalAudioEnergy',
+      ] as const,
       video: ['packetsReceived', 'packetsLost', 'packetsDiscarded'] as const,
     }
 
@@ -1034,7 +1042,7 @@ export async function expectStatWithPolling(
   page: Page,
   params: ExpectStatWithPollingParams
 ) {
-  const { propertyPath, matcher, expected, message, timeout = 10000 } = params
+  const { propertyPath, matcher, expected, message, timeout = 10_000 } = params
 
   const defaultMessage = `Expected \`${propertyPath}\` ${matcher} ${expected}`
   await expect

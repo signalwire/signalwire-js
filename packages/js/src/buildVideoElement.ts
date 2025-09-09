@@ -84,13 +84,19 @@ export const buildVideoElement = async (
 
     const processLayoutChanged = (params: any) => {
       // @ts-expect-error
-      if (room.peer?.hasVideoSender && room.localStream) {
+      const hasVideoSender = room.peer?.hasVideoSender
+      if (hasVideoSender && room.localStream) {
         makeLayout({
           layout: params.layout,
           localStream: room.localStream,
           memberId: room.memberId,
         })
       } else {
+        getLogger().debug(
+          'No local video sender or local stream, hiding local video overlay',
+          hasVideoSender,
+          room.localStream
+        )
         localVideoOverlay.hide()
       }
     }

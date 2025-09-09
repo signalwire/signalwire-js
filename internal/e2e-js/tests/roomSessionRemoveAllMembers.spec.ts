@@ -7,6 +7,7 @@ import {
   expectPageReceiveAudio,
   randomizeRoomName,
   expectRoomJoinWithDefaults,
+  expectStatWithPolling,
 } from '../utils'
 
 test.describe('RoomSession removeAllMembers method', () => {
@@ -41,48 +42,106 @@ test.describe('RoomSession removeAllMembers method', () => {
       })
     )
 
-    await Promise.all(allPages.map((page) => expectRoomJoinWithDefaults(page)))
-    await Promise.all(allPages.map((page) => expectMCUVisible(page)))
-    await Promise.all(allPages.map((page) => expectPageReceiveAudio(page)))
+    await test.step('join room from pageOne', async () => {
+      await expectRoomJoinWithDefaults(pageOne)
 
-    await pageOne.waitForTimeout(2000)
+      await test.step('MCU is visible on pageOne', async () => {
+        await expectMCUVisible(pageOne)
+      })
 
-    const promiseWaitForMember2Left = pageTwo.evaluate(() => {
-      return new Promise((resolve) => {
+      await test.step('pageOne is receiving audio', async () => {
+        await expectStatWithPolling(pageOne, {
+          propertyPath: 'inboundRTP.audio.packetsReceived',
+          matcher: 'toBeGreaterThan',
+          expected: 0,
+        })
+      })
+    })
+
+    await test.step('join room from pageTwo', async () => {
+      await expectRoomJoinWithDefaults(pageTwo)
+
+      await test.step('MCU is visible on pageTwo', async () => {
+        await expectMCUVisible(pageTwo)
+      })
+
+      await test.step('pageTwo is receiving audio', async () => {
+        await expectStatWithPolling(pageTwo, {
+          propertyPath: 'inboundRTP.audio.packetsReceived',
+          matcher: 'toBeGreaterThan',
+          expected: 0,
+        })
+      })
+    })
+
+    await test.step('join room from pageThree', async () => {
+      await expectRoomJoinWithDefaults(pageThree)
+
+      await test.step('MCU is visible on pageThree', async () => {
+        await expectMCUVisible(pageThree)
+      })
+
+      await test.step('pageThree is receiving audio', async () => {
+        await expectPageReceiveAudio(pageThree)
+        await expectStatWithPolling(pageThree, {
+          propertyPath: 'inboundRTP.audio.packetsReceived',
+          matcher: 'toBeGreaterThan',
+          expected: 0,
+        })
+      })
+    })
+
+    const promiseWaitForMember2Left =
+      test.step('wait for member 2 left', () => {
+        return pageTwo.evaluate(() => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
+        })
+      })
+
+    const promiseWaitForMember3Left =
+      test.step('wait for member 3 left', () => {
+        return pageThree.evaluate(() => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
+        })
+      })
+
+    const promiseWaitForMember1Left =
+      test.step('wait for member 1 left', () => {
+        return pageOne.evaluate(() => {
+          return new Promise((resolve) => {
+            // @ts-expect-error
+            const roomObj: Video.RoomSession = window._roomObj
+            roomObj.on('room.left', () => {
+              resolve(true)
+            })
+          })
+        })
+      })
+
+    await test.step('remove all members from pageOne', async () => {
+      await pageOne.evaluate(async () => {
         // @ts-expect-error
         const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
-          resolve(true)
-        })
+        await roomObj.removeAllMembers()
       })
     })
 
-    const promiseWaitForMember3Left = pageThree.evaluate(() => {
-      return new Promise((resolve) => {
-        // @ts-expect-error
-        const roomObj: Video.RoomSession = window._roomObj
-        roomObj.on('room.left', () => {
-          resolve(true)
-        })
-      })
-    })
-
-    await pageOne.evaluate(async () => {
-      // @ts-expect-error
-      const roomObj: Video.RoomSession = window._roomObj
-
-      const promiseWaitForMember1Left = new Promise((resolve) => {
-        roomObj.on('room.left', () => {
-          resolve(true)
-        })
-      })
-
-      await roomObj.removeAllMembers()
-      return promiseWaitForMember1Left
-    })
-
-    await Promise.all([promiseWaitForMember2Left, promiseWaitForMember3Left])
-
-    await pageOne.waitForTimeout(5_000)
+    await Promise.all([
+      promiseWaitForMember1Left,
+      promiseWaitForMember2Left,
+      promiseWaitForMember3Left,
+    ])
   })
 })

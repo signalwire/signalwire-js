@@ -2,6 +2,7 @@ require('dotenv').config()
 
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
+const chatPubSubTests = ['chat.spec.ts', 'pubSub.spec.ts']
 const streamingTests = [
   'roomSessionStreamingAPI.spec.ts',
   'roomSessionStreaming.spec.ts',
@@ -27,6 +28,29 @@ const audienceTests = [
   'roomSessionTalkingEventsToAudience.spec.ts',
   'roomSessionUnauthorized.spec.ts',
 ]
+const joinFlowTests = [
+  'roomSessionJoinFrom.spec.ts',
+  'roomSessionJoinUntil.spec.ts',
+]
+const talkingTests = [
+  'roomSessionTalkingEventsParticipant.spec.ts',
+  'roomSessionTalkingEventsToAudience.spec.ts',
+]
+const removeMemberTests = [
+  'roomSessionRemoveAfterSecondsElapsed.spec.ts',
+  'roomSessionRemoveAllMembers.spec.ts',
+  'roomSessionRemoveAt.spec.ts',
+]
+const deviceTests = [
+  'roomSessionDevices.spec.ts',
+  'roomSessionLocalStream.spec.ts',
+]
+const interactionTests = [
+  'roomSessionLockUnlock.spec.ts',
+  'roomSessionRaiseHand.spec.ts',
+  'roomSessionMethodsOnNonExistingMembers.spec.ts',
+]
+const renegotiationTests = ['roomSessionUpdateMedia.spec.ts']
 const reattachTests = [
   'roomSessionReattach.spec.ts',
   'roomSessionReattachBadAuth.spec.ts',
@@ -35,33 +59,42 @@ const reattachTests = [
   'roomSessionReattachWrongCallId.spec.ts',
   'roomSessionReattachWrongProtocol.spec.ts',
 ]
-const callfabricTests = [
-  'address.spec.ts',
-  'agentCustomer.spec.ts',
-  'audioFlags.spec.ts',
-  'cleanup.spec.ts',
-  'deviceEvent.spec.ts',
-  'deviceState.spec.ts',
-  'holdunhold.spec.ts',
-  'mirrorVideo.spec.ts',
-  'muteUnmuteAll.spec.ts',
-  'raiseHand.spec.ts',
-  'reattach.spec.ts',
-  'relayApp.spec.ts',
-  'swml.spec.ts',
-  'videoRoom.spec.ts',
-  'videoRoomLayout.spec.ts',
+const callfabricCoreRoomTests = [
+  'callfabric/videoRoom.spec.ts',
+  'callfabric/videoRoomLayout.spec.ts',
 ]
-const renegotiationTests = [
-  'roomSessionUpdateMedia.spec.ts',
-  'renegotiateAudio.spec.ts',
-  'renegotiateVideo.spec.ts',
+const callfabricAudioVideoTests = [
+  'callfabric/audioFlags.spec.ts',
+  'callfabric/mirrorVideo.spec.ts',
+  'callfabric/muteUnmuteAll.spec.ts',
+]
+const callfabricDeviceTests = [
+  'callfabric/deviceEvent.spec.ts',
+  'callfabric/deviceState.spec.ts',
+]
+const callfabricAgentTests = [
+  'callfabric/agentCustomer.spec.ts',
+  'callfabric/address.spec.ts',
+  'callfabric/relayApp.spec.ts',
+  'callfabric/swml.spec.ts',
+]
+const callfabricConnectionTests = [
+  'callfabric/reattach.spec.ts',
+  'callfabric/cleanup.spec.ts',
+]
+const callfabricInteractionTests = [
+  'callfabric/raiseHand.spec.ts',
+  'callfabric/holdunhold.spec.ts',
+]
+const callfabricRenegotiationTests = [
+  'callfabric/renegotiateAudio.spec.ts',
+  'callfabric/renegotiateVideo.spec.ts',
 ]
 const videoElementTests = [
   'buildVideoWithVideoSDK.spec.ts',
   'buildVideoWithFabricSDK.spec.ts',
 ]
-const v2WebRTC = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
+const v2WebRTCTests = ['v2WebrtcFromRest.spec.ts', 'webrtcCalling.spec.ts']
 
 const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
@@ -77,7 +110,7 @@ const useDesktopChrome: PlaywrightTestConfig['use'] = {
 
 const config: PlaywrightTestConfig = {
   testDir: 'tests',
-  reporter: process.env.CI ? [['github'], ['line']] : [['list'], ['line']],
+  reporter: process.env.CI ? [['github'], ['line']] : [['list']],
   globalSetup: require.resolve('./global-setup'),
   testMatch: undefined,
   testIgnore: undefined,
@@ -89,23 +122,41 @@ const config: PlaywrightTestConfig = {
   // Forbid test.only on CI
   forbidOnly: !!process.env.CI,
   workers: 1,
+  maxFailures: 1,
   snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   projects: [
     {
       name: 'default',
       use: useDesktopChrome,
       testIgnore: [
+        ...chatPubSubTests,
         ...badNetworkTests,
         ...streamingTests,
         ...promoteTests,
         ...demoteTests,
         ...audienceTests,
+        ...talkingTests,
+        ...removeMemberTests,
+        ...joinFlowTests,
+        ...deviceTests,
+        ...interactionTests,
         ...reattachTests,
-        ...callfabricTests,
+        ...callfabricCoreRoomTests,
+        ...callfabricAudioVideoTests,
+        ...callfabricDeviceTests,
+        ...callfabricAgentTests,
+        ...callfabricConnectionTests,
+        ...callfabricInteractionTests,
+        ...callfabricRenegotiationTests,
         ...renegotiationTests,
         ...videoElementTests,
-        ...v2WebRTC,
+        ...v2WebRTCTests,
       ],
+    },
+    {
+      name: 'chatPubSub',
+      use: useDesktopChrome,
+      testMatch: chatPubSubTests,
     },
     {
       name: 'streaming',
@@ -133,19 +184,74 @@ const config: PlaywrightTestConfig = {
       testMatch: audienceTests,
     },
     {
-      name: 'reattach',
+      name: 'talking',
       use: useDesktopChrome,
-      testMatch: reattachTests,
+      testMatch: talkingTests,
     },
     {
-      name: 'callfabric',
+      name: 'removeMember',
       use: useDesktopChrome,
-      testMatch: callfabricTests,
+      testMatch: removeMemberTests,
+    },
+    {
+      name: 'joinFlow',
+      use: useDesktopChrome,
+      testMatch: joinFlowTests,
+    },
+    {
+      name: 'devices',
+      use: useDesktopChrome,
+      testMatch: deviceTests,
+    },
+    {
+      name: 'interactions',
+      use: useDesktopChrome,
+      testMatch: interactionTests,
     },
     {
       name: 'renegotiation',
       use: useDesktopChrome,
       testMatch: renegotiationTests,
+    },
+    {
+      name: 'reattach',
+      use: useDesktopChrome,
+      testMatch: reattachTests,
+    },
+    {
+      name: 'callfabricCoreRoom',
+      use: useDesktopChrome,
+      testMatch: callfabricCoreRoomTests,
+    },
+    {
+      name: 'callfabricAudioVideo',
+      use: useDesktopChrome,
+      testMatch: callfabricAudioVideoTests,
+    },
+    {
+      name: 'callfabricDevice',
+      use: useDesktopChrome,
+      testMatch: callfabricDeviceTests,
+    },
+    {
+      name: 'callfabricAgent',
+      use: useDesktopChrome,
+      testMatch: callfabricAgentTests,
+    },
+    {
+      name: 'callfabricConnection',
+      use: useDesktopChrome,
+      testMatch: callfabricConnectionTests,
+    },
+    {
+      name: 'callfabricInteraction',
+      use: useDesktopChrome,
+      testMatch: callfabricInteractionTests,
+    },
+    {
+      name: 'callfabricRenegotiation',
+      use: useDesktopChrome,
+      testMatch: callfabricRenegotiationTests,
     },
     {
       name: 'videoElement',
@@ -155,7 +261,7 @@ const config: PlaywrightTestConfig = {
     {
       name: 'v2WebRTC',
       use: useDesktopChrome,
-      testMatch: v2WebRTC,
+      testMatch: v2WebRTCTests,
     },
   ],
 }
