@@ -1,13 +1,5 @@
 # @signalwire/node
 
-## 3.0.4-dev.202506111650.ad2f5be.0
-
-### Patch Changes
-
-- Updated dependencies [[`3c389671b35d1a57fd6be3f8c793be36f8294795`](https://github.com/signalwire/signalwire-js/commit/3c389671b35d1a57fd6be3f8c793be36f8294795), [`2c39240375ed2f5c8160338876fbc3427c711b54`](https://github.com/signalwire/signalwire-js/commit/2c39240375ed2f5c8160338876fbc3427c711b54)]:
-  - @signalwire/realtime-api@4.1.2-dev.202506111650.ad2f5be.0
-  - @signalwire/web-api@3.1.4-dev.202506111650.ad2f5be.0
-
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

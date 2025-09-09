@@ -3,7 +3,7 @@
   "description": "SignalWire WebRTC library",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.14.1",
+  "version": "3.14.2",
   "main": "dist/cjs/webrtc/src/index.js",
   "module": "dist/mjs/webrtc/src/index.js",
   "files": [
