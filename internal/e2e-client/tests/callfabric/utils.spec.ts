@@ -112,22 +112,47 @@ test.describe('utils', () => {
       expect(attempts.length).toBe(3)
     })
 
-    test('should use default options when none provided', async () => {
+    test('default behavior is not to poll/retry if timeout and intervals are same', async () => {
+      let attemptCount = 0
+      await expect(
+        expectToPass(
+          async () => {
+            attemptCount++
+            if (attemptCount < 2) {
+              // expected exception which will not trigger polling as timeout and intervals are the same
+              throw new Error('Test error')
+            }
+          },
+          {
+            message:
+              'Test error - should not retry (poll) if timeout and intervals are same',
+          }
+        )
+      ).rejects.toThrow(
+        'Test error - should not retry (poll) if timeout and intervals are same'
+      )
+
+      expect(attemptCount).toBe(1)
+    })
+
+    test('should retry until the predicate passes if intervals are provided', async () => {
       let attemptCount = 0
 
       await expectToPass(
         async () => {
           attemptCount++
-          if (attemptCount < 2) {
-            throw new Error('Not ready yet')
+          if (attemptCount < 10) {
+            throw new Error('Test error - should retry if polling is enabled')
           }
-          // Pass on 2nd attempt
         },
-        { message: 'should use defaults' }
-        // No options parameter
+        {
+          message:
+            'should retry until the predicate passes if intervals are provided',
+        },
+        { intervals: [10] }
       )
 
-      expect(attemptCount).toBe(2)
+      expect(attemptCount).toBe(10)
     })
 
     test('should handle immediate success without retries', async () => {
@@ -178,7 +203,7 @@ test.describe('utils', () => {
           expect(attemptCount).toBeGreaterThan(1)
         },
         { message: 'should handle longer polling' },
-        { timeout: 5000 }
+        { timeout: 5000, intervals: [1000] }
       )
 
       expect(attemptCount).toBeGreaterThan(1)
