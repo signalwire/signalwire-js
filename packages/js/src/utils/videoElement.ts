@@ -190,11 +190,11 @@ const makeLayoutChangedHandler = (params: MakeLayoutChangedHandlerParams) => {
 
           if (overlay && overlay.domElement) {
             // If the overlay already exists, modify its styles
-            getLogger().debug('Update an overlay for ', memberIdInLocation)
+            getLogger().debug('Update an overlay for', memberIdInLocation)
             _updateLayer({ location, element: overlay.domElement })
           } else {
             // If the overlay doesn't exist, create a new overlay
-            getLogger().debug('Build an overlay for ', memberIdInLocation)
+            getLogger().debug('Build an overlay for', memberIdInLocation)
             overlay = new UserOverlay({ id: overlayId })
             overlayMap.set(overlayId, overlay)
 
