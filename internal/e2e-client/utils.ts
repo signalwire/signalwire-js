@@ -445,6 +445,7 @@ const createCFClientWithToken = async (
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         debug: { logWsTraffic: true },
+        logLevel: 'debug',
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
