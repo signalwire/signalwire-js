@@ -1,5 +1,6 @@
 ---
 '@signalwire/client': major
+'@signalwire/core': minor
 ---
 
 feat(client): Implement Client Factory for multi-instance management
