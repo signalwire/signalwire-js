@@ -54,7 +54,9 @@ describe('storage utilities', () => {
         deleteSession: jest.fn().mockResolvedValue(true),
         clearSession: jest.fn().mockResolvedValue(undefined),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
 
@@ -74,12 +76,16 @@ describe('storage utilities', () => {
         deleteSession: jest.fn(),
         clearSession: jest.fn(),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       const result = storage?.getItem('testKey')
 
-      expect(mockGlobalStorage.getSession).toHaveBeenCalledWith('@signalwire:testKey')
+      expect(mockGlobalStorage.getSession).toHaveBeenCalledWith(
+        '@signalwire:testKey'
+      )
       expect(result).toBe('test-value')
     })
 
@@ -92,7 +98,9 @@ describe('storage utilities', () => {
         deleteSession: jest.fn(),
         clearSession: jest.fn(),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       const result = storage?.getItem('testKey')
@@ -107,12 +115,17 @@ describe('storage utilities', () => {
         deleteSession: jest.fn(),
         clearSession: jest.fn(),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       storage?.setItem('testKey', 'testValue')
 
-      expect(mockGlobalStorage.setSession).toHaveBeenCalledWith('@signalwire:testKey', 'testValue')
+      expect(mockGlobalStorage.setSession).toHaveBeenCalledWith(
+        '@signalwire:testKey',
+        'testValue'
+      )
     })
 
     it('should handle setItem error with custom storage', () => {
@@ -124,7 +137,9 @@ describe('storage utilities', () => {
         deleteSession: jest.fn(),
         clearSession: jest.fn(),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       // Should not throw
@@ -138,12 +153,16 @@ describe('storage utilities', () => {
         deleteSession: jest.fn().mockResolvedValue(true),
         clearSession: jest.fn(),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       storage?.removeItem('testKey')
 
-      expect(mockGlobalStorage.deleteSession).toHaveBeenCalledWith('@signalwire:testKey')
+      expect(mockGlobalStorage.deleteSession).toHaveBeenCalledWith(
+        '@signalwire:testKey'
+      )
     })
 
     it('should handle removeItem error with custom storage', () => {
@@ -155,7 +174,9 @@ describe('storage utilities', () => {
         }),
         clearSession: jest.fn(),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       // Should not throw
@@ -169,7 +190,9 @@ describe('storage utilities', () => {
         deleteSession: jest.fn(),
         clearSession: jest.fn().mockResolvedValue(undefined),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       storage?.clear()
@@ -186,7 +209,9 @@ describe('storage utilities', () => {
           throw new Error('Storage error')
         }),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
       // Should not throw
@@ -205,7 +230,9 @@ describe('storage utilities', () => {
       const mockGlobalStorage = {
         someOtherMethod: jest.fn(),
       }
-      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(mockGlobalStorage)
+      ;(getGlobalStorageInstance as jest.Mock).mockReturnValue(
+        mockGlobalStorage
+      )
 
       const storage = getStorage()
 
@@ -222,7 +249,7 @@ describe('storage utilities', () => {
       const storage = getStorage()
 
       expect(storage).toBeUndefined()
-      
+
       // Restore window
       ;(global as any).window = originalWindow
     })
@@ -233,7 +260,8 @@ describe('storage utilities', () => {
       const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>
       mockJwtDecode.mockReturnValueOnce({ typ: 'VRT' })
 
-      const token = 'eyJ0eXAiOiJWUlQiLCJjaCI6InJlbGF5LnNpZ25hbHdpcmUuY29tIiwiYWxnIjoiUFMxMTIifQ.payload.signature'
+      const token =
+        'eyJ0eXAiOiJWUlQiLCJjaCI6InJlbGF5LnNpZ25hbHdpcmUuY29tIiwiYWxnIjoiUFMxMTIifQ.payload.signature'
       const manager = sessionStorageManager(token)
 
       expect(mockJwtDecode).toHaveBeenCalledWith(token, { header: true })
@@ -248,7 +276,8 @@ describe('storage utilities', () => {
       const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>
       mockJwtDecode.mockReturnValueOnce({ typ: 'VRT' })
 
-      const token = 'eyJ0eXAiOiJWUlQiLCJjaCI6InJlbGF5LnNpZ25hbHdpcmUuY29tIiwiYWxnIjoiUFMxMTIifQ.payload.signature'
+      const token =
+        'eyJ0eXAiOiJWUlQiLCJjaCI6InJlbGF5LnNpZ25hbHdpcmUuY29tIiwiYWxnIjoiUFMxMTIifQ.payload.signature'
       const manager = sessionStorageManager(token, 'profile123')
 
       expect(manager).toStrictEqual({
@@ -294,7 +323,8 @@ describe('storage utilities', () => {
       const mockJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>
       mockJwtDecode.mockReturnValueOnce({})
 
-      const token = 'eyJ0eXAiOiJWUlQiLCJjaCI6InJlbGF5LnNpZ25hbHdpcmUuY29tIiwiYWxnIjoiUFMxMTIifQ.payload.signature'
+      const token =
+        'eyJ0eXAiOiJWUlQiLCJjaCI6InJlbGF5LnNpZ25hbHdpcmUuY29tIiwiYWxnIjoiUFMxMTIifQ.payload.signature'
       const manager = sessionStorageManager(token)
 
       expect(manager).toStrictEqual({
@@ -372,14 +402,14 @@ describe('storage utilities', () => {
       process.env.NODE_ENV = 'development'
 
       // Pass something that's not a string to trigger the outer catch
-      const token = null as any
+      const token = 'not-a-jwt'
       const manager = sessionStorageManager(token)
 
       // When outer catch is triggered, keySuffix is empty string
       expect(manager).toStrictEqual({
-        authStateKey: 'as-',
-        protocolKey: 'pt-',
-        callIdKey: 'ci-',
+        authStateKey: 'as-unknown',
+        protocolKey: 'pt-unknown',
+        callIdKey: 'ci-unknown',
       })
 
       process.env.NODE_ENV = originalEnv
@@ -395,14 +425,14 @@ describe('storage utilities', () => {
       process.env.NODE_ENV = 'production'
 
       // Pass something that's not a string to trigger the outer catch
-      const token = null as any
+      const token = 'not-a-jwt'
       const manager = sessionStorageManager(token)
 
       // When outer catch is triggered, keySuffix is empty string
       expect(manager).toStrictEqual({
-        authStateKey: 'as-',
-        protocolKey: 'pt-',
-        callIdKey: 'ci-',
+        authStateKey: 'as-unknown',
+        protocolKey: 'pt-unknown',
+        callIdKey: 'ci-unknown',
       })
 
       process.env.NODE_ENV = originalEnv
