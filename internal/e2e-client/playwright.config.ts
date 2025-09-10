@@ -2,30 +2,46 @@ require('dotenv').config()
 
 import { PlaywrightTestConfig, devices } from '@playwright/test'
 
-const callfabricTests = [
-  'address.spec.ts',
-  'agent_customer.spec.ts',
-  'audioFlags.spec.ts',
-  'cleanup.spec.ts',
-  'conversation.spec.ts',
-  'deviceEvent.spec.ts',
-  'deviceState.spec.ts',
-  'holdunhold.spec.ts',
-  'incomingCall.spec.ts',
-  'mirrorVideo.spec.ts',
-  'muteUnmuteAll.spec.ts',
-  'raiseHand.spec.ts',
-  'reattach.spec.ts',
-  'relayApp.spec.ts',
-  'swml.spec.ts',
-  'videoRoom.spec.ts',
-  'videoRoomLayout.spec.ts',
+const callfabricCoreRoomTests = [
+  'callfabric/videoRoom.spec.ts',
+  'callfabric/videoRoomLayout.spec.ts',
 ]
-const renegotiationTests = [
-  'renegotiateAudio.spec.ts',
-  'renegotiateVideo.spec.ts',
+const callfabricAudioVideoTests = [
+  'callfabric/audioFlags.spec.ts',
+  'callfabric/mirrorVideo.spec.ts',
+  'callfabric/muteUnmuteAll.spec.ts',
 ]
-const videoElementTests = ['buildVideoWithCallSDK.spec.ts']
+const callfabricDeviceTests = [
+  'callfabric/deviceEvent.spec.ts',
+  'callfabric/deviceState.spec.ts',
+]
+const callfabricAgentTests = [
+  'callfabric/agent_customer.spec.ts',
+  'callfabric/address.spec.ts',
+  'callfabric/relayApp.spec.ts',
+  'callfabric/swml.spec.ts',
+]
+const callfabricConnectionTests = [
+  'callfabric/reattach.spec.ts',
+  'callfabric/cleanup.spec.ts',
+]
+const callfabricInteractionTests = [
+  'callfabric/raiseHand.spec.ts',
+  'callfabric/holdunhold.spec.ts',
+]
+const callfabricRenegotiationTests = [
+  'callfabric/renegotiateAudio.spec.ts',
+  'callfabric/renegotiateVideo.spec.ts',
+]
+const callfabricConversationTests = ['callfabric/conversation.spec.ts']
+const callfabricIncomingCallTests = ['callfabric/incomingCall.spec.ts']
+const callFabricWebsocketTests = [
+  'callfabric/incoming_call_over_websocket.spec.ts',
+  'callfabric/websocket_reconnect.spec.ts',
+]
+const callfabricUtilsTests = ['callfabric/utils.spec.ts']
+
+const videoElementTests = ['buildVideoWithFabricSDK.spec.ts']
 
 const useDesktopChrome: PlaywrightTestConfig['use'] = {
   ...devices['Desktop Chrome'],
@@ -61,20 +77,79 @@ const config: PlaywrightTestConfig = {
       name: 'default',
       use: useDesktopChrome,
       testIgnore: [
-        ...callfabricTests,
-        ...renegotiationTests,
+        ...callfabricAgentTests,
+        ...callfabricCoreRoomTests,
+        ...callfabricAudioVideoTests,
+        ...callfabricDeviceTests,
+        ...callfabricConnectionTests,
+        ...callfabricInteractionTests,
+        ...callfabricConversationTests,
+        ...callfabricIncomingCallTests,
+        ...callFabricWebsocketTests,
+        ...callfabricUtilsTests,
+        ...callfabricRenegotiationTests,
         ...videoElementTests,
       ],
     },
     {
-      name: 'callfabric',
+      name: 'callfabricUtilities',
       use: useDesktopChrome,
-      testMatch: callfabricTests,
+      testMatch: callfabricUtilsTests,
     },
     {
-      name: 'renegotiation',
+      name: 'callfabricCoreRoom',
       use: useDesktopChrome,
-      testMatch: renegotiationTests,
+      testMatch: callfabricCoreRoomTests,
+    },
+    {
+      name: 'callfabricAudioVideo',
+      use: useDesktopChrome,
+      testMatch: callfabricAudioVideoTests,
+    },
+    {
+      name: 'callfabricDevice',
+      use: useDesktopChrome,
+      testMatch: callfabricDeviceTests,
+    },
+    {
+      name: 'callfabricAgent',
+      use: useDesktopChrome,
+      testMatch: callfabricAgentTests,
+    },
+    {
+      name: 'callfabricConnection',
+      use: useDesktopChrome,
+      testMatch: callfabricConnectionTests,
+    },
+    {
+      name: 'callfabricInteraction',
+      use: useDesktopChrome,
+      testMatch: callfabricInteractionTests,
+    },
+    {
+      name: 'callfabricRenegotiation',
+      use: useDesktopChrome,
+      testMatch: callfabricRenegotiationTests,
+    },
+    {
+      name: 'callfabricConversation',
+      use: useDesktopChrome,
+      testMatch: callfabricConversationTests,
+    },
+    {
+      name: 'callfabricIncomingCall',
+      use: useDesktopChrome,
+      testMatch: callfabricIncomingCallTests,
+    },
+    {
+      name: 'callFabricWebsocket',
+      use: useDesktopChrome,
+      testMatch: callFabricWebsocketTests,
+    },
+    {
+      name: 'callfabricRenegotiation',
+      use: useDesktopChrome,
+      testMatch: callfabricRenegotiationTests,
     },
     {
       name: 'videoElement',
