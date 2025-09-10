@@ -75,6 +75,7 @@ test.describe('CallCall SWML', () => {
     })
 
     const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
+    const finalEvents = expectCFFinalEvents(page)
 
     await page.evaluate(async () => {
       // @ts-expect-error
@@ -87,7 +88,7 @@ test.describe('CallCall SWML', () => {
 
     await expectPageReceiveAudio(page)
 
-    await expectCFFinalEvents(page)
+    await finalEvents
   })
 
   test('should dial an address and expect a hangup', async ({
