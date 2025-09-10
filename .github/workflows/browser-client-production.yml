@@ -21,18 +21,18 @@ jobs:
         project:
           [
             default,
-            callfabricUtilities,
-            callfabricCoreRoom,
-            callfabricAudioVideo,
-            callfabricDevice,
-            callfabricAgent,
-            callfabricConnection,
-            callfabricInteraction,
-            callfabricRenegotiation,
-            callfabricConversation,
-            callfabricIncomingCall,
-            callFabricWebsocket,
-            videoElement,
+            Utilities,
+            CoreRoom,
+            AudioVideo,
+            Device,
+            Agent,
+            Connection,
+            Interaction,
+            Renegotiation,
+            Conversation,
+            IncomingCall,
+            Websocket,
+            VideoElement,
           ]
     steps:
       - uses: actions/checkout@v4
