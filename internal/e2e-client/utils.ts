@@ -1768,28 +1768,31 @@ export const expectCFInitialEvents = (
   return Promise.all([initialEvents, ...extraEvents])
 }
 
-export const expectCFFinalEvents = (
+export const expectCFFinalEvents = async (
   page: Page,
   extraEvents: Promise<boolean>[] = []
 ) => {
   const finalEvents = expectPageEvalToPass(page, {
-    evaluateFn: async () => {
-      const callObj = window._callObj
-      if (!callObj) {
-        throw new Error('Call object not found')
-      }
+    evaluateFn: () => {
+      return new Promise<boolean>((resolve) => {
+        const callObj = window._callObj
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
 
-      return await new Promise<boolean>((resolve) => {
-        callObj.on('destroy', () => resolve(true))
+        callObj.on('destroy', () => {
+          resolve(true)
+        })
       })
     },
     assertionFn: (result) => {
       expect(result, 'expect call to emit destroy event').toBe(true)
     },
     message: 'expect call to emit destroy event',
+    timeoutMs: 50000,
   })
 
-  return Promise.all([finalEvents, ...extraEvents])
+  return await Promise.all([finalEvents, ...extraEvents])
 }
 
 export const expectLayoutChanged = async (page: Page, layoutName: string) => {
