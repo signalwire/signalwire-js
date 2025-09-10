@@ -25,9 +25,9 @@ export const SignalWire = (() => {
     const { profileId } = params
 
     // Only use singleton pattern if using profileId
-    const useSingleton = !profileId
+    const useSingleton = Boolean(profileId)
 
-    if (!useSingleton) {
+    if (useSingleton) {
       // For non-default profileId or custom storage, always create a new instance
       return createSignalWireClient(params)
     }
