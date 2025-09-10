@@ -59,26 +59,22 @@ export const getStorage = () => {
 
 export const sessionStorageManager = (token: string, profileId?: string) => {
   let keySuffix = ''
+  let tokenType = 'unknown'
 
   try {
-    // First try to decode JWT header to check token type
-    let tokenType = 'unknown'
-    try {
-      const jwtHeader = jwtDecode<{ typ?: string }>(token, { header: true })
-      tokenType = jwtHeader.typ || 'unknown'
-    } catch {
-      // Header decode failed, try to infer from token prefix
-      if (token.startsWith('SAT')) {
-        tokenType = 'SAT'
-      }
-    }
-    keySuffix = `${tokenType}${profileId ? ':' + profileId : ''}`
+    const jwtHeader = jwtDecode<{ typ?: string }>(token, { header: true })
+    tokenType = jwtHeader.typ || 'unknown'
   } catch {
+    // Log error and fallback to token prefix detection
     if (process.env.NODE_ENV !== 'production') {
       getLogger().error('[sessionStorageManager] error decoding JWT', token)
     }
-    keySuffix = ''
+    if (token.startsWith('SAT')) {
+      tokenType = 'SAT'
+    }
   }
+
+  keySuffix = `${tokenType}${profileId ? ':' + profileId : ''}`
 
   return {
     authStateKey: `as-${keySuffix}`,
