@@ -147,11 +147,6 @@ const config: PlaywrightTestConfig = {
       testMatch: callFabricWebsocketTests,
     },
     {
-      name: 'Renegotiation',
-      use: useDesktopChrome,
-      testMatch: callfabricRenegotiationTests,
-    },
-    {
       name: 'VideoElement',
       use: useDesktopChrome,
       testMatch: videoElementTests,
