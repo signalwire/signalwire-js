@@ -93,10 +93,7 @@ test.describe('CallFabric Relay Application', () => {
     console.log('Calculating audio stats')
     await expectPageReceiveAudio(page)
 
-    // stop relayApp playback
-    await playback!.stop()
-
-    await page.evaluate(async () => {
+    const callPlayFinished = page.evaluate(async () => {
       // @ts-expect-error
       const callObj: Video.RoomSession = window._callObj
       return new Promise<boolean>((resolve) => {
@@ -105,6 +102,11 @@ test.describe('CallFabric Relay Application', () => {
         })
       })
     })
+
+    // stop relayApp playback
+    await playback!.stop()
+
+    await callPlayFinished
 
     const expectFinalEvents = expectCFFinalEvents(page)
 
