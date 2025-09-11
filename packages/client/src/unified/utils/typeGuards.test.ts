@@ -504,40 +504,6 @@ describe('TypeGuards', () => {
       expect(result).toBeNull()
     })
 
-    it('should preserve functions with serializeWithFunctions utility', () => {
-      const {
-        serializeWithFunctions,
-        safeJsonParseWithFunctions,
-      } = require('./serialization')
-
-      const validProfile = {
-        id: 'test-profile-id',
-        type: ProfileType.STATIC,
-        credentialsId: 'test-cred-id',
-        credentials: {
-          satToken: 'sat-token',
-          tokenExpiry: Date.now() + 3600000,
-          satRefreshPayload: {
-            refresh_token: 'refresh-token',
-          },
-          satRefreshURL: 'https://api.signalwire.com/auth/refresh',
-          satRefreshResultMapper: 'oauth',
-        },
-        addressId: 'address-id',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }
-
-      // When serialized with our special serialization utility
-      const json = serializeWithFunctions(validProfile)
-      const result = safeJsonParseWithFunctions(json, isValidProfile)
-
-      // The result should be valid and the string mapper name should be preserved
-      expect(result).not.toBeNull()
-      expect(typeof result?.credentials.satRefreshResultMapper).toBe('string')
-      expect(result?.credentials.satRefreshResultMapper).toBe('oauth')
-    })
-
     it('should work with isStringArray validator', () => {
       const validArray = ['string1', 'string2', 'string3']
       const json = JSON.stringify(validArray)

@@ -14,10 +14,6 @@ import {
   safeJsonParse,
 } from './utils/typeGuards'
 import { resolveSatRefreshResultMapper } from './utils/satRefreshMappers'
-import {
-  serializeWithFunctions,
-  safeJsonParseWithFunctions,
-} from './utils/serialization'
 
 /**
  * Manages authentication profiles for SignalWire client instances.
@@ -52,8 +48,13 @@ export class ProfileManager implements ProfileManagerContract {
 
   private async _getSavedProfile(profileId: string) {
     const profileKey = this._getProfileStorageKey(profileId)
+
     const value = await this._storage?.get(profileKey)
-    return value ? safeJsonParseWithFunctions(value, isValidProfile) : null
+    if (!value) {
+      return null
+    }
+
+    return safeJsonParse(value, isValidProfile)
   }
 
   /**
@@ -77,7 +78,8 @@ export class ProfileManager implements ProfileManagerContract {
     // Ensure satRefreshResultMapper is a valid string, use default if not provided
     const resolvedCredentials = {
       ...profile.credentials,
-      satRefreshResultMapper: profile.credentials.satRefreshResultMapper || 'default',
+      satRefreshResultMapper:
+        profile.credentials.satRefreshResultMapper || 'default',
     }
 
     // Create complete profile
@@ -282,7 +284,7 @@ export class ProfileManager implements ProfileManagerContract {
     }
 
     const profileKey = this._getProfileStorageKey(profile.id)
-    await this._storage.set(profileKey, serializeWithFunctions(profile))
+    await this._storage.set(profileKey, JSON.stringify(profile))
 
     // Add to profiles index
     await this._addToProfilesIndex(profile.id)
@@ -485,7 +487,8 @@ export class ProfileManager implements ProfileManagerContract {
   private async _callRefreshAPI(
     profile: Profile
   ): Promise<Profile['credentials']> {
-    const { satRefreshURL, satRefreshPayload, satRefreshResultMapper, host } = profile.credentials
+    const { satRefreshURL, satRefreshPayload, satRefreshResultMapper, host } =
+      profile.credentials
     const mapperFunction = resolveSatRefreshResultMapper(satRefreshResultMapper)
 
     // Check if we're in a test environment by detecting jest
