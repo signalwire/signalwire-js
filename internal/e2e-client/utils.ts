@@ -1770,7 +1770,8 @@ export const expectCFInitialEvents = (
 
 export const expectCFFinalEvents = async (
   page: Page,
-  extraEvents: Promise<boolean>[] = []
+  extraEvents: Promise<boolean>[] = [],
+  { timeoutMs }: { timeoutMs?: number } = {}
 ) => {
   const finalEvents = expectPageEvalToPass(page, {
     evaluateFn: () => {
@@ -1789,7 +1790,7 @@ export const expectCFFinalEvents = async (
       expect(result, 'expect call to emit destroy event').toBe(true)
     },
     message: 'expect call to emit destroy event',
-    timeoutMs: 50000,
+    ...(timeoutMs && { timeoutMs }),
   })
 
   return await Promise.all([finalEvents, ...extraEvents])
