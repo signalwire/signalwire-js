@@ -34,12 +34,12 @@ yarn-error.log*
 coverage/
 public/
 .devcontainer/
-.serena/
+
 .claude
 .my-notes
 .last-run.json
-CLAUDE.md
-.serena/
-.playwright-mcp/
+
+*.local*
+
 
 docs
