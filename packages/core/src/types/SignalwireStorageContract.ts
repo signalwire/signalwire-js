@@ -142,7 +142,6 @@ export interface SignalWireStorageContract {
    */
   clearSession(prefix?: string): Promise<void>
 
-  // Storage info
   /**
    * Get information about the storage implementation
    * @returns Storage information including type and availability
