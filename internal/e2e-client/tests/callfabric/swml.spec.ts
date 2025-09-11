@@ -1,6 +1,5 @@
 import { uuid } from '@signalwire/core'
 import { test, expect, CustomPage } from '../../fixtures'
-import { CallSession } from '@signalwire/client'
 import {
   SERVER_URL,
   createCFClient,
