@@ -356,7 +356,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     }
   }
 
-  public async dial(params: DialParams) {
+  public async dial(params: DialParams): Promise<CallSession> {
     // in case the user left the previous call with hangup, and is not reattaching
     getStorage()?.removeItem(getCallIdKey(this.options.profileId))
 
@@ -388,13 +388,8 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
           node_id: nodeId,
         } = decrypted
         try {
-          // Catch the error temporarly
-          try {
-            // Send verto.subscribe
-            await this.executeVertoSubscribe(payload.callID, nodeId)
-          } catch (error) {
-            this.logger.warn('Verto Subscribe', error)
-          }
+          // Send verto.subscribe
+          await this.executeVertoSubscribe(payload.callID, nodeId)
 
           this._incomingCallManager.handleIncomingInvite({
             source: 'pushNotification',
