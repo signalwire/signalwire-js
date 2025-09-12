@@ -4,8 +4,6 @@ import type {
   SignalWire,
   SignalWireClient,
   SignalWireContract,
-  CallSessionEvents,
-  CallSessionEventParams,
 } from '@signalwire/client'
 import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
@@ -18,8 +16,6 @@ import express, { Express, Request, Response } from 'express'
 import { Server } from 'http'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { EventEmitter } from 'events'
-import { CallStateManager } from './CallStateManage'
-
 declare global {
   interface Window {
     _SWJS: {
@@ -27,7 +23,6 @@ declare global {
     }
     _client?: SignalWireClient
     _callObj?: CallSession
-    _callState?: CallStateManager
   }
 }
 
@@ -449,7 +444,6 @@ const createCFClientWithToken = async (
       const client: SignalWireContract = await SignalWire({
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
-        logLevel: 'info',
         debug: { logWsTraffic: true },
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
@@ -466,51 +460,6 @@ const createCFClientWithToken = async (
   return swClient
 }
 
-export const createCallStateUtility = (page: Page) => {
-  return page.evaluate(() => {
-    // Initialize the global _callState with a state utility that keeps the history of the call state
-    window._callState = new CallStateManager()
-
-    return window._callState
-  })
-}
-
-export const waitSefState = async (
-  page: Page,
-  criteria: any,
-  options?: {
-    interval?: number[]
-    timeout?: number
-    message?: string
-  }
-) => {
-  try {
-    return page.waitForFunction(
-      (criteria) => {
-        if (!criteria) return true
-
-        if (typeof criteria !== 'object') {
-          const self = window._callState?.getSelfState()
-          return Object.keys(criteria).every(
-            (key) => self[key] === criteria[key]
-          )
-        }
-
-        return false
-      },
-      criteria,
-      { timeout: 5_000, ...options }
-    )
-  } catch (error) {
-    page.evaluate(() => window._callState?.logHistory())
-    if (options?.message) {
-      throw new Error(`waitSefState: ${options.message} `)
-    } else {
-      throw new Error('waitSefState:', error)
-    }
-  }
-}
-
 interface DialAddressParams {
   address: string
   dialOptions?: Partial<DialParams>
@@ -518,7 +467,6 @@ interface DialAddressParams {
   shouldWaitForJoin?: boolean
   shouldStartCall?: boolean
   shouldPassRootElement?: boolean
-  shouldListenToEvent?: boolean
   timeoutMs?: number
 }
 
@@ -531,7 +479,6 @@ export const dialAddress = <TReturn = any>(
     shouldPassRootElement: true,
     shouldStartCall: true,
     shouldWaitForJoin: true,
-    shouldListenToEvent: false,
     timeoutMs: 15000,
   }
 ) => {
@@ -570,112 +517,30 @@ export const dialAddress = <TReturn = any>(
       shouldPassRootElement,
       shouldStartCall,
       shouldWaitForJoin,
-      shouldListenToEvent,
     }) => {
       return new Promise<any>(async (resolve, _reject) => {
         if (!window._client) {
           throw new Error('Client is not defined')
         }
         const client: SignalWireContract = window._client
-        const listenHandlers: Partial<CallSessionEvents> = {}
-
-        // If shouldListenToEvent is true, add listeners for all events to update window._callState
-        if (shouldListenToEvent && window._callState) {
-          console.log('Adding call event listeners...')
-          // Define all events to listen to
-          const eventsToListen: (keyof CallSessionEvents)[] = [
-            // Core Call Events
-            'call.joined',
-            'call.updated',
-            'call.left',
-            'call.state',
-            'call.play',
-            'call.connect',
-            'call.room',
-            'room.joined',
-            'room.subscribed',
-            'room.updated',
-            'room.left',
-
-            'member.joined',
-            'member.updated',
-            'member.updated.audioMuted',
-            'member.updated.videoMuted',
-            'member.updated.deaf',
-            'member.updated.visible',
-            'member.updated.onHold',
-            'member.updated.inputVolume',
-            'member.updated.outputVolume',
-            'member.updated.inputSensitivity',
-            'member.updated.handraised',
-            'member.updated.echoCancellation',
-            'member.updated.autoGain',
-            'member.updated.noiseCancellation',
-            'member.updated.noiseSuppression',
-            'member.left',
-            'member.talking',
-            'memberList.updated',
-            'media.connected',
-            'media.reconnecting',
-            'media.disconnected',
-            'connecting',
-            'connected',
-            'disconnected',
-            'disconnecting',
-            'reconnecting',
-            'reconnected',
-            'active',
-            'answering',
-            'early',
-            'hangup',
-            'held',
-            'new',
-            'purge',
-            'recovering',
-            'requesting',
-            'ringing',
-            'trying',
-            'layout.changed',
-            'device.updated',
-            'device.disconnected',
-            'track',
-            'destroy',
-            'camera.updated',
-            'camera.disconnected',
-            'microphone.updated',
-            'microphone.disconnected',
-            'speaker.updated',
-            'speaker.disconnected',
-          ] as (keyof CallSessionEvents)[]
-          // Add listeners for each event
-          eventsToListen.forEach((eventName) => {
-            // @ts-expect-error not all event have params
-            listenHandlers[eventName] = (params: CallSessionEventParams) => {
-              console.log(`Event ${eventName} received`)
-              window._callState?.update(eventName, params)
-            }
-          })
-        }
 
         const dialer = reattach ? client.reattach : client.dial
 
-        const call = await dialer({
+        const call = dialer({
           to: address,
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
           }),
           ...JSON.parse(dialOptions),
-          listen: listenHandlers,
         })
-
-        // Store call object and resolvers in window for test access
-        window._callObj = call
 
         if (shouldWaitForJoin) {
           call.on('room.joined', (params) => {
             resolve(params)
           })
         }
+
+        window._callObj = call
 
         if (shouldStartCall) {
           await call.start()
