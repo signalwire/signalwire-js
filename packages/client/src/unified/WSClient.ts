@@ -27,7 +27,7 @@ import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
 import { getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
-import { CallSessionEvents } from 'packages/client/src/utils/interfaces'
+import { CallSessionEvents } from '../utils/interfaces'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
