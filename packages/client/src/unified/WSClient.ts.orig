@@ -25,8 +25,13 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { getCallIdKey, getStorage } from '../utils/storage'
+<<<<<<< HEAD
+import { getStorage } from '../utils/storage'
+import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { CallSessionEvents } from '../utils/interfaces'
+=======
+import { getCallIdKey, getStorage } from '../utils/storage'
+>>>>>>> 570472051f4efde698aa4d64ec9fc40bd487cabd
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -318,6 +323,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
+<<<<<<< HEAD
   private async initializeCallSession(
     callSession: CallSession,
     params: DialParams | ReattachParams,
@@ -354,11 +360,18 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         }
       )
     }
+=======
+  public dial(params: DialParams) {
+    // in case the user left the previous call with hangup, and is not reattaching
+    getStorage()?.removeItem(getCallIdKey(this.options.profileId))
+
+    return this.buildOutboundCall(params)
+>>>>>>> 570472051f4efde698aa4d64ec9fc40bd487cabd
   }
 
   public async dial(params: DialParams): Promise<CallSession> {
     // in case the user left the previous call with hangup, and is not reattaching
-    getStorage()?.removeItem(getCallIdKey(this.options.profileId))
+    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
 
     const callSession = this.buildOutboundCall(params)
     return this.initializeCallSession(callSession, params, 'dial')
@@ -388,8 +401,13 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
           node_id: nodeId,
         } = decrypted
         try {
-          // Send verto.subscribe
-          await this.executeVertoSubscribe(payload.callID, nodeId)
+          // Catch the error temporarly
+          try {
+            // Send verto.subscribe
+            await this.executeVertoSubscribe(payload.callID, nodeId)
+          } catch (error) {
+            this.logger.warn('Verto Subscribe', error)
+          }
 
           this._incomingCallManager.handleIncomingInvite({
             source: 'pushNotification',

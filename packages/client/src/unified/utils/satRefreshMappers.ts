@@ -1,7 +1,5 @@
 /**
  * Registry of predefined SAT refresh result mappers
- *
- * This replaces the unsafe eval() usage with a secure registry of
  * predefined mapping functions for different authentication patterns.
  */
 

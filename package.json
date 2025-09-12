@@ -11,7 +11,7 @@
     "changeset": "changeset",
     "clean": "npm exec --ws -- npx rimraf node_modules && npm exec --ws -- npx rimraf dist && npx rimraf node_modules",
     "clean:vite-cache": "npx rimraf ./internal/**/node_modules/.vite",
-    "test": "npm exec --ws npm run test",
+    "test": "npm exec --ws npm run test && npx jest internal/e2e-client/*.test.ts",
     "build": "npm run clean:vite-cache && npm exec --ws -- npx rimraf dist && sw-build-all",
     "prettier": "prettier --write .",
     "release:dev": "sw-release --development",
