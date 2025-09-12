@@ -1,6 +1,4 @@
-import {
-  UserOptions,
-} from '@signalwire/core'
+import { UserOptions } from '@signalwire/core'
 
 import type { MakeRoomOptions } from '../Client'
 import { VideoRoomSession } from './VideoRoomSession'

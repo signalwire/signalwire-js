@@ -25,7 +25,7 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { getStorage } from '../utils/storage'
+import { getCallIdKey, getStorage } from '../utils/storage'
 import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 import { CallSessionEvents } from '../utils/interfaces'
 
@@ -203,12 +203,12 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
       fromCallAddressId: params.fromCallAddressId,
+      profileId: this.wsClientOptions.profileId,
     })
 
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
-      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
       call.destroy()
     })
 
@@ -242,6 +242,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       prevCallId: payload.callID,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      profileId: this.wsClientOptions.profileId,
     })
 
     // WebRTC connection left the room.
@@ -318,50 +319,11 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  private async initializeCallSession(
-    callSession: CallSession,
-    params: DialParams | ReattachParams,
-    operation: 'dial' | 'reattach'
-  ): Promise<CallSession> {
-    try {
-      // Attach event listeners if provided
-      if (params.listen && Object.keys(params.listen).length > 0) {
-        this.attachEventListeners(callSession, params.listen)
-
-        // start the call only if event listeners were attached
-        await callSession.start()
-      }
-
-      return callSession
-    } catch (error) {
-      // Clean up on failure
-      try {
-        callSession.destroy()
-      } catch (cleanupError) {
-        this.logger.warn('Error during callSession cleanup:', cleanupError)
-      }
-
-      // Provide meaningful error message
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : `Unknown error occurred during ${operation}`
-      this.logger.error(`Failed to ${operation}:`, error)
-      throw new Error(
-        `Failed to ${operation} to ${params.to}: ${errorMessage}`,
-        {
-          cause: error,
-        }
-      )
-    }
-  }
-
-  public async dial(params: DialParams): Promise<CallSession> {
+  public dial(params: DialParams) {
     // in case the user left the previous call with hangup, and is not reattaching
-    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
+    getStorage()?.removeItem(getCallIdKey(this.options.profileId))
 
-    const callSession = this.buildOutboundCall(params)
-    return this.initializeCallSession(callSession, params, 'dial')
+    return this.buildOutboundCall(params)
   }
 
   public async reattach(params: ReattachParams): Promise<CallSession> {

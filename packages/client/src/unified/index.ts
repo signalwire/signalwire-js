@@ -10,6 +10,7 @@ export * from './interfaces/capabilities'
 export * from './interfaces/conversation'
 export * from './interfaces/device'
 export * from './interfaces/incomingCallManager'
+export * from './interfaces/clientFactory'
 
 export {
   OnlineParams,
@@ -28,3 +29,9 @@ export {
   PaginatedResult,
 } from './interfaces'
 export { CallSession, isCallSession } from './CallSession'
+export { LocalStorageAdapter } from './storage'
+export { StorageWrapper } from './utils/StorageWrapper'
+export { ClientFactory, getClientFactory } from './ClientFactory'
+export { ProfileManager } from './ProfileManager'
+export { InstanceManager } from './InstanceManager'
+export { createSignalWireClient } from './SignalWire'
