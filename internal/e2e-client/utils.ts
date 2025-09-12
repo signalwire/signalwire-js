@@ -526,7 +526,7 @@ export const dialAddress = <TReturn = any>(
 
         const dialer = reattach ? client.reattach : client.dial
 
-        const call = dialer({
+        const call = await dialer({
           to: address,
           ...(shouldPassRootElement && {
             rootElement: document.getElementById('rootElement')!,
