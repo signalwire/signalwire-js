@@ -192,7 +192,7 @@ export class CallSessionConnection
   }
 
   public async start() {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       try {
         this.once('room.subscribed', (params) => {
           const persisted = getStorage()?.setItem(
