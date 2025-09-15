@@ -32,7 +32,7 @@ import { CallSessionMember } from './CallSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
-import { asyncRetry } from 'packages/client/dist/core/src'
+
 
 export interface CallSession
   extends CallSessionContract,
