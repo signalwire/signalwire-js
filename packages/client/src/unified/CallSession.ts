@@ -32,6 +32,7 @@ import { CallSessionMember } from './CallSessionMember'
 import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSagas'
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
+import { asyncRetry } from 'packages/client/dist/core/src'
 
 export interface CallSession
   extends CallSessionContract,
@@ -192,7 +193,7 @@ export class CallSessionConnection
   }
 
   public async start() {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       try {
         this.once('room.subscribed', (params) => {
           const persisted = getStorage()?.setItem(
