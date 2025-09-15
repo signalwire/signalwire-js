@@ -508,7 +508,12 @@ export const dialAddress = async <TReturn = any>(
       reattach: mergedParams.reattach,
       shouldPassRootElement: mergedParams.shouldPassRootElement,
     },
-    evaluateFn: ({ address, dialOptions, reattach, shouldPassRootElement }) => {
+    evaluateFn: async ({
+      address,
+      dialOptions,
+      reattach,
+      shouldPassRootElement,
+    }) => {
       if (!window._client) {
         throw new Error('Client is not defined')
       }
@@ -516,7 +521,7 @@ export const dialAddress = async <TReturn = any>(
 
       const dialer = reattach ? client.reattach : client.dial
 
-      const call = dialer({
+      const call = await dialer({
         to: address,
         ...(shouldPassRootElement && {
           rootElement: document.getElementById('rootElement')!,
