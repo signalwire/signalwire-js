@@ -192,15 +192,18 @@ export class CallSessionConnection
   }
 
   public async start() {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       try {
-        this.once('room.subscribed', async (params) => {
-          await getStorage()?.setItem(
+        this.once('room.subscribed', (params) => {
+          const persisted = getStorage()?.setItem(
             getCallIdKey(this.options.profileId),
             params.call_id
           )
-          this.logger.debug('resolve start after room.subscribed event.')
-          resolve()
+          if (persisted instanceof Promise) {
+            persisted.then(() => resolve())
+          } else {
+            resolve()
+          }
         })
 
         this.once('destroy', () => {
