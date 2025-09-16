@@ -323,15 +323,15 @@ export class Conversation {
   public async subscribeChatMessages(
     params: ConversationChatMessagesSubscribeParams
   ): Promise<ConversationChatMessagesSubscribeResult> {
-    const { addressId, onMessage } = params
+    const { groupId, onMessage } = params
 
-    if (!(addressId in this.chatSubscriptions)) {
-      this.chatSubscriptions[addressId] = new Set()
+    if (!(groupId in this.chatSubscriptions)) {
+      this.chatSubscriptions[groupId] = new Set()
     }
 
-    this.chatSubscriptions[addressId].add(onMessage)
+    this.chatSubscriptions[groupId].add(onMessage)
     return {
-      unsubscribe: () => this.chatSubscriptions[addressId].delete(onMessage),
+      unsubscribe: () => this.chatSubscriptions[groupId].delete(onMessage),
     }
   }
 
