@@ -33,6 +33,7 @@ import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSag
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
 
+
 export interface CallSession
   extends CallSessionContract,
     CallSessionMethods,
@@ -195,9 +196,15 @@ export class CallSessionConnection
     return new Promise<void>(async (resolve, reject) => {
       try {
         this.once('room.subscribed', (params) => {
-          getStorage()
-            ?.setItem(getCallIdKey(this.options.profileId), params.call_id)
-            ?.then(() => resolve())
+          const persisted = getStorage()?.setItem(
+            getCallIdKey(this.options.profileId),
+            params.call_id
+          )
+          if (persisted instanceof Promise) {
+            persisted.then(() => resolve())
+          } else {
+            resolve()
+          }
         })
 
         this.once('destroy', () => {
