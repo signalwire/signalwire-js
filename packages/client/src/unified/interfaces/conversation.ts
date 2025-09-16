@@ -65,7 +65,7 @@ export interface ConversationSubscribeResult {
 }
 
 export interface ConversationChatMessagesSubscribeParams {
-  addressId: string
+  groupId: string
   onMessage: ConversationChatSubscribeCallback
 }
 

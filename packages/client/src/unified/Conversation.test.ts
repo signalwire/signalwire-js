@@ -396,17 +396,61 @@ describe('Conversation', () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          {
+            subtype: 'log',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -434,17 +478,61 @@ describe('Conversation', () => {
       // Mock getConversationMessages to return properly typed data
       jest.spyOn(conversation, 'getConversationMessages').mockResolvedValue({
         data: [
-          { subtype: 'log', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa2' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa3' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa2' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa3' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa2' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa3' } as any,
-          { subtype: 'chat', group_id: 'abc', from_fabric_address_id: 'fa1' } as any,
+          {
+            subtype: 'log',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa2',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa3',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa2',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa3',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa2',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa3',
+          } as any,
+          {
+            subtype: 'chat',
+            group_id: 'abc',
+            from_fabric_address_id: 'fa1',
+          } as any,
         ],
         hasNext: false,
         hasPrev: false,
@@ -585,9 +673,9 @@ describe('Conversation', () => {
 
     it('should get only address chat event', async () => {
       const mockCallback = jest.fn()
-      const addressId = 'abc'
+      const groupId = 'abc'
       await conversation.subscribeChatMessages({
-        addressId,
+        groupId,
         onMessage: mockCallback,
       })
 
@@ -633,16 +721,14 @@ describe('Conversation', () => {
     })
 
     it('should register the chat callback', async () => {
-      const addressId = 'abc'
+      const groupId = 'abc'
       const mockCallback = jest.fn()
       await conversation.subscribeChatMessages({
-        addressId,
+        groupId,
         onMessage: mockCallback,
       })
 
-      expect(conversation['chatSubscriptions'][addressId]).toContain(
-        mockCallback
-      )
+      expect(conversation['chatSubscriptions'][groupId]).toContain(mockCallback)
     })
 
     it('should cancel the correct chat subscription', async () => {
@@ -652,15 +738,15 @@ describe('Conversation', () => {
       const addressId1 = 'abc'
       const addressId2 = 'xyz'
       await conversation.subscribeChatMessages({
-        addressId: addressId1,
+        groupId: addressId1,
         onMessage: mockCallback1,
       })
       const subscription2 = await conversation.subscribeChatMessages({
-        addressId: addressId1,
+        groupId: addressId1,
         onMessage: mockCallback2,
       })
       await conversation.subscribeChatMessages({
-        addressId: addressId2,
+        groupId: addressId2,
         onMessage: mockCallback3,
       })
 
