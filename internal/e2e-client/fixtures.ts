@@ -1,4 +1,11 @@
-import { test as baseTest, expect, type Page } from '@playwright/test'
+import {
+  test as baseTest,
+  BrowserContext,
+  expect,
+  type Page,
+} from '@playwright/test'
+import { TestContext } from './TestContext'
+import { attachTestContext } from './utils'
 import {
   CreatecXMLScriptParams,
   CreateRelayAppResourceParams,
@@ -14,6 +21,7 @@ import {
   enablePageLogs,
   leaveRoom,
   CreatecXMLExternalURLParams,
+  setupWebSocketMonitoring,
 } from './utils'
 
 type CustomPage = Page & {
@@ -23,6 +31,7 @@ type CustomPage = Page & {
 type CustomFixture = {
   createCustomPage(options: { name: string }): Promise<CustomPage>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
+  testContext: TestContext
   resource: {
     createcXMLExternalURLResource: typeof createcXMLExternalURLResource
     createcXMLScriptResource: typeof createcXMLScriptResource
@@ -34,9 +43,32 @@ type CustomFixture = {
 }
 
 const test = baseTest.extend<CustomFixture>({
-  createCustomPage: async ({ context }, use) => {
+  testContext: async ({ context }, use) => {
+    const enableTestContext = ({ context }: { context: BrowserContext }) => {
+      const testContext = new TestContext()
+
+      // Set up WebSocket monitoring for all pages in the context
+      const setupMonitoringForPage = (page: Page) => {
+        setupWebSocketMonitoring(page, testContext)
+      }
+
+      // Monitor existing pages
+      context.pages().forEach(setupMonitoringForPage)
+
+      // Monitor new pages as they're created
+      context.on('page', setupMonitoringForPage)
+
+      return testContext
+    }
+
+    const startTestContext = () => enableTestContext({ context })
+
+    await use(startTestContext())
+  },
+  createCustomPage: async ({ context, testContext }, use, testInfo) => {
     const maker = async (options: { name: string }): Promise<CustomPage> => {
       const page = (await context.newPage()) as CustomPage
+
       enablePageLogs(page, options.name)
 
       page.swNetworkDown = () => {
@@ -55,6 +87,12 @@ const test = baseTest.extend<CustomFixture>({
     try {
       await use(maker)
     } finally {
+      // attach test context if failed test
+      if (testInfo.status !== 'passed' && testInfo.status !== 'skipped') {
+        console.log('Attaching test context...')
+        attachTestContext(testInfo, testContext)
+      }
+
       console.log('Cleaning up pages..')
       /**
        * If we have a __callObj in the page means we tested the Video/Fabric APIs
