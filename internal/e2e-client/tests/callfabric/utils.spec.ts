@@ -3,6 +3,7 @@ import {
   expectToPass,
   SERVER_URL,
   waitForFunction,
+  isSerializable,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
 
@@ -534,5 +535,193 @@ test.describe('expectPageEvalToPass', () => {
       )
     }
     expect(attemptCount).toBe(1)
+  })
+})
+
+test.describe('isSerializable', () => {
+  test.describe('serializable primitives', () => {
+    test('should return true for basic serializable types', () => {
+      expect(isSerializable(null), 'null should be serializable').toBe(true)
+      expect(isSerializable('hello'), 'string should be serializable').toBe(
+        true
+      )
+      expect(isSerializable(42), 'number should be serializable').toBe(true)
+      expect(isSerializable(true), 'boolean should be serializable').toBe(true)
+      expect(isSerializable(NaN), 'NaN should be serializable').toBe(true)
+    })
+  })
+
+  test.describe('non-serializable primitives', () => {
+    test('should return false for non-serializable types', () => {
+      expect(
+        isSerializable(undefined),
+        'undefined should not be serializable'
+      ).toBe(false)
+      expect(
+        isSerializable(() => {}),
+        'function should not be serializable'
+      ).toBe(false)
+      expect(
+        isSerializable(Symbol('test')),
+        'symbol should not be serializable'
+      ).toBe(false)
+      expect(
+        isSerializable(BigInt(123)),
+        'bigint should not be serializable'
+      ).toBe(false)
+    })
+  })
+
+  test.describe('arrays', () => {
+    test('should handle array serialization correctly', () => {
+      // Serializable arrays
+      expect(isSerializable([]), 'empty array should be serializable').toBe(
+        true
+      )
+      expect(
+        isSerializable([1, 'test', true, null]),
+        'mixed serializable array should be serializable'
+      ).toBe(true)
+      expect(
+        isSerializable([
+          [1, 2],
+          [3, 4],
+        ]),
+        'nested array should be serializable'
+      ).toBe(true)
+
+      // Non-serializable arrays
+      expect(
+        isSerializable([undefined]),
+        'array with undefined should not be serializable'
+      ).toBe(false)
+      expect(
+        isSerializable([1, () => {}]),
+        'array with function should not be serializable'
+      ).toBe(false)
+    })
+  })
+
+  test.describe('plain objects', () => {
+    test('should handle object serialization correctly', () => {
+      // Serializable objects
+      expect(isSerializable({}), 'empty object should be serializable').toBe(
+        true
+      )
+      expect(
+        isSerializable({ num: 42, str: 'hello', bool: true, nullValue: null }),
+        'object with mixed serializable values should be serializable'
+      ).toBe(true)
+      expect(
+        isSerializable({ user: { profile: { name: 'John' } } }),
+        'deeply nested object should be serializable'
+      ).toBe(true)
+      expect(
+        isSerializable({ numbers: [1, 2, 3] }),
+        'object with serializable array should be serializable'
+      ).toBe(true)
+
+      // Non-serializable objects
+      expect(
+        isSerializable({ fn: () => {} }),
+        'object with function should not be serializable'
+      ).toBe(false)
+      expect(
+        isSerializable({ valid: 'test', invalid: undefined }),
+        'object with undefined should not be serializable'
+      ).toBe(false)
+    })
+  })
+
+  test.describe('non-plain objects', () => {
+    test('should return false for complex object types', () => {
+      // Built-in objects
+      expect(
+        isSerializable(new Date()),
+        'Date object should not be serializable'
+      ).toBe(false)
+      expect(isSerializable(/test/), 'RegExp should not be serializable').toBe(
+        false
+      )
+      expect(
+        isSerializable(new Set([1, 2, 3])),
+        'Set should not be serializable'
+      ).toBe(false)
+      expect(
+        isSerializable(Promise.resolve(42)),
+        'Promise should not be serializable'
+      ).toBe(false)
+
+      // Custom class instances
+      class CustomClass {
+        constructor(public value: number) {}
+      }
+      expect(
+        isSerializable(new CustomClass(42)),
+        'custom class instance should not be serializable'
+      ).toBe(false)
+    })
+  })
+
+  test.describe('complex structures', () => {
+    test('should handle mixed arrays and objects', () => {
+      expect(
+        isSerializable({ users: [{ id: 1, name: 'John' }] }),
+        'mixed array and object structure should be serializable'
+      ).toBe(true)
+      expect(
+        isSerializable({ data: { items: [1, 2], meta: { count: 2 } } }),
+        'complex nested structure should be serializable'
+      ).toBe(true)
+      expect(
+        isSerializable([{ id: 1 }, { id: 2, fn: () => {} }]),
+        'array with non-serializable object should not be serializable'
+      ).toBe(false)
+    })
+  })
+
+  test.describe('edge cases', () => {
+    test('should handle special object cases', () => {
+      // Object with null prototype
+      const nullPrototypeObject = Object.create(null)
+      nullPrototypeObject.test = 'value'
+      expect(
+        isSerializable(nullPrototypeObject),
+        'object with null prototype should not be serializable'
+      ).toBe(false)
+
+      // Object with normal prototype
+      const plainObject = Object.create(Object.prototype)
+      plainObject.test = 'value'
+      expect(
+        isSerializable(plainObject),
+        'object with Object.prototype should be serializable'
+      ).toBe(true)
+
+      // Circular references
+      const obj: Record<string, unknown> = { a: 1 }
+      obj.self = obj // Circular reference
+      expect(
+        isSerializable(obj),
+        'objects with circular references should not be serializable'
+      ).toBe(false)
+      expect(() => isSerializable(obj)).not.toThrow()
+
+      // Proxy objects
+      const proxy = new Proxy({ foo: 'bar', baz: 1 }, {})
+      expect(
+        isSerializable(proxy),
+        'proxy objects with serializable properties should be serializable'
+      ).toBe(true)
+
+      const proxyWithNonSerializableProperty = new Proxy(
+        { foo: () => {}, baz: 1 },
+        {}
+      )
+      expect(
+        isSerializable(proxyWithNonSerializableProperty),
+        'proxy objects with non-serializable properties should not be serializable'
+      ).toBe(false)
+    })
   })
 })
