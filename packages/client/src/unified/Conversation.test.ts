@@ -17,7 +17,7 @@ const mock_getAddressSpy = jest.fn(() =>
     cover_url: '',
     preview_url: '',
     locked: false,
-    created_at: '1978',
+    created_at: '2025-09-18T14:42:00Z',
   } as GetAddressResult)
 )
 
