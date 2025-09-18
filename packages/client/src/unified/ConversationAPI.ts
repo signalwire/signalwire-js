@@ -32,6 +32,10 @@ export class ConversationAPI implements ConversationContract {
     return this.payload.name
   }
 
+  get fromAddressId() {
+    return this.payload.from_fabric_address_id
+  }
+
   sendMessage(params: ConversationAPISendMessageParams) {
     return this.conversation.sendMessage({
       groupId: this.groupId,

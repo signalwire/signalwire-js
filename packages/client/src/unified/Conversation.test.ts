@@ -1,8 +1,9 @@
+import { GetAddressResult } from 'packages/client/dist/client/src'
 import { Conversation } from './Conversation'
 import { ConversationAPI } from './ConversationAPI'
 import { HTTPClient } from './HTTPClient'
 import { WSClient } from './WSClient'
-import { uuid } from '@signalwire/core'
+import { ConversationEventParams, uuid } from '@signalwire/core'
 
 const displayName = 'subscriber-name'
 const mock_getAddressSpy = jest.fn(() =>
@@ -12,10 +13,12 @@ const mock_getAddressSpy = jest.fn(() =>
     name: 'Address Name',
     resource_id: 'resource-id',
     type: 'type' as any,
-    channels: [],
+    channels: {},
     cover_url: '',
     preview_url: '',
-  })
+    locked: false,
+    created_at: '2025-09-18T14:42:00Z',
+  } as GetAddressResult)
 )
 
 // Mock HTTPClient
@@ -90,6 +93,9 @@ describe('Conversation', () => {
         expect(item).toBeInstanceOf(ConversationAPI)
         expect(item.groupId).toEqual(conversations[index].group_id)
         expect(item.name).toEqual(conversations[index].name)
+        expect(item.fromAddressId).toEqual(
+          conversations[index].from_fabric_address_id
+        )
       })
       expect(result.hasNext).toBe(false)
       expect(result.hasPrev).toBe(false)
@@ -582,7 +588,7 @@ describe('Conversation', () => {
 
       const group_id = 'abc'
       const messages = await conversation.getChatMessages({
-        group_id,
+        groupId: group_id,
         pageSize: 3,
       })
 
@@ -704,17 +710,20 @@ describe('Conversation', () => {
         metadata: {},
         hidden: false,
         from_fabric_address_id: 'addr2',
+        user_name: 'name',
       })
       conversation.handleEvent({
         type: 'message' as const,
-        subtype: 'log' as const,
+        subtype: 'update' as const,
         group_id: 'abc',
         id: 'msg3',
         ts: Date.now(),
         details: {},
         metadata: {},
         hidden: false,
+        text: null,
         from_fabric_address_id: 'addr3',
+        user_name: 'name',
       })
 
       expect(mockCallback).toHaveBeenCalledWith(valid)
@@ -778,7 +787,7 @@ describe('Conversation', () => {
         user_id: 'test_user_id',
         user_name: 'test_user_name',
         from_fabric_address_id: 'test_from_fabric_address_id',
-      }
+      } as ConversationEventParams
       conversation.handleEvent(eventForAddressId1)
 
       conversation.handleEvent({
@@ -792,7 +801,7 @@ describe('Conversation', () => {
       conversation.handleEvent({
         ...eventForAddressId1,
         group_id: 'abc',
-        subtype: 'log',
+        subtype: 'update',
         type: 'message',
         from_fabric_address_id: '',
       })
@@ -991,7 +1000,7 @@ describe('Conversation', () => {
       conversation.getConversationMessages = jest.fn().mockResolvedValue(page1)
 
       const result = await conversation.getChatMessages({
-        group_id: 'address1',
+        groupId: 'address1',
         pageSize: 3,
       })
 

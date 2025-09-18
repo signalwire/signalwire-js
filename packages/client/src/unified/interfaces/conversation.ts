@@ -10,6 +10,7 @@ export interface ConversationContract {
   readonly lastMessageAt: number
   readonly metadata: Record<string, unknown>
   readonly name: string
+  readonly fromAddressId: string
   sendMessage(
     params: ConversationAPISendMessageParams
   ): Promise<SendConversationMessageResult>
