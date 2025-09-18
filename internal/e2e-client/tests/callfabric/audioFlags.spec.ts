@@ -693,7 +693,7 @@ test.describe('CallCall Audio Flags', () => {
             throw new Error('Client not found')
           }
 
-          const call = client.reattach({
+          const call = await client.reattach({
             to: `/public/${params.roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
