@@ -2013,16 +2013,10 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
   let result = undefined as TResult
   await expectToPass(
     async () => {
-      // evaluate the function with the provided arguments
-      if (evaluateArgs) {
-        result = await page.evaluate(
-          evaluateFn as PageFunction<TArgs, TResult>,
-          evaluateArgs
-        )
-      } else {
-        // evaluate the function without arguments
-        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
-      }
+      result = await page.evaluate(
+        evaluateFn as PageFunction<TArgs | undefined, TResult>,
+        evaluateArgs
+      )
 
       assertionFn(result)
 
