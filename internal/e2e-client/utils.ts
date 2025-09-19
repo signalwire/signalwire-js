@@ -2025,6 +2025,15 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
       }
 
       assertionFn(result)
+
+      // check if the result is serializable
+      if (!isSerializable(result)) {
+        console.error(
+          'result is not serializable in expectPageEvalToPass',
+          result
+        )
+        throw new Error('result is not serializable in expectPageEvalToPass')
+      }
     },
     { message: message },
     { timeout: timeoutMs, intervals: intervals }
