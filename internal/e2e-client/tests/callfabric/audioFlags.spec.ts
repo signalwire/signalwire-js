@@ -211,12 +211,14 @@ test.describe('CallCall Audio Flags', () => {
           })
 
           window._callObj = call
-          return true
+          return call.id
         },
         assertionFn: (result) => {
-          expect(result, 'reattach call should be created successfully').toBe(
-            true
-          )
+          expect(
+            result,
+            'reattach call should be created successfully'
+          ).toBeDefined()
+          expect(typeof result, 'call id should be a string').toBe('string')
         },
         message: 'expect reattach call to be created',
       })
@@ -699,13 +701,14 @@ test.describe('CallCall Audio Flags', () => {
           })
 
           window._callObj = call
-          return true
+          return call.id
         },
         assertionFn: (result) => {
           expect(
             result,
             'pageTwo reattach call should be created successfully'
-          ).toBe(true)
+          ).toBeDefined()
+          expect(typeof result, 'call id should be a string').toBe('string')
         },
         message: 'expect pageTwo reattach call to be created',
       })
