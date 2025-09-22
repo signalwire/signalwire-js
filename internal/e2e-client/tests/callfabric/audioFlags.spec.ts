@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { CallJoinedEventParams } from '@signalwire/client'
+import { CallJoinedEventParams, isCallSession } from '@signalwire/client'
 import { test, expect, CustomPage } from '../../fixtures'
 import {
   SERVER_URL,
@@ -205,13 +205,13 @@ test.describe('CallCall Audio Flags', () => {
             throw new Error('Client not found')
           }
 
-          const call = client.reattach({
+          const call = await client.reattach({
             to: `/public/${params.roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
           window._callObj = call
-          return true
+          return isCallSession(call)
         },
         assertionFn: (result) => {
           expect(result, 'reattach call should be created successfully').toBe(
@@ -699,7 +699,7 @@ test.describe('CallCall Audio Flags', () => {
           })
 
           window._callObj = call
-          return true
+          return isCallSession(call)
         },
         assertionFn: (result) => {
           expect(
