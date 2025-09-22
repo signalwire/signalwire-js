@@ -157,7 +157,7 @@ export class CallSessionConnection
   get addPeerConnectionEventListener() {
     if (!this.peer) {
       this.logger.error(
-        'iceGatheringStateRTC called before Peer instance initialization'
+        'addPeerConnectionEventListener called before Peer instance initialization'
       )
       throw Error('Peer not initialized')
     }
