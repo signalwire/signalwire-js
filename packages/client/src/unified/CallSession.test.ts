@@ -269,10 +269,7 @@ describe('CallSession', () => {
     })
 
     test('setRaisedHand implementation (raise)', async () => {
-      const spy = jest.spyOn(
-        CallSessionConnection.prototype,
-        'setRaisedHand'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'setRaisedHand')
       await room.setRaisedHand({ memberId: 'member-id-2' })
       expect(spy).toHaveBeenCalledWith({ memberId: 'member-id-2' })
       expect(room.execute).toHaveBeenCalledWith(
@@ -287,10 +284,7 @@ describe('CallSession', () => {
     })
 
     test('setRaisedHand implementation (lower)', async () => {
-      const spy = jest.spyOn(
-        CallSessionConnection.prototype,
-        'setRaisedHand'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'setRaisedHand')
       await room.setRaisedHand({ memberId: 'member-id-2', raised: false })
       expect(spy).toHaveBeenCalledWith({
         memberId: 'member-id-2',
@@ -375,10 +369,7 @@ describe('CallSession', () => {
     })
 
     test('setPositions implementation', async () => {
-      const spy = jest.spyOn(
-        CallSessionConnection.prototype,
-        'setPositions'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'setPositions')
       const positions = {
         self: 'auto',
         'member-id-2': 'off-canvas',
@@ -448,10 +439,7 @@ describe('CallSession', () => {
     })
 
     test('setAudioFlags implementation', async () => {
-      const spy = jest.spyOn(
-        CallSessionConnection.prototype,
-        'setAudioFlags'
-      )
+      const spy = jest.spyOn(CallSessionConnection.prototype, 'setAudioFlags')
       await room.setAudioFlags({
         memberId: 'member-id-2',
         echoCancellation: true,
@@ -669,6 +657,208 @@ describe('CallSession', () => {
       await expect(
         room.setAudioFlags({ memberId: 'member-id-2', echoCancellation: true })
       ).rejects.toThrow(CapabilityError)
+    })
+  })
+
+  describe('RTCPeerConnection helpers', () => {
+    let mockPeer: any
+
+    beforeEach(() => {
+      mockPeer = {
+        instance: {
+          getStats: jest.fn().mockResolvedValue(new Map()),
+          connectionState: 'connected',
+          iceConnectionState: 'connected',
+          iceGatheringState: 'complete',
+          addEventListener: jest.fn(),
+        },
+      }
+      // Set the peer directly on the underlying connection instance
+      Object.defineProperty(room, 'peer', {
+        value: mockPeer,
+        writable: true,
+        configurable: true,
+      })
+    })
+
+    describe('getStats', () => {
+      test('should return the getStats method from RTCPeerConnection', () => {
+        expect(room.getStats).toBe(mockPeer.instance.getStats)
+      })
+
+      test('should throw error when peer is not initialized', () => {
+        Object.defineProperty(room, 'peer', {
+          value: null,
+          writable: true,
+          configurable: true,
+        })
+        expect(() => room.getStats).toThrow('Peer not initialized')
+      })
+
+      test('should call getStats method with correct parameters', async () => {
+        const mockTrack = {} as MediaStreamTrack
+        await room.getStats(mockTrack)
+        expect(mockPeer.instance.getStats).toHaveBeenCalledWith(mockTrack)
+      })
+
+      test('should call getStats method without parameters', async () => {
+        await room.getStats()
+        expect(mockPeer.instance.getStats).toHaveBeenCalledWith()
+      })
+    })
+
+    describe('connectionPeerConnectionState', () => {
+      test('should return the connection state from RTCPeerConnection', () => {
+        expect(room.connectionPeerConnectionState).toBe('connected')
+      })
+
+      test('should throw error when peer is not initialized', () => {
+        Object.defineProperty(room, 'peer', {
+          value: null,
+          writable: true,
+          configurable: true,
+        })
+        expect(() => room.connectionPeerConnectionState).toThrow(
+          'Peer not initialized'
+        )
+      })
+
+      test('should return different connection states', () => {
+        const states: RTCPeerConnectionState[] = [
+          'new',
+          'connecting',
+          'connected',
+          'disconnected',
+          'failed',
+          'closed',
+        ]
+
+        states.forEach((state) => {
+          mockPeer.instance.connectionState = state
+          expect(room.connectionPeerConnectionState).toBe(state)
+        })
+      })
+    })
+
+    describe('iceConnectionPeerConnectionState', () => {
+      test('should return the ICE connection state from RTCPeerConnection', () => {
+        expect(room.iceConnectionPeerConnectionState).toBe('connected')
+      })
+
+      test('should throw error when peer is not initialized', () => {
+        Object.defineProperty(room, 'peer', {
+          value: null,
+          writable: true,
+          configurable: true,
+        })
+        expect(() => room.iceConnectionPeerConnectionState).toThrow(
+          'Peer not initialized'
+        )
+      })
+
+      test('should return different ICE connection states', () => {
+        const states: RTCIceConnectionState[] = [
+          'new',
+          'checking',
+          'connected',
+          'completed',
+          'disconnected',
+          'failed',
+          'closed',
+        ]
+
+        states.forEach((state) => {
+          mockPeer.instance.iceConnectionState = state
+          expect(room.iceConnectionPeerConnectionState).toBe(state)
+        })
+      })
+    })
+
+    describe('iceGatheringPeerConnectionState', () => {
+      test('should return the ICE gathering state from RTCPeerConnection', () => {
+        expect(room.iceGatheringPeerConnectionState).toBe('complete')
+      })
+
+      test('should throw error when peer is not initialized', () => {
+        Object.defineProperty(room, 'peer', {
+          value: null,
+          writable: true,
+          configurable: true,
+        })
+        expect(() => room.iceGatheringPeerConnectionState).toThrow(
+          'Peer not initialized'
+        )
+      })
+
+      test('should return different ICE gathering states', () => {
+        const states: RTCIceGatheringState[] = ['new', 'gathering', 'complete']
+
+        states.forEach((state) => {
+          mockPeer.instance.iceGatheringState = state
+          expect(room.iceGatheringPeerConnectionState).toBe(state)
+        })
+      })
+    })
+
+    describe('addPeerConnectionEventListener', () => {
+      test('should return the addEventListener method from RTCPeerConnection', () => {
+        expect(room.addPeerConnectionEventListener).toBe(
+          mockPeer.instance.addEventListener
+        )
+      })
+
+      test('should throw error when peer is not initialized', () => {
+        Object.defineProperty(room, 'peer', {
+          value: null,
+          writable: true,
+          configurable: true,
+        })
+        expect(() => room.addPeerConnectionEventListener).toThrow(
+          'Peer not initialized'
+        )
+      })
+
+      test('should call addEventListener with correct parameters', () => {
+        const mockHandler = jest.fn()
+        room.addPeerConnectionEventListener('icecandidate', mockHandler)
+        expect(mockPeer.instance.addEventListener).toHaveBeenCalledWith(
+          'icecandidate',
+          mockHandler
+        )
+      })
+
+      test('should handle different event types', () => {
+        const mockHandler = jest.fn()
+        const eventTypes = [
+          'icecandidate',
+          'track',
+          'datachannel',
+          'connectionstatechange',
+        ]
+
+        eventTypes.forEach((eventType) => {
+          room.addPeerConnectionEventListener(eventType, mockHandler)
+          expect(mockPeer.instance.addEventListener).toHaveBeenCalledWith(
+            eventType,
+            mockHandler
+          )
+        })
+      })
+
+      test('should handle event listener options', () => {
+        const mockHandler = jest.fn()
+        const options = { once: true, passive: true }
+        room.addPeerConnectionEventListener(
+          'icecandidate',
+          mockHandler,
+          options
+        )
+        expect(mockPeer.instance.addEventListener).toHaveBeenCalledWith(
+          'icecandidate',
+          mockHandler,
+          options
+        )
+      })
     })
   })
 })
