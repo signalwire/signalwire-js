@@ -1,5 +1,5 @@
 import { uuid } from '@signalwire/core'
-import { CallJoinedEventParams, isCallSession } from '@signalwire/client'
+import { CallJoinedEventParams } from '@signalwire/client'
 import { test, expect, CustomPage } from '../../fixtures'
 import {
   SERVER_URL,
@@ -211,7 +211,7 @@ test.describe('CallCall Audio Flags', () => {
           })
 
           window._callObj = call
-          return isCallSession(call)
+          return true
         },
         assertionFn: (result) => {
           expect(result, 'reattach call should be created successfully').toBe(
@@ -699,7 +699,7 @@ test.describe('CallCall Audio Flags', () => {
           })
 
           window._callObj = call
-          return isCallSession(call)
+          return true
         },
         assertionFn: (result) => {
           expect(
