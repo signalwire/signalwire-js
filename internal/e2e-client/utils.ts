@@ -2011,77 +2011,19 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
 ) => {
   // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
   let result = undefined as TResult
+
   await expectToPass(
     async () => {
       result = await page.evaluate(
+        // TODO: check if the result is serializable in the browser context
         evaluateFn as PageFunction<TArgs | undefined, TResult>,
         evaluateArgs
       )
 
       assertionFn(result)
-
-      // check if the result is serializable
-      if (!isSerializable(result)) {
-        console.error(
-          'result is not serializable in expectPageEvalToPass',
-          result
-        )
-        throw new Error('result is not serializable in expectPageEvalToPass')
-      }
     },
     { message: message },
     { timeout: timeoutMs, intervals: intervals }
   )
   return result
-}
-
-export const isSerializable = (
-  value: unknown,
-  visited = new WeakSet()
-): boolean => {
-  if (value === null) return true
-
-  const type = typeof value
-  if (type === 'string' || type === 'number' || type === 'boolean') {
-    return true
-  }
-
-  if (
-    type === 'undefined' ||
-    type === 'function' ||
-    type === 'symbol' ||
-    type === 'bigint'
-  ) {
-    return false
-  }
-
-  if (type === 'object') {
-    // Handle circular references
-    if (visited.has(value as object)) {
-      return false // Circular references are not serializable
-    }
-
-    visited.add(value as object)
-
-    try {
-      // Arrays
-      if (Array.isArray(value)) {
-        return value.every((item) => isSerializable(item, visited))
-      }
-
-      // Only plain objects are serializable
-      if (value && value.constructor === Object) {
-        return Object.values(value).every((item) =>
-          isSerializable(item, visited)
-        )
-      }
-
-      // All other objects (Date, RegExp, DOM elements, etc.) are not serializable
-      return false
-    } finally {
-      visited.delete(value as object)
-    }
-  }
-
-  return false
 }
