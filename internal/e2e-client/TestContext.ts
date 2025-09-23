@@ -2,16 +2,18 @@ import { randomUUID } from 'crypto'
 import type { JSONRPCMethod } from '@signalwire/core/'
 
 type EventCategory =
+  | 'transport'
   | 'connection'
-  | 'call'
-  | 'room'
-  | 'member'
-  | 'chat'
-  | 'verto'
-  | 'voice'
-  | 'other'
+  | 'callSession'
+  | 'conversations'
+  | 'tests'
 
-type Event = 'websocket_closed'
+type Event =
+  | 'websocket_open'
+  | 'websocket_close'
+  | 'websocket_error'
+  | 'websocket_message'
+  | 'websocket_closed'
 
 type Params = {
   call_id?: string
@@ -67,14 +69,11 @@ export interface EventStats {
   roomEvents: number
   connectionEvents: number
   // Category-based counts
+  transportCategoryEvents: number
   connectionCategoryEvents: number
-  callCategoryEvents: number
-  roomCategoryEvents: number
-  memberCategoryEvents: number
-  chatCategoryEvents: number
-  vertoCategoryEvents: number
-  voiceCategoryEvents: number
-  otherCategoryEvents: number
+  callSessionCategoryEvents: number
+  conversationsCategoryEvents: number
+  testsCategoryEvents: number
 }
 
 /**
@@ -116,29 +115,20 @@ export class TestContext {
         (event) => event.context.isConnectionEvent
       ).length,
       // Category-based counts
+      transportCategoryEvents: this.sdkEvents.filter(
+        (event) => event.eventCategory === 'transport'
+      ).length,
       connectionCategoryEvents: this.sdkEvents.filter(
         (event) => event.eventCategory === 'connection'
       ).length,
-      callCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'call'
+      callSessionCategoryEvents: this.sdkEvents.filter(
+        (event) => event.eventCategory === 'callSession'
       ).length,
-      roomCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'room'
+      conversationsCategoryEvents: this.sdkEvents.filter(
+        (event) => event.eventCategory === 'conversations'
       ).length,
-      memberCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'member'
-      ).length,
-      chatCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'chat'
-      ).length,
-      vertoCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'verto'
-      ).length,
-      voiceCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'voice'
-      ).length,
-      otherCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'other'
+      testsCategoryEvents: this.sdkEvents.filter(
+        (event) => event.eventCategory === 'tests'
       ).length,
     }
   }
@@ -156,8 +146,8 @@ export class TestContext {
       case 'error':
         return this.sdkEvents.filter((event) => event.context.isError)
       case 'member':
-        return this.sdkEvents.filter(
-          (event) => event.eventCategory === 'member'
+        return this.sdkEvents.filter((event) =>
+          event.method?.includes('member.')
         )
       case 'layout':
         return this.sdkEvents.filter((event) =>
@@ -220,7 +210,7 @@ export class TestContext {
       category: this.getCategory(payload),
       method: payload.method,
       eventType: this.getEventType(payload),
-      eventCategory: this.categorizeMethod(method),
+      eventCategory: this.categorizeMethod(payload),
       payload,
       context,
       metadata: payload.metadata,
@@ -256,8 +246,38 @@ export class TestContext {
     return 'connection' as const
   }
 
-  private categorizeMethod(method: JSONRPCMethod | '') {
-    return (method.split('.').at(0) as EventCategory) || 'other'
+  private categorizeMethod(payload: Payload): EventCategory {
+    const method = payload.method || ''
+    const event = payload.event || ''
+
+    if (
+      event === 'websocket_open' ||
+      event === 'websocket_close' ||
+      event === 'websocket_error' ||
+      event === 'websocket_message' ||
+      event === 'websocket_closed'
+    ) {
+      return 'transport'
+    }
+
+    // SignalWire connection events
+    if (method.startsWith('signalwire.') || method.startsWith('subscriber.')) {
+      return 'connection'
+    }
+
+    // Conversations events
+    if (method.startsWith('conversations.')) {
+      return 'conversations'
+    }
+
+    // Test events (artificial events)
+    if (method.startsWith('test.') || method.includes('artificial')) {
+      return 'tests'
+    }
+
+    // Everything else is callSession (call, room, member, chat, verto, voice, etc.)
+    // Note: verto.* are call signaling events, not transport events
+    return 'callSession'
   }
 
   private getEventType(payload: {
