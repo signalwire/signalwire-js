@@ -555,7 +555,12 @@ export const dialAddress = async <TReturn = any>(
       reattach: mergedParams.reattach,
       shouldPassRootElement: mergedParams.shouldPassRootElement,
     },
-    evaluateFn: ({ address, dialOptions, reattach, shouldPassRootElement }) => {
+    evaluateFn: async ({
+      address,
+      dialOptions,
+      reattach,
+      shouldPassRootElement,
+    }) => {
       if (!window._client) {
         throw new Error('Client is not defined')
       }
@@ -563,7 +568,7 @@ export const dialAddress = async <TReturn = any>(
 
       const dialer = reattach ? client.reattach : client.dial
 
-      const call = dialer({
+      const call = await dialer({
         to: address,
         ...(shouldPassRootElement && {
           rootElement: document.getElementById('rootElement')!,
@@ -2053,18 +2058,14 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
 ) => {
   // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
   let result = undefined as TResult
+
   await expectToPass(
     async () => {
-      // evaluate the function with the provided arguments
-      if (evaluateArgs) {
-        result = await page.evaluate(
-          evaluateFn as PageFunction<TArgs, TResult>,
-          evaluateArgs
-        )
-      } else {
-        // evaluate the function without arguments
-        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
-      }
+      result = await page.evaluate(
+        // TODO: check if the result is serializable in the browser context
+        evaluateFn as PageFunction<TArgs | undefined, TResult>,
+        evaluateArgs
+      )
 
       assertionFn(result)
     },

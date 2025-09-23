@@ -205,18 +205,20 @@ test.describe('CallCall Audio Flags', () => {
             throw new Error('Client not found')
           }
 
-          const call = client.reattach({
+          const call = await client.reattach({
             to: `/public/${params.roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
           window._callObj = call
-          return true
+          return call.id
         },
         assertionFn: (result) => {
-          expect(result, 'reattach call should be created successfully').toBe(
-            true
-          )
+          expect(
+            result,
+            'reattach call should be created successfully'
+          ).toBeDefined()
+          expect(typeof result, 'call id should be a string').toBe('string')
         },
         message: 'expect reattach call to be created',
       })
@@ -693,19 +695,20 @@ test.describe('CallCall Audio Flags', () => {
             throw new Error('Client not found')
           }
 
-          const call = client.reattach({
+          const call = await client.reattach({
             to: `/public/${params.roomName}?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
 
           window._callObj = call
-          return true
+          return call.id
         },
         assertionFn: (result) => {
           expect(
             result,
             'pageTwo reattach call should be created successfully'
-          ).toBe(true)
+          ).toBeDefined()
+          expect(typeof result, 'call id should be a string').toBe('string')
         },
         message: 'expect pageTwo reattach call to be created',
       })

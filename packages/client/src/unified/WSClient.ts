@@ -1,6 +1,7 @@
 import {
   actions,
   BaseClient,
+  CallSessionEventNames,
   CallJoinedEventParams as InternalCallJoinedEventParams,
   MemberUpdatedEventParams,
   VertoBye,
@@ -8,7 +9,7 @@ import {
 } from '@signalwire/core'
 import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
 import { MakeRoomOptions } from '../video'
-import { createCallSessionObject } from './CallSession'
+import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
   CallParams,
@@ -24,8 +25,8 @@ import { IncomingCallManager } from './IncomingCallManager'
 import { wsClientWorker } from './workers'
 import { createWSClient } from './createWSClient'
 import { WSClientContract } from './interfaces/wsClient'
-import { getStorage } from '../utils/storage'
-import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
+import { getCallIdKey, getStorage } from '../utils/storage'
+import { CallSessionEvents } from '../utils/interfaces'
 
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
@@ -201,12 +202,12 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
       fromCallAddressId: params.fromCallAddressId,
+      profileId: this.wsClientOptions.profileId,
     })
 
     // WebRTC connection left the room.
     call.once('destroy', () => {
       this.logger.debug('RTC Connection Destroyed')
-      getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
       call.destroy()
     })
 
@@ -240,6 +241,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       prevCallId: payload.callID,
       disableUdpIceServers: params.disableUdpIceServers || false,
       userVariables: params.userVariables || this.wsClientOptions.userVariables,
+      profileId: this.wsClientOptions.profileId,
     })
 
     // WebRTC connection left the room.
@@ -316,15 +318,55 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     })
   }
 
-  public dial(params: DialParams) {
-    // TODO: Do we need this remove item here?
-    // in case the user left the previous call with hangup, and is not reattaching
-    getStorage()?.removeItem(PREVIOUS_CALLID_STORAGE_KEY)
-    return this.buildOutboundCall(params)
+  private async initializeCallSession(
+    callSession: CallSession,
+    params: DialParams | ReattachParams,
+    operation: 'dial' | 'reattach'
+  ): Promise<CallSession> {
+    try {
+      // Attach event listeners if provided
+      if (params.listen && Object.keys(params.listen).length > 0) {
+        this.attachEventListeners(callSession, params.listen)
+
+        // start the call only if event listeners were attached
+        await callSession.start()
+      }
+
+      return callSession
+    } catch (error) {
+      // Clean up on failure
+      try {
+        callSession.destroy()
+      } catch (cleanupError) {
+        this.logger.warn('Error during callSession cleanup:', cleanupError)
+      }
+
+      // Provide meaningful error message
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : `Unknown error occurred during ${operation}`
+      this.logger.error(`Failed to ${operation}:`, error)
+      throw new Error(
+        `Failed to ${operation} to ${params.to}: ${errorMessage}`,
+        {
+          cause: error,
+        }
+      )
+    }
   }
 
-  public reattach(params: ReattachParams) {
-    return this.buildOutboundCall({ ...params, attach: true })
+  public async dial(params: DialParams): Promise<CallSession> {
+    // in case the user left the previous call with hangup, and is not reattaching
+    getStorage()?.removeItem(getCallIdKey(this.options.profileId))
+
+    const callSession = this.buildOutboundCall(params)
+    return this.initializeCallSession(callSession, params, 'dial')
+  }
+
+  public async reattach(params: ReattachParams): Promise<CallSession> {
+    const callSession = this.buildOutboundCall({ ...params, attach: true })
+    return this.initializeCallSession(callSession, params, 'reattach')
   }
 
   public handlePushNotification(params: HandlePushNotificationParams) {
@@ -346,13 +388,8 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
           node_id: nodeId,
         } = decrypted
         try {
-          // Catch the error temporarly
-          try {
-            // Send verto.subscribe
-            await this.executeVertoSubscribe(payload.callID, nodeId)
-          } catch (error) {
-            this.logger.warn('Verto Subscribe', error)
-          }
+          // Send verto.subscribe
+          await this.executeVertoSubscribe(payload.callID, nodeId)
 
           this._incomingCallManager.handleIncomingInvite({
             source: 'pushNotification',
@@ -404,6 +441,34 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
     return this.execute<unknown, void>({
       method: 'subscriber.offline',
       params: {},
+    })
+  }
+
+  /**
+   * Attaches event listeners to a call session.
+   * Handles errors in individual event handlers to prevent them from affecting other handlers.
+   *
+   * @param callSession The call session to attach listeners to
+   * @param handlers The event handlers to attach
+   */
+  private attachEventListeners(
+    callSession: CallSession,
+    handlers: Partial<CallSessionEvents>
+  ): void {
+    Object.entries(handlers).forEach(([eventName, handler]) => {
+      if (typeof handler === 'function') {
+        // Wrap each handler to isolate errors
+        this.logger.debug(`adding listener for event '${eventName}'`)
+        const wrappedHandler = async (params: any) => {
+          try {
+            await handler(params)
+          } catch (error) {
+            this.logger.error(`Error in event handler for ${eventName}:`, error)
+          }
+        }
+
+        callSession.on(eventName as CallSessionEventNames, wrappedHandler)
+      }
     })
   }
 

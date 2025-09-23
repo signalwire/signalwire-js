@@ -535,4 +535,90 @@ test.describe('expectPageEvalToPass', () => {
     }
     expect(attemptCount).toBe(1)
   })
+
+  test('should pass with serializable results', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+
+    // Test various serializable return types
+    const serializableResults = [
+      { value: 'string', expected: 'string' },
+      { value: 42, expected: 42 },
+      { value: true, expected: true },
+      { value: null, expected: null },
+      { value: { key: 'value' }, expected: { key: 'value' } },
+      { value: [1, 2, 3], expected: [1, 2, 3] },
+      {
+        value: { nested: { data: [1, 2] } },
+        expected: { nested: { data: [1, 2] } },
+      },
+    ]
+
+    for (const { value, expected } of serializableResults) {
+      const result = await expectPageEvalToPass(page, {
+        evaluateArgs: value,
+        evaluateFn: (val) => val,
+        assertionFn: (result) => {
+          expect(result).toEqual(expected)
+        },
+        message: `should pass with serializable ${typeof value} result`,
+      })
+      expect(result).toEqual(expected)
+    }
+  })
+
+  test.fixme('should throw error for non-serializable results', async ({}) => {
+    // TODO: add tests for non-serializable results
+  })
+
+  test('should accept types that Playwright converts', async ({
+    createCustomPage,
+  }) => {
+    const page = await createCustomPage({ name: '[page]' })
+
+    // Test function return (gets converted to undefined)
+    const functionResult = await expectPageEvalToPass(page, {
+      evaluateFn: () => () => 'I am a function',
+      assertionFn: (result) => {
+        expect(result).toBeUndefined()
+      },
+      message: 'should accept function result',
+    })
+    expect(functionResult).toBeUndefined()
+
+    // Test Symbol return (gets converted to undefined)
+    const symbolResult = await expectPageEvalToPass(page, {
+      evaluateFn: () => Symbol('test'),
+      assertionFn: (result) => {
+        expect(result).toBeUndefined()
+      },
+      message: 'should accept symbol result',
+    })
+    expect(symbolResult).toBeUndefined()
+
+    // Test Date return (gets returned as a Date object)
+    const dateResult = await expectPageEvalToPass(page, {
+      evaluateFn: () => new Date('2023-01-01'),
+      assertionFn: (result) => {
+        expect(typeof result).toBe('object')
+        expect(result).toBeInstanceOf(Date)
+        expect((result as Date).toISOString()).toBe('2023-01-01T00:00:00.000Z')
+      },
+      message: 'should accept Date result',
+    })
+    expect((dateResult as Date).toISOString()).toBe('2023-01-01T00:00:00.000Z')
+
+    // Test RegExp return (gets returned as RegExp object)
+    const regExpResult = await expectPageEvalToPass(page, {
+      evaluateFn: () => /test/gi,
+      assertionFn: (result) => {
+        expect(typeof result).toBe('object')
+        expect(result).toBeInstanceOf(RegExp)
+        expect(String(result)).toBe('/test/gi')
+      },
+      message: 'should accept RegExp result',
+    })
+    expect(regExpResult).toBeInstanceOf(RegExp)
+  })
 })
