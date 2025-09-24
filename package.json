@@ -35,9 +35,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "prettier": "^2.8.8"
   },
-  "overrides": {
-    "axios": "1.8.4"
-  },
   "devDependencies": {
     "@types/node": "^20.3.2",
     "dotenv": "^16.3.1",
