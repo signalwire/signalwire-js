@@ -26,7 +26,7 @@ test.describe('CallCall Room Device', () => {
       await page.goto(SERVER_URL)
 
       roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
 
       await createCFClient(page)
 
@@ -181,7 +181,7 @@ test.describe('CallCall Room Device', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -242,7 +242,7 @@ test.describe('CallCall Room Device', () => {
       await page.goto(SERVER_URL)
 
       roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
 
       await createCFClient(page)
 
@@ -373,7 +373,7 @@ test.describe('CallCall Room Device', () => {
       await page.goto(SERVER_URL)
 
       roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
 
       // Set up initial mock for enumerate devices with default speaker
       await expectPageEvalToPass(page, {

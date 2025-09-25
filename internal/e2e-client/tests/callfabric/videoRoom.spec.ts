@@ -28,7 +28,7 @@ test.describe('CallCall VideoRoom', () => {
       await page.goto(SERVER_URL)
 
       const roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
 
       await createCFClient(page)
 
@@ -623,7 +623,7 @@ test.describe('CallCall VideoRoom', () => {
             throw new Error('Client not found')
           }
 
-          const call = client.dial({
+          const call = await client.dial({
             to: `/public/invalid-address?channel=video`,
             rootElement: document.getElementById('rootElement'),
           })
@@ -655,7 +655,7 @@ test.describe('CallCall VideoRoom', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 

@@ -25,7 +25,7 @@ test.describe('CallCall Audio Flags', () => {
       await page.goto(SERVER_URL)
 
       roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
 
       await createCFClient(page)
 
@@ -324,7 +324,7 @@ test.describe('CallCall Audio Flags', () => {
       await pageTwo.goto(SERVER_URL)
 
       roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
     })
 
     await test.step('[pageOne] create client and join room', async () => {

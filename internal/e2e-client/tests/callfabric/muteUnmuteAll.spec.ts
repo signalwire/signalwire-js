@@ -31,7 +31,7 @@ const joinAllPages = async (
   )
 
   const roomName = `e2e_${uuid()}`
-  await resource.createVideoRoomResource(roomName)
+  await resource.createCallSessionResource(roomName)
   const address = `/public/${roomName}?channel=${channel}`
 
   const roomSessions = []

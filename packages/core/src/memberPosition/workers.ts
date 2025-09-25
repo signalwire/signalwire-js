@@ -13,7 +13,7 @@ import {
   VideoMemberUpdatedEvent,
   VideoMemberUpdatedEventParams,
   VideoPosition,
-  VideoRoomSubscribedEventParams,
+  CallSessionSubscribedEventParams,
 } from '..'
 
 /**
@@ -257,7 +257,7 @@ const mutateMemberCurrentPosition = ({
   return updatedMemberEventParams
 }
 
-const initializeMemberList = (payload: VideoRoomSubscribedEventParams) => {
+const initializeMemberList = (payload: CallSessionSubscribedEventParams) => {
   const members = payload.room_session.members
   const memberList: MemberEventParamsList = new Map()
 

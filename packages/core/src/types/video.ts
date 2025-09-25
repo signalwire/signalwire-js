@@ -30,7 +30,7 @@ import {
   InternalVideoStreamEventNames,
   VideoStreamEventNames,
 } from './videoStream'
-import { VideoRoomAudienceCountEvent, VideoRoomDeviceEventNames } from '.'
+import { VideoRoomAudienceCountEvent, CallSessionDeviceEventNames } from '.'
 import { MapToPubSubShape } from '..'
 
 export * from './videoRoomSession'
@@ -119,7 +119,7 @@ export type VideoAPIEventNames =
   | VideoLayoutEventNames
   | VideoPlaybackEventNames
   | VideoRecordingEventNames
-  | VideoRoomDeviceEventNames
+  | CallSessionDeviceEventNames
   | VideoStreamEventNames
 
 export type VideoAction = MapToPubSubShape<

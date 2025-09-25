@@ -8,8 +8,8 @@ import {
   RoomSubscribed,
   RTCTrackEventName,
   VideoLayoutEventNames,
-  VideoRoomDeviceDisconnectedEventNames,
-  VideoRoomDeviceUpdatedEventNames,
+  CallSessionDeviceDisconnectedEventNames,
+  CallSessionDeviceUpdatedEventNames,
   CallJoined,
   CallJoinedEventParams as InternalCallJoinedEventParams,
   CallState,
@@ -78,11 +78,11 @@ export type CallJoinedEventParams = {
 } & Omit<InternalCallJoinedEventParams, 'capabilities'>
 
 export type CallSessionEventsHandlerMap = Record<
-  VideoRoomDeviceUpdatedEventNames,
+  CallSessionDeviceUpdatedEventNames,
   (params: DeviceUpdatedEventParams) => void
 > &
   Record<
-    VideoRoomDeviceDisconnectedEventNames,
+    CallSessionDeviceDisconnectedEventNames,
     (params: DeviceDisconnectedEventParams) => void
   > &
   Record<MediaEventNames, () => void> &

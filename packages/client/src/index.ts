@@ -48,7 +48,6 @@ export type {
 } from '@signalwire/webrtc'
 export type {
   CallJoinedEventParams,
-  RoomSessionObjectEventsHandlerMap,
   StartScreenShareOptions,
   CallSessionEvents,
 } from './utils/interfaces'

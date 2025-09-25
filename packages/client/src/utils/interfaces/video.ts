@@ -1,45 +1,16 @@
 import type {
   Rooms,
-  VideoLayoutEventNames,
-  VideoRoomSessionEventNames,
-  VideoRoomEventParams,
   InternalVideoMemberEntity,
   InternalVideoMemberEntityUpdated,
-  VideoMemberEventNames,
-  MemberUpdated,
-  CoreMemberUpdatedEventNames,
-  MemberTalkingEventNames,
-  VideoMemberTalkingEventParams,
-  RTCTrackEventName,
   InternalVideoMemberUpdatableProps,
-  VideoRecordingEventNames,
-  VideoPlaybackEventNames,
-  RoomSessionRecording,
-  RoomSessionPlayback,
   VideoRoomSessionContract as CoreVideoRoomSessionContract,
   OnlyFunctionProperties,
-  MemberListUpdated,
   VideoPositions,
-  RoomAudienceCount,
-  VideoRoomAudienceCountEventParams,
-  RoomLeft,
-  RoomLeftEventParams,
-  VideoStreamEventNames,
-  RoomSessionStream,
-  RoomJoined,
-  RoomSubscribed,
-  VideoRoomSubscribedEventParams,
   VideoAuthorization,
-  VideoRoomDeviceUpdatedEventNames,
-  DeviceUpdatedEventParams,
-  VideoRoomDeviceDisconnectedEventNames,
-  DeviceDisconnectedEventParams,
-  VideoRoomDeviceEventNames,
   VideoLayoutChangedEventParams,
   VideoPosition,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
-import type { MediaEventNames } from '@signalwire/webrtc'
 import type { CallSessionDevice } from '../../CallSessionDevice'
 import type { CallSessionScreenShare } from '../../CallSessionScreenShare'
 
@@ -79,74 +50,6 @@ export type VideoMemberUpdatedHandlerParams = {
   room_session_id?: string
 }
 export type VideoMemberListUpdatedParams = { members: VideoMemberEntity[] }
-
-export type RoomSessionObjectEventsHandlerMap = Record<
-  VideoRoomDeviceEventNames,
-  (params: DeviceUpdatedEventParams) => void
-> &
-  Record<
-    VideoLayoutEventNames,
-    (params: VideoLayoutChangedEventParams) => void
-  > &
-  Record<
-    Exclude<
-      VideoMemberEventNames,
-      MemberUpdated | CoreMemberUpdatedEventNames | MemberListUpdated
-    >,
-    (params: VideoMemberHandlerParams) => void
-  > &
-  Record<
-    Extract<VideoMemberEventNames, MemberUpdated | CoreMemberUpdatedEventNames>,
-    (params: VideoMemberUpdatedHandlerParams) => void
-  > &
-  Record<
-    Extract<VideoMemberEventNames, MemberListUpdated>,
-    (params: VideoMemberListUpdatedParams) => void
-  > &
-  Record<
-    DeprecatedMemberUpdatableProps,
-    (params: DeprecatedVideoMemberHandlerParams) => void
-  > &
-  Record<
-    MemberTalkingEventNames,
-    (params: VideoMemberTalkingEventParams) => void
-  > &
-  Record<
-    Exclude<VideoRoomSessionEventNames, RoomLeft | RoomJoined | RoomSubscribed>,
-    (params: VideoRoomEventParams) => void
-  > &
-  Record<
-    RoomJoined | RoomSubscribed,
-    (params: VideoRoomSubscribedEventParams) => void
-  > &
-  Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
-  Record<MediaEventNames, () => void> &
-  Record<
-    VideoRoomDeviceUpdatedEventNames,
-    (params: DeviceUpdatedEventParams) => void
-  > &
-  Record<
-    VideoRoomDeviceDisconnectedEventNames,
-    (params: DeviceDisconnectedEventParams) => void
-  > &
-  Record<
-    RoomAudienceCount,
-    (params: VideoRoomAudienceCountEventParams) => void
-  > &
-  Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
-  Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
-  Record<VideoPlaybackEventNames, (recording: RoomSessionPlayback) => void> &
-  // Record<BaseConnectionState, (params: VideoRoomSession) => void> &
-  Record<VideoStreamEventNames, (stream: RoomSessionStream) => void>
-
-// // @deprecated Please use {@link VideoRoomSessionEvents}
-// export type RoomSessionObjectEvents = {
-//   [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
-// }
-
-export type VideoRoomSessionEvents = {
-  [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
-}
 
 export type StartScreenShareOptions = {
   /** Whether the screen share object should automatically join the room */

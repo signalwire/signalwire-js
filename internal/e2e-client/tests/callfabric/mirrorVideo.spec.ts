@@ -47,7 +47,7 @@ test.describe('CallCall Mirror Video', () => {
       await page.goto(SERVER_URL)
 
       const roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
 
       await createCFClient(page)
 
