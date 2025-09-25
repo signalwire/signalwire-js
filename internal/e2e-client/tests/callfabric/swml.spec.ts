@@ -9,6 +9,7 @@ import {
   expectPageReceiveAudio,
   expectPageEvalToPass,
 } from '../../utils'
+import { CallSession } from '@signalwire/client'
 
 test.describe('CallCall SWML', () => {
   const swmlTTS = {
@@ -166,8 +167,7 @@ test.describe('CallCall SWML', () => {
     const expectFinalEvents = expectCFFinalEvents(page)
 
     await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._callObj
+      const call = window._callObj!
 
       await call.start()
     })

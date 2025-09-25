@@ -7,7 +7,7 @@ import {
   BaseConnectionState,
 } from '@signalwire/core'
 import { BaseConnection, MediaEventNames } from '@signalwire/webrtc'
-import { RoomScreenShareMethods } from './utils/interfaces'
+import { CallSessionScreenShareMethods } from './utils/interfaces'
 
 type CallSessionScreenShareEventsHandlerMap = Record<
   BaseConnectionState,
@@ -23,7 +23,7 @@ export type CallSessionScreenShareEvents = {
 /** @deprecated Use {@link CallSessionScreenShare} instead */
 export interface RoomScreenShare extends CallSessionScreenShare {}
 export interface CallSessionScreenShare
-  extends RoomScreenShareMethods,
+  extends CallSessionScreenShareMethods,
     BaseConnectionContract<CallSessionScreenShareEvents> {
   join(): Promise<void>
   leave(): Promise<void>
@@ -46,7 +46,7 @@ export class CallSessionScreenShareConnection extends BaseConnection<CallSession
  */
 export const CallSessionScreenShareAPI = extendComponent<
   CallSessionScreenShareConnection,
-  RoomScreenShareMethods
+  CallSessionScreenShareMethods
 >(CallSessionScreenShareConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,

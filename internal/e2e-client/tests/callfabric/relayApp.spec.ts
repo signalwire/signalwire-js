@@ -10,6 +10,7 @@ import {
   SERVER_URL,
 } from '../../utils'
 import { test, expect } from '../../fixtures'
+import { CallSession } from '@signalwire/client'
 
 test.describe('CallFabric Relay Application', () => {
   test('should connect to the relay app and expect an audio playback', async ({
@@ -67,8 +68,7 @@ test.describe('CallFabric Relay Application', () => {
     })
 
     const callPlayStarted = page.evaluate(async () => {
-      // @ts-expect-error
-      const callObj: Video.RoomSession = window._callObj
+      const callObj: CallSession = window._callObj!
       return new Promise<boolean>((resolve) => {
         callObj.on('call.play', (params: any) => {
           if (params.state === 'playing') resolve(true)
@@ -79,8 +79,7 @@ test.describe('CallFabric Relay Application', () => {
     const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
 
     await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._callObj
+      const call = window._callObj!
 
       await call.start()
     })
@@ -94,8 +93,7 @@ test.describe('CallFabric Relay Application', () => {
     await expectPageReceiveAudio(page)
 
     const callPlayFinished = page.evaluate(async () => {
-      // @ts-expect-error
-      const callObj: Video.RoomSession = window._callObj
+      const callObj: CallSession = window._callObj!
       return new Promise<boolean>((resolve) => {
         callObj.on('call.play', (params: any) => {
           if (params.state === 'finished') resolve(true)
@@ -112,8 +110,7 @@ test.describe('CallFabric Relay Application', () => {
 
     // Hangup the call
     await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._callObj
+      const call = window._callObj!
 
       await call.hangup()
     })
@@ -174,8 +171,7 @@ test.describe('CallFabric Relay Application', () => {
     })
 
     const callPlayStarted = page.evaluate(async () => {
-      // @ts-expect-error
-      const callObj: Video.RoomSession = window._callObj
+      const callObj: CallSession = window._callObj!
       return new Promise<boolean>((resolve) => {
         callObj.on('call.play', (params: any) => {
           if (params.state === 'playing') resolve(true)
@@ -186,8 +182,7 @@ test.describe('CallFabric Relay Application', () => {
     const expectInitialEvents = expectCFInitialEvents(page, [callPlayStarted])
 
     await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._callObj
+      const call = window._callObj!
 
       await call.start()
     })
@@ -214,8 +209,7 @@ test.describe('CallFabric Relay Application', () => {
     }
     playback!.stop()
     await page.evaluate(async () => {
-      // @ts-expect-error
-      const callObj: Video.RoomSession = window._callObj
+      const callObj: CallSession = window._callObj!
       return new Promise<boolean>((resolve) => {
         callObj.on('call.play', (params: any) => {
           if (params.state === 'finished') resolve(true)
@@ -227,8 +221,7 @@ test.describe('CallFabric Relay Application', () => {
 
     // Hangup the call
     await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._callObj
+      const call = window._callObj!
 
       await call.hangup()
     })
@@ -289,8 +282,7 @@ test.describe('CallFabric Relay Application', () => {
     const expectFinalEvents = expectCFFinalEvents(page)
 
     await page.evaluate(async () => {
-      // @ts-expect-error
-      const call = window._callObj
+      const call = window._callObj!
 
       await call.start()
     })

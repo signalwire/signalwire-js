@@ -14,7 +14,7 @@ import {
 } from '../../utils'
 import { JSHandle } from '@playwright/test'
 
-test.describe('CallCall VideoRoom', () => {
+test.describe('Call Room Address', () => {
   test('should handle joining a room, perform actions and then leave the room', async ({
     createCustomPage,
     resource,

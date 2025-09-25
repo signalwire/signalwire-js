@@ -301,7 +301,7 @@ export interface VideoRoomSessionContract {
 export interface CallSessionDeviceMethods
   extends RoomMemberSelfMethodsInterface {}
 
-export interface RoomScreenShareMethods
+export interface CallSessionScreenShareMethods
   extends RoomMemberSelfMethodsInterface {}
 
 export interface BaseRoomSessionJoinParams {
