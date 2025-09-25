@@ -1,90 +1,196 @@
 import { uuid } from '@signalwire/core'
-import { test, expect } from '../../fixtures'
+import { test, expect, CustomPage } from '../../fixtures'
 import {
   createCFClient,
   dialAddress,
   disconnectClient,
+  expectPageEvalToPass,
   leaveRoom,
   SERVER_URL,
 } from '../../utils'
+import { CallSession, SignalWireContract } from '@signalwire/client'
+import { WSClientContract } from 'packages/client/src/unified/interfaces/wsClient'
+
+interface WindowWithRunningWorkers extends Window {
+  _runningWorkers: any[]
+  _callObj: CallSession & {
+    eventNames: () => string[]
+    _runningWorkers: any[]
+  }
+}
+
+interface SignalWireClient extends SignalWireContract {
+  __wsClient: WSClientContract & {
+    sessionEventNames: () => string[]
+    _runningWorkers: any[]
+  }
+}
+
+interface Watchers {
+  clientListenersLength?: number
+  clientWorkersLength?: number
+  callListeners?: number
+  callWorkersLength?: number
+  globalWorkersLength?: number
+}
 
 test.describe('Clean up', () => {
-  test('it should create a webscoket client', async ({ createCustomPage }) => {
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
-
+  test('it should create a websocket client', async ({ createCustomPage }) => {
+    let page = {} as CustomPage
     let websocketUrl: string | null = null
     let websocketClosed = false
+    let waitForWebSocketClose: Promise<void>
 
-    // A promise to wait for the WebSocket close event
-    const waitForWebSocketClose = new Promise<void>((resolve) => {
-      page.on('websocket', (ws) => {
-        websocketUrl = ws.url()
+    await test.step('setup page and websocket listeners', async () => {
+      page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
 
-        ws.on('close', () => {
-          websocketClosed = true
-          resolve()
+      // Set up WebSocket monitoring
+      waitForWebSocketClose = new Promise<void>((resolve) => {
+        page.on('websocket', (ws) => {
+          websocketUrl = ws.url()
+
+          ws.on('close', () => {
+            websocketClosed = true
+            resolve()
+          })
         })
       })
+
+      expect(websocketUrl, 'websocket URL should initially be null').toBe(null)
+      expect(websocketClosed, 'websocket should initially be open').toBe(false)
     })
 
-    expect(websocketUrl).toBe(null)
+    await test.step('create client', async () => {
+      await createCFClient(page)
+    })
 
-    await createCFClient(page)
+    await test.step('disconnect client and verify websocket cleanup', async () => {
+      await disconnectClient(page)
 
-    await disconnectClient(page)
+      // Wait for websocket to close
+      await waitForWebSocketClose
 
-    await waitForWebSocketClose
-    expect(websocketUrl).toBeTruthy()
-    expect(websocketUrl).toContain('wss://')
-    expect(websocketClosed).toBeTruthy()
+      expect(websocketUrl, 'websocket URL should be captured').toBeTruthy()
+      expect(websocketUrl, 'websocket should use secure protocol').toContain(
+        'wss://'
+      )
+      expect(
+        websocketClosed,
+        'websocket should be closed after disconnect'
+      ).toBeTruthy()
+    })
   })
 
   test('it should cleanup session emitter and workers', async ({
     createCustomPage,
   }) => {
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
+    let page = {} as CustomPage
 
-    await createCFClient(page, { attachSagaMonitor: true })
+    await test.step('setup page and create client with saga monitor', async () => {
+      page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
 
-    await test.step('the client should have workers and listeners attached', async () => {
-      const watchers: Record<string, number> = await page.evaluate(() => {
-        const client = window._client!
-
-        return {
-          // @ts-expect-error
-          clientListenersLength: client.__wsClient.sessionEventNames().length,
-          // @ts-expect-error
-          clientWorkersLength: client.__wsClient._runningWorkers.length,
-          // @ts-expect-error
-          globalWorkersLength: window._runningWorkers.length,
-        }
-      })
-
-      expect(watchers.clientWorkersLength).toBeGreaterThan(0)
-      expect(watchers.globalWorkersLength).toBeGreaterThan(0)
+      await createCFClient(page, { attachSagaMonitor: true })
     })
 
-    await disconnectClient(page)
+    await test.step('verify client has workers and listeners attached', async () => {
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const client = window._client as SignalWireClient
+          const windowWithWorkers =
+            window as unknown as WindowWithRunningWorkers
 
-    await test.step('the client should not have workers and listeners attached', async () => {
-      const watchers: Record<string, number> = await page.evaluate(() => {
-        const client = window._client!
+          if (!client) {
+            throw new Error('Client not found')
+          }
 
-        return {
-          // @ts-expect-error
-          clientListenersLength: client.__wsClient.sessionEventNames().length,
-          // @ts-expect-error
-          clientWorkersLength: client.__wsClient._runningWorkers.length,
-          // @ts-expect-error
-          globalWorkersLength: window._runningWorkers.length,
-        }
+          // Access internal properties for cleanup testing
+          const wsClient = (client as SignalWireClient).__wsClient
+          if (!wsClient) {
+            throw new Error('WebSocket client not found')
+          }
+
+          const runningWorkers = windowWithWorkers._runningWorkers
+          if (!runningWorkers) {
+            throw new Error('Running workers not found')
+          }
+
+          return {
+            clientListenersLength: wsClient.sessionEventNames().length,
+            clientWorkersLength: wsClient._runningWorkers.length,
+            globalWorkersLength: runningWorkers.length,
+          } satisfies Watchers
+        },
+        assertionFn: (result) => {
+          expect(result, 'initial watchers should be defined').toBeDefined()
+          // TODO: what is the correct count of listeners?
+          // expect(
+          //   result.clientListenersLength,
+          //   'client should have listeners attached initially'
+          // ).toBe
+          expect(
+            result.clientWorkersLength,
+            'client should have workers attached initially'
+          ).toBeGreaterThan(0)
+          expect(
+            result.globalWorkersLength,
+            'global workers should be attached initially'
+          ).toBeGreaterThan(0)
+        },
+        message: 'expect to get initial client watchers',
       })
+    })
 
-      expect(watchers.clientListenersLength).toBe(0)
-      expect(watchers.clientWorkersLength).toBe(0)
-      expect(watchers.globalWorkersLength).toBe(0)
+    await test.step('disconnect client', async () => {
+      await disconnectClient(page)
+    })
+
+    await test.step('verify client has no workers and listeners attached', async () => {
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const client = window._client as SignalWireClient
+          const windowWithWorkers =
+            window as unknown as WindowWithRunningWorkers
+
+          if (!client) {
+            throw new Error('Client not found')
+          }
+
+          // Access internal properties for cleanup testing
+          const wsClient = (client as SignalWireClient).__wsClient
+          if (!wsClient) {
+            throw new Error('WebSocket client not found')
+          }
+
+          const runningWorkers = windowWithWorkers._runningWorkers
+          if (!runningWorkers) {
+            throw new Error('Running workers not found')
+          }
+
+          return {
+            clientListenersLength: wsClient.sessionEventNames().length,
+            clientWorkersLength: wsClient._runningWorkers.length,
+            globalWorkersLength: runningWorkers.length,
+          } satisfies Watchers
+        },
+        assertionFn: (result) => {
+          expect(result, 'final watchers should be defined').toBeDefined()
+          expect(
+            result.clientListenersLength,
+            'client should have no listeners after disconnect'
+          ).toBe(0)
+          expect(
+            result.clientWorkersLength,
+            'client should have no workers after disconnect'
+          ).toBe(0)
+          expect(
+            result.globalWorkersLength,
+            'global workers should be cleaned up after disconnect'
+          ).toBe(0)
+        },
+        message: 'expect client watchers to be cleaned up',
+      })
     })
   })
 
@@ -92,108 +198,170 @@ test.describe('Clean up', () => {
     createCustomPage,
     resource,
   }) => {
-    const page = await createCustomPage({ name: '[page]' })
-    await page.goto(SERVER_URL)
+    let page = {} as CustomPage
+    let initialWatchers = {} as Watchers
 
-    const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await test.step('setup page and create client', async () => {
+      page = await createCustomPage({ name: '[page]' })
+      await page.goto(SERVER_URL)
 
-    await createCFClient(page, { attachSagaMonitor: true })
+      const roomName = `e2e_${uuid()}`
+      await resource.createVideoRoomResource(roomName)
 
-    // Dial an address and join a video room
-    await dialAddress(page, {
-      address: `/public/${roomName}?channel=video`,
+      await createCFClient(page, { attachSagaMonitor: true })
+
+      await dialAddress(page, {
+        address: `/public/${roomName}?channel=video`,
+      })
     })
 
-    const { beforeClientListenersLength, beforeClientWorkersLength } =
-      await test.step('call and client should have watchers attached', async () => {
-        const watchers: Record<string, number> = await page.evaluate(() => {
-          const client = window._client!
+    await test.step('get initial watcher counts after call is created', async () => {
+      initialWatchers = await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const client = window._client as SignalWireClient
+          const windowWithWorkers =
+            window as unknown as WindowWithRunningWorkers
+
+          if (!client) {
+            throw new Error('Client not found')
+          }
 
           return {
-            // @ts-expect-error
             clientListenersLength: client.__wsClient.sessionEventNames().length,
-            // @ts-expect-error
             clientWorkersLength: client.__wsClient._runningWorkers.length,
-
-            // @ts-expect-error
-            callListeners: window._callObj.eventNames().length,
-            // @ts-expect-error
-            callWorkersLength: window._callObj._runningWorkers.length,
-
-            // @ts-expect-error
-            globalWorkersLength: window._runningWorkers.length,
+            callListeners: windowWithWorkers._callObj.eventNames().length,
+            callWorkersLength:
+              windowWithWorkers._callObj._runningWorkers.length,
+            globalWorkersLength: windowWithWorkers._runningWorkers.length,
           }
-        })
-
-        expect(watchers.clientListenersLength).toBeGreaterThan(0)
-        expect(watchers.clientWorkersLength).toBeGreaterThan(0)
-        expect(watchers.callListeners).toBeGreaterThan(0)
-        expect(watchers.callWorkersLength).toBeGreaterThan(0)
-        expect(watchers.globalWorkersLength).toBeGreaterThan(0)
-
-        return {
-          beforeClientListenersLength: watchers.clientListenersLength,
-          beforeClientWorkersLength: watchers.clientWorkersLength,
-        }
+        },
+        assertionFn: (result) => {
+          expect(result, 'initial watchers should be defined').toBeDefined()
+          expect(
+            result.clientListenersLength,
+            'should have client listeners'
+          ).toBeGreaterThan(0)
+          expect(
+            result.clientWorkersLength,
+            'should have client workers'
+          ).toBeGreaterThan(0)
+          expect(
+            result.callListeners,
+            'should have call listeners'
+          ).toBeGreaterThan(0)
+          expect(
+            result.callWorkersLength,
+            'should have call workers'
+          ).toBeGreaterThan(0)
+          expect(
+            result.globalWorkersLength,
+            'should have global workers'
+          ).toBeGreaterThan(0)
+        },
+        message: 'expect to get initial watcher counts after call is created',
       })
-
-    await leaveRoom(page)
-
-    await test.step('call should not have any watchers attached', async () => {
-      const watchers: Record<string, number> = await page.evaluate(() => {
-        const client = window._client!
-
-        return {
-          // @ts-expect-error
-          clientListenersLength: client.__wsClient.sessionEventNames().length,
-          // @ts-expect-error
-          clientWorkersLength: client.__wsClient._runningWorkers.length,
-
-          // @ts-expect-error
-          callListeners: window._callObj.eventNames().length,
-          // @ts-expect-error
-          callWorkersLength: window._callObj._runningWorkers.length,
-
-          // @ts-expect-error
-          globalWorkersLength: window._runningWorkers.length,
-        }
-      })
-
-      expect(watchers.clientListenersLength).toBe(beforeClientListenersLength)
-      expect(watchers.clientWorkersLength).toBe(beforeClientWorkersLength)
-      expect(watchers.callListeners).toBe(0)
-      expect(watchers.callWorkersLength).toBe(0)
-      expect(watchers.globalWorkersLength).toBeGreaterThan(0)
     })
 
-    await disconnectClient(page)
+    // leave room after call is created
+    await test.step('leave room', async () => {
+      await leaveRoom(page)
+    })
 
-    await test.step('client should not have any watchers attached', async () => {
-      const watchers: Record<string, number> = await page.evaluate(() => {
-        const client = window._client!
+    await test.step('call should not have workers or listeners attached', async () => {
+      await expectPageEvalToPass(page, {
+        evaluateFn: () => {
+          const client = window._client as SignalWireClient
+          const windowWithWorkers =
+            window as unknown as WindowWithRunningWorkers
 
-        return {
-          // @ts-expect-error
-          clientListenersLength: client.__wsClient.sessionEventNames().length,
-          // @ts-expect-error
-          clientWorkersLength: client.__wsClient._runningWorkers.length,
+          if (!client) {
+            throw new Error('Client not found')
+          }
 
-          // @ts-expect-error
-          callListeners: window._callObj.eventNames().length,
-          // @ts-expect-error
-          callWorkersLength: window._callObj._runningWorkers.length,
-
-          // @ts-expect-error
-          globalWorkersLength: window._runningWorkers.length,
-        }
+          return {
+            callListeners: windowWithWorkers._callObj.eventNames().length,
+            callWorkersLength:
+              windowWithWorkers._callObj._runningWorkers.length,
+            clientListenersLength: client.__wsClient.sessionEventNames().length,
+            clientWorkersLength: client.__wsClient._runningWorkers.length,
+            globalWorkersLength: windowWithWorkers._runningWorkers.length,
+          }
+        },
+        assertionFn: (result) => {
+          expect(
+            result.callListeners,
+            'call should have no listeners after leaving room'
+          ).toBe(0)
+          expect(
+            result.callWorkersLength,
+            'call should have no workers after leaving room'
+          ).toBe(0)
+          expect(
+            result.clientListenersLength,
+            'client should have same number of listeners as before leaving room'
+          ).toBe(initialWatchers.clientListenersLength)
+          expect(
+            result.clientWorkersLength,
+            'client should have same number of workers as before leaving room'
+          ).toBe(initialWatchers.clientWorkersLength)
+          expect(
+            result.globalWorkersLength,
+            'global workers should still be attached after leaving room'
+          ).toBeGreaterThan(0)
+        },
+        message: 'expect client watchers to be cleaned up after leaving room',
       })
+    })
 
-      expect(watchers.clientListenersLength).toBe(0)
-      expect(watchers.clientWorkersLength).toBe(0)
-      expect(watchers.callListeners).toBe(0)
-      expect(watchers.callWorkersLength).toBe(0)
-      expect(watchers.globalWorkersLength).toBe(0)
+    await test.step('disconnect client after leaving room', async () => {
+      await disconnectClient(page)
+    })
+
+    await test.step('client should have no workers or listeners attached', async () => {
+      await expectPageEvalToPass(page, {
+        evaluateFn: async () => {
+          const client = window._client as SignalWireClient
+          const windowWithWorkers =
+            window as unknown as WindowWithRunningWorkers
+
+          if (!client) {
+            throw new Error('Client not found')
+          }
+
+          return {
+            clientListenersLength: client.__wsClient.sessionEventNames().length,
+            clientWorkersLength: client.__wsClient._runningWorkers.length,
+            callListeners: windowWithWorkers._callObj.eventNames().length,
+            callWorkersLength:
+              windowWithWorkers._callObj._runningWorkers.length,
+            globalWorkersLength: windowWithWorkers._runningWorkers.length,
+          }
+        },
+        assertionFn: (result) => {
+          expect(
+            result.clientListenersLength,
+            'client listeners should be cleaned up'
+          ).toBe(0)
+          expect(
+            result.clientWorkersLength,
+            'client workers should be cleaned up'
+          ).toBe(0)
+          expect(
+            result.callListeners,
+            'call listeners should be cleaned up'
+          ).toBe(0)
+          expect(
+            result.callWorkersLength,
+            'call workers should be cleaned up'
+          ).toBe(0)
+          expect(
+            result.globalWorkersLength,
+            'global workers should be cleaned up'
+          ).toBe(0)
+        },
+        message:
+          'expect client watchers, listeners, and global workers to be cleaned up after disconnect',
+      })
     })
   })
 })

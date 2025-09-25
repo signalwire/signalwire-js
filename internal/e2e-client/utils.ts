@@ -445,6 +445,7 @@ const createCFClientWithToken = async (
         host: options.RELAY_HOST,
         token: options.API_TOKEN,
         debug: { logWsTraffic: true },
+        logLevel: 'debug',
         ...(options.attachSagaMonitor && { sagaMonitor }),
       })
 
@@ -470,7 +471,7 @@ interface DialAddressParams {
   timeoutMs?: number
 }
 
-export const dialAddress = <TReturn = any>(
+export const dialAddress = async <TReturn = any>(
   page: Page,
   params: DialAddressParams = {
     address: '',
@@ -481,7 +482,7 @@ export const dialAddress = <TReturn = any>(
     shouldWaitForJoin: true,
     timeoutMs: 15000,
   }
-) => {
+): Promise<TReturn> => {
   const defaultParams: DialAddressParams = {
     address: '',
     dialOptions: {},
@@ -497,66 +498,112 @@ export const dialAddress = <TReturn = any>(
     ...params,
   }
 
-  type EvaluateArgs = Omit<DialAddressParams, 'dialOptions'> & {
-    dialOptions: string
-  }
+  let joinEventPromise: Promise<TReturn> | null = null
 
-  return expectPageEvalToPass<EvaluateArgs, TReturn>(page, {
+  // Step 1: Create call object and assign to window._callObj
+  await expectPageEvalToPass(page, {
     evaluateArgs: {
       address: mergedParams.address,
       dialOptions: JSON.stringify(mergedParams.dialOptions),
       reattach: mergedParams.reattach,
       shouldPassRootElement: mergedParams.shouldPassRootElement,
-      shouldStartCall: mergedParams.shouldStartCall,
-      shouldWaitForJoin: mergedParams.shouldWaitForJoin,
     },
     evaluateFn: async ({
       address,
       dialOptions,
       reattach,
       shouldPassRootElement,
-      shouldStartCall,
-      shouldWaitForJoin,
     }) => {
-      return new Promise<any>(async (resolve, _reject) => {
-        if (!window._client) {
-          throw new Error('Client is not defined')
-        }
-        const client: SignalWireContract = window._client
+      if (!window._client) {
+        throw new Error('Client is not defined')
+      }
+      const client = window._client
 
-        const dialer = reattach ? client.reattach : client.dial
+      const dialer = reattach ? client.reattach : client.dial
 
-        const call = await dialer({
-          to: address,
-          ...(shouldPassRootElement && {
-            rootElement: document.getElementById('rootElement')!,
-          }),
-          ...JSON.parse(dialOptions),
-        })
-
-        if (shouldWaitForJoin) {
-          call.on('room.joined', (params) => {
-            resolve(params)
-          })
-        }
-
-        window._callObj = call
-
-        if (shouldStartCall) {
-          await call.start()
-        }
-
-        if (!shouldWaitForJoin) {
-          resolve(call)
-        }
+      const call = await dialer({
+        to: address,
+        ...(shouldPassRootElement && {
+          rootElement: document.getElementById('rootElement')!,
+        }),
+        ...JSON.parse(dialOptions),
       })
+
+      window._callObj = call
+      return true
     },
     assertionFn: (result) => {
-      expect(result, 'dialAddress result should be defined').toBeDefined()
+      expect(result, 'call object should be created and assigned').toBe(true)
     },
-    timeoutMs: mergedParams.timeoutMs,
-    message: 'expect dialAddress to succeed',
+    message: 'expect to create call object and assign to window._callObj',
   })
+
+  // Step 2: Set up room.joined event listener (if shouldWaitForJoin)
+  if (mergedParams.shouldWaitForJoin) {
+    joinEventPromise = expectPageEvalToPass<{}, TReturn>(page, {
+      evaluateFn: () => {
+        return new Promise<TReturn>((resolve) => {
+          const callObj = window._callObj
+
+          if (!callObj) {
+            throw new Error('Call object not found')
+          }
+
+          callObj.on('room.joined', (params) => {
+            resolve(params as TReturn)
+          })
+        })
+      },
+      assertionFn: (result) => {
+        expect(result, 'room.joined event should be received').toBeDefined()
+      },
+      timeoutMs: mergedParams.timeoutMs,
+      message: 'expect to receive room.joined event',
+    })
+  }
+
+  // Step 3: Start the call (if shouldStartCall)
+  if (mergedParams.shouldStartCall) {
+    await expectPageEvalToPass(page, {
+      evaluateFn: async () => {
+        const callObj = window._callObj
+
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
+
+        await callObj.start()
+        return true
+      },
+      assertionFn: (result) => {
+        expect(result, 'call should start successfully').toBe(true)
+      },
+      message: 'expect to start the call',
+    })
+  }
+
+  // Step 4: Return appropriate result
+  if (mergedParams.shouldWaitForJoin && joinEventPromise) {
+    // Wait for the room.joined event and return the params
+    return await joinEventPromise
+  } else {
+    // Return the call object
+    return await expectPageEvalToPass<{}, TReturn>(page, {
+      evaluateFn: () => {
+        const callObj = window._callObj
+
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
+
+        return callObj as TReturn
+      },
+      assertionFn: (result) => {
+        expect(result, 'call object should be returned').toBeDefined()
+      },
+      message: 'expect to return call object',
+    })
+  }
 }
 
 export const reloadAndReattachAddress = async (
@@ -1726,24 +1773,32 @@ export const expectCFInitialEvents = (
   return Promise.all([initialEvents, ...extraEvents])
 }
 
-export const expectCFFinalEvents = (
+export const expectCFFinalEvents = async (
   page: Page,
-  extraEvents: Promise<unknown>[] = []
+  extraEvents: Promise<boolean>[] = [],
+  { timeoutMs }: { timeoutMs?: number } = {}
 ) => {
-  const finalEvents = page.evaluate(async () => {
-    const callObj = window._callObj
-    if (!callObj) {
-      throw new Error('Call object not found')
-    }
+  const finalEvents = expectPageEvalToPass(page, {
+    evaluateFn: () => {
+      return new Promise<boolean>((resolve) => {
+        const callObj = window._callObj
+        if (!callObj) {
+          throw new Error('Call object not found')
+        }
 
-    const callLeft = new Promise((resolve) => {
-      callObj.on('destroy', () => resolve(true))
-    })
-
-    return callLeft
+        callObj.on('destroy', () => {
+          resolve(true)
+        })
+      })
+    },
+    assertionFn: (result) => {
+      expect(result, 'expect call to emit destroy event').toBe(true)
+    },
+    message: 'expect call to emit destroy event',
+    ...(timeoutMs && { timeoutMs }),
   })
 
-  return Promise.all([finalEvents, ...extraEvents])
+  return await Promise.all([finalEvents, ...extraEvents])
 }
 
 export const expectLayoutChanged = async (page: Page, layoutName: string) => {
@@ -1860,10 +1915,10 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 export const expectToPass = async (
   assertion: () => Promise<void>,
   assertionMessage: string | { message: string },
-  options?: { interval?: number[]; timeout?: number }
+  options?: { intervals?: number[]; timeout?: number }
 ) => {
   const mergedOptions = {
-    interval: [10_000], // 10 seconds to avoid polling
+    intervals: [10_000], // 10 seconds to avoid polling
     timeout: 10_000,
     ...options,
   }
@@ -1888,29 +1943,29 @@ export const waitForFunction = async <TArgs, TResult>(
   {
     evaluateArgs,
     evaluateFn,
+    polling,
     message,
-    interval = [10_000],
-    timeoutMs = 10_000,
+    timeoutMs,
   }: {
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
-    message: string
-    interval?: number[]
+    message?: string
+    polling?: number
     timeoutMs?: number
   }
 ) => {
   try {
     const mergedOptions = {
-      interval: interval ?? [10_000], // 10 seconds to avoid polling
+      polling: polling ?? 10_000, // 10 seconds to avoid polling
       timeout: timeoutMs ?? 10_000,
-      message,
-    }
+    } satisfies Parameters<Page['waitForFunction']>[2]
     if (evaluateArgs) {
       return await page.waitForFunction(evaluateFn, evaluateArgs, mergedOptions)
     } else {
       // FIXME: remove the type assertion
       return await page.waitForFunction(
         evaluateFn as PageFunction<void, TResult>,
+        undefined,
         mergedOptions
       )
     }
@@ -1943,36 +1998,32 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
     evaluateArgs,
     evaluateFn,
     message,
-    interval = [10_000],
+    intervals = [10_000],
     timeoutMs = 10_000,
   }: {
     assertionFn: (result: TResult) => void
     evaluateArgs?: TArgs
     evaluateFn: PageFunction<TArgs, TResult>
     message: string
-    interval?: number[]
+    intervals?: number[]
     timeoutMs?: number
   }
 ) => {
   // NOTE: force the result to be the resolved value of the promise to avoid `undefined` check
   let result = undefined as TResult
+
   await expectToPass(
     async () => {
-      // evaluate the function with the provided arguments
-      if (evaluateArgs) {
-        result = await page.evaluate(
-          evaluateFn as PageFunction<TArgs, TResult>,
-          evaluateArgs
-        )
-      } else {
-        // evaluate the function without arguments
-        result = await page.evaluate(evaluateFn as PageFunction<void, TResult>)
-      }
+      result = await page.evaluate(
+        // TODO: check if the result is serializable in the browser context
+        evaluateFn as PageFunction<TArgs | undefined, TResult>,
+        evaluateArgs
+      )
 
       assertionFn(result)
     },
     { message: message },
-    { timeout: timeoutMs, interval: interval }
+    { timeout: timeoutMs, intervals: intervals }
   )
   return result
 }
