@@ -1,6 +1,6 @@
 import type { VideoAuthorization } from '@signalwire/core'
 import { BaseRoomSessionJoinParams } from './interfaces'
-import { getJoinMediaParams } from './roomSession'
+import { getJoinMediaParams } from './callSession'
 
 describe('getJoinMediaParams', () => {
   const authorization: VideoAuthorization = {

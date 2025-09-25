@@ -14,8 +14,8 @@ import {
   InternalVideoRoomJoinedEvent,
   MapToPubSubShape,
 } from '@signalwire/core'
-import type { VideoMemberListUpdatedParams } from '../../utils/interfaces'
-import { VideoRoomSession } from '../VideoRoomSession'
+import type { CallMemberListUpdatedParams } from '../utils/interfaces'
+import { CallSession } from '../unified/CallSession'
 
 const noop = () => {}
 
@@ -104,7 +104,7 @@ export const getUpdatedMembers = ({
 }
 
 const initMemberListSubscriptions = (
-  room: VideoRoomSession,
+  room: CallSession,
   subscriptions: MemberListUpdatedTargetActions['type'][]
 ) => {
   const events = getMemberListEventsToSubscribe(subscriptions)
@@ -129,7 +129,7 @@ const initMemberListSubscriptions = (
    * This handler will act as a simple bridge between
    * synthetic events and external events.
    */
-  const eventBridgeHandler = ({ members }: VideoMemberListUpdatedParams) => {
+  const eventBridgeHandler = ({ members }: CallMemberListUpdatedParams) => {
     room.emit(EXTERNAL_MEMBER_LIST_UPDATED_EVENT, { members })
   }
 
@@ -192,7 +192,7 @@ function* membersListUpdatedWatcher({
   }
 }
 
-export const memberListUpdatedWorker: SDKWorker<VideoRoomSession> =
+export const memberListUpdatedWorker: SDKWorker<CallSession> =
   function* membersChangedWorker({
     channels: { swEventChannel },
     instance,

@@ -8,7 +8,7 @@ import {
   VertoSubscribe,
 } from '@signalwire/core'
 import { sessionConnectionPoolWorker } from '@signalwire/webrtc'
-import { MakeRoomOptions } from '../video'
+import { MakeRoomOptions } from '../Client'
 import { createCallSessionObject, CallSession } from './CallSession'
 import { buildVideoElement } from '../buildVideoElement'
 import {
@@ -70,7 +70,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       ...options
     } = makeRoomOptions
 
-    const room = createCallSessionObject({
+    const instance = createCallSessionObject({
       ...options,
       store: this.store,
     })
@@ -85,7 +85,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
           applyLocalVideoOverlay,
           applyMemberOverlay,
           mirrorLocalVideoOverlay,
-          room,
+          callSessionInstance: instance,
           rootElement,
         })
       } catch (error) {
@@ -100,12 +100,12 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      */
     const joinMutedHandler = (params: InternalCallJoinedEventParams) => {
       const member = params.room_session.members?.find(
-        (m) => m.member_id === room.memberId
+        (m) => m.member_id === instance.memberId
       )
 
       if (member?.audio_muted) {
         try {
-          room.stopOutboundAudio()
+          instance.stopOutboundAudio()
         } catch (error) {
           this.logger.error('Error handling audio_muted', error)
         }
@@ -113,28 +113,31 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
 
       if (member?.video_muted) {
         try {
-          room.stopOutboundVideo()
+          instance.stopOutboundVideo()
         } catch (error) {
           this.logger.error('Error handling video_muted', error)
         }
       }
     }
 
-    room.on('room.subscribed', joinMutedHandler)
+    instance.on('room.subscribed', joinMutedHandler)
 
     /**
      * Stop or Restore outbound audio on "member.updated" event
      */
     if (stopMicrophoneWhileMuted) {
-      room.on(
+      instance.on(
         'member.updated.audioMuted',
         (params: MemberUpdatedEventParams) => {
           const { member } = params
           try {
-            if (member.member_id === room.memberId && 'audio_muted' in member) {
+            if (
+              member.member_id === instance.memberId &&
+              'audio_muted' in member
+            ) {
               member.audio_muted
-                ? room.stopOutboundAudio()
-                : room.restoreOutboundAudio()
+                ? instance.stopOutboundAudio()
+                : instance.restoreOutboundAudio()
             }
           } catch (error) {
             this.logger.error('Error handling audio_muted', error)
@@ -147,14 +150,17 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
      * Stop or Restore outbound video on "member.updated" event
      */
     if (stopCameraWhileMuted) {
-      room.on(
+      instance.on(
         'member.updated.videoMuted',
         ({ member }: MemberUpdatedEventParams) => {
           try {
-            if (member.member_id === room.memberId && 'video_muted' in member) {
+            if (
+              member.member_id === instance.memberId &&
+              'video_muted' in member
+            ) {
               member.video_muted
-                ? room.stopOutboundVideo()
-                : room.restoreOutboundVideo()
+                ? instance.stopOutboundVideo()
+                : instance.restoreOutboundVideo()
             }
           } catch (error) {
             this.logger.error('Error handling video_muted', error)
@@ -163,7 +169,7 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
       )
     }
 
-    return room
+    return instance
   }
 
   private buildOutboundCall(params: ReattachParams & { attach?: boolean }) {

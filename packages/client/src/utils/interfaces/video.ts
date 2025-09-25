@@ -37,13 +37,11 @@ import type {
   VideoRoomDeviceEventNames,
   VideoLayoutChangedEventParams,
   VideoPosition,
-  BaseConnectionState,
 } from '@signalwire/core'
 import { INTERNAL_MEMBER_UPDATABLE_PROPS } from '@signalwire/core'
 import type { MediaEventNames } from '@signalwire/webrtc'
-import type { RoomSessionDevice } from '../../RoomSessionDevice'
-import type { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
-import { RoomSession } from '../../video/RoomSession'
+import type { CallSessionDevice } from '../../CallSessionDevice'
+import type { CallSessionScreenShare } from '../../CallSessionScreenShare'
 
 /**
  * @privateRemarks
@@ -81,18 +79,6 @@ export type VideoMemberUpdatedHandlerParams = {
   room_session_id?: string
 }
 export type VideoMemberListUpdatedParams = { members: VideoMemberEntity[] }
-
-/**
- * List of all the events a RoomObject can listen to
- */
-export type RoomEventNames =
-  | VideoRoomSessionEventNames
-  | VideoMemberEventNames
-  | VideoLayoutEventNames
-  | VideoRecordingEventNames
-  | VideoPlaybackEventNames
-  | VideoStreamEventNames
-  | RTCTrackEventName
 
 export type RoomSessionObjectEventsHandlerMap = Record<
   VideoRoomDeviceEventNames,
@@ -150,13 +136,13 @@ export type RoomSessionObjectEventsHandlerMap = Record<
   Record<RTCTrackEventName, (event: RTCTrackEvent) => void> &
   Record<VideoRecordingEventNames, (recording: RoomSessionRecording) => void> &
   Record<VideoPlaybackEventNames, (recording: RoomSessionPlayback) => void> &
-  Record<BaseConnectionState, (params: RoomSession) => void> &
+  // Record<BaseConnectionState, (params: VideoRoomSession) => void> &
   Record<VideoStreamEventNames, (stream: RoomSessionStream) => void>
 
-// @deprecated Please use {@link VideoRoomSessionEvents}
-export type RoomSessionObjectEvents = {
-  [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
-}
+// // @deprecated Please use {@link VideoRoomSessionEvents}
+// export type RoomSessionObjectEvents = {
+//   [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
+// }
 
 export type VideoRoomSessionEvents = {
   [k in keyof RoomSessionObjectEventsHandlerMap]: RoomSessionObjectEventsHandlerMap[k]
@@ -228,7 +214,7 @@ interface RoomMemberSelfMethodsInterface {
    *
    * @example Unmuting the microphone:
    * ```typescript
-   * await roomdevice.audioUnmute()
+   * await calldevice.audioUnmute()
    * ```
    */
   audioUnmute(): Rooms.AudioUnmuteMember
@@ -335,7 +321,7 @@ export interface VideoRoomSessionMethods
 }
 
 export interface VideoRoomSessionContract {
-  deviceList: RoomSessionDevice[]
+  deviceList: CallSessionDevice[]
   interactivityMode: VideoAuthorization['join_as']
   permissions: VideoAuthorization['scopes']
   /** The `layout.changed` event based on the current room layout */
@@ -352,13 +338,13 @@ export interface VideoRoomSessionContract {
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.
    * @param opts - {@link CreateScreenShareObjectOptions}
-   * @returns - {@link RoomSessionScreenShare}
+   * @returns - {@link CallSessionScreenShare}
    *
    * @deprecated Use {@link startScreenShare} instead.
    */
   createScreenShareObject(
     opts?: CreateScreenShareObjectOptions
-  ): Promise<RoomSessionScreenShare>
+  ): Promise<CallSessionScreenShare>
   /**
    * Adds a camera device to the room. Using this method, a user can stream
    * multiple video sources at the same time.
@@ -366,14 +352,14 @@ export interface VideoRoomSessionContract {
    * @param opts - Specify the constraints for the device. In addition, you can
    * add the `autoJoin` key to specify whether the device should immediately
    * join the room or joining will be performed manually later. {@link AddCameraOptions}
-   * @returns - {@link RoomSessionDevice}
+   * @returns - {@link CallSessionDevice}
    *
    * @example Adding a specific camera:
    * ```typescript
    * await roomSession.addCamera({deviceId: "gOtMHwZdoA6wMlAnhbfTmeRgPAsqa7iw1OwgKYtbTLA="})
    * ```
    */
-  addCamera(opts: AddCameraOptions): Promise<RoomSessionDevice>
+  addCamera(opts: AddCameraOptions): Promise<CallSessionDevice>
   /**
    * Adds a microphone device to the room. Using this method, a user can stream
    * multiple video sources at the same time.
@@ -381,14 +367,14 @@ export interface VideoRoomSessionContract {
    * @param opts Specify the constraints for the device. In addition, you can
    * add the `autoJoin` key to specify whether the device should immediately
    * join the room or joining will be performed manually later. {@link AddMicrophoneOptions}
-   * @returns - {@link RoomSessionDevice}
+   * @returns - {@link CallSessionDevice}
    *
    * @example Adding a specific microphone:
    * ```typescript
    * await roomSession.addMicrophone({deviceId: "PIn/IIDDgBUHzJkhRncv1m85hX1gC67xYIgJvvThB3Q="})
    * ```
    */
-  addMicrophone(opts: AddMicrophoneOptions): Promise<RoomSessionDevice>
+  addMicrophone(opts: AddMicrophoneOptions): Promise<CallSessionDevice>
   /**
    * Adds a device to the room. Using this method, a user can stream multiple
    * sources at the same time. If you need to add a camera device or a
@@ -398,7 +384,7 @@ export interface VideoRoomSessionContract {
    * @param opts Specify the constraints for the device. In addition, you can
    * add the `autoJoin` key to specify whether the device should immediately
    * join the room or joining will be performed manually later. {@link AddDeviceOptions}
-   * @returns - {@link RoomSessionDevice}
+   * @returns - {@link CallSessionDevice}
    *
    * @example Adding any of the microphone devices to the room (duplicate
    * streams are possible):
@@ -406,10 +392,10 @@ export interface VideoRoomSessionContract {
    * await roomSession.addDevice({audio: true})
    * ```
    */
-  addDevice(opts: AddDeviceOptions): Promise<RoomSessionDevice>
+  addDevice(opts: AddDeviceOptions): Promise<CallSessionDevice>
 }
 
-export interface RoomSessionDeviceMethods
+export interface CallSessionDeviceMethods
   extends RoomMemberSelfMethodsInterface {}
 
 export interface RoomScreenShareMethods

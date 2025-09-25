@@ -16,11 +16,11 @@ import {
   CallSessionMethods,
 } from '@signalwire/core'
 import {
-  BaseRoomSessionConnection,
-  BaseRoomSessionOptions,
-} from '../BaseRoomSession'
+  BaseCallSessionConnection,
+  BaseCallSessionOptions,
+} from '../BaseCallSession'
 import {
-  BaseRoomSessionContract,
+  BaseCallSessionContract,
   ExecuteMemberActionParams,
   CallSessionContract,
   CallSessionEvents,
@@ -33,19 +33,18 @@ import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSag
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
 
-
 export interface CallSession
   extends CallSessionContract,
     CallSessionMethods,
-    BaseRoomSessionContract,
+    BaseCallSessionContract,
     BaseConnectionContract<CallSessionEvents>,
     BaseComponentContract {}
 
 export interface CallSessionOptions
-  extends Omit<BaseRoomSessionOptions, 'customSagas'> {}
+  extends Omit<BaseCallSessionOptions, 'customSagas'> {}
 
 export class CallSessionConnection
-  extends BaseRoomSessionConnection<CallSessionEvents>
+  extends BaseCallSessionConnection<CallSessionEvents>
   implements CallSessionContract
 {
   // this is "self" parameter required by the RPC, and is always "the member" on the 1st call segment
@@ -443,10 +442,10 @@ export const isCallSession = (room: unknown): room is CallSession => {
 export const createCallSessionObject = (
   params: CallSessionOptions
 ): CallSession => {
-  const room = connect<CallSessionEvents, CallSessionConnection, CallSession>({
+  const instance = connect<CallSessionEvents, CallSessionConnection, CallSession>({
     store: params.store,
     Component: CallSessionConnection,
   })(params)
 
-  return createCallSessionValidateProxy(room)
+  return createCallSessionValidateProxy(instance)
 }

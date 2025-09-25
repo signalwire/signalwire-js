@@ -9,29 +9,29 @@ import {
 import { BaseConnection, MediaEventNames } from '@signalwire/webrtc'
 import { RoomScreenShareMethods } from './utils/interfaces'
 
-type RoomSessionScreenShareEventsHandlerMap = Record<
+type CallSessionScreenShareEventsHandlerMap = Record<
   BaseConnectionState,
-  (params: RoomSessionScreenShare) => void
+  (params: CallSessionScreenShare) => void
 > &
   Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
   Record<MediaEventNames, () => void>
 
-export type RoomSessionScreenShareEvents = {
-  [k in keyof RoomSessionScreenShareEventsHandlerMap]: RoomSessionScreenShareEventsHandlerMap[k]
+export type CallSessionScreenShareEvents = {
+  [k in keyof CallSessionScreenShareEventsHandlerMap]: CallSessionScreenShareEventsHandlerMap[k]
 }
 
-/** @deprecated Use {@link RoomSessionScreenShare} instead */
-export interface RoomScreenShare extends RoomSessionScreenShare {}
-export interface RoomSessionScreenShare
+/** @deprecated Use {@link CallSessionScreenShare} instead */
+export interface RoomScreenShare extends CallSessionScreenShare {}
+export interface CallSessionScreenShare
   extends RoomScreenShareMethods,
-    BaseConnectionContract<RoomSessionScreenShareEvents> {
+    BaseConnectionContract<CallSessionScreenShareEvents> {
   join(): Promise<void>
   leave(): Promise<void>
   /** @internal */
-  runWorker: BaseConnection<RoomSessionScreenShareEvents>['runWorker']
+  runWorker: BaseConnection<CallSessionScreenShareEvents>['runWorker']
 }
 
-export class RoomSessionScreenShareConnection extends BaseConnection<RoomSessionScreenShareEvents> {
+export class CallSessionScreenShareConnection extends BaseConnection<CallSessionScreenShareEvents> {
   join() {
     return super.invite()
   }
@@ -44,10 +44,10 @@ export class RoomSessionScreenShareConnection extends BaseConnection<RoomSession
 /**
  * Represents a screen sharing.
  */
-export const RoomSessionScreenShareAPI = extendComponent<
-  RoomSessionScreenShareConnection,
+export const CallSessionScreenShareAPI = extendComponent<
+  CallSessionScreenShareConnection,
   RoomScreenShareMethods
->(RoomSessionScreenShareConnection, {
+>(CallSessionScreenShareConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,

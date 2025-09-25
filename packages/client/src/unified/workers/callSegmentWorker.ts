@@ -22,7 +22,7 @@ export const callSegmentWorker = function* (
   const {
     action,
     channels: { swEventChannel },
-    instance: cfRoomSession,
+    instance: callSession,
   } = options
   const segmentCallId = action.payload.call_id
   const segmentRooSessionId = action.payload.room_session_id
@@ -52,17 +52,17 @@ export const callSegmentWorker = function* (
         })
         return true
       case 'call.updated':
-        cfRoomSession.emit(type, payload)
-        cfRoomSession.emit('room.updated', payload)
+        callSession.emit(type, payload)
+        callSession.emit('room.updated', payload)
         break
       case 'call.play':
-        cfRoomSession.emit(type, payload)
+        callSession.emit(type, payload)
         break
       case 'call.connect':
-        cfRoomSession.emit(type, payload)
+        callSession.emit(type, payload)
         break
       case 'call.room':
-        cfRoomSession.emit(type, payload)
+        callSession.emit(type, payload)
         break
 
       /**
@@ -97,8 +97,8 @@ export const callSegmentWorker = function* (
       }
       case 'layout.changed': {
         // We need to update the layout event which is needed for rootElement.
-        cfRoomSession.currentLayoutEvent = action.payload
-        cfRoomSession.emit(type, payload)
+        callSession.currentLayoutEvent = action.payload
+        callSession.emit(type, payload)
         const videoAction = mapCallLayoutActionToVideoLayoutAction(action)
         yield sagaEffects.put(swEventChannel, videoAction)
         break

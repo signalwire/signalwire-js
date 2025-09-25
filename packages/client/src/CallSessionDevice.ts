@@ -7,31 +7,31 @@ import {
   BaseConnectionState,
 } from '@signalwire/core'
 import { BaseConnection, MediaEventNames } from '@signalwire/webrtc'
-import { RoomSessionDeviceMethods } from './utils/interfaces'
+import { CallSessionDeviceMethods } from './utils/interfaces'
 
-type RoomSessionDeviceEventsHandlerMap = Record<
+type CallSessionDeviceEventsHandlerMap = Record<
   BaseConnectionState,
-  (params: RoomSessionDevice) => void
+  (params: CallSessionDevice) => void
 > &
   Record<RoomLeft, (params?: RoomLeftEventParams) => void> &
   Record<MediaEventNames, () => void>
 
-export type RoomSessionDeviceEvents = {
-  [k in keyof RoomSessionDeviceEventsHandlerMap]: RoomSessionDeviceEventsHandlerMap[k]
+export type CallSessionDeviceEvents = {
+  [k in keyof CallSessionDeviceEventsHandlerMap]: CallSessionDeviceEventsHandlerMap[k]
 }
 
-/** @deprecated Use {@link RoomSessionDevice} instead */
-export interface RoomDevice extends RoomSessionDevice {}
-export interface RoomSessionDevice
-  extends RoomSessionDeviceMethods,
-    BaseConnectionContract<RoomSessionDeviceEvents> {
+/** @deprecated Use {@link CallSessionDevice} instead */
+export interface CallDevice extends CallSessionDevice {}
+export interface CallSessionDevice
+  extends CallSessionDeviceMethods,
+    BaseConnectionContract<CallSessionDeviceEvents> {
   join(): Promise<void>
   leave(): Promise<void>
   /** @internal */
-  runWorker: BaseConnection<RoomSessionDeviceEvents>['runWorker']
+  runWorker: BaseConnection<CallSessionDeviceEvents>['runWorker']
 }
 
-export class RoomSessionDeviceConnection extends BaseConnection<RoomSessionDeviceEvents> {
+export class CallSessionDeviceConnection extends BaseConnection<CallSessionDeviceEvents> {
   join() {
     return super.invite()
   }
@@ -42,16 +42,16 @@ export class RoomSessionDeviceConnection extends BaseConnection<RoomSessionDevic
 }
 
 /**
- * A RoomSessionDevice represents a device (such as a microphone or a camera)
+ * A CallSessionDevice represents a device (such as a microphone or a camera)
  * that is at some point in its lifetime part of a {@link RoomSession}. You can
- * obtain a RoomSessionDevice from the {@link RoomSession} methods
+ * obtain a CallSessionDevice from the {@link RoomSession} methods
  * {@link RoomSession.addCamera}, {@link RoomSession.addMicrophone}, and
  * {@link RoomSession.addDevice}.
  */
-export const RoomSessionDeviceAPI = extendComponent<
-  RoomSessionDeviceConnection,
-  RoomSessionDeviceMethods
->(RoomSessionDeviceConnection, {
+export const CallSessionDeviceAPI = extendComponent<
+  CallSessionDeviceConnection,
+  CallSessionDeviceMethods
+>(CallSessionDeviceConnection, {
   audioMute: Rooms.audioMuteMember,
   audioUnmute: Rooms.audioUnmuteMember,
   videoMute: Rooms.videoMuteMember,

@@ -17,35 +17,35 @@ import {
 import { LocalVideoOverlay, OverlayMap } from './VideoOverlays'
 import {
   AudioElement,
-  BaseRoomSessionContract,
+  BaseCallSessionContract,
   StartScreenShareOptions,
 } from './utils/interfaces'
 import { SCREENSHARE_AUDIO_CONSTRAINTS } from './utils/constants'
-import { addOverlayPrefix } from './utils/roomSession'
+import { addOverlayPrefix } from './utils/callSession'
 import { audioSetSpeakerAction } from './features/actions'
 import {
-  RoomSessionScreenShare,
-  RoomSessionScreenShareAPI,
-  RoomSessionScreenShareConnection,
-  RoomSessionScreenShareEvents,
-} from './RoomSessionScreenShare'
-import * as workers from './video/workers'
+  CallSessionScreenShare,
+  CallSessionScreenShareAPI,
+  CallSessionScreenShareConnection,
+  CallSessionScreenShareEvents,
+} from './CallSessionScreenShare'
+import * as workers from './workers'
 
-export interface BaseRoomSession<
-  EventTypes extends EventEmitter.ValidEventTypes = BaseRoomSessionEvents
-> extends BaseRoomSessionContract,
+export interface BaseCallSession<
+  EventTypes extends EventEmitter.ValidEventTypes = BaseCallSessionEvents
+> extends BaseCallSessionContract,
     BaseConnection<EventTypes>,
     BaseComponentContract {}
 
-export interface BaseRoomSessionOptions extends BaseConnectionOptions {}
+export interface BaseCallSessionOptions extends BaseConnectionOptions {}
 
-export class BaseRoomSessionConnection<
-    EventTypes extends EventEmitter.ValidEventTypes = BaseRoomSessionEvents
+export class BaseCallSessionConnection<
+    EventTypes extends EventEmitter.ValidEventTypes = BaseCallSessionEvents
   >
   extends BaseConnection<EventTypes>
-  implements BaseRoomSessionContract
+  implements BaseCallSessionContract
 {
-  private _screenShareList = new Set<RoomSessionScreenShare>()
+  private _screenShareList = new Set<CallSessionScreenShare>()
   private _audioEl: AudioElement
   private _overlayMap: OverlayMap
   private _localVideoOverlay: LocalVideoOverlay
@@ -170,7 +170,7 @@ export class BaseRoomSessionConnection<
    * Allow sharing the screen within the room.
    */
   async startScreenShare(opts: StartScreenShareOptions = {}) {
-    return new Promise<RoomSessionScreenShare>(async (resolve, reject) => {
+    return new Promise<CallSessionScreenShare>(async (resolve, reject) => {
       const {
         autoJoin = true,
         audio = false,
@@ -199,12 +199,12 @@ export class BaseRoomSessionConnection<
         }
 
         const screenShare = connect<
-          RoomSessionScreenShareEvents,
-          RoomSessionScreenShareConnection,
-          RoomSessionScreenShare
+          CallSessionScreenShareEvents,
+          CallSessionScreenShareConnection,
+          CallSessionScreenShare
         >({
           store: this.store,
-          Component: RoomSessionScreenShareAPI,
+          Component: CallSessionScreenShareAPI,
         })(options)
 
         /**
@@ -274,29 +274,29 @@ export class BaseRoomSessionConnection<
   }
 }
 
-type BaseRoomSessionEventsHandlerMap = Record<
+type BaseCallSessionEventsHandlerMap = Record<
   BaseConnectionState,
-  (params: BaseRoomSession<BaseRoomSessionEvents>) => void
+  (params: BaseCallSession<BaseCallSessionEvents>) => void
 > &
   Record<MediaEventNames, () => void>
 
-export type BaseRoomSessionEvents = {
-  [k in keyof BaseRoomSessionEventsHandlerMap]: BaseRoomSessionEventsHandlerMap[k]
+export type BaseCallSessionEvents = {
+  [k in keyof BaseCallSessionEventsHandlerMap]: BaseCallSessionEventsHandlerMap[k]
 }
 
 /** @internal */
-export const createBaseRoomSessionObject = (
-  params: BaseRoomSessionOptions
-): BaseRoomSession<BaseRoomSessionEvents> => {
-  const room = connect<
-    BaseRoomSessionEvents,
-    BaseRoomSessionConnection<BaseRoomSessionEvents>,
-    BaseRoomSession<BaseRoomSessionEvents>
+export const createBaseCallSessionObject = (
+  params: BaseCallSessionOptions
+): BaseCallSession<BaseCallSessionEvents> => {
+  const instance = connect<
+    BaseCallSessionEvents,
+    BaseCallSessionConnection<BaseCallSessionEvents>,
+    BaseCallSession<BaseCallSessionEvents>
   >({
     store: params.store,
     customSagas: params.customSagas,
-    Component: BaseRoomSessionConnection,
+    Component: BaseCallSessionConnection,
   })(params)
 
-  return room
+  return instance
 }
