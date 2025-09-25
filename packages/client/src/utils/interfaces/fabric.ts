@@ -221,7 +221,7 @@ export interface CallSessionContract {
    *                   that track and its related components.
    * @returns A Promise that resolves with an RTCStatsReport containing the statistics
    * 
-   * @throws {Error} Throws an error if the Peer is not initialized
+   * @throws {Error} Throws an error if `this.peer` is not initialized
    * 
    * @example
    * ```typescript
