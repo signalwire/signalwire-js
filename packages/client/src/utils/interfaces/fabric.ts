@@ -212,7 +212,7 @@ export interface CallSessionContract {
   currentPosition: VideoPosition | undefined
   
   /**
-   * The getStats method from the underlying RTCPeerConnection.
+   * Returns the getStats() method from the underlying RTCPeerConnection.
    * This method provides statistics about the WebRTC connection including
    * media streams, codecs, network conditions, and more.
    * 
