@@ -210,19 +210,19 @@ export interface CallSessionContract {
   currentLayout: CallLayoutChangedEventParams['layout']
   /** The current position of the member returned from the `layout.changed` event */
   currentPosition: VideoPosition | undefined
-  
+
   /**
    * Returns the getStats() method from the underlying RTCPeerConnection.
    * This method provides statistics about the WebRTC connection including
    * media streams, codecs, network conditions, and more.
-   * 
+   *
    * @param selector - Optional MediaStreamTrack, or null to get stats for all tracks.
    *                   If a specific track is provided, stats will be filtered to only
    *                   that track and its related components.
    * @returns A Promise that resolves with an RTCStatsReport containing the statistics
-   * 
+   *
    * @throws {Error} Throws an error if `this.peer` is not initialized
-   * 
+   *
    * @example
    * ```typescript
    * // Get stats for all tracks
@@ -230,7 +230,7 @@ export interface CallSessionContract {
    * stats.forEach(report => {
    *   console.log(report.type, report)
    * })
-   * 
+   *
    * // Get stats for a specific track
    * const audioTrack = localStream.getAudioTracks()[0]
    * const audioStats = await call.getStats(audioTrack)
@@ -242,13 +242,13 @@ export interface CallSessionContract {
    * ```
    */
   readonly getStats: RTCPeerConnection['getStats']
-  
+
   /**
    * Returns the current connection state of the RTCPeerConnection.
    * Possible values are: 'new', 'connecting', 'connected', 'disconnected', 'failed', or 'closed'.
-   * 
-   * @throws {Error} Throws an error if the Peer is not initialized
-   * 
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
    * @example
    * ```typescript
    * const state = call.connectionPeerConnectionState
@@ -256,13 +256,13 @@ export interface CallSessionContract {
    * ```
    */
   readonly connectionPeerConnectionState: RTCPeerConnectionState
-  
+
   /**
    * Returns the current ICE connection state of the RTCPeerConnection.
    * Possible values are: 'new', 'checking', 'connected', 'completed', 'disconnected', 'failed', or 'closed'.
-   * 
-   * @throws {Error} Throws an error if the Peer is not initialized
-   * 
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
    * @example
    * ```typescript
    * const iceState = call.iceConnectionPeerConnectionState
@@ -270,13 +270,13 @@ export interface CallSessionContract {
    * ```
    */
   readonly iceConnectionPeerConnectionState: RTCIceConnectionState
-  
+
   /**
    * Returns the current ICE gathering state of the RTCPeerConnection.
    * Possible values are: 'new', 'gathering', or 'complete'.
-   * 
-   * @throws {Error} Throws an error if the Peer is not initialized
-   * 
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
    * @example
    * ```typescript
    * const gatheringState = call.iceGatheringPeerConnectionState
@@ -284,27 +284,27 @@ export interface CallSessionContract {
    * ```
    */
   readonly iceGatheringPeerConnectionState: RTCIceGatheringState
-  
+
   /**
    * The addEventListener method from the underlying RTCPeerConnection.
    * This allows you to listen to native RTCPeerConnection events such as
    * 'icecandidate', 'track', 'datachannel', etc.
-   * 
-   * @throws {Error} Throws an error if the Peer is not initialized
-   * 
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
    * @example
    * ```typescript
    * call.addPeerConnectionEventListener('icecandidate', (event) => {
    *   console.log('New ICE candidate:', event.candidate)
    * })
-   * 
+   *
    * call.addPeerConnectionEventListener('connectionstatechange', () => {
    *   console.log('Connection state changed to:', call.connectionPeerConnectionState)
    * })
    * ```
    */
   readonly addPeerConnectionEventListener: RTCPeerConnection['addEventListener']
-  
+
   /**
    * Starts the call via the WebRTC connection
    * Based on the the remote SDP, it will either send `verto.invite` or `verto.answer` to start the call.
