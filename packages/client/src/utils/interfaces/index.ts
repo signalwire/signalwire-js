@@ -1,3 +1,2 @@
 export * from './base'
-export * from './video'
-export * from './fabric'
+export * from './call'

@@ -1,6 +1,5 @@
 import { getLogger, MemberUpdatedEventParams } from '@signalwire/core'
 import { CallSession } from './unified/CallSession'
-import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
 import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/callSession'
 export type OverlayMap = Map<string, UserOverlay>
 
@@ -76,8 +75,6 @@ export class LocalVideoOverlay extends UserOverlay {
     // Bind the handler to preserve context
     this.fabricMemberVideoMutedHandler =
       this.fabricMemberVideoMutedHandler.bind(this)
-    this.videoMemberVideoMutedHandler =
-      this.videoMemberVideoMutedHandler.bind(this)
 
     this.attachListeners()
   }
@@ -120,12 +117,6 @@ export class LocalVideoOverlay extends UserOverlay {
       params.member.member_id,
       params.member.video_muted
     )
-  }
-
-  private videoMemberVideoMutedHandler(
-    params: VideoMemberUpdatedHandlerParams
-  ) {
-    this.memberVideoMutedHandler(params.member.id, params.member.video_muted)
   }
 
   public setMediaStream(stream: MediaStream) {

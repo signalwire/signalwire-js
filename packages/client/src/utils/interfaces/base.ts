@@ -1,6 +1,6 @@
 import { CallSessionScreenShare } from '../../CallSessionScreenShare'
 import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../VideoOverlays'
-import { StartScreenShareOptions } from './video'
+import { StartScreenShareOptions } from './call'
 
 export interface BaseCallSessionContract {
   /**

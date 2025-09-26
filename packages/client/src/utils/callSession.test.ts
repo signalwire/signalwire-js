@@ -1,5 +1,5 @@
 import type { VideoAuthorization } from '@signalwire/core'
-import { BaseRoomSessionJoinParams } from './interfaces'
+import { BaseCallSessionDialParams } from './interfaces'
 import { getJoinMediaParams } from './callSession'
 
 describe('getJoinMediaParams', () => {
@@ -52,7 +52,7 @@ describe('getJoinMediaParams', () => {
    * Build all the combinations of arguments that `getJoinMediaParams()`
    * could receive.
    */
-  const keys: (keyof BaseRoomSessionJoinParams)[] = [
+  const keys: (keyof BaseCallSessionDialParams)[] = [
     'sendAudio',
     'receiveAudio',
     'sendVideo',
@@ -60,11 +60,11 @@ describe('getJoinMediaParams', () => {
     'audio',
     'video',
   ]
-  const cases: BaseRoomSessionJoinParams[] = []
+  const cases: BaseCallSessionDialParams[] = []
   const booleans = [true, false]
   keys.forEach((key, index) => {
     booleans.forEach((bool) => {
-      const tmp: BaseRoomSessionJoinParams = {}
+      const tmp: BaseCallSessionDialParams = {}
       for (let i = index; i < keys.length; i++) {
         tmp[keys[i]] = bool
       }

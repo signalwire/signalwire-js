@@ -25,7 +25,7 @@ import {
   MemberUpdatedEvent,
   MemberUpdatedEventParams,
 } from '@signalwire/core'
-import {} from '../../utils/interfaces/fabric'
+import {} from '../../utils/interfaces/call'
 
 /**
  * Map the InternalMemberEntity to InternalVideoMemberEntity
