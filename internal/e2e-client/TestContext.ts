@@ -40,24 +40,72 @@ type Payload = {
   metadata?: Metadata
 }
 
-export interface SDKEvent {
-  id: string
-  timestamp: number
-  direction: 'send' | 'recv'
-  category: 'request' | 'response' | 'notification' | 'connection'
-  method?: JSONRPCMethod
-  eventType: string
-  eventCategory: EventCategory
-  payload: Payload
-  context: {
-    isCallEvent: boolean
-    isRoomEvent: boolean
-    isConnectionEvent: boolean
-    isError: boolean
-    callId?: string
-    roomId?: string
+export class SDKEvent {
+  constructor(
+    public id: string,
+    public timestamp: number,
+    public direction: 'send' | 'recv',
+    public category: 'request' | 'response' | 'notification' | 'connection',
+    public eventType: string,
+    public eventCategory: EventCategory,
+    public payload: Payload,
+    public context: {
+      isCallEvent: boolean
+      isRoomEvent: boolean
+      isConnectionEvent: boolean
+      isError: boolean
+      callId?: string
+      roomId?: string
+    },
+    public method?: JSONRPCMethod,
+    public metadata?: Metadata
+  ) {}
+
+  // Utility methods for common checks
+  isCallRelated(): boolean {
+    return this.context.isCallEvent
   }
-  metadata?: Metadata
+
+  isRoomRelated(): boolean {
+    return this.context.isRoomEvent
+  }
+
+  isConnectionRelated(): boolean {
+    return this.context.isConnectionEvent
+  }
+
+  isError(): boolean {
+    return this.context.isError
+  }
+
+  isSent(): boolean {
+    return this.direction === 'send'
+  }
+
+  isReceived(): boolean {
+    return this.direction === 'recv'
+  }
+
+  // Category checks
+  isTransport(): boolean {
+    return this.eventCategory === 'transport'
+  }
+
+  isConnection(): boolean {
+    return this.eventCategory === 'connection'
+  }
+
+  isCallSession(): boolean {
+    return this.eventCategory === 'callSession'
+  }
+
+  isConversations(): boolean {
+    return this.eventCategory === 'conversations'
+  }
+
+  isTests(): boolean {
+    return this.eventCategory === 'tests'
+  }
 }
 
 export interface EventStats {
@@ -100,90 +148,47 @@ export class TestContext {
   getStats() {
     return {
       totalEvents: this.sdkEvents.length,
-      sentEvents: this.sdkEvents.filter((event) => event.direction === 'send')
+      sentEvents: this.sdkEvents.filter((event) => event.isSent()).length,
+      receivedEvents: this.sdkEvents.filter((event) => event.isReceived())
         .length,
-      receivedEvents: this.sdkEvents.filter(
-        (event) => event.direction === 'recv'
-      ).length,
-      errorEvents: this.sdkEvents.filter((event) => event.context.isError)
+      errorEvents: this.sdkEvents.filter((event) => event.isError()).length,
+      callEvents: this.sdkEvents.filter((event) => event.isCallRelated())
         .length,
-      callEvents: this.sdkEvents.filter((event) => event.context.isCallEvent)
+      roomEvents: this.sdkEvents.filter((event) => event.isRoomRelated())
         .length,
-      roomEvents: this.sdkEvents.filter((event) => event.context.isRoomEvent)
-        .length,
-      connectionEvents: this.sdkEvents.filter(
-        (event) => event.context.isConnectionEvent
+      connectionEvents: this.sdkEvents.filter((event) =>
+        event.isConnectionRelated()
       ).length,
       // Category-based counts
-      transportCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'transport'
+      transportCategoryEvents: this.sdkEvents.filter((event) =>
+        event.isTransport()
       ).length,
-      connectionCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'connection'
+      connectionCategoryEvents: this.sdkEvents.filter((event) =>
+        event.isConnection()
       ).length,
-      callSessionCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'callSession'
+      callSessionCategoryEvents: this.sdkEvents.filter((event) =>
+        event.isCallSession()
       ).length,
-      conversationsCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'conversations'
+      conversationsCategoryEvents: this.sdkEvents.filter((event) =>
+        event.isConversations()
       ).length,
-      testsCategoryEvents: this.sdkEvents.filter(
-        (event) => event.eventCategory === 'tests'
-      ).length,
+      testsCategoryEvents: this.sdkEvents.filter((event) => event.isTests())
+        .length,
     }
-  }
-
-  getEventsByType(
-    type: 'call' | 'room' | 'connection' | 'error' | 'member' | 'layout'
-  ) {
-    switch (type) {
-      case 'call':
-        return this.sdkEvents.filter((event) => event.context.isCallEvent)
-      case 'room':
-        return this.sdkEvents.filter((event) => event.context.isRoomEvent)
-      case 'connection':
-        return this.sdkEvents.filter((event) => event.context.isConnectionEvent)
-      case 'error':
-        return this.sdkEvents.filter((event) => event.context.isError)
-      case 'member':
-        return this.sdkEvents.filter((event) =>
-          event.method?.includes('member.')
-        )
-      case 'layout':
-        return this.sdkEvents.filter((event) =>
-          event.method?.includes('layout.')
-        )
-    }
-  }
-
-  getEventsByCategory(category: EventCategory) {
-    return this.sdkEvents.filter((event) => event.eventCategory === category)
   }
 
   getAllEvents() {
     return [...this.sdkEvents]
   }
 
-  getEventTimeline() {
-    return this.sdkEvents
-      .map((event) => {
-        // format the timestamp
-        const time = new Date(event.timestamp).toISOString().substring(11, 23)
-        const direction = event.direction === 'send' ? 'SEND' : 'RECV'
-        return `${time} [${direction}] ${event.eventType}`
-      })
-      .join('\n')
-  }
-
   getTestDuration() {
     return Date.now() - this.startTime
   }
 
-  getErrorEvents() {
-    return this.sdkEvents.filter((event) => event.context.isError)
-  }
-
-  private categorizeSDKEvent(payload: Payload, direction: 'send' | 'recv') {
+  private categorizeSDKEvent(
+    payload: Payload,
+    direction: 'send' | 'recv'
+  ): SDKEvent {
     const timestamp = Date.now()
     const id = `${timestamp}-${randomUUID()}`
 
@@ -203,18 +208,18 @@ export class TestContext {
         payload.params?.room_session?.id || payload.result?.room_session?.id,
     }
 
-    return {
+    return new SDKEvent(
       id,
       timestamp,
       direction,
-      category: this.getCategory(payload),
-      method: payload.method,
-      eventType: this.getEventType(payload),
-      eventCategory: this.categorizeMethod(payload),
+      this.getCategory(payload),
+      this.getEventType(payload),
+      this.categorizeMethod(payload),
       payload,
       context,
-      metadata: payload.metadata,
-    }
+      payload.method,
+      payload.metadata
+    )
   }
 
   private getCategory(payload: Payload) {
