@@ -584,6 +584,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.logger.info(
           'Using pre-warmed connection from session pool with ICE candidates ready'
         )
+
+        // Debug the pooled connection state
+        this.logger.debug('Pooled connection state:', pooledConnection.connectionState)
+        this.logger.debug('Pooled connection signaling state:', pooledConnection.signalingState)
+        this.logger.debug('Pooled connection ICE state:', pooledConnection.iceConnectionState)
+
+        const transceivers = pooledConnection.getTransceivers()
+        this.logger.debug(`Pooled connection has ${transceivers.length} transceivers`)
+        transceivers.forEach((t, i) => {
+          this.logger.debug(`  Transceiver ${i}: mid=${t.mid}, direction=${t.direction}`)
+        })
+
         this.instance = pooledConnection
 
         // The connection is already clean:
@@ -653,18 +665,28 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
                 t.receiver.track?.kind === 'audio' ||
                 (!t.sender.track &&
                   !t.receiver.track &&
-                  t.mid?.includes('audio'))
+                  (t.mid === null || t.mid?.includes('audio')))
             )
+
+          this.logger.debug(
+            `Found ${existingAudioTransceivers.length} existing audio transceivers for ${audioTracks.length} audio tracks`
+          )
 
           audioTracks.forEach((track, index) => {
             if (index < existingAudioTransceivers.length) {
               // Reuse existing transceiver
               const transceiver = existingAudioTransceivers[index]
               this.logger.debug(
-                'Reusing existing audio transceiver',
-                transceiver.mid
+                `Reusing existing audio transceiver with mid=${transceiver.mid}, direction=${transceiver.direction}`
               )
-              transceiver.sender.replaceTrack(track)
+
+              try {
+                transceiver.sender.replaceTrack(track)
+                this.logger.debug(`Successfully replaced track on audio transceiver`)
+              } catch (error) {
+                this.logger.error('Failed to replace track on audio transceiver:', error)
+              }
+
               transceiver.direction =
                 audioTransceiverParams.direction || 'sendrecv'
               // Add stream association
@@ -704,7 +726,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
                 t.receiver.track?.kind === 'video' ||
                 (!t.sender.track &&
                   !t.receiver.track &&
-                  t.mid?.includes('video'))
+                  (t.mid === null || t.mid?.includes('video')))
             )
 
           videoTracks.forEach((track, index) => {
@@ -844,6 +866,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   stop() {
+    // Reset negotiation flag to prevent further negotiation attempts
+    this._negotiating = false
+    this._processingLocalSDP = false
+    this._processingRemoteSDP = false
+
+    // Clear any active timers
+    this.clearTimers()
+    this.clearResumeTimer()
+    this.clearConnectionStateTimer()
+
     // Do not use `stopTrack` util to not dispatch the `ended` event
     this._localStream?.getTracks().forEach((track) => track.stop())
     this._remoteStream?.getTracks().forEach((track) => track.stop())
@@ -867,7 +899,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         .find(
           (t) =>
             t.receiver.track?.kind === kind ||
-            (!t.sender.track && !t.receiver.track && t.mid?.includes(kind))
+            (!t.sender.track && !t.receiver.track && (t.mid === null || t.mid?.includes(kind)))
         )
 
       if (existingTransceiver) {
@@ -895,6 +927,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private async _sdpReady() {
     if (this._processingLocalSDP) {
       this.logger.debug('Already processing local SDP, skipping')
+      return
+    }
+
+    // Check if the peer connection is still valid before processing
+    if (!this.instance || this.instance.connectionState === 'closed' ||
+        this.instance.connectionState === 'failed') {
+      this.logger.warn('Peer connection is closed or failed in _sdpReady, skipping')
+      this._negotiating = false
       return
     }
 
@@ -1062,6 +1102,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _retryWithMoreCandidates() {
+    // Skip renegotiation for answer-type connections (incoming calls)
+    // This prevents verto.modify spam on Windows where ICE gathering is delayed
+    if (this.type === 'answer') {
+      this.logger.info('Skipping renegotiation for answer-type connection (incoming call)')
+      return;
+    }
+
     // Check if we have better candidates now than when we first sent SDP
     const hasMoreCandidates = this._hasMoreCandidates()
 
@@ -1165,6 +1212,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           this._restartingIce = false
           this.resetNeedResume()
 
+          // For answer types, check if we need to send the SDP after becoming stable
+          if (this.isAnswer && this.instance.iceGatheringState === 'complete' &&
+              this.instance.localDescription && !this._processingLocalSDP) {
+            this.logger.debug('Answer type stable with complete ICE - sending SDP')
+            this._sdpReady()
+          }
+
           if (this.instance.connectionState === 'connected') {
             // An ice restart won't change the connectionState so we emit the same event in here
             // since the signalingState is "stable" again.
@@ -1178,7 +1232,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           }
           break
         }
-        // case 'have-remote-offer': {}
+        case 'have-remote-offer':
+          // We have a remote offer, need to create an answer
+          // Don't set _negotiating here as it will be set when we actually start negotiation
+          this.logger.debug('Have remote offer state - ready to create answer')
+          break
         case 'closed':
           // @ts-ignore
           delete this.instance
@@ -1194,14 +1252,20 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         // case 'new':
         //   break
         case 'connecting':
+          // Use longer timeout for answer-type connections (incoming calls)
+          // These need more time on Windows due to network complexity
+          const timeout = this.type === 'answer'
+            ? 10000  // 10 seconds for incoming calls
+            : this.options.maxConnectionStateTimeout; // 3 seconds for outgoing
+
           this._connectionStateTimer = setTimeout(() => {
-            this.logger.warn('connectionState timed out')
+            this.logger.warn(`connectionState timed out after ${timeout}ms (type: ${this.type})`)
             if (this._hasMoreCandidates()) {
               this._retryWithMoreCandidates()
             } else {
               this.restartIceWithRelayOnly()
             }
-          }, this.options.maxConnectionStateTimeout)
+          }, timeout)
           break
         case 'connected':
           this.clearConnectionStateTimer()
@@ -1213,6 +1277,26 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           this.logger.debug('[test] Prevent reattach!')
           break
         case 'failed': {
+          this.logger.error('RTCPeerConnection entered failed state')
+          this.logger.error('Connection details:')
+          this.logger.error('  - connectionState:', this.instance.connectionState)
+          this.logger.error('  - iceConnectionState:', this.instance.iceConnectionState)
+          this.logger.error('  - signalingState:', this.instance.signalingState)
+
+          // Debug ICE candidates
+          this.instance.getStats().then(stats => {
+            let candidatePairs = 0
+            stats.forEach(stat => {
+              if (stat.type === 'candidate-pair') {
+                candidatePairs++
+                this.logger.error(`  - Candidate pair: state=${stat.state}, nominated=${stat.nominated}`)
+              }
+            })
+            this.logger.error(`  - Total candidate pairs: ${candidatePairs}`)
+          }).catch(err => {
+            this.logger.error('Failed to get stats:', err)
+          })
+
           this.triggerResume()
           break
         }
@@ -1220,8 +1304,22 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     })
 
     this.instance.addEventListener('negotiationneeded', () => {
-      this.logger.debug('Negotiation needed event')
-      this.startNegotiation()
+      this.logger.debug('Negotiation needed event, signaling state:', this.instance.signalingState)
+
+      // For answer types (incoming calls), only negotiate if we're in specific states
+      if (this.isAnswer) {
+        // Only start negotiation if we haven't answered yet or have a new remote offer
+        if (!this.instance.remoteDescription ||
+            this.instance.signalingState === 'have-remote-offer') {
+          this.logger.debug('Answer type: proceeding with negotiation')
+          this.startNegotiation()
+        } else {
+          this.logger.debug('Answer type: skipping negotiation - already answered or in stable state')
+        }
+      } else {
+        // For offer types (outgoing calls), always negotiate
+        this.startNegotiation()
+      }
     })
 
     this.instance.addEventListener('iceconnectionstatechange', () => {
