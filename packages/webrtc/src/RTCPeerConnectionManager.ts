@@ -185,7 +185,7 @@ export class RTCPeerConnectionManager {
       }
 
       this.logger.debug(`Pooled connection ${id} created successfully`)
-      this.logger.debug(
+      this.logger.trace(
         `ICE candidates gathered for connection ${id}:`,
         pc.localDescription?.sdp
       )
