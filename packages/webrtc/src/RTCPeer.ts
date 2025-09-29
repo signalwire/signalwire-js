@@ -40,6 +40,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _processingLocalSDP = false
   private _waitNegotiation: Promise<void> = Promise.resolve()
   private _waitNegotiationCompleter: () => void
+  private _eventCleanup: Array<() => void> = []
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -466,7 +467,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       this.instance.removeEventListener('icecandidate', this._onIce)
-      this.instance.addEventListener('icecandidate', this._onIce)
+      this._addEventListener(this.instance, 'icecandidate', this._onIce as EventListener)
       if (this.isOffer) {
         this.logger.debug('Trying to generate offer')
         const offerOptions: RTCOfferOptions = {
@@ -876,6 +877,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     this.clearResumeTimer()
     this.clearConnectionStateTimer()
 
+    // Clean up all event listeners
+    this._eventCleanup.forEach(cleanup => {
+      try {
+        cleanup()
+      } catch (error) {
+        this.logger.error('Error cleaning up event listener:', error)
+      }
+    })
+    this._eventCleanup = []
+
     // Do not use `stopTrack` util to not dispatch the `ended` event
     this._localStream?.getTracks().forEach((track) => track.stop())
     this._remoteStream?.getTracks().forEach((track) => track.stop())
@@ -1200,8 +1211,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return getUserMedia(constraints)
   }
 
+  private _addEventListener(target: EventTarget, event: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) {
+    target.addEventListener(event, handler, options)
+    this._eventCleanup.push(() => {
+      target.removeEventListener(event, handler, options)
+    })
+  }
+
   private _attachListeners() {
-    this.instance.addEventListener('signalingstatechange', () => {
+    this._addEventListener(this.instance, 'signalingstatechange', () => {
       this.logger.debug('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
@@ -1246,7 +1264,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     })
 
-    this.instance.addEventListener('connectionstatechange', () => {
+    this._addEventListener(this.instance, 'connectionstatechange', () => {
       this.logger.debug('connectionState:', this.instance.connectionState)
       switch (this.instance.connectionState) {
         // case 'new':
@@ -1303,7 +1321,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     })
 
-    this.instance.addEventListener('negotiationneeded', () => {
+    this._addEventListener(this.instance, 'negotiationneeded', () => {
       this.logger.debug('Negotiation needed event, signaling state:', this.instance.signalingState)
 
       // For answer types (incoming calls), only negotiate if we're in specific states
@@ -1322,11 +1340,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     })
 
-    this.instance.addEventListener('iceconnectionstatechange', () => {
+    this._addEventListener(this.instance, 'iceconnectionstatechange', () => {
       this.logger.debug('iceConnectionState:', this.instance.iceConnectionState)
     })
 
-    this.instance.addEventListener('icegatheringstatechange', () => {
+    this._addEventListener(this.instance, 'icegatheringstatechange', () => {
       this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
       if (this.instance.iceGatheringState === 'complete') {
         this.logger.debug('ICE gathering complete')
@@ -1338,7 +1356,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     //   this.logger.warn('IceCandidate Error:', event)
     // })
 
-    this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+    this._addEventListener(this.instance, 'track', ((event: RTCTrackEvent) => {
       this.logger.debug('Track event:', event, event.track.kind)
       // @ts-expect-error
       this.call.emit('track', event)
@@ -1348,10 +1366,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         // this.call._dispatchNotification(notification)
       }
       this._remoteStream = event.streams[0]
-    })
+    }) as EventListener)
 
     // @ts-ignore
-    this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
+    this._addEventListener(this.instance, 'addstream', (event: MediaStreamEvent) => {
       if (event.stream) {
         this._remoteStream = event.stream
       }
@@ -1396,13 +1414,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   public _attachAudioTrackListener() {
     this.localStream?.getAudioTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler)
+      this._addEventListener(track, 'ended', this._onEndedTrackHandler)
     })
   }
 
   public _attachVideoTrackListener() {
     this.localStream?.getVideoTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler)
+      this._addEventListener(track, 'ended', this._onEndedTrackHandler)
     })
   }
 
