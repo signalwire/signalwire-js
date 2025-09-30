@@ -1134,9 +1134,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           // Workaround to skip nested negotiations
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
 
-          // signalingState means we have both remote and local SDP
           if (this.isOffer) {
-            // when it's an offer that means the negotiation is done
+            // only when it's an offer that means the negotiation is done
             this._negotiating = false
             this._restartingIce = false
             this.resetNeedResume()
