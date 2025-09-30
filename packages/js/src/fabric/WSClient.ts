@@ -32,6 +32,7 @@ import { PREVIOUS_CALLID_STORAGE_KEY } from './utils/constants'
 export class WSClient extends BaseClient<{}> implements WSClientContract {
   private _incomingCallManager: IncomingCallManager
   private _disconnected: boolean = false
+  private _eventCleanup: Array<() => void> = []
 
   constructor(private wsClientOptions: WSClientOptions) {
     const client = createWSClient(wsClientOptions)
@@ -305,8 +306,22 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         this._disconnected = true
       })
 
+      // Clean up all event listeners
+      this._cleanupEventListeners()
+
       super.disconnect()
     })
+  }
+
+  private _cleanupEventListeners() {
+    this._eventCleanup.forEach(cleanup => {
+      try {
+        cleanup()
+      } catch (error) {
+        this.logger.error('Error cleaning up event listener:', error)
+      }
+    })
+    this._eventCleanup = []
   }
 
   public async dial(params: DialParams) {

@@ -64,6 +64,9 @@ export const callSegmentWorker = function* (
       case 'call.room':
         cfRoomSession.emit(type, payload)
         break
+      case 'call.state':
+        cfRoomSession.emit(type, payload)
+        break
 
       /**
        * The Core module includes a generic worker, {@link memberPositionWorker},
@@ -120,17 +123,23 @@ export const callSegmentWorker = function* (
   }
 
   const isSegmentEvent = (action: SDKActions) => {
-    const { type, payload } = action as FabricAction
-    const shouldWatch =
-      type.startsWith('call.') ||
-      type.startsWith('member.') ||
-      type.startsWith('layout.')
-    const hasSegmentCallId =
-      'call_id' in payload && segmentCallId === payload.call_id
-    const hasSegmentRoomSessionId =
-      segmentRooSessionId === payload.room_session_id
+    const { payload } = action as FabricAction
 
-    if (shouldWatch && (hasSegmentCallId || hasSegmentRoomSessionId)) {
+    // Check both direct payload fields and nested params (for call.state events)
+    const hasSegmentCallId =
+      ('call_id' in payload && segmentCallId === payload.call_id) ||
+      ('params' in payload &&
+        'call_id' in (payload as any).params &&
+        (payload as any).params.call_id === segmentCallId)
+
+    const hasSegmentRoomSessionId =
+      (segmentRooSessionId === payload.room_session_id) ||
+      ('params' in payload &&
+        'room_session_id' in (payload as any).params &&
+        (payload as any).params.room_session_id === segmentRooSessionId)
+
+    // Allow ALL events that belong to this segment (no type filtering)
+    if (hasSegmentCallId || hasSegmentRoomSessionId) {
       return true
     }
 
