@@ -452,6 +452,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (this._negotiating) {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
+    this._negotiating = true
     this._renegotiationCount += 1
 
     if (this._renegotiationCount > MAX_RESTARTS) {
@@ -459,7 +460,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._negotiationCompleted(error)
     }
 
-    this._negotiating = true
     try {
       /**
        * additionalDevice and screenShare are `sendonly`
