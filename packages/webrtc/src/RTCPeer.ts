@@ -20,8 +20,8 @@ import {
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
+
 const RESUME_TIMEOUT = 12_000
-const MAX_RESTARTS = 5
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
@@ -38,7 +38,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   private _processingLocalSDP = false
-  private _renegotiationCount = 0
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -199,7 +198,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _negotiationCompleted(error?: unknown) {
-    this._renegotiationCount = 0
     if (!error) {
       this._resolveStartMethod()
       this._pendingNegotiationPromise?.resolve()
@@ -453,12 +451,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
     this._negotiating = true
-    this._renegotiationCount += 1
-
-    if (this._renegotiationCount > MAX_RESTARTS) {
-      const error = new Error('too many negotiations restarts')
-      this._negotiationCompleted(error)
-    }
 
     try {
       /**
@@ -924,6 +916,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       await this.call.onLocalSDPReady(this)
       this._processingLocalSDP = false
       if (this.isAnswer) {
+        this._negotiating = false
+        this._restartingIce = false
+        this.resetNeedResume()
         this._negotiationCompleted()
       }
     } catch (error) {
@@ -1062,9 +1057,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         case 'stable':
           // Workaround to skip nested negotiations
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
-          this._negotiating = false
-          this._restartingIce = false
-          this.resetNeedResume()
+
+          // signalingState means we have both remote and local SDP
+          if (this.isOffer) {
+            // when it's an offer that means the negotiation is done
+            this._negotiating = false
+            this._restartingIce = false
+            this.resetNeedResume()
+          }
 
           if (this.instance.connectionState === 'connected') {
             // An ice restart won't change the connectionState so we emit the same event in here
