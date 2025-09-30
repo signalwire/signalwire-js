@@ -923,6 +923,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       await this.call.onLocalSDPReady(this)
       this._processingLocalSDP = false
       if (this.isAnswer) {
+        this.logger.debug('Setting negotiating false for inbound calls')
         this._negotiating = false
         this._restartingIce = false
         this.resetNeedResume()
@@ -1136,6 +1137,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
           if (this.isOffer) {
             // only when it's an offer that means the negotiation is done
+            this.logger.debug('Setting negotiating false for outbound calls')
             this._negotiating = false
             this._restartingIce = false
             this.resetNeedResume()
