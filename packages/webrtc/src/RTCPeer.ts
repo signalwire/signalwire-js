@@ -21,6 +21,7 @@ import {
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
 const RESUME_TIMEOUT = 12_000
+const MAX_RESTARTS = 5
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
@@ -37,6 +38,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   private _processingLocalSDP = false
+  private _renegotiationCount = 0
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -197,6 +199,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _negotiationCompleted(error?: unknown) {
+    this._renegotiationCount = 0
     if (!error) {
       this._resolveStartMethod()
       this._pendingNegotiationPromise?.resolve()
@@ -449,6 +452,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (this._negotiating) {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
+    this._renegotiationCount += 1
+
+    if (this._renegotiationCount > MAX_RESTARTS) {
+      const error = new Error('too many negotiations restarts')
+      this._negotiationCompleted(error)
+    }
+
     this._negotiating = true
     try {
       /**
