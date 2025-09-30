@@ -21,6 +21,7 @@ import {
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
 const RESUME_TIMEOUT = 12_000
+const MAX_RESTARTS = 5
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
@@ -38,8 +39,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
-  private _waitNegotiation: Promise<void> = Promise.resolve()
-  private _waitNegotiationCompleter: () => void
+  private _renegotiationCount = 0
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -200,13 +200,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _negotiationCompleted(error?: unknown) {
+    this._renegotiationCount = 0
     if (!error) {
       this._resolveStartMethod()
-      this._waitNegotiationCompleter?.()
       this._pendingNegotiationPromise?.resolve()
     } else {
       this._rejectStartMethod(error)
-      this._waitNegotiationCompleter?.()
       this._pendingNegotiationPromise?.reject(error)
     }
   }
@@ -454,6 +453,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     if (this._negotiating) {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
+    this._renegotiationCount += 1
+
+    if (this._renegotiationCount > MAX_RESTARTS) {
+      const error = new Error('too many negotiations restarts')
+      this._negotiationCompleted(error)
+    }
+
     this._negotiating = true
     try {
       /**
@@ -921,17 +927,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
-      const isAllowedToSendLocalSDP = await this._isAllowedToSendLocalSDP()
-      if (!isAllowedToSendLocalSDP) {
-        this.logger.info('Skipping onLocalSDPReady due to early invite')
-        this._processingLocalSDP = false
-        return
-      }
-
-      this._waitNegotiation = new Promise((resolve) => {
-        this._waitNegotiationCompleter = resolve
-      })
-
       await this.call.onLocalSDPReady(this)
       this._processingLocalSDP = false
       if (this.isAnswer) {
@@ -941,25 +936,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       this._negotiationCompleted(error)
       this._processingLocalSDP = false
     }
-  }
-
-  /**
-   * Waits for the pending negotiation promise to resolve
-   * and checks if the current signaling state allows to send a local SDP.
-   * This is used to prevent sending an offer when the signaling state is not appropriate.
-   * or when still waiting for a previous negotiation to complete.
-   */
-  private async _isAllowedToSendLocalSDP() {
-    await this._waitNegotiation
-
-    // Check if signalingState have the right state to sand an offer
-    return (
-      (this.type === 'offer' &&
-        ['have-local-offer', 'have-local-pranswer'].includes(
-          this.instance.signalingState
-        )) ||
-      (this.type === 'answer' && this.instance.signalingState === 'stable')
-    )
   }
 
   private _sdpIsValid() {
