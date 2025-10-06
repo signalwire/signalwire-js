@@ -987,11 +987,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
      */
     if (!event.candidate) {
       this.instance.removeEventListener('icecandidate', this._onIce)
-      // not call _sdpReady if an early invite has been sent
-      if (this._candidatesSnapshot.length > 0) {
-        this.logger.debug('No more candidates, calling _sdpReady')
-        this._sdpReady()
-      }
+      clearTimeout(this._iceTimeout)
+      this.logger.debug('No more candidates, calling _sdpReady')
+      this._sdpReady()
+
       return
     }
 
