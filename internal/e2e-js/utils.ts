@@ -1205,6 +1205,7 @@ export const expectv2HasReceivedAudio = async (
   /* This is a workaround what we think is a bug in Playwright/Chromium
    * There are cases where totalAudioEnergy is not present in the report
    * even though we see audio and it's not silence.
+   * This is particularly common with G.711 codecs (PCMU/PCMA).
    * In that case we rely on the number of packetsReceived.
    * If there is genuine silence, then totalAudioEnergy must be present,
    * albeit being a small number.
@@ -1212,21 +1213,41 @@ export const expectv2HasReceivedAudio = async (
   console.log(
     `Evaluating audio energy (min energy: ${minTotalAudioEnergy}, min packets: ${minPacketsReceived})`
   )
-  const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
-  const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
-  if (totalAudioEnergy) {
+  
+  const inboundRtp = audioStats['inbound-rtp']
+  const totalAudioEnergy = inboundRtp?.totalAudioEnergy
+  const packetsReceived = inboundRtp?.packetsReceived
+  const totalSamplesReceived = inboundRtp?.totalSamplesReceived
+  
+  // Validate that at least one metric is available
+  if (!inboundRtp || (!totalAudioEnergy && !packetsReceived && !totalSamplesReceived)) {
+    throw new Error(
+      'No audio metrics available in RTCStats report. ' +
+      'This indicates a problem with the WebRTC connection or RTCStats API. ' +
+      `Stats: ${JSON.stringify(audioStats)}`
+    )
+  }
+  
+  // Prefer totalAudioEnergy if available
+  if (totalAudioEnergy !== undefined && totalAudioEnergy !== null) {
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
+    console.log(`✓ Audio energy validated: ${totalAudioEnergy} > ${minTotalAudioEnergy}`)
   } else {
-    console.log('Warning: totalAudioEnergy was missing from the report!')
-    if (packetsReceived) {
-      // We still want the right amount of packets
+    // Fallback to packetsReceived (common with G.711 codecs)
+    console.log(
+      '⚠️  totalAudioEnergy not available (common with G.711/PCMU/PCMA codecs), ' +
+      'using packetsReceived as fallback validation'
+    )
+    
+    if (packetsReceived !== undefined && packetsReceived !== null) {
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+      console.log(`✓ Packets validated: ${packetsReceived} > ${minPacketsReceived}`)
     } else {
-      console.log('Warning: packetsReceived was missing from the report!')
-      /* We don't make this test fail, because the absence of packetsReceived
-       * is a symptom of an issue with RTCStats, rather than an indication
-       * of lack of RTP flow.
-       */
+      throw new Error(
+        'Neither totalAudioEnergy nor packetsReceived available. ' +
+        'Cannot validate audio reception. ' +
+        `Available metrics: ${JSON.stringify(inboundRtp)}`
+      )
     }
   }
 }

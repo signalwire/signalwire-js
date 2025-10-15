@@ -330,6 +330,32 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
       await expect(hangupCall).toBeDisabled()
     }
 
+    // Helper to detect MEDIA_TIMEOUT and unexpected hangups
+    const expectCallNotHungUp = async (page: Page, callName: string) => {
+      const callStatus = page.locator('#callStatus')
+      const statusText = await callStatus.textContent()
+      
+      if (statusText?.includes('MEDIA_TIMEOUT')) {
+        throw new Error(
+          `${callName} failed with MEDIA_TIMEOUT (Code 804). ` +
+          `This usually indicates:\n` +
+          `- TURN server not available or misconfigured\n` +
+          `- Firewall blocking UDP/TURN traffic (port 3478)\n` +
+          `- Network instability or high latency\n` +
+          `- ICE gathering failed\n` +
+          `Status: ${statusText}`
+        )
+      }
+      
+      if (statusText?.includes('hangup') || statusText?.includes('destroy')) {
+        throw new Error(
+          `${callName} unexpectedly hung up during test. Status: ${statusText}`
+        )
+      }
+      
+      await expect(callStatus).toContainText('-> active')
+    }
+
     const pageCallee1 = await createCustomVanillaPage({ name: '[callee1]' })
     await pageCallee1.goto(SERVER_URL + '/v2vanilla.html')
 
@@ -396,13 +422,24 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
     console.log('call2 is active at ', new Date())
 
     // With 40 seconds we can catch a media timeout
+    // Check call state periodically to detect early failures
     const callDurationMs = 40000
-    await pageCallee1.waitForTimeout(callDurationMs)
+    const checkInterval = 5000
+    const numChecks = Math.floor(callDurationMs / checkInterval)
 
-    await Promise.all([
-      expect(callStatusCallee1).toContainText('-> active'),
-      expect(callStatusCallee2).toContainText('-> active')
-    ])
+    console.log(`Monitoring calls for ${callDurationMs}ms (checking every ${checkInterval}ms)...`)
+    
+    for (let i = 0; i < numChecks; i++) {
+      await pageCallee1.waitForTimeout(checkInterval)
+      
+      // Verify both calls are still active (detect MEDIA_TIMEOUT early)
+      await Promise.all([
+        expectCallNotHungUp(pageCallee1, 'Callee1'),
+        expectCallNotHungUp(pageCallee2, 'Callee2')
+      ])
+      
+      console.log(`✓ Calls still active after ${(i + 1) * checkInterval}ms`)
+    }
 
     console.log('Time to check the audio energy at ', new Date())
 
