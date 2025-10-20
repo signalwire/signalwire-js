@@ -48,9 +48,6 @@ export type {
 } from '@signalwire/webrtc'
 export type {
   CallJoinedEventParams,
-  RoomSessionObjectEventsHandlerMap,
-  RoomSessionObjectEvents,
-  RoomEventNames,
   StartScreenShareOptions,
   CallSessionEvents,
 } from './utils/interfaces'
@@ -135,8 +132,8 @@ export * as Call from './unified'
 export { SignalWire } from './unified'
 export * from './unified'
 
-export { RoomSessionScreenShare } from './RoomSessionScreenShare'
-export { RoomSessionDevice } from './RoomSessionDevice'
+export { CallSessionScreenShare } from './CallSessionScreenShare'
+export { CallSessionDevice } from './CallSessionDevice'
 
 /**
  * The WebRTC namespace includes functions that give you access to the input and

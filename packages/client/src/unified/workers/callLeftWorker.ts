@@ -9,7 +9,7 @@ export const callLeftWorker = function* (
 
   const {
     action: { payload },
-    instance: cfRoomSession,
+    instance: callSession,
     instanceMap,
   } = options
 
@@ -25,8 +25,8 @@ export const callLeftWorker = function* (
     }
   })
 
-  cfRoomSession.emit('call.left', payload)
-  cfRoomSession.emit('room.left', payload)
+  callSession.emit('call.left', payload)
+  callSession.emit('room.left', payload)
 
   getLogger().trace('callLeftWorker ended')
 }

@@ -9,19 +9,19 @@ export type SpeakerDisconnected = 'speaker.disconnected'
  * List of public event names
  */
 
-export type VideoRoomDeviceUpdatedEventNames =
+export type CallSessionDeviceUpdatedEventNames =
   | CameraUpdated
   | MicrophoneUpdated
   | SpeakerUpdated
 
-export type VideoRoomDeviceDisconnectedEventNames =
+export type CallSessionDeviceDisconnectedEventNames =
   | CameraDisconnected
   | MicrophoneDisconnected
   | SpeakerDisconnected
 
-export type VideoRoomDeviceEventNames =
-  | VideoRoomDeviceUpdatedEventNames
-  | VideoRoomDeviceDisconnectedEventNames
+export type CallSessionDeviceEventNames =
+  | CallSessionDeviceUpdatedEventNames
+  | CallSessionDeviceDisconnectedEventNames
 
 export interface VideoRoomMediaDeviceInfo {
   deviceId: MediaDeviceInfo['deviceId'] | undefined
@@ -35,6 +35,6 @@ export interface DeviceUpdatedEventParams {
 
 export type DeviceDisconnectedEventParams = VideoRoomMediaDeviceInfo
 
-export type VideoRoomDeviceEventParams =
+export type CallSessionDeviceEventParams =
   | DeviceUpdatedEventParams
   | DeviceDisconnectedEventParams

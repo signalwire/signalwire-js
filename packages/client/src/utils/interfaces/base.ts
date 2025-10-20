@@ -1,8 +1,8 @@
-import { RoomSessionScreenShare } from '../../RoomSessionScreenShare'
+import { CallSessionScreenShare } from '../../CallSessionScreenShare'
 import { LocalVideoOverlay, OverlayMap, UserOverlay } from '../../VideoOverlays'
-import { StartScreenShareOptions } from './video'
+import { StartScreenShareOptions } from './call'
 
-export interface BaseRoomSessionContract {
+export interface BaseCallSessionContract {
   /**
    * A JS Map containing all the layers on top of the Root Element
    */
@@ -14,7 +14,7 @@ export interface BaseRoomSessionContract {
   /**
    * List of screen share objects
    */
-  screenShareList: RoomSessionScreenShare[]
+  screenShareList: CallSessionScreenShare[]
   /**
    * Leaves the room. This detaches all the locally originating streams from the room.
    */
@@ -27,7 +27,7 @@ export interface BaseRoomSessionContract {
    * Adds a screen sharing instance to the room. You can create multiple screen
    * sharing instances and add all of them to the room.
    * @param opts - {@link StartScreenShareOptions}
-   * @returns - {@link RoomSessionScreenShare}
+   * @returns - {@link CallSessionScreenShare}
    *
    * @example Sharing the screen together with the associated audio:
    * ```js
@@ -36,7 +36,7 @@ export interface BaseRoomSessionContract {
    */
   startScreenShare(
     opts?: StartScreenShareOptions
-  ): Promise<RoomSessionScreenShare>
+  ): Promise<CallSessionScreenShare>
   /**
    * Replaces the current speaker with a different one.
    *

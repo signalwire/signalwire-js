@@ -22,7 +22,7 @@ test.describe('CallCall Hold/Unhold Call', () => {
     await pageTwo.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await test.step('[page-one] should create a client and dial a call', async () => {
       await createCFClient(pageOne)

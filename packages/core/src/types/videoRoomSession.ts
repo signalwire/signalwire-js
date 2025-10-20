@@ -890,7 +890,7 @@ export type InternalVideoRoomUpdated =
 
 export interface InternalVideoRoomJoinedEvent extends SwEvent {
   event_type: ToInternalVideoEvent<RoomJoined>
-  params: VideoRoomSubscribedEventParams
+  params: CallSessionSubscribedEventParams
 }
 
 export interface InternalVideoRoomAudienceCountEvent extends SwEvent {
@@ -929,7 +929,7 @@ export interface VideoRoomStartedEvent extends SwEvent {
 /**
  * 'video.room.subscribed'
  */
-export interface VideoRoomSubscribedEventParams {
+export interface CallSessionSubscribedEventParams {
   // keep room for backward compat
   room: InternalVideoRoomEntity & {
     members: InternalVideoMemberEntity[]
@@ -944,9 +944,9 @@ export interface VideoRoomSubscribedEventParams {
   member_id: string
 }
 
-export interface VideoRoomSubscribedEvent extends SwEvent {
+export interface CallSessionSubscribedEvent extends SwEvent {
   event_type: ToInternalVideoEvent<RoomSubscribed>
-  params: VideoRoomSubscribedEventParams
+  params: CallSessionSubscribedEventParams
 }
 
 /**
@@ -997,13 +997,13 @@ export interface VideoRoomAudienceCountEvent extends SwEvent {
 
 export type VideoRoomEvent =
   | VideoRoomStartedEvent
-  | VideoRoomSubscribedEvent
+  | CallSessionSubscribedEvent
   | VideoRoomUpdatedEvent
   | VideoRoomEndedEvent
 
 export type VideoRoomEventParams =
   | VideoRoomStartedEventParams
-  | VideoRoomSubscribedEventParams
+  | CallSessionSubscribedEventParams
   | VideoRoomUpdatedEventParams
   | VideoRoomEndedEventParams
 
@@ -1013,5 +1013,5 @@ export type VideoRoomEndedAction = MapToPubSubShape<VideoRoomEndedEvent>
 
 export type VideoRoomUpdatedAction = MapToPubSubShape<VideoRoomUpdatedEvent>
 
-export type VideoRoomSubscribedAction =
-  MapToPubSubShape<VideoRoomSubscribedEvent>
+export type CallSessionSubscribedAction =
+  MapToPubSubShape<CallSessionSubscribedEvent>

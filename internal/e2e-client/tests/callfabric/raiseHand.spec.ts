@@ -17,7 +17,7 @@ test.describe('CallCall Raise/Lower Hand', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -94,7 +94,7 @@ test.describe('CallCall Raise/Lower Hand', () => {
     await pageTwo.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     // Create client, dial an address and join a video room from page-one
     await createCFClient(pageOne)

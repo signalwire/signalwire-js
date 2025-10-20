@@ -1545,7 +1545,7 @@ export interface CXMLApplication {
   // and other things
 }
 
-export const createVideoRoomResource = async (name?: string) => {
+export const createCallSessionResource = async (name?: string) => {
   const response = await fetch(
     `https://${process.env.API_HOST}/api/fabric/resources/conference_rooms`,
     {

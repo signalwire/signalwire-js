@@ -1,8 +1,8 @@
 import { getLogger } from '@signalwire/core'
 import type { VideoAuthorization } from '@signalwire/core'
-import type { BaseRoomSessionJoinParams } from './interfaces'
+import type { BaseCallSessionDialParams } from './interfaces'
 
-type GetJoinMediaParamsOptions = BaseRoomSessionJoinParams & {
+type GetJoinMediaParamsOptions = BaseCallSessionDialParams & {
   authorization: VideoAuthorization
 }
 /**

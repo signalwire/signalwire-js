@@ -11,16 +11,15 @@ import {
   setVideoMediaTrack,
   waitForVideoReady,
 } from './utils/videoElement'
-import { addSDKPrefix } from './utils/roomSession'
+import { addSDKPrefix } from './utils/callSession'
 import { OverlayMap, LocalVideoOverlay } from './VideoOverlays'
-import { CallSession, isCallSession } from './unified/CallSession'
-import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
+import { CallSession } from './unified/CallSession'
 
 export interface BuildVideoElementParams {
   applyLocalVideoOverlay?: boolean
   applyMemberOverlay?: boolean
   mirrorLocalVideoOverlay?: boolean
-  room: CallSession | VideoRoomSession
+  callSessionInstance: CallSession
   rootElement?: HTMLElement
 }
 
@@ -36,7 +35,7 @@ export const buildVideoElement = async (
 ): Promise<BuildVideoElementReturnType> => {
   try {
     const {
-      room,
+      callSessionInstance,
       rootElement: element,
       applyLocalVideoOverlay = true,
       applyMemberOverlay = true,
@@ -63,7 +62,7 @@ export const buildVideoElement = async (
     const localVideoOverlay = new LocalVideoOverlay({
       id: overlayId,
       mirrorLocalVideoOverlay,
-      room,
+      room: callSessionInstance,
     })
     if (applyLocalVideoOverlay) {
       overlayMap.set(overlayId, localVideoOverlay)
@@ -80,11 +79,11 @@ export const buildVideoElement = async (
 
     const processLayoutChanged = (params: any) => {
       // @ts-expect-error
-      if (room.peer?.hasVideoSender && room.localStream) {
+      if (callSessionInstance.peer?.hasVideoSender && callSessionInstance.localStream) {
         makeLayout({
           layout: params.layout,
-          localStream: room.localStream,
-          memberId: room.memberId,
+          localStream: callSessionInstance.localStream,
+          memberId: callSessionInstance.memberId,
         })
       } else {
         localVideoOverlay.hide()
@@ -109,16 +108,16 @@ export const buildVideoElement = async (
         track,
       })
 
-      const roomCurrentLayoutEvent = room.currentLayoutEvent
+      const currentLayoutEvent = callSessionInstance.currentLayoutEvent
       // If the `layout.changed` has already been received, process the layout
-      if (roomCurrentLayoutEvent) {
-        processLayoutChanged(roomCurrentLayoutEvent)
+      if (currentLayoutEvent) {
+        processLayoutChanged(currentLayoutEvent)
       }
     }
 
     // If the remote video already exist, inject the remote stream to the video element
     // @ts-expect-error
-    const videoTrack = room.peer?.remoteVideoTrack as MediaStreamTrack | null
+    const videoTrack = callSessionInstance.peer?.remoteVideoTrack as MediaStreamTrack | null
     if (videoTrack) {
       await processVideoTrack(videoTrack)
     }
@@ -133,16 +132,12 @@ export const buildVideoElement = async (
     const unsubscribe = () => {
       cleanupElement(rootElement)
       overlayMap.clear() // Use "delete" rather than "clear" if we want to update the reference
-      room.overlayMap = overlayMap
-      if (isCallSession(room)) {
-        room.off('track', trackHandler)
-        room.off('layout.changed', layoutChangedHandler)
-        room.off('destroy', unsubscribe)
-      } else if (isVideoRoomSession(room)) {
-        room.off('track', trackHandler)
-        room.off('layout.changed', layoutChangedHandler)
-        room.off('destroy', unsubscribe)
-      }
+      callSessionInstance.overlayMap = overlayMap
+
+      callSessionInstance.off('track', trackHandler)
+      callSessionInstance.off('layout.changed', layoutChangedHandler)
+      callSessionInstance.off('destroy', unsubscribe)
+
       localVideoOverlay.detachListeners()
     }
 
@@ -151,15 +146,9 @@ export const buildVideoElement = async (
      * there are cases (promote/demote) where we need to handle multiple `track`
      * events and update the videoEl with the new track.
      */
-    if (isCallSession(room)) {
-      room.on('track', trackHandler)
-      room.on('layout.changed', layoutChangedHandler)
-      room.once('destroy', unsubscribe)
-    } else if (isVideoRoomSession(room)) {
-      room.on('track', trackHandler)
-      room.on('layout.changed', layoutChangedHandler)
-      room.once('destroy', unsubscribe)
-    }
+    callSessionInstance.on('track', trackHandler)
+    callSessionInstance.on('layout.changed', layoutChangedHandler)
+    callSessionInstance.once('destroy', unsubscribe)
 
     /**
      * The room object is only being used to listen for events.
@@ -167,8 +156,8 @@ export const buildVideoElement = async (
      * Currently, we are overriding the following room properties in case the user calls "buildVideoElement" more than once.
      * However, this can be moved out of here easily if we prefer not to override.
      */
-    room.overlayMap = overlayMap
-    room.localVideoOverlay = localVideoOverlay
+    callSessionInstance.overlayMap = overlayMap
+    callSessionInstance.localVideoOverlay = localVideoOverlay
 
     return { element: rootElement, overlayMap, localVideoOverlay, unsubscribe }
   } catch (error) {

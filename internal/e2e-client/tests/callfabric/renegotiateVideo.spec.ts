@@ -22,7 +22,7 @@ test.describe('CallCall Video Renegotiation', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -39,8 +39,8 @@ test.describe('CallCall Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._callObj
-      await cfRoomSession.setVideoDirection('sendrecv')
+      const callSession: CallSession = window._callObj
+      await callSession.setVideoDirection('sendrecv')
     })
 
     // Wait for the MCU to be visible
@@ -55,8 +55,8 @@ test.describe('CallCall Video Renegotiation', () => {
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._callObj
-        await cfRoomSession.updateMedia({
+        const callSession: CallSession = window._callObj
+        await callSession.updateMedia({
           video: { direction: 'inactive' },
         })
       })
@@ -81,7 +81,7 @@ test.describe('CallCall Video Renegotiation', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -98,8 +98,8 @@ test.describe('CallCall Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._callObj
-      await cfRoomSession.setVideoDirection('sendonly')
+      const callSession: CallSession = window._callObj
+      await callSession.setVideoDirection('sendonly')
     })
 
     // Verify the MCU is not visible
@@ -122,8 +122,8 @@ test.describe('CallCall Video Renegotiation', () => {
     await test.step('it should disable the video with "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._callObj
-        await cfRoomSession.updateMedia({
+        const callSession: CallSession = window._callObj
+        await callSession.updateMedia({
           video: { direction: 'recvonly' },
         })
       })
@@ -150,7 +150,7 @@ test.describe('CallCall Video Renegotiation', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -167,8 +167,8 @@ test.describe('CallCall Video Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._callObj
-      await cfRoomSession.setVideoDirection('recvonly')
+      const callSession: CallSession = window._callObj
+      await callSession.setVideoDirection('recvonly')
     })
 
     // Expect incoming video stream is visible
@@ -187,8 +187,8 @@ test.describe('CallCall Video Renegotiation', () => {
     await test.step('it should disable the video with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._callObj
-        await cfRoomSession.updateMedia({
+        const callSession: CallSession = window._callObj
+        await callSession.updateMedia({
           video: { direction: 'inactive' },
         })
       })

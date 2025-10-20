@@ -22,7 +22,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
   getLogger().trace('fabricWorker started')
   const {
     channels: { swEventChannel },
-    instance: cfRoomSession,
+    instance: callSession,
   } = options
 
   function* worker(action: CallAction) {
@@ -30,12 +30,12 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
 
     switch (type) {
       case 'call.joined': {
-        // since we depend on `cfRoomSession.selfMember` on the take logic
-        // we need to make sure we update the `cfRoomSession.selfMember`
+        // since we depend on `callSession.selfMember` on the take logic
+        // we need to make sure we update the `callSession.selfMember`
         // in this worker or have a race condition.
-        if (!cfRoomSession.selfMember) {
+        if (!callSession.selfMember) {
           const memberInstance = createCallSessionMemberObject({
-            store: cfRoomSession.store,
+            store: callSession.store,
             payload: {
               member: action.payload.room_session.members.find(
                 (m) => m.member_id === action.payload.member_id
@@ -44,19 +44,19 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
               room_session_id: action.payload.room_session_id,
             },
           })
-          cfRoomSession.selfMember = memberInstance
+          callSession.selfMember = memberInstance
         }
 
         // Segment worker for each call_id
         yield sagaEffects.fork(callSegmentWorker, {
           ...options,
-          instance: cfRoomSession,
+          instance: callSession,
           action,
         })
         break
       }
       case 'call.state':
-        cfRoomSession.emit(type, payload)
+        callSession.emit(type, payload)
         break
     }
   }
@@ -73,7 +73,7 @@ export const fabricWorker: SDKWorker<CallSessionConnection> = function* (
 
     // If this is the first call.joined event, verify the call origin ID
     if (!firstCallJoinedReceived) {
-      if (action.payload.call_id === cfRoomSession.callId) {
+      if (action.payload.call_id === callSession.callId) {
         firstCallJoinedReceived = true
         return true
       }

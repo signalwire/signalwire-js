@@ -1,8 +1,6 @@
 import { getLogger, MemberUpdatedEventParams } from '@signalwire/core'
-import { VideoRoomSession, isVideoRoomSession } from './video/VideoRoomSession'
-import { CallSession, isCallSession } from './unified/CallSession'
-import { VideoMemberUpdatedHandlerParams } from './utils/interfaces'
-import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/roomSession'
+import { CallSession } from './unified/CallSession'
+import { OVERLAY_PREFIX, SDK_PREFIX } from './utils/callSession'
 export type OverlayMap = Map<string, UserOverlay>
 
 interface UserOverlayOptions {
@@ -62,12 +60,12 @@ export class UserOverlay {
 interface LocalVideoOverlayOptions {
   id: string
   mirrorLocalVideoOverlay: boolean
-  room: CallSession | VideoRoomSession
+  room: CallSession
 }
 
 export class LocalVideoOverlay extends UserOverlay {
   private _mirrored: boolean
-  private _room: CallSession | VideoRoomSession
+  private _room: CallSession
 
   constructor(options: LocalVideoOverlayOptions) {
     super(options)
@@ -77,8 +75,6 @@ export class LocalVideoOverlay extends UserOverlay {
     // Bind the handler to preserve context
     this.fabricMemberVideoMutedHandler =
       this.fabricMemberVideoMutedHandler.bind(this)
-    this.videoMemberVideoMutedHandler =
-      this.videoMemberVideoMutedHandler.bind(this)
 
     this.attachListeners()
   }
@@ -92,32 +88,18 @@ export class LocalVideoOverlay extends UserOverlay {
   }
 
   private attachListeners() {
-    if (isCallSession(this._room)) {
-      this._room.on(
-        'member.updated.videoMuted',
-        this.fabricMemberVideoMutedHandler
-      )
-    } else if (isVideoRoomSession(this._room)) {
-      this._room.on(
-        'member.updated.videoMuted',
-        this.videoMemberVideoMutedHandler
-      )
-    }
+    this._room.on(
+      'member.updated.videoMuted',
+      this.fabricMemberVideoMutedHandler
+    )
   }
 
   /** @internal */
   public detachListeners() {
-    if (isCallSession(this._room)) {
-      this._room.off(
-        'member.updated.videoMuted',
-        this.fabricMemberVideoMutedHandler
-      )
-    } else if (isVideoRoomSession(this._room)) {
-      this._room.off(
-        'member.updated.videoMuted',
-        this.videoMemberVideoMutedHandler
-      )
-    }
+    this._room.off(
+      'member.updated.videoMuted',
+      this.fabricMemberVideoMutedHandler
+    )
   }
 
   private memberVideoMutedHandler(memberId: string, videoMuted: boolean) {
@@ -135,12 +117,6 @@ export class LocalVideoOverlay extends UserOverlay {
       params.member.member_id,
       params.member.video_muted
     )
-  }
-
-  private videoMemberVideoMutedHandler(
-    params: VideoMemberUpdatedHandlerParams
-  ) {
-    this.memberVideoMutedHandler(params.member.id, params.member.video_muted)
   }
 
   public setMediaStream(stream: MediaStream) {

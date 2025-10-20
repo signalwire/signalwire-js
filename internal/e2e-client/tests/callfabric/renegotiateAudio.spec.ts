@@ -20,7 +20,7 @@ test.describe('CallCall Audio Renegotiation', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -44,8 +44,8 @@ test.describe('CallCall Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._callObj
-      await cfRoomSession.setAudioDirection('sendrecv')
+      const callSession: CallSession = window._callObj
+      await callSession.setAudioDirection('sendrecv')
     })
 
     await expectStatWithPolling(page, {
@@ -72,8 +72,8 @@ test.describe('CallCall Audio Renegotiation', () => {
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._callObj
-        await cfRoomSession.updateMedia({
+        const callSession: CallSession = window._callObj
+        await callSession.updateMedia({
           audio: { direction: 'inactive' },
         })
       })
@@ -105,7 +105,7 @@ test.describe('CallCall Audio Renegotiation', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -129,8 +129,8 @@ test.describe('CallCall Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._callObj
-      await cfRoomSession.setAudioDirection('sendonly')
+      const callSession: CallSession = window._callObj
+      await callSession.setAudioDirection('sendonly')
     })
 
     const stats2 = await getStats(page)
@@ -146,8 +146,8 @@ test.describe('CallCall Audio Renegotiation', () => {
     await test.step('it should disable the audio with "recvonly"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._callObj
-        await cfRoomSession.updateMedia({
+        const callSession: CallSession = window._callObj
+        await callSession.updateMedia({
           audio: { direction: 'recvonly' },
         })
       })
@@ -174,7 +174,7 @@ test.describe('CallCall Audio Renegotiation', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -198,8 +198,8 @@ test.describe('CallCall Audio Renegotiation', () => {
 
     await page.evaluate(async () => {
       // @ts-expect-error
-      const cfRoomSession: CallSession = window._callObj
-      await cfRoomSession.setAudioDirection('recvonly')
+      const callSession: CallSession = window._callObj
+      await callSession.setAudioDirection('recvonly')
     })
 
     const stats2 = await getStats(page)
@@ -223,8 +223,8 @@ test.describe('CallCall Audio Renegotiation', () => {
     await test.step('it should disable the audio with "inactive"', async () => {
       await page.evaluate(async () => {
         // @ts-expect-error
-        const cfRoomSession: CallSession = window._callObj
-        await cfRoomSession.updateMedia({
+        const callSession: CallSession = window._callObj
+        await callSession.updateMedia({
           audio: { direction: 'inactive' },
         })
       })

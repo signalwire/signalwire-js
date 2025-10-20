@@ -1,8 +1,8 @@
 import type { VideoPositions } from '@signalwire/core'
 import {
   BaseConnectionState,
-  VideoRoomDeviceEventParams,
-  VideoRoomDeviceEventNames,
+  CallSessionDeviceEventParams,
+  CallSessionDeviceEventNames,
 } from '@signalwire/core'
 
 export interface ConnectionOptions {
@@ -157,8 +157,8 @@ type BaseConnectionEventsHandlerMap = Record<
 > &
   Record<MediaEventNames, () => void> &
   Record<
-    VideoRoomDeviceEventNames,
-    (params: VideoRoomDeviceEventParams) => void
+    CallSessionDeviceEventNames,
+    (params: CallSessionDeviceEventParams) => void
   >
 
 export type BaseConnectionEvents = {

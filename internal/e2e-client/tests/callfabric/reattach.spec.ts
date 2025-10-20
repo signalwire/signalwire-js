@@ -21,7 +21,7 @@ test.describe('CallCall Reattach', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -77,7 +77,7 @@ test.describe('CallCall Reattach', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -375,7 +375,7 @@ test.describe('CallCall Reattach', () => {
     await pageTwo.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await test.step('[pageOne] create client and join a room', async () => {
       await createCFClient(pageOne)
@@ -663,7 +663,7 @@ test.describe('CallCall Reattach', () => {
   //   await page.goto(SERVER_URL)
 
   //   const roomName = `e2e_${uuid()}`
-  //   await resource.createVideoRoomResource(roomName)
+  //   await resource.createCallSessionResource(roomName)
   //   const resourceName = `e2e_${uuid()}`
   //   await resource.createSWMLAppResource({
   //     name: resourceName,

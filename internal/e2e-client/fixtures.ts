@@ -8,7 +8,7 @@ import {
   createcXMLScriptResource,
   createRelayAppResource,
   createSWMLAppResource,
-  createVideoRoomResource,
+  createCallSessionResource,
   deleteResource,
   disconnectClient,
   enablePageLogs,
@@ -26,7 +26,7 @@ type CustomFixture = {
   resource: {
     createcXMLExternalURLResource: typeof createcXMLExternalURLResource
     createcXMLScriptResource: typeof createcXMLScriptResource
-    createVideoRoomResource: typeof createVideoRoomResource
+    createCallSessionResource: typeof createCallSessionResource
     createSWMLAppResource: typeof createSWMLAppResource
     createRelayAppResource: typeof createRelayAppResource
     resources: Resource[]
@@ -89,8 +89,8 @@ const test = baseTest.extend<CustomFixture>({
     const resources: Resource[] = []
 
     const resource = {
-      createVideoRoomResource: async (params?: string) => {
-        const data = await createVideoRoomResource(params)
+      createCallSessionResource: async (params?: string) => {
+        const data = await createCallSessionResource(params)
         resources.push(data)
         return data
       },

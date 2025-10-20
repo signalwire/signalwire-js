@@ -44,7 +44,7 @@ test.describe('CallCall - Device State', () => {
         await page.goto(SERVER_URL)
 
         roomName = `e2e_${uuid()}`
-        await resource.createVideoRoomResource(roomName)
+        await resource.createCallSessionResource(roomName)
 
         await createCFClient(page)
 
@@ -169,7 +169,7 @@ test.describe('CallCall - Device State', () => {
         await page.goto(SERVER_URL)
 
         roomName = `e2e_${uuid()}`
-        await resource.createVideoRoomResource(roomName)
+        await resource.createCallSessionResource(roomName)
 
         await createCFClient(page)
 

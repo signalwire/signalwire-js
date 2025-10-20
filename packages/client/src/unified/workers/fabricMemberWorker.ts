@@ -6,7 +6,7 @@ import {
   MemberEvent,
   MemberUpdatedEventParams,
 } from '@signalwire/core'
-import {} from '../../utils/interfaces/fabric'
+import {} from '../../utils/interfaces/call'
 import { CallWorkerParams } from './fabricWorker'
 import {
   createCallSessionMemberObject,

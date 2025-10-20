@@ -8,8 +8,8 @@ import {
   RoomSubscribed,
   RTCTrackEventName,
   VideoLayoutEventNames,
-  VideoRoomDeviceDisconnectedEventNames,
-  VideoRoomDeviceUpdatedEventNames,
+  CallSessionDeviceDisconnectedEventNames,
+  CallSessionDeviceUpdatedEventNames,
   CallJoined,
   CallJoinedEventParams as InternalCallJoinedEventParams,
   CallState,
@@ -39,6 +39,8 @@ import {
   CallSessionEventParams,
   MemberUpdatedEventParams,
   MemberUpdatedEventNames,
+  type VideoPositions,
+  type Rooms,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
 import { CallCapabilitiesContract, CallSession } from '../../unified'
@@ -78,11 +80,11 @@ export type CallJoinedEventParams = {
 } & Omit<InternalCallJoinedEventParams, 'capabilities'>
 
 export type CallSessionEventsHandlerMap = Record<
-  VideoRoomDeviceUpdatedEventNames,
+  CallSessionDeviceUpdatedEventNames,
   (params: DeviceUpdatedEventParams) => void
 > &
   Record<
-    VideoRoomDeviceDisconnectedEventNames,
+    CallSessionDeviceDisconnectedEventNames,
     (params: DeviceDisconnectedEventParams) => void
   > &
   Record<MediaEventNames, () => void> &
@@ -239,4 +241,112 @@ export interface CallSessionContract {
    * ```
    */
   hangup(id?: string): Promise<void>
+}
+export type StartScreenShareOptions = {
+  /** Whether the screen share object should automatically join the room */
+  autoJoin?: boolean
+  /** Audio constraints to use when joining the room. Default: `true`. */
+  audio?: MediaStreamConstraints['audio']
+  /** Video constraints to use when joining the room. Default: `true`. */
+  video?: MediaStreamConstraints['video']
+  layout?: string
+  positions?: VideoPositions
+}
+interface CallMemberSelfMethodsInterface {
+  /**
+   * Puts the microphone on mute. The other participants will not hear audio
+   * from the muted device anymore.
+   * @example Muting the microphone:
+   * ```typescript
+   * await roomdevice.audioMute()
+   * ```
+   */
+  audioMute(): Rooms.AudioMuteMember
+
+  /**
+   * Unmutes the microphone if it had been previously muted.
+   *
+   * @example Unmuting the microphone:
+   * ```typescript
+   * await calldevice.audioUnmute()
+   * ```
+   */
+  audioUnmute(): Rooms.AudioUnmuteMember
+
+  /**
+   * Puts the video on mute. Participants will see a mute image instead of the
+   * video stream.
+   *
+   * @example Muting the camera:
+   * ```typescript
+   * await roomdevice.videoMute()
+   * ```
+   */
+  videoMute(): Rooms.VideoMuteMember
+
+  /**
+   * Unmutes the video if it had been previously muted. Participants will start
+   * seeing the video stream again.
+   *
+   * @example Unmuting the camera:
+   * ```typescript
+   * await roomdevice.videoUnmute()
+   * ```
+   */
+  videoUnmute(): Rooms.VideoUnmuteMember
+
+  /**
+   * @deprecated Use {@link setInputVolume} instead.
+   */
+  setMicrophoneVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+
+  /**
+   * Sets the input volume level (e.g. for the microphone).
+   * @param params
+   * @param params.volume desired volume. Values range from -50 to 50, with a
+   * default of 0.
+   *
+   * @example
+   * ```typescript
+   * await roomdevice.setMicrophoneVolume({volume: -10})
+   * ```
+   */
+  setInputVolume(params: { volume: number }): Rooms.SetInputVolumeMember
+
+  /**
+   * Sets the input level at which the participant is identified as currently
+   * speaking.
+   * @param params
+   * @param params.value desired sensitivity. The default value is 30 and the
+   * scale goes from 0 (lowest sensitivity, essentially muted) to 100 (highest
+   * sensitivity).
+   *
+   * @example
+   * ```typescript
+   * await roomdevice.setInputSensitivity({value: 80})
+   * ```
+   */
+  setInputSensitivity(params: {
+    value: number
+  }): Rooms.SetInputSensitivityMember
+}
+
+export interface CallSessionDeviceMethods
+  extends CallMemberSelfMethodsInterface {}
+
+export interface CallSessionScreenShareMethods
+  extends CallMemberSelfMethodsInterface {}
+
+export interface BaseCallSessionDialParams {
+  audio?: MediaStreamConstraints['audio']
+  video?: MediaStreamConstraints['video']
+  receiveAudio?: boolean
+  receiveVideo?: boolean
+  sendAudio?: boolean
+  sendVideo?: boolean
+}
+
+export type AudioElement = HTMLAudioElement & {
+  sinkId?: string
+  setSinkId?: (id: string) => Promise<void>
 }

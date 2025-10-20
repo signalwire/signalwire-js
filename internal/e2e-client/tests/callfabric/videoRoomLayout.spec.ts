@@ -1,7 +1,7 @@
 import {
   uuid,
   VideoPosition,
-  VideoRoomSubscribedEventParams,
+  CallSessionSubscribedEventParams,
 } from '@signalwire/core'
 import { test, expect } from '../../fixtures'
 import {
@@ -21,7 +21,7 @@ test.describe('CallCall Video Room Layout', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -68,7 +68,7 @@ test.describe('CallCall Video Room Layout', () => {
     await page.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     await createCFClient(page)
 
@@ -140,13 +140,13 @@ test.describe('CallCall Video Room Layout', () => {
     await pageTwo.goto(SERVER_URL)
 
     const roomName = `e2e_${uuid()}`
-    await resource.createVideoRoomResource(roomName)
+    await resource.createCallSessionResource(roomName)
 
     // Create client for pageOne and Dial an address to join a video room
     await createCFClient(pageOne)
     const callSessionOne = (await dialAddress(pageOne, {
       address: `/public/${roomName}?channel=video`,
-    })) as VideoRoomSubscribedEventParams
+    })) as CallSessionSubscribedEventParams
     expect(callSessionOne.room_session).toBeDefined()
     await expectMCUVisible(pageOne)
 
@@ -154,7 +154,7 @@ test.describe('CallCall Video Room Layout', () => {
     await createCFClient(pageTwo)
     const callSessionTwo = (await dialAddress(pageTwo, {
       address: `/public/${roomName}?channel=video`,
-    })) as VideoRoomSubscribedEventParams
+    })) as CallSessionSubscribedEventParams
     expect(callSessionTwo.room_session).toBeDefined()
     await expectMCUVisible(pageTwo)
 

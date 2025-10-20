@@ -19,7 +19,7 @@ export const callJoinWorker = function* (
   options: CallWorkerParams<CallJoinedEvent>
 ): SagaIterator {
   getLogger().trace('callJoinWorker started')
-  const { action, instanceMap, instance: cfRoomSession } = options
+  const { action, instanceMap, instance: callSession } = options
   const { payload } = action
   const { get, set } = instanceMap
 
@@ -56,7 +56,7 @@ export const callJoinWorker = function* (
     let memberInstance = get<CallSessionMember>(member.member_id!)
     if (!memberInstance) {
       memberInstance = createCallSessionMemberObject({
-        store: cfRoomSession.store,
+        store: callSession.store,
         payload: {
           member: member,
           room_id: payload.room_id,
@@ -73,16 +73,16 @@ export const callJoinWorker = function* (
     set<CallSessionMember>(member.member_id, memberInstance)
   })
 
-  cfRoomSession.member = get<CallSessionMember>(payload.member_id)
+  callSession.member = get<CallSessionMember>(payload.member_id)
   // the server send the capabilities payload as an array of string
-  cfRoomSession.capabilities = mapCapabilityPayload(payload.capabilities)
+  callSession.capabilities = mapCapabilityPayload(payload.capabilities)
 
   const fabricEvent = {
     ...payload,
-    capabilities: cfRoomSession.capabilities,
+    capabilities: callSession.capabilities,
   }
 
-  cfRoomSession.emit('call.joined', fabricEvent)
+  callSession.emit('call.joined', fabricEvent)
 
   getLogger().trace('callJoinWorker ended')
 }

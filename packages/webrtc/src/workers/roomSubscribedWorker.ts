@@ -6,9 +6,9 @@ import {
   SDKActions,
   MapToPubSubShape,
   SDKWorkerHooks,
-  VideoRoomSubscribedEvent,
+  CallSessionSubscribedEvent,
   componentActions,
-  VideoRoomSubscribedEventParams,
+  CallSessionSubscribedEventParams,
   Rooms,
   RoomSessionStream,
   RoomSessionPlayback,
@@ -37,16 +37,17 @@ export const roomSubscribedWorker: SDKWorker<
     throw new Error('Missing rtcPeerId for roomSubscribedWorker')
   }
   try {
-    const action: MapToPubSubShape<VideoRoomSubscribedEvent | CallJoinedEvent> =
-      yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
-        if (
-          action.type === 'video.room.subscribed' ||
-          action.type === 'call.joined'
-        ) {
-          return action.payload.call_id === rtcPeerId
-        }
-        return false
-      })
+    const action: MapToPubSubShape<
+      CallSessionSubscribedEvent | CallJoinedEvent
+    > = yield sagaEffects.take(swEventChannel, (action: SDKActions) => {
+      if (
+        action.type === 'video.room.subscribed' ||
+        action.type === 'call.joined'
+      ) {
+        return action.payload.call_id === rtcPeerId
+      }
+      return false
+    })
 
     // New emitter should not change the payload by reference
     const clonedPayload = JSON.parse(JSON.stringify(action.payload))
@@ -84,7 +85,7 @@ export const roomSubscribedWorker: SDKWorker<
 
 function transformPayload(
   this: BaseConnection<any>,
-  payload: VideoRoomSubscribedEventParams
+  payload: CallSessionSubscribedEventParams
 ) {
   const keys = ['room_session', 'room'] as const
   keys.forEach((key) => {

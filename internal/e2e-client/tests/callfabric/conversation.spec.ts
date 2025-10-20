@@ -30,7 +30,7 @@ test.describe('Conversation Room', () => {
       await createCFClient(page2)
 
       roomName = `e2e_${uuid()}`
-      await resource.createVideoRoomResource(roomName)
+      await resource.createCallSessionResource(roomName)
     })
 
     await test.step('get room address', async () => {
