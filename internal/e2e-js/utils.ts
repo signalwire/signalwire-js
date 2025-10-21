@@ -1205,7 +1205,6 @@ export const expectv2HasReceivedAudio = async (
   /* This is a workaround what we think is a bug in Playwright/Chromium
    * There are cases where totalAudioEnergy is not present in the report
    * even though we see audio and it's not silence.
-   * This is particularly common with G.711 codecs (PCMU/PCMA).
    * In that case we rely on the number of packetsReceived.
    * If there is genuine silence, then totalAudioEnergy must be present,
    * albeit being a small number.
@@ -1233,7 +1232,6 @@ export const expectv2HasReceivedAudio = async (
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
     console.log(`✓ Audio energy validated: ${totalAudioEnergy} > ${minTotalAudioEnergy}`)
   } else {
-    // Fallback to packetsReceived (common with G.711 codecs)
     console.log(
       '⚠️  totalAudioEnergy not available (common with G.711/PCMU/PCMA codecs), ' +
       'using packetsReceived as fallback validation'
