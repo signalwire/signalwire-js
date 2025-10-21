@@ -33,7 +33,6 @@ import { makeAudioElementSaga } from '../features/mediaElements/mediaElementsSag
 import { CallCapabilitiesContract } from './interfaces/capabilities'
 import { createCallSessionValidateProxy } from './utils/validationProxy'
 
-
 export interface CallSession
   extends CallSessionContract,
     CallSessionMethods,
@@ -113,6 +112,56 @@ export class CallSessionConnection
 
   get member(): CallSessionMember {
     return this._member!
+  }
+
+  // RTCPeerConnection helpers
+
+  get getStats() {
+    if (!this.peer) {
+      this.logger.error('getStats called before Peer instance initialization')
+      throw Error('Peer not initialized')
+    }
+    return this.peer?.instance.getStats
+  }
+
+  get connectionPeerConnectionState() {
+    if (!this.peer) {
+      this.logger.error(
+        'connectionStateRTC called before Peer instance initialization'
+      )
+      throw Error('Peer not initialized')
+    }
+    return this.peer?.instance.connectionState
+  }
+
+  get iceConnectionPeerConnectionState() {
+    if (!this.peer) {
+      this.logger.error(
+        'iceConnectionStateRTC called before Peer instance initialization'
+      )
+      throw Error('Peer not initialized')
+    }
+    return this.peer?.instance.iceConnectionState
+  }
+
+  get iceGatheringPeerConnectionState() {
+    if (!this.peer) {
+      this.logger.error(
+        'iceGatheringStateRTC called before Peer instance initialization'
+      )
+      throw Error('Peer not initialized')
+    }
+    return this.peer?.instance.iceGatheringState
+  }
+
+  get addPeerConnectionEventListener() {
+    if (!this.peer) {
+      this.logger.error(
+        'addPeerConnectionEventListener called before Peer instance initialization'
+      )
+      throw Error('Peer not initialized')
+    }
+    return this.peer?.instance.addEventListener
   }
 
   private initWorker() {
