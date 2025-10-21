@@ -1,8 +1,6 @@
 import {
   DeviceDisconnectedEventParams,
   DeviceUpdatedEventParams,
-  InternalFabricMemberEntity,
-  InternalFabricMemberEntityUpdated,
   MemberListUpdated,
   MemberUpdated,
   RoomJoined,
@@ -20,84 +18,30 @@ import {
   CallUpdatedEventParams,
   CallLeft,
   JSONRPCMethod,
-  FabricLayoutChangedEventParams,
   BaseConnectionState,
   VideoPosition,
   CallLeftEventParams,
   MemberTalking,
   RoomUpdated,
-  FabricMemberTalkingEventParams,
   MemberJoined,
-  FabricMemberJoinedEventParams,
-  FabricMemberUpdatedEventParams,
-  FabricMemberLeftEventParams,
   MemberLeft,
   CallPlay,
   CallPlayEventParams,
   CallConnect,
   CallConnectEventParams,
   CallRoom,
-  FabricMemberUpdatedEventNames,
-  FabricMemberEventNames,
-  FabricMemberEventParams,
-  FabricMemberEventParamsExcludeTalking,
-  FabricMemberContract,
-  FabricLayoutChangedEvent,
-  FabricMemberJoinedEvent,
-  FabricMemberLeftEvent,
-  FabricMemberTalkingEvent,
-  FabricMemberUpdatedEvent,
-  InternalFabricRoomSessionEntity,
-  FabricMemberEvent,
-  FabricAction,
-  FabricRoomSessionMethods,
-  FabricMemberEntity,
-  FabricRoomEventParams,
+  InternalMemberEntity,
+  InternalMemberEntityUpdated,
+  MemberJoinedEventParams,
+  CallLayoutChangedEventParams,
+  MemberTalkingEventParams,
+  MemberLeftEventParams,
+  CallSessionEventParams,
+  MemberUpdatedEventParams,
+  MemberUpdatedEventNames,
 } from '@signalwire/core'
 import { MediaEventNames } from '@signalwire/webrtc'
-import { CallCapabilitiesContract, CallSession } from '../../fabric'
-
-const BrandTypeId: unique symbol = Symbol.for('sw/client')
-
-  // exporting aliases from the core package with  & Brand<'XXX'> to ensure that the types are branded to client SDK types
-interface Brand<in out ID extends string | symbol> {
-  readonly [BrandTypeId]?: {
-    readonly [id in ID]: ID
-  }
-}
-
-export type InternalCallMemberEntity = InternalFabricMemberEntity
-export type InternalCallMemberEntityUpdated =
-  InternalFabricMemberEntityUpdated & Brand<'InternalCallMemberEntityUpdated'>
-export type CallMemberEventNames = FabricMemberEventNames
-export type CallMemberUpdatedEventNames = FabricMemberUpdatedEventNames
-
-export type CallMemberEventParams = FabricMemberEventParams &
-  Brand<'CallMemberEventParams'>
-export type CallMemberEventParamsExcludeTalking =
-  FabricMemberEventParamsExcludeTalking &
-    Brand<'CallMemberEventParamsExcludeTalking'>
-export type CallMemberContract = FabricMemberContract &
-  Brand<'CallMemberContract'>
-export type CallLayoutChangedEvent = FabricLayoutChangedEvent &
-  Brand<'CallLayoutChangedEvent'>
-export type CallLayoutChangedEventParams = FabricLayoutChangedEventParams &
-  Brand<'CallLayoutChangedEventParams'>
-export type CallMemberJoinedEvent = FabricMemberJoinedEvent & Brand<'CallMemberJoinedEvent'>
-export type CallMemberLeftEvent = FabricMemberLeftEvent & Brand<'CallMemberLeftEvent'>
-export type CallMemberTalkingEvent = FabricMemberTalkingEvent & Brand<'CallMemberTalkingEvent'>
-export type CallMemberUpdatedEvent = FabricMemberUpdatedEvent & Brand<'CallMemberUpdatedEvent'>
-export type InternalCallRoomSessionEntity = InternalFabricRoomSessionEntity & Brand<'InternalCallRoomSessionEntity'>
-export type CallMemberEvent = FabricMemberEvent & Brand<'CallMemberEvent'>
-export type CallAction = FabricAction & Brand<'CallAction'>
-export type CallRoomSessionMethods = FabricRoomSessionMethods
-export type CallMemberEntity = FabricMemberEntity & Brand<'CallMemberEntity'>
-export type CallRoomEventParams = FabricRoomEventParams & Brand<'CallRoomEventParams'>
-export type CallMemberJoinedEventParams = FabricMemberJoinedEventParams & Brand<'CallMemberJoinedEventParams'>
-
-export type CallMemberUpdatedEventParams = FabricMemberUpdatedEventParams & Brand<'CallMemberUpdatedEventParams'>
-export type CallMemberLeftEventParams = FabricMemberLeftEventParams & Brand<'CallMemberLeftEventParams'>  
-export type CallMemberTalkingEventParams = FabricMemberTalkingEventParams & Brand<'CallMemberTalkingEventParams'>
+import { CallCapabilitiesContract, CallSession } from '../../unified'
 
 export interface ExecuteActionParams {
   method: JSONRPCMethod
@@ -116,17 +60,17 @@ export interface RequestMemberParams {
 }
 
 export type CallMemberHandlerParams = {
-  member: InternalCallMemberEntity
+  member: InternalMemberEntity
 }
 
 export type CallMemberUpdatedHandlerParams = {
-  member: InternalCallMemberEntityUpdated
+  member: InternalMemberEntityUpdated
   room_id?: string
   room_session_id?: string
 }
 
 export type CallMemberListUpdatedParams = {
-  members: InternalCallMemberEntity[]
+  members: InternalMemberEntity[]
 }
 
 export type CallJoinedEventParams = {
@@ -150,25 +94,113 @@ export type CallSessionEventsHandlerMap = Record<
   Record<CallState, (stream: CallStateEventParams) => void> &
   Record<CallPlay, (stream: CallPlayEventParams) => void> &
   Record<CallConnect, (stream: CallConnectEventParams) => void> &
-  Record<CallRoom, (stream: CallRoomEventParams) => void> &
+  Record<CallRoom, (stream: CallSessionEventParams) => void> &
   Record<
     RoomJoined | RoomSubscribed,
     (params: InternalCallJoinedEventParams) => void
   > &
   Record<RoomUpdated, (params: CallUpdatedEventParams) => void> &
   Record<RoomLeft, (params?: CallLeftEventParams) => void> &
-  Record<MemberJoined, (params: CallMemberJoinedEventParams) => void> &
+  Record<MemberJoined, (params: MemberJoinedEventParams) => void> &
   Record<
-    MemberUpdated | CallMemberUpdatedEventNames,
-    (params: CallMemberUpdatedEventParams) => void
+    MemberUpdated | MemberUpdatedEventNames,
+    (params: MemberUpdatedEventParams) => void
   > &
   Record<MemberListUpdated, (params: CallMemberListUpdatedParams) => void> &
-  Record<MemberLeft, (params: CallMemberLeftEventParams) => void> &
-  Record<MemberTalking, (params: CallMemberTalkingEventParams) => void> &
+  Record<MemberLeft, (params: MemberLeftEventParams) => void> &
+  Record<MemberTalking, (params: MemberTalkingEventParams) => void> &
   Record<VideoLayoutEventNames, (params: CallLayoutChangedEventParams) => void>
 
 export type CallSessionEvents = {
   [k in keyof CallSessionEventsHandlerMap]: CallSessionEventsHandlerMap[k]
+}
+export interface CallListeners {
+  // Core Call Events
+  'call.joined': (stream: CallJoinedEventParams) => void
+  'call.updated': (stream: CallUpdatedEventParams) => void
+  'call.left': (stream: CallLeftEventParams) => void
+  'call.state': (stream: CallStateEventParams) => void
+  'call.play': (stream: CallPlayEventParams) => void
+  'call.connect': (stream: CallConnectEventParams) => void
+  'call.room': (stream: CallSessionEventParams) => void
+
+  // Room Events
+  'room.joined': (params: InternalCallJoinedEventParams) => void
+  'room.subscribed': (params: InternalCallJoinedEventParams) => void
+  'room.updated': (params: CallUpdatedEventParams) => void
+  'room.left': (params?: CallLeftEventParams) => void
+
+  // Member Events
+  'member.joined': (params: MemberJoinedEventParams) => void
+  'member.updated': (params: MemberUpdatedEventParams) => void
+  'member.updated.audioMuted': (params: MemberUpdatedEventParams) => void
+  'member.updated.videoMuted': (params: MemberUpdatedEventParams) => void
+  'member.updated.deaf': (params: MemberUpdatedEventParams) => void
+  'member.updated.visible': (params: MemberUpdatedEventParams) => void
+  'member.updated.onHold': (params: MemberUpdatedEventParams) => void
+  'member.updated.inputVolume': (params: MemberUpdatedEventParams) => void
+  'member.updated.outputVolume': (params: MemberUpdatedEventParams) => void
+  'member.updated.inputSensitivity': (params: MemberUpdatedEventParams) => void
+  'member.updated.handraised': (params: MemberUpdatedEventParams) => void
+  'member.updated.echoCancellation': (params: MemberUpdatedEventParams) => void
+  'member.updated.autoGain': (params: MemberUpdatedEventParams) => void
+  'member.updated.noiseCancellation': (params: MemberUpdatedEventParams) => void
+  'member.updated.noiseSuppression': (params: MemberUpdatedEventParams) => void
+  'member.left': (params: MemberLeftEventParams) => void
+  'member.talking': (params: MemberTalkingEventParams) => void
+  'memberList.updated': (params: CallMemberListUpdatedParams) => void
+
+  // Media Events (the ones that caused the original conflict!)
+  'media.connected': () => void
+  'media.reconnecting': () => void
+  'media.disconnected': () => void
+
+  // Connection Events
+  connecting: (params: CallSession) => void
+  connected: (params: CallSession) => void
+  disconnected: (params: CallSession) => void
+  disconnecting: (params: CallSession) => void
+  reconnecting: (params: CallSession) => void
+  reconnected: (params: CallSession) => void
+
+  // Additional BaseConnectionState events
+  active: (params: CallSession) => void
+  answering: (params: CallSession) => void
+  early: (params: CallSession) => void
+  hangup: (params: CallSession) => void
+  held: (params: CallSession) => void
+  new: (params: CallSession) => void
+  purge: (params: CallSession) => void
+  recovering: (params: CallSession) => void
+  requesting: (params: CallSession) => void
+  ringing: (params: CallSession) => void
+  trying: (params: CallSession) => void
+
+  // Layout Events
+  'layout.changed': (params: CallLayoutChangedEventParams) => void
+
+  // Device Events
+  'device.updated': (params: DeviceUpdatedEventParams) => void
+  'device.disconnected': (params: DeviceDisconnectedEventParams) => void
+
+  // Track Events
+  track: (event: RTCTrackEvent) => void
+
+  // Lifecycle Events
+  destroy: () => void
+
+  //
+  'camera.updated': (params: DeviceUpdatedEventParams) => void
+  'camera.disconnected': (params: DeviceDisconnectedEventParams) => void
+  'microphone.updated': (params: DeviceUpdatedEventParams) => void
+  'microphone.disconnected': (params: DeviceDisconnectedEventParams) => void
+  'speaker.updated': (params: DeviceUpdatedEventParams) => void
+  'speaker.disconnected': (params: DeviceDisconnectedEventParams) => void
+}
+
+//@ts-ignore
+function checkTypes(listener: CallListeners): CallSessionEvents {
+  return listener
 }
 
 export interface CallSessionContract {
@@ -178,6 +210,101 @@ export interface CallSessionContract {
   currentLayout: CallLayoutChangedEventParams['layout']
   /** The current position of the member returned from the `layout.changed` event */
   currentPosition: VideoPosition | undefined
+
+  /**
+   * Returns the getStats() method from the underlying RTCPeerConnection.
+   * This method provides statistics about the WebRTC connection including
+   * media streams, codecs, network conditions, and more.
+   *
+   * @param selector - Optional MediaStreamTrack, or null to get stats for all tracks.
+   *                   If a specific track is provided, stats will be filtered to only
+   *                   that track and its related components.
+   * @returns A Promise that resolves with an RTCStatsReport containing the statistics
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
+   * @example
+   * ```typescript
+   * // Get stats for all tracks
+   * const stats = await call.getStats()
+   * stats.forEach(report => {
+   *   console.log(report.type, report)
+   * })
+   *
+   * // Get stats for a specific track
+   * const audioTrack = localStream.getAudioTracks()[0]
+   * const audioStats = await call.getStats(audioTrack)
+   * audioStats.forEach(report => {
+   *   if (report.type === 'inbound-rtp' && report.mediaType === 'audio') {
+   *     console.log('Audio packets lost:', report.packetsLost)
+   *   }
+   * })
+   * ```
+   */
+  readonly getStats: RTCPeerConnection['getStats']
+
+  /**
+   * Returns the current connection state of the RTCPeerConnection.
+   * Possible values are: 'new', 'connecting', 'connected', 'disconnected', 'failed', or 'closed'.
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
+   * @example
+   * ```typescript
+   * const state = call.connectionPeerConnectionState
+   * console.log('Connection state:', state)
+   * ```
+   */
+  readonly connectionPeerConnectionState: RTCPeerConnectionState
+
+  /**
+   * Returns the current ICE connection state of the RTCPeerConnection.
+   * Possible values are: 'new', 'checking', 'connected', 'completed', 'disconnected', 'failed', or 'closed'.
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
+   * @example
+   * ```typescript
+   * const iceState = call.iceConnectionPeerConnectionState
+   * console.log('ICE connection state:', iceState)
+   * ```
+   */
+  readonly iceConnectionPeerConnectionState: RTCIceConnectionState
+
+  /**
+   * Returns the current ICE gathering state of the RTCPeerConnection.
+   * Possible values are: 'new', 'gathering', or 'complete'.
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
+   * @example
+   * ```typescript
+   * const gatheringState = call.iceGatheringPeerConnectionState
+   * console.log('ICE gathering state:', gatheringState)
+   * ```
+   */
+  readonly iceGatheringPeerConnectionState: RTCIceGatheringState
+
+  /**
+   * The addEventListener method from the underlying RTCPeerConnection.
+   * This allows you to listen to native RTCPeerConnection events such as
+   * 'icecandidate', 'track', 'datachannel', etc.
+   *
+   * @throws {Error} Throws an error if `this.peer` is not initialized
+   *
+   * @example
+   * ```typescript
+   * call.addPeerConnectionEventListener('icecandidate', (event) => {
+   *   console.log('New ICE candidate:', event.candidate)
+   * })
+   *
+   * call.addPeerConnectionEventListener('connectionstatechange', () => {
+   *   console.log('Connection state changed to:', call.connectionPeerConnectionState)
+   * })
+   * ```
+   */
+  readonly addPeerConnectionEventListener: RTCPeerConnection['addEventListener']
+
   /**
    * Starts the call via the WebRTC connection
    * Based on the the remote SDP, it will either send `verto.invite` or `verto.answer` to start the call.

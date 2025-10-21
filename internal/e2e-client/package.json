@@ -9,15 +9,14 @@
     "test": ""
   },
   "dependencies": {
-    "@signalwire/client": "0.0.1",
-    "@sw-internal/playground-js": "0.0.15",
+    "@sw-internal/playground-client": "0.0.15",
+    "@signalwire/realtime-api": "^4.1.3",
     "express": "^5.1.0",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
     "@types/express": "^5.0.1",
-    "playwrigth-ws-inspector": "^1.0.0",
-    "vite": "^7.0.0"
+    "vite": "^7.1.11"
   }
 }

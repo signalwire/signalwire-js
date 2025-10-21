@@ -1,5 +1,5 @@
-import { PaginatedResponse } from '../fabric/interfaces'
-import { CreateHttpClient } from '../fabric/createHttpClient'
+import { PaginatedResponse } from '../unified/interfaces'
+import { CreateHttpClient } from '../unified/createHttpClient'
 
 export function buildPaginatedResult<T>(
   body: PaginatedResponse<T>,

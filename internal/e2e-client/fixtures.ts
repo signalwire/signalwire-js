@@ -1,4 +1,3 @@
-import { PageWithWsInspector, intercepWsTraffic } from 'playwrigth-ws-inspector'
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import {
   CreatecXMLScriptParams,
@@ -22,9 +21,7 @@ type CustomPage = Page & {
   swNetworkUp: () => Promise<void>
 }
 type CustomFixture = {
-  createCustomPage(options: {
-    name: string
-  }): Promise<PageWithWsInspector<CustomPage>>
+  createCustomPage(options: { name: string }): Promise<CustomPage>
   createCustomVanillaPage(options: { name: string }): Promise<Page>
   resource: {
     createcXMLExternalURLResource: typeof createcXMLExternalURLResource
@@ -38,25 +35,20 @@ type CustomFixture = {
 
 const test = baseTest.extend<CustomFixture>({
   createCustomPage: async ({ context }, use) => {
-    const maker = async (options: {
-      name: string
-    }): Promise<PageWithWsInspector<CustomPage>> => {
-      let page = await context.newPage()
+    const maker = async (options: { name: string }): Promise<CustomPage> => {
+      const page = (await context.newPage()) as CustomPage
       enablePageLogs(page, options.name)
-      //@ts-ignore
-      page = await intercepWsTraffic(page)
 
-      // @ts-expect-error
       page.swNetworkDown = () => {
         console.log('Simulate network down..')
         return context.setOffline(true)
       }
-      // @ts-expect-error
+
       page.swNetworkUp = () => {
         console.log('Simulate network up..')
         return context.setOffline(false)
       }
-      // @ts-expect-error
+
       return page
     }
 
@@ -65,7 +57,7 @@ const test = baseTest.extend<CustomFixture>({
     } finally {
       console.log('Cleaning up pages..')
       /**
-       * If we have a __callObj in the page means we tested the Video/Fabric APIs
+       * If we have a __callObj in the page means we tested the Call APIs
        * so we must leave the room.
        * Invoke `.leave()` only if we have a valid `roomSessionId`.
        * Then double check the SDK elements got properly removed from the DOM.
@@ -77,7 +69,7 @@ const test = baseTest.extend<CustomFixture>({
       })
 
       /**
-       * The Call Fabric SDK does not destory the client when the call is finished.
+       * The Call SDK does not destroy the client when the call is finished.
        * Make sure we cleanup the client as well.
        */
       await Promise.all(context.pages().map(disconnectClient))
@@ -145,4 +137,4 @@ const test = baseTest.extend<CustomFixture>({
   },
 })
 
-export { test, expect, Page }
+export { test, expect, Page, CustomPage }
