@@ -342,6 +342,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
           `- TURN server not available or misconfigured\n` +
           `- Firewall blocking UDP/TURN traffic (port 3478)\n` +
           `- Network instability or high latency\n` +
+          `- An old bug in FS - check version and environment\n` +
           `- ICE gathering failed\n` +
           `Status: ${statusText}`
         )
