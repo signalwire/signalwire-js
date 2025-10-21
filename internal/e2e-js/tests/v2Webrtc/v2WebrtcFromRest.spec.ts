@@ -439,7 +439,7 @@ test.describe('v2WebrtcFromRestTwoJoinAudioTURN', () => {
         expectCallNotHungUp(pageCallee2, 'Callee2')
       ])
       
-      console.log(`✓ Calls still active after ${(i + 1) * checkInterval}ms`)
+      console.log(`✓ Calls still active after ${(i + 1) * checkInterval} ms`)
     }
 
     console.log('Time to check the audio energy at ', new Date())
