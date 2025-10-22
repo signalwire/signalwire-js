@@ -1463,7 +1463,7 @@ export class BaseConnection<
       ...this.dialogParams(this.callId),
       action: 'unhold',
     })
-    this.vertoExecute<VertoModifyResponse>({
+    await this.vertoExecute<VertoModifyResponse>({
       message,
       callID: this.callId,
       node_id: this.nodeId,
