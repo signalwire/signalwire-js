@@ -8,6 +8,7 @@ import {
   expectInjectRelayHost,
   expectRelayConnected,
   expectv2HasReceivedAudio,
+  waitForCallActive,
 } from '../../utils'
 
 test.describe('v2WebrtcCalling', () => {
@@ -84,8 +85,8 @@ test.describe('v2WebrtcCalling', () => {
     expect(callStatusCallee).not.toBe(null)
 
     // Wait for call to be active on both caller and callee
-    await expect(callStatusCaller).toContainText('-> active')
-    await expect(callStatusCallee).toContainText('-> active')
+    await waitForCallActive(pageCaller)
+    await waitForCallActive(pageCallee)
 
     // Additional activity while call is up can go here
     const expectVideoMediaStreams = async (page: Page) => {
@@ -152,9 +153,7 @@ test.describe('v2WebrtcCalling', () => {
     )
     expect(createResult).toBe(201)
 
-    const callStatusCallee = pageCallee.locator('#callStatus')
-    expect(callStatusCallee).not.toBe(null)
-    await expect(callStatusCallee).toContainText('-> active')
+    await waitForCallActive(pageCallee)
 
     const callDurationMs = 20000
 
