@@ -9,10 +9,11 @@ import type { MediaEventNames } from '@signalwire/webrtc'
 import { createServer } from 'vite'
 import path from 'path'
 import { expect } from './fixtures'
-import type { Page } from '@playwright/test'
+import type { Page, TestInfo } from '@playwright/test'
 import type { PageFunction } from 'playwright-core/types/structs'
 import { v4 as uuid } from 'uuid'
 import express, { Express, Request, Response } from 'express'
+import { TestContext, SDKEvent, EventStats } from './TestContext'
 import { Server } from 'http'
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 import { EventEmitter } from 'events'
@@ -366,10 +367,56 @@ interface CreateCFClientParams {
   reference?: string
 }
 
+// Helper function to set up WebSocket monitoring for TestContext
+export const setupWebSocketMonitoring = (
+  page: Page,
+  testContext: TestContext
+) => {
+  page.on('websocket', (ws) => {
+    console.log(`WebSocket connected: ${ws.url()}`)
+
+    ws.on('framesent', (event) => {
+      try {
+        const payloadStr =
+          typeof event.payload === 'string'
+            ? event.payload
+            : event.payload.toString()
+        const payload = JSON.parse(payloadStr)
+        testContext.addSDKEvent(payload, 'send')
+      } catch (error) {
+        console.warn('Failed to parse sent frame:', error)
+      }
+    })
+
+    ws.on('framereceived', (event) => {
+      try {
+        const payloadStr =
+          typeof event.payload === 'string'
+            ? event.payload
+            : event.payload.toString()
+        const payload = JSON.parse(payloadStr)
+        testContext.addSDKEvent(payload, 'recv')
+      } catch (error) {
+        console.warn('Failed to parse received frame:', error)
+      }
+    })
+
+    ws.on('close', () => {
+      console.log('WebSocket disconnected')
+      testContext.addSDKEvent(
+        {
+          event: 'websocket_closed',
+        },
+        'recv'
+      )
+    })
+  })
+}
+
 export const createCFClient = async (
   page: Page,
   params?: CreateCFClientParams
-) => {
+): Promise<SignalWireContract> => {
   const sat = await createTestSATToken(params?.reference)
   expect(sat, 'SAT token created').toBeDefined()
   return createCFClientWithToken(page, sat, params)
@@ -379,7 +426,7 @@ export const createGuestCFClient = async (
   page: Page,
   bodyData: GuestSATTokenRequest,
   params?: CreateCFClientParams
-) => {
+): Promise<SignalWireContract> => {
   const sat = await createGuestSATToken(bodyData)
   return createCFClientWithToken(page, sat, params)
 }
@@ -388,7 +435,7 @@ const createCFClientWithToken = async (
   page: Page,
   sat: string | null,
   params?: CreateCFClientParams
-) => {
+): Promise<SignalWireContract> => {
   if (!sat) {
     console.error('Invalid SAT. Exiting..')
     process.exit(4)
@@ -2027,3 +2074,126 @@ export const expectPageEvalToPass = async <TArgs, TResult>(
   )
   return result
 }
+
+// #region TestContext Utilities
+
+export interface ContextData {
+  stats: EventStats
+  events: SDKEvent[]
+  testDuration: number
+}
+
+// Helper function to register a test context (to be called from tests)
+export const attachTestContext = async (
+  testInfo: TestInfo,
+  testContext: TestContext
+) => {
+  try {
+    const contextData = {
+      stats: testContext.getStats(),
+      events: testContext.getAllEvents(),
+      testDuration: testContext.getTestDuration(),
+    }
+
+    // Log to console immediately for all environments
+    const dumpContent = createContextDumpText(contextData)
+    console.log('\n[INFO] SDK Test Context captured:')
+    console.log(dumpContent)
+
+    // Attach as JSON data for Playwright UI
+    await testInfo.attach('SDK Test Context (JSON)', {
+      body: JSON.stringify(contextData, null, 2),
+      contentType: 'application/json',
+    })
+
+    // Attach as human-readable text dump for Playwright UI
+    await testInfo.attach('SDK Test Context', {
+      body: dumpContent,
+      contentType: 'text/plain',
+    })
+  } catch (error) {
+    console.log(`Failed to attach test context: ${error}`)
+  }
+}
+
+// Create human-readable context dump text
+export const createContextDumpText = (contextData: ContextData) => {
+  const stats = contextData.stats
+  let dump = ''
+
+  dump += '* '.repeat(40) + '\n'
+  dump += 'SDK TEST CONTEXT DUMP\n'
+  dump += '* '.repeat(40) + '\n\n'
+
+  // Summary stats
+  dump += 'EVENT SUMMARY:\n'
+  dump += `   Total Events: ${stats.totalEvents}\n`
+  dump += `   Sent: ${stats.sentEvents} | Received: ${stats.receivedEvents}\n`
+  dump += `   Errors: ${stats.errorEvents} | Call: ${stats.callEvents} | Room: ${stats.roomEvents}\n`
+  dump += `   Connection: ${stats.connectionEvents}\n`
+  dump += `   Test Duration: ${contextData.testDuration}ms\n\n`
+
+  // Show error events if any
+  const errorEvents = contextData.events.filter(
+    (event) => event.context.isError
+  )
+  if (errorEvents.length > 0) {
+    dump += 'ERROR EVENTS:\n'
+    errorEvents.forEach((event, index) => {
+      const time = new Date(event.timestamp).toISOString().substring(11, 23)
+      dump += `   ${index + 1}. ${time} [${event.direction.toUpperCase()}] ${
+        event.eventType
+      }\n`
+      dump += `      Error: ${
+        event.payload.error?.message || 'Unknown error'
+      }\n`
+      if (event.payload.error?.code) {
+        dump += `      Code: ${event.payload.error.code}\n`
+      }
+    })
+    dump += '\n'
+  }
+
+  // Show recent events timeline
+  dump += 'RECENT EVENTS (Last 15):\n'
+  const recentEvents = contextData.events.slice(-15)
+  recentEvents.forEach((event, index) => {
+    const time = new Date(event.timestamp).toISOString().substring(11, 23)
+    const direction = event.direction === 'send' ? 'SEND' : 'RECV'
+
+    dump += `   ${(index + 1).toString().padStart(2)}. ${time} [${direction}] ${
+      event.eventType
+    }\n`
+
+    if (event.context.isCallEvent && event.context.callId) {
+      dump += `      Call ID: ${event.context.callId}\n`
+    }
+    if (event.context.isRoomEvent && event.context.roomId) {
+      dump += `      Room ID: ${event.context.roomId}\n`
+    }
+    if (event.context.isError) {
+      dump += `      Error: ${
+        event.payload.error?.message || 'Error occurred'
+      }\n`
+    }
+  })
+  dump += '\n'
+
+  // Show detailed payload for last few events
+  if (stats.totalEvents > 0) {
+    dump += 'LAST EVENT DETAILS:\n'
+    const lastEvents = contextData.events.slice(-3)
+    lastEvents.forEach((event, index) => {
+      dump += `   ${index + 1}. [${event.direction.toUpperCase()}] ${
+        event.eventType
+      }:\n`
+      dump += `      ${JSON.stringify(event.payload, null, 6)}\n`
+    })
+  }
+
+  dump += '\n' + '* '.repeat(40) + '\n'
+
+  return dump
+}
+
+// #endregion
