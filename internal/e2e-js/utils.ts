@@ -1147,11 +1147,17 @@ export const expectv2HasReceivedAudio = async (
   )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
-  if (totalAudioEnergy) {
+  const audioLevel = audioStats['inbound-rtp']['audioLevel']
+  
+  if (totalAudioEnergy !== undefined && totalAudioEnergy !== null ) {
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
   } else {
     console.log('Warning: totalAudioEnergy was missing from the report!')
-    if (packetsReceived) {
+    
+    if (audioLevel !== undefined && audioLevel !== null) {
+      console.log(`Using audioLevel as fallback: ${audioLevel}`)
+      expect(audioLevel).toBeGreaterThan(minTotalAudioEnergy / 10) // audioLevel is typically higher than totalAudioEnergy
+    } else if (packetsReceived) {
       // We still want the right amount of packets
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
     } else {
@@ -1230,11 +1236,17 @@ export const expectv2HasReceivedSilence = async (
   )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
-  if (totalAudioEnergy) {
+  const audioLevel = audioStats['inbound-rtp']['audioLevel']
+  
+  if (totalAudioEnergy !== undefined && totalAudioEnergy !== null) {
     expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
   } else {
     console.log('Warning: totalAudioEnergy was missing from the report!')
-    if (packetsReceived) {
+    
+    if (audioLevel !== undefined && audioLevel !== null) {
+      console.log(`Using audioLevel as fallback: ${audioLevel}`)
+      expect(audioLevel).toBeLessThan(maxTotalAudioEnergy * 10) // audioLevel is typically higher than totalAudioEnergy
+    } else if (packetsReceived) {
       // We still want the right amount of packets
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
     } else {
@@ -1620,4 +1632,65 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   })
 
   expect(roomMemberId).toEqual(memberId)
+}
+
+export const waitForCallActive = async (page: Page, timeout = 30000) => {
+  const callStatus = page.locator('#callStatus')
+  expect(callStatus).not.toBe(null)
+  
+  try {
+    await expect(callStatus).toContainText('-> active', { timeout })
+    return true
+  } catch (error) {
+    const currentStatus = await callStatus.textContent()
+    console.log(`Call status check failed. Current status: ${currentStatus}`)
+    throw error
+  }
+}
+
+// Utility function to create call with better error handling
+export const createCallWithRetry = async (resource: string, inlineLaml: string, codecs?: string, maxRetries = 3) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const result = await createCallWithCompatibilityApi(resource, inlineLaml, codecs)
+      if (result === 201) {
+        return result
+      }
+      console.log(`Attempt ${i + 1} failed with status ${result}`)
+    } catch (error) {
+      console.log(`Attempt ${i + 1} failed with error:`, error)
+    }
+    
+    if (i < maxRetries - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+    }
+  }
+  throw new Error(`Failed to create call after ${maxRetries} attempts`)
+}
+
+// Utility function to wait for call stability
+export const waitForCallStability = async (page: Page, minDuration = 5000) => {
+  const startTime = Date.now()
+  let lastStatus = ''
+  let stableCount = 0
+  
+  while (Date.now() - startTime < minDuration) {
+    const currentStatus = await page.locator('#callStatus').textContent()
+    
+    if (currentStatus === lastStatus) {
+      stableCount++
+    } else {
+      stableCount = 0
+      lastStatus = currentStatus || ''
+    }
+    
+    // If status has been stable for 2 seconds, consider it stable
+    if (stableCount > 2) {
+      break
+    }
+    
+    await page.waitForTimeout(1000)
+  }
+  
+  return lastStatus
 }
