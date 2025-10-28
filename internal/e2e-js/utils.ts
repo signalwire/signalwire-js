@@ -1147,26 +1147,24 @@ export const expectv2HasReceivedAudio = async (
   )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
-  const audioLevel = audioStats['inbound-rtp']['audioLevel']
-  
-  if (totalAudioEnergy !== undefined && totalAudioEnergy !== null ) {
+
+  if (totalAudioEnergy !== undefined && totalAudioEnergy !== null) {
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
   } else {
-    console.log('Warning: totalAudioEnergy was missing from the report!')
-    
-    if (audioLevel !== undefined && audioLevel !== null) {
-      console.log(`Using audioLevel as fallback: ${audioLevel}`)
-      expect(audioLevel).toBeGreaterThan(minTotalAudioEnergy / 10) // audioLevel is typically higher than totalAudioEnergy
-    } else if (packetsReceived) {
-      // We still want the right amount of packets
-      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
-    } else {
-      console.log('Warning: packetsReceived was missing from the report!')
-      /* We don't make this test fail, because the absence of packetsReceived
-       * is a symptom of an issue with RTCStats, rather than an indication
-       * of lack of RTP flow.
-       */
-    }
+    console.log(
+      'Warning: totalAudioEnergy was missing from the report! Assuming presence of audio due to known bug.'
+    )
+    // No explicit energy check here; rely on packets below to pass if flow is confirmed.
+  }
+
+  if (packetsReceived !== undefined) {
+    expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+  } else {
+    console.log('Warning: packetsReceived was missing from the report!')
+    /* We don't make this test fail, because the absence of packetsReceived
+    * is a symptom of an issue with RTCStats, rather than an indication
+    * of lack of RTP flow.
+    */
   }
 }
 
@@ -1224,7 +1222,7 @@ export const expectv2HasReceivedSilence = async (
   })
   console.log('audioStats: ', audioStats)
 
-  /* This is a workaround what we think is a bug in Playwright/Chromium
+  /* This is a workaround for what we think is a bug in Playwright/Chromium.
    * There are cases where totalAudioEnergy is not present in the report
    * even though we see audio and it's not silence.
    * In that case we rely on the number of packetsReceived.
@@ -1236,26 +1234,20 @@ export const expectv2HasReceivedSilence = async (
   )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
-  const audioLevel = audioStats['inbound-rtp']['audioLevel']
-  
+
   if (totalAudioEnergy !== undefined && totalAudioEnergy !== null) {
     expect(totalAudioEnergy).toBeLessThan(maxTotalAudioEnergy)
   } else {
     console.log('Warning: totalAudioEnergy was missing from the report!')
-    
-    if (audioLevel !== undefined && audioLevel !== null) {
-      console.log(`Using audioLevel as fallback: ${audioLevel}`)
-      expect(audioLevel).toBeLessThan(maxTotalAudioEnergy * 10) // audioLevel is typically higher than totalAudioEnergy
-    } else if (packetsReceived) {
-      // We still want the right amount of packets
-      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
-    } else {
-      console.log('Warning: packetsReceived was missing from the report!')
-      /* We don't make this test fail, because the absence of packetsReceived
-       * is a symptom of an issue with RTCStats, rather than an indication
-       * of lack of RTP flow.
-       */
-    }
+    // Since genuine silence should have this stat, assume this means non-silence and fail.
+    expect(totalAudioEnergy).toBeDefined() // This will fail the test with a clear message.
+  }
+
+  if (packetsReceived !== undefined) {
+    expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+  } else {
+    console.log('Warning: packetsReceived was missing from the report!')
+    // Optionally fail if critical: expect(packetsReceived).toBeDefined();
   }
 }
 
@@ -1637,7 +1629,7 @@ export const expectMemberId = async (page: Page, memberId: string) => {
 export const waitForCallActive = async (page: Page, timeout = 30000) => {
   const callStatus = page.locator('#callStatus')
   expect(callStatus).not.toBe(null)
-  
+
   try {
     await expect(callStatus).toContainText('-> active', { timeout })
     return true
@@ -1649,10 +1641,19 @@ export const waitForCallActive = async (page: Page, timeout = 30000) => {
 }
 
 // Utility function to create call with better error handling
-export const createCallWithRetry = async (resource: string, inlineLaml: string, codecs?: string, maxRetries = 3) => {
+export const createCallWithRetry = async (
+  resource: string,
+  inlineLaml: string,
+  codecs?: string,
+  maxRetries = 3
+) => {
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const result = await createCallWithCompatibilityApi(resource, inlineLaml, codecs)
+      const result = await createCallWithCompatibilityApi(
+        resource,
+        inlineLaml,
+        codecs
+      )
       if (result === 201) {
         return result
       }
@@ -1660,9 +1661,9 @@ export const createCallWithRetry = async (resource: string, inlineLaml: string, 
     } catch (error) {
       console.log(`Attempt ${i + 1} failed with error:`, error)
     }
-    
+
     if (i < maxRetries - 1) {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
     }
   }
   throw new Error(`Failed to create call after ${maxRetries} attempts`)
@@ -1673,24 +1674,24 @@ export const waitForCallStability = async (page: Page, minDuration = 5000) => {
   const startTime = Date.now()
   let lastStatus = ''
   let stableCount = 0
-  
+
   while (Date.now() - startTime < minDuration) {
     const currentStatus = await page.locator('#callStatus').textContent()
-    
+
     if (currentStatus === lastStatus) {
       stableCount++
     } else {
       stableCount = 0
       lastStatus = currentStatus || ''
     }
-    
+
     // If status has been stable for 2 seconds, consider it stable
     if (stableCount > 2) {
       break
     }
-    
+
     await page.waitForTimeout(1000)
   }
-  
+
   return lastStatus
 }
