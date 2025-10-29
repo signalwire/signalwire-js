@@ -1147,11 +1147,10 @@ export const expectv2HasReceivedAudio = async (
   )
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
-
   if (totalAudioEnergy) {
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
   } else {
-    console.log('Warning: totalAudioEnergy was missing from the report!'
+    console.log('Warning: totalAudioEnergy was missing from the report!')
     if (packetsReceived) {
       // We still want the right amount of packets
       expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
