@@ -1148,23 +1148,22 @@ export const expectv2HasReceivedAudio = async (
   const totalAudioEnergy = audioStats['inbound-rtp']['totalAudioEnergy']
   const packetsReceived = audioStats['inbound-rtp']['packetsReceived']
 
-  if (totalAudioEnergy !== undefined && totalAudioEnergy !== null) {
+  if (totalAudioEnergy) {
     expect(totalAudioEnergy).toBeGreaterThan(minTotalAudioEnergy)
   } else {
     console.log(
       'Warning: totalAudioEnergy was missing from the report! Assuming presence of audio due to known bug.'
     )
-    // No explicit energy check here; rely on packets below to pass if flow is confirmed.
-  }
-
-  if (packetsReceived !== undefined) {
-    expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
-  } else {
-    console.log('Warning: packetsReceived was missing from the report!')
-    /* We don't make this test fail, because the absence of packetsReceived
-    * is a symptom of an issue with RTCStats, rather than an indication
-    * of lack of RTP flow.
-    */
+    if (packetsReceived) {
+      // We still want the right amount of packets
+      expect(packetsReceived).toBeGreaterThan(minPacketsReceived)
+    } else {
+      console.log('Warning: packetsReceived was missing from the report!')
+      /* We don't make this test fail, because the absence of packetsReceived
+       * is a symptom of an issue with RTCStats, rather than an indication
+       * of lack of RTP flow.
+       */
+    }
   }
 }
 
@@ -1222,7 +1221,7 @@ export const expectv2HasReceivedSilence = async (
   })
   console.log('audioStats: ', audioStats)
 
-  /* This is a workaround for what we think is a bug in Playwright/Chromium.
+  /* This is a workaround for what we think is a bug in Playwright/Chromium
    * There are cases where totalAudioEnergy is not present in the report
    * even though we see audio and it's not silence.
    * In that case we rely on the number of packetsReceived.
