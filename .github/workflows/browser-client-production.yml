@@ -47,7 +47,7 @@ jobs:
       - name: Install Playwright
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.35.1' # TODO: Read from deps ?
+          PLAYWRIGHT_VERSION: '1.56.0' # TODO: Read from deps ?
       - name: Install Zrok
         if: ${{ matrix.project == 'v2WebRTC'}}
         uses: ./.github/actions/zrok
