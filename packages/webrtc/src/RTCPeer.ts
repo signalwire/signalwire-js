@@ -20,6 +20,7 @@ import {
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
+
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -28,6 +29,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public instance: RTCPeerConnection
 
   private _iceTimeout: any
+  private _iceGatheringTimeout: any
   private _negotiating = false
   private _processingRemoteSDP = false
   private _restartingIce = false
@@ -35,11 +37,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _connectionStateTimer: ReturnType<typeof setTimeout>
   private _resumeTimer?: ReturnType<typeof setTimeout>
   private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
-  private _candidatesSnapshot: RTCIceCandidate[] = []
-  private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
-  private _waitNegotiation: Promise<void> = Promise.resolve()
-  private _waitNegotiationCompleter: () => void
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -202,11 +200,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _negotiationCompleted(error?: unknown) {
     if (!error) {
       this._resolveStartMethod()
-      this._waitNegotiationCompleter?.()
       this._pendingNegotiationPromise?.resolve()
     } else {
       this._rejectStartMethod(error)
-      this._waitNegotiationCompleter?.()
       this._pendingNegotiationPromise?.reject(error)
     }
   }
@@ -455,6 +451,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
     this._negotiating = true
+
     try {
       /**
        * additionalDevice and screenShare are `sendonly`
@@ -507,11 +504,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       this.logger.info('iceGatheringState', this.instance.iceGatheringState)
-      if (this.instance.iceGatheringState === 'gathering') {
-        this._iceTimeout = setTimeout(() => {
-          this._onIceTimeout()
-        }, this.options.maxIceGatheringTimeout)
-      }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
       this._negotiationCompleted(error)
@@ -921,45 +913,19 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
-      const isAllowedToSendLocalSDP = await this._isAllowedToSendLocalSDP()
-      if (!isAllowedToSendLocalSDP) {
-        this.logger.info('Skipping onLocalSDPReady due to early invite')
-        this._processingLocalSDP = false
-        return
-      }
-
-      this._waitNegotiation = new Promise((resolve) => {
-        this._waitNegotiationCompleter = resolve
-      })
-
       await this.call.onLocalSDPReady(this)
       this._processingLocalSDP = false
       if (this.isAnswer) {
+        this.logger.debug('Setting negotiating false for inbound calls')
+        this._negotiating = false
+        this._restartingIce = false
+        this.resetNeedResume()
         this._negotiationCompleted()
       }
     } catch (error) {
       this._negotiationCompleted(error)
       this._processingLocalSDP = false
     }
-  }
-
-  /**
-   * Waits for the pending negotiation promise to resolve
-   * and checks if the current signaling state allows to send a local SDP.
-   * This is used to prevent sending an offer when the signaling state is not appropriate.
-   * or when still waiting for a previous negotiation to complete.
-   */
-  private async _isAllowedToSendLocalSDP() {
-    await this._waitNegotiation
-
-    // Check if signalingState have the right state to sand an offer
-    return (
-      (this.type === 'offer' &&
-        ['have-local-offer', 'have-local-pranswer'].includes(
-          this.instance.signalingState
-        )) ||
-      (this.type === 'answer' && this.instance.signalingState === 'stable')
-    )
   }
 
   private _sdpIsValid() {
@@ -977,6 +943,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _onIceTimeout() {
+    this.instance.removeEventListener('icecandidate', this._onIce)
+
     if (this._sdpIsValid()) {
       this._sdpReady()
       return
@@ -1002,94 +970,29 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _onIce(event: RTCPeerConnectionIceEvent) {
-    /**
-     * Clear _iceTimeout on each single candidate
-     */
+    // Clear _iceTimeout on each single candidate
     if (this._iceTimeout) {
       clearTimeout(this._iceTimeout)
     }
+
+    // Add new _newTimeout for next candidate
+    this._iceTimeout = setTimeout(() => {
+      this._onIceTimeout()
+    }, this.options.iceGatheringTimeout)
 
     /**
      * Following spec: no candidate means the gathering is completed.
      */
     if (!event.candidate) {
       this.instance.removeEventListener('icecandidate', this._onIce)
-      // not call _sdpReady if an early invite has been sent
-      if (this._candidatesSnapshot.length > 0) {
-        this.logger.debug('No more candidates, calling _sdpReady')
-        this._sdpReady()
-      }
+      clearTimeout(this._iceTimeout)
+      this.logger.debug('No more candidates, calling _sdpReady')
+      this._sdpReady()
+
       return
     }
 
-    // Store all candidates
-    this._allCandidates.push(event.candidate)
-
     this.logger.debug('RTCPeer Candidate:', event.candidate)
-    if (event.candidate.type === 'host') {
-      /**
-       * With `host` candidate set timeout to
-       * maxIceGatheringTimeout and then invoke
-       * _onIceTimeout to check if the SDP is valid
-       */
-      this._iceTimeout = setTimeout(() => {
-        this.instance.removeEventListener('icecandidate', this._onIce)
-        this._onIceTimeout()
-      }, this.options.maxIceGatheringTimeout)
-    } else {
-      /**
-       * With non-HOST candidate (srflx, prflx or relay), check if we have
-       * candidates for all media sections to support early invite
-       */
-      if (this.instance.localDescription?.sdp) {
-        if (sdpHasValidCandidates(this.instance.localDescription.sdp)) {
-          // Take a snapshot of candidates at this point
-          if (this._candidatesSnapshot.length === 0 && this.type === 'offer') {
-            this._candidatesSnapshot = [...this._allCandidates]
-            this.logger.info(
-              'SDP has candidates for all media sections, calling _sdpReady for early invite'
-            )
-            setTimeout(() => this._sdpReady(), 0) // Defer to allow any pending operations to complete
-          }
-        } else {
-          this.logger.info(
-            'SDP does not have candidates for all media sections, waiting for more candidates'
-          )
-          this.logger.debug(this.instance.localDescription?.sdp)
-        }
-      }
-    }
-  }
-
-  private _retryWithMoreCandidates() {
-    // Check if we have better candidates now than when we first sent SDP
-    const hasMoreCandidates = this._hasMoreCandidates()
-
-    if (hasMoreCandidates && this.instance.connectionState !== 'connected') {
-      this.logger.info(
-        'More candidates found after ICE gathering complete, triggering renegotiation'
-      )
-      // Reset negotiation state to allow new negotiation
-      this._negotiating = false
-      this._candidatesSnapshot = []
-      this._allCandidates = []
-
-      // set the SDP type to 'offer' since the client is initiating a new negotiation
-      this.type = 'offer'
-      // Start negotiation with force=true
-      if (this.instance.signalingState === 'stable') {
-        this.startNegotiation(true)
-      } else {
-        this.logger.warn(
-          'Signaling state is not stable, cannot start negotiation immediately'
-        )
-        this.restartIce()
-      }
-    }
-  }
-
-  private _hasMoreCandidates(): boolean {
-    return this._allCandidates.length > this._candidatesSnapshot.length
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
@@ -1115,12 +1018,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         googleStartBitrate
       )
     }
-    // this.logger.debug(
-    //   'LOCAL SDP \n',
-    //   `Type: ${localDescription.type}`,
-    //   '\n\n',
-    //   localDescription.sdp
-    // )
     return this.instance.setLocalDescription(localDescription)
   }
 
@@ -1161,9 +1058,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         case 'stable':
           // Workaround to skip nested negotiations
           // Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=740501
-          this._negotiating = false
-          this._restartingIce = false
-          this.resetNeedResume()
+
+          if (this.isOffer) {
+            // only when it's an offer that means the negotiation is done
+            this.logger.debug('Setting negotiating false for outbound calls')
+            this._negotiating = false
+            this._restartingIce = false
+            this.resetNeedResume()
+          }
 
           if (this.instance.connectionState === 'connected') {
             // An ice restart won't change the connectionState so we emit the same event in here
@@ -1194,14 +1096,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         // case 'new':
         //   break
         case 'connecting':
-          this._connectionStateTimer = setTimeout(() => {
-            this.logger.warn('connectionState timed out')
-            if (this._hasMoreCandidates()) {
-              this._retryWithMoreCandidates()
-            } else {
-              this.restartIceWithRelayOnly()
-            }
-          }, this.options.maxConnectionStateTimeout)
           break
         case 'connected':
           this.clearConnectionStateTimer()
@@ -1230,14 +1124,31 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     this.instance.addEventListener('icegatheringstatechange', () => {
       this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
-      if (this.instance.iceGatheringState === 'complete') {
-        this.logger.debug('ICE gathering complete')
-        void this._sdpReady()
+      switch (this.instance.iceGatheringState) {
+        case 'gathering':
+          this._iceGatheringTimeout = setTimeout(() => {
+            this._onIceTimeout()
+          }, this.options.maxIceGatheringTimeout)
+          break
+        case 'complete':
+          this.clearIceGatheringTimer()
+
+          // start connectionState timer after the gathering is complete
+          this._connectionStateTimer = setTimeout(() => {
+            this.logger.warn('connectionState timed out')
+            this.restartIceWithRelayOnly()
+          }, this.options.maxConnectionStateTimeout)
+
+          this.logger.debug('ICE gathering complete')
+          void this._sdpReady()
+          break
       }
     })
 
     // this.instance.addEventListener('icecandidateerror', (event) => {
     //   this.logger.warn('IceCandidate Error:', event)
+    //   this.clearTimers()
+    //   this._forceNegotiation()
     // })
 
     this.instance.addEventListener('track', (event: RTCTrackEvent) => {
@@ -1265,7 +1176,12 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private clearTimers() {
     this.clearResumeTimer()
     this.clearWatchMediaPacketsTimer()
+    this.clearIceGatheringTimer()
     this.clearConnectionStateTimer()
+  }
+
+  clearIceGatheringTimer() {
+    clearTimeout(this._iceGatheringTimeout)
   }
 
   private clearConnectionStateTimer() {
