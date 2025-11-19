@@ -59,6 +59,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _localStream?: MediaStream
   private _remoteStream?: MediaStream
   private rtcConfigPolyfill: RTCConfiguration
+  private _validSDPAfterTimeout = false
 
   private get logger() {
     return getLogger()
@@ -885,7 +886,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private async _sdpReady() {
-    if (this._processingLocalSDP) {
+    if (this._processingLocalSDP || this._validSDPAfterTimeout) {
+      // skipping duplicate calls to _sdpReady after ice timeout or gathering completion events
       this.logger.debug('Already processing local SDP, skipping')
       return
     }
@@ -945,11 +947,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _onIceTimeout() {
     this.instance.removeEventListener('icecandidate', this._onIce)
 
+    this.logger.info('ICE gathering timeout')
+
     if (this._sdpIsValid()) {
+      this.logger.debug('SDP is valid despite ICE timeout, with _sdpReady()')
+      this._validSDPAfterTimeout = true
+
       this._sdpReady()
       return
     }
-    this.logger.info('ICE gathering timeout')
     const config = this.getConfiguration()
     if (config.iceTransportPolicy === 'relay') {
       this.logger.info('RTCPeer already with "iceTransportPolicy: relay"')
@@ -975,27 +981,29 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       clearTimeout(this._iceTimeout)
     }
 
-    // Add new _newTimeout for next candidate
-    this._iceTimeout = setTimeout(() => {
-      this._onIceTimeout()
-    }, this.options.iceGatheringTimeout)
-
     /**
      * Following spec: no candidate means the gathering is completed.
      */
     if (!event.candidate) {
       this.instance.removeEventListener('icecandidate', this._onIce)
-      clearTimeout(this._iceTimeout)
       this.logger.debug('No more candidates, calling _sdpReady')
       this._sdpReady()
 
       return
     }
 
+    // Add new _newTimeout for next candidate
+    this._iceTimeout = setTimeout(() => {
+      this._onIceTimeout()
+    }, this.options.iceGatheringTimeout)
+
     this.logger.debug('RTCPeer Candidate:', event.candidate)
   }
 
   private _setLocalDescription(localDescription: RTCSessionDescriptionInit) {
+    // reset valid SDP after timeout flag for next gathering
+    this._validSDPAfterTimeout = false
+
     const {
       useStereo,
       googleMaxBitrate,
@@ -1022,6 +1030,9 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _setRemoteDescription(remoteDescription: RTCSessionDescriptionInit) {
+    // reset valid SDP after timeout flag for next gathering
+    this._validSDPAfterTimeout = false
+
     if (remoteDescription.sdp && this.options.useStereo) {
       remoteDescription.sdp = sdpStereoHack(remoteDescription.sdp)
     }
