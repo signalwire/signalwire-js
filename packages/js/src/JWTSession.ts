@@ -32,7 +32,8 @@ export class JWTSession extends BaseJWTSession {
 
     super({
       ...options,
-      host: decodedJwt?.ch || options.host,
+      // allow overriding the host from options - DON'T MERGE THIS
+      host: options.host || decodedJwt?.ch,
     })
     this.tokenTyp = decodedJwt.typ ?? 'VRT'
   }

@@ -18,7 +18,9 @@
     "prepare:prod": "sw-release --prepare-prod",
     "release:prod": "sw-release --production",
     "docs": "npm run docs:clean && typedoc --out docs/html && typedoc --plugin typedoc-plugin-markdown --out docs/md",
-    "docs:clean": "rimraf docs"
+    "docs:clean": "rimraf docs",
+    "token": "node scripts/sw-sat/sw-sat.js",
+    "playground": "npm run token && npm run -w @sw-internal/playground-js dev"
   },
   "dependencies": {
     "@babel/core": "^7.26.0",

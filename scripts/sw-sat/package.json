@@ -1,0 +1,17 @@
+{
+  "name": "sw-sat",
+  "version": "1.0.0",
+  "description": "CLI tool to generate SignalWire Subscriber Access Tokens (SAT)",
+  "license": "MIT",
+  "author": "SignalWire",
+  "type": "module",
+  "bin": {
+    "sw-sat": "./sw-sat.js"
+  },
+  "scripts": {
+    "start": "node sw-sat.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  }
+}
