@@ -1,4 +1,5 @@
-import { SWClient, SWClientOptions } from './SWClient'
+import { SWClient } from './SWClient'
+import { SWClientOptions } from './types'
 
 export const SignalWire = (options: SWClientOptions): Promise<SWClient> => {
   return new Promise(async (resolve, reject) => {

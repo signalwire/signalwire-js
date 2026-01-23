@@ -7,18 +7,17 @@ import { PubSub } from './pubSub/PubSub'
 import { Chat } from './chat/Chat'
 import { Voice } from './voice/Voice'
 import { Video } from './video/Video'
-
-export interface SWClientOptions {
-  host?: string
-  project: string
-  token: string
-  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  debug?: {
-    logWsTraffic?: boolean
-  }
-}
+import { SWClientOptions, SWClientSessionListeners } from './types'
 
 export class SWClient {
+  private _sessionEventMap = {
+    onConnected: 'session.connected',
+    onDisconnected: 'session.disconnected',
+    onReconnecting: 'session.reconnecting',
+    onAuthError: 'session.auth_error',
+    onAuthExpiring: 'session.expiring',
+  } as const
+
   private _task: Task
   private _messaging: Messaging
   private _pubSub: PubSub
@@ -32,6 +31,10 @@ export class SWClient {
   constructor(options: SWClientOptions) {
     this.userOptions = options
     this.client = createClient(options)
+
+    if (options.listen) {
+      this._attachSessionListeners(options.listen)
+    }
   }
 
   async connect() {
@@ -41,11 +44,36 @@ export class SWClient {
   disconnect() {
     return new Promise<void>((resolve) => {
       const { sessionEmitter } = this.client
-      sessionEmitter.on('session.disconnected', () => {
-        resolve()
-      })
+      sessionEmitter.on('session.disconnected', resolve)
 
       this.client.disconnect()
+    })
+  }
+
+  listen(listeners: SWClientSessionListeners): () => void {
+    this._attachSessionListeners(listeners)
+    return () => this._detachSessionListeners(listeners)
+  }
+
+  private _attachSessionListeners(listeners: SWClientSessionListeners) {
+    const { sessionEmitter } = this.client
+    Object.entries(listeners).forEach(([key, fn]) => {
+      if (typeof fn === 'function') {
+        const event =
+          this._sessionEventMap[key as keyof SWClientSessionListeners]
+        if (event) sessionEmitter.on(event, fn)
+      }
+    })
+  }
+
+  private _detachSessionListeners(listeners: SWClientSessionListeners) {
+    const { sessionEmitter } = this.client
+    Object.entries(listeners).forEach(([key, fn]) => {
+      if (typeof fn === 'function') {
+        const event =
+          this._sessionEventMap[key as keyof SWClientSessionListeners]
+        if (event) sessionEmitter.off(event, fn)
+      }
     })
   }
 
