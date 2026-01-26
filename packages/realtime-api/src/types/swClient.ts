@@ -5,7 +5,6 @@ export interface SWClientSessionListeners {
   onDisconnected?: () => void
   onReconnecting?: () => void
   onAuthError?: (error: AuthError) => void
-  onAuthExpiring?: () => void
 }
 
 export interface SWClientOptions {

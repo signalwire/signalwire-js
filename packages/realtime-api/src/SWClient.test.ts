@@ -119,7 +119,6 @@ describe('SWClient', () => {
       const onDisconnected = jest.fn()
       const onReconnecting = jest.fn()
       const onAuthError = jest.fn()
-      const onAuthExpiring = jest.fn()
 
       new SWClient({
         ...userOptions,
@@ -128,7 +127,6 @@ describe('SWClient', () => {
           onDisconnected,
           onReconnecting,
           onAuthError,
-          onAuthExpiring,
         },
       })
 
@@ -147,10 +145,6 @@ describe('SWClient', () => {
       expect(clientMock.sessionEmitter.on).toHaveBeenCalledWith(
         'session.auth_error',
         onAuthError
-      )
-      expect(clientMock.sessionEmitter.on).toHaveBeenCalledWith(
-        'session.expiring',
-        onAuthExpiring
       )
     })
 

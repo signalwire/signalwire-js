@@ -19,7 +19,6 @@ export class SWClient {
     onDisconnected: 'session.disconnected',
     onReconnecting: 'session.reconnecting',
     onAuthError: 'session.auth_error',
-    onAuthExpiring: 'session.expiring',
   } as const
 
   private _task: Task
