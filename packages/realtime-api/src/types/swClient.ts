@@ -1,4 +1,4 @@
-import { AuthError } from '@signalwire/core'
+import { AuthError, ClientEvents } from '@signalwire/core'
 
 export interface SWClientSessionListeners {
   onConnected?: () => void
@@ -15,4 +15,8 @@ export interface SWClientOptions {
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
   debug?: { logWsTraffic?: boolean }
   listen?: SWClientSessionListeners
+}
+
+export type SessionListenersEventMap = {
+  [K in keyof Required<SWClientSessionListeners>]: keyof ClientEvents
 }

@@ -50,7 +50,7 @@ export const pubSubWorker: SDKWorker<Client> = function* (
         const pubSubMessage = new PubSubMessage(externalJSON)
 
         // @ts-expect-error
-        pubSub.emit(prefixEvent(channel, 'chat.message'), pubSubMessage)
+        pubSub._emit(prefixEvent(channel, 'chat.message'), pubSubMessage)
         break
       }
       default:

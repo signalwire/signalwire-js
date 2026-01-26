@@ -39,7 +39,7 @@ export const chatWorker: SDKWorker<Client> = function* (options): SagaIterator {
         const chatMessage = new ChatMessage(externalJSON)
 
         // @ts-expect-error
-        chat.emit(prefixEvent(channel, 'chat.message'), chatMessage)
+        chat._emit(prefixEvent(channel, 'chat.message'), chatMessage)
         break
       }
       case 'chat.member.joined':
@@ -50,7 +50,7 @@ export const chatWorker: SDKWorker<Client> = function* (options): SagaIterator {
         const chatMember = new ChatMember(externalJSON)
 
         // @ts-expect-error
-        chat.emit(prefixEvent(channel, type), chatMember)
+        chat._emit(prefixEvent(channel, type), chatMember)
         break
       }
       default:

@@ -60,23 +60,23 @@ export const voiceCallDetectWorker: SDKWorker<Client> = function* (
     switch (event) {
       case 'finished':
       case 'error': {
-        callInstance.emit('detect.ended', detectInstance)
-        detectInstance.emit('detect.ended', detectInstance)
+        callInstance._emit('detect.ended', detectInstance)
+        detectInstance._emit('detect.ended', detectInstance)
 
         remove<CallDetect>(payload.control_id)
         return true
       }
       default:
-        callInstance.emit('detect.updated', detectInstance)
-        detectInstance.emit('detect.updated', detectInstance)
+        callInstance._emit('detect.updated', detectInstance)
+        detectInstance._emit('detect.updated', detectInstance)
         break
     }
 
     switch (type) {
       case 'machine':
         if (params.beep && detectInstance.waitForBeep) {
-          callInstance.emit('detect.ended', detectInstance)
-          detectInstance.emit('detect.ended', detectInstance)
+          callInstance._emit('detect.ended', detectInstance)
+          detectInstance._emit('detect.ended', detectInstance)
         }
         break
       case 'digit':

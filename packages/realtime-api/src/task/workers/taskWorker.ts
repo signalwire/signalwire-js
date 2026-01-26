@@ -27,7 +27,7 @@ export const taskWorker: SDKWorker<Client> = function* (options): SagaIterator {
     const { context } = action.payload
 
     // @ts-expect-error
-    task.emit(prefixEvent(context, 'task.received'), action.payload.message)
+    task._emit(prefixEvent(context, 'task.received'), action.payload.message)
   }
 
   const isTaskEvent = (action: SDKActions) =>

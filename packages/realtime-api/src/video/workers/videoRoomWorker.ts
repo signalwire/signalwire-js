@@ -58,17 +58,17 @@ export const videoRoomWorker = function* (
 
   switch (type) {
     case 'video.room.started': {
-      video.emit('room.started', roomSessionInstance)
-      roomSessionInstance.emit('room.started', roomSessionInstance)
+      video._emit('room.started', roomSessionInstance)
+      roomSessionInstance._emit('room.started', roomSessionInstance)
       break
     }
     case 'video.room.updated': {
-      roomSessionInstance.emit('room.updated', roomSessionInstance)
+      roomSessionInstance._emit('room.updated', roomSessionInstance)
       break
     }
     case 'video.room.ended': {
-      video.emit('room.ended', roomSessionInstance)
-      roomSessionInstance.emit('room.ended', roomSessionInstance)
+      video._emit('room.ended', roomSessionInstance)
+      roomSessionInstance._emit('room.ended', roomSessionInstance)
       remove<RoomSession>(payload.room_session.id)
       break
     }
@@ -87,7 +87,7 @@ export const videoRoomWorker = function* (
           })
         },
       })
-      roomSessionInstance.emit('room.subscribed', roomSessionInstance)
+      roomSessionInstance._emit('room.subscribed', roomSessionInstance)
       break
     }
     default:

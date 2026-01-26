@@ -58,22 +58,22 @@ export const voiceCallRecordWorker: SDKWorker<Client> = function* (
           : 'recording.started'
         recordingInstance._paused = false
 
-        callInstance.emit(type, recordingInstance)
-        recordingInstance.emit(type, recordingInstance)
+        callInstance._emit(type, recordingInstance)
+        recordingInstance._emit(type, recordingInstance)
         return false
       }
       case 'paused': {
         recordingInstance._paused = true
-        callInstance.emit('recording.updated', recordingInstance)
-        recordingInstance.emit('recording.updated', recordingInstance)
+        callInstance._emit('recording.updated', recordingInstance)
+        recordingInstance._emit('recording.updated', recordingInstance)
         return false
       }
       case 'no_input':
       case 'finished': {
         const type =
           payload.state === 'finished' ? 'recording.ended' : 'recording.failed'
-        callInstance.emit(type, recordingInstance)
-        recordingInstance.emit(type, recordingInstance)
+        callInstance._emit(type, recordingInstance)
+        recordingInstance._emit(type, recordingInstance)
 
         remove<CallRecording>(payload.control_id)
         return true
