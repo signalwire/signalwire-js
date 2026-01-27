@@ -1,3 +1,4 @@
+import { selectors, SessionAuthStatus } from '@signalwire/core'
 import { createClient } from './client/createClient'
 import type { Client } from './client/Client'
 import { clientConnect } from './client/clientConnect'
@@ -56,6 +57,10 @@ export class SWClient {
    */
   get userOptions(): SWClientOptions {
     return this._userOptions
+  }
+
+  get authStatus(): SessionAuthStatus {
+    return selectors.getAuthStatus(this._client.store.getState())
   }
 
   async connect() {

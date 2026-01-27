@@ -15,3 +15,5 @@ export const SignalWire = (options: SWClientOptions): Promise<SWClient> => {
 }
 
 export type { SWClient } from './SWClient'
+export type { SessionAuthStatus } from '@signalwire/core'
+export type { SWClientOptions, SWClientSessionListeners } from './types'
