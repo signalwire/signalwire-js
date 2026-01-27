@@ -1,7 +1,6 @@
 import tap from 'tap'
 import { actions } from '@signalwire/core'
-import type { AuthError } from '@signalwire/core'
-import { SignalWire } from '@signalwire/realtime-api'
+import { SignalWire, type AuthError } from '@signalwire/realtime-api'
 import { createTestRunner } from './utils'
 
 /**
@@ -49,6 +48,11 @@ const handler = async () => {
 
   await connected.promise
 
+  tap.equal(
+    client.authStatus,
+    'authorized',
+    'authStatus is "authorized" after connect'
+  )
   tap.equal(connectedCount, 1, 'constructor listen: onConnected called once')
 
   // --- Test client.listen + unsub + reconnect ---
@@ -111,7 +115,19 @@ const handler = async () => {
   })
   await reconnected.promise
 
+  tap.equal(
+    client.authStatus,
+    'authorized',
+    'authStatus is "authorized" after reconnect'
+  )
+
   await client.disconnect()
+
+  tap.equal(
+    client.authStatus,
+    'unauthorized',
+    'authStatus is "unauthorized" after disconnect'
+  )
 
   tap.equal(
     connectedCount,
@@ -178,6 +194,11 @@ const handler = async () => {
 
   const error = await authError.promise
 
+  tap.equal(
+    badClient.authStatus,
+    'unauthorized',
+    'authStatus is "unauthorized" after auth error'
+  )
   tap.ok(error, 'constructor listen: onAuthError called')
   tap.equal(error.name, 'AuthError', 'constructor listen: AuthError received')
   tap.equal(
