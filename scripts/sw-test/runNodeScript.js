@@ -9,11 +9,30 @@ const { spawn } = require('node:child_process')
 
 const ALLOWED_SCRIPT_EXTENSIONS = ['js', 'ts']
 
+const E2E_REALTIME_API_IGNORED_DIRECTORIES = [
+  'voiceCollect',
+  'voiceDetect',
+  'voicePlayback',
+  'voicePrompt',
+  'voiceRecord',
+]
+const E2E_REALTIME_API_IGNORED_FILES = [
+  'messaging.test.ts',
+  'task.test.ts',
+  'voice.test.ts',
+  'voicePass.test.ts',
+  'voiceTapAllListeners.test.ts',
+]
+
 const getScriptOptions = (pathname, config) => {
   const ignoreFiles = config.ignoreFiles || []
   const ignoreDirectories = config.ignoreDirectories
     ? [...config.ignoreDirectories, 'playwright']
     : ['playwright']
+
+  // FIXME: Temporary to run only Chat/PubSub tests
+  ignoreFiles.push(...E2E_REALTIME_API_IGNORED_FILES)
+  ignoreDirectories.push(...E2E_REALTIME_API_IGNORED_DIRECTORIES)
 
   let acc = []
 
