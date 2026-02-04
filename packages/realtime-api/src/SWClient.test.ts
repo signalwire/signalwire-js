@@ -26,6 +26,7 @@ describe('SWClient', () => {
       runWorker: jest.fn(),
       sessionEmitter: {
         on: jest.fn(),
+        once: jest.fn(),
         off: jest.fn(),
       },
       session: {
@@ -55,7 +56,7 @@ describe('SWClient', () => {
 
   it('should disconnect the client and resolve when session.disconnected is emitted', async () => {
     let disconnectCallback: () => void
-    clientMock.sessionEmitter.on.mockImplementation(
+    clientMock.sessionEmitter.once.mockImplementation(
       (event: string, callback: () => void) => {
         if (event === 'session.disconnected') {
           disconnectCallback = callback
@@ -65,7 +66,7 @@ describe('SWClient', () => {
 
     const disconnectPromise = swClient.disconnect()
 
-    expect(clientMock.sessionEmitter.on).toHaveBeenCalledWith(
+    expect(clientMock.sessionEmitter.once).toHaveBeenCalledWith(
       'session.disconnected',
       expect.any(Function)
     )
