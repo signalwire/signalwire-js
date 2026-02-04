@@ -70,7 +70,7 @@ export class SWClient {
   disconnect() {
     return new Promise<void>((resolve) => {
       const { sessionEmitter } = this._client
-      sessionEmitter.on('session.disconnected', resolve)
+      sessionEmitter.once('session.disconnected', resolve)
 
       this._client.disconnect()
     })

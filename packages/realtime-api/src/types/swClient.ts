@@ -16,6 +16,16 @@ export interface SWClientOptions {
   listen?: SWClientSessionListeners
 }
 
-export type SessionListenersEventMap = {
-  [K in keyof Required<SWClientSessionListeners>]: keyof ClientEvents
-}
+ type ValidateEventMap<
+   T extends Record<
+     keyof Required<SWClientSessionListeners>,
+     keyof ClientEvents
+   >
+ > = T
+
+ export type SessionListenersEventMap = ValidateEventMap<{
+   onConnected: 'session.connected'
+   onDisconnected: 'session.disconnected'
+   onReconnecting: 'session.reconnecting'
+   onAuthError: 'session.auth_error'
+ }>
