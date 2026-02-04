@@ -1,5 +1,45 @@
 # @signalwire/realtime-api
 
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [4.2.0] - 2026-02-04
+
+### Added
+
+- [#1330](https://github.com/signalwire/signalwire-js/pull/1330) [`58a9b1299fcda7ad836f0905637566c1de85bc84`](https://github.com/signalwire/signalwire-js/commit/58a9b1299fcda7ad836f0905637566c1de85bc84) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Add session lifecycle listeners and `authStatus` to the SignalWire client.
+
+You can now subscribe to session events (`onConnected`, `onDisconnected`, `onReconnecting`, `onAuthError`) either at construction time via the `listen` option or dynamically via the `listen()` method. The `authStatus` getter exposes the current authentication status.
+
+```js
+const client = await SignalWire({
+  project: '<project-id>',
+  token: '<api-token>',
+  listen: {
+    onConnected: () => console.log('Connected'),
+    onDisconnected: () => console.log('Disconnected'),
+    onReconnecting: () => console.log('Reconnecting...'),
+    onAuthError: (error) => console.log('Auth error', error),
+  },
+})
+
+// Or add listeners dynamically:
+const unsub = client.listen({
+  onConnected: () => console.log('Connected'),
+})
+// Remove listeners when done:
+unsub()
+
+// Check auth status:
+console.log(client.authStatus)
+```
+
+### Changed
+
+- Updated dependencies [[`58a9b1299fcda7ad836f0905637566c1de85bc84`](https://github.com/signalwire/signalwire-js/commit/58a9b1299fcda7ad836f0905637566c1de85bc84)]:
+  - @signalwire/core@4.3.2
+
 ## [4.1.3] - 2025-07-28
 
 ### Changed

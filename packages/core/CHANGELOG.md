@@ -1,5 +1,17 @@
 # @signalwire/core
 
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [4.3.2] - 2026-02-04
+
+### Fixed
+
+- [#1330](https://github.com/signalwire/signalwire-js/pull/1330) [`58a9b1299fcda7ad836f0905637566c1de85bc84`](https://github.com/signalwire/signalwire-js/commit/58a9b1299fcda7ad836f0905637566c1de85bc84) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Add session lifecycle listeners and `authStatus` to the SignalWire client.
+
+Fixes an issue where reconnection events could be dispatched multiple times.
+
 ## [4.3.1] - 2025-07-28
 
 ### Fixed
