@@ -3,7 +3,7 @@
   "description": "SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.29.1",
+  "version": "3.29.2",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "unpkg": "dist/index.umd.js",
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@signalwire/core": "4.3.1",
-    "@signalwire/webrtc": "3.14.1",
+    "@signalwire/webrtc": "3.14.2",
     "jwt-decode": "^3.1.2"
   },
   "devDependencies": {

@@ -1,5 +1,9 @@
 # @signalwire/realtime-api
 
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [4.1.3] - 2025-07-28
 
 ### Changed
@@ -7,7 +11,7 @@
 - Updated dependencies [[`b916036ce2db9807eed217b49f39cd13d9b46acf`](https://github.com/signalwire/signalwire-js/commit/b916036ce2db9807eed217b49f39cd13d9b46acf)]:
   - @signalwire/core@4.3.1
 
-## 4.1.2 - 2025-07-04
+## [4.1.2] - 2025-07-04
 
 ### Changed
 
