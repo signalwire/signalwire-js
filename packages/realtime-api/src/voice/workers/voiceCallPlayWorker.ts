@@ -73,25 +73,25 @@ export const voiceCallPlayWorker: SDKWorker<Client> = function* (
           ? 'playback.updated'
           : 'playback.started'
         playbackInstance._paused = false
-        callInstance.emit(type, playbackInstance)
-        playbackInstance.emit(type, playbackInstance)
+        callInstance._emit(type, playbackInstance)
+        playbackInstance._emit(type, playbackInstance)
         return false
       }
       case 'paused': {
         playbackInstance._paused = true
-        callInstance.emit('playback.updated', playbackInstance)
-        playbackInstance.emit('playback.updated', playbackInstance)
+        callInstance._emit('playback.updated', playbackInstance)
+        playbackInstance._emit('playback.updated', playbackInstance)
         return false
       }
       case 'error': {
-        callInstance.emit('playback.failed', playbackInstance)
-        playbackInstance.emit('playback.failed', playbackInstance)
+        callInstance._emit('playback.failed', playbackInstance)
+        playbackInstance._emit('playback.failed', playbackInstance)
         removeFromInstanceMap()
         return true
       }
       case 'finished': {
-        callInstance.emit('playback.ended', playbackInstance)
-        playbackInstance.emit('playback.ended', playbackInstance)
+        callInstance._emit('playback.ended', playbackInstance)
+        playbackInstance._emit('playback.ended', playbackInstance)
         removeFromInstanceMap()
         return true
       }

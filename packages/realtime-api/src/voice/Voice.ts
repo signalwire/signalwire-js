@@ -142,6 +142,8 @@ export type { CallPlayback } from './CallPlayback'
 export type { CallPrompt } from './CallPrompt'
 export type { CallRecording } from './CallRecording'
 export type { CallTap } from './CallTap'
+export type { CallCollect } from './CallCollect'
+export type { CallDetect } from './CallDetect'
 export type {
   CallingCallDirection,
   CallingCallState,
@@ -202,22 +204,32 @@ export type {
   VoicePlaylist,
 } from '@signalwire/core'
 export type {
+  VoiceListeners,
+  VoiceEvents,
+  RealTimeCallListeners,
+  RealTimeCallEvents,
   CallPlayMethodParams,
   CallPlayAudioMethodarams,
   CallPlaySilenceMethodParams,
   CallPlayRingtoneMethodParams,
   CallPlayTTSMethodParams,
+  CallPlaybackListeners,
   CallRecordMethodParams,
   CallRecordAudioMethodParams,
+  CallRecordingListeners,
   CallPromptMethodParams,
   CallPromptAudioMethodParams,
   CallPromptRingtoneMethodParams,
   CallPromptTTSMethodParams,
+  CallPromptListeners,
   CallCollectMethodParams,
+  CallCollectListeners,
   CallTapMethodParams,
   CallTapAudioMethodParams,
+  CallTapListeners,
   CallDetectMethodParams,
   CallDetectMachineParams,
   CallDetectFaxParams,
   CallDetectDigitParams,
+  CallDetectListeners,
 } from '../types/voice'

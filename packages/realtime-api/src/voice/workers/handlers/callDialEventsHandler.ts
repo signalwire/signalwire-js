@@ -15,14 +15,14 @@ export function handleCallDialEvents(options: CallDialEventsHandlerOptions) {
   switch (payload.dial_state) {
     case 'failed': {
       // @ts-expect-error
-      voice.emit('dial.failed', payload)
+      voice._emit('dial.failed', payload)
       return true
     }
     case 'answered': {
       const callInstance = get<Call>(payload.call.call_id)
       callInstance.setPayload(payload.call)
       // @ts-expect-error
-      voice.emit('dial.answered', callInstance)
+      voice._emit('dial.answered', callInstance)
       return true
     }
     default:

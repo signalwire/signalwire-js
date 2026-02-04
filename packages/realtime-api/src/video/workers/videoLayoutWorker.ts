@@ -31,7 +31,7 @@ export const videoLayoutWorker = function* (
 
   switch (type) {
     case 'video.layout.changed':
-      roomSessionInstance.emit(event, toExternalJSON(payload))
+      roomSessionInstance._emit(event, toExternalJSON(payload))
       break
     default:
       break

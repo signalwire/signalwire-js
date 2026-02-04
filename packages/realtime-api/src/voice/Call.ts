@@ -607,12 +607,12 @@ export class Call extends ListenSubscriber<
             },
           })
           this._client.instanceMap.set<CallPrompt>(controlId, promptInstance)
-          this.emit('prompt.started', promptInstance)
-          promptInstance.emit('prompt.started', promptInstance)
+          this._emit('prompt.started', promptInstance)
+          promptInstance._emit('prompt.started', promptInstance)
           resolve(promptInstance)
         })
         .catch((e) => {
-          this.emit('prompt.failed', e)
+          this._emit('prompt.failed', e)
           reject(e)
         })
     })
@@ -1143,12 +1143,12 @@ export class Call extends ListenSubscriber<
             listeners: listen,
           })
           this._client.instanceMap.set<CallDetect>(controlId, detectInstance)
-          this.emit('detect.started', detectInstance)
-          detectInstance.emit('detect.started', detectInstance)
+          this._emit('detect.started', detectInstance)
+          detectInstance._emit('detect.started', detectInstance)
           resolve(detectInstance)
         })
         .catch((e) => {
-          this.emit('detect.ended', e)
+          this._emit('detect.ended', e)
           reject(e)
         })
     })
@@ -1292,12 +1292,12 @@ export class Call extends ListenSubscriber<
             },
           })
           this._client.instanceMap.set<CallCollect>(controlId, collectInstance)
-          this.emit('collect.started', collectInstance)
-          collectInstance.emit('collect.started', collectInstance)
+          this._emit('collect.started', collectInstance)
+          collectInstance._emit('collect.started', collectInstance)
           resolve(collectInstance)
         })
         .catch((e) => {
-          this.emit('collect.failed', e)
+          this._emit('collect.failed', e)
           reject(e)
         })
     })

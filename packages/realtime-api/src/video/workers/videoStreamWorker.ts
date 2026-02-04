@@ -38,12 +38,12 @@ export const videoStreamWorker = function* (
 
   switch (type) {
     case 'video.stream.started':
-      roomSessionInstance.emit(event, streamInstance)
-      streamInstance.emit(event, streamInstance)
+      roomSessionInstance._emit(event, streamInstance)
+      streamInstance._emit(event, streamInstance)
       break
     case 'video.stream.ended':
-      roomSessionInstance.emit(event, streamInstance)
-      streamInstance.emit(event, streamInstance)
+      roomSessionInstance._emit(event, streamInstance)
+      streamInstance._emit(event, streamInstance)
       remove<RoomSessionStream>(payload.stream.id)
       break
     default:

@@ -38,11 +38,22 @@ export class ListenSubscriber<
   }
 
   /** @internal */
-  emit<T extends EventEmitter.EventNames<EventTypes>>(
+  _emit<T extends EventEmitter.EventNames<EventTypes>>(
     event: T,
     ...args: EventEmitter.EventArgs<EventTypes, T>
   ) {
     return this.emitter.emit(event, ...args)
+  }
+
+  /**
+   * @deprecated This method will be removed in a future version.
+   * @internal
+   */
+  emit<T extends EventEmitter.EventNames<EventTypes>>(
+    event: T,
+    ...args: EventEmitter.EventArgs<EventTypes, T>
+  ) {
+    return this._emit(event, ...args)
   }
 
   protected on<E extends EventEmitter.EventNames<EventTypes>>(

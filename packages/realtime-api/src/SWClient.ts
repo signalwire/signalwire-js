@@ -1,3 +1,4 @@
+import { selectors, SessionAuthStatus } from '@signalwire/core'
 import { createClient } from './client/createClient'
 import type { Client } from './client/Client'
 import { clientConnect } from './client/clientConnect'
@@ -7,18 +8,20 @@ import { PubSub } from './pubSub/PubSub'
 import { Chat } from './chat/Chat'
 import { Voice } from './voice/Voice'
 import { Video } from './video/Video'
-
-export interface SWClientOptions {
-  host?: string
-  project: string
-  token: string
-  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-  debug?: {
-    logWsTraffic?: boolean
-  }
-}
+import {
+  SessionListenersEventMap,
+  SWClientOptions,
+  SWClientSessionListeners,
+} from './types'
 
 export class SWClient {
+  private _sessionEventMap: SessionListenersEventMap = {
+    onConnected: 'session.connected',
+    onDisconnected: 'session.disconnected',
+    onReconnecting: 'session.reconnecting',
+    onAuthError: 'session.auth_error',
+  } as const
+
   private _task: Task
   private _messaging: Messaging
   private _pubSub: PubSub
@@ -26,26 +29,77 @@ export class SWClient {
   private _voice: Voice
   private _video: Video
 
-  public userOptions: SWClientOptions
-  public client: Client
+  /** @internal */
+  _client: Client
+  /** @internal */
+  _userOptions: SWClientOptions
 
   constructor(options: SWClientOptions) {
-    this.userOptions = options
-    this.client = createClient(options)
+    this._userOptions = options
+    this._client = createClient(options)
+
+    if (options.listen) {
+      this._attachSessionListeners(options.listen)
+    }
+  }
+
+  /**
+   * @deprecated Access to internal client will be removed. Use namespace methods instead.
+   * @internal
+   */
+  get client(): Client {
+    return this._client
+  }
+
+  /**
+   * @deprecated Access to userOptions will be removed.
+   * @internal
+   */
+  get userOptions(): SWClientOptions {
+    return this._userOptions
+  }
+
+  get authStatus(): SessionAuthStatus {
+    return selectors.getAuthStatus(this._client.store.getState())
   }
 
   async connect() {
-    await clientConnect(this.client)
+    await clientConnect(this._client)
   }
 
   disconnect() {
     return new Promise<void>((resolve) => {
-      const { sessionEmitter } = this.client
-      sessionEmitter.on('session.disconnected', () => {
-        resolve()
-      })
+      const { sessionEmitter } = this._client
+      sessionEmitter.once('session.disconnected', resolve)
 
-      this.client.disconnect()
+      this._client.disconnect()
+    })
+  }
+
+  listen(listeners: SWClientSessionListeners): () => void {
+    this._attachSessionListeners(listeners)
+    return () => this._detachSessionListeners(listeners)
+  }
+
+  private _attachSessionListeners(listeners: SWClientSessionListeners) {
+    const { sessionEmitter } = this._client
+    Object.entries(listeners).forEach(([key, fn]) => {
+      if (typeof fn === 'function') {
+        const event =
+          this._sessionEventMap[key as keyof SWClientSessionListeners]
+        if (event) sessionEmitter.on(event, fn)
+      }
+    })
+  }
+
+  private _detachSessionListeners(listeners: SWClientSessionListeners) {
+    const { sessionEmitter } = this._client
+    Object.entries(listeners).forEach(([key, fn]) => {
+      if (typeof fn === 'function') {
+        const event =
+          this._sessionEventMap[key as keyof SWClientSessionListeners]
+        if (event) sessionEmitter.off(event, fn)
+      }
     })
   }
 

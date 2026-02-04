@@ -39,12 +39,12 @@ export const videoPlaybackWorker = function* (
   switch (type) {
     case 'video.playback.started':
     case 'video.playback.updated':
-      roomSessionInstance.emit(event, playbackInstance)
-      playbackInstance.emit(event, playbackInstance)
+      roomSessionInstance._emit(event, playbackInstance)
+      playbackInstance._emit(event, playbackInstance)
       break
     case 'video.playback.ended':
-      roomSessionInstance.emit(event, playbackInstance)
-      playbackInstance.emit(event, playbackInstance)
+      roomSessionInstance._emit(event, playbackInstance)
+      playbackInstance._emit(event, playbackInstance)
       remove<RoomSessionPlayback>(payload.playback.id)
       break
     default:

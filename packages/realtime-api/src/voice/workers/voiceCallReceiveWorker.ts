@@ -51,7 +51,7 @@ export const voiceCallReceiveWorker: SDKWorker<Client> = function* (
     set<Call>(payload.call_id, callInstance)
 
     // @ts-expect-error
-    voice.emit(prefixEvent(payload.context, 'call.received'), callInstance)
+    voice._emit(prefixEvent(payload.context, 'call.received'), callInstance)
   }
 
   function* worker(action: VoiceCallReceiveAction | VoiceCallStateAction) {

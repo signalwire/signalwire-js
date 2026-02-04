@@ -60,29 +60,29 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
      */
     if (payload.final === false) {
       if (eventPrefix === 'prompt') {
-        callInstance.emit('prompt.updated', promptInstance)
-        promptInstance.emit('prompt.updated', promptInstance)
+        callInstance._emit('prompt.updated', promptInstance)
+        promptInstance._emit('prompt.updated', promptInstance)
       } else {
-        callInstance.emit('collect.updated', collectInstance)
-        collectInstance.emit('collect.updated', collectInstance)
+        callInstance._emit('collect.updated', collectInstance)
+        collectInstance._emit('collect.updated', collectInstance)
       }
       return false
     } else if (payload.final === true && payload.state == "collecting") {
       // Even if final is true but we are still collecting, we want an update
       if (eventPrefix === 'prompt') {
-        callInstance.emit('prompt.updated', promptInstance)
-        promptInstance.emit('prompt.updated', promptInstance)
+        callInstance._emit('prompt.updated', promptInstance)
+        promptInstance._emit('prompt.updated', promptInstance)
       } else {
-        callInstance.emit('collect.updated', collectInstance)
-        collectInstance.emit('collect.updated', collectInstance)
+        callInstance._emit('collect.updated', collectInstance)
+        collectInstance._emit('collect.updated', collectInstance)
       }
     }
 
     switch (payload.result.type) {
       case 'start_of_input': {
         if (eventPrefix === 'prompt') return false
-        callInstance.emit('collect.startOfInput', collectInstance)
-        collectInstance.emit('collect.startOfInput', collectInstance)
+        callInstance._emit('collect.startOfInput', collectInstance)
+        collectInstance._emit('collect.startOfInput', collectInstance)
         return false
       }
       case 'no_input':
@@ -91,11 +91,11 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
         if (payload.state === 'collecting') return false
 
         if (eventPrefix === 'prompt') {
-          callInstance.emit('prompt.failed', promptInstance)
-          promptInstance.emit('prompt.failed', promptInstance)
+          callInstance._emit('prompt.failed', promptInstance)
+          promptInstance._emit('prompt.failed', promptInstance)
         } else {
-          callInstance.emit('collect.failed', collectInstance)
-          collectInstance.emit('collect.failed', collectInstance)
+          callInstance._emit('collect.failed', collectInstance)
+          collectInstance._emit('collect.failed', collectInstance)
         }
         remove<CallPrompt | CallCollect>(payload.control_id)
 
@@ -106,11 +106,11 @@ export const voiceCallCollectWorker: SDKWorker<Client> = function* (
         if (payload.state === 'collecting') return false
 
         if (eventPrefix === 'prompt') {
-          callInstance.emit('prompt.ended', promptInstance)
-          promptInstance.emit('prompt.ended', promptInstance)
+          callInstance._emit('prompt.ended', promptInstance)
+          promptInstance._emit('prompt.ended', promptInstance)
         } else {
-          callInstance.emit('collect.ended', collectInstance)
-          collectInstance.emit('collect.ended', collectInstance)
+          callInstance._emit('collect.ended', collectInstance)
+          collectInstance._emit('collect.ended', collectInstance)
         }
         remove<CallPrompt | CallCollect>(payload.control_id)
 

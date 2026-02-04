@@ -53,12 +53,12 @@ export const voiceCallTapWorker: SDKWorker<Client> = function* (
 
     switch (payload.state) {
       case 'tapping':
-        callInstance.emit('tap.started', tapInstance)
-        tapInstance.emit('tap.started', tapInstance)
+        callInstance._emit('tap.started', tapInstance)
+        tapInstance._emit('tap.started', tapInstance)
         return false
       case 'finished':
-        callInstance.emit('tap.ended', tapInstance)
-        tapInstance.emit('tap.ended', tapInstance)
+        callInstance._emit('tap.ended', tapInstance)
+        tapInstance._emit('tap.ended', tapInstance)
         remove<CallTap>(payload.control_id)
         return true
       default:

@@ -1,4 +1,5 @@
-import { SWClient, SWClientOptions } from './SWClient'
+import { SWClient } from './SWClient'
+import { SWClientOptions } from './types'
 
 export const SignalWire = (options: SWClientOptions): Promise<SWClient> => {
   return new Promise(async (resolve, reject) => {
@@ -14,3 +15,5 @@ export const SignalWire = (options: SWClientOptions): Promise<SWClient> => {
 }
 
 export type { SWClient } from './SWClient'
+export type { SessionAuthStatus, AuthError } from '@signalwire/core'
+export type { SWClientOptions, SWClientSessionListeners } from './types'

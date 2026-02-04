@@ -23,12 +23,12 @@ export function handleCallConnectEvents(
 
   // TODO: The below events seems to be not documented in @RealTimeCallApiEvents. For now, ingoring TS issues
 
-  callInstance.emit('call.state', callInstance)
+  callInstance._emit('call.state', callInstance)
 
   switch (payload.connect_state) {
     case 'connecting': {
       // @ts-expect-error
-      callInstance.emit('connect.connecting', callInstance)
+      callInstance._emit('connect.connecting', callInstance)
       return false
     }
     case 'connected': {
@@ -45,12 +45,12 @@ export function handleCallConnectEvents(
       callInstance.peer = peerCallInstance
       peerCallInstance.peer = callInstance
       // @ts-expect-error
-      callInstance.emit('connect.connected', peerCallInstance)
+      callInstance._emit('connect.connected', peerCallInstance)
       return false
     }
     case 'disconnected': {
       // @ts-expect-error
-      callInstance.emit('connect.disconnected')
+      callInstance._emit('connect.disconnected')
       callInstance.peer = undefined
 
       const peerCallInstance = get<Call>(payload.peer.call_id)
@@ -58,7 +58,7 @@ export function handleCallConnectEvents(
       if (peerCallInstance) {
         console.log('emit peer disconnected', peerCallInstance.callId)
         // @ts-expect-error
-        peerCallInstance.emit('connect.disconnected')
+        peerCallInstance._emit('connect.disconnected')
         peerCallInstance.peer = undefined
       }
       return true
@@ -66,7 +66,7 @@ export function handleCallConnectEvents(
     case 'failed': {
       callInstance.peer = undefined
       // @ts-expect-error
-      callInstance.emit('connect.failed', payload)
+      callInstance._emit('connect.failed', payload)
       return true
     }
     default:

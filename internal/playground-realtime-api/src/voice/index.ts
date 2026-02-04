@@ -18,6 +18,14 @@ async function run() {
       debug: {
         // logWsTraffic: true,
       },
+      listen: {
+        onConnected: () => {
+          console.log('Client connected')
+        },
+        onDisconnected: () => {
+          console.log('Client disconnected')
+        },
+      },
     })
 
     let inboundCall: Voice.Call
