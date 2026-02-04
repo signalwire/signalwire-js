@@ -40,6 +40,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _processingLocalSDP = false
   private _waitNegotiation: Promise<void> = Promise.resolve()
   private _waitNegotiationCompleter: () => void
+  private _eventCleanup: Array<() => void> = []
   /**
    * Both of these properties are used to have granular
    * control over when to `resolve` and when `reject` the
@@ -466,7 +467,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       this.instance.removeEventListener('icecandidate', this._onIce)
-      this.instance.addEventListener('icecandidate', this._onIce)
+      this._addEventListener(this.instance, 'icecandidate', this._onIce as EventListener)
       if (this.isOffer) {
         this.logger.debug('Trying to generate offer')
         const offerOptions: RTCOfferOptions = {
@@ -584,6 +585,18 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         this.logger.info(
           'Using pre-warmed connection from session pool with ICE candidates ready'
         )
+
+        // Debug the pooled connection state
+        this.logger.debug('Pooled connection state:', pooledConnection.connectionState)
+        this.logger.debug('Pooled connection signaling state:', pooledConnection.signalingState)
+        this.logger.debug('Pooled connection ICE state:', pooledConnection.iceConnectionState)
+
+        const transceivers = pooledConnection.getTransceivers()
+        this.logger.debug(`Pooled connection has ${transceivers.length} transceivers`)
+        transceivers.forEach((t, i) => {
+          this.logger.debug(`  Transceiver ${i}: mid=${t.mid}, direction=${t.direction}`)
+        })
+
         this.instance = pooledConnection
 
         // The connection is already clean:
@@ -653,18 +666,28 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
                 t.receiver.track?.kind === 'audio' ||
                 (!t.sender.track &&
                   !t.receiver.track &&
-                  t.mid?.includes('audio'))
+                  (t.mid === null || t.mid?.includes('audio')))
             )
+
+          this.logger.debug(
+            `Found ${existingAudioTransceivers.length} existing audio transceivers for ${audioTracks.length} audio tracks`
+          )
 
           audioTracks.forEach((track, index) => {
             if (index < existingAudioTransceivers.length) {
               // Reuse existing transceiver
               const transceiver = existingAudioTransceivers[index]
               this.logger.debug(
-                'Reusing existing audio transceiver',
-                transceiver.mid
+                `Reusing existing audio transceiver with mid=${transceiver.mid}, direction=${transceiver.direction}`
               )
-              transceiver.sender.replaceTrack(track)
+
+              try {
+                transceiver.sender.replaceTrack(track)
+                this.logger.debug(`Successfully replaced track on audio transceiver`)
+              } catch (error) {
+                this.logger.error('Failed to replace track on audio transceiver:', error)
+              }
+
               transceiver.direction =
                 audioTransceiverParams.direction || 'sendrecv'
               // Add stream association
@@ -704,7 +727,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
                 t.receiver.track?.kind === 'video' ||
                 (!t.sender.track &&
                   !t.receiver.track &&
-                  t.mid?.includes('video'))
+                  (t.mid === null || t.mid?.includes('video')))
             )
 
           videoTracks.forEach((track, index) => {
@@ -844,6 +867,26 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   stop() {
+    // Reset negotiation flag to prevent further negotiation attempts
+    this._negotiating = false
+    this._processingLocalSDP = false
+    this._processingRemoteSDP = false
+
+    // Clear any active timers
+    this.clearTimers()
+    this.clearResumeTimer()
+    this.clearConnectionStateTimer()
+
+    // Clean up all event listeners
+    this._eventCleanup.forEach(cleanup => {
+      try {
+        cleanup()
+      } catch (error) {
+        this.logger.error('Error cleaning up event listener:', error)
+      }
+    })
+    this._eventCleanup = []
+
     // Do not use `stopTrack` util to not dispatch the `ended` event
     this._localStream?.getTracks().forEach((track) => track.stop())
     this._remoteStream?.getTracks().forEach((track) => track.stop())
@@ -867,7 +910,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         .find(
           (t) =>
             t.receiver.track?.kind === kind ||
-            (!t.sender.track && !t.receiver.track && t.mid?.includes(kind))
+            (!t.sender.track && !t.receiver.track && (t.mid === null || t.mid?.includes(kind)))
         )
 
       if (existingTransceiver) {
@@ -895,6 +938,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private async _sdpReady() {
     if (this._processingLocalSDP) {
       this.logger.debug('Already processing local SDP, skipping')
+      return
+    }
+
+    // Check if the peer connection is still valid before processing
+    if (!this.instance || this.instance.connectionState === 'closed' ||
+        this.instance.connectionState === 'failed') {
+      this.logger.warn('Peer connection is closed or failed in _sdpReady, skipping')
+      this._negotiating = false
       return
     }
 
@@ -1062,6 +1113,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   private _retryWithMoreCandidates() {
+    // Skip renegotiation for answer-type connections (incoming calls)
+    // This prevents verto.modify spam on Windows where ICE gathering is delayed
+    if (this.type === 'answer') {
+      this.logger.info('Skipping renegotiation for answer-type connection (incoming call)')
+      return;
+    }
+
     // Check if we have better candidates now than when we first sent SDP
     const hasMoreCandidates = this._hasMoreCandidates()
 
@@ -1153,8 +1211,15 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     return getUserMedia(constraints)
   }
 
+  private _addEventListener(target: EventTarget, event: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) {
+    target.addEventListener(event, handler, options)
+    this._eventCleanup.push(() => {
+      target.removeEventListener(event, handler, options)
+    })
+  }
+
   private _attachListeners() {
-    this.instance.addEventListener('signalingstatechange', () => {
+    this._addEventListener(this.instance, 'signalingstatechange', () => {
       this.logger.debug('signalingState:', this.instance.signalingState)
 
       switch (this.instance.signalingState) {
@@ -1164,6 +1229,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           this._negotiating = false
           this._restartingIce = false
           this.resetNeedResume()
+
+          // For answer types, check if we need to send the SDP after becoming stable
+          if (this.isAnswer && this.instance.iceGatheringState === 'complete' &&
+              this.instance.localDescription && !this._processingLocalSDP) {
+            this.logger.debug('Answer type stable with complete ICE - sending SDP')
+            this._sdpReady()
+          }
 
           if (this.instance.connectionState === 'connected') {
             // An ice restart won't change the connectionState so we emit the same event in here
@@ -1178,7 +1250,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           }
           break
         }
-        // case 'have-remote-offer': {}
+        case 'have-remote-offer':
+          // We have a remote offer, need to create an answer
+          // Don't set _negotiating here as it will be set when we actually start negotiation
+          this.logger.debug('Have remote offer state - ready to create answer')
+          break
         case 'closed':
           // @ts-ignore
           delete this.instance
@@ -1188,20 +1264,26 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
     })
 
-    this.instance.addEventListener('connectionstatechange', () => {
+    this._addEventListener(this.instance, 'connectionstatechange', () => {
       this.logger.debug('connectionState:', this.instance.connectionState)
       switch (this.instance.connectionState) {
         // case 'new':
         //   break
         case 'connecting':
+          // Use longer timeout for answer-type connections (incoming calls)
+          // These need more time on Windows due to network complexity
+          const timeout = this.type === 'answer'
+            ? 10000  // 10 seconds for incoming calls
+            : this.options.maxConnectionStateTimeout; // 3 seconds for outgoing
+
           this._connectionStateTimer = setTimeout(() => {
-            this.logger.warn('connectionState timed out')
+            this.logger.warn(`connectionState timed out after ${timeout}ms (type: ${this.type})`)
             if (this._hasMoreCandidates()) {
               this._retryWithMoreCandidates()
             } else {
               this.restartIceWithRelayOnly()
             }
-          }, this.options.maxConnectionStateTimeout)
+          }, timeout)
           break
         case 'connected':
           this.clearConnectionStateTimer()
@@ -1213,22 +1295,56 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           this.logger.debug('[test] Prevent reattach!')
           break
         case 'failed': {
+          this.logger.error('RTCPeerConnection entered failed state')
+          this.logger.error('Connection details:')
+          this.logger.error('  - connectionState:', this.instance.connectionState)
+          this.logger.error('  - iceConnectionState:', this.instance.iceConnectionState)
+          this.logger.error('  - signalingState:', this.instance.signalingState)
+
+          // Debug ICE candidates
+          this.instance.getStats().then(stats => {
+            let candidatePairs = 0
+            stats.forEach(stat => {
+              if (stat.type === 'candidate-pair') {
+                candidatePairs++
+                this.logger.error(`  - Candidate pair: state=${stat.state}, nominated=${stat.nominated}`)
+              }
+            })
+            this.logger.error(`  - Total candidate pairs: ${candidatePairs}`)
+          }).catch(err => {
+            this.logger.error('Failed to get stats:', err)
+          })
+
           this.triggerResume()
           break
         }
       }
     })
 
-    this.instance.addEventListener('negotiationneeded', () => {
-      this.logger.debug('Negotiation needed event')
-      this.startNegotiation()
+    this._addEventListener(this.instance, 'negotiationneeded', () => {
+      this.logger.debug('Negotiation needed event, signaling state:', this.instance.signalingState)
+
+      // For answer types (incoming calls), only negotiate if we're in specific states
+      if (this.isAnswer) {
+        // Only start negotiation if we haven't answered yet or have a new remote offer
+        if (!this.instance.remoteDescription ||
+            this.instance.signalingState === 'have-remote-offer') {
+          this.logger.debug('Answer type: proceeding with negotiation')
+          this.startNegotiation()
+        } else {
+          this.logger.debug('Answer type: skipping negotiation - already answered or in stable state')
+        }
+      } else {
+        // For offer types (outgoing calls), always negotiate
+        this.startNegotiation()
+      }
     })
 
-    this.instance.addEventListener('iceconnectionstatechange', () => {
+    this._addEventListener(this.instance, 'iceconnectionstatechange', () => {
       this.logger.debug('iceConnectionState:', this.instance.iceConnectionState)
     })
 
-    this.instance.addEventListener('icegatheringstatechange', () => {
+    this._addEventListener(this.instance, 'icegatheringstatechange', () => {
       this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
       if (this.instance.iceGatheringState === 'complete') {
         this.logger.debug('ICE gathering complete')
@@ -1240,7 +1356,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     //   this.logger.warn('IceCandidate Error:', event)
     // })
 
-    this.instance.addEventListener('track', (event: RTCTrackEvent) => {
+    this._addEventListener(this.instance, 'track', ((event: RTCTrackEvent) => {
       this.logger.debug('Track event:', event, event.track.kind)
       // @ts-expect-error
       this.call.emit('track', event)
@@ -1250,10 +1366,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         // this.call._dispatchNotification(notification)
       }
       this._remoteStream = event.streams[0]
-    })
+    }) as EventListener)
 
     // @ts-ignore
-    this.instance.addEventListener('addstream', (event: MediaStreamEvent) => {
+    this._addEventListener(this.instance, 'addstream', (event: MediaStreamEvent) => {
       if (event.stream) {
         this._remoteStream = event.stream
       }
@@ -1298,13 +1414,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   public _attachAudioTrackListener() {
     this.localStream?.getAudioTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler)
+      this._addEventListener(track, 'ended', this._onEndedTrackHandler)
     })
   }
 
   public _attachVideoTrackListener() {
     this.localStream?.getVideoTracks().forEach((track) => {
-      track.addEventListener('ended', this._onEndedTrackHandler)
+      this._addEventListener(track, 'ended', this._onEndedTrackHandler)
     })
   }
 

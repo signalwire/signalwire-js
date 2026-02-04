@@ -27,7 +27,7 @@ class ConnectionPoolManagerSingleton {
     
     this.manager = new RTCPeerConnectionManager(
       rtcConfig,
-      options.poolSize ?? 2
+      options.poolSize ?? 3  // Increased default from 2 to 3
     )
 
     await this.manager.initializePool()
@@ -39,6 +39,14 @@ class ConnectionPoolManagerSingleton {
       return null
     }
     return this.manager.getConnection()
+  }
+
+  returnConnection(pc: RTCPeerConnection): void {
+    if (!this.manager) {
+      this.logger.warn('Connection pool not initialized, cannot return connection')
+      return
+    }
+    this.manager.returnConnection(pc)
   }
 
   cleanup(): void {

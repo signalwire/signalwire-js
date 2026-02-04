@@ -19,12 +19,14 @@ export const DEFAULT_CONNECT_VERSION = {
   major: 3,
   minor: 0,
   revision: 0,
+  string: 'bkw',
 }
 
 export const UNIFIED_CONNECT_VERSION = {
   major: 4,
   minor: 0,
   revision: 0,
+  string: 'bkw',
 }
 
 export const RPCConnect = (params: RPCConnectParams) => {
