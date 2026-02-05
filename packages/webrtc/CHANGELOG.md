@@ -1,5 +1,18 @@
 # @signalwire/webrtc
 
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.14.2] - 2026-02-04
+
+### Changed
+
+- [#1268](https://github.com/signalwire/signalwire-js/pull/1268) [`35933b636573c979ffe3af22fc389fc93f556c74`](https://github.com/signalwire/signalwire-js/commit/35933b636573c979ffe3af22fc389fc93f556c74) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - replaced `regex` test with string includes in sdpHasValidCandidates to fix issue with ReactNative.
+
+- Updated dependencies [[`58a9b1299fcda7ad836f0905637566c1de85bc84`](https://github.com/signalwire/signalwire-js/commit/58a9b1299fcda7ad836f0905637566c1de85bc84)]:
+  - @signalwire/core@4.3.2
+
 ## [3.14.1] - 2025-07-28
 
 ### Changed

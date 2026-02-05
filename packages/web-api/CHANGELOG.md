@@ -1,5 +1,16 @@
 # @signalwire/web-api
 
+All notable changes to this project will be documented in this file.
+
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.1.6] - 2026-02-04
+
+### Changed
+
+- Updated dependencies [[`58a9b1299fcda7ad836f0905637566c1de85bc84`](https://github.com/signalwire/signalwire-js/commit/58a9b1299fcda7ad836f0905637566c1de85bc84)]:
+  - @signalwire/core@4.3.2
+
 ## [3.1.5] - 2025-07-28
 
 ### Changed
