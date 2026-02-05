@@ -7,7 +7,7 @@
   "commit": false,
   "linked": [],
   "access": "restricted",
-  "baseBranch": "main",
+  "baseBranch": "main_video_v3",
   "updateInternalDependencies": "patch",
   "ignore": []
 }
