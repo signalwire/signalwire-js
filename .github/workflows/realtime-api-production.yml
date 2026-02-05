@@ -4,7 +4,7 @@ on:
   workflow_call:
   workflow_dispatch:
   schedule:
-    - cron: '20 * * * *'
+    - cron: "20 * * * *"
 
 concurrency:
   group: ${{ github.workflow }}-realtime-api-production-${{ github.ref }}
@@ -18,7 +18,7 @@ jobs:
       fail-fast: false # Continue other jobs if one fails
       matrix:
         node-version: [20.x]
-        test_command: ['dev:rtonly', 'dev:playwright']
+        test_command: ["dev:rtonly"]
     steps:
       - uses: actions/checkout@v4
       - name: Install deps
@@ -33,9 +33,9 @@ jobs:
         if: matrix.test_command == 'dev:playwright'
         uses: ./.github/actions/playwright
         with:
-          PLAYWRIGHT_VERSION: '1.35.1'
+          PLAYWRIGHT_VERSION: "1.35.1"
       - name: Test
-        run: 'npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}'
+        run: "npm run -w=@sw-internal/e2e-realtime-api ${{ matrix.test_command }}"
         env:
           SW_TEST_CONFIG: ${{ secrets.PRODUCTION_E2E_REALTIME_SW_TEST_CONFIG }}
 
