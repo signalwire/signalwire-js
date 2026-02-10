@@ -3,7 +3,7 @@
   "description": "Shared code for the SignalWire JS SDK",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "main": "dist/index.node.js",
   "module": "dist/index.esm.js",
   "files": [
@@ -33,7 +33,7 @@
     "start:web": "sw-build --dev --web",
     "start:node": "sw-build --dev --node --watchFormat=cjs",
     "build": "tsc --project tsconfig.build.json && sw-build --web && sw-build --node",
-    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --passWithNoTests",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

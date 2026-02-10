@@ -649,7 +649,15 @@ export class BaseSession {
       )
     )
     this._removeSocketListeners()
+    const hadSocket = !!this._socket
     this.destroySocket()
-    this._checkCurrentStatus()
+    // When reconnecting and a socket existed, destroySocket() already
+    // triggered wsCloseHandler which dispatches sessionReconnectingAction
+    // and schedules the reconnect. Calling _checkCurrentStatus() would
+    // duplicate that dispatch. We still need it when disconnecting (to
+    // dispatch sessionDisconnectedAction) or when there was no socket.
+    if (status === 'disconnected' || !hadSocket) {
+      this._checkCurrentStatus()
+    }
   }
 }

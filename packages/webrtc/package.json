@@ -3,7 +3,7 @@
   "description": "SignalWire WebRTC library",
   "author": "SignalWire Team <open.source@signalwire.com>",
   "license": "MIT",
-  "version": "3.14.1",
+  "version": "3.14.2",
   "main": "dist/cjs/webrtc/src/index.js",
   "module": "dist/mjs/webrtc/src/index.js",
   "files": [
@@ -33,11 +33,11 @@
   "scripts": {
     "start": "tsc --watch --project tsconfig.build.json",
     "build": "tsc --project tsconfig.build.json && tsc --project tsconfig.cjs.json",
-    "test": "NODE_ENV=test jest --passWithNoTests",
+    "test": "NODE_ENV=test jest",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@signalwire/core": "4.3.1",
+    "@signalwire/core": "4.3.2",
     "sdp": "^3.2.0"
   },
   "types": "dist/cjs/webrtc/src/index.d.ts"

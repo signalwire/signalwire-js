@@ -10,7 +10,7 @@ const tmpMap: VertoParams = {
   remoteCallerNumber: 'remote_caller_id_number',
   callerName: 'caller_id_name',
   callerNumber: 'caller_id_number',
-  fromCallAddressId: 'from_fabric_address_id',
+  fromFabricAddressId: 'from_fabric_address_id',
 }
 
 /**

@@ -1,18 +1,18 @@
 import { MapToPubSubShape } from '../redux/interfaces'
 import {
-  CallLayoutEvent,
-  CallLayoutEventNames,
-  CallLayoutEventParams,
+  FabricLayoutEvent,
+  FabricLayoutEventNames,
+  FabricLayoutEventParams,
 } from './fabricLayout'
 import {
-  MemberEvent,
-  MemberEventNames,
-  MemberEventParams,
+  FabricMemberEvent,
+  FabricMemberEventNames,
+  FabricMemberEventParams,
 } from './fabricMember'
 import {
-  CallSessionEvent,
-  CallSessionEventNames,
-  CallSessionEventParams,
+  FabricRoomEvent,
+  FabricRoomEventNames,
+  FabricRoomEventParams,
 } from './fabricRoomSession'
 
 export * from './fabricRoomSession'
@@ -22,16 +22,19 @@ export * from './fabricLayout'
 /**
  * List of all call fabric events
  */
-export type CallEventNames =
-  | CallSessionEventNames
-  | MemberEventNames
-  | CallLayoutEventNames
+export type FabricEventNames =
+  | FabricRoomEventNames
+  | FabricMemberEventNames
+  | FabricLayoutEventNames
 
-export type CallEvent = CallSessionEvent | MemberEvent | CallLayoutEvent
+export type FabricEvent =
+  | FabricRoomEvent
+  | FabricMemberEvent
+  | FabricLayoutEvent
 
-export type CallEventParams =
-  | CallSessionEventParams
-  | MemberEventParams
-  | CallLayoutEventParams
+export type FabricEventParams =
+  | FabricRoomEventParams
+  | FabricMemberEventParams
+  | FabricLayoutEventParams
 
-export type CallAction = MapToPubSubShape<CallEvent>
+export type FabricAction = MapToPubSubShape<FabricEvent>

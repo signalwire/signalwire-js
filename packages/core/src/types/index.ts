@@ -10,7 +10,7 @@ import type { ChatEvent } from './chat'
 import type { TaskEvent } from './task'
 import type { MessagingEvent } from './messaging'
 import type { VoiceCallEvent } from './voice'
-import { CallEvent, ConversationEvent } from '..'
+import { FabricEvent, ConversationEvent } from '..'
 
 export interface SwEvent {
   event_channel: string
@@ -327,7 +327,7 @@ export type SwEventParams =
   | VoiceCallEvent
   | SwAuthorizationStateEvent
   | ConversationEvent
-  | CallEvent
+  | FabricEvent
 
 export * from './video'
 export * from './utils'
@@ -343,4 +343,3 @@ export * from './fabricRoomSession'
 export * from './fabricMember'
 export * from './fabricLayout'
 export * from './conversation'
-export * from './SignalwireStorageContract'

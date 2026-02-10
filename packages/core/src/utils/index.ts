@@ -26,17 +26,6 @@ export * from './debounce'
 export * from './SWCloseEvent'
 export * from './eventUtils'
 export * from './asyncRetry'
-export { 
-  setGlobalStorageInstance, 
-  getGlobalStorageInstance, 
-  getItem, 
-  setItem, 
-  removeItem,
-  localStorage,
-  sessionStorage,
-  SignalWireStorageContract,
-  StorageInfo
-} from './storage'
 
 export { LOCAL_EVENT_PREFIX }
 

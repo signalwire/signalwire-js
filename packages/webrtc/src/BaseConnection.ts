@@ -261,7 +261,7 @@ export class BaseConnection<
       userVariables,
       screenShare,
       additionalDevice,
-      fromCallAddressId,
+      fromFabricAddressId,
       pingSupported = true,
     } = this.options
 
@@ -278,7 +278,7 @@ export class BaseConnection<
         userVariables,
         screenShare,
         additionalDevice,
-        fromCallAddressId,
+        fromFabricAddressId,
         pingSupported,
         version: INVITE_VERSION,
       },
@@ -1463,7 +1463,7 @@ export class BaseConnection<
       ...this.dialogParams(this.callId),
       action: 'unhold',
     })
-    await this.vertoExecute<VertoModifyResponse>({
+    this.vertoExecute<VertoModifyResponse>({
       message,
       callID: this.callId,
       node_id: this.nodeId,

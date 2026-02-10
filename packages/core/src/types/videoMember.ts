@@ -85,7 +85,7 @@ export type OnMemberListUpdated = 'onMemberListUpdated'
 /**
  * See {@link MEMBER_UPDATED_EVENTS} for the full list of events.
  */
-export type CoreMemberUpdatedEventNames = (typeof MEMBER_UPDATED_EVENTS)[number]
+export type MemberUpdatedEventNames = (typeof MEMBER_UPDATED_EVENTS)[number]
 export type MemberTalkingStarted = 'member.talking.started'
 export type MemberTalkingEnded = 'member.talking.ended'
 
@@ -129,7 +129,7 @@ export type VideoMemberEventNames =
   | MemberJoined
   | MemberLeft
   | MemberUpdated
-  | CoreMemberUpdatedEventNames
+  | MemberUpdatedEventNames
   | MemberTalkingEventNames
   | MemberListUpdated
 
@@ -147,7 +147,7 @@ export type VideoMemberListenerNames =
   | MemberTalkingListenerNames
   | OnMemberListUpdated
 
-export type InternalCoreMemberUpdatedEventNames =
+export type InternalMemberUpdatedEventNames =
   (typeof INTERNAL_MEMBER_UPDATED_EVENTS)[number]
 
 /**
@@ -158,7 +158,7 @@ export type InternalVideoMemberEventNames =
   | ToInternalVideoEvent<
       MemberJoined | MemberLeft | MemberUpdated | MemberTalkingEventNames
     >
-  | InternalCoreMemberUpdatedEventNames
+  | InternalMemberUpdatedEventNames
 
 export type VideoMemberType = 'member' | 'screen' | 'device'
 
@@ -365,7 +365,7 @@ export type InternalVideoMemberEntityUpdated =
   EntityUpdated<InternalVideoMemberEntity>
 
 export interface InternalVideoMemberUpdatedEvent extends SwEvent {
-  event_type: InternalCoreMemberUpdatedEventNames
+  event_type: InternalMemberUpdatedEventNames
   params: VideoMemberUpdatedEventParams
 }
 

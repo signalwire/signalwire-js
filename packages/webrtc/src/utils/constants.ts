@@ -37,9 +37,9 @@ export const DEFAULT_CALL_OPTIONS: ConnectionOptions = {
   userVariables: {},
   requestTimeout: 10 * 1000,
   autoApplyMediaParams: true,
-  iceGatheringTimeout: 3 * 100,
+  iceGatheringTimeout: 2 * 1000,
   maxIceGatheringTimeout: 5 * 1000,
-  maxConnectionStateTimeout: 15 * 1000,
+  maxConnectionStateTimeout: 3 * 1000,
   watchMediaPackets: true,
   watchMediaPacketsTimeout: 2 * 1000,
 }

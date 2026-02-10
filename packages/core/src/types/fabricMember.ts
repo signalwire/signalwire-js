@@ -13,14 +13,16 @@ import {
   MemberListUpdated,
   MemberTalking,
   MemberUpdated,
-  CoreMemberUpdatedEventNames,
+  MemberUpdatedEventNames,
   VideoMemberContract,
 } from './videoMember'
 
 /**
- * Public Contract for a Member
+ * Public Contract for a FabricMember
  */
-export interface MemberContract extends MemberBaseProps, MemberUpdatableProps {
+export interface FabricMemberContract
+  extends FabricMemberBaseProps,
+    FabricMemberUpdatableProps {
   /** Provides the member id of the member itself, may be the same as call_id for call legs outside of a conference */
   memberId: string
   /** Provides the call id the member was created through */
@@ -33,7 +35,7 @@ export interface MemberContract extends MemberBaseProps, MemberUpdatableProps {
   addressId: string
 }
 
-type MemberBaseProps = Pick<
+type FabricMemberBaseProps = Pick<
   VideoMemberContract,
   | 'roomSessionId'
   | 'roomId'
@@ -65,85 +67,90 @@ export const INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS = {
   noise_suppression: true,
 }
 
-export type InternalMemberUpdatableProps =
+export type InternalFabricMemberUpdatableProps =
   typeof INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
 
 export const INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
   INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS
 ).map((key) => {
-  return `member.updated.${key as keyof InternalMemberUpdatableProps}` as const
+  return `member.updated.${
+    key as keyof InternalFabricMemberUpdatableProps
+  }` as const
 })
 
-export type InternalMemberUpdatedEventNames =
+export type InternalFabricMemberUpdatedEventNames =
   (typeof INTERNAL_FABRIC_MEMBER_UPDATED_EVENTS)[number]
 
-export type MemberUpdatableProps = {
-  [K in keyof InternalMemberUpdatableProps as SnakeToCamelCase<K>]: InternalMemberUpdatableProps[K]
+export type FabricMemberUpdatableProps = {
+  [K in keyof InternalFabricMemberUpdatableProps as SnakeToCamelCase<K>]: InternalFabricMemberUpdatableProps[K]
 }
 
-export const FABRIC_MEMBER_UPDATABLE_PROPS: MemberUpdatableProps =
+export const FABRIC_MEMBER_UPDATABLE_PROPS: FabricMemberUpdatableProps =
   toExternalJSON(INTERNAL_FABRIC_MEMBER_UPDATABLE_PROPS)
 
 export const FABRIC_MEMBER_UPDATED_EVENTS = Object.keys(
   FABRIC_MEMBER_UPDATABLE_PROPS
 ).map((key) => {
-  return `member.updated.${key as keyof MemberUpdatableProps}` as const
+  return `member.updated.${key as keyof FabricMemberUpdatableProps}` as const
 })
 
-export type MemberUpdatedEventNames =
+export type FabricMemberUpdatedEventNames =
   (typeof FABRIC_MEMBER_UPDATED_EVENTS)[number]
 
 /**
- * Member properties
+ * FabricMember properties
  */
-export type MemberEntity = OnlyStateProperties<MemberContract>
+export type FabricMemberEntity = OnlyStateProperties<FabricMemberContract>
 
 /**
- * Member methods
+ * FabricMember methods
  */
-export type MemberMethods = OnlyFunctionProperties<MemberContract>
+export type FabricMemberMethods = OnlyFunctionProperties<FabricMemberContract>
 
 /**
- * MemberEntity entity plus `updated` field
+ * FabricMemberEntity entity plus `updated` field
  */
-export type MemberEntityUpdated = EntityUpdated<MemberEntity>
+export type FabricMemberEntityUpdated = EntityUpdated<FabricMemberEntity>
 
 /**
- * MemberEntity entity for internal usage (converted to snake_case)
+ * FabricMemberEntity entity for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalMemberEntity = {
-  [K in NonNullable<keyof MemberEntity> as CamelToSnakeCase<K>]: MemberEntity[K]
+export type InternalFabricMemberEntity = {
+  [K in NonNullable<
+    keyof FabricMemberEntity
+  > as CamelToSnakeCase<K>]: FabricMemberEntity[K]
 }
 
 /**
- * Member entity plus `updated` field
+ * FabricMember entity plus `updated` field
  * for internal usage (converted to snake_case)
  * @internal
  */
-export type InternalMemberEntityUpdated = EntityUpdated<InternalMemberEntity>
+export type InternalFabricMemberEntityUpdated =
+  EntityUpdated<InternalFabricMemberEntity>
 
-export interface InternalMemberUpdatedEvent extends SwEvent {
-  event_type: InternalMemberUpdatedEventNames
-  params: MemberUpdatedEventParams
+export interface InternalFabricMemberUpdatedEvent extends SwEvent {
+  event_type: InternalFabricMemberUpdatedEventNames
+  params: FabricMemberUpdatedEventParams
 }
 
-export interface InternalMemberListUpdatedEvent extends SwEvent {
+export interface InternalFabricMemberListUpdatedEvent extends SwEvent {
   event_type: MemberListUpdated
-  params: MemberUpdatedEventParams
+  params: FabricMemberUpdatedEventParams
 }
 
-export type InternalMemberEventNames =
-  | CoreMemberUpdatedEventNames
+export type InternalFabricMemberEventNames =
+  | MemberUpdatedEventNames
   | MemberListUpdated
 
-export type InternalMemberEvent =
-  | InternalMemberUpdatedEvent
-  | InternalMemberListUpdatedEvent
+export type InternalFabricMemberEvent =
+  | InternalFabricMemberUpdatedEvent
+  | InternalFabricMemberListUpdatedEvent
 
-export type InternalMemberEventParams =
-  | MemberUpdatedEventParams
-  | MemberUpdatedEventParams
+export type InternalFabricMemberEventParams =
+  | FabricMemberUpdatedEventParams
+  | FabricMemberUpdatedEventParams
 
 /**
  * ==========
@@ -156,50 +163,50 @@ export type InternalMemberEventParams =
 /**
  * member.joined
  */
-export interface MemberJoinedEventParams {
-  member: InternalMemberEntity
+export interface FabricMemberJoinedEventParams {
+  member: InternalFabricMemberEntity
   room_id: string
   room_session_id: string
 }
 
-export interface MemberJoinedEvent extends SwEvent {
+export interface FabricMemberJoinedEvent extends SwEvent {
   event_type: MemberJoined
-  params: MemberJoinedEventParams
+  params: FabricMemberJoinedEventParams
 }
 
 /**
  * member.updated
  */
-export interface MemberUpdatedEventParams {
-  member: InternalMemberEntityUpdated
+export interface FabricMemberUpdatedEventParams {
+  member: InternalFabricMemberEntityUpdated
   room_id: string
   room_session_id: string
 }
 
-export interface MemberUpdatedEvent extends SwEvent {
+export interface FabricMemberUpdatedEvent extends SwEvent {
   event_type: MemberUpdated
-  params: MemberUpdatedEventParams
+  params: FabricMemberUpdatedEventParams
 }
 
 /**
  * member.left
  */
-export interface MemberLeftEventParams {
-  member: InternalMemberEntity
+export interface FabricMemberLeftEventParams {
+  member: InternalFabricMemberEntity
   room_id: string
   room_session_id: string
   reason: string
 }
 
-export interface MemberLeftEvent extends SwEvent {
+export interface FabricMemberLeftEvent extends SwEvent {
   event_type: MemberLeft
-  params: MemberLeftEventParams
+  params: FabricMemberLeftEventParams
 }
 
 /**
  * member.talking
  */
-export interface MemberTalkingEventParams {
+export interface FabricMemberTalkingEventParams {
   room_id: string
   room_session_id: string
   member: {
@@ -209,30 +216,30 @@ export interface MemberTalkingEventParams {
   }
 }
 
-export interface MemberTalkingEvent extends SwEvent {
+export interface FabricMemberTalkingEvent extends SwEvent {
   event_type: MemberTalking
-  params: MemberTalkingEventParams
+  params: FabricMemberTalkingEventParams
 }
 
-export type MemberEventNames =
+export type FabricMemberEventNames =
   | MemberJoined
   | MemberLeft
   | MemberUpdated
   | MemberTalking
 
-export type MemberEvent =
-  | MemberJoinedEvent
-  | MemberLeftEvent
-  | MemberUpdatedEvent
-  | MemberTalkingEvent
+export type FabricMemberEvent =
+  | FabricMemberJoinedEvent
+  | FabricMemberLeftEvent
+  | FabricMemberUpdatedEvent
+  | FabricMemberTalkingEvent
 
-export type MemberEventParams =
-  | MemberJoinedEventParams
-  | MemberLeftEventParams
-  | MemberUpdatedEventParams
-  | MemberTalkingEventParams
+export type FabricMemberEventParams =
+  | FabricMemberJoinedEventParams
+  | FabricMemberLeftEventParams
+  | FabricMemberUpdatedEventParams
+  | FabricMemberTalkingEventParams
 
-export type MemberEventParamsExcludeTalking = Exclude<
-  MemberEventParams,
-  MemberTalkingEventParams
+export type FabricMemberEventParamsExcludeTalking = Exclude<
+  FabricMemberEventParams,
+  FabricMemberTalkingEventParams
 >

@@ -110,6 +110,7 @@ export class RTCPeerConnectionManager {
     return null
   }
 
+
   /**
    * Clean up the manager and all connections
    */
@@ -184,7 +185,10 @@ export class RTCPeerConnectionManager {
       }
 
       this.logger.debug(`Pooled connection ${id} created successfully`)
-
+      this.logger.debug(
+        `ICE candidates gathered for connection ${id}:`,
+        pc.localDescription?.sdp
+      )
       return pooledConnection
     } catch (error) {
       this.logger.error('Failed to create pooled connection:', error)

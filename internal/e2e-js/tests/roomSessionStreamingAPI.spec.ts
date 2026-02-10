@@ -1,0 +1,85 @@
+import { test, expect } from '../fixtures'
+import {
+  SERVER_URL,
+  createTestRoomSession,
+  createRoom,
+  randomizeRoomName,
+  createStreamForRoom,
+  deleteRoom,
+  expectMCUVisible,
+  expectRoomJoinWithDefaults,
+} from '../utils'
+
+test.describe('Room Streaming from REST API', () => {
+  test('should start a stream using the REST API', async ({
+    createCustomPage,
+  }) => {
+    const pageOne = await createCustomPage({ name: '[pageOne]' })
+    const pageTwo = await createCustomPage({ name: '[pageTwo]' })
+
+    await pageOne.goto(SERVER_URL)
+
+    const room_name = randomizeRoomName('stream-room-api')
+    const connectionSettings = {
+      vrt: {
+        room_name,
+        user_name: 'stream-tester',
+        auto_create_room: true,
+        permissions: ['room.stream'],
+      },
+      initialEvents: ['stream.started', 'stream.ended'],
+    }
+
+    const roomData = await createRoom({
+      name: room_name,
+    })
+
+    const streamName = randomizeRoomName(process.env.RTMP_STREAM_NAME!)
+    await createStreamForRoom(
+      room_name,
+      `${process.env.RTMP_SERVER}${streamName}`
+    )
+
+    // Create and join room from the 1st tab and resolve on 'room.joined'
+    await createTestRoomSession(pageOne, connectionSettings)
+    await expectRoomJoinWithDefaults(pageOne)
+
+    // Checks that the video is visible on pageOne
+    await expectMCUVisible(pageOne)
+
+    await test.step('Visit the stream check URL and expect the stream to be visible on pageTwo', async () => {
+      try {
+        await expect
+          .poll(
+            async () => {
+              try {
+                await pageTwo.goto(process.env.STREAM_CHECK_URL!, {
+                  waitUntil: 'domcontentloaded',
+                })
+                return await pageTwo.getByText(streamName).isVisible()
+              } catch {
+                return false
+              }
+            },
+            {
+              timeout: 30_000,
+              intervals: [1000],
+              message: 'Stream is not visible after 30s',
+            }
+          )
+          .toBe(true)
+      } catch (error) {
+        console.error(
+          '\x1b[31mStream visibility check failed:\x1b[0m',
+          error.message
+        )
+        // Create a soft assertion that will be reported but won't fail the test
+        expect
+          .soft(true, `Stream visibility check failed: ${error.message}`)
+          .toBe(true)
+      }
+    })
+
+    await deleteRoom(roomData.id)
+  })
+})

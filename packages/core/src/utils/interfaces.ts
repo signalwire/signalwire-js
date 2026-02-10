@@ -60,7 +60,7 @@ export type JSONRPCMethod =
   | SubscriberMethod
   | WebRTCMethod
   | RoomMethod
-  | CallMethod
+  | FabricMethod
   | VertoMethod
   | ChatJSONRPCMethod
   | MessagingJSONRPCMethod
@@ -104,9 +104,6 @@ export interface SessionOptions {
   /** SignalWire project token, e.g. `PT9e5660c101cd140a1c93a0197640a369cf5f16975a0079c9` */
   token: string
   /** SignalWire contexts, e.g. 'home', 'office'.. */
-  /** @internal */
-  profileId?: string
-
   contexts?: string[]
   /** An alias for contexts - Topics has more priority over contexts */
   topics?: string[]
@@ -339,9 +336,9 @@ export type RoomMethod =
   | 'video.prioritize_handraise'
 
 /**
- * List of all Call Call methods
+ * List of all Call Fabric methods
  */
-export type CallMethod =
+export type FabricMethod =
   | 'call.mute'
   | 'call.unmute'
   | 'call.deaf'

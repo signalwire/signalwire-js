@@ -1,1 +1,0 @@
-export { LocalStorageAdapter } from './LocalStorageAdapter'
