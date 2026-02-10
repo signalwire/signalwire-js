@@ -18,14 +18,23 @@ import {
   streamIsValid,
   stopTrack,
 } from './utils'
-import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 import { connectionPoolManager } from './connectionPoolManager'
+import { WebRTCStatsMonitor } from './monitoring/WebRTCStatsMonitor'
+import type {
+  NetworkQuality,
+  StatsHistoryEntry,
+  MonitoringOptions,
+} from './monitoring/interfaces'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
 
   public instance: RTCPeerConnection
+
+  // WebRTC Stats Monitoring
+  private _statsMonitor?: WebRTCStatsMonitor
+  private _monitoringEnabled = false
 
   private _iceTimeout: any
   private _negotiating = false
@@ -34,7 +43,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   private _watchMediaPacketsTimer: ReturnType<typeof setTimeout>
   private _connectionStateTimer: ReturnType<typeof setTimeout>
   private _resumeTimer?: ReturnType<typeof setTimeout>
-  private _mediaWatcher: ReturnType<typeof watchRTCPeerMediaPackets>
   private _candidatesSnapshot: RTCIceCandidate[] = []
   private _allCandidates: RTCIceCandidate[] = []
   private _processingLocalSDP = false
@@ -377,22 +385,16 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   private resetNeedResume() {
     this.clearResumeTimer()
-    if (this.options.watchMediaPackets) {
-      this.startWatchMediaPackets()
+    
+    // Unified monitoring initialization: start WebRTC stats monitoring when either
+    // watchMediaPackets or enableStatsMonitoring is enabled (both default to true)
+    // This consolidates the monitoring initialization logic
+    if (this.options.watchMediaPackets !== false || this.options.enableStatsMonitoring !== false) {
+      this.startStatsMonitoring()
     }
   }
 
-  stopWatchMediaPackets() {
-    if (this._mediaWatcher) {
-      this._mediaWatcher.stop()
-    }
-  }
 
-  startWatchMediaPackets() {
-    this.stopWatchMediaPackets()
-    this._mediaWatcher = watchRTCPeerMediaPackets(this)
-    this._mediaWatcher?.start()
-  }
 
   async applyMediaConstraints(
     kind: string,
@@ -844,13 +846,14 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   }
 
   stop() {
+    // Stop stats monitoring
+    this.stopStatsMonitoring()
+
     // Do not use `stopTrack` util to not dispatch the `ended` event
     this._localStream?.getTracks().forEach((track) => track.stop())
     this._remoteStream?.getTracks().forEach((track) => track.stop())
 
     this.instance?.close()
-
-    this.stopWatchMediaPackets()
   }
 
   private _supportsAddTransceiver() {
@@ -1333,6 +1336,198 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     ) {
       this.instance.setConfiguration(config)
     }
+  }
+
+  // === WebRTC Stats Monitoring Methods ===
+
+  /**
+   * Initialize stats monitoring for this RTCPeer
+   * This is called internally during peer setup
+   */
+  private _initializeStatsMonitoring(): void {
+    if (this.options.enableStatsMonitoring === false) {
+      this.logger.debug('Stats monitoring disabled by options')
+      return
+    }
+
+    try {
+      this._statsMonitor = new WebRTCStatsMonitor(this, this.call)
+      this.logger.debug('WebRTC stats monitor initialized')
+    } catch (error) {
+      this.logger.error('Failed to initialize WebRTC stats monitor', error)
+    }
+  }
+
+  /**
+   * Start WebRTC statistics monitoring
+   * @param options Optional monitoring configuration
+   */
+  public startStatsMonitoring(options?: MonitoringOptions): void {
+    if (!this._statsMonitor) {
+      this._initializeStatsMonitoring()
+    }
+
+    if (!this._statsMonitor) {
+      this.logger.warn('Cannot start stats monitoring - monitor not available')
+      return
+    }
+
+    if (this._monitoringEnabled) {
+      this.logger.debug('Stats monitoring already enabled')
+      return
+    }
+
+    try {
+      this._statsMonitor.start(options)
+      this._monitoringEnabled = true
+      this.logger.debug('WebRTC stats monitoring started')
+    } catch (error) {
+      this.logger.error('Failed to start WebRTC stats monitoring', error)
+    }
+  }
+
+  /**
+   * Stop WebRTC statistics monitoring
+   */
+  public stopStatsMonitoring(): void {
+    if (!this._monitoringEnabled || !this._statsMonitor) {
+      return
+    }
+
+    try {
+      this._statsMonitor.stop()
+      this._monitoringEnabled = false
+      this.logger.debug('WebRTC stats monitoring stopped')
+    } catch (error) {
+      this.logger.error('Failed to stop WebRTC stats monitoring', error)
+    }
+  }
+
+  /**
+   * Get current network quality assessment
+   * @returns Current network quality or null if monitoring is not active
+   */
+  public getNetworkQuality(): NetworkQuality | null {
+    if (!this._statsMonitor || !this._monitoringEnabled) {
+      return null
+    }
+
+    try {
+      return this._statsMonitor.getNetworkQuality()
+    } catch (error) {
+      this.logger.error('Failed to get network quality', error)
+      return null
+    }
+  }
+
+  /**
+   * Get historical statistics data
+   * @param limit Optional limit on number of entries to return
+   * @returns Array of historical statistics entries
+   */
+  public getStatsHistory(limit?: number): StatsHistoryEntry[] {
+    if (!this._statsMonitor || !this._monitoringEnabled) {
+      return []
+    }
+
+    try {
+      return this._statsMonitor.getMetricsHistory(limit)
+    } catch (error) {
+      this.logger.error('Failed to get stats history', error)
+      return []
+    }
+  }
+
+  // === Recovery Methods ===
+
+  /**
+   * Trigger a reinvite (full renegotiation) for recovery purposes
+   * This method is used by the RecoveryManager for network issue recovery
+   */
+  public async triggerReinvite(): Promise<void> {
+    try {
+      if (this._negotiating) {
+        throw new Error('Cannot trigger reinvite during active negotiation')
+      }
+
+      if (!this.instance || this.instance.signalingState === 'closed') {
+        throw new Error(
+          'Cannot trigger reinvite - peer connection not available'
+        )
+      }
+
+      this.logger.info('Triggering reinvite for connection recovery')
+
+      // Set type to offer to initiate renegotiation
+      this.type = 'offer'
+
+      // Use the existing restartIce method which handles renegotiation
+      this.restartIce()
+
+      this.logger.debug('Reinvite triggered successfully')
+    } catch (error) {
+      this.logger.error('Failed to trigger reinvite', error)
+      throw error
+    }
+  }
+
+  /**
+   * Request a video keyframe for recovery purposes
+   * This method is used by the RecoveryManager for video quality recovery
+   */
+  public async requestKeyframe(): Promise<void> {
+    try {
+      const videoSender = this._getSenderByKind('video')
+
+      if (!videoSender || !videoSender.track) {
+        this.logger.debug('No video sender available for keyframe request')
+        return
+      }
+
+      this.logger.debug('Requesting video keyframe')
+
+      // Try to use RTCRtpSender.generateKeyFrame() if available (newer browsers)
+      if (typeof (videoSender as any).generateKeyFrame === 'function') {
+        await (videoSender as any).generateKeyFrame()
+        this.logger.debug(
+          'Keyframe requested via RTCRtpSender.generateKeyFrame()'
+        )
+        return
+      }
+
+      // Fallback: Use existing track replacement approach for keyframe-like effect
+      const currentTrack = videoSender.track
+      if (currentTrack && currentTrack.readyState === 'live') {
+        // Temporarily replace track with itself to force keyframe
+        await videoSender.replaceTrack(null)
+        await videoSender.replaceTrack(currentTrack)
+        this.logger.debug('Keyframe requested via track replacement')
+      }
+
+      // Additional fallback: Try to emit a generic event (if needed by application)
+      // Note: This is a fallback mechanism for applications that need to handle keyframe requests
+      try {
+        ;(this.call as any).emit?.('keyframe.request', {
+          callId: this.call.id,
+          peerId: this.uuid,
+          timestamp: Date.now(),
+        })
+      } catch (error) {
+        // Event emission failed, but this is not critical for keyframe request
+        this.logger.debug('Could not emit keyframe.request event', error)
+      }
+    } catch (error) {
+      this.logger.error('Failed to request keyframe', error)
+      throw error
+    }
+  }
+
+  /**
+   * Check if stats monitoring is currently enabled
+   * @returns True if monitoring is active
+   */
+  public isStatsMonitoringEnabled(): boolean {
+    return this._monitoringEnabled && !!this._statsMonitor
   }
 
   /**

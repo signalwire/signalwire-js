@@ -1,6 +1,14 @@
 import { EventEmitter, getLogger } from '@signalwire/core'
 import type RTCPeer from '../RTCPeer'
 
+/**
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use RTCPeer's built-in monitoring methods instead:
+ * - rtcPeer.startStatsMonitoring() to start monitoring
+ * - rtcPeer.stopStatsMonitoring() to stop monitoring
+ * 
+ * This wrapper is provided for backward compatibility only.
+ */
 export const watchRTCPeerMediaPackets = <
   T extends EventEmitter.ValidEventTypes
 >(
