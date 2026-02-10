@@ -28,6 +28,14 @@ const handler = async () => {
 
   const connected = promiseWithTimeout(5_000, 'onConnected')
 
+  console.log({ host: process.env.RELAY_HOST, project: process.env.RELAY_PROJECT })
+  console.log({
+      host_length: process.env.RELAY_HOST?.length,
+      host_starts: process.env.RELAY_HOST?.slice(0, 4),
+      host_ends: process.env.RELAY_HOST?.slice(-4),
+      project: process.env.RELAY_PROJECT,
+    })
+
   const client = await SignalWire({
     host: process.env.RELAY_HOST || 'relay.swire.io',
     project: process.env.RELAY_PROJECT as string,
