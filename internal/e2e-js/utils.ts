@@ -1293,7 +1293,7 @@ export const expectv2HasReceivedSilence = async (
   })
   console.log('audioStats: ', audioStats)
 
-  /* This is a workaround what we think is a bug in Playwright/Chromium
+  /* This is a workaround for what we think is a bug in Playwright/Chromium
    * There are cases where totalAudioEnergy is not present in the report
    * even though we see audio and it's not silence.
    * In that case we rely on the number of packetsReceived.
@@ -1896,4 +1896,74 @@ export const expectMemberId = async (page: Page, memberId: string) => {
   })
 
   expect(roomMemberId).toEqual(memberId)
+}
+
+export const waitForCallActive = async (page: Page, timeout = 30000) => {
+  const callStatus = page.locator('#callStatus')
+  expect(callStatus).not.toBe(null)
+
+  try {
+    await expect(callStatus).toContainText('-> active', { timeout })
+    return true
+  } catch (error) {
+    const currentStatus = await callStatus.textContent()
+    console.log(`Call status check failed. Current status: ${currentStatus}`)
+    throw error
+  }
+}
+
+// Utility function to create call with better error handling
+export const createCallWithRetry = async (
+  resource: string,
+  inlineLaml: string,
+  codecs?: string,
+  maxRetries = 3
+) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const result = await createCallWithCompatibilityApi(
+        resource,
+        inlineLaml,
+        codecs
+      )
+      if (result === 201) {
+        return result
+      }
+      console.log(`Attempt ${i + 1} failed with status ${result}`)
+    } catch (error) {
+      console.log(`Attempt ${i + 1} failed with error:`, error)
+    }
+
+    if (i < maxRetries - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+    }
+  }
+  throw new Error(`Failed to create call after ${maxRetries} attempts`)
+}
+
+// Utility function to wait for call stability
+export const waitForCallStability = async (page: Page, minDuration = 5000) => {
+  const startTime = Date.now()
+  let lastStatus = ''
+  let stableCount = 0
+
+  while (Date.now() - startTime < minDuration) {
+    const currentStatus = await page.locator('#callStatus').textContent()
+
+    if (currentStatus === lastStatus) {
+      stableCount++
+    } else {
+      stableCount = 0
+      lastStatus = currentStatus || ''
+    }
+
+    // If status has been stable for 2 seconds, consider it stable
+    if (stableCount > 2) {
+      break
+    }
+
+    await page.waitForTimeout(1000)
+  }
+
+  return lastStatus
 }
