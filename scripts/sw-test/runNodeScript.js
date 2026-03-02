@@ -17,7 +17,6 @@ const E2E_REALTIME_API_IGNORED_DIRECTORIES = [
   'voiceRecord',
 ]
 const E2E_REALTIME_API_IGNORED_FILES = [
-  'messaging.test.ts',
   'task.test.ts',
   'voice.test.ts',
   'voicePass.test.ts',
