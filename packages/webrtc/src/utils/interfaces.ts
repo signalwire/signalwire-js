@@ -83,6 +83,8 @@ export interface ConnectionOptions {
   /** @internal */
   iceGatheringTimeout?: number
   /** @internal */
+  iceCandidateIdleTimeout?: number
+  /** @internal */
   maxIceGatheringTimeout?: number
   /** @internal */
   maxConnectionStateTimeout?: number
