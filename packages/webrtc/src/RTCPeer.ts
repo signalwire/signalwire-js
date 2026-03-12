@@ -19,7 +19,6 @@ import {
   stopTrack,
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
-import { connectionPoolManager } from './connectionPoolManager'
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -168,6 +167,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     const { rtcPeerConfig = {} } = this.options
     const config: RTCConfiguration = {
       bundlePolicy: 'max-compat',
+      iceCandidatePoolSize: this.options.iceCandidatePoolSize ?? 10,
       iceServers: filterIceServers(this.call.iceServers, {
         disableUdpIceServers: this.options.disableUdpIceServers,
       }),
@@ -556,40 +556,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
-  private _setupRTCPeerConnection() {
-    if (!this.instance) {
-      // Try to get a pre-warmed connection from session-level pool
-      let pooledConnection: RTCPeerConnection | null = null
-
-      try {
-        pooledConnection = connectionPoolManager.getConnection()
-      } catch (error) {
-        this.logger.debug('Could not access session connection pool', error)
-      }
-
-      if (pooledConnection) {
-        this.logger.info(
-          'Using pre-warmed connection from session pool with ICE candidates ready'
-        )
-        this.instance = pooledConnection
-
-        // The connection is already clean:
-        // - Mock tracks have been stopped and removed
-        // - ICE candidates are gathered and ready
-        // - TURN allocation is fresh
-        // - All event listeners have been removed
-      } else {
-        // Fallback to creating new connection
-        this.logger.debug(
-          'Creating new RTCPeerConnection (no pooled connection available)'
-        )
-        this.instance = RTCPeerConnection(this.config)
-      }
-
-      this._attachListeners()
-    }
-  }
-
   async start() {
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
@@ -609,7 +575,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        * replaced by an mDNS hostname
        * @see https://groups.google.com/g/discuss-webrtc/c/6stQXi72BEU?pli=1
        */
-      this._setupRTCPeerConnection()
+      if (!this.instance) {
+        this.instance = RTCPeerConnection(this.config)
+        this._attachListeners()
+      }
 
       let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
@@ -632,38 +601,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             audioTransceiverParams
           )
 
-          // Reuse existing audio transceivers from pooled connections
-          const existingAudioTransceivers = this.instance
-            .getTransceivers()
-            .filter(
-              (t) =>
-                t.receiver.track?.kind === 'audio' ||
-                (!t.sender.track &&
-                  !t.receiver.track &&
-                  t.mid?.includes('audio'))
-            )
-
-          audioTracks.forEach((track, index) => {
-            if (index < existingAudioTransceivers.length) {
-              // Reuse existing transceiver
-              const transceiver = existingAudioTransceivers[index]
-              this.logger.debug(
-                'Reusing existing audio transceiver',
-                transceiver.mid
-              )
-              transceiver.sender.replaceTrack(track)
-              transceiver.direction =
-                audioTransceiverParams.direction || 'sendrecv'
-              // Add stream association
-              if (audioTransceiverParams.streams?.[0]) {
-                // @ts-ignore - streams is a valid property but not in TS types
-                transceiver.sender.streams = audioTransceiverParams.streams
-              }
-            } else {
-              // Create new transceiver only if needed
-              this.logger.debug('Creating new audio transceiver')
-              this.instance.addTransceiver(track, audioTransceiverParams)
-            }
+          audioTracks.forEach((track) => {
+            this.instance.addTransceiver(track, audioTransceiverParams)
           })
 
           const videoTransceiverParams: RTCRtpTransceiverInit = {
@@ -683,44 +622,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             videoTransceiverParams
           )
 
-          // Reuse existing video transceivers from pooled connections
-          const existingVideoTransceivers = this.instance
-            .getTransceivers()
-            .filter(
-              (t) =>
-                t.receiver.track?.kind === 'video' ||
-                (!t.sender.track &&
-                  !t.receiver.track &&
-                  t.mid?.includes('video'))
-            )
-
-          videoTracks.forEach((track, index) => {
-            if (index < existingVideoTransceivers.length) {
-              // Reuse existing transceiver
-              const transceiver = existingVideoTransceivers[index]
-              this.logger.debug(
-                'Reusing existing video transceiver',
-                transceiver.mid
-              )
-              transceiver.sender.replaceTrack(track)
-              transceiver.direction =
-                videoTransceiverParams.direction || 'sendrecv'
-              // Add stream association
-              if (videoTransceiverParams.streams?.[0]) {
-                // @ts-ignore - streams is a valid property but not in TS types
-                transceiver.sender.streams = videoTransceiverParams.streams
-              }
-              // Apply simulcast encodings if needed
-              if (videoTransceiverParams.sendEncodings) {
-                const params = transceiver.sender.getParameters()
-                params.encodings = videoTransceiverParams.sendEncodings
-                transceiver.sender.setParameters(params)
-              }
-            } else {
-              // Create new transceiver only if needed
-              this.logger.debug('Creating new video transceiver')
-              this.instance.addTransceiver(track, videoTransceiverParams)
-            }
+          videoTracks.forEach((track) => {
+            this.instance.addTransceiver(track, videoTransceiverParams)
           })
 
           if (this.isSfu) {
@@ -745,60 +648,11 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       }
 
       if (this.isOffer) {
-        // Handle unused transceivers from pooled connections
-        if (this.instance.signalingState === 'have-local-offer') {
-          // We're reusing a pooled connection
-          this.logger.debug('Reusing pooled connection, managing transceivers')
-
-          // Get local tracks to determine what transceivers we need
-          const localAudioTracks = this._localStream?.getAudioTracks() || []
-          const localVideoTracks = this._localStream?.getVideoTracks() || []
-
-          // Set unused transceivers to inactive
-          const transceivers = this.instance.getTransceivers()
-          transceivers.forEach((transceiver) => {
-            const isAudioTransceiver =
-              transceiver.receiver.track?.kind === 'audio' ||
-              (!transceiver.sender.track &&
-                !transceiver.receiver.track &&
-                transceiver.mid?.includes('audio'))
-            const isVideoTransceiver =
-              transceiver.receiver.track?.kind === 'video' ||
-              (!transceiver.sender.track &&
-                !transceiver.receiver.track &&
-                transceiver.mid?.includes('video'))
-
-            // If we don't have audio tracks and this is an audio transceiver, set to inactive
-            if (isAudioTransceiver && localAudioTracks.length === 0) {
-              this.logger.debug(
-                'Setting unused audio transceiver to inactive',
-                transceiver.mid
-              )
-              transceiver.direction = 'inactive'
-            }
-
-            // If we don't have video tracks and this is a video transceiver, set to inactive
-            if (isVideoTransceiver && localVideoTracks.length === 0) {
-              this.logger.debug(
-                'Setting unused video transceiver to inactive',
-                transceiver.mid
-              )
-              transceiver.direction = 'inactive'
-            }
-          })
-        }
-
         if (this.options.negotiateAudio) {
           this._checkMediaToNegotiate('audio')
         }
         if (this.options.negotiateVideo) {
           this._checkMediaToNegotiate('video')
-        }
-
-        if (this.instance.signalingState === 'have-local-offer') {
-          // we are reusing a pooled connection
-          this.logger.debug('Reusing pooled connection with local offer')
-          this.startNegotiation()
         }
 
         /**
@@ -849,34 +703,10 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     // addTransceiver of 'kind' if not present
     const sender = this._getSenderByKind(kind)
     if (!sender && this._supportsAddTransceiver()) {
-      // Check if we already have a transceiver for this kind (from pooled connection)
-      const existingTransceiver = this.instance
-        .getTransceivers()
-        .find(
-          (t) =>
-            t.receiver.track?.kind === kind ||
-            (!t.sender.track && !t.receiver.track && t.mid?.includes(kind))
-        )
-
-      if (existingTransceiver) {
-        this.logger.debug(
-          'Found existing transceiver for',
-          kind,
-          existingTransceiver.mid
-        )
-        // Update direction if needed
-        if (
-          existingTransceiver.direction === 'inactive' ||
-          existingTransceiver.direction === 'sendonly'
-        ) {
-          existingTransceiver.direction = 'recvonly'
-        }
-      } else {
-        const transceiver = this.instance.addTransceiver(kind, {
-          direction: 'recvonly',
-        })
-        this.logger.debug('Add transceiver', kind, transceiver)
-      }
+      const transceiver = this.instance.addTransceiver(kind, {
+        direction: 'recvonly',
+      })
+      this.logger.debug('Add transceiver', kind, transceiver)
     }
   }
 

@@ -1,5 +1,11 @@
 # @signalwire/webrtc
 
+## 3.15.0-dev.202603121514.4122ecc.0
+
+### Minor Changes
+
+- [#1333](https://github.com/signalwire/signalwire-js/pull/1333) [`4122ecc4a6b50787c246d2b366df7f0f9782adbe`](https://github.com/signalwire/signalwire-js/commit/4122ecc4a6b50787c246d2b366df7f0f9782adbe) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Improve the SDP negotiation repacing the "Early Invites" and a "Fast Gathering" approach.
+
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
