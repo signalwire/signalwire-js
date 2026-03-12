@@ -21,28 +21,28 @@ describe('SignalWire', () => {
     mockConnect = jest.fn()
     mockDisconnect = jest.fn()
 
-    // Mock WSClient behavior
-    ;(WSClient as jest.Mock).mockImplementation(() => ({
-      connect: mockConnect,
-      disconnect: mockDisconnect,
-      online: jest.fn(),
-      offline: jest.fn(),
-      dial: jest.fn(),
-      reattach: jest.fn(),
-      handlePushNotification: jest.fn(),
-      updateToken: jest.fn(),
-      on: jest.fn(),
-      off: jest.fn(),
-    }))
+      // Mock WSClient behavior
+      ; (WSClient as jest.Mock).mockImplementation(() => ({
+        connect: mockConnect,
+        disconnect: mockDisconnect,
+        online: jest.fn(),
+        offline: jest.fn(),
+        dial: jest.fn(),
+        reattach: jest.fn(),
+        handlePushNotification: jest.fn(),
+        updateToken: jest.fn(),
+        on: jest.fn(),
+        off: jest.fn(),
+      }))
 
-    // Mock HTTPClient behavior
-    ;(HTTPClient as jest.Mock).mockImplementation(() => ({
-      registerDevice: jest.fn(),
-      unregisterDevice: jest.fn(),
-      getSubscriberInfo: jest.fn(),
-      getAddresses: jest.fn(),
-      getAddress: jest.fn(),
-    }))
+      // Mock HTTPClient behavior
+      ; (HTTPClient as jest.Mock).mockImplementation(() => ({
+        registerDevice: jest.fn(),
+        unregisterDevice: jest.fn(),
+        getSubscriberInfo: jest.fn(),
+        getAddresses: jest.fn(),
+        getAddress: jest.fn(),
+      }))
   })
 
   it('should create a single instance on the first call', async () => {
@@ -98,16 +98,16 @@ describe('SignalWire', () => {
     const client = await SignalWire(mockParams)
 
     await expect(() => client.conversation.getConversations()).toThrow(
-      'This version Conversation.getConversations is unsupported by the backend. Use @signalwire/client instead.'
+      'Conversation.getConversations is not supported in this version.'
     )
     await expect(() => client.conversation.getMessages()).toThrow(
-      'This version Conversation.getMessages is unsupported by the backend. Use @signalwire/client instead.'
+      'Conversation.getMessages is not supported in this version.'
     )
     await expect(() => client.conversation.sendMessage()).toThrow(
-      'This version Conversation.sendMessage is unsupported by the backend. Use @signalwire/client instead.'
+      'Conversation.sendMessage is not supported in this version.'
     )
     await expect(() => client.chat.getMessages()).toThrow(
-      'This version Conversation.getMessages is unsupported by the backend. Use @signalwire/client instead.'
+      'Conversation.getMessages is not supported in this version.'
     )
 
     await client.disconnect()

@@ -27,7 +27,7 @@ export const SignalWire = (() => {
           const conversationError = (method: string) => {
             return () => {
               throw new Error(
-                `This version Conversation.${method} is unsupported by the backend. Use @signalwire/client instead.`
+                `Conversation.${method} is not supported in this version.`
               )
             }
           }
