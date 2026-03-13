@@ -19,6 +19,7 @@ import {
   stopTrack,
 } from './utils'
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
+
 const RESUME_TIMEOUT = 12_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
@@ -319,7 +320,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
           'Skip restartIceWithRelayOnly since we need to generate answer'
         )
       }
-
       const config = this.getConfiguration()
       if (config.iceTransportPolicy === 'relay') {
         return this.logger.warn(
@@ -444,7 +444,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
       .find(({ track }) => track && track.kind === kind)
   }
 
-  async startNegotiation() {
+  async startNegotiation(force = false) {
     if (this._negotiating) {
       return this.logger.warn('Skip twice onnegotiationneeded!')
     }
@@ -493,11 +493,25 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
         await this._setLocalDescription(answer)
       }
 
+      /**
+       * ReactNative Workaround
+       */
+      if (force) {
+        this._sdpReady()
+      }
+
       this.logger.info('iceGatheringState', this.instance.iceGatheringState)
       if (this.instance.iceGatheringState === 'gathering') {
         this._iceTimeout = setTimeout(() => {
           this._onIceTimeout()
         }, this.options.maxIceGatheringTimeout)
+      } else if (this.instance.iceGatheringState === 'complete') {
+        // Only process if SDP already has candidates (renegotiation with reused transport).
+        // For ICE restart, candidates may not be ready yet - let _onIce handle it.
+        const { sdp } = this.instance.localDescription || {}
+        if (sdp && sdpHasCandidatesForEachMedia(sdp)) {
+          this._sdpReady()
+        }
       }
     } catch (error) {
       this.logger.error(`Error creating ${this.type}:`, error)
@@ -522,17 +536,8 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
 
     try {
-      const type = this.isOffer ? 'answer' : 'offer'
-      if (
-        type === 'answer' &&
-        this.instance.signalingState !== 'have-local-offer'
-      ) {
-        this.logger.warn(
-          'Ignoring offer SDP as signaling state is not have-local-offer'
-        )
-        return
-      }
       this._processingRemoteSDP = true
+      const type = this.isOffer ? 'answer' : 'offer'
       await this._setRemoteDescription({ sdp, type })
       this._processingRemoteSDP = false
 
@@ -556,6 +561,13 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
     }
   }
 
+  private _setupRTCPeerConnection() {
+    if (!this.instance) {
+      this.instance = RTCPeerConnection(this.config)
+      this._attachListeners()
+    }
+  }
+
   async start() {
     return new Promise(async (resolve, reject) => {
       this._resolveStartMethod = resolve
@@ -575,10 +587,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
        * replaced by an mDNS hostname
        * @see https://groups.google.com/g/discuss-webrtc/c/6stQXi72BEU?pli=1
        */
-      if (!this.instance) {
-        this.instance = RTCPeerConnection(this.config)
-        this._attachListeners()
-      }
+      this._setupRTCPeerConnection()
 
       let hasLocalTracks = false
       if (this._localStream && streamIsValid(this._localStream)) {
@@ -600,7 +609,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             'Applying audioTransceiverParams',
             audioTransceiverParams
           )
-
           audioTracks.forEach((track) => {
             this.instance.addTransceiver(track, audioTransceiverParams)
           })
@@ -621,7 +629,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             'Applying videoTransceiverParams',
             videoTransceiverParams
           )
-
           videoTracks.forEach((track) => {
             this.instance.addTransceiver(track, videoTransceiverParams)
           })
