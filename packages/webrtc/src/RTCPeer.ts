@@ -906,13 +906,7 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
             this.emitMediaConnected()
           }
           break
-        case 'have-local-offer': {
-          if (this.instance.iceGatheringState === 'complete') {
-            this.instance.removeEventListener('icecandidate', this._onIce)
-            this._sdpReady()
-          }
-          break
-        }
+        // case 'have-local-offer': handled via _onIce null candidate
         // case 'have-remote-offer': {}
         case 'closed':
           // @ts-ignore
@@ -961,10 +955,6 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
     this.instance.addEventListener('icegatheringstatechange', () => {
       this.logger.debug('iceGatheringState:', this.instance.iceGatheringState)
-      if (this.instance.iceGatheringState === 'complete') {
-        this.logger.debug('ICE gathering complete')
-        void this._sdpReady()
-      }
     })
 
     // this.instance.addEventListener('icecandidateerror', (event) => {
