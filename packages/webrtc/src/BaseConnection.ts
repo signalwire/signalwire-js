@@ -1376,13 +1376,10 @@ export class BaseConnection<
         this._upsertTransceiverByKind(video.direction, 'video')
       }
 
-      /**
-       * Trigger the negotiation with the new settings.
-       * If the negotiation is already ongoing it would not have a side effect.
-       */
-      await this.peer.startNegotiation()
-
       // Wait for the Renegotiation to complete
+      // The transceiver direction changes above will trigger the browser's
+      // `negotiationneeded` event, which the RTCPeer's handler will pick up
+      // and call startNegotiation() automatically.
       await negotiationPromise
 
       // Throw error if the remote SDP does not include the expected audio direction
