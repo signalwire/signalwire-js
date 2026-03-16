@@ -3,4 +3,4 @@
 '@signalwire/js': minor
 ---
 
-Replaced the RTCPeerConnection pool with with ICE candidates pool only. THis is requuired for stable and fast gathering.
+CHANGED: Replaced the RTCPeerConnection pool with ICE candidates pool only. This is required for stable and fast gathering.

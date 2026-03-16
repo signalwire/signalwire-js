@@ -1325,13 +1325,48 @@ export class BaseConnection<
       }
 
       /**
-       * Create a new renegotiation promise that would be resolved by the {@link executeUpdateMedia}
+       * Create a new renegotiation promise that would be resolved by the {@link executeUpdateMedia}.
+       * A timeout is included to prevent the promise from hanging indefinitely
+       * in case the browser's `negotiationneeded` event never fires.
        */
+      const NEGOTIATION_FALLBACK_MS = 5_000
+      const NEGOTIATION_TIMEOUT_MS = 20_000
       const peer = this.peer
       const negotiationPromise = new Promise((resolve, reject) => {
+        // If the browser doesn't fire `negotiationneeded` within 5s,
+        // manually kick off the negotiation as a fallback.
+        const fallbackId = setTimeout(() => {
+          if (!peer.isNegotiating) {
+            this.logger.warn(
+              'negotiationneeded not fired within 5s, starting negotiation manually'
+            )
+            peer.startNegotiation()
+          }
+        }, NEGOTIATION_FALLBACK_MS)
+
+        const timeoutId = setTimeout(() => {
+          peer._pendingNegotiationPromise = undefined
+          reject(
+            new Error(
+              `Renegotiation timed out after ${NEGOTIATION_TIMEOUT_MS / 1000}s.`
+            )
+          )
+        }, NEGOTIATION_TIMEOUT_MS)
+
+        const clearTimers = () => {
+          clearTimeout(fallbackId)
+          clearTimeout(timeoutId)
+        }
+
         peer._pendingNegotiationPromise = {
-          resolve,
-          reject,
+          resolve: (value?: unknown) => {
+            clearTimers()
+            resolve(value)
+          },
+          reject: (error: unknown) => {
+            clearTimers()
+            reject(error)
+          },
         }
       })
 

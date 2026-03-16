@@ -53,7 +53,6 @@ export class WSClient extends BaseClient<{}> implements WSClientContract {
         },
       },
     })
-
   }
 
   private makeFabricObject(makeRoomOptions: MakeRoomOptions) {
