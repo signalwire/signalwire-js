@@ -51,12 +51,13 @@ import {
 export type BaseConnectionOptions = ConnectionOptions & BaseComponentOptions
 
 export class BaseConnection<
-  EventTypes extends EventEmitter.ValidEventTypes = BaseConnectionEvents
->
+    EventTypes extends EventEmitter.ValidEventTypes = BaseConnectionEvents
+  >
   extends BaseComponent<EventTypes>
   implements
-  Rooms.BaseRoomInterface<EventTypes>,
-  BaseConnectionContract<EventTypes> {
+    Rooms.BaseRoomInterface<EventTypes>,
+    BaseConnectionContract<EventTypes>
+{
   public direction: 'inbound' | 'outbound'
   public options: BaseConnectionOptions
   /** @internal */
@@ -925,9 +926,9 @@ export class BaseConnection<
     try {
       const ssOpts = this.options.screenShare
         ? {
-          layout: this.options.layout,
-          positions: this.options.positions,
-        }
+            layout: this.options.layout,
+            positions: this.options.positions,
+          }
         : {}
       const message = VertoInvite({
         ...this.dialogParams(rtcPeerId),
