@@ -21,6 +21,7 @@ import {
 import { watchRTCPeerMediaPackets } from './utils/watchRTCPeerMediaPackets'
 
 const RESUME_TIMEOUT = 12_000
+const SETUP_NEGOTIATION_TIMEOUT_MS = 20_000
 
 export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
   public uuid = uuid()
@@ -570,8 +571,22 @@ export default class RTCPeer<EventTypes extends EventEmitter.ValidEventTypes> {
 
   async start() {
     return new Promise(async (resolve, reject) => {
-      this._resolveStartMethod = resolve
-      this._rejectStartMethod = reject
+      const setupTimeoutId = setTimeout(() => {
+        reject(
+          new Error(
+            `Call setup negotiation timed out after ${SETUP_NEGOTIATION_TIMEOUT_MS / 1000}s.`
+          )
+        )
+      }, SETUP_NEGOTIATION_TIMEOUT_MS)
+
+      this._resolveStartMethod = (value?: unknown) => {
+        clearTimeout(setupTimeoutId)
+        resolve(value)
+      }
+      this._rejectStartMethod = (error: unknown) => {
+        clearTimeout(setupTimeoutId)
+        reject(error)
+      }
 
       try {
         this._localStream = await this._retrieveLocalStream()
