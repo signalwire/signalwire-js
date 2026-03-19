@@ -1,5 +1,12 @@
 # @signalwire/js
 
+## 3.29.3-dev.202603121514.4122ecc.0
+
+### Patch Changes
+
+- Updated dependencies [[`4122ecc4a6b50787c246d2b366df7f0f9782adbe`](https://github.com/signalwire/signalwire-js/commit/4122ecc4a6b50787c246d2b366df7f0f9782adbe)]:
+  - @signalwire/webrtc@3.15.0-dev.202603121514.4122ecc.0
+
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

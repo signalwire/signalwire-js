@@ -81,6 +81,7 @@ const callfabricAgentTests = [
 const callfabricConnectionTests = [
   'callfabric/reattach.spec.ts',
   'callfabric/cleanup.spec.ts',
+  'callfabric/badNetwork.spec.ts',
 ]
 const callfabricInteractionTests = [
   'callfabric/raiseHand.spec.ts',

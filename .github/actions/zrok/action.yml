@@ -5,7 +5,7 @@ inputs:
   ZROK_VERSION:
     required: false
     description: Zrok version to use
-    default: 1.0.4
+    default: 1.1.11
   ZROK_API_ENDPOINT:
     required: true
     description: Zrok apiEndpoint
@@ -18,7 +18,7 @@ runs:
     - name: Install Zrok
       shell: bash
       run: |
-        curl -L -O https://github.com/openziti/zrok/releases/download/v1.0.4/zrok_${{ inputs.ZROK_VERSION }}_linux_amd64.tar.gz
+        curl -L -O https://github.com/openziti/zrok/releases/download/v${{ inputs.ZROK_VERSION }}/zrok_${{ inputs.ZROK_VERSION }}_linux_amd64.tar.gz
         mkdir /tmp/zrok && tar xvzf ./zrok_${{ inputs.ZROK_VERSION }}_linux_amd64.tar.gz -C /tmp/zrok
         mkdir -p /usr/local/bin && install /tmp/zrok/zrok /usr/local/bin/
         zrok version
