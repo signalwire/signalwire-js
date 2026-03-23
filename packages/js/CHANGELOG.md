@@ -1,15 +1,20 @@
 # @signalwire/js
 
-## 3.29.3-dev.202603121514.4122ecc.0
-
-### Patch Changes
-
-- Updated dependencies [[`4122ecc4a6b50787c246d2b366df7f0f9782adbe`](https://github.com/signalwire/signalwire-js/commit/4122ecc4a6b50787c246d2b366df7f0f9782adbe)]:
-  - @signalwire/webrtc@3.15.0-dev.202603121514.4122ecc.0
-
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.30.0] - 2026-03-23
+
+### Changed
+
+- [#1337](https://github.com/signalwire/signalwire-js/pull/1337) [`c07a1353537196201763e9f301a6fe27a510f26a`](https://github.com/signalwire/signalwire-js/commit/c07a1353537196201763e9f301a6fe27a510f26a) Thanks [@jpsantosbh](https://github.com/jpsantosbh)! - Replaced the RTCPeerConnection pool with ICE candidates pool only. This is required for stable and fast gathering.
+
+### Changed
+
+- Updated dependencies [[`c07a1353537196201763e9f301a6fe27a510f26a`](https://github.com/signalwire/signalwire-js/commit/c07a1353537196201763e9f301a6fe27a510f26a), [`4122ecc4a6b50787c246d2b366df7f0f9782adbe`](https://github.com/signalwire/signalwire-js/commit/4122ecc4a6b50787c246d2b366df7f0f9782adbe)]:
+  - @signalwire/webrtc@3.15.0
+
 
 ## [3.29.2] - 2026-02-04
 
