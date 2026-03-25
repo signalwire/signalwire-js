@@ -35,6 +35,7 @@ import {
   OnVertoByeParams,
 } from './utils/interfaces'
 import { stopTrack, getUserMedia, streamIsValid } from './utils'
+import { safeLogError } from './utils/logError'
 import {
   hasMatchingSdpDirection,
   sdpRemoveLocalCandidates,
@@ -807,7 +808,20 @@ export class BaseConnection<
             await this.peer.start()
             resolve(this as any as T)
           } catch (error) {
-            this.logger.error('Invite error', error)
+            const safeError = safeLogError(error)
+            const maybeError = error as any
+            const isNormalClearing =
+              maybeError?.message === 'NORMAL_CLEARING' &&
+              (maybeError?.code === '16' || maybeError?.code === 16)
+
+            if (isNormalClearing) {
+              this.logger.warn(
+                'Invite rejected (NORMAL_CLEARING)',
+                safeError
+              )
+            } else {
+              this.logger.error('Invite error', safeError)
+            }
             this._destroyPeer()
             reject(error)
           }
