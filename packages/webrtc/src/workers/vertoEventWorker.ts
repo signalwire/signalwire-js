@@ -15,6 +15,7 @@ import {
 } from '@signalwire/core'
 
 import { BaseConnection } from '../BaseConnection'
+import { safeLogError } from '../utils/logError'
 
 type VertoEventWorkerOnDone = (args: BaseConnection<any>) => void
 type VertoEventWorkerOnFail = (args: { error: Error }) => void
@@ -151,7 +152,7 @@ export const vertoEventWorker: SDKWorker<
   const catchableWorker = sagaHelpers.createCatchableSaga<
     MapToPubSubShape<WebRTCMessageParams>
   >(worker, (error) => {
-    getLogger().error('Verto Error', error)
+    getLogger().error('Verto Error', safeLogError(error))
   })
 
   try {
