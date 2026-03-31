@@ -437,6 +437,7 @@ export class BaseSession {
       // Handle authentication error and retry on internal errors
       if (error?.code === JSONRPCErrorCode.AUTHENTICATION_FAILED) {
         this.logger.error('Auth Error', error)
+        // TBD: Should we cleanup the SDK and destroy the session on auth error?
         this.authError(error)
       } else {
         this.logger.warn(
