@@ -11,6 +11,7 @@ import {
 } from './utils'
 import {
   DEFAULT_HOST,
+  JSONRPCErrorCode,
   SYMBOL_CONNECT_ERROR,
   SYMBOL_EXECUTE_CONNECTION_CLOSED,
   SYMBOL_EXECUTE_TIMEOUT,
@@ -422,6 +423,7 @@ export class BaseSession {
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
+      // Connection closed or the timeout error
       if (
         error === this._swConnectError ||
         error === this._executeConnectionClosed
@@ -432,8 +434,17 @@ export class BaseSession {
         return
       }
 
-      this.logger.error('Auth Error', error)
-      this.authError(error)
+      // Handle authentication error and retry on internal errors
+      if (error?.code === JSONRPCErrorCode.AUTHENTICATION_FAILED) {
+        this.logger.error('Auth Error', error)
+        this.authError(error)
+      } else {
+        this.logger.warn(
+          'Non-auth error during signalwire.connect, retrying',
+          error
+        )
+        this._closeConnection('reconnecting')
+      }
     }
   }
 

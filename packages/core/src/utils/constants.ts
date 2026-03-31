@@ -57,6 +57,15 @@ export const INTERNAL_GLOBAL_VIDEO_EVENTS = GLOBAL_VIDEO_EVENTS.map(
   (event) => `${PRODUCT_PREFIX_VIDEO}.${event}` as const
 )
 
+/**
+ * JSON-RPC error codes returned by the Hagrid.
+ * @see https://www.jsonrpc.org/specification#error_object
+ */
+export const JSONRPCErrorCode = {
+  AUTHENTICATION_FAILED: -32002,
+  INTERNAL_ERROR: -32603,
+} as const
+
 export const SYMBOL_EXECUTE_CONNECTION_CLOSED = Symbol.for(
   'sw-execute-connection-closed'
 )

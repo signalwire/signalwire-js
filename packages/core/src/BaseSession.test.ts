@@ -1,6 +1,10 @@
 import WS from 'jest-websocket-mock'
 import { BaseSession } from './BaseSession'
-import { socketMessageAction, sessionReconnectingAction } from './redux/actions'
+import {
+  socketMessageAction,
+  sessionReconnectingAction,
+  authErrorAction,
+} from './redux/actions'
 import {
   RPCConnect,
   RPCPing,
@@ -8,6 +12,7 @@ import {
   RPCDisconnectResponse,
 } from './RPCMessages'
 import { SWCloseEvent } from './utils'
+import { JSONRPCErrorCode } from './utils/constants'
 import { wait } from './testUtils'
 
 jest.mock('uuid', () => {
@@ -194,6 +199,84 @@ describe('BaseSession', () => {
       )
 
       session.disconnect()
+    })
+  })
+
+  describe('signalwire.connect error handling', () => {
+    function createErrorServer(code: number, message: string) {
+      WS.clean()
+      const errorWs = new WS(host)
+      errorWs.on('connection', (socket: any) => {
+        socket.on('message', (data: any) => {
+          const parsedData = JSON.parse(data)
+          if (parsedData.method === 'signalwire.connect') {
+            socket.send(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id: parsedData.id,
+                error: { code, message },
+              })
+            )
+          }
+        })
+      })
+      return errorWs
+    }
+
+    it('should emit auth error for -32002 (AUTHENTICATION_FAILED)', async () => {
+      const errorWs = createErrorServer(
+        JSONRPCErrorCode.AUTHENTICATION_FAILED,
+        'Authentication service failed with status ProtocolError, 401 Unauthorized: {}'
+      )
+
+      session.connect()
+      await errorWs.connected
+      await wait(10)
+
+      expect(session.dispatch).toHaveBeenCalledWith(
+        authErrorAction({
+          error: {
+            code: JSONRPCErrorCode.AUTHENTICATION_FAILED,
+            message:
+              'Authentication service failed with status ProtocolError, 401 Unauthorized: {}',
+          },
+        })
+      )
+    })
+
+    it('should reconnect for -32603 (INTERNAL_ERROR) instead of emitting auth error', async () => {
+      const errorWs = createErrorServer(
+        JSONRPCErrorCode.INTERNAL_ERROR,
+        'Internal error'
+      )
+
+      session.connect()
+      await errorWs.connected
+      await wait(10)
+
+      const dispatches = (session.dispatch as jest.Mock).mock.calls
+      const authErrors = dispatches.filter(
+        ([action]: any) =>
+          action.type === authErrorAction({ error: {} as any }).type
+      )
+      expect(authErrors).toHaveLength(0)
+      expect(session.status).toBe('reconnecting')
+    })
+
+    it('should reconnect for unknown error codes instead of emitting auth error', async () => {
+      const errorWs = createErrorServer(-32000, 'Timeout')
+
+      session.connect()
+      await errorWs.connected
+      await wait(10)
+
+      const dispatches = (session.dispatch as jest.Mock).mock.calls
+      const authErrors = dispatches.filter(
+        ([action]: any) =>
+          action.type === authErrorAction({ error: {} as any }).type
+      )
+      expect(authErrors).toHaveLength(0)
+      expect(session.status).toBe('reconnecting')
     })
   })
 
