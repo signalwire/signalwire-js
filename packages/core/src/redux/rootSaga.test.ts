@@ -18,6 +18,7 @@ import {
   destroyAction,
   initAction,
   reauthAction,
+  setTokenAction,
 } from './actions'
 import { AuthError } from '../CustomErrors'
 import { createSwEventChannel, createSessionChannel } from '../testUtils'
@@ -30,6 +31,7 @@ describe('sessionStatusWatcher', () => {
     reauthAction.type,
     sessionReconnectingAction.type,
     sessionForceCloseAction.type,
+    setTokenAction.type,
   ]
   const session = {
     closed: true,
@@ -97,6 +99,18 @@ describe('sessionStatusWatcher', () => {
     saga.next(authExpiringAction())
 
     expect(sessionEmitter.emit).toHaveBeenCalledWith('session.expiring')
+
+    // Saga waits again for actions due to the while loop
+    saga.next()
+  })
+
+  it('should set session.token on setTokenAction', () => {
+    const saga = testSaga(sessionStatusWatcher, options)
+
+    saga.next().take(actions)
+    saga.next(setTokenAction({ token: 'new-token' }))
+
+    expect(session.token).toBe('new-token')
 
     // Saga waits again for actions due to the while loop
     saga.next()
