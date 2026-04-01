@@ -255,7 +255,7 @@ const handler = async () => {
 
   await Promise.race([
     badClient.disconnect(),
-    new Promise((r) => setTimeout(r, 3_000)),
+    new Promise((r) => setTimeout(r, 5_000)),
   ])
 
   return 0

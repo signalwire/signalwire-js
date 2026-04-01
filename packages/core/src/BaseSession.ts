@@ -294,6 +294,12 @@ export class BaseSession {
      */
     if (!this._socket || this.closing) {
       this.logger.debug('Session not connected or already in closing state.')
+      // After an auth error the socket may be closing/closed but
+      // sessionDisconnectedAction was never dispatched, so complete
+      // the disconnect lifecycle to avoid hanging callers.
+      if (this._status !== 'disconnected') {
+        this._closeConnection('disconnected')
+      }
       return
     }
 
