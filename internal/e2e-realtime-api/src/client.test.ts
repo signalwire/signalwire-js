@@ -177,7 +177,7 @@ const handler = async () => {
 
   unsub()
 
-  // --- Test auth error with bad token (constructor listen) ---
+  // --- Test auth error with bad token ---
 
   let badReconnectingCount = 0
   const authError = promiseWithTimeout<AuthError>(10_000, 'onAuthError')
