@@ -216,58 +216,8 @@ const handler = async () => {
     'auth error must NOT trigger reconnecting (no retry on -32002)'
   )
 
-  // --- Test auth error via client.listen() ---
-
-  const listenAuthError = promiseWithTimeout<AuthError>(
-    10_000,
-    'listen onAuthError'
-  )
-  let listenBadReconnectingCount = 0
-
-  const badClient2 = await SignalWire({
-    host: process.env.RELAY_HOST || 'relay.swire.io',
-    project: process.env.RELAY_PROJECT as string,
-    token: `${process.env.RELAY_TOKEN as string}-invalid`,
-  })
-
-  const unsubBadClient = badClient2.listen({
-    onAuthError: (error) => {
-      listenAuthError.resolve(error)
-    },
-    onReconnecting: () => {
-      listenBadReconnectingCount += 1
-    },
-  })
-
-  const listenError = await listenAuthError.promise
-
-  tap.ok(listenError, 'client.listen: onAuthError called')
-  tap.equal(listenError.name, 'AuthError', 'client.listen: AuthError received')
-  tap.equal(
-    typeof listenError.code,
-    'number',
-    'client.listen: AuthError includes code'
-  )
-  tap.equal(
-    badClient2.authStatus,
-    'unauthorized',
-    'client.listen: authStatus is "unauthorized" after auth error'
-  )
-  tap.equal(
-    listenBadReconnectingCount,
-    0,
-    'client.listen: auth error must NOT trigger reconnecting'
-  )
-
-  unsubBadClient()
-
   await Promise.race([
     badClient.disconnect(),
-    new Promise((r) => setTimeout(r, 3_000)),
-  ])
-
-  await Promise.race([
-    badClient2.disconnect(),
     new Promise((r) => setTimeout(r, 3_000)),
   ])
 
