@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.29.3] - 2026-04-03
+
+### Changed
+
+- Updated dependencies [[`229096d707ab782e82f2a94ed1f302714ea10354`](https://github.com/signalwire/signalwire-js/commit/229096d707ab782e82f2a94ed1f302714ea10354)]:
+  - @signalwire/core@4.3.3
+  - @signalwire/webrtc@3.14.3
+
 ## [3.29.2] - 2026-02-04
 
 ### Changed
