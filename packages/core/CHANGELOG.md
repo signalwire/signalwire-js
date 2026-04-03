@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+
+## [4.3.3] - 2026-04-03
+
+### Fixed
+
+- [#1341](https://github.com/signalwire/signalwire-js/pull/1341) [`229096d707ab782e82f2a94ed1f302714ea10354`](https://github.com/signalwire/signalwire-js/commit/229096d707ab782e82f2a94ed1f302714ea10354) Thanks [@iAmmar7](https://github.com/iAmmar7)! - Fix: Authentication errors (-32002) during signalwire.connect now correctly disconnect the client without retrying. Transient server errors during connect now trigger a reconnect instead of being misreported as auth failures. Fixed a hang when calling disconnect() after an auth error..
 
 ## [4.3.2] - 2026-02-04
 
