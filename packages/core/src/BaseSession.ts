@@ -11,6 +11,7 @@ import {
 } from './utils'
 import {
   DEFAULT_HOST,
+  JSONRPCErrorCode,
   SYMBOL_CONNECT_ERROR,
   SYMBOL_EXECUTE_CONNECTION_CLOSED,
   SYMBOL_EXECUTE_TIMEOUT,
@@ -293,6 +294,12 @@ export class BaseSession {
      */
     if (!this._socket || this.closing) {
       this.logger.debug('Session not connected or already in closing state.')
+      // After an auth error the socket may be closing/closed but
+      // sessionDisconnectedAction was never dispatched, so complete
+      // the disconnect lifecycle to avoid hanging callers.
+      if (this._status !== 'disconnected') {
+        this._closeConnection('disconnected')
+      }
       return
     }
 
@@ -422,6 +429,7 @@ export class BaseSession {
       this._flushExecuteQueue()
       this.dispatch(authSuccessAction())
     } catch (error) {
+      // Connection closed or the timeout error
       if (
         error === this._swConnectError ||
         error === this._executeConnectionClosed
@@ -432,8 +440,18 @@ export class BaseSession {
         return
       }
 
-      this.logger.error('Auth Error', error)
-      this.authError(error)
+      // Handle authentication error and retry on internal errors
+      if (error?.code === JSONRPCErrorCode.AUTHENTICATION_FAILED) {
+        this.logger.error('Auth Error', error)
+        // TBD: Should we cleanup the SDK and destroy the session on auth error?
+        this.authError(error)
+      } else {
+        this.logger.warn(
+          'Non-auth error during signalwire.connect, retrying',
+          error
+        )
+        this._closeConnection('reconnecting')
+      }
     }
   }
 

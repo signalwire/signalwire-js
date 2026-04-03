@@ -15,6 +15,7 @@ import {
   sessionDisconnectedAction,
   reauthAction,
   sessionForceCloseAction,
+  setTokenAction,
 } from './actions'
 import { sessionActions } from './features'
 import {
@@ -149,6 +150,7 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         reauthAction.type,
         sessionReconnectingAction.type,
         sessionForceCloseAction.type,
+        setTokenAction.type,
       ])
 
       getLogger().debug('sessionStatusWatcher', action.type, action.payload)
@@ -183,6 +185,10 @@ export function* sessionStatusWatcher(options: StartSagaOptions): SagaIterator {
         }
         case sessionForceCloseAction.type: {
           session.forceClose()
+          break
+        }
+        case setTokenAction.type: {
+          session.token = action.payload.token
           break
         }
       }

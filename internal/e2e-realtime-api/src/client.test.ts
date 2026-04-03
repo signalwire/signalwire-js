@@ -22,6 +22,8 @@ function promiseWithTimeout<T = void>(ms: number, label: string) {
 }
 
 const handler = async () => {
+  // --- Phase 1: Connect with constructor listen ---
+
   let connectedCount = 0
   let disconnectedCount = 0
   let reconnectingCount = 0
@@ -55,7 +57,12 @@ const handler = async () => {
   )
   tap.equal(connectedCount, 1, 'constructor listen: onConnected called once')
 
-  // --- Test client.listen + unsub + reconnect ---
+  const store = client._client?.store
+  if (!store) {
+    throw new Error('Missing store')
+  }
+
+  // --- Phase 2: Reconnect + client.listen + unsub ---
 
   let listenConnectedCount = 0
   let listenDisconnectedCount = 0
@@ -91,21 +98,10 @@ const handler = async () => {
     },
   })
 
-  // Internal access: we don't have a public API to force reconnect.
-  const store = client?._client?.store
-  if (!store) {
-    throw new Error('Missing store for reconnect test')
-  }
-
-  // Ensure unsub works: none of these callbacks should fire after this.
+  // Unsub before triggering events - these callbacks should never fire.
   unsubToSkip()
 
-  // Force close the WebSocket to trigger a real reconnect cycle.
-  store.dispatch(actions.sessionForceCloseAction())
-
-  await reconnecting.promise
-
-  // Wait for the session to fully reconnect before disconnecting.
+  // Wait for the session to fully reconnect before continuing.
   const reconnected = promiseWithTimeout(10_000, 'reconnected')
   const checkUnsub = client.listen({
     onConnected: () => {
@@ -113,6 +109,11 @@ const handler = async () => {
       reconnected.resolve()
     },
   })
+
+  // Force close the WebSocket to trigger a real reconnect cycle.
+  store.dispatch(actions.sessionForceCloseAction())
+
+  await reconnecting.promise
   await reconnected.promise
 
   tap.equal(
@@ -120,24 +121,10 @@ const handler = async () => {
     'authorized',
     'authStatus is "authorized" after reconnect'
   )
-
-  await client.disconnect()
-
-  tap.equal(
-    client.authStatus,
-    'unauthorized',
-    'authStatus is "unauthorized" after disconnect'
-  )
-
   tap.equal(
     connectedCount,
     2,
     'constructor listen: onConnected called twice (initial + reconnect)'
-  )
-  tap.equal(
-    disconnectedCount,
-    1,
-    'constructor listen: onDisconnected called once'
   )
   tap.equal(
     reconnectingCount,
@@ -145,14 +132,14 @@ const handler = async () => {
     'constructor listen: onReconnecting called once'
   )
   tap.equal(
-    listenDisconnectedCount,
-    1,
-    'client.listen: onDisconnected called once'
-  )
-  tap.equal(
     listenConnectedCount,
     1,
     'client.listen: onConnected called once after reconnect'
+  )
+  tap.equal(
+    listenDisconnectedCount,
+    0,
+    'client.listen: onDisconnected not called during reconnect'
   )
   tap.equal(
     listenReconnectingCount,
@@ -177,8 +164,59 @@ const handler = async () => {
 
   unsub()
 
-  // --- Test auth error with bad token ---
+  // --- Phase 3: Auth error via client.listen (reconnect with bad token) ---
+  // Reuse the same connected client. Inject a bad token and force a reconnect
+  // so the signalwire.connect request fails with an auth error.
 
+  const listenAuthError = promiseWithTimeout<AuthError>(
+    10_000,
+    'listen onAuthError'
+  )
+
+  const unsubAuthError = client.listen({
+    onAuthError: (error) => {
+      listenAuthError.resolve(error)
+    },
+  })
+
+  store.dispatch(
+    actions.setTokenAction({
+      token: `${process.env.RELAY_TOKEN as string}-invalid`,
+    })
+  )
+  store.dispatch(actions.sessionForceCloseAction())
+
+  const listenError = await listenAuthError.promise
+
+  tap.ok(listenError, 'client.listen: onAuthError called')
+  tap.equal(listenError.name, 'AuthError', 'client.listen: AuthError received')
+  tap.equal(
+    typeof listenError.code,
+    'number',
+    'client.listen: AuthError includes code'
+  )
+  tap.equal(
+    client.authStatus,
+    'unauthorized',
+    'authStatus is "unauthorized" after auth error'
+  )
+
+  unsubAuthError()
+
+  await Promise.race([
+    client.disconnect(),
+    new Promise((r) => setTimeout(r, 3_000)),
+  ])
+
+  tap.equal(
+    disconnectedCount,
+    1,
+    'constructor listen: onDisconnected called once'
+  )
+
+  // --- Phase 4: Auth error with bad token (constructor listen, new client) ---
+
+  let badReconnectingCount = 0
   const authError = promiseWithTimeout<AuthError>(10_000, 'onAuthError')
 
   const badClient = await SignalWire({
@@ -189,6 +227,9 @@ const handler = async () => {
       onAuthError: (error) => {
         authError.resolve(error)
       },
+      onReconnecting: () => {
+        badReconnectingCount += 1
+      },
     },
   })
 
@@ -197,7 +238,7 @@ const handler = async () => {
   tap.equal(
     badClient.authStatus,
     'unauthorized',
-    'authStatus is "unauthorized" after auth error'
+    'constructor listen: authStatus is "unauthorized" after auth error'
   )
   tap.ok(error, 'constructor listen: onAuthError called')
   tap.equal(error.name, 'AuthError', 'constructor listen: AuthError received')
@@ -206,10 +247,15 @@ const handler = async () => {
     'number',
     'constructor listen: AuthError includes code'
   )
+  tap.equal(
+    badReconnectingCount,
+    0,
+    'auth error must NOT trigger reconnecting (no retry on -32002)'
+  )
 
   await Promise.race([
     badClient.disconnect(),
-    new Promise((r) => setTimeout(r, 3_000)),
+    new Promise((r) => setTimeout(r, 5_000)),
   ])
 
   return 0
@@ -219,7 +265,7 @@ async function main() {
   const runner = createTestRunner({
     name: 'SWClient Listen E2E',
     testHandler: handler,
-    executionTime: 30_000,
+    executionTime: 60_000,
   })
 
   await runner.run()

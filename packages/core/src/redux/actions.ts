@@ -32,6 +32,13 @@ export const sessionReconnectingAction = createAction<void, SessionEvents>(
 export const sessionForceCloseAction = createAction<void, SessionActions>(
   'session.forceClose'
 )
+/**
+ * @internal Used in tests to override the session token without
+ * triggering reauthentication.
+ */
+export const setTokenAction = createAction<{ token: string }>(
+  'swSdk/setToken'
+)
 const formatCustomSagaAction = (id: string, action: Action) => {
   return `${action.type}/${id}`
 }
