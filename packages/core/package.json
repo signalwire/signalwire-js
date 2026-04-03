@@ -22,7 +22,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/signalwire/signalwire-js"
+    "url": "git+https://github.com/signalwire/signalwire-js.git"
   },
   "bugs": {
     "url": "https://github.com/signalwire/signalwire-js/issues"
