@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-call-layout — Modal</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>Call Layout — Modal</h1>
+
+    <div class="toolbar">
+      <button onclick="document.getElementById('modal').open = true">Open Responsive Modal</button>
+      <button onclick="document.getElementById('modal-fixed').open = true">Open Fixed (400 × 300)</button>
+    </div>
+
+    <!-- Responsive modal — sizes itself to the viewport -->
+    <sw-ui-modal id="modal">
+      <sw-ui-responsive-container>
+        <sw-ui-call-layout transcript shadow style="--roundness: 12px;">
+          <sw-ui-background slot="background" default></sw-ui-background>
+          <div slot="video" class="slot-video">Responsive Modal</div>
+          <div slot="floating-video" class="slot-pip">PiP</div>
+          <div slot="controls" class="slot-controls">
+            Controls
+            <button onclick="this.closest('sw-ui-modal').open = false"
+              style="background:#ef4444; color:#fff; border:none; padding:4px 12px; border-radius:4px; cursor:pointer; margin-left:8px;">
+              Close
+            </button>
+          </div>
+          <div slot="transcript" class="slot-transcript">
+            <div>Agent: Welcome to the modal.</div>
+            <div>User: Looks great!</div>
+          </div>
+        </sw-ui-call-layout>
+      </sw-ui-responsive-container>
+    </sw-ui-modal>
+
+    <!-- Fixed-size modal -->
+    <sw-ui-modal id="modal-fixed">
+      <div style="width: 400px; height: 300px;">
+        <sw-ui-call-layout shadow>
+          <sw-ui-background slot="background" default></sw-ui-background>
+          <div slot="video" class="slot-video">Fixed 400 × 300</div>
+          <div slot="controls" class="slot-controls">
+            <button onclick="this.closest('sw-ui-modal').open = false"
+              style="background:#ef4444; color:#fff; border:none; padding:4px 12px; border-radius:4px; cursor:pointer;">
+              Close
+            </button>
+          </div>
+        </sw-ui-call-layout>
+      </div>
+    </sw-ui-modal>
+  </body>
+</html>

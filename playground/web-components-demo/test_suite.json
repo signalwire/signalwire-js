@@ -1,0 +1,1276 @@
+[
+  {
+    "category": "functional",
+    "description": "Application loads with welcome modal blocking interactions - verify app startup displays authentication modal as overlay",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for page to load completely",
+      "Step 3: Verify welcome modal is visible and centered",
+      "Step 4: Verify backdrop/overlay prevents clicking elements behind modal",
+      "Step 5: Verify main application interface is not accessible"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal displays SignalWire logo at top",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Verify SignalWire logo is present at top of modal card"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal shows token input mode by default with toggle to switch modes",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Verify tab/radio toggle exists for 'Enter Token' and 'Fetch from URL' modes",
+      "Step 4: Verify default mode is 'Enter Token'",
+      "Step 5: Verify text input field is visible with appropriate placeholder"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal token mode accepts direct SAT token input",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Ensure 'Enter Token' mode is selected",
+      "Step 4: Enter a test token string in the input field",
+      "Step 5: Verify the input field accepts and displays the token value"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal URL mode allows entering endpoint URL to fetch token",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Click on 'Fetch from URL' toggle/tab",
+      "Step 4: Verify input field placeholder changes to indicate URL input",
+      "Step 5: Enter a test URL in the input field",
+      "Step 6: Verify the input field accepts and displays the URL value"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal displays validation error for invalid token",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Enter an invalid/malformed token string",
+      "Step 4: Click submit button",
+      "Step 5: Verify clear error message is displayed below input",
+      "Step 6: Verify modal remains open"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal displays error for failed URL fetch",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Switch to 'Fetch from URL' mode",
+      "Step 4: Enter an invalid or non-existent URL",
+      "Step 5: Click submit button",
+      "Step 6: Verify loading spinner appears during fetch attempt",
+      "Step 7: Verify clear error message is displayed for fetch failure",
+      "Step 8: Verify modal remains open"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal URL mode fetches token from JSON endpoint",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Switch to 'Fetch from URL' mode",
+      "Step 4: Enter a valid token endpoint URL that returns {\"token\": \"...\"}",
+      "Step 5: Click submit button",
+      "Step 6: Verify loading spinner appears",
+      "Step 7: Verify successful fetch extracts token from JSON response"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal closes on valid token and main interface becomes accessible",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Enter a valid SAT token",
+      "Step 4: Click submit button",
+      "Step 5: Verify modal closes with animation",
+      "Step 6: Verify main application interface is now visible and accessible",
+      "Step 7: Verify SignalWire client initializes with provided token"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Welcome modal cannot be dismissed without valid authentication",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Attempt to click outside the modal",
+      "Step 4: Verify modal does not close",
+      "Step 5: Attempt to press Escape key",
+      "Step 6: Verify modal does not close",
+      "Step 7: Verify no close button is present on modal"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Submit button is full width in welcome modal",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Wait for welcome modal to appear",
+      "Step 3: Verify submit button spans full width of the modal content area"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Top bar displays current registration status with visual indicator",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify top bar is visible at top of page",
+      "Step 3: Verify registration status indicator is present in center of top bar",
+      "Step 4: Verify status shows unregistered state (gray indicator)",
+      "Step 5: Toggle registration on",
+      "Step 6: Verify status shows registered state (green indicator)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Registration toggle switch allows user to register/unregister",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Locate registration toggle switch in top bar",
+      "Step 3: Verify toggle is in unregistered/off state initially",
+      "Step 4: Click toggle to register",
+      "Step 5: Verify toggle changes to registered/on state",
+      "Step 6: Click toggle again to unregister",
+      "Step 7: Verify toggle returns to unregistered/off state"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "User display name appears in top bar when registered",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Toggle registration on",
+      "Step 3: Verify user's display_name appears in the right section of top bar",
+      "Step 4: Toggle registration off",
+      "Step 5: Verify display name behavior when unregistered (hidden or placeholder)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Available channels display as badges/icons in top bar",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Toggle registration on",
+      "Step 3: Verify channel badges/icons are visible in top bar (audio, video, messaging)",
+      "Step 4: Verify each available channel has corresponding visual indicator"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Registration status updates reactively via SDK observables",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify initial status is unregistered",
+      "Step 3: Toggle registration on",
+      "Step 4: Verify UI updates immediately without page refresh",
+      "Step 5: Simulate connection loss scenario",
+      "Step 6: Verify status indicator updates to reflect connection state"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Sidebar displays three main menu items with distinct icons",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify sidebar is visible on left side of application",
+      "Step 3: Verify 'Select Devices' menu item with icon is present",
+      "Step 4: Verify 'Open Directory' menu item with icon is present",
+      "Step 5: Verify 'Dialpad Calls' menu item with icon is present",
+      "Step 6: Verify each menu item has a distinct, recognizable icon"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Sidebar collapse/expand toggle at bottom",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify sidebar is in expanded state showing icons and labels",
+      "Step 3: Locate collapse toggle button at bottom of sidebar",
+      "Step 4: Click toggle button",
+      "Step 5: Verify sidebar collapses to show icons only",
+      "Step 6: Click toggle button again",
+      "Step 7: Verify sidebar expands to show icons with labels"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Collapsed sidebar shows tooltips on hover",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Collapse the sidebar",
+      "Step 3: Hover over 'Select Devices' icon",
+      "Step 4: Verify tooltip appears showing 'Select Devices' label",
+      "Step 5: Hover over 'Open Directory' icon",
+      "Step 6: Verify tooltip appears showing 'Open Directory' label",
+      "Step 7: Hover over 'Dialpad Calls' icon",
+      "Step 8: Verify tooltip appears showing 'Dialpad Calls' label"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Active menu item is highlighted visually",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Click on 'Select Devices' menu item",
+      "Step 3: Verify 'Select Devices' has highlighted/active styling",
+      "Step 4: Click on 'Open Directory' menu item",
+      "Step 5: Verify 'Open Directory' now has highlighted styling",
+      "Step 6: Verify 'Select Devices' no longer has highlighted styling"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Sidebar hover state shows subtle background change",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Ensure a menu item is not currently active",
+      "Step 3: Hover over the inactive menu item",
+      "Step 4: Verify subtle background color change on hover",
+      "Step 5: Move mouse away",
+      "Step 6: Verify background returns to normal state"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Sidebar state does not persist between sessions",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Collapse the sidebar",
+      "Step 3: Refresh the page",
+      "Step 4: Re-authenticate with valid token",
+      "Step 5: Verify sidebar returns to default expanded state"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Select Devices view displays sw-device-selector component",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Click on 'Select Devices' menu item in sidebar",
+      "Step 3: Verify main content area displays sw-device-selector component",
+      "Step 4: Verify device selector is fully functional and interactive"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Device selector shows three labeled dropdowns: Microphone, Camera, Speaker",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' view",
+      "Step 3: Verify 'Microphone' label and dropdown selector is present",
+      "Step 4: Verify 'Camera' label and dropdown selector is present",
+      "Step 5: Verify 'Speaker' label and dropdown selector is present",
+      "Step 6: Verify all three device sections are visible simultaneously"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Camera section shows live video preview inline below dropdown when show-preview enabled",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' view",
+      "Step 3: Verify Camera label and dropdown selector is visible",
+      "Step 4: Grant camera permissions if prompted",
+      "Step 5: Verify live video preview is displayed inline below the camera dropdown",
+      "Step 6: Verify preview shows actual camera feed (mirrored horizontally)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Microphone section shows audio level indicator inline below dropdown when show-preview enabled",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' view",
+      "Step 3: Verify Microphone label and dropdown selector is visible",
+      "Step 4: Grant microphone permissions if prompted",
+      "Step 5: Verify audio level indicator is displayed inline below the microphone dropdown",
+      "Step 6: Make sound and verify level indicator responds with color changes"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Speaker section provides test tone button",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' view",
+      "Step 3: Verify Speaker dropdown is visible with label",
+      "Step 4: Verify test tone button is present below device sections",
+      "Step 5: Click test tone button",
+      "Step 6: Verify audio plays through selected speaker"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Device changes apply immediately to SDK",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' view",
+      "Step 3: Note current selected camera device",
+      "Step 4: Select a different camera device from dropdown",
+      "Step 5: Verify SDK's DeviceController receives new device selection",
+      "Step 6: Verify inline video preview below camera dropdown updates to show new camera feed"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Device selections persist when navigating to other views and back",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' view",
+      "Step 3: Select specific microphone and camera devices",
+      "Step 4: Navigate to 'Dialpad Calls' view",
+      "Step 5: Navigate back to 'Select Devices' view",
+      "Step 6: Verify previously selected devices are still selected"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Open Directory expands sidebar to show secondary panel with sw-directory",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Click on 'Open Directory' menu item",
+      "Step 3: Verify sidebar expands to show secondary panel",
+      "Step 4: Verify sw-directory component is displayed in secondary panel"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Directory allows searching addresses by name with debounced input",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Open Directory view",
+      "Step 3: Locate search input field",
+      "Step 4: Type search query quickly",
+      "Step 5: Verify search is debounced (doesn't fire immediately on each keystroke)",
+      "Step 6: Wait for debounce timeout",
+      "Step 7: Verify search results update"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Directory uses infinite scroll to load more addresses",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Open Directory view",
+      "Step 3: Verify initial set of addresses is loaded",
+      "Step 4: Scroll down to the bottom of the address list",
+      "Step 5: Verify loading indicator appears at bottom",
+      "Step 6: Verify additional addresses are automatically loaded",
+      "Step 7: Verify new addresses appear in the list",
+      "Step 8: Verify no 'Load More' button is present"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Directory auto-loads and searches when no results match but more addresses available",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Open Directory view with partially loaded addresses",
+      "Step 3: Enter a search query that doesn't match currently loaded addresses",
+      "Step 4: Verify 'Searching...' indicator appears",
+      "Step 5: Verify component automatically loads more addresses",
+      "Step 6: Verify search continues until match is found or all addresses loaded",
+      "Step 7: If match found, verify matching addresses are displayed",
+      "Step 8: If no match after all loaded, verify 'No addresses found' message"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Directory address list shows name, type, and available channels",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Open Directory view",
+      "Step 3: Verify address entries are listed",
+      "Step 4: Verify each entry shows name",
+      "Step 5: Verify each entry shows type (person/room icon or label)",
+      "Step 6: Verify each entry shows available channel indicators"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Clicking directory address initiates call to that destination",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Open Directory view",
+      "Step 3: Click on an address entry in the directory",
+      "Step 4: Verify outbound call is initiated to selected address",
+      "Step 5: Verify call UI takes over main content area"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Directory panel remains accessible during active call",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Open Directory view",
+      "Step 3: Initiate a call from directory",
+      "Step 4: Verify call UI is displayed in main content",
+      "Step 5: Verify directory panel in sidebar is still visible/accessible",
+      "Step 6: Verify can browse directory while on call"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Dialpad Calls view displays sw-dialpad component",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Click on 'Dialpad Calls' menu item",
+      "Step 3: Verify main content area displays sw-dialpad component",
+      "Step 4: Verify dialpad keypad is visible with digits 0-9, *, #"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Dialpad call button is enabled for making calls",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Navigate to Dialpad Calls view",
+      "Step 3: Verify call button is present on dialpad",
+      "Step 4: Enter a destination number",
+      "Step 5: Verify call button is enabled/clickable"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Dialpad accepts input via keypad clicks",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to Dialpad Calls view",
+      "Step 3: Click digit '1' on keypad",
+      "Step 4: Click digit '2' on keypad",
+      "Step 5: Click digit '3' on keypad",
+      "Step 6: Verify display shows '123'"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Dialpad accepts input via keyboard",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to Dialpad Calls view",
+      "Step 3: Focus on dialpad input area",
+      "Step 4: Type '456' using keyboard",
+      "Step 5: Verify display shows '456'"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Pressing call button initiates outbound call",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Navigate to Dialpad Calls view",
+      "Step 3: Enter destination number '1234567890'",
+      "Step 4: Click call button",
+      "Step 5: Verify outbound call is initiated",
+      "Step 6: Verify call UI is displayed"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Pressing Enter key initiates outbound call",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Navigate to Dialpad Calls view",
+      "Step 3: Enter destination number '1234567890'",
+      "Step 4: Press Enter key",
+      "Step 5: Verify outbound call is initiated"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "During active call, dialpad allows DTMF digit sending",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate and connect an outbound call",
+      "Step 3: Navigate to or access dialpad during call",
+      "Step 4: Press a digit on the dialpad",
+      "Step 5: Verify DTMF tone is sent over the call"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Call view occupies full available height of main content area",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate an outbound call",
+      "Step 3: Wait for call to connect",
+      "Step 4: Verify call view fills entire main content area height",
+      "Step 5: Verify no unused space above or below call view"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "sw-call-media displays remote video stream",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate video call and wait for connection",
+      "Step 3: Verify sw-call-media component is present",
+      "Step 4: Verify remote video stream is displayed in sw-call-media"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "sw-participants overlays participant information on video",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate call and wait for connection",
+      "Step 3: Verify sw-participants component is present",
+      "Step 4: Verify participant information overlays on video display"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "sw-self-media shows local video in layout position (mirrored)",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate video call",
+      "Step 3: Verify sw-self-media component is present",
+      "Step 4: Verify local video is displayed",
+      "Step 5: Verify local video is mirrored horizontally"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "sw-call-controls provides mute audio, mute video, screen share, hangup buttons",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate call and wait for connection",
+      "Step 3: Verify sw-call-controls component is present",
+      "Step 4: Verify mute audio button is present and functional",
+      "Step 5: Verify mute video button is present and functional",
+      "Step 6: Verify screen share button is present",
+      "Step 7: Verify hangup button is present and functional"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "sw-call-status shows call state and duration timer",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate call",
+      "Step 3: Verify sw-call-status component is present",
+      "Step 4: Verify call state is displayed (connecting, connected, etc.)",
+      "Step 5: Wait for call to connect",
+      "Step 6: Verify duration timer starts counting"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Call controls positioned at bottom of call view",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate call and wait for connection",
+      "Step 3: Verify sw-call-controls is positioned at bottom of call view",
+      "Step 4: Verify controls are centered horizontally"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Call status/duration visible at top of call view",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate call and wait for connection",
+      "Step 3: Verify call status/duration is positioned at top of call view"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Mute audio button toggles local audio mute state",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate call and wait for connection",
+      "Step 3: Verify audio is initially unmuted",
+      "Step 4: Click mute audio button",
+      "Step 5: Verify local audio is muted",
+      "Step 6: Verify button visual state changes to indicate muted",
+      "Step 7: Click mute audio button again",
+      "Step 8: Verify local audio is unmuted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Mute video button toggles local video mute state",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate video call and wait for connection",
+      "Step 3: Verify video is initially unmuted (local video showing)",
+      "Step 4: Click mute video button",
+      "Step 5: Verify local video is muted/hidden",
+      "Step 6: Verify button visual state changes to indicate muted",
+      "Step 7: Click mute video button again",
+      "Step 8: Verify local video is unmuted/showing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Hangup button ends the current call",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate call and wait for connection",
+      "Step 3: Click hangup button",
+      "Step 4: Verify call is terminated",
+      "Step 5: Verify call view closes",
+      "Step 6: Verify returns to previous view (dialpad or directory)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Inbound call triggers modal overlay with caller information",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Receive inbound call from external caller",
+      "Step 3: Verify inbound call modal overlay appears",
+      "Step 4: Verify caller information (name, number if available) is displayed",
+      "Step 5: Verify modal has semi-transparent dark backdrop"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Inbound call modal shows Accept and Reject buttons",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Receive inbound call",
+      "Step 3: Verify inbound call modal appears",
+      "Step 4: Verify Accept button (green) is present",
+      "Step 5: Verify Reject button (red) is present"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Accepting inbound call transitions to active call experience",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Receive inbound call",
+      "Step 3: Click Accept button",
+      "Step 4: Verify modal closes",
+      "Step 5: Verify active call view is displayed",
+      "Step 6: Verify call is connected with remote party"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Rejecting inbound call dismisses modal and sends reject signal",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Receive inbound call",
+      "Step 3: Click Reject button",
+      "Step 4: Verify modal is dismissed",
+      "Step 5: Verify reject signal is sent to caller"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Accepting new inbound call while on active call hangs up current call first",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate and connect an outbound call",
+      "Step 3: Receive new inbound call while on active call",
+      "Step 4: Verify inbound call modal appears",
+      "Step 5: Click Accept button",
+      "Step 6: Verify current call is automatically hung up",
+      "Step 7: Verify new inbound call is accepted and connected"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Inbound call modal auto-dismisses if caller cancels",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Receive inbound call",
+      "Step 3: Verify inbound call modal appears",
+      "Step 4: Wait for caller to cancel the call",
+      "Step 5: Verify modal automatically dismisses"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Inbound call modal shows call direction indicator icon",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Receive inbound call",
+      "Step 3: Verify modal displays call direction indicator (incoming call icon)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Top bar has application logo/title on left",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify top bar is visible",
+      "Step 3: Verify application logo or title is positioned on the left side"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Main content transitions between views without full page reload",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' view",
+      "Step 3: Navigate to 'Dialpad Calls' view",
+      "Step 4: Verify content transitions smoothly",
+      "Step 5: Verify no full page reload occurs (URL doesn't trigger browser navigation)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Main content area scrolls if content exceeds viewport",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to a view with long content",
+      "Step 3: Resize viewport to be smaller than content",
+      "Step 4: Verify scrollbar appears",
+      "Step 5: Verify content can be scrolled"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Comprehensive authentication flow with token mode - end to end user journey",
+    "steps": [
+      "Step 1: Clear any existing session/storage data",
+      "Step 2: Navigate to application root URL",
+      "Step 3: Verify welcome modal is displayed with backdrop blur",
+      "Step 4: Verify 'Enter Token' mode is selected by default",
+      "Step 5: Verify input field has appropriate placeholder text for token",
+      "Step 6: Enter invalid token format",
+      "Step 7: Click submit button",
+      "Step 8: Verify error message appears below input",
+      "Step 9: Verify modal remains open",
+      "Step 10: Clear input and enter valid SAT token",
+      "Step 11: Click submit button",
+      "Step 12: Verify modal closes with smooth animation",
+      "Step 13: Verify main application interface is fully visible",
+      "Step 14: Verify top bar displays with registration toggle",
+      "Step 15: Verify sidebar is visible with three menu items"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Comprehensive call flow - outbound call via dialpad end to end",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Toggle registration on",
+      "Step 3: Verify registration status shows green/registered",
+      "Step 4: Navigate to 'Dialpad Calls' via sidebar",
+      "Step 5: Verify dialpad is displayed with all digits 0-9, *, #",
+      "Step 6: Enter destination number using keypad clicks",
+      "Step 7: Verify number displays in input field",
+      "Step 8: Click call button",
+      "Step 9: Verify call view appears in main content",
+      "Step 10: Verify call status shows 'connecting' or 'ringing'",
+      "Step 11: Wait for call to connect",
+      "Step 12: Verify call status shows 'connected' and timer starts",
+      "Step 13: Verify sw-call-controls are visible at bottom",
+      "Step 14: Test mute audio toggle",
+      "Step 15: Test mute video toggle",
+      "Step 16: Click hangup button",
+      "Step 17: Verify call ends and view returns to dialpad"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Comprehensive inbound call handling - accept and manage call",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Toggle registration on",
+      "Step 3: Wait in any view (e.g., Dialpad)",
+      "Step 4: Receive inbound call",
+      "Step 5: Verify inbound call modal appears with pulsing animation",
+      "Step 6: Verify caller name/number is prominently displayed",
+      "Step 7: Verify Accept (green) and Reject (red) buttons are visible",
+      "Step 8: Click Accept button",
+      "Step 9: Verify modal closes",
+      "Step 10: Verify call view is displayed",
+      "Step 11: Verify remote video/audio is streaming",
+      "Step 12: Verify local video (sw-self-media) is visible and mirrored",
+      "Step 13: Verify call duration timer is counting",
+      "Step 14: Test call controls (mute audio, mute video)",
+      "Step 15: Click hangup to end call"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Comprehensive device management flow - configure all device types",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to 'Select Devices' via sidebar",
+      "Step 3: Verify device selector with three labeled dropdowns is displayed",
+      "Step 4: Verify Microphone label and dropdown selector is visible",
+      "Step 5: Grant microphone permission if prompted",
+      "Step 6: Verify audio level indicator is displayed inline below microphone dropdown",
+      "Step 7: Make sound and verify indicator responds with color changes",
+      "Step 8: Verify Camera label and dropdown selector is visible",
+      "Step 9: Grant camera permission if prompted",
+      "Step 10: Verify live video preview is shown inline below camera dropdown (mirrored)",
+      "Step 11: If multiple cameras available, select different camera from dropdown",
+      "Step 12: Verify preview updates to show new camera feed",
+      "Step 13: Verify Speaker label and dropdown selector is visible",
+      "Step 14: Verify test tone button is present below device sections",
+      "Step 15: Click test tone button and verify audio output"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Welcome modal styling - centered with backdrop blur, 400px max width",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Take screenshot of welcome modal",
+      "Step 3: Verify modal is centered horizontally and vertically",
+      "Step 4: Verify backdrop has blur effect",
+      "Step 5: Verify modal card max-width is 400px"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Color scheme - Primary SignalWire blue (#044EF5) used for buttons and active states",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to various views",
+      "Step 3: Verify primary buttons use #044EF5 (SignalWire blue)",
+      "Step 4: Verify active menu items use primary color",
+      "Step 5: Verify links use primary color"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Color scheme - Success green (#10B981) for registered status and accept button",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Toggle registration on",
+      "Step 3: Verify registration indicator uses #10B981 (green)",
+      "Step 4: Trigger inbound call scenario",
+      "Step 5: Verify Accept button uses #10B981 (green)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Color scheme - Danger red (#EF4444) for hangup and reject buttons",
+    "steps": [
+      "Step 1: Authenticate with valid token and initiate call",
+      "Step 2: Verify hangup button uses #EF4444 (red)",
+      "Step 3: Trigger inbound call scenario",
+      "Step 4: Verify Reject button uses #EF4444 (red)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Typography - System fonts used with correct heading sizes",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Take screenshot of main interface",
+      "Step 3: Verify font-family is system-ui, -apple-system, sans-serif",
+      "Step 4: Verify Heading 1 elements are 24px with font-weight 600",
+      "Step 5: Verify Heading 2 elements are 18px with font-weight 600",
+      "Step 6: Verify body text is 14px with font-weight 400"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Sidebar dimensions - 240px expanded, 64px collapsed",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify sidebar width is 240px in expanded state",
+      "Step 3: Collapse sidebar",
+      "Step 4: Verify sidebar width is 64px in collapsed state"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Sidebar collapse animation - smooth 200ms transition",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify sidebar is expanded",
+      "Step 3: Click collapse toggle",
+      "Step 4: Verify smooth transition animation (approximately 200ms duration)",
+      "Step 5: Verify no janky or instant width change"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Top bar styling - 56px height with bottom border and subtle shadow",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Take screenshot of top bar",
+      "Step 3: Verify top bar height is 56px",
+      "Step 4: Verify bottom border separator is present",
+      "Step 5: Verify white background with subtle shadow"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Active menu item styling - primary color background tint and icon color",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Click on a menu item to make it active",
+      "Step 3: Verify active item has primary color background tint",
+      "Step 4: Verify active item icon uses primary color",
+      "Step 5: Verify inactive items do not have these styles"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Inbound call modal - pulsing ring animation on card border",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Receive inbound call",
+      "Step 3: Verify inbound call modal appears",
+      "Step 4: Verify pulsing ring animation is visible on card border",
+      "Step 5: Verify animation attracts visual attention"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Call view dark theme - dark background for video visibility",
+    "steps": [
+      "Step 1: Authenticate with valid token and initiate call",
+      "Step 2: Wait for call to connect",
+      "Step 3: Verify call view has dark theme/background",
+      "Step 4: Verify video content is clearly visible against dark background"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Call view video container - 16:9 aspect ratio preference",
+    "steps": [
+      "Step 1: Authenticate with valid token and initiate video call",
+      "Step 2: Wait for call to connect",
+      "Step 3: Verify video container maintains 16:9 aspect ratio where possible",
+      "Step 4: Verify video scales to fit available space"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Token input uses monospace font",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Verify token input field uses monospace font (ui-monospace, monospace)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Main content padding provides breathing room",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to various views",
+      "Step 3: Verify main content area has appropriate padding",
+      "Step 4: Verify content is not flush against edges"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Surface color (#F9FAFB) used for sidebar and elevated surfaces",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify sidebar background uses #F9FAFB (light gray)",
+      "Step 3: Verify card/elevated surface backgrounds use #F9FAFB"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Border color (#E5E7EB) used for dividers and input borders",
+    "steps": [
+      "Step 1: Authenticate and navigate app",
+      "Step 2: Verify dividers use #E5E7EB (light gray)",
+      "Step 3: Verify input field borders use #E5E7EB"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Application loads and becomes interactive within 3 seconds",
+    "steps": [
+      "Step 1: Clear browser cache",
+      "Step 2: Start performance timer",
+      "Step 3: Navigate to application root URL",
+      "Step 4: Wait for welcome modal to appear and be interactive",
+      "Step 5: Stop timer",
+      "Step 6: Verify total time is under 3 seconds"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "All UI interactions provide immediate visual feedback (< 100ms)",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Click sidebar menu item and measure time to visual feedback",
+      "Step 3: Verify feedback appears in under 100ms",
+      "Step 4: Click buttons and verify immediate visual response",
+      "Step 5: Toggle switches and verify immediate state change"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Graceful handling of WebSocket disconnection with reconnection attempts",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Verify WebSocket connection is established",
+      "Step 3: Simulate network disconnection",
+      "Step 4: Verify UI shows disconnected state",
+      "Step 5: Verify reconnection attempts are made",
+      "Step 6: Restore network connection",
+      "Step 7: Verify reconnection succeeds and UI updates"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Clear error messages for network failure scenarios",
+    "steps": [
+      "Step 1: Simulate network offline state",
+      "Step 2: Attempt to authenticate",
+      "Step 3: Verify clear, user-friendly error message is displayed",
+      "Step 4: Verify error indicates network issue"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Clear error messages for permission denial scenarios",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Navigate to device selection",
+      "Step 3: Deny camera permission when prompted",
+      "Step 4: Verify clear error message explains permission was denied",
+      "Step 5: Verify app doesn't crash or freeze"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Keyboard navigation - all interactive elements accessible via keyboard",
+    "steps": [
+      "Step 1: Navigate to application and authenticate",
+      "Step 2: Use Tab key to navigate through interface",
+      "Step 3: Verify all interactive elements receive focus",
+      "Step 4: Verify focus indicator is visible",
+      "Step 5: Verify Enter/Space activates focused elements"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "ARIA labels present on interactive elements",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Inspect sidebar menu items for ARIA labels",
+      "Step 3: Inspect buttons for ARIA labels",
+      "Step 4: Inspect toggle switches for ARIA labels",
+      "Step 5: Verify labels are descriptive and meaningful"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Responsive layout - functional on 768px width viewport",
+    "steps": [
+      "Step 1: Set viewport width to 768px",
+      "Step 2: Navigate to application and authenticate",
+      "Step 3: Verify layout adapts appropriately",
+      "Step 4: Verify all features remain functional",
+      "Step 5: Verify no horizontal overflow/scroll"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Responsive layout - call view adjusts for different viewport sizes",
+    "steps": [
+      "Step 1: Authenticate and initiate call",
+      "Step 2: Test at 1920px width - verify call view layout",
+      "Step 3: Resize to 1024px width - verify layout adjusts",
+      "Step 4: Resize to 768px width - verify layout adjusts",
+      "Step 5: Verify controls remain accessible at all sizes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Media permissions requested only when needed (lazy permission request)",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Authenticate with valid token",
+      "Step 3: Verify no media permission prompts appear yet",
+      "Step 4: Navigate to device selection",
+      "Step 5: Verify permissions are requested when device selector component loads"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Console logging for debugging without exposing sensitive token data",
+    "steps": [
+      "Step 1: Open browser developer console",
+      "Step 2: Navigate to application and authenticate with token",
+      "Step 3: Review console logs",
+      "Step 4: Verify helpful debug information is logged",
+      "Step 5: Verify token/credentials are NOT logged in plain text"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Clean disconnection on page unload (beforeunload handler)",
+    "steps": [
+      "Step 1: Authenticate with valid token and register",
+      "Step 2: Initiate an active call",
+      "Step 3: Monitor network requests",
+      "Step 4: Close browser tab or navigate away",
+      "Step 5: Verify clean disconnection signal is sent",
+      "Step 6: Verify no zombie connections remain"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Comprehensive visual audit of welcome modal",
+    "steps": [
+      "Step 1: Navigate to application root URL",
+      "Step 2: Take full screenshot of welcome modal",
+      "Step 3: Verify SignalWire logo is at top and properly sized",
+      "Step 4: Verify mode toggle is styled consistently",
+      "Step 5: Verify input field has proper styling (borders, padding)",
+      "Step 6: Verify submit button is full width with proper colors",
+      "Step 7: Verify backdrop blur effect is visible",
+      "Step 8: Verify modal shadow/elevation effect",
+      "Step 9: Verify error message area styling when error shown",
+      "Step 10: Verify loading spinner styling during URL fetch"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Comprehensive visual audit of main application layout",
+    "steps": [
+      "Step 1: Authenticate with valid token",
+      "Step 2: Take full page screenshot",
+      "Step 3: Verify top bar spans full width at top",
+      "Step 4: Verify sidebar positioned correctly on left",
+      "Step 5: Verify main content fills remaining space",
+      "Step 6: Verify proper spacing between elements (4px base unit)",
+      "Step 7: Verify color scheme is consistently applied",
+      "Step 8: Verify typography hierarchy is correct",
+      "Step 9: Verify interactive elements have proper hover states",
+      "Step 10: Verify overall visual harmony and professional appearance"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Comprehensive visual audit of active call view",
+    "steps": [
+      "Step 1: Authenticate and initiate video call",
+      "Step 2: Wait for call to connect",
+      "Step 3: Take screenshot of call view",
+      "Step 4: Verify dark theme background",
+      "Step 5: Verify remote video fills available space",
+      "Step 6: Verify self-media positioned correctly and mirrored",
+      "Step 7: Verify participants overlay styling",
+      "Step 8: Verify call status at top is readable",
+      "Step 9: Verify call controls at bottom are properly styled",
+      "Step 10: Verify all control icons are clear and recognizable"
+    ],
+    "passes": false
+  }
+]

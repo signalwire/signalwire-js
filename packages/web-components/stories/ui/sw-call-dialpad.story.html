@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-call-dialpad — dialpad &amp; calling flow</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      /* ── calling simulation overlay ─────────────────────────────── */
+      .call-sim {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        background: #0d0e1a;
+        color: #fff;
+        border-radius: 8px;
+        text-align: center;
+        transition: opacity 0.2s;
+      }
+      .call-sim[hidden] { display: none; }
+
+      .call-avatar {
+        width: 64px;
+        height: 64px;
+        background: #1e1e2e;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: rgba(255,255,255,0.5);
+        border: 2px solid rgba(255,255,255,0.12);
+      }
+      .call-number { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.04em; }
+      .call-status { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+      .call-status.connected { color: #22c55e; }
+      .call-status.calling {
+        animation: blink 1.2s ease-in-out infinite;
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.3; }
+      }
+
+      .call-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 8px;
+      }
+      .btn-hangup {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        border: none;
+        background: #dc2626;
+        color: #fff;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+      }
+      .btn-hangup:hover { background: #b91c1c; }
+      .btn-hangup svg { width: 22px; height: 22px; }
+
+      .btn-keypad {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+      }
+      .btn-keypad:hover { background: rgba(255,255,255,0.22); }
+      .btn-keypad svg { width: 20px; height: 20px; }
+      .btn-keypad.on { background: rgba(255,255,255,0.3); }
+
+      .dtmf-log {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.35);
+        letter-spacing: 0.2em;
+        min-height: 1.2em;
+      }
+
+      .demo-wrapper {
+        position: relative;
+        width: 280px;
+        height: 500px;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        display: flex;
+        align-items: stretch;
+      }
+      .demo-wrapper sw-ui-dialpad {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-call-dialpad — dialpad &amp; calling flow</h1>
+
+    <!-- ── Calling flow ───────────────────────────────────────────────── -->
+
+    <h2>Dial &amp; call simulation</h2>
+    <p class="label">
+      Enter a number and press the green call button (or hit Enter).
+      After 1.5 s the call "connects" — subsequent digits send DTMF tones.
+    </p>
+
+    <div class="demo-wrapper" id="demo">
+      <!-- dialpad shown when idle -->
+      <sw-ui-dialpad id="dialpad" show-call-button placeholder="Enter number"></sw-ui-dialpad>
+
+      <!-- calling overlay shown during + after dial -->
+      <div class="call-sim" id="call-sim" hidden>
+        <div class="call-avatar">📞</div>
+        <div class="call-number" id="call-number">—</div>
+        <div class="call-status calling" id="call-status">Calling…</div>
+        <div class="dtmf-log" id="dtmf-log"></div>
+        <div class="call-actions">
+          <button class="btn-keypad" id="btn-show-keypad" title="Keypad"
+            onclick="toggleKeypad()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5"  cy="5"  r="1.8"/>
+              <circle cx="12" cy="5"  r="1.8"/>
+              <circle cx="19" cy="5"  r="1.8"/>
+              <circle cx="5"  cy="12" r="1.8"/>
+              <circle cx="12" cy="12" r="1.8"/>
+              <circle cx="19" cy="12" r="1.8"/>
+              <circle cx="5"  cy="19" r="1.8"/>
+              <circle cx="12" cy="19" r="1.8"/>
+              <circle cx="19" cy="19" r="1.8"/>
+            </svg>
+          </button>
+          <button class="btn-hangup" title="Hang up" onclick="hangUp()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- DTMF keypad shown over call screen -->
+      <div class="call-sim" id="dtmf-sim" hidden style="background: rgba(13,14,26,0.95);">
+        <sw-ui-dialpad id="dtmf-pad" placeholder="DTMF digits"></sw-ui-dialpad>
+        <button onclick="toggleKeypad()" style="
+          margin-top:4px; background:transparent; border:none;
+          color:rgba(255,255,255,0.4); cursor:pointer; font-size:0.8rem;">
+          ← back to call
+        </button>
+      </div>
+    </div>
+
+    <pre class="log" id="log">Events will appear here…</pre>
+
+    <!-- ── Bare keypad variants ────────────────────────────────────────── -->
+
+    <h2>Bare keypad — no call button</h2>
+    <p class="label">
+      Default state: no call button, digits and backspace events only.
+      Useful embedded inside a larger UI (e.g. DTMF panel during a call).
+    </p>
+
+    <div class="frame" style="width: 240px; display: inline-block;">
+      <sw-ui-dialpad id="bare" placeholder="Digits…"></sw-ui-dialpad>
+    </div>
+
+    <pre class="log" id="log-bare">Events will appear here…</pre>
+
+    <script type="module">
+      // ── Calling simulation state ───────────────────────────────────────
+      let callState = 'idle'; // idle | calling | connected
+      let dtmfDigits = '';
+      let connectTimer = null;
+      let keypadOpen = false;
+
+      const dialpad    = document.getElementById('dialpad');
+      const callSim    = document.getElementById('call-sim');
+      const dtmfSim    = document.getElementById('dtmf-sim');
+      const callNumber = document.getElementById('call-number');
+      const callStatus = document.getElementById('call-status');
+      const dtmfLog    = document.getElementById('dtmf-log');
+      const dtmfPad    = document.getElementById('dtmf-pad');
+      const logEl      = document.getElementById('log');
+
+      function appendLog(msg) {
+        logEl.textContent = msg + '\n' + logEl.textContent.slice(0, 600);
+      }
+
+      dialpad.addEventListener('sw-dial', (e) => {
+        const { digits } = e.detail;
+        if (!digits) return;
+        appendLog(`sw-dial  →  "${digits}"`);
+        startCall(digits);
+      });
+
+      dialpad.addEventListener('sw-digit-press', (e) => {
+        appendLog(`sw-digit-press  →  "${e.detail.digit}"  (buffer: "${e.detail.digits}")`);
+      });
+
+      dialpad.addEventListener('sw-dialpad-backspace', (e) => {
+        appendLog(`sw-dialpad-backspace  →  buffer: "${e.detail.digits}"`);
+      });
+
+      dtmfPad.addEventListener('sw-digit-press', (e) => {
+        if (callState !== 'connected') return;
+        dtmfDigits += e.detail.digit;
+        dtmfLog.textContent = dtmfDigits;
+        appendLog(`DTMF  →  "${e.detail.digit}"`);
+      });
+
+      function startCall(number) {
+        callState = 'calling';
+        callNumber.textContent = number;
+        callStatus.className = 'call-status calling';
+        callStatus.textContent = 'Calling…';
+        dtmfDigits = '';
+        dtmfLog.textContent = '';
+        callSim.hidden = false;
+        connectTimer = setTimeout(connectCall, 1500);
+      }
+
+      function connectCall() {
+        callState = 'connected';
+        callStatus.className = 'call-status connected';
+        callStatus.textContent = 'Connected';
+        appendLog('── call connected ──');
+      }
+
+      window.hangUp = () => {
+        clearTimeout(connectTimer);
+        callState = 'idle';
+        callSim.hidden = true;
+        dtmfSim.hidden = true;
+        keypadOpen = false;
+        document.getElementById('btn-show-keypad').classList.remove('on');
+        appendLog('── call ended ──');
+      };
+
+      window.toggleKeypad = () => {
+        if (callState !== 'connected') return;
+        keypadOpen = !keypadOpen;
+        dtmfSim.hidden = !keypadOpen;
+        document.getElementById('btn-show-keypad').classList.toggle('on', keypadOpen);
+      };
+
+      // ── Bare keypad ───────────────────────────────────────────────────
+      const bare    = document.getElementById('bare');
+      const logBare = document.getElementById('log-bare');
+
+      function appendBarLog(msg) {
+        logBare.textContent = msg + '\n' + logBare.textContent.slice(0, 400);
+      }
+
+      bare.addEventListener('sw-digit-press', (e) => {
+        appendBarLog(`sw-digit-press  →  "${e.detail.digit}"  (buffer: "${e.detail.digits}")`);
+      });
+      bare.addEventListener('sw-dialpad-backspace', (e) => {
+        appendBarLog(`sw-dialpad-backspace  →  buffer: "${e.detail.digits}"`);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-call-layout</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>sw-ui-call-layout</h1>
+
+    <div class="toolbar">
+      <button id="btn-transcript" onclick="toggle('transcript')">Transcript</button>
+      <button id="btn-loading" onclick="toggle('loading')">Loading</button>
+      <button id="btn-shadow" onclick="toggle('shadow')">Shadow</button>
+    </div>
+
+    <div class="resizable" style="width: 700px; height: 420px;">
+      <sw-ui-call-layout id="layout" shadow>
+        <sw-ui-background slot="background" default></sw-ui-background>
+        <div slot="video" class="slot-video">Remote Video</div>
+        <div slot="floating-video" class="slot-pip">PiP</div>
+        <div slot="controls" class="slot-controls">[ Mic ] [ Camera ] [ Hang Up ]</div>
+        <div slot="transcript" class="slot-transcript">
+          <div>Agent: Hello!</div>
+          <div>User: Hi there.</div>
+        </div>
+      </sw-ui-call-layout>
+    </div>
+
+    <h2>Fixed shapes</h2>
+    <div class="grid">
+      <div>
+        <div class="label">800 × 450 — landscape + transcript</div>
+        <div class="frame" style="width: 800px; height: 450px;">
+          <sw-ui-call-layout transcript>
+            <sw-ui-background slot="background" default></sw-ui-background>
+            <div slot="video" class="slot-video">800 × 450</div>
+            <div slot="floating-video" class="slot-pip">PiP</div>
+            <div slot="controls" class="slot-controls">Controls</div>
+            <div slot="transcript" class="slot-transcript">
+              <div>Agent: Welcome!</div>
+              <div>User: Hi.</div>
+            </div>
+          </sw-ui-call-layout>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">320 × 568 — phone portrait</div>
+        <div class="frame" style="width: 320px; height: 568px;">
+          <sw-ui-call-layout transcript>
+            <sw-ui-background slot="background" default></sw-ui-background>
+            <div slot="video" class="slot-video">320 × 568</div>
+            <div slot="controls" class="slot-controls">Controls</div>
+            <div slot="transcript" class="slot-transcript">
+              <div>Agent: Hello from phone.</div>
+            </div>
+          </sw-ui-call-layout>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const layout = document.getElementById('layout');
+      function toggle(prop) {
+        layout[prop] = !layout[prop];
+        document.getElementById('btn-' + prop).classList.toggle('on', layout[prop]);
+      }
+    </script>
+  </body>
+</html>

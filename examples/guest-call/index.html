@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SignalWire Guest Call Example</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #1a1a2e;
+        color: #fff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+      }
+
+      h1 {
+        margin-bottom: 1rem;
+        font-weight: 300;
+      }
+
+      .config {
+        background: #16213e;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        width: 100%;
+        max-width: 500px;
+      }
+
+      .config label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: #a0a0a0;
+      }
+
+      .config input {
+        width: 100%;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid #2a2a4a;
+        border-radius: 8px;
+        background: #0f0f23;
+        color: #fff;
+        font-size: 1rem;
+      }
+
+      .config input:focus {
+        outline: none;
+        border-color: #4f46e5;
+      }
+
+      .videos {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .video-container {
+        position: relative;
+        background: #0f0f23;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .video-container video {
+        width: 400px;
+        height: 300px;
+        object-fit: cover;
+      }
+
+      .video-label {
+        position: absolute;
+        bottom: 0.5rem;
+        left: 0.5rem;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 1rem;
+      }
+
+      button {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition:
+          transform 0.1s,
+          opacity 0.2s;
+      }
+
+      button:hover {
+        transform: scale(1.05);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .call-btn {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+      }
+
+      .hangup-btn {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+      }
+
+      .status {
+        margin-top: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #16213e;
+        border-radius: 8px;
+        font-size: 0.875rem;
+      }
+
+      .status.connected {
+        background: #166534;
+      }
+
+      .status.error {
+        background: #991b1b;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SignalWire Guest Call</h1>
+
+    <!-- Configuration inputs -->
+    <div class="config">
+      <label for="host">SignalWire Host</label>
+      <input type="text" id="host" placeholder="yourspace.signalwire.com" />
+
+      <label for="embedToken">Embed Token (Guest Token)</label>
+      <input type="text" id="embedToken" placeholder="your-embed-token" />
+
+      <label for="destination">Destination</label>
+      <input type="text" id="destination" placeholder="/public/test-room" />
+    </div>
+
+    <!-- Video elements -->
+    <div class="videos">
+      <div class="video-container">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <span class="video-label">You</span>
+      </div>
+      <div class="video-container">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <span class="video-label">Remote</span>
+      </div>
+    </div>
+
+    <!-- Call controls -->
+    <div class="controls">
+      <button id="callBtn" class="call-btn">Start Call</button>
+      <button id="hangupBtn" class="hangup-btn" disabled>Hang Up</button>
+    </div>
+
+    <!-- Status display -->
+    <div id="status" class="status">Ready</div>
+
+    <!--
+    Load the SignalWire SDK. Options:
+    1. CDN (when published): <script src="https://unpkg.com/@signalwire/js@latest/dist/browser.umd.js"></script>
+    2. Local build: <script src="../../packages/main/dist/browser.umd.js"></script>
+  -->
+    <script src="../../packages/main/dist/browser.umd.js"></script>
+
+    <script>
+      // DOM elements
+      const hostInput = document.getElementById('host');
+      const tokenInput = document.getElementById('embedToken');
+      const destInput = document.getElementById('destination');
+      const localVideo = document.getElementById('localVideo');
+      const remoteVideo = document.getElementById('remoteVideo');
+      const callBtn = document.getElementById('callBtn');
+      const hangupBtn = document.getElementById('hangupBtn');
+      const statusEl = document.getElementById('status');
+
+      // Current call reference
+      let currentCall = null;
+
+      // Update status display
+      function setStatus(message, type = '') {
+        statusEl.textContent = message;
+        statusEl.className = 'status ' + type;
+      }
+
+      // Start a call using the embeddableCall helper
+      async function startCall() {
+        const host = hostInput.value.trim();
+        const embedToken = tokenInput.value.trim();
+        const destination = destInput.value.trim();
+
+        // Validate inputs
+        if (!host || !embedToken || !destination) {
+          setStatus('Please fill in all fields', 'error');
+          return;
+        }
+
+        try {
+          setStatus('Connecting...');
+          callBtn.disabled = true;
+
+          // Use embeddableCall for simple guest token authentication
+          currentCall = await SignalWire.embeddableCall({
+            host: host,
+            embedToken: embedToken,
+            to: destination
+          });
+
+          // Subscribe to call status changes
+          currentCall.status$.subscribe((status) => {
+            setStatus(`Call: ${status}`, status === 'connected' ? 'connected' : '');
+
+            if (status === 'destroyed' || status === 'disconnected') {
+              cleanup();
+            }
+          });
+
+          // Subscribe to local video stream
+          currentCall.localStream$.subscribe((stream) => {
+            if (stream) {
+              localVideo.srcObject = stream;
+            }
+          });
+
+          // Subscribe to remote video stream
+          currentCall.remoteStream$.subscribe((stream) => {
+            if (stream) {
+              remoteVideo.srcObject = stream;
+            }
+          });
+
+          // Subscribe to errors
+          currentCall.errors$.subscribe((error) => {
+            console.error('Call error:', error);
+            setStatus(`Error: ${error.message}`, 'error');
+          });
+
+          hangupBtn.disabled = false;
+        } catch (error) {
+          console.error('Failed to start call:', error);
+          setStatus(`Error: ${error.message}`, 'error');
+          callBtn.disabled = false;
+        }
+      }
+
+      // Hang up the current call
+      async function hangup() {
+        if (currentCall) {
+          try {
+            await currentCall.hangup();
+          } catch (error) {
+            console.error('Hangup error:', error);
+          }
+        }
+        cleanup();
+      }
+
+      // Clean up after call ends
+      function cleanup() {
+        currentCall = null;
+        localVideo.srcObject = null;
+        remoteVideo.srcObject = null;
+        callBtn.disabled = false;
+        hangupBtn.disabled = true;
+        setStatus('Ready');
+      }
+
+      // Event listeners
+      callBtn.addEventListener('click', startCall);
+      hangupBtn.addEventListener('click', hangup);
+
+      // Load saved values from localStorage
+      hostInput.value = localStorage.getItem('sw_host') || '';
+      tokenInput.value = localStorage.getItem('sw_token') || '';
+      destInput.value = localStorage.getItem('sw_dest') || '/public/test-room';
+
+      // Save values on change
+      hostInput.addEventListener('change', () => localStorage.setItem('sw_host', hostInput.value));
+      tokenInput.addEventListener('change', () =>
+        localStorage.setItem('sw_token', tokenInput.value)
+      );
+      destInput.addEventListener('change', () => localStorage.setItem('sw_dest', destInput.value));
+    </script>
+  </body>
+</html>

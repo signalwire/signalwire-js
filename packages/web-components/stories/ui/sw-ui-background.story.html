@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-background</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .bg-frame {
+        position: relative;
+        width: 480px;
+        height: 270px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #333;
+        background: #000;
+      }
+      sw-ui-background { width: 100%; height: 100%; display: block; }
+
+      .grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+      .item { display: flex; flex-direction: column; gap: 6px; }
+
+      .sm-frame {
+        position: relative;
+        width: 200px;
+        height: 112px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #333;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-ui-background</h1>
+
+    <!--
+      HOW IT WORKS
+      ────────────
+      sw-ui-background fills its parent and loads a background image in two phases:
+
+        Phase 1 — thumbnail (instant)
+          A tiny inlined data URL (the `thumbnail` prop) is rendered as a blurred
+          <div> background. No network round-trip — the container looks filled
+          immediately.
+
+        Phase 2 — full image (async)
+          The real <img src="..."> loads in the background. When its `load` event
+          fires the component fades the full image in (opacity 0→1, slight
+          zoom-out) and simultaneously fades the thumbnail out.
+
+      Props
+      ──────
+        default        – use the bundled SignalWire image + thumbnail (no URLs needed)
+        src            – full-resolution image URL
+        thumbnail      – data URL shown instantly while src loads
+        blur-amount    – CSS blur on the thumbnail (default: 20px)
+    -->
+
+    <!-- ── Built-in default ──────────────────────────────────────── -->
+
+    <h2>Built-in default — <code>&lt;sw-ui-background default&gt;</code></h2>
+    <p class="label">One attribute. The bundled thumbnail and full image are both set automatically.</p>
+
+    <div class="bg-frame" style="width:480px; height:270px;">
+      <sw-ui-background default></sw-ui-background>
+    </div>
+
+    <!-- ── Two-phase crossfade, staged ───────────────────────────── -->
+
+    <h2>Two-phase crossfade — staged</h2>
+    <p class="label">
+      The thumbnail is set immediately; the full image is withheld until you click
+      "Load full image" so you can see each phase clearly.
+    </p>
+
+    <div class="toolbar">
+      <button onclick="loadFull()">Load full image (phase 2)</button>
+      <button onclick="resetStaged()">Reset (back to phase 1)</button>
+    </div>
+
+    <div class="bg-frame" id="staged-frame">
+      <sw-ui-background id="staged"></sw-ui-background>
+    </div>
+
+    <!-- ── With vs without thumbnail ─────────────────────────────── -->
+
+    <h2>With thumbnail vs without</h2>
+    <p class="label">
+      Both load the same full image. "With thumbnail" shows the blurred
+      placeholder immediately; "without" stays dark until the image arrives.
+      Click the buttons to reload both.
+    </p>
+
+    <div class="toolbar">
+      <button onclick="reloadComparison()">Reload both</button>
+    </div>
+
+    <div class="grid">
+      <div class="item">
+        <p class="label">with <code>thumbnail</code></p>
+        <div class="bg-frame" style="width:320px;height:180px;">
+          <sw-ui-background id="with-thumb"></sw-ui-background>
+        </div>
+      </div>
+      <div class="item">
+        <p class="label">without <code>thumbnail</code></p>
+        <div class="bg-frame" style="width:320px;height:180px;">
+          <sw-ui-background id="no-thumb"></sw-ui-background>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── blur-amount ────────────────────────────────────────────── -->
+
+    <h2><code>blur-amount</code> — thumbnail blur intensity</h2>
+    <p class="label">
+      Only the thumbnail is shown here (no <code>src</code>) so the blur is always visible.
+    </p>
+
+    <div class="grid" id="blur-variants"></div>
+
+    <script type="module">
+      import {
+        DEFAULT_BACKGROUND_IMAGE,
+        DEFAULT_BACKGROUND_THUMBNAIL,
+      } from '/src/components/UI/DEFAULT_BACKGROUND.ts';
+
+      // ── Phase demo ─────────────────────────────────────────────────────
+
+      const staged = document.getElementById('staged');
+      staged.thumbnail = DEFAULT_BACKGROUND_THUMBNAIL;
+
+      window.loadFull = () => {
+        staged.src = DEFAULT_BACKGROUND_IMAGE;
+      };
+
+      window.resetStaged = () => {
+        staged.src = '';
+        // thumbnail stays set — phase 1 shows again immediately
+      };
+
+      // ── Comparison: with vs without thumbnail ──────────────────────────
+
+      const withThumb = document.getElementById('with-thumb');
+      const noThumb   = document.getElementById('no-thumb');
+
+      function setComparison() {
+        Object.assign(withThumb, { src: DEFAULT_BACKGROUND_IMAGE, thumbnail: DEFAULT_BACKGROUND_THUMBNAIL });
+        Object.assign(noThumb,   { src: DEFAULT_BACKGROUND_IMAGE, thumbnail: undefined });
+      }
+
+      setComparison();
+
+      window.reloadComparison = () => {
+        withThumb.src = '';
+        noThumb.src   = '';
+        // Small delay lets the browser drop the cached image from the element
+        // so the load event fires again and the crossfade replays.
+        requestAnimationFrame(() => setComparison());
+      };
+
+      // ── blur-amount variants ───────────────────────────────────────────
+
+      const BLUR_VALUES = ['4px', '12px', '20px', '40px'];
+      const container = document.getElementById('blur-variants');
+
+      for (const blur of BLUR_VALUES) {
+        const item = document.createElement('div');
+        item.className = 'item';
+
+        const lbl = document.createElement('p');
+        lbl.className = 'label';
+        lbl.textContent = `blur-amount="${blur}"`;
+
+        const frame = document.createElement('div');
+        frame.className = 'sm-frame';
+
+        const bg = document.createElement('sw-ui-background');
+        bg.style.cssText = 'width:100%;height:100%;display:block;';
+        bg.setAttribute('blur-amount', blur);
+        bg.thumbnail = DEFAULT_BACKGROUND_THUMBNAIL;
+        // no src — thumbnail stays visible so the blur difference is always apparent
+
+        frame.appendChild(bg);
+        item.appendChild(lbl);
+        item.appendChild(frame);
+        container.appendChild(item);
+      }
+    </script>
+  </body>
+</html>

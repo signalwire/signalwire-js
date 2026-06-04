@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-local-camera</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/components/sw-local-camera.ts"></script>
+  </head>
+  <body>
+    <h1>sw-local-camera</h1>
+
+    <div class="toolbar">
+      <button id="btn-mute" onclick="toggleMute()">Mute Camera</button>
+    </div>
+
+    <div class="frame" style="width: 320px; height: 240px;">
+      <sw-local-camera id="cam" mirror></sw-local-camera>
+    </div>
+
+    <script>
+      const cam = document.getElementById('cam');
+      let muted = false;
+
+      async function init() {
+        try {
+          cam.stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 320, height: 240 },
+            audio: false,
+          });
+        } catch {
+          cam.videoMuted = true;
+        }
+      }
+
+      function toggleMute() {
+        muted = !muted;
+        cam.videoMuted = muted;
+        document.getElementById('btn-mute').classList.toggle('on', muted);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

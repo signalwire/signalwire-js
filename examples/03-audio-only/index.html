@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Audio-Only Call</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+</head>
+<body>
+  <h1>Audio-Only Call</h1>
+  <p class="description">Make a phone-style audio call without video.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Dial controls -->
+  <div id="dial-panel">
+    <div class="controls">
+      <input type="text" id="destination" placeholder="sip:user@domain.com" style="width:300px">
+      <button id="call-btn" class="btn-success">Call</button>
+    </div>
+  </div>
+
+  <!-- Active call UI -->
+  <div id="call-panel" style="display:none">
+    <div class="list">
+      <h3>Call Active</h3>
+      <p class="list-item">Status: <span id="call-status">connecting</span></p>
+      <p class="list-item">Duration: <span id="call-duration">0:00</span></p>
+    </div>
+
+    <div class="controls">
+      <button id="hangup-btn" class="btn-danger">Hang Up</button>
+    </div>
+  </div>
+
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script type="module">
+    import { setupClient } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Audio-Only Calling
+    // =========================================================================
+
+    /**
+     * Make an audio-only call.
+     * Set video: false to disable camera entirely.
+     */
+    async function makeAudioCall(client, destination) {
+      const call = await client.dial(destination, {
+        audio: true,
+        video: false  // <-- This is the key difference
+      });
+
+      return call;
+    }
+
+    // =========================================================================
+    // UI Helpers
+    // =========================================================================
+
+    let currentCall = null;
+    let durationInterval = null;
+    let callStartTime = null;
+
+    function showCallUI(call) {
+      currentCall = call;
+      document.getElementById('dial-panel').style.display = 'none';
+      document.getElementById('call-panel').style.display = 'block';
+
+      // Track status
+      call.status$.subscribe((status) => {
+        document.getElementById('call-status').textContent = status;
+
+        if (status === 'connected') {
+          startDurationTimer();
+        }
+
+        if (status === 'disconnected' || status === 'destroyed') {
+          hideCallUI();
+        }
+      });
+    }
+
+    function hideCallUI() {
+      document.getElementById('dial-panel').style.display = 'block';
+      document.getElementById('call-panel').style.display = 'none';
+      stopDurationTimer();
+      currentCall = null;
+    }
+
+    function startDurationTimer() {
+      callStartTime = Date.now();
+      durationInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        document.getElementById('call-duration').textContent =
+          `${mins}:${secs.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function stopDurationTimer() {
+      if (durationInterval) {
+        clearInterval(durationInterval);
+        durationInterval = null;
+      }
+      document.getElementById('call-duration').textContent = '0:00';
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    async function init() {
+      const { client } = await setupClient();
+
+      document.getElementById('call-btn').onclick = async () => {
+        const dest = document.getElementById('destination').value.trim();
+        if (!dest) return;
+
+        document.getElementById('call-btn').disabled = true;
+
+        try {
+          const call = await makeAudioCall(client, dest);
+          showCallUI(call);
+        } catch (e) {
+          alert('Call failed: ' + e.message);
+        }
+
+        document.getElementById('call-btn').disabled = false;
+      };
+
+      document.getElementById('hangup-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>

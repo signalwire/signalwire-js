@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Screen Sharing</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+</head>
+<body>
+  <h1>Screen Sharing</h1>
+  <p class="description">Share your screen during a video call.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Join controls -->
+  <div id="join-panel">
+    <div class="controls">
+      <input type="text" id="room-input" value="/public/test-room" style="width:200px">
+      <button id="join-btn" class="btn-primary">Join Room</button>
+    </div>
+  </div>
+
+  <!-- Active call UI -->
+  <div id="call-panel" style="display:none">
+    <div class="videos">
+      <div class="video-box">
+        <video id="local-video" autoplay muted playsinline></video>
+        <span class="label">You</span>
+      </div>
+      <div class="video-box">
+        <video id="remote-video" autoplay playsinline></video>
+        <span class="label">Room</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="screenshare-btn" class="btn-primary">Start Screen Share</button>
+      <button id="leave-btn" class="btn-danger">Leave</button>
+    </div>
+
+    <div class="list">
+      <h3>Screen Share Status</h3>
+      <p id="share-status" class="list-item">Not sharing</p>
+    </div>
+  </div>
+
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script type="module">
+    import { setupClient, attachStream } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Screen Sharing
+    // =========================================================================
+
+    /**
+     * Start sharing your screen.
+     * Browser will prompt user to select a window/screen.
+     */
+    async function startScreenShare(call) {
+      await call.self.startScreenShare();
+    }
+
+    /**
+     * Stop sharing your screen.
+     */
+    async function stopScreenShare(call) {
+      await call.self.stopScreenShare();
+    }
+
+    /**
+     * Check if screen sharing is active.
+     */
+    function isScreenSharing(call) {
+      return call.self?.screenShareStatus === 'started';
+    }
+
+    /**
+     * Watch screen share status changes.
+     */
+    function watchScreenShareStatus(call, callback) {
+      call.self$.subscribe((self) => {
+        if (self) {
+          self.screenShareStatus$.subscribe(callback);
+        }
+      });
+    }
+
+    // =========================================================================
+    // UI Helpers
+    // =========================================================================
+
+    let currentCall = null;
+
+    function updateShareButton(status) {
+      const btn = document.getElementById('screenshare-btn');
+      const statusEl = document.getElementById('share-status');
+
+      if (status === 'started') {
+        btn.textContent = 'Stop Screen Share';
+        btn.className = 'btn-danger';
+        statusEl.textContent = 'Sharing screen';
+        statusEl.style.color = '#22c55e';
+      } else {
+        btn.textContent = 'Start Screen Share';
+        btn.className = 'btn-primary';
+        statusEl.textContent = 'Not sharing';
+        statusEl.style.color = '';
+      }
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    async function init() {
+      const { client } = await setupClient();
+
+      document.getElementById('join-btn').onclick = async () => {
+        const room = document.getElementById('room-input').value.trim();
+        if (!room) return;
+
+        currentCall = await client.dial(room, { audio: true, video: true });
+
+        // Show call UI
+        document.getElementById('join-panel').style.display = 'none';
+        document.getElementById('call-panel').style.display = 'block';
+
+        // Attach streams
+        currentCall.localStream$.subscribe(s => attachStream('local-video', s));
+        currentCall.remoteStream$.subscribe(s => attachStream('remote-video', s));
+
+        // Watch screen share status
+        watchScreenShareStatus(currentCall, updateShareButton);
+
+        // Handle call end
+        currentCall.status$.subscribe((status) => {
+          if (status === 'disconnected' || status === 'destroyed') {
+            document.getElementById('join-panel').style.display = 'block';
+            document.getElementById('call-panel').style.display = 'none';
+            currentCall = null;
+          }
+        });
+      };
+
+      document.getElementById('screenshare-btn').onclick = async () => {
+        if (!currentCall) return;
+
+        try {
+          if (isScreenSharing(currentCall)) {
+            await stopScreenShare(currentCall);
+          } else {
+            await startScreenShare(currentCall);
+          }
+        } catch (e) {
+          // User cancelled the screen picker, or permission denied
+          console.log('Screen share cancelled:', e.message);
+        }
+      };
+
+      document.getElementById('leave-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>

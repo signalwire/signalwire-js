@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-control-bar</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .variant {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--sp-3);
+        padding: var(--sp-4);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface);
+        color: var(--fg-default);
+        margin-bottom: var(--sp-3);
+      }
+      .variant .head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--sp-3);
+      }
+      .variant .title {
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        color: var(--fg-muted);
+      }
+      .variant .desc {
+        font-size: 12px;
+        color: var(--fg-muted);
+      }
+      /* Dark stage so the control bar's translucent button bg reads well */
+      .stage {
+        background: #0d0e1a;
+        border-radius: var(--radius-md);
+        padding: var(--sp-2);
+      }
+      .stage.resizable {
+        resize: horizontal;
+        overflow: auto;
+        max-width: 100%;
+      }
+      .widths {
+        display: grid;
+        gap: var(--sp-3);
+      }
+      .width-row {
+        display: grid;
+        grid-template-columns: 60px 1fr;
+        gap: var(--sp-3);
+        align-items: center;
+      }
+      .width-row .w {
+        font-family: var(--type-family-code);
+        font-size: 11px;
+        color: var(--fg-muted);
+        text-align: right;
+      }
+      pre {
+        margin: 0;
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        background: var(--cb-bg);
+        color: var(--cb-fg);
+        border: 1px solid var(--cb-border);
+        padding: var(--sp-3);
+        border-radius: var(--radius-md);
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .log {
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        background: var(--cb-bg);
+        color: var(--cb-fg);
+        border: 1px solid var(--cb-border);
+        padding: var(--sp-3);
+        border-radius: var(--radius-md);
+        min-height: 80px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-ui-control-bar</h1>
+
+    <h2>Variant 1 — Default (mic, camera, speaker, fullscreen, hangup)</h2>
+    <div class="variant">
+      <div class="head">
+        <span class="title">no optional buttons; only required + fullscreen</span>
+        <span class="desc">all unmuted, not fullscreen</span>
+      </div>
+      <div class="stage">
+        <sw-ui-control-bar id="cb-default"></sw-ui-control-bar>
+      </div>
+      <pre>&lt;sw-ui-control-bar&gt;&lt;/sw-ui-control-bar&gt;</pre>
+    </div>
+
+    <h2>Variant 2 — All buttons enabled</h2>
+    <div class="variant">
+      <div class="head">
+        <span class="title">show-screen-share, show-hand-raise, show-transcript, show-settings, show-fullscreen</span>
+        <span class="desc">default state</span>
+      </div>
+      <div class="stage">
+        <sw-ui-control-bar
+          id="cb-all"
+          show-screen-share
+          show-hand-raise
+          show-transcript
+          show-settings
+          show-fullscreen
+        ></sw-ui-control-bar>
+      </div>
+      <pre>&lt;sw-ui-control-bar
+  show-screen-share
+  show-hand-raise
+  show-transcript
+  show-settings
+  show-fullscreen
+&gt;&lt;/sw-ui-control-bar&gt;</pre>
+    </div>
+
+    <h2>Variant 3 — Muted media states</h2>
+    <div class="variant">
+      <div class="head">
+        <span class="title">mic-muted, camera-muted, speaker-muted</span>
+        <span class="desc">all three media buttons inactive</span>
+      </div>
+      <div class="stage">
+        <sw-ui-control-bar
+          id="cb-muted"
+          mic-muted
+          camera-muted
+          speaker-muted
+          show-screen-share
+          show-hand-raise
+          show-transcript
+          show-settings
+        ></sw-ui-control-bar>
+      </div>
+      <pre>&lt;sw-ui-control-bar mic-muted camera-muted speaker-muted&gt;&lt;/sw-ui-control-bar&gt;</pre>
+    </div>
+
+    <h2>Variant 4 — Active toggles</h2>
+    <div class="variant">
+      <div class="head">
+        <span class="title">screen-sharing, hand-raised, transcript-active, fullscreen</span>
+        <span class="desc">optional toggles in their active state</span>
+      </div>
+      <div class="stage">
+        <sw-ui-control-bar
+          id="cb-active"
+          show-screen-share
+          show-hand-raise
+          show-transcript
+          show-settings
+          show-fullscreen
+          screen-sharing
+          hand-raised
+          transcript-active
+          fullscreen
+        ></sw-ui-control-bar>
+      </div>
+      <pre>&lt;sw-ui-control-bar
+  show-screen-share screen-sharing
+  show-hand-raise   hand-raised
+  show-transcript   transcript-active
+  show-settings
+  show-fullscreen   fullscreen
+&gt;&lt;/sw-ui-control-bar&gt;</pre>
+    </div>
+
+    <h2>Variant 5 — With device lists &amp; settings menu</h2>
+    <div class="variant">
+      <div class="head">
+        <span class="title">micDevices / cameraDevices / speakerDevices / settingsItems populated</span>
+        <span class="desc">chevron menus open device pickers; settings opens a menu</span>
+      </div>
+      <div class="stage">
+        <sw-ui-control-bar
+          id="cb-devices"
+          show-screen-share
+          show-hand-raise
+          show-transcript
+          show-settings
+          show-fullscreen
+        ></sw-ui-control-bar>
+      </div>
+      <pre>el.micDevices      = [{id, label, selected?}, ...];
+el.cameraDevices   = [...];
+el.speakerDevices  = [...];
+el.settingsItems   = [{id:'noise-suppression', label:'Noise suppression'}, ...];</pre>
+    </div>
+
+    <h2>Variant 6 — Widths (container queries)</h2>
+    <div class="variant">
+      <div class="head">
+        <span class="title">same config at different widths</span>
+        <span class="desc">≤720px collapses optional → overflow menu; ≤540px shrinks; ≤360px shrinks more</span>
+      </div>
+      <div class="widths">
+        <div class="width-row">
+          <span class="w">960px</span>
+          <div class="stage" style="width: 960px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">800px</span>
+          <div class="stage" style="width: 800px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">720px</span>
+          <div class="stage" style="width: 720px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">600px</span>
+          <div class="stage" style="width: 600px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">540px</span>
+          <div class="stage" style="width: 540px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">420px</span>
+          <div class="stage" style="width: 420px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">360px</span>
+          <div class="stage" style="width: 360px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">300px</span>
+          <div class="stage" style="width: 300px; max-width: 100%;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+        <div class="width-row">
+          <span class="w">resize ↔</span>
+          <div class="stage resizable" style="width: 720px;">
+            <sw-ui-control-bar
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              show-settings
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Events log</h2>
+    <pre class="log" id="log">Events...</pre>
+
+    <script>
+      const log = document.getElementById('log');
+      const addLog = (msg) => { log.textContent = msg + '\n' + log.textContent; };
+
+      const devices = (kind) => [
+        { id: `${kind}-1`, label: `Default ${kind}`, selected: true },
+        { id: `${kind}-2`, label: `${kind} #2` },
+        { id: `${kind}-3`, label: `${kind} #3` },
+      ];
+      const settingsItems = [
+        { id: 'noise-suppression', label: 'Noise suppression', selected: true },
+        { id: 'echo-cancel', label: 'Echo cancellation' },
+        { id: 'auto-gain', label: 'Auto gain control' },
+      ];
+
+      const withDevices = document.getElementById('cb-devices');
+      withDevices.micDevices = devices('mic');
+      withDevices.cameraDevices = devices('camera');
+      withDevices.speakerDevices = devices('speaker');
+      withDevices.settingsItems = settingsItems;
+
+      const events = [
+        'sw-mic-toggle',
+        'sw-camera-toggle',
+        'sw-speaker-toggle',
+        'sw-device-change',
+        'sw-fullscreen-toggle',
+        'sw-screen-share-toggle',
+        'sw-hand-raise-toggle',
+        'sw-transcript-toggle',
+        'sw-settings-change',
+        'sw-call-hangup',
+      ];
+      document.querySelectorAll('sw-ui-control-bar').forEach((el, idx) => {
+        events.forEach((type) => {
+          el.addEventListener(type, (e) => {
+            const detail = e.detail === undefined ? '' : ' ' + JSON.stringify(e.detail);
+            addLog(`[#${idx}] ${type}${detail}`);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

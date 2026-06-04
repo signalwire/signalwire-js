@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Video Room</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+</head>
+<body>
+  <h1>Video Room</h1>
+  <p class="description">Join a multi-participant video room and see who's in it.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Join controls -->
+  <div id="join-panel">
+    <div class="controls">
+      <input type="text" id="room-input" placeholder="/public/my-room" value="/public/test-room" style="width:250px">
+      <button id="join-btn" class="btn-primary">Join Room</button>
+    </div>
+  </div>
+
+  <!-- Active room UI -->
+  <div id="room-panel" style="display:none">
+    <div class="videos">
+      <div class="video-box">
+        <video id="local-video" autoplay muted playsinline></video>
+        <span class="label">You</span>
+      </div>
+      <div class="video-box">
+        <video id="remote-video" autoplay playsinline></video>
+        <span class="label">Room</span>
+      </div>
+    </div>
+
+    <!-- Participants list -->
+    <div class="list">
+      <h3>Participants (<span id="participant-count">0</span>)</h3>
+      <div id="participants-list"></div>
+    </div>
+
+    <div class="controls">
+      <button id="leave-btn" class="btn-danger">Leave Room</button>
+    </div>
+  </div>
+
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script type="module">
+    import { setupClient, attachStream } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Video Room with Participants
+    // =========================================================================
+
+    /**
+     * Join a video room.
+     * Rooms allow multiple participants - everyone sees the composite video.
+     */
+    async function joinRoom(client, roomAddress) {
+      const call = await client.dial(roomAddress, {
+        audio: true,
+        video: true
+      });
+
+      return call;
+    }
+
+    /**
+     * Subscribe to the participants list.
+     * The callback fires whenever someone joins or leaves.
+     */
+    function watchParticipants(call, onUpdate) {
+      call.participants$.subscribe((participants) => {
+        onUpdate(participants);
+      });
+    }
+
+    /**
+     * Get info about yourself in the room.
+     */
+    function watchSelf(call, onUpdate) {
+      call.self$.subscribe((self) => {
+        onUpdate(self);
+      });
+    }
+
+    // =========================================================================
+    // UI Helpers
+    // =========================================================================
+
+    let currentCall = null;
+
+    function showRoom(call) {
+      currentCall = call;
+      document.getElementById('join-panel').style.display = 'none';
+      document.getElementById('room-panel').style.display = 'block';
+
+      // Attach video streams
+      call.localStream$.subscribe(s => attachStream('local-video', s));
+      call.remoteStream$.subscribe(s => attachStream('remote-video', s));
+
+      // Watch participants
+      watchParticipants(call, renderParticipants);
+
+      // Handle call ending
+      call.status$.subscribe((status) => {
+        if (status === 'disconnected' || status === 'destroyed') {
+          hideRoom();
+        }
+      });
+    }
+
+    function hideRoom() {
+      document.getElementById('join-panel').style.display = 'block';
+      document.getElementById('room-panel').style.display = 'none';
+      currentCall = null;
+    }
+
+    function renderParticipants(participants) {
+      const list = document.getElementById('participants-list');
+      const count = document.getElementById('participant-count');
+
+      count.textContent = participants.length;
+      list.innerHTML = '';
+
+      if (participants.length === 0) {
+        list.innerHTML = '<div class="list-item" style="color:#666">No other participants</div>';
+        return;
+      }
+
+      participants.forEach((p) => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <strong>${p.name || 'Anonymous'}</strong>
+          <span style="color:#666;margin-left:0.5rem">
+            ${p.audioMuted ? '🔇' : '🔊'}
+            ${p.videoMuted ? '📷' : '🎥'}
+            ${p.handraised ? '✋' : ''}
+          </span>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    async function init() {
+      const { client } = await setupClient();
+
+      document.getElementById('join-btn').onclick = async () => {
+        const room = document.getElementById('room-input').value.trim();
+        if (!room) return;
+
+        document.getElementById('join-btn').disabled = true;
+
+        try {
+          const call = await joinRoom(client, room);
+          showRoom(call);
+        } catch (e) {
+          alert('Failed to join room: ' + e.message);
+        }
+
+        document.getElementById('join-btn').disabled = false;
+      };
+
+      document.getElementById('leave-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>

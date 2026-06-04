@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/main"
+    },
+    {
+      "path": "packages/web-components"
+    },
+    {
+      "path": "playground/kitchen-sink-demo"
+    }
+  ]
+}

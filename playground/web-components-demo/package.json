@@ -1,0 +1,25 @@
+{
+  "name": "@signalwire/web-components-demo",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "description": "SignalWire WebRTC Demo Application showcasing the @signalwire/js SDK and UI components",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug"
+  },
+  "dependencies": {
+    "@signalwire/js": "4.0.0-rc.0",
+    "@signalwire/web-components": "4.0.0-rc.0",
+    "happy-dom": "^20.9.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "vite": "^7.3.1"
+  }
+}

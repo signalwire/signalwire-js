@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SignalWire Web Components</title>
+    <link rel="stylesheet" href="./src/theme.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        font-family: var(--type-family-body);
+        color: #1a1a1f;
+      }
+
+      #sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        background: #0d0e1a;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      #sidebar-header {
+        padding: var(--sp-5) var(--sp-4) var(--sp-3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+      }
+
+      #sidebar-header .brand {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-caption);
+        font-weight: var(--type-weight-heading);
+        text-transform: uppercase;
+        letter-spacing: var(--type-letter-spacing-eyebrow);
+        color: #f1f5f9;
+      }
+
+      #sidebar-header .package {
+        font-family: var(--type-family-code);
+        font-size: 11px;
+        color: #5a5a6e;
+        margin-top: 2px;
+      }
+
+      #nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--sp-2) 0 var(--sp-3);
+        scrollbar-width: thin;
+        scrollbar-color: #1e293b transparent;
+        font-family: var(--type-family-body);
+      }
+
+      #nav::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      #nav::-webkit-scrollbar-thumb {
+        background: #1e293b;
+        border-radius: var(--radius-sm);
+      }
+
+      #content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--bg-page);
+        color: var(--fg-default);
+        transition: background var(--transition-normal), color var(--transition-normal);
+      }
+
+      #outlet {
+        flex: 1;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <aside id="sidebar">
+      <div id="sidebar-header">
+        <div class="brand">SignalWire</div>
+        <div class="package">web-components</div>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+    <div id="content">
+      <div id="outlet"></div>
+    </div>
+    <script type="module" src="/src/dev/main.ts"></script>
+  </body>
+</html>

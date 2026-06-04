@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-call-layout — Transcript</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>Call Layout — Streaming Transcript</h1>
+
+    <div class="toolbar">
+      <button id="btn-play" onclick="togglePlayback()">Start</button>
+      <button onclick="resetConversation()">Reset</button>
+      <button id="btn-transcript" class="on" onclick="toggleTranscript()">Transcript</button>
+    </div>
+
+    <div class="resizable" style="width: 700px; height: 420px;">
+      <sw-ui-call-layout id="layout" transcript shadow>
+        <sw-ui-background slot="background" default></sw-ui-background>
+        <div slot="video" class="slot-video">Remote Video</div>
+        <div slot="controls" class="slot-controls">Controls</div>
+        <sw-ui-transcript-view id="tv" slot="transcript"></sw-ui-transcript-view>
+      </sw-ui-call-layout>
+    </div>
+
+    <script>
+      const layout = document.getElementById('layout');
+      const tv = document.getElementById('tv');
+      const SCRIPT = [
+        { type: 'agent', text: 'Hello! How can I help?' },
+        { type: 'user',  text: 'I\'m testing the transcript view.' },
+        { type: 'agent', text: 'User messages stream as partial, then complete.' },
+        { type: 'user',  text: 'I can see partial updates.' },
+        { type: 'agent', text: 'Layout adapts: side on wide, bottom on narrow.' },
+      ];
+
+      let entries = [], cursor = 0, playing = false, timer = null;
+
+      function update() { tv.entries = [...entries]; }
+
+      function addNext() {
+        if (cursor >= SCRIPT.length) {
+          playing = false; clearInterval(timer); timer = null;
+          document.getElementById('btn-play').textContent = 'Start';
+          return;
+        }
+        const line = SCRIPT[cursor++];
+        if (line.type === 'user') {
+          const id = crypto.randomUUID();
+          entries = [...entries, { id, type: 'user', state: 'partial', text: line.text.split(' ').slice(0, 3).join(' ') + '...' }];
+          update();
+          setTimeout(() => {
+            entries = entries.map(e => e.id === id ? { ...e, text: line.text, state: 'complete' } : e);
+            update();
+          }, 400);
+        } else {
+          entries = [...entries, { id: crypto.randomUUID(), type: 'agent', state: 'complete', text: line.text }];
+          update();
+        }
+      }
+
+      function togglePlayback() {
+        if (cursor >= SCRIPT.length) { resetConversation(); return; }
+        const btn = document.getElementById('btn-play');
+        if (playing) { playing = false; clearInterval(timer); timer = null; btn.textContent = 'Resume'; }
+        else { playing = true; btn.textContent = 'Pause'; addNext(); timer = setInterval(addNext, 1500); }
+      }
+
+      function resetConversation() {
+        playing = false; clearInterval(timer); timer = null;
+        entries = []; cursor = 0;
+        document.getElementById('btn-play').textContent = 'Start';
+        update();
+      }
+
+      function toggleTranscript() {
+        layout.transcript = !layout.transcript;
+        document.getElementById('btn-transcript').classList.toggle('on', layout.transcript);
+      }
+    </script>
+  </body>
+</html>

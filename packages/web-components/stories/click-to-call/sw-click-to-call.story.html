@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-click-to-call</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(320px, max-content) 1fr;
+        gap: var(--sp-6);
+        align-items: start;
+      }
+      .panel {
+        background: #0d0e1a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius-md);
+        padding: var(--sp-4);
+        color: rgba(255, 255, 255, 0.85);
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-3);
+      }
+      .panel p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.75rem;
+      }
+      .event-log {
+        font-family: var(--type-family-code);
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.55);
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: var(--radius-sm);
+        padding: var(--sp-2) var(--sp-3);
+        min-height: 1.4em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-click-to-call</h1>
+    <p class="label">
+      Pick a microphone / camera on the left, then dial the destination configured in the
+      credential bar above. Uses the live <code>SignalWire</code> client.
+    </p>
+
+    <div class="layout">
+      <!-- ── Device picker ──────────────────────────────────────────── -->
+      <div class="panel">
+        <h2 style="margin: 0; color: rgba(255, 255, 255, 0.5);">Devices</h2>
+        <p>Real devices via <code>navigator.mediaDevices</code>.</p>
+        <sw-device-selector id="dev-sel"></sw-device-selector>
+        <div class="event-log" id="device-log">—</div>
+      </div>
+
+      <!-- ── Click to call ──────────────────────────────────────────── -->
+      <div class="panel">
+        <h2 style="margin: 0; color: rgba(255, 255, 255, 0.5);">Call</h2>
+        <p>
+          Destination comes from the active credential preset
+          (e.g. <code>/public/test-room</code>).
+        </p>
+        <sw-click-to-call id="c2c" label="Call destination" audio-only></sw-click-to-call>
+        <div class="event-log" id="call-log">idle</div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { BehaviorSubject } from 'rxjs';
+      import { SignalWire, StaticCredentialProvider } from '@signalwire/js';
+
+      // ── DeviceController shim backed by navigator.mediaDevices ─────
+      function makeRealDeviceController() {
+        const audioInputDevices$ = new BehaviorSubject([]);
+        const videoInputDevices$ = new BehaviorSubject([]);
+        const audioOutputDevices$ = new BehaviorSubject([]);
+        const selectedAudioInputDevice$ = new BehaviorSubject(null);
+        const selectedVideoInputDevice$ = new BehaviorSubject(null);
+        const selectedAudioOutputDevice$ = new BehaviorSubject(null);
+
+        async function refresh() {
+          const all = await navigator.mediaDevices.enumerateDevices();
+          const mics = all.filter((d) => d.kind === 'audioinput');
+          const cameras = all.filter((d) => d.kind === 'videoinput');
+          const speakers = all.filter((d) => d.kind === 'audiooutput');
+
+          audioInputDevices$.next(mics);
+          videoInputDevices$.next(cameras);
+          audioOutputDevices$.next(speakers);
+
+          if (!selectedAudioInputDevice$.value && mics.length) selectedAudioInputDevice$.next(mics[0]);
+          if (!selectedVideoInputDevice$.value && cameras.length) selectedVideoInputDevice$.next(cameras[0]);
+          if (!selectedAudioOutputDevice$.value && speakers.length) selectedAudioOutputDevice$.next(speakers[0]);
+        }
+
+        navigator.mediaDevices.addEventListener('devicechange', refresh);
+
+        return {
+          audioInputDevices$,
+          videoInputDevices$,
+          audioOutputDevices$,
+          selectedAudioInputDevice$,
+          selectedVideoInputDevice$,
+          selectedAudioOutputDevice$,
+          selectAudioInputDevice: (d) => selectedAudioInputDevice$.next(d),
+          selectVideoInputDevice: (d) => selectedVideoInputDevice$.next(d),
+          selectAudioOutputDevice: (d) => selectedAudioOutputDevice$.next(d),
+          refresh,
+        };
+      }
+
+      const dc = makeRealDeviceController();
+      const devSel = document.getElementById('dev-sel');
+      devSel.deviceController = dc;
+
+      const deviceLog = document.getElementById('device-log');
+      devSel.addEventListener('sw-device-change', (e) => {
+        const { type, device } = e.detail;
+        deviceLog.textContent = `${type}: ${device.label || device.deviceId}`;
+      });
+
+      // Trigger the permission prompt so device labels populate.
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        await dc.refresh();
+        stream.getTracks().forEach((t) => t.stop());
+      } catch {
+        // selector still works without labels
+      }
+
+      // ── SignalWire client driven by __SW_CREDS from the scaffold ───
+      const c2c = document.getElementById('c2c');
+      const callLog = document.getElementById('call-log');
+
+      let client = null;
+
+      function buildClient() {
+        const { token, destination } = window.__SW_CREDS || {};
+        if (!token) {
+          callLog.textContent = 'no token — pick a credential in the bar above';
+          c2c.client = null;
+          c2c.destination = '';
+          return;
+        }
+        client = new SignalWire(new StaticCredentialProvider({ token }), {
+          reconnectAttachedCalls: false,
+          persistSession: false,
+        });
+        c2c.client = client;
+        c2c.destination = destination || '';
+        callLog.textContent = `ready → ${destination || '(no destination)'}`;
+      }
+
+      buildClient();
+      window.addEventListener('sw-creds-change', buildClient);
+
+      c2c.addEventListener('sw-dial', (e) => {
+        callLog.textContent = `dialing ${e.detail.destination}…`;
+      });
+      c2c.addEventListener('sw-hangup', () => {
+        callLog.textContent = 'hung up';
+      });
+      c2c.addEventListener('sw-mute-toggle', (e) => {
+        callLog.textContent = e.detail.muted ? 'muted' : 'unmuted';
+      });
+    </script>
+  </body>
+</html>

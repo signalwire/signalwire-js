@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Embed — sw-call-widget (real call)</title>
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!--
+      ┌──────────────────────────────────────────────────────────────────────┐
+      │  EMBED BUNDLE — loads everything, registers all custom elements       │
+      │  window.SignalWireUI.SignalWire / StaticCredentialProvider /          │
+      │  EmbedTokenCredentialProvider available for programmatic use.         │
+      └──────────────────────────────────────────────────────────────────────┘
+    -->
+    <script src="/dist/embed/signalwire-web-components-embed.iife.js"></script>
+
+    <style>
+      /* ── code snippet display ─────────────────────────────── */
+      .snippet {
+        background: #0d0e1a;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-family: 'Menlo', 'Consolas', monospace;
+        font-size: 0.78rem;
+        color: #c8d3f5;
+        line-height: 1.6;
+        white-space: pre;
+        overflow-x: auto;
+        margin: 8px 0 16px;
+      }
+      .snippet .attr  { color: #7aa2f7; }
+      .snippet .str   { color: #9ece6a; }
+      .snippet .tag   { color: #f7768e; }
+      .snippet .cmt   { color: rgba(255,255,255,0.28); }
+
+      /* ── section layout ───────────────────────────────────── */
+      .section { margin: 32px 0; }
+
+      /* ── inline widget wrapper ────────────────────────────── */
+      .widget-shell {
+        width: 100%;
+        max-width: 760px;
+        height: 460px;
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+
+      /* ── pill status badge ────────────────────────────────── */
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 100px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.5);
+        transition: background 0.2s, color 0.2s;
+      }
+      .status-pill.connecting { background: rgba(251,191,36,0.15); color: #fbbf24; }
+      .status-pill.connected  { background: rgba(16,185,129,0.15); color: #10b981; }
+      .status-pill .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .status-pill.connecting .dot { animation: blink 1.1s ease-in-out infinite; }
+      @keyframes blink { 0%,100%{ opacity:1 } 50%{ opacity:0.2 } }
+
+      /* ── controls row ─────────────────────────────────────── */
+      .controls-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Embed — sw-call-widget (real call)</h1>
+    <p class="label">
+      <code>sw-call-widget</code> handles everything: client init, dialling, media, controls,
+      and the optional AI transcript panel. Set <code>token</code> + <code>destination</code>
+      and call <code>.dial()</code>.
+    </p>
+
+    <!-- ── 1. Inline widget ──────────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>Inline mode</h2>
+      <p class="label">
+        The widget fills its container. Wire up your own dial/hangup buttons —
+        or use <code>sw-click-to-call</code> for a zero-JS drop-in.
+      </p>
+
+      <div class="snippet"><span class="tag">&lt;div</span> <span class="attr">style</span>=<span class="str">"width:760px; height:460px;"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;sw-call-widget</span>
+    <span class="attr">id</span>=<span class="str">"widget"</span>
+    <span class="attr">token</span>=<span class="str">"c2c_892b29eca7b6d96091faf713f07cdf46"</span>
+    <span class="attr">destination</span>=<span class="str">"/public/test-room"</span>
+    <span class="attr">transcription</span>
+  <span class="tag">&gt;
+    &lt;sw-ui-background</span> <span class="attr">slot</span>=<span class="str">"background"</span> <span class="attr">default</span><span class="tag">&gt;&lt;/sw-ui-background&gt;
+  &lt;/sw-call-widget&gt;
+&lt;/div&gt;</span>
+
+<span class="tag">&lt;script&gt;</span>
+  document.getElementById(<span class="str">'widget'</span>).dial();   <span class="cmt">// start call</span>
+  document.getElementById(<span class="str">'widget'</span>).hangup(); <span class="cmt">// end call</span>
+<span class="tag">&lt;/script&gt;</span></div>
+
+      <div class="controls-row">
+        <button id="btn-dial"   onclick="doDial()">▶ Dial</button>
+        <button id="btn-hangup" onclick="doHangup()" disabled>■ Hang Up</button>
+        <span class="status-pill" id="status-pill">
+          <span class="dot"></span>
+          <span id="status-text">idle</span>
+        </span>
+      </div>
+
+      <div class="widget-shell">
+        <sw-call-widget
+          id="widget-inline"
+          token="%VITE_C2C_TOKEN%"
+          destination="%VITE_C2C_DEST%"
+          transcription
+          style="width:100%;height:100%;display:block;"
+        >
+          <sw-ui-background slot="background" default></sw-ui-background>
+        </sw-call-widget>
+      </div>
+
+      <pre class="log" id="log-inline">Events will appear here…</pre>
+    </div>
+
+    <!-- ── 2. Modal mode (via sw-click-to-call) ─────────────────────── -->
+
+    <div class="section">
+      <h2>Modal mode — via sw-click-to-call</h2>
+      <p class="label">
+        Set <code>modal</code> on <code>sw-call-widget</code> — or use the
+        <code>sw-click-to-call</code> wrapper, which adds the modal + trigger button
+        for you. Clicking the button dials and opens the overlay.
+      </p>
+
+      <div class="snippet"><span class="tag">&lt;sw-click-to-call</span>
+  <span class="attr">token</span>=<span class="str">"c2c_892b29eca7b6d96091faf713f07cdf46"</span>
+  <span class="attr">destination</span>=<span class="str">"/public/test-room"</span>
+  <span class="attr">label</span>=<span class="str">"Open Call"</span>
+<span class="tag">&gt;&lt;/sw-click-to-call&gt;</span>
+
+<span class="cmt">&lt;!-- equivalent long form: --&gt;</span>
+<span class="tag">&lt;sw-call-widget</span> <span class="attr">modal</span> <span class="attr">token</span>=<span class="str">"c2c_…"</span> <span class="attr">destination</span>=<span class="str">"/public/test-room"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;button&gt;</span>Open &amp; Call<span class="tag">&lt;/button&gt;  </span><span class="cmt">&lt;!-- any element in default slot triggers dial --&gt;</span>
+<span class="tag">&lt;/sw-call-widget&gt;</span></div>
+
+      <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
+        <sw-click-to-call
+          id="c2c-modal"
+          token="%VITE_C2C_TOKEN%"
+          destination="%VITE_C2C_DEST%"
+          label="Open Call"
+        ></sw-click-to-call>
+
+        <sw-call-widget
+          id="widget-modal-custom"
+          modal
+          token="%VITE_C2C_TOKEN%"
+          destination="%VITE_C2C_DEST%"
+          transcription
+        >
+          <sw-ui-background slot="background" default></sw-ui-background>
+          <button style="
+            padding: 10px 20px;
+            background: #0ea5e9;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+          ">
+            Custom trigger
+          </button>
+        </sw-call-widget>
+      </div>
+    </div>
+
+    <!-- ── 3. incoming calls ─────────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>Receiving incoming calls</h2>
+      <p class="label">
+        Add <code>allow-incoming-calls</code> to make the widget listen for inbound calls
+        on the same token. A built-in prompt will appear to accept or reject.
+      </p>
+
+      <div class="snippet"><span class="tag">&lt;sw-call-widget</span>
+  <span class="attr">token</span>=<span class="str">"c2c_892b29eca7b6d96091faf713f07cdf46"</span>
+  <span class="attr">destination</span>=<span class="str">"/public/test-room"</span>
+  <span class="attr">allow-incoming-calls</span>
+  <span class="attr">transcription</span>
+<span class="tag">&gt;&lt;/sw-call-widget&gt;</span></div>
+    </div>
+
+    <!-- ── 4. Programmatic API ───────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>Programmatic API</h2>
+      <p class="label">
+        <code>window.SignalWireUI</code> exposes SDK classes so you can build a fully
+        custom call flow without any UI at all — or mix-and-match with the widgets.
+      </p>
+
+      <div class="snippet"><span class="cmt">// Classes available after the embed bundle loads:</span>
+const { SignalWire, EmbedTokenCredentialProvider, StaticCredentialProvider } = SignalWireUI;
+
+<span class="cmt">// Embed token (c2c_ / c2t_ prefix) — uses embeds.signalwire.com automatically:</span>
+const client = new SignalWire(
+  new EmbedTokenCredentialProvider(<span class="str">'embeds.signalwire.com'</span>, <span class="str">'c2c_892b...'</span>)
+);
+
+<span class="cmt">// SAT token — point at your own project:</span>
+const client2 = new SignalWire(
+  new StaticCredentialProvider({ token: <span class="str">'eyJ…your_SAT…'</span> })
+);
+
+<span class="cmt">// Dial and wire context into a sw-call-provider:</span>
+const call = await client.dial(<span class="str">'/public/test-room'</span>, { audio: true, video: true });
+document.getElementById(<span class="str">'provider'</span>).call = call;</div>
+    </div>
+
+    <script>
+      // ── Inline widget state ────────────────────────────────────────────────
+      const widgetEl = document.getElementById('widget-inline');
+      const btnDial   = document.getElementById('btn-dial');
+      const btnHangup = document.getElementById('btn-hangup');
+      const pill      = document.getElementById('status-pill');
+      const pillText  = document.getElementById('status-text');
+      const logEl     = document.getElementById('log-inline');
+
+      function appendLog(msg) {
+        const ts = new Date().toLocaleTimeString();
+        logEl.textContent = `[${ts}]  ${msg}\n` + logEl.textContent.slice(0, 600);
+      }
+
+      function setStatus(state) {
+        pill.className = 'status-pill ' + state;
+        pillText.textContent = state || 'idle';
+      }
+
+      window.doDial = async () => {
+        btnDial.disabled = true;
+        btnHangup.disabled = false;
+        setStatus('connecting');
+        appendLog('dialing %VITE_C2C_DEST%…');
+        try {
+          await widgetEl.dial();
+          setStatus('connected');
+          appendLog('connected');
+        } catch (err) {
+          appendLog('error: ' + err.message);
+          btnDial.disabled = false;
+          btnHangup.disabled = true;
+          setStatus('');
+        }
+      };
+
+      window.doHangup = async () => {
+        await widgetEl.hangup();
+        btnDial.disabled = false;
+        btnHangup.disabled = true;
+        setStatus('');
+        appendLog('call ended');
+      };
+    </script>
+  </body>
+</html>

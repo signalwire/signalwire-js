@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-modal</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .variants {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--sp-3);
+        margin-bottom: var(--sp-6);
+      }
+      .variant-card {
+        padding: var(--sp-4);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface-raised);
+      }
+      .variant-card h3 {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-small);
+        margin-bottom: var(--sp-1);
+      }
+      .variant-card p {
+        font-size: var(--type-size-caption);
+        color: var(--fg-muted);
+        margin-bottom: var(--sp-3);
+      }
+      .variant-card button {
+        font-family: var(--type-family-body);
+        font-weight: var(--type-weight-medium);
+        padding: var(--sp-2) var(--sp-4);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-sm);
+        background: var(--bg-surface);
+        color: var(--fg-default);
+        font-size: var(--type-size-small);
+        cursor: pointer;
+      }
+      .variant-card button:hover {
+        border-color: var(--sw-blue);
+        color: var(--sw-blue);
+      }
+
+      .modal-content {
+        width: min(420px, 90vw);
+        padding: var(--sp-6);
+        background: var(--bg-surface);
+        color: var(--fg-default);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+      }
+      .modal-content h2 {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-h3);
+        margin-bottom: var(--sp-2);
+      }
+      .modal-content p {
+        font-size: var(--type-size-body);
+        line-height: var(--type-line-height-body);
+        color: var(--fg-secondary);
+        margin-bottom: var(--sp-4);
+      }
+      .modal-content .close-btn {
+        font-family: var(--type-family-body);
+        font-weight: var(--type-weight-medium);
+        padding: var(--sp-2) var(--sp-5);
+        border: none;
+        border-radius: var(--radius-sm);
+        background: var(--interactive-button-primary-bg);
+        color: var(--interactive-button-primary-text);
+        font-size: var(--type-size-small);
+        cursor: pointer;
+      }
+      .modal-content .close-btn:hover {
+        background: var(--interactive-button-primary-hover);
+      }
+
+      /* ── Variant: Slide-up from bottom ────────────────────────── */
+      sw-ui-modal#slide {
+        --sw-modal-duration: 0.3s;
+        --sw-modal-animation: slide-up var(--sw-modal-duration) cubic-bezier(0.32, 0.72, 0, 1);
+        --sw-modal-close-animation: slide-down var(--sw-modal-duration) cubic-bezier(0.32, 0.72, 0, 1);
+      }
+      @keyframes slide-up {
+        from { transform: translateY(100vh); opacity: 0; }
+        to   { transform: translateY(0);     opacity: 1; }
+      }
+      @keyframes slide-down {
+        from { transform: translateY(0);     opacity: 1; }
+        to   { transform: translateY(100vh); opacity: 0; }
+      }
+
+      /* ── Variant: Fade only ──────────────────────────────────── */
+      sw-ui-modal#fade {
+        --sw-modal-duration: 0.25s;
+        --sw-modal-animation: fade-in var(--sw-modal-duration) ease-out;
+        --sw-modal-close-animation: fade-out var(--sw-modal-duration) ease-in;
+      }
+      @keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+      /* ── Variant: Zoom from cursor (scale) ───────────────────── */
+      sw-ui-modal#zoom {
+        --sw-modal-duration: 0.25s;
+        --sw-modal-animation: zoom-in var(--sw-modal-duration) cubic-bezier(0.16, 1, 0.3, 1);
+        --sw-modal-close-animation: zoom-out var(--sw-modal-duration) ease-in;
+      }
+      @keyframes zoom-in {
+        from { transform: scale(0.5); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+      }
+      @keyframes zoom-out {
+        from { transform: scale(1);   opacity: 1; }
+        to   { transform: scale(0.5); opacity: 0; }
+      }
+
+      /* ── Variant: Flip ───────────────────────────────────────── */
+      sw-ui-modal#flip {
+        --sw-modal-duration: 0.4s;
+        --sw-modal-animation: flip-in var(--sw-modal-duration) cubic-bezier(0.34, 1.56, 0.64, 1);
+        --sw-modal-close-animation: flip-out var(--sw-modal-duration) ease-in;
+      }
+      @keyframes flip-in {
+        from { transform: perspective(800px) rotateX(-90deg); opacity: 0; }
+        to   { transform: perspective(800px) rotateX(0);      opacity: 1; }
+      }
+      @keyframes flip-out {
+        from { transform: perspective(800px) rotateX(0);      opacity: 1; }
+        to   { transform: perspective(800px) rotateX(90deg);  opacity: 0; }
+      }
+
+      /* ── Variant: Slow & dramatic ─────────────────────────────── */
+      sw-ui-modal#slow {
+        --sw-modal-duration: 0.6s;
+        --sw-modal-animation: drift-in var(--sw-modal-duration) cubic-bezier(0.16, 1, 0.3, 1);
+        --sw-modal-close-animation: drift-out 0.35s ease-in;
+        --sw-modal-backdrop-animation: fade-in 0.5s ease-out;
+        --sw-modal-backdrop-close-animation: fade-out 0.3s ease-in;
+      }
+      @keyframes drift-in {
+        from { transform: translateY(40px) scale(0.96); opacity: 0; filter: blur(8px); }
+        to   { transform: translateY(0)    scale(1);    opacity: 1; filter: blur(0); }
+      }
+      @keyframes drift-out {
+        from { transform: translateY(0)    scale(1);    opacity: 1; filter: blur(0); }
+        to   { transform: translateY(20px) scale(0.98); opacity: 0; filter: blur(4px); }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-ui-modal</h1>
+    <p class="lead">
+      Animations are exposed as CSS custom properties:
+      <code>--sw-modal-animation</code>,
+      <code>--sw-modal-close-animation</code>,
+      <code>--sw-modal-backdrop-animation</code>,
+      <code>--sw-modal-backdrop-close-animation</code>.
+      Override per-instance to swap motion.
+    </p>
+
+    <h2>Variants</h2>
+    <div class="variants">
+      <div class="variant-card">
+        <h3>Default — bounce</h3>
+        <p>Built-in spring on open + close.</p>
+        <button onclick="document.getElementById('default').open = true">Open</button>
+      </div>
+
+      <div class="variant-card">
+        <h3>Slide up</h3>
+        <p>Sheet-style entrance from below.</p>
+        <button onclick="document.getElementById('slide').open = true">Open</button>
+      </div>
+
+      <div class="variant-card">
+        <h3>Fade</h3>
+        <p>Pure opacity, no movement.</p>
+        <button onclick="document.getElementById('fade').open = true">Open</button>
+      </div>
+
+      <div class="variant-card">
+        <h3>Zoom</h3>
+        <p>Scale in from 50% with spring easing.</p>
+        <button onclick="document.getElementById('zoom').open = true">Open</button>
+      </div>
+
+      <div class="variant-card">
+        <h3>3D flip</h3>
+        <p>Rotates in on the X axis.</p>
+        <button onclick="document.getElementById('flip').open = true">Open</button>
+      </div>
+
+      <div class="variant-card">
+        <h3>Slow drift</h3>
+        <p>Cinematic blur + lift, custom backdrop fade.</p>
+        <button onclick="document.getElementById('slow').open = true">Open</button>
+      </div>
+    </div>
+
+    <h2>Snippet</h2>
+    <pre class="log">&lt;style&gt;
+  sw-ui-modal#slide {
+    --sw-modal-duration: 0.3s;
+    --sw-modal-animation: slide-up var(--sw-modal-duration) cubic-bezier(0.32, 0.72, 0, 1);
+    --sw-modal-close-animation: slide-down var(--sw-modal-duration) cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  @keyframes slide-up   { from {transform: translateY(100vh); opacity: 0} to {transform: translateY(0); opacity: 1} }
+  @keyframes slide-down { from {transform: translateY(0); opacity: 1}  to {transform: translateY(100vh); opacity: 0} }
+&lt;/style&gt;
+
+&lt;sw-ui-modal id="slide"&gt;…&lt;/sw-ui-modal&gt;</pre>
+
+    <!-- ── Modals ────────────────────────────────────────────────── -->
+
+    <sw-ui-modal id="default">
+      <div class="modal-content">
+        <h2>Default</h2>
+        <p>The built-in bounce-in / bounce-out animation.</p>
+        <button class="close-btn" onclick="this.closest('sw-ui-modal').open = false">Close</button>
+      </div>
+    </sw-ui-modal>
+
+    <sw-ui-modal id="slide">
+      <div class="modal-content">
+        <h2>Slide up</h2>
+        <p>Slides up from the bottom of the viewport, like a mobile bottom sheet.</p>
+        <button class="close-btn" onclick="this.closest('sw-ui-modal').open = false">Close</button>
+      </div>
+    </sw-ui-modal>
+
+    <sw-ui-modal id="fade">
+      <div class="modal-content">
+        <h2>Fade</h2>
+        <p>Just opacity transition. No movement.</p>
+        <button class="close-btn" onclick="this.closest('sw-ui-modal').open = false">Close</button>
+      </div>
+    </sw-ui-modal>
+
+    <sw-ui-modal id="zoom">
+      <div class="modal-content">
+        <h2>Zoom</h2>
+        <p>Scales up from 50% with a spring curve.</p>
+        <button class="close-btn" onclick="this.closest('sw-ui-modal').open = false">Close</button>
+      </div>
+    </sw-ui-modal>
+
+    <sw-ui-modal id="flip">
+      <div class="modal-content">
+        <h2>3D flip</h2>
+        <p>Flips in on the X axis with a slight overshoot.</p>
+        <button class="close-btn" onclick="this.closest('sw-ui-modal').open = false">Close</button>
+      </div>
+    </sw-ui-modal>
+
+    <sw-ui-modal id="slow">
+      <div class="modal-content">
+        <h2>Slow drift</h2>
+        <p>Custom backdrop fade pairs with a longer, blurred entry animation.</p>
+        <button class="close-btn" onclick="this.closest('sw-ui-modal').open = false">Close</button>
+      </div>
+    </sw-ui-modal>
+  </body>
+</html>

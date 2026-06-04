@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Web Components</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+  <style>
+    /* Web component container */
+    .call-container {
+      width: 800px;
+      height: 450px;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Style the web components using CSS custom properties */
+    sw-call-media {
+      --sw-color-primary: #4f46e5;
+      --sw-color-background: #0f0f23;
+      --sw-border-radius: 12px;
+    }
+
+    sw-call-controls {
+      position: absolute;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      --sw-button-size: 48px;
+    }
+
+    sw-self-media {
+      position: absolute;
+      bottom: 5rem;
+      right: 1rem;
+      width: 160px;
+      height: 120px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+
+    sw-call-status {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(0,0,0,0.6);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Web Components</h1>
+  <p class="description">Use pre-built UI components for video, controls, and status.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Join controls -->
+  <div id="join-panel">
+    <div class="controls">
+      <input type="text" id="room-input" value="/public/test-room" style="width:200px">
+      <button id="join-btn" class="btn-primary">Join Room</button>
+    </div>
+  </div>
+
+  <!-- Web Components UI -->
+  <div id="call-panel" style="display:none">
+    <!--
+      sw-call-media is the root component.
+      Pass the call object and nest other components inside.
+    -->
+    <div class="call-container">
+      <sw-call-media id="call-media">
+        <!-- Local video overlay -->
+        <sw-self-media mirror></sw-self-media>
+
+        <!-- Call status with duration -->
+        <sw-call-status></sw-call-status>
+
+        <!-- Mute/hangup buttons -->
+        <sw-call-controls></sw-call-controls>
+      </sw-call-media>
+    </div>
+
+    <div class="controls" style="margin-top:1rem">
+      <button id="leave-btn" class="btn-danger">Leave</button>
+    </div>
+  </div>
+
+  <!-- Load SDKs -->
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script src="../../packages/web-components/dist/browser.umd.js"></script>
+
+  <script type="module">
+    import { setupClient } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Using Web Components
+    // =========================================================================
+
+    /**
+     * Pass the call object to sw-call-media.
+     * Child components automatically receive it via Lit context.
+     */
+    function attachCallToComponents(call) {
+      const callMedia = document.getElementById('call-media');
+      callMedia.call = call;
+    }
+
+    /**
+     * Listen for events from web components.
+     * Components emit custom events for user actions.
+     */
+    function listenToComponentEvents(call) {
+      // sw-call-controls emits sw-hangup when user clicks hangup button
+      document.addEventListener('sw-hangup', () => {
+        call.hangup();
+      });
+
+      // sw-call-controls emits sw-mute-audio when user toggles audio
+      document.addEventListener('sw-mute-audio', (e) => {
+        console.log('Audio mute toggled:', e.detail);
+      });
+
+      // sw-call-controls emits sw-mute-video when user toggles video
+      document.addEventListener('sw-mute-video', (e) => {
+        console.log('Video mute toggled:', e.detail);
+      });
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    let currentCall = null;
+
+    async function init() {
+      const { client } = await setupClient();
+
+      document.getElementById('join-btn').onclick = async () => {
+        const room = document.getElementById('room-input').value.trim();
+        if (!room) return;
+
+        currentCall = await client.dial(room, { audio: true, video: true });
+
+        // Show the web components UI
+        document.getElementById('join-panel').style.display = 'none';
+        document.getElementById('call-panel').style.display = 'block';
+
+        // Pass call to web components
+        attachCallToComponents(currentCall);
+
+        // Listen for component events
+        listenToComponentEvents(currentCall);
+
+        // Handle call end
+        currentCall.status$.subscribe((status) => {
+          if (status === 'disconnected' || status === 'destroyed') {
+            document.getElementById('join-panel').style.display = 'block';
+            document.getElementById('call-panel').style.display = 'none';
+            currentCall = null;
+          }
+        });
+      };
+
+      document.getElementById('leave-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>

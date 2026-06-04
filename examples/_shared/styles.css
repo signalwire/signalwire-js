@@ -1,0 +1,176 @@
+/**
+ * Shared styles for examples.
+ * Minimal styling to keep examples readable.
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #fff;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+h1 {
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  color: #a0a0a0;
+  margin-bottom: 2rem;
+}
+
+/* Status indicator */
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.status.connected {
+  background: #166534;
+}
+
+.status.disconnected {
+  background: #991b1b;
+}
+
+/* Video containers */
+.videos {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.video-box {
+  position: relative;
+  background: #0f0f23;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.video-box video {
+  width: 400px;
+  height: 300px;
+  object-fit: cover;
+  display: block;
+}
+
+.video-box .label {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  background: rgba(0,0,0,0.7);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* Buttons */
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary { background: #4f46e5; color: #fff; }
+.btn-success { background: #16a34a; color: #fff; }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-secondary { background: #374151; color: #fff; }
+
+/* Lists */
+.list {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.list h3 {
+  font-size: 0.875rem;
+  color: #a0a0a0;
+  margin-bottom: 0.75rem;
+}
+
+.list-item {
+  padding: 0.5rem;
+  background: #0f0f23;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.list-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Inputs */
+input, select {
+  padding: 0.75rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #0f0f23;
+  color: #fff;
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* Code/example highlight */
+.example-code {
+  background: #0f0f23;
+  border-left: 3px solid #4f46e5;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-family: monospace;
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+
+/* Log output */
+.log {
+  background: #0f0f23;
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.log-entry {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #1a1a2e;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Welcome — SignalWire Web Components</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/components/sw-call-widget/sw-call-widget.ts"></script>
+    <style>
+      body {
+        max-width: 880px;
+        padding: var(--sp-12) var(--sp-6);
+      }
+      .eyebrow {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-caption);
+        font-weight: var(--type-weight-semibold);
+        text-transform: uppercase;
+        letter-spacing: var(--type-letter-spacing-eyebrow);
+        color: var(--sw-blue);
+        margin-bottom: var(--sp-3);
+      }
+      .title {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-h1);
+        font-weight: var(--type-weight-heading);
+        line-height: var(--type-line-height-heading);
+        letter-spacing: var(--type-letter-spacing-heading);
+        margin-bottom: var(--sp-5);
+      }
+      .lead {
+        font-size: var(--type-prose-body);
+        line-height: var(--type-prose-line-height);
+        color: var(--fg-secondary);
+        margin-bottom: var(--sp-8);
+      }
+
+      /* ── hero widget ──────────────────────────────────────────── */
+      .hero {
+        display: flex;
+        gap: var(--sp-6);
+        align-items: center;
+        padding: var(--sp-6);
+        margin-bottom: var(--sp-10);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        background: var(--bg-surface);
+      }
+      .hero .copy { flex: 1; }
+      .hero h3 {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-h3);
+        margin-bottom: var(--sp-2);
+      }
+      .hero p {
+        font-size: var(--type-size-body);
+        color: var(--fg-secondary);
+        margin-bottom: var(--sp-3);
+      }
+      .hero .widget-slot {
+        flex-shrink: 0;
+      }
+      .hero .widget-slot button {
+        font-family: var(--type-family-body);
+        font-size: var(--type-size-body);
+        font-weight: var(--type-weight-medium);
+        padding: var(--sp-2) var(--sp-4);
+        border: none;
+        border-radius: var(--radius-md);
+        background: var(--interactive-button-primary-bg);
+        color: var(--interactive-button-primary-text);
+        cursor: pointer;
+        transition: var(--transition-fast);
+      }
+      .hero .widget-slot button:hover {
+        background: var(--interactive-button-primary-hover);
+      }
+      .hero .widget-slot button:active {
+        background: var(--interactive-button-primary-active);
+      }
+      .hero .sample {
+        margin: var(--sp-3) 0 0;
+        padding: var(--sp-3);
+        background: var(--cb-bg);
+        color: var(--cb-fg);
+        border-radius: var(--radius-md);
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-x: auto;
+        white-space: pre;
+      }
+
+      /* ── section list ─────────────────────────────────────────── */
+      .sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--sp-4);
+        margin-bottom: var(--sp-10);
+      }
+      .section-card {
+        padding: var(--sp-5);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface-raised);
+      }
+      .section-card .kicker {
+        font-family: var(--type-family-code);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--sw-blue);
+        margin-bottom: var(--sp-2);
+      }
+      .section-card h3 {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-h4);
+        margin-bottom: var(--sp-2);
+      }
+      .section-card p {
+        font-size: var(--type-size-small);
+        line-height: 1.55;
+        color: var(--fg-secondary);
+        margin: 0;
+      }
+      .section-card code {
+        font-family: var(--type-family-code);
+        font-size: 11px;
+        background: var(--code-bg);
+        color: var(--code-fg);
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+
+      .swatches {
+        display: flex;
+        gap: var(--sp-2);
+      }
+      .swatch {
+        flex: 1;
+        height: 48px;
+        border-radius: var(--radius-md);
+      }
+      .swatch.blue { background: var(--sw-blue); }
+      .swatch.fuchsia { background: var(--sw-fuchsia); }
+      .swatch.turquoise { background: var(--sw-turquoise); }
+      .swatch.gold { background: var(--sw-gold); }
+      .swatch.purple { background: var(--sw-purple); }
+    </style>
+  </head>
+  <body>
+    <div class="eyebrow">Demos</div>
+    <h1 class="title">SignalWire Web Components</h1>
+    <p class="lead">
+      The stories are organized into four sections: low-level
+      <strong>UI</strong> primitives, <strong>Layout</strong> containers, the
+      turnkey <strong>Call Widget</strong>, and <strong>Devices</strong>
+      helpers.
+    </p>
+
+    <!-- ── Hero: a real call widget you can open right now ────────── -->
+    <div class="hero">
+      <div class="copy">
+        <h3>Try the call widget</h3>
+        <p>
+          Pick a credential in the top bar, then click the button to open it
+          in modal mode.
+        </p>
+        <pre class="sample"><code>&lt;sw-call-widget modal transcription
+  token="YOUR_TOKEN"
+  destination="/public/test-room"&gt;
+  &lt;sw-ui-background slot="background" default&gt;&lt;/sw-ui-background&gt;
+  &lt;button&gt;Open &amp;amp; Call&lt;/button&gt;
+&lt;/sw-call-widget&gt;</code></pre>
+      </div>
+      <div class="widget-slot">
+        <sw-call-widget id="welcome-widget" modal transcription>
+          <sw-ui-background slot="background" default></sw-ui-background>
+          <button>Open &amp; Call</button>
+        </sw-call-widget>
+      </div>
+    </div>
+
+    <!-- ── Section overview ───────────────────────────────────────── -->
+    <div class="sections">
+      <div class="section-card">
+        <div class="kicker">UI</div>
+        <h3>Pure UI primitives</h3>
+      </div>
+
+      <div class="section-card">
+        <div class="kicker">Layout</div>
+        <h3>Pure UI, for arrangement</h3>
+      </div>
+
+      <div class="section-card">
+        <div class="kicker">Call Widget</div>
+        <h3>The full widget</h3>
+      </div>
+
+      <div class="section-card">
+        <div class="kicker">Devices</div>
+        <h3>Audio &amp; device helpers</h3>
+      </div>
+    </div>
+
+    <div class="swatches">
+      <div class="swatch blue"></div>
+      <div class="swatch fuchsia"></div>
+      <div class="swatch turquoise"></div>
+      <div class="swatch gold"></div>
+      <div class="swatch purple"></div>
+    </div>
+  </body>
+</html>

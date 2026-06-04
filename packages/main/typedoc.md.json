@@ -1,0 +1,31 @@
+{
+  "plugin": ["typedoc-plugin-markdown"],
+  "entryPoints": ["src/index.ts"],
+  "tsconfig": "tsconfig.json",
+  "out": "../../dev-docs/main-md",
+  "name": "SignalWire Browser SDK",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+
+  "outputFileStrategy": "members",
+  "membersWithOwnFile": [
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Function",
+    "Enum"
+  ],
+
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "useHTMLAnchors": false,
+  "preserveAnchorCasing": false,
+  "entryFileName": "index",
+  "indexFormat": "table",
+  "parametersFormat": "table",
+  "propertiesFormat": "table",
+  "enumMembersFormat": "table",
+  "fileExtension": ".md"
+}

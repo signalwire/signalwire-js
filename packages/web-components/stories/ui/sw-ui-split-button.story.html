@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-split-button</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .variant {
+        display: grid;
+        grid-template-columns: minmax(220px, 280px) 1fr;
+        gap: var(--sp-4);
+        align-items: center;
+        padding: var(--sp-4);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface);
+        color: var(--fg-default);
+        margin-bottom: var(--sp-3);
+      }
+      .variant .demo {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-2);
+        align-items: flex-start;
+      }
+      .variant .demo .title {
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        color: var(--fg-muted);
+      }
+      .variant pre {
+        margin: 0;
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        background: var(--cb-bg);
+        color: var(--cb-fg);
+        border: 1px solid var(--cb-border);
+        padding: var(--sp-3);
+        border-radius: var(--radius-md);
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .log {
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        background: var(--cb-bg);
+        color: var(--cb-fg);
+        border: 1px solid var(--cb-border);
+        padding: var(--sp-3);
+        border-radius: var(--radius-md);
+        min-height: 80px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-ui-split-button</h1>
+
+    <h2>Variant 1 — Toggle + dropdown (sw-split-button-toggle + sw-dropup-select)</h2>
+    <div class="variant">
+      <div class="demo">
+        <span class="title">Active/inactive slots + items</span>
+        <sw-ui-split-button id="split"
+          items='["Option A", {"label":"Option B", "id":"b", "selected":true}, "Option C"]'>
+          <sw-ui-icon name="camera-off" slot="inactive"></sw-ui-icon>
+          <sw-ui-icon name="camera-on" slot="active"></sw-ui-icon>
+        </sw-ui-split-button>
+      </div>
+      <pre>&lt;sw-ui-split-button
+  items='[
+    "Option A",
+    {"label":"Option B", "id":"b", "selected":true},
+    "Option C"
+  ]'&gt;
+  &lt;sw-ui-icon name="camera-off" slot="inactive"&gt;&lt;/sw-ui-icon&gt;
+  &lt;sw-ui-icon name="camera-on"  slot="active"&gt;&lt;/sw-ui-icon&gt;
+&lt;/sw-ui-split-button&gt;
+
+// Events
+el.addEventListener('sw-split-button-toggle', (e) =&gt; console.log(e.detail)); // boolean
+el.addEventListener('sw-dropup-select', (e) =&gt; console.log(e.detail)); // { id, label, selected }</pre>
+    </div>
+
+    <h2>Variant 2 — Toggle only (sw-split-button-toggle)</h2>
+    <div class="variant">
+      <div class="demo">
+        <span class="title">Active/inactive slots, no items</span>
+        <sw-ui-split-button id="toggle-only">
+          <sw-ui-icon name="camera-off" slot="inactive"></sw-ui-icon>
+          <sw-ui-icon name="camera-on" slot="active"></sw-ui-icon>
+        </sw-ui-split-button>
+      </div>
+      <pre>&lt;sw-ui-split-button&gt;
+  &lt;sw-ui-icon name="camera-off" slot="inactive"&gt;&lt;/sw-ui-icon&gt;
+  &lt;sw-ui-icon name="camera-on"  slot="active"&gt;&lt;/sw-ui-icon&gt;
+&lt;/sw-ui-split-button&gt;
+
+// Events
+el.addEventListener('sw-split-button-toggle', (e) =&gt; console.log(e.detail)); // boolean</pre>
+    </div>
+
+    <h2>Variant 3 — Push button (sw-split-button-click)</h2>
+    <div class="variant">
+      <div class="demo">
+        <span class="title">Default slot only, no items</span>
+        <sw-ui-split-button id="btn-only">
+          <sw-ui-icon name="phone-call"></sw-ui-icon>
+        </sw-ui-split-button>
+      </div>
+      <pre>&lt;sw-ui-split-button&gt;
+  &lt;sw-ui-icon name="phone-call"&gt;&lt;/sw-ui-icon&gt;
+&lt;/sw-ui-split-button&gt;
+
+// Events
+el.addEventListener('sw-split-button-click', () =&gt; console.log('clicked'));</pre>
+    </div>
+
+    <h2>Events log</h2>
+    <pre class="log" id="log">Events...</pre>
+
+    <script>
+      const log = document.getElementById('log');
+      const addLog = (msg) => { log.textContent = msg + '\n' + log.textContent; };
+
+      const split = document.getElementById('split');
+      split.addEventListener('sw-dropup-select', (e) => addLog('sw-dropup-select ' + JSON.stringify(e.detail)));
+      split.addEventListener('sw-split-button-toggle', (e) => addLog('[variant 1] sw-split-button-toggle ' + e.detail));
+
+      document.getElementById('toggle-only').addEventListener('sw-split-button-toggle', (e) =>
+        addLog('[variant 2] sw-split-button-toggle ' + e.detail));
+
+      document.getElementById('btn-only').addEventListener('sw-split-button-click', () =>
+        addLog('[variant 3] sw-split-button-click'));
+    </script>
+  </body>
+</html>

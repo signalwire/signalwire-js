@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Participant Events</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+</head>
+<body>
+  <h1>Participant Events</h1>
+  <p class="description">React to participants joining, leaving, and changing state.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Join controls -->
+  <div id="join-panel">
+    <div class="controls">
+      <input type="text" id="room-input" value="/public/test-room" style="width:200px">
+      <button id="join-btn" class="btn-primary">Join Room</button>
+    </div>
+  </div>
+
+  <!-- Active room -->
+  <div id="room-panel" style="display:none">
+    <div class="videos">
+      <div class="video-box">
+        <video id="remote-video" autoplay playsinline></video>
+        <span class="label">Room</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <!-- Event log -->
+      <div class="list">
+        <h3>Event Log</h3>
+        <div id="event-log" class="log" style="max-height:300px"></div>
+      </div>
+
+      <!-- Current participants -->
+      <div class="list">
+        <h3>Participants</h3>
+        <div id="participants"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="leave-btn" class="btn-danger">Leave</button>
+    </div>
+  </div>
+
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script type="module">
+    import { setupClient, attachStream } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Participant Events
+    // =========================================================================
+
+    /**
+     * Subscribe to participant join events.
+     */
+    function onParticipantJoined(call, callback) {
+      call.memberJoined$.subscribe((event) => {
+        callback(event);
+      });
+    }
+
+    /**
+     * Subscribe to participant leave events.
+     */
+    function onParticipantLeft(call, callback) {
+      call.memberLeft$.subscribe((event) => {
+        callback(event);
+      });
+    }
+
+    /**
+     * Subscribe to participant update events (mute, hand raise, etc).
+     */
+    function onParticipantUpdated(call, callback) {
+      call.memberUpdated$.subscribe((event) => {
+        callback(event);
+      });
+    }
+
+    /**
+     * Subscribe to talking state changes.
+     */
+    function onParticipantTalking(call, callback) {
+      call.memberTalking$.subscribe((event) => {
+        callback(event);
+      });
+    }
+
+    /**
+     * Get the full participants list (reactive).
+     */
+    function watchParticipants(call, callback) {
+      call.participants$.subscribe(callback);
+    }
+
+    // =========================================================================
+    // UI Helpers
+    // =========================================================================
+
+    let currentCall = null;
+
+    function logEvent(type, data) {
+      const log = document.getElementById('event-log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+
+      const time = new Date().toLocaleTimeString();
+      const name = data.member?.name || data.name || 'Unknown';
+
+      let message = '';
+      switch (type) {
+        case 'joined':
+          message = `${name} joined`;
+          entry.style.color = '#22c55e';
+          break;
+        case 'left':
+          message = `${name} left`;
+          entry.style.color = '#ef4444';
+          break;
+        case 'updated':
+          message = `${name} updated`;
+          entry.style.color = '#eab308';
+          break;
+        case 'talking':
+          message = data.talking ? `${name} started talking` : `${name} stopped talking`;
+          entry.style.color = '#3b82f6';
+          break;
+      }
+
+      entry.textContent = `${time} - ${message}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function renderParticipants(participants) {
+      const container = document.getElementById('participants');
+      container.innerHTML = '';
+
+      if (participants.length === 0) {
+        container.innerHTML = '<div class="list-item" style="color:#666">No participants</div>';
+        return;
+      }
+
+      participants.forEach((p) => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+
+        const name = document.createElement('span');
+        name.textContent = p.name || 'Anonymous';
+        if (p.isTalking) {
+          name.style.color = '#22c55e';
+          name.textContent += ' (talking)';
+        }
+
+        const status = document.createElement('span');
+        status.style.color = '#666';
+        status.innerHTML = `
+          ${p.audioMuted ? '🔇' : '🔊'}
+          ${p.videoMuted ? '📷' : '🎥'}
+          ${p.handraised ? '✋' : ''}
+        `;
+
+        item.appendChild(name);
+        item.appendChild(status);
+        container.appendChild(item);
+      });
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    async function init() {
+      const { client } = await setupClient();
+
+      document.getElementById('join-btn').onclick = async () => {
+        const room = document.getElementById('room-input').value.trim();
+        if (!room) return;
+
+        currentCall = await client.dial(room, { audio: true, video: true });
+
+        document.getElementById('join-panel').style.display = 'none';
+        document.getElementById('room-panel').style.display = 'block';
+
+        currentCall.remoteStream$.subscribe(s => attachStream('remote-video', s));
+
+        // Subscribe to all participant events
+        onParticipantJoined(currentCall, (e) => logEvent('joined', e));
+        onParticipantLeft(currentCall, (e) => logEvent('left', e));
+        onParticipantUpdated(currentCall, (e) => logEvent('updated', e));
+        onParticipantTalking(currentCall, (e) => logEvent('talking', e));
+
+        // Keep participant list updated
+        watchParticipants(currentCall, renderParticipants);
+
+        currentCall.status$.subscribe((status) => {
+          if (status === 'disconnected' || status === 'destroyed') {
+            document.getElementById('join-panel').style.display = 'block';
+            document.getElementById('room-panel').style.display = 'none';
+            document.getElementById('event-log').innerHTML = '';
+            currentCall = null;
+          }
+        });
+      };
+
+      document.getElementById('leave-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>

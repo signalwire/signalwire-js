@@ -1,0 +1,199 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */3 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SW_SPACE: ${{ vars.SW_SPACE }}
+      SW_DOMAIN: ${{ vars.SW_DOMAIN }}
+      SW_PROJECT_ID: ${{ vars.SW_PROJECT_ID }}
+      SW_API_TOKEN: ${{ secrets.SW_API_TOKEN }}
+      SW_SUBSCRIBER_REFERENCE: ${{ vars.SW_SUBSCRIBER_REFERENCE }}
+      SW_SUBSCRIBER_PASSWORD: ${{ secrets.SW_SUBSCRIBER_PASSWORD }}
+      SW_APPLICATION_ID: ${{ vars.SW_APPLICATION_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build main package
+        run: npm run build:main
+
+      # Resolve the installed Playwright version so the browser cache can be
+      # keyed on it — browser builds are pinned per Playwright version.
+      - name: Resolve Playwright version
+        id: pw-version
+        run: |
+          PW_VERSION=$(node -p "require('@playwright/test/package.json').version")
+          echo "version=$PW_VERSION" >> "$GITHUB_OUTPUT"
+
+      # Cache the downloaded browser binaries. A cache hit skips the CDN
+      # download entirely, sidestepping the install hang seen on some hosted
+      # runner images.
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw-version.outputs.version }}
+
+      # OS-level (apt) dependencies are not stored in the browser cache, so
+      # install them separately on every run. This part is fast and is not the
+      # source of the hang.
+      - name: Install Playwright system dependencies
+        timeout-minutes: 10
+        run: npx playwright install-deps chromium
+
+      # The browser binary download is what intermittently stalls after
+      # reaching 100% on certain GitHub runner images. Bound each attempt with a
+      # hard timeout and retry so a stalled download fails fast instead of
+      # burning the whole 45-minute job budget. Skipped entirely on a cache hit.
+      - name: Install Playwright Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 12
+        run: |
+          for attempt in 1 2 3; do
+            echo "Playwright Chromium install attempt $attempt"
+            if timeout 3m npx playwright install chromium; then
+              echo "Chromium installed successfully"
+              exit 0
+            fi
+            echo "::warning::Chromium install attempt $attempt failed or timed out; retrying"
+            sleep 5
+          done
+          echo "::error::Playwright Chromium install failed after 3 attempts"
+          exit 1
+
+      - name: Run Playwright e2e tests
+        id: playwright
+        run: |
+          set +e
+          npx playwright test playwright_tests/e2e \
+            --reporter=list,json,html \
+            2>&1 | tee playwright-output.log
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          set -e
+        env:
+          CI: true
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+      - name: Extract failed specs
+        if: steps.playwright.outputs.exit_code != '0'
+        id: failed-specs
+        run: |
+          FAILED=$(grep '✘' playwright-output.log | grep -oP 'playwright_tests/\S+\.spec\.ts' | sort -u | xargs -I{} basename {} .spec.ts | paste -sd ' ')
+          echo "specs=$FAILED" >> "$GITHUB_OUTPUT"
+          echo "::notice::Failed specs: $FAILED"
+
+      - name: Analyze failures with Claude Code
+        if: steps.playwright.outputs.exit_code != '0'
+        id: claude-analysis
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          # Install Claude Code CLI
+          npm install -g @anthropic-ai/claude-code
+
+          # Run the /run-e2e-tests skill only for failed specs
+          claude -p "/run-e2e-tests ${{ steps.failed-specs.outputs.specs }}" \
+            --model claude-sonnet-4-20250514 \
+            --allowedTools "Bash,Read,Glob,Grep,Agent" \
+            --max-turns 50 \
+            --output-format text \
+            > claude-analysis.md 2> claude-debug.log
+
+      - name: Check Claude Code analysis result
+        if: steps.playwright.outputs.exit_code != '0'
+        id: parse-analysis
+        run: |
+          if [ ! -f claude-analysis.md ]; then
+            echo "::error::Claude Code analysis file not found."
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Check for FAILED or FLAKY status in the final report.
+          # Strip markdown bold (`**`) before matching so both `STATUS: FAILED`
+          # and `**STATUS:** FAILED` are recognized — Claude's output varies.
+          if sed 's/\*//g' claude-analysis.md | grep -qE 'STATUS:\s*(FAILED|FLAKY)'; then
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            echo "::warning::Claude Code detected FAILED or FLAKY tests."
+          else
+            echo "status=passed" >> "$GITHUB_OUTPUT"
+            echo "::notice::Claude Code analysis completed — all tests verified as passing."
+          fi
+
+      - name: Upload Claude Code analysis
+        if: steps.playwright.outputs.exit_code != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-analysis
+          path: |
+            claude-analysis.md
+            claude-debug.log
+          retention-days: 14
+
+      - name: Post analysis to job summary
+        if: steps.playwright.outputs.exit_code != '0'
+        run: |
+          {
+            echo "## E2E Test Analysis by Claude Code"
+            echo ""
+            cat claude-analysis.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if tests are broken
+        if: steps.parse-analysis.outputs.status == 'failed'
+        run: |
+          echo "::error::E2E tests failed. Claude Code analysis detected FAILED or FLAKY tests."
+          echo ""
+          echo "===== Claude Code Analysis ====="
+          echo ""
+          cat claude-analysis.md
+          echo ""
+          echo "================================="
+          exit 1
+
+      - name: Fail if Playwright failed without analysis
+        if: steps.playwright.outputs.exit_code != '0' && (steps.claude-analysis.outcome == 'failure' || steps.claude-analysis.outcome == 'skipped')
+        run: |
+          echo "::error::Playwright e2e tests failed and Claude Code analysis was unavailable."
+          echo "See the Playwright report artifact for test results."
+          exit 1
+
+      - name: Report success
+        if: steps.playwright.outputs.exit_code == '0'
+        run: echo "All e2e tests passed."

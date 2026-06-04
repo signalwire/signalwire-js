@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-dialpad</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>sw-ui-dialpad</h1>
+
+    <h2>Default — DTMF digits only</h2>
+    <sw-ui-dialpad id="dialpad" show-call-button></sw-ui-dialpad>
+    <pre class="log" id="log">Events...</pre>
+
+    <h2>With <code>allow-text</code> — free-text input (SIP URIs, vanity letters)</h2>
+    <p class="label">
+      Type any character into the display (e.g. <code>sip:alice@example.com</code>).
+      Keypad buttons still append DTMF digits. Free-text changes fire
+      <code>sw-dialpad-input</code>.
+    </p>
+    <sw-ui-dialpad
+      id="dialpad-text"
+      show-call-button
+      allow-text
+      placeholder="Number, SIP URI, or letters"
+    ></sw-ui-dialpad>
+    <pre class="log" id="log-text">Events...</pre>
+
+    <script type="module">
+      function wire(padId, logId) {
+        const pad = document.getElementById(padId);
+        const log = document.getElementById(logId);
+        let first = true;
+        const add = (msg) => {
+          if (first) { log.textContent = ''; first = false; }
+          log.textContent = msg + '\n' + log.textContent;
+        };
+        pad.addEventListener('sw-digit-press', (e) => add(`sw-digit-press: "${e.detail.digit}"`));
+        pad.addEventListener('sw-dialpad-backspace', () => add('sw-dialpad-backspace'));
+        pad.addEventListener('sw-dial', (e) => add(`sw-dial: "${e.detail.digits}"`));
+        pad.addEventListener('sw-dialpad-input', (e) => add(`sw-dialpad-input: "${e.detail.digits}"`));
+      }
+
+      wire('dialpad', 'log');
+      wire('dialpad-text', 'log-text');
+    </script>
+  </body>
+</html>

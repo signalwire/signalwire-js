@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-icon</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: var(--sp-3);
+      }
+      .icon-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--sp-2);
+        padding: var(--sp-4) var(--sp-2);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface);
+        text-align: center;
+      }
+      .icon-card sw-ui-icon {
+        color: var(--fg-default);
+      }
+      .icon-card .name {
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        color: var(--fg-default);
+        word-break: break-all;
+      }
+      .icon-card .usage {
+        font-family: var(--type-family-code);
+        font-size: 11px;
+        color: var(--fg-muted);
+        background: var(--code-bg);
+        padding: 4px 6px;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .size-row {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-4);
+        padding: var(--sp-3);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface);
+        color: var(--fg-default);
+      }
+      .size-row .item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--sp-1);
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        color: var(--fg-muted);
+      }
+      .color-row {
+        display: flex;
+        gap: var(--sp-3);
+        padding: var(--sp-3);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background: var(--bg-surface);
+      }
+      .color-row sw-ui-icon { font-size: 0; }
+      .sample {
+        display: block;
+        font-family: var(--type-family-code);
+        font-size: 12px;
+        background: #0f0f14;
+        color: #e6e6ea;
+        padding: var(--sp-3);
+        border-radius: var(--radius-md);
+        white-space: pre;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-ui-icon</h1>
+
+    <h2>Usage</h2>
+    <code class="sample">&lt;sw-ui-icon name="mic-on"&gt;&lt;/sw-ui-icon&gt;
+&lt;sw-ui-icon name="phone-end" size="32"&gt;&lt;/sw-ui-icon&gt;
+&lt;sw-ui-icon name="settings" style="color: #044cf6;"&gt;&lt;/sw-ui-icon&gt;</code>
+
+    <h2>All icons</h2>
+    <div class="icon-grid" id="iconGrid"></div>
+
+    <h2>Sizes</h2>
+    <div class="size-row">
+      <div class="item"><sw-ui-icon name="phone-call" size="16"></sw-ui-icon><span>size=16</span></div>
+      <div class="item"><sw-ui-icon name="phone-call" size="24"></sw-ui-icon><span>size=24 (default)</span></div>
+      <div class="item"><sw-ui-icon name="phone-call" size="32"></sw-ui-icon><span>size=32</span></div>
+      <div class="item"><sw-ui-icon name="phone-call" size="48"></sw-ui-icon><span>size=48</span></div>
+      <div class="item"><sw-ui-icon name="phone-call" size="64"></sw-ui-icon><span>size=64</span></div>
+    </div>
+
+    <h2>Color (inherits currentColor)</h2>
+    <div class="color-row">
+      <sw-ui-icon name="check-circle" size="32" style="color: #10b981;"></sw-ui-icon>
+      <sw-ui-icon name="info-circle" size="32" style="color: #044cf6;"></sw-ui-icon>
+      <sw-ui-icon name="phone-end" size="32" style="color: #ef4444;"></sw-ui-icon>
+      <sw-ui-icon name="hand-raise" size="32" style="color: #f59e0b;"></sw-ui-icon>
+      <sw-ui-icon name="settings" size="32" style="color: #73737e;"></sw-ui-icon>
+    </div>
+
+    <script type="module">
+      import { ICONS } from '/src/components/UI/icons/icons.ts';
+
+      const grid = document.getElementById('iconGrid');
+      const names = Object.keys(ICONS).sort();
+
+      for (const name of names) {
+        const card = document.createElement('div');
+        card.className = 'icon-card';
+
+        const icon = document.createElement('sw-ui-icon');
+        icon.setAttribute('name', name);
+        icon.setAttribute('size', '32');
+
+        const label = document.createElement('span');
+        label.className = 'name';
+        label.textContent = name;
+
+        const usage = document.createElement('code');
+        usage.className = 'usage';
+        usage.textContent = `<sw-ui-icon name="${name}"></sw-ui-icon>`;
+
+        card.append(icon, label, usage);
+        grid.append(card);
+      }
+    </script>
+  </body>
+</html>

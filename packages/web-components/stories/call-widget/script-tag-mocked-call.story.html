@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Embed — sw-call-widget (mock / in-call UI)</title>
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!--
+      ┌──────────────────────────────────────────────────────────────────────┐
+      │  EMBED BUNDLE — components registered globally via IIFE              │
+      │  No bundler, no imports. Works with a plain <script> tag.            │
+      │  The <script type="module"> below imports test fixtures for the       │
+      │  fake stream and mock call — that's the only dev-only piece.         │
+      └──────────────────────────────────────────────────────────────────────┘
+    -->
+    <script src="/dist/embed/signalwire-web-components-embed.iife.js"></script>
+
+    <style>
+      /* ── snippet display ──────────────────────────────────── */
+      .snippet {
+        background: #0d0e1a;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-family: 'Menlo', 'Consolas', monospace;
+        font-size: 0.78rem;
+        color: #c8d3f5;
+        line-height: 1.6;
+        white-space: pre;
+        overflow-x: auto;
+        margin: 8px 0 16px;
+      }
+      .snippet .attr  { color: #7aa2f7; }
+      .snippet .str   { color: #9ece6a; }
+      .snippet .tag   { color: #f7768e; }
+      .snippet .cmt   { color: rgba(255,255,255,0.28); }
+
+      /* ── layout ───────────────────────────────────────────── */
+      .section { margin: 32px 0; }
+
+      /* ── widget shell ─────────────────────────────────────── */
+      .widget-shell {
+        width: 100%;
+        max-width: 860px;
+        height: 500px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+        border: 1px solid rgba(255,255,255,0.08);
+        position: relative;
+        resize: both;
+      }
+
+      /* ── transcript injection toolbar ────────────────────── */
+      .inject-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .inject-bar button {
+        padding: 5px 14px;
+        background: #0d0e1a;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 6px;
+        color: rgba(255,255,255,0.75);
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .inject-bar button:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.25);
+      }
+      .inject-bar button.primary {
+        background: #044ef5;
+        border-color: #044ef5;
+        color: #fff;
+      }
+      .inject-bar button.primary:hover {
+        background: #0349d8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Embed — sw-call-widget (mock / in-call UI)</h1>
+    <p class="label">
+      Shows the full in-call layout wired to a fake video stream — no real SignalWire
+      connection needed. Use this to develop and iterate on your embed UI.
+    </p>
+
+    <!-- ── Architecture note ────────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>How it works</h2>
+      <p class="label">
+        The embed IIFE registers <code>sw-call-provider</code>, which is a transparent
+        context wrapper. Set <code>provider.call = call</code> and every child component
+        (sw-call-media, sw-call-controls, sw-local-camera, …) receives live state
+        automatically — no manual property wiring.
+      </p>
+
+      <div class="snippet"><span class="cmt">&lt;!-- 1. Embed bundle registers all custom elements --&gt;</span>
+<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="str">"/dist/embed/signalwire-web-components-embed.iife.js"</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="cmt">&lt;!-- 2. Transparent context wrapper — children auto-receive call state --&gt;</span>
+<span class="tag">&lt;sw-call-provider</span> <span class="attr">id</span>=<span class="str">"provider"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;sw-ui-call-layout</span> <span class="attr">shadow</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;sw-call-media</span>     <span class="attr">slot</span>=<span class="str">"video"</span><span class="tag">&gt;&lt;/sw-call-media&gt;</span>
+    <span class="tag">&lt;sw-local-camera</span>   <span class="attr">slot</span>=<span class="str">"floating-video"</span> <span class="attr">mirror</span><span class="tag">&gt;&lt;/sw-local-camera&gt;</span>
+    <span class="tag">&lt;sw-call-controls</span>  <span class="attr">slot</span>=<span class="str">"controls"</span> <span class="attr">show-transcript</span><span class="tag">&gt;&lt;/sw-call-controls&gt;</span>
+    <span class="tag">&lt;sw-ui-transcript-view</span> <span class="attr">slot</span>=<span class="str">"transcript"</span><span class="tag">&gt;&lt;/sw-ui-transcript-view&gt;</span>
+  <span class="tag">&lt;/sw-ui-call-layout&gt;</span>
+<span class="tag">&lt;/sw-call-provider&gt;</span>
+
+<span class="tag">&lt;script&gt;</span>
+  <span class="cmt">// One line to wire a call (real or mock) into the whole UI:</span>
+  document.getElementById(<span class="str">'provider'</span>).call = myCall;
+<span class="tag">&lt;/script&gt;</span></div>
+    </div>
+
+    <!-- ── Live mock widget ──────────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>Full in-call UI</h2>
+      <p class="label">
+        Fake colour-cycling video stream. Use the buttons below to inject transcript
+        entries, push a content drawer, or toggle the transcript panel.
+        Resize the widget by dragging the corner.
+      </p>
+
+      <div class="inject-bar">
+        <button onclick="addUserMsg()">+ User message</button>
+        <button onclick="addAgentMsg()">+ Agent message</button>
+        <button onclick="addAgentWithCode()">+ Agent + code</button>
+        <button onclick="addAgentWithLinks()">+ Agent + links</button>
+        <button class="primary" onclick="pushCodeDrawer()">Push code drawer</button>
+        <button class="primary" onclick="pushMarkdownDrawer()">Push markdown drawer</button>
+        <button class="primary" onclick="pushTextDrawer()">Push text drawer</button>
+        <button onclick="toggleTranscript()">Toggle transcript</button>
+      </div>
+
+      <div class="widget-shell">
+        <sw-call-provider id="provider">
+          <sw-ui-call-layout
+            id="layout"
+            shadow
+            transcript
+            style="--roundness: 10px; width:100%; height:100%; display:block;"
+          >
+            <sw-ui-background slot="background" default></sw-ui-background>
+
+            <sw-call-media
+              id="call-media"
+              slot="video"
+              style="width:100%;height:100%;display:block;"
+            ></sw-call-media>
+
+            <sw-local-camera id="local-cam" slot="floating-video" mirror></sw-local-camera>
+
+            <sw-call-controls
+              slot="controls"
+              show-screen-share
+              show-hand-raise
+              show-transcript
+              transcript-active
+            ></sw-call-controls>
+
+            <sw-ui-transcript-view
+              id="transcript-view"
+              slot="transcript"
+            ></sw-ui-transcript-view>
+          </sw-ui-call-layout>
+
+          <sw-ui-content-drawer id="drawer"></sw-ui-content-drawer>
+        </sw-call-provider>
+      </div>
+    </div>
+
+    <!-- ── Device selector standalone ──────────────────────────────── -->
+
+    <div class="section">
+      <h2>Device selector — standalone</h2>
+      <p class="label">
+        <code>sw-device-selector</code> works independently from any call.
+        Pass a <code>DeviceController</code>-compatible object with observable lists
+        and selection callbacks. After the mock call starts, the provider's device
+        controller is also wired automatically.
+      </p>
+
+      <div class="snippet"><span class="cmt">&lt;!-- The gear icon opens a popover with mic / camera / speaker sections --&gt;</span>
+<span class="tag">&lt;sw-device-selector</span> <span class="attr">id</span>=<span class="str">"devsel"</span><span class="tag">&gt;&lt;/sw-device-selector&gt;</span>
+
+<span class="tag">&lt;script type</span>=<span class="str">"module"</span><span class="tag">&gt;</span>
+  import { BehaviorSubject } from <span class="str">'rxjs'</span>;
+
+  const dc = {
+    audioInputDevices$:         new BehaviorSubject([]),
+    videoInputDevices$:         new BehaviorSubject([]),
+    audioOutputDevices$:        new BehaviorSubject([]),
+    selectedAudioInputDevice$:  new BehaviorSubject(null),
+    selectedVideoInputDevice$:  new BehaviorSubject(null),
+    selectedAudioOutputDevice$: new BehaviorSubject(null),
+    selectAudioInputDevice:     (d) => { <span class="cmt">/* update selection */</span> },
+    selectVideoInputDevice:     (d) => { <span class="cmt">/* update selection */</span> },
+    selectAudioOutputDevice:    (d) => { <span class="cmt">/* update selection */</span> },
+  };
+
+  await navigator.mediaDevices.getUserMedia({ audio: true });  <span class="cmt">// grant permission first</span>
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  dc.audioInputDevices$.next( devices.filter(d => d.kind === <span class="str">'audioinput'</span>));
+  dc.videoInputDevices$.next( devices.filter(d => d.kind === <span class="str">'videoinput'</span>));
+  dc.audioOutputDevices$.next(devices.filter(d => d.kind === <span class="str">'audiooutput'</span>));
+
+  document.getElementById(<span class="str">'devsel'</span>).deviceController = dc;
+<span class="tag">&lt;/script&gt;</span></div>
+
+      <div style="
+        background:#0d0e1a;
+        border:1px solid rgba(255,255,255,0.08);
+        border-radius:10px;
+        padding:20px 24px;
+        display:inline-flex;
+        flex-direction:column;
+        gap:12px;
+        min-width:200px;
+      ">
+        <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3);">
+          click the gear →
+        </span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <sw-audio-level id="bar-level" bars="5" maxSize="20"
+            style="--sw-audio-bar-width:3px; --sw-audio-bar-gap:2px;"></sw-audio-level>
+          <sw-device-selector id="devsel"></sw-device-selector>
+        </div>
+        <span id="dev-change-log" style="font-size:0.72rem;color:rgba(255,255,255,0.35);min-height:1.2em;"></span>
+      </div>
+    </div>
+
+    <!--
+      Module script: imports test fixtures to create a fake browser call.
+      The embed IIFE (regular script above) runs first and registers all
+      custom elements. By the time this deferred module executes, the
+      custom elements are already defined.
+    -->
+    <script type="module">
+      import {
+        createMockBrowserCall,
+        createFakeMediaStream,
+        createFakeVideoStream,
+      } from '/tests/fixtures/browser-mock-call.ts';
+      import { BehaviorSubject } from 'rxjs';
+
+      // ── Mock call ──────────────────────────────────────────────────────────
+
+      const remoteStream = createFakeMediaStream({ label: 'Remote', hue: 220 });
+      const localStream  = createFakeMediaStream({ label: 'Local',  hue: 140, width: 640, height: 480 });
+      const mockCall = createMockBrowserCall({ remoteStream, localStream });
+
+      // Wire the mock call into the provider — one line wakes up the whole UI
+      const provider = document.getElementById('provider');
+      provider.call = mockCall;
+
+      // ── Transcript (pre-populated entries) ────────────────────────────────
+
+      const tv = document.getElementById('transcript-view');
+      tv.entries = [
+        { id: '1', type: 'agent', state: 'complete',
+          text: 'Hi there! I can help you set up the SignalWire embed. What would you like to do?' },
+        { id: '2', type: 'user', state: 'complete',
+          text: 'Show me how to add a click-to-call button to my site.' },
+        { id: '3', type: 'agent', state: 'complete',
+          text: 'Easy — just two things: one script tag and one custom element.' },
+      ];
+
+      // ── Content drawer state ───────────────────────────────────────────────
+
+      const layout  = document.getElementById('layout');
+      const drawer  = document.getElementById('drawer');
+      drawer.addEventListener('sw-content-drawer-close', () => { drawer.open = false; });
+
+      // ── Transcript / layout toggle ─────────────────────────────────────────
+
+      let transcriptVisible = true;
+      window.toggleTranscript = () => {
+        transcriptVisible = !transcriptVisible;
+        layout.transcript = transcriptVisible;
+      };
+
+      // ── Transcript injection helpers ───────────────────────────────────────
+
+      let msgCounter = 4;
+
+      function nextId() { return String(msgCounter++); }
+
+      window.addUserMsg = () => {
+        const samples = [
+          'Can I customise the call button colour?',
+          'Does this work on mobile?',
+          'What happens when the call ends?',
+          'How do I receive incoming calls?',
+        ];
+        const text = samples[Math.floor(Math.random() * samples.length)];
+        tv.entries = [...tv.entries, { id: nextId(), type: 'user', state: 'complete', text }];
+      };
+
+      window.addAgentMsg = () => {
+        const samples = [
+          'Yes — use the `--sw-c2c-bg` CSS custom property.',
+          'Absolutely, it works on all modern mobile browsers.',
+          'The modal closes automatically and the `sw-hangup` event fires.',
+          'Add the `allow-incoming-calls` attribute to `sw-call-widget`.',
+        ];
+        const text = samples[Math.floor(Math.random() * samples.length)];
+        tv.entries = [...tv.entries, { id: nextId(), type: 'agent', state: 'complete', text }];
+      };
+
+      window.addAgentWithCode = () => {
+        tv.entries = [...tv.entries, {
+          id: nextId(),
+          type: 'agent',
+          state: 'complete',
+          text: 'Here is the minimal embed snippet:',
+          meta: {
+            code: {
+              language: 'html',
+              content:
+`<script src="/dist/embed/signalwire-web-components-embed.iife.js"><\/script>
+<sw-click-to-call
+  token="c2c_…"
+  destination="/public/your-destination"
+  label="Talk to Us"
+></sw-click-to-call>`,
+            },
+          },
+        }];
+        layout.transcript = true;
+        transcriptVisible = true;
+      };
+
+      window.addAgentWithLinks = () => {
+        tv.entries = [...tv.entries, {
+          id: nextId(),
+          type: 'agent',
+          state: 'complete',
+          text: 'Here are the relevant docs:',
+          meta: {
+            links: [
+              { label: 'Embed guide',          url: 'https://developer.signalwire.com/sdks/reference/browser-sdk/' },
+              { label: 'sw-call-widget API',   url: 'https://developer.signalwire.com/sdks/reference/browser-sdk/' },
+              { label: 'CSS custom properties', url: 'https://developer.signalwire.com/sdks/reference/browser-sdk/' },
+            ],
+          },
+        }];
+      };
+
+      // ── Content drawer helpers ─────────────────────────────────────────────
+
+      window.pushCodeDrawer = () => {
+        Object.assign(drawer, {
+          format: 'code',
+          language: 'typescript',
+          title: 'Embed quickstart',
+          content:
+`import { SignalWire, EmbedTokenCredentialProvider } from '@signalwire/js';
+
+// Or skip the import entirely — use the IIFE embed:
+// const { SignalWire, EmbedTokenCredentialProvider } = window.SignalWireUI;
+
+const client = new SignalWire(
+  new EmbedTokenCredentialProvider(
+    'embeds.signalwire.com',
+    'c2c_…'
+  )
+);
+
+const call = await client.dial('/public/your-destination', {
+  audio: true,
+  video: true,
+  receiveAudio: true,
+  receiveVideo: true,
+});
+
+// Wire into sw-call-provider — one line, whole UI wakes up:
+document.getElementById('provider').call = call;`,
+        });
+        drawer.open = true;
+      };
+
+      window.pushMarkdownDrawer = () => {
+        Object.assign(drawer, {
+          format: 'markdown',
+          title: 'Embed component overview',
+          language: '',
+          content:
+`## Components shipped in the embed bundle
+
+| Element | Purpose |
+|---|---|
+| \`sw-click-to-call\` | Drop-in call button, zero JS |
+| \`sw-call-widget\` | Full call UI (inline or modal) |
+| \`sw-call-provider\` | Context bridge for custom layouts |
+| \`sw-call-media\` | Remote video surface |
+| \`sw-local-camera\` | Local camera PiP |
+| \`sw-call-controls\` | Mute / camera / hangup bar |
+| \`sw-ui-transcript-view\` | AI transcript panel |
+| \`sw-device-selector\` | Mic / camera / speaker picker |
+| \`sw-audio-level\` | Real-time audio visualiser |
+
+> All components are tree-shaken, CSS-customisable, and work
+> with a plain \`<script>\` tag — no bundler required.`,
+        });
+        drawer.open = true;
+      };
+
+      window.pushTextDrawer = () => {
+        Object.assign(drawer, {
+          format: 'text',
+          title: 'Token info',
+          language: '',
+          content:
+`Token:        %VITE_C2C_TOKEN%
+Type:         Embed (click-to-call)
+Host:         embeds.signalwire.com
+Destination:  %VITE_C2C_DEST%
+Permissions:  audio, video, incoming-calls`,
+        });
+        drawer.open = true;
+      };
+
+      // ── Standalone device selector (below the widget) ──────────────────────
+
+      const devSel = document.getElementById('devsel');
+      const devChangeLog = document.getElementById('dev-change-log');
+
+      const dc = {
+        audioInputDevices$:         new BehaviorSubject([]),
+        videoInputDevices$:         new BehaviorSubject([]),
+        audioOutputDevices$:        new BehaviorSubject([]),
+        selectedAudioInputDevice$:  new BehaviorSubject(null),
+        selectedVideoInputDevice$:  new BehaviorSubject(null),
+        selectedAudioOutputDevice$: new BehaviorSubject(null),
+        selectAudioInputDevice:     (d) => dc.selectedAudioInputDevice$.next(d),
+        selectVideoInputDevice:     (d) => dc.selectedVideoInputDevice$.next(d),
+        selectAudioOutputDevice:    (d) => dc.selectedAudioOutputDevice$.next(d),
+      };
+
+      async function loadRealDevices() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          document.getElementById('bar-level').stream = stream;
+          const all = await navigator.mediaDevices.enumerateDevices();
+          const mics     = all.filter(d => d.kind === 'audioinput');
+          const cameras  = all.filter(d => d.kind === 'videoinput');
+          const speakers = all.filter(d => d.kind === 'audiooutput');
+          dc.audioInputDevices$.next(mics);
+          dc.videoInputDevices$.next(cameras);
+          dc.audioOutputDevices$.next(speakers);
+          if (mics.length)     dc.selectedAudioInputDevice$.next(mics[0]);
+          if (cameras.length)  dc.selectedVideoInputDevice$.next(cameras[0]);
+          if (speakers.length) dc.selectedAudioOutputDevice$.next(speakers[0]);
+          navigator.mediaDevices.addEventListener('devicechange', async () => {
+            const fresh = await navigator.mediaDevices.enumerateDevices();
+            dc.audioInputDevices$.next(fresh.filter(d => d.kind === 'audioinput'));
+            dc.videoInputDevices$.next(fresh.filter(d => d.kind === 'videoinput'));
+            dc.audioOutputDevices$.next(fresh.filter(d => d.kind === 'audiooutput'));
+          });
+        } catch { /* mic denied — device selector will show "no devices" */ }
+      }
+
+      devSel.deviceController = dc;
+      devSel.addEventListener('sw-device-change', (e) => {
+        const { type, device } = e.detail;
+        devChangeLog.textContent = `${type}: "${device.label}"`;
+      });
+
+      loadRealDevices();
+    </script>
+  </body>
+</html>

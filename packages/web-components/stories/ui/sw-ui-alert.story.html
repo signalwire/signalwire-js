@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-alert</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <h1>sw-ui-alert</h1>
+
+    <div class="toolbar">
+      <button id="promptTrigger">Confirm prompt</button>
+      <button id="alertTrigger">Alert</button>
+    </div>
+
+    <script type="module">
+      import { showPrompt } from '/src/index.ts';
+
+      document.getElementById('promptTrigger').addEventListener('click', async () => {
+        const confirmed = await showPrompt({
+          title: 'Call',
+          description: 'Accept this call?',
+          type: 'confirm',
+        });
+        console.log('confirmed:', confirmed);
+      });
+
+      document.getElementById('alertTrigger').addEventListener('click', () => {
+        showPrompt({
+          title: 'Error',
+          description: 'Something went wrong.',
+          type: 'alert',
+        });
+      });
+    </script>
+  </body>
+</html>

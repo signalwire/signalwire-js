@@ -1,0 +1,138 @@
+# Dependencies
+
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+
+coverage/
+\*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Generated documentation
+
+dev-docs/
+docs-review/
+
+# Build outputs
+
+dist/
+build/
+\*.tsbuildinfo
+.tsdown/
+
+# Playwright browser bundle (generated during test)
+
+playwright_tests/dist/
+
+# Environment variables
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+
+logs/
+_.log
+npm-debug.log_
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+
+pids/
+_.pid
+_.seed
+\*.pid.lock
+
+# Editor directories and files
+
+.vscode/_
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+_.suo
+_.ntvs_
+_.njsproj
+_.sln
+_.sw?
+_.swp
+_.swo
+_~
+.DS_Store
+
+# IDE
+
+.history/\*
+
+# System Files
+
+Thumbs.db
+Desktop.ini
+.AppleDouble
+.LSOverride
+
+# Temporary files
+
+_.tmp
+_.temp
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.sitool/
+
+# Package manager lock files (keep package-lock.json, ignore others if needed)
+
+# Uncomment if you want to ignore lock files:
+
+# package-lock.json
+
+# yarn.lock
+
+# pnpm-lock.yaml
+
+# Misc
+
+.npmrc
+.yarnrc
+
+# Claude Code local settings
+
+.claude/settings.local.json
+.claude/worktrees/
+.claude/skills/_-workspace
+local-sat.ts
+specs/
+claude-notes/
+_.local/
+.playwright-mcp/
+
+# Emacs lock/backup files
+
+.#_
+\#_\#
+
+# Personal / scratch files (accidentally committed before — do not re-add)
+
+.env._
+!.env.example
+web/
+snippet
+_\_log
+after_reload
+before_reload
+bad_login
+reattach_log
+token_creator.py
