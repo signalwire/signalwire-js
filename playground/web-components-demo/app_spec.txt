@@ -1,0 +1,254 @@
+<product_requirements_document>
+
+<overview>
+SignalWire WebRTC Demo Application - A professional demonstration app showcasing the @signalwire/js SDK and @signalwire/web-components packages. The application provides a complete WebRTC communication experience including subscriber authentication, device management, directory-based calling, and dialpad functionality. Built with vanilla JavaScript and HTML templates, it serves as both a functional communication tool and a reference implementation for developers integrating SignalWire's WebRTC capabilities.
+</overview>
+
+<tech_stack>
+   <frontend>
+      - Vanilla JavaScript (ES modules) with HTML template tags for component rendering
+      - Vite as development server and build tool
+      - @signalwire/js SDK for WebRTC communication
+      - @signalwire/web-components for pre-built Web Components
+      - CSS custom properties for theming
+      - No external UI frameworks
+   </frontend>
+   <backend>
+      - None required - main only application
+      - Token URL fetch performed directly by browser (assumes CORS-enabled endpoints)
+   </backend>
+</tech_stack>
+
+<use_cases>
+
+   <authentication>
+      - App loads with welcome modal overlay blocking all other interactions
+      - User sees two input options: direct SAT token input OR token URL input
+      - A switch to toggle between "Enter Token" and "Fetch from URL" modes
+      - In URL mode, user enters endpoint URL and app fetches JSON response expecting {"token": "..."}
+      - Validation displays clear error messages for invalid tokens or failed URL fetches
+      - On valid token, modal closes and main application interface becomes accessible
+      - SignalWire initializes with provided token
+   </authentication>
+
+   <registration_management>
+      - Top bar displays current registration status with visual indicator (green=registered, gray=unregistered)
+      - Toggle switch allows user to register/unregister the subscriber
+      - When registered, subscriber's display_name appears in top bar
+      - Subscriber's available channels (audio/video/messaging) display as badges/icons
+      - Status updates reactively via SDK observables
+   </registration_management>
+
+   <device_selection_with_preview>
+      - Accessible via sidebar menu item "Select Devices"
+      - Main content area displays sw-device-selector component
+      - Three tabs: Microphone, Camera, Speaker
+      - Camera tab shows live video preview
+      - Microphone tab shows audio level indicator
+      - Speaker tab provides test tone button
+      - Device changes apply immediately to SDK
+      - User can return to other views while preserving device selections
+   </device_selection_with_preview>
+
+   <directory_calling>
+      - Accessible via sidebar menu item "Open Directory"
+      - Sidebar expands to show secondary panel with sw-directory component
+      - User can search addresses by name with debounced input
+      - Address list shows name, type (person/room), and available channels
+      - Clicking an address immediately initiates a call to that destination
+      - Call UI takes over main content area upon dial
+      - Directory panel remains accessible during call for reference
+   </directory_calling>
+
+   <dialpad_calling>
+      - Accessible via sidebar menu item "Dialpad Calls"
+      - Main content area displays sw-dialpad component with call button enabled
+      - User enters destination via keypad or keyboard
+      - Pressing call button or Enter initiates outbound call
+      - During active call, dialpad allows DTMF digit sending
+      - Call UI overlays/replaces dialpad view when call connects
+   </dialpad_calling>
+
+   <active_call_experience>
+      - Call view occupies full available height of main content area
+      - sw-call-media component displays remote video stream
+      - sw-participants component overlays participant information on video
+      - sw-self-media component shows local video in layout position (mirrored)
+      - sw-call-controls component provides mute audio, mute video, screen share, hangup buttons
+      - sw-call-status component shows call state and duration timer
+      - Controls positioned at bottom of call view
+      - Call status/duration visible at top of call view
+      - Responsive layout adjusts for different viewport sizes
+   </active_call_experience>
+
+   <inbound_call_handling>
+      - When subscriber receives inbound call, modal overlay appears
+      - Modal displays caller information (name, number if available)
+      - Two action buttons: Accept (green) and Reject (red)
+      - If user is already on an active call, accepting new call automatically hangs up current call first
+      - Rejecting dismisses modal and sends reject signal to caller
+      - Accepting transitions to active call experience
+      - Modal includes ringtone/visual pulse animation to attract attention
+   </inbound_call_handling>
+
+   <navigation>
+      - Sidebar visible on left side of application
+      - Collapsed state shows icons only with tooltips
+      - Expanded state shows icons with labels
+      - Toggle button at bottom of sidebar to collapse/expand
+      - Three main menu items with distinct icons
+      - Active menu item highlighted visually
+      - Sidebar state does not persist between sessions
+   </navigation>
+
+</use_cases>
+
+<model>
+
+   <AppState>
+      - currentView: 'devices' | 'directory' | 'dialpad' - tracks active main content
+      - sidebarExpanded: boolean - controls sidebar collapse state
+      - activeCall: Call | null - reference to current call if any
+      - inboundCall: Call | null - pending inbound call awaiting user decision
+      - isAuthenticated: boolean - whether valid token has been provided
+   </AppState>
+
+   <SubscriberInfo>
+      - displayName: string - subscriber's display name from SDK
+      - channels: {audio: boolean, video: boolean, messaging: boolean} - available channels
+      - isRegistered: boolean - current registration status
+      - isConnected: boolean - WebSocket connection status
+   </SubscriberInfo>
+
+   <CallState>
+      - status: CallStatus - current call status from SDK observable
+      - participants: Participant[] - list of call participants
+      - self: SelfParticipant | null - local participant reference
+      - localStream: MediaStream | null - local media stream
+      - remoteStream: MediaStream | null - remote media stream
+      - direction: 'inbound' | 'outbound' - call direction
+      - callerInfo: {name: string, number: string} - for inbound call display
+   </CallState>
+
+   <AuthenticationState>
+      - mode: 'token' | 'url' - selected input mode
+      - tokenValue: string - direct token input
+      - urlValue: string - URL to fetch token from
+      - error: string | null - validation/fetch error message
+      - isLoading: boolean - fetching token from URL
+   </AuthenticationState>
+
+</model>
+
+<design_system>
+
+   <color_scheme>
+      - Primary: #044EF5 (SignalWire blue) - buttons, active states, links
+      - Secondary: #6B7280 (neutral gray) - secondary actions, borders
+      - Success: #10B981 (green) - registered status, accept button, connected states
+      - Danger: #EF4444 (red) - hangup, reject, error states
+      - Warning: #F59E0B (amber) - connecting/ringing states
+      - Background: #FFFFFF (white) - main content background
+      - Surface: #F9FAFB (light gray) - sidebar, cards, elevated surfaces
+      - Text Primary: #111827 (near black) - headings, primary text
+      - Text Secondary: #6B7280 (gray) - labels, secondary text
+      - Border: #E5E7EB (light gray) - dividers, input borders
+   </color_scheme>
+
+   <typography>
+      - Font Family: system-ui, -apple-system, sans-serif (system fonts for performance)
+      - Heading 1: 24px, font-weight 600 - page titles
+      - Heading 2: 18px, font-weight 600 - section headers
+      - Body: 14px, font-weight 400 - general text
+      - Caption: 12px, font-weight 400 - labels, status text
+      - Monospace: ui-monospace, monospace - token input, technical values
+   </typography>
+
+   <spacing>
+      - Base unit: 4px
+      - xs: 4px, sm: 8px, md: 16px, lg: 24px, xl: 32px
+      - Sidebar width expanded: 240px
+      - Sidebar width collapsed: 64px
+      - Top bar height: 56px
+   </spacing>
+
+   <components>
+
+      <TopBar>
+         - Fixed position at top, full width
+         - Left: Application logo/title
+         - Center: Registration toggle with status indicator dot
+         - Right: Subscriber display name and channel badges
+         - Height: 56px with horizontal padding
+         - Bottom border separator
+         - Background: white with subtle shadow
+      </TopBar>
+
+      <Sidebar>
+         - Fixed position on left, below top bar
+         - Full height minus top bar
+         - Collapsible with smooth transition animation (200ms)
+         - Menu items as vertical list with icons
+         - Active item: primary color background tint, primary color icon
+         - Hover: subtle background change
+         - Collapse toggle button at bottom
+         - Border-right separator
+      </Sidebar>
+
+      <WelcomeModal>
+         - Centered overlay with backdrop blur
+         - Card width: 400px max
+         - SignalWire logo at top
+         - Tab/radio toggle for token vs URL mode
+         - Text input with appropriate placeholder
+         - Submit button full width
+         - Error message area below input
+         - Loading spinner during URL fetch
+         - Cannot be dismissed without valid authentication
+      </WelcomeModal>
+
+      <InboundCallModal>
+         - Centered overlay with semi-transparent dark backdrop
+         - Card with caller information prominently displayed
+         - Pulsing ring animation on card border
+         - Accept button (green, left) and Reject button (red, right)
+         - Call direction indicator icon
+         - Auto-dismisses if call is cancelled by caller
+      </InboundCallModal>
+
+      <MainContent>
+         - Fills remaining space after top bar and sidebar
+         - Padding for content breathing room
+         - Scroll if content exceeds viewport
+         - Transitions between views without full page reload
+      </MainContent>
+
+      <CallView>
+         - Full height of main content area
+         - Video container with 16:9 aspect ratio preference, scales to fit
+         - Participant overlays positioned per layoutLayers
+         - Self video in layout position
+         - Controls bar fixed at bottom with centered 'sw-call-controls'
+         - Status bar at top with call duration
+         - Dark theme during calls for video visibility
+      </CallView>
+
+   </components>
+
+</design_system>
+
+<non_functional_requirements>
+   - Application loads and becomes interactive within 3 seconds on broadband connection
+   - All UI interactions provide immediate visual feedback (< 100ms)
+   - Graceful handling of WebSocket disconnection with reconnection attempts
+   - Clear error messages for all failure scenarios (network, permissions, invalid input)
+   - Accessible: keyboard navigable, ARIA labels on interactive elements
+   - Responsive: functional on viewports from 768px width and above (tablet/desktop focus)
+   - Browser support: Latest versions of Chrome, Firefox, Safari, Edge
+   - Media permissions requested only when needed (lazy permission request)
+   - Console logging for debugging without exposing sensitive token data
+   - Clean disconnection on page unload (beforeunload handler)
+</non_functional_requirements>
+
+</product_requirements_document>
+/cl

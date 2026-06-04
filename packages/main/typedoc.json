@@ -1,0 +1,14 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "tsconfig": "tsconfig.json",
+  "out": "../../dev-docs/main",
+  "name": "@signalwire/js API Reference",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "navigationLinks": {
+    "Web Components": "../web-components/index.html",
+    "Guides": "../guides/GETTING_STARTED.md"
+  }
+}

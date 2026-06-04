@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Inbound Calls</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+</head>
+<body>
+  <h1>Inbound Calls</h1>
+  <p class="description">Receive and answer incoming calls. Register as a user, then call this number from another device.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Incoming call UI (hidden until call arrives) -->
+  <div id="incoming-panel" style="display:none">
+    <div class="list">
+      <h3>Incoming Call</h3>
+      <p id="caller-info" class="list-item">Unknown Caller</p>
+      <div class="controls" style="margin-top:1rem">
+        <button id="answer-btn" class="btn-success">Answer</button>
+        <button id="reject-btn" class="btn-danger">Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active call UI (hidden until answered) -->
+  <div id="call-panel" style="display:none">
+    <div class="videos">
+      <div class="video-box">
+        <video id="local-video" autoplay muted playsinline></video>
+        <span class="label">You</span>
+      </div>
+      <div class="video-box">
+        <video id="remote-video" autoplay playsinline></video>
+        <span class="label">Remote</span>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="hangup-btn" class="btn-danger">Hang Up</button>
+    </div>
+  </div>
+
+  <div id="log" class="log"></div>
+
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script type="module">
+    import { setupClient, attachStream } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Receiving Inbound Calls
+    // =========================================================================
+
+    /**
+     * Register to receive inbound calls.
+     * Must be called after client is connected.
+     */
+    async function enableInboundCalls(client) {
+      await client.register();
+      log('Registered - ready to receive calls');
+    }
+
+    /**
+     * Listen for incoming calls and show UI when one arrives.
+     */
+    function listenForIncomingCalls(client) {
+      client.session.incomingCalls$.subscribe((calls) => {
+        // Find calls that are ringing
+        const ringingCall = calls.find(c => c.status === 'ringing');
+
+        if (ringingCall) {
+          showIncomingCall(ringingCall);
+        }
+      });
+    }
+
+    /**
+     * Answer an incoming call.
+     */
+    async function answerCall(call) {
+      await call.answer();
+      log('Call answered');
+    }
+
+    /**
+     * Reject an incoming call.
+     */
+    async function rejectCall(call) {
+      await call.reject();
+      log('Call rejected');
+    }
+
+    // =========================================================================
+    // UI Helpers (not the focus of this example)
+    // =========================================================================
+
+    let currentCall = null;
+
+    function showIncomingCall(call) {
+      currentCall = call;
+
+      document.getElementById('caller-info').textContent =
+        call.fromName || call.from || 'Unknown Caller';
+      document.getElementById('incoming-panel').style.display = 'block';
+
+      log(`Incoming call from: ${call.from}`);
+
+      // Hide panel if call stops ringing
+      call.status$.subscribe((status) => {
+        if (status !== 'ringing') {
+          document.getElementById('incoming-panel').style.display = 'none';
+        }
+        if (status === 'connected') {
+          showActiveCall(call);
+        }
+      });
+    }
+
+    function showActiveCall(call) {
+      document.getElementById('call-panel').style.display = 'block';
+
+      call.localStream$.subscribe(s => attachStream('local-video', s));
+      call.remoteStream$.subscribe(s => attachStream('remote-video', s));
+
+      call.status$.subscribe((status) => {
+        log(`Call status: ${status}`);
+        if (status === 'disconnected' || status === 'destroyed') {
+          document.getElementById('call-panel').style.display = 'none';
+          currentCall = null;
+        }
+      });
+    }
+
+    function log(message) {
+      const logEl = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    async function init() {
+      const { client } = await setupClient();
+
+      // Enable inbound calls
+      await enableInboundCalls(client);
+      listenForIncomingCalls(client);
+
+      // Wire up buttons
+      document.getElementById('answer-btn').onclick = () => {
+        if (currentCall) answerCall(currentCall);
+      };
+
+      document.getElementById('reject-btn').onclick = () => {
+        if (currentCall) rejectCall(currentCall);
+      };
+
+      document.getElementById('hangup-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>

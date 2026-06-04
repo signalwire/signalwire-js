@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SignalWire Kitchen Sink Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script
+      type="text/javascript"
+      src="https://webrtc.github.io/adapter/adapter-latest.js"
+    ></script>
+  </head>
+
+  <body>
+    <!-- ============================================================
+         AUTH MODAL
+         ============================================================ -->
+    <div id="authModal" class="auth-backdrop">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h2>Kitchen Sink Demo</h2>
+          <p>SignalWire Browser SDK</p>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="auth-tab-bar">
+          <button class="auth-tab-btn active" data-tab="token">Token</button>
+          <button class="auth-tab-btn" data-tab="user">User</button>
+        </div>
+
+        <!-- Token Tab -->
+        <div id="tabToken" class="auth-tab-content active">
+          <div class="auth-form-group">
+            <div>
+              <label for="tokenInput" class="label">SAT Token</label>
+              <input type="text" id="tokenInput" class="input input-mono" placeholder="Enter SAT token..." />
+            </div>
+            <label class="auth-checkbox-row">
+              <input type="checkbox" id="rememberMeCheckbox" />
+              <span>Remember token (survives reload)</span>
+            </label>
+            <label class="auth-checkbox-row">
+              <input type="checkbox" id="autoConnectCheckbox" />
+              <span>Auto-connect on reload</span>
+            </label>
+            <button id="tokenSignInBtn" class="btn btn-primary" style="width:100%;padding:12px;">Connect with Token</button>
+            <button id="clearSavedBtn" class="btn btn-ghost hidden" style="width:100%;">Clear saved token &amp; destination</button>
+          </div>
+        </div>
+
+        <!-- User Tab -->
+        <div id="tabUser" class="auth-tab-content">
+          <form id="userForm" class="auth-form-group">
+            <div>
+              <label for="userRef" class="label">Reference</label>
+              <input type="text" id="userRef" class="input" placeholder="user@signalwire" autocomplete="username" />
+            </div>
+            <div>
+              <label for="userPass" class="label">Password</label>
+              <input type="password" id="userPass" class="input" placeholder="Enter password" autocomplete="current-password" />
+            </div>
+            <button type="submit" class="btn btn-success" style="width:100%;padding:12px;">Sign In</button>
+          </form>
+        </div>
+
+        <!-- Error -->
+        <div id="authError" class="auth-error"></div>
+        <!-- Loading -->
+        <div id="authLoading" class="auth-loading">
+          <div class="spinner"></div>
+          <p>Authenticating...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         MAIN APP
+         ============================================================ -->
+    <div id="mainApp">
+
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-logo">SignalWire Kitchen Sink</span>
+          <span id="authMethodBadge" class="badge badge-blue">--</span>
+        </div>
+        <div class="topbar-right">
+          <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+            <!-- Sun icon (shown in dark mode) -->
+            <svg id="themeIconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <!-- Moon icon (shown in light mode) -->
+            <svg id="themeIconMoon" class="hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+          <button id="signOutBtn" class="btn btn-ghost btn-sm">Sign Out</button>
+        </div>
+      </header>
+
+      <!-- App Layout -->
+      <div class="app-layout">
+
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar" id="sidebar">
+
+          <!-- Connection Status -->
+          <div class="sidebar-section">
+            <div class="card-title">Connection</div>
+            <div class="connection-row">
+              <span id="connectionDot" class="status-dot connecting"></span>
+              <span id="status" class="status-text">Connecting...</span>
+            </div>
+            <div id="client-info" class="text-xs text-muted"></div>
+          </div>
+
+          <!-- Call Controls -->
+          <div class="sidebar-section">
+            <div class="card-title">Call</div>
+            <div class="call-controls-row">
+              <input type="text" id="toAddress" class="input" placeholder="Destination..." />
+            </div>
+            <div class="media-toggle-row">
+              <label class="media-toggle">
+                <input type="checkbox" id="sendAudioToggle" checked /> Audio
+              </label>
+              <label class="media-toggle">
+                <input type="checkbox" id="sendVideoToggle" checked /> Video
+              </label>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px;">
+              <button id="callButton" class="btn btn-success" style="flex:1;" disabled>Call</button>
+              <button id="hangupButton" class="btn btn-danger" style="flex:1;" disabled>Hang Up</button>
+            </div>
+          </div>
+
+          <!-- Device Pickers -->
+          <div class="sidebar-section">
+            <div class="card-title">Devices</div>
+
+            <div class="device-picker">
+              <span class="label">Microphone</span>
+              <select id="audioInputDeviceSelect" class="select">
+                <option value="">Select audio input...</option>
+              </select>
+            </div>
+
+            <div class="device-picker">
+              <span class="label">Speaker</span>
+              <select id="audioOutputDeviceSelect" class="select">
+                <option value="">Select audio output...</option>
+              </select>
+            </div>
+
+            <div class="device-picker">
+              <span class="label">Camera</span>
+              <select id="videoInputDeviceSelect" class="select">
+                <option value="">Select video input...</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Directory -->
+          <div class="sidebar-section">
+            <div class="card-title">Directory <span id="addressCount" class="text-xs text-subtle"></span></div>
+            <div id="addressesContainer" class="address-list">
+              <p class="text-subtle text-xs">Loading addresses...</p>
+            </div>
+            <div id="loadMoreContainer" style="margin-top:6px;">
+              <button id="loadMoreAddressesButton" class="btn btn-ghost btn-sm hidden" style="width:100%;">
+                <span id="loadMoreText">Load More</span>
+                <svg id="loadMoreSpinner" class="hidden spinner" style="width:14px;height:14px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Platform Capabilities -->
+          <div class="sidebar-section">
+            <div class="card-title">Platform</div>
+            <div id="platformCapabilitiesGrid" class="cap-grid">
+              <p class="text-subtle text-xs" style="grid-column:1/-1;">Detecting...</p>
+            </div>
+            <div id="supportedCodecs" class="flex-wrap" style="margin-top:6px;">
+              <p class="text-subtle text-xs">Detecting codecs...</p>
+            </div>
+          </div>
+
+          <!-- Checkboxes at bottom are in auth modal, not here -->
+        </aside>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <main class="main-content">
+
+          <!-- Floating Call Status -->
+          <div id="floatingCallStatus" class="floating-status">
+            <div id="statusIndicator" class="status-dot connecting"></div>
+            <div>
+              <p class="status-label">Call Status</p>
+              <p id="floatingCallStatusText" class="status-value">-</p>
+            </div>
+          </div>
+
+          <!-- Video Grid -->
+          <div class="video-grid" id="videoArea">
+            <video id="remoteVideo" class="video-remote" autoplay playsinline></video>
+            <div class="video-local-pip">
+              <video id="localVideo" autoplay muted playsinline></video>
+            </div>
+            <!-- Quality Overlay -->
+            <div id="qualityOverlay" class="quality-overlay hidden">
+              <span id="qualityDot" class="quality-dot green"></span>
+              <span id="qualityScoreDisplay" class="quality-score">--</span>
+              <span id="qualityLevelDisplay" class="quality-level">--</span>
+            </div>
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="controls-bar" id="controlsBar">
+            <button id="toggleAudioButton" class="ctrl-btn active" title="Toggle Audio">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+            </button>
+            <button id="toggleVideoButton" class="ctrl-btn active" title="Toggle Video">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            </button>
+            <button id="screenShareButton" class="ctrl-btn" title="Screen Share" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            </button>
+            <button id="toggleDeafButton" class="ctrl-btn" title="Toggle Deaf">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
+            </button>
+            <button id="toggleHandRaiseButton" class="ctrl-btn" title="Raise Hand">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" /></svg>
+            </button>
+            <div style="width:1px;height:28px;background:var(--border-default);margin:0 4px;"></div>
+            <button id="hangupCtrlBtn" class="ctrl-btn hangup" title="Hang Up">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" /></svg>
+            </button>
+          </div>
+
+          <!-- Bandwidth Constrained Banner -->
+          <div id="bandwidthConstrainedBanner" class="bandwidth-banner">
+            <svg style="width:18px;height:18px;flex-shrink:0;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            Bandwidth Constrained — quality may be degraded.
+          </div>
+
+          <!-- Tabbed Panel -->
+          <div class="tab-panel card" id="tabPanel">
+            <nav class="tab-nav">
+              <button class="tab active" data-tab="stats">Stats</button>
+              <button class="tab" data-tab="people">People</button>
+              <button class="tab" data-tab="events">Events</button>
+              <button class="tab" data-tab="messages">Messages</button>
+              <button class="tab" data-tab="dial">Dial</button>
+              <button class="tab" data-tab="diagnostics">Diagnostics</button>
+            </nav>
+
+            <!-- STATS TAB -->
+            <div class="tab-content active" id="tabStats">
+              <!-- Network Quality Card -->
+              <div id="networkQualityCard">
+                <div class="stat-summary">
+                  <div class="stat-box">
+                    <p class="stat-label">MOS Score</p>
+                    <p id="mosScore" class="stat-value text-success">--</p>
+                  </div>
+                  <div class="stat-box">
+                    <p class="stat-label">Quality Level</p>
+                    <span id="qualityLevelBadge" class="badge" style="margin-top:6px;">--</span>
+                  </div>
+                  <div class="stat-box">
+                    <p class="stat-label">Network Health</p>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;">
+                      <span id="networkHealthDot" class="status-dot"></span>
+                      <span id="networkHealthText" class="text-sm">--</span>
+                    </div>
+                  </div>
+                  <div class="stat-box">
+                    <p class="stat-label">Recovery State</p>
+                    <span id="recoveryStateBadge" class="badge" style="margin-top:6px;">--</span>
+                  </div>
+                </div>
+
+                <!-- Live Stats Table -->
+                <h4 style="margin-bottom:6px;">Live Stats</h4>
+                <table class="stats-table">
+                  <thead>
+                    <tr><th>Metric</th><th>Value</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>RTT</td><td id="statRtt">--</td></tr>
+                    <tr><td>Audio Jitter</td><td id="statAudioJitter">--</td></tr>
+                    <tr><td>Audio Packets</td><td id="statAudioPackets">--</td></tr>
+                    <tr><td>Video Packets</td><td id="statVideoPackets">--</td></tr>
+                    <tr><td>Packet Loss</td><td id="statPacketLoss">--</td></tr>
+                    <tr><td>Outgoing Bitrate</td><td id="statBitrate">--</td></tr>
+                  </tbody>
+                </table>
+
+                <!-- Active Issues -->
+                <h4 style="margin-top:12px;margin-bottom:6px;">Active Issues</h4>
+                <div id="networkIssuesList" class="issues-list">
+                  <p class="text-subtle">No active issues</p>
+                </div>
+              </div>
+
+              <!-- Call State Info -->
+              <div id="callStateCard" class="hidden" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-default);">
+                <h4 style="margin-bottom:8px;">Call State</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;">
+                  <div><span class="text-xs text-muted">Status</span><p id="callStatus" class="text-sm font-semibold">-</p></div>
+                  <div><span class="text-xs text-muted">Direction</span><p id="callDirection" class="text-sm font-semibold">-</p></div>
+                  <div><span class="text-xs text-muted">Recording</span><p id="callRecording" class="text-sm font-semibold">-</p></div>
+                  <div><span class="text-xs text-muted">Streaming</span><p id="callStreaming" class="text-sm font-semibold">-</p></div>
+                  <div><span class="text-xs text-muted">Locked</span><p id="callLocked" class="text-sm font-semibold">-</p></div>
+                  <div><span class="text-xs text-muted">Hand Priority</span><p id="callRaiseHandPriority" class="text-sm font-semibold">-</p></div>
+                </div>
+                <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div><span class="text-xs text-muted">Audio Direction</span><p id="mediaAudio" class="text-sm font-semibold">-</p></div>
+                  <div><span class="text-xs text-muted">Video Direction</span><p id="mediaVideo" class="text-sm font-semibold">-</p></div>
+                </div>
+                <div style="margin-top:10px;">
+                  <span class="text-xs text-muted">Capabilities</span>
+                  <div id="callCapabilities" class="flex-wrap" style="margin-top:4px;"></div>
+                </div>
+                <div style="margin-top:10px;">
+                  <span class="text-xs text-muted">Meta</span>
+                  <pre id="callMeta" class="diagnostics-json" style="margin-top:4px;max-height:100px;">-</pre>
+                </div>
+                <div style="margin-top:10px;">
+                  <span class="text-xs text-muted">Layout</span>
+                  <p id="callLayout" class="text-sm font-semibold">-</p>
+                </div>
+                <div style="margin-top:6px;">
+                  <span class="text-xs text-muted">Available Layouts</span>
+                  <div id="callLayouts" class="flex-wrap" style="margin-top:4px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PEOPLE TAB -->
+            <div class="tab-content" id="tabPeople">
+              <div id="participantsCard">
+                <div id="participantsList">
+                  <p class="text-subtle text-xs">No participants yet</p>
+                </div>
+              </div>
+
+              <!-- Self Controls -->
+              <div id="selfControlsCard" class="hidden" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-default);">
+                <h4 style="margin-bottom:8px;">My Controls</h4>
+                <div class="self-controls-grid">
+                  <button id="removeSelfButton" class="btn btn-ghost btn-sm">Remove Myself</button>
+                  <button id="endCallButton" class="btn btn-danger btn-sm">End Call</button>
+                </div>
+
+                <!-- Volume Controls -->
+                <div class="slider-group">
+                  <label>Mic Volume <span id="inputVolumeValue">0</span></label>
+                  <input type="range" id="inputVolumeSlider" min="-50" max="50" value="0" />
+                </div>
+                <div class="slider-group">
+                  <label>Speaker Volume <span id="outputVolumeValue">0</span></label>
+                  <input type="range" id="outputVolumeSlider" min="-50" max="50" value="0" />
+                </div>
+                <div class="slider-group">
+                  <label>Mic Sensitivity <span id="inputSensitivityValue">0</span></label>
+                  <input type="range" id="inputSensitivitySlider" min="0" max="100" value="0" />
+                </div>
+
+                <!-- Audio Processing -->
+                <h4 style="margin-top:12px;margin-bottom:6px;">Audio Processing</h4>
+                <div class="self-controls-grid">
+                  <button id="toggleEchoCancellationButton" class="btn btn-ghost btn-sm">Echo Cancel: OFF</button>
+                  <button id="toggleAutoGainButton" class="btn btn-ghost btn-sm">Auto Gain: OFF</button>
+                  <button id="toggleNoiseSuppressionButton" class="btn btn-ghost btn-sm">Noise Supp.: OFF</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- EVENTS TAB -->
+            <div class="tab-content" id="tabEvents">
+              <div id="recoveryEventsCard">
+                <h4 style="margin-bottom:8px;">Manual Triggers</h4>
+                <div style="display:flex;gap:6px;margin-bottom:12px;">
+                  <button id="requestKeyframeBtn" class="btn btn-primary btn-sm" style="flex:1;">
+                    <span id="requestKeyframeText">Request Keyframe</span>
+                  </button>
+                  <button id="requestIceRestartBtn" class="btn btn-ghost btn-sm" style="flex:1;">
+                    <span id="requestIceRestartText">Request ICE Restart</span>
+                  </button>
+                </div>
+                <h4 style="margin-bottom:6px;">Recovery Event Log</h4>
+                <div id="recoveryEventLog" class="event-log">
+                  <p class="placeholder">No recovery events yet</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- MESSAGES TAB -->
+            <div class="tab-content" id="tabMessages">
+              <div id="messagesCard">
+                <div id="messagesContainer" class="messages-scroll">
+                  <p class="text-subtle text-xs" style="text-align:center;">No messages yet</p>
+                </div>
+                <div class="message-input-row">
+                  <input type="text" id="messageInput" class="input" placeholder="Type a message..." />
+                  <button id="sendMessageButton" class="btn btn-primary btn-icon" title="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- DIAL TAB -->
+            <div class="tab-content" id="tabDial">
+              <div id="dialpadCard">
+                <label class="label">DTMF Digits</label>
+                <input type="text" id="dialpadInput" class="input input-mono" placeholder="Enter digits..." style="margin-bottom:10px;" />
+                <div class="dialpad-grid">
+                  <button class="dialpad-digit" data-digit="1">1</button>
+                  <button class="dialpad-digit" data-digit="2">2</button>
+                  <button class="dialpad-digit" data-digit="3">3</button>
+                  <button class="dialpad-digit" data-digit="4">4</button>
+                  <button class="dialpad-digit" data-digit="5">5</button>
+                  <button class="dialpad-digit" data-digit="6">6</button>
+                  <button class="dialpad-digit" data-digit="7">7</button>
+                  <button class="dialpad-digit" data-digit="8">8</button>
+                  <button class="dialpad-digit" data-digit="9">9</button>
+                  <button class="dialpad-digit" data-digit="*">*</button>
+                  <button class="dialpad-digit" data-digit="0">0</button>
+                  <button class="dialpad-digit" data-digit="#">#</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+                  <button id="dialpadSendButton" class="btn btn-success">
+                    <span id="dialpadSendText">SEND</span>
+                    <svg id="dialpadSpinner" class="hidden spinner" style="width:16px;height:16px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle>
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>
+                    </svg>
+                  </button>
+                  <button id="dialpadErrorButton" class="btn btn-danger">ERROR</button>
+                </div>
+                <div id="dialpadErrorMessage" class="hidden" style="padding:8px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);color:var(--error);font-size:0.8rem;">
+                  <p id="dialpadErrorText"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- DIAGNOSTICS TAB -->
+            <div class="tab-content" id="tabDiagnostics">
+              <!-- Export section — prominent, first thing you see -->
+              <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:16px;background:var(--bg-surface-raised);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <div>
+                    <h4 style="margin:0;">Debug Log</h4>
+                    <p class="text-xs text-muted" style="margin:4px 0 0;">Call timeline, errors, recovery actions, network issues, device changes. Copies JSON to clipboard.</p>
+                  </div>
+                  <button id="exportDiagnosticsBtn" class="btn btn-primary">Export &amp; Copy</button>
+                </div>
+                <div id="diagnosticsOutput" class="hidden">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span class="text-xs text-muted font-semibold">Exported JSON (also on clipboard)</span>
+                    <button id="collapseDiagnosticsBtn" class="btn btn-ghost btn-sm">Collapse</button>
+                  </div>
+                  <pre id="diagnosticsJson" class="diagnostics-json"></pre>
+                </div>
+              </div>
+
+              <!-- Live event feed — shows debug log entries as they happen -->
+              <h4 style="margin-bottom:8px;">Live Event Feed</h4>
+              <div id="liveEventFeed" class="event-log">
+                <p class="placeholder">Waiting for events...</p>
+              </div>
+            </div>
+          </div><!-- /tab-panel -->
+
+        </main>
+      </div><!-- /app-layout -->
+    </div><!-- /mainApp -->
+
+    <!-- Incoming Call Modal -->
+    <div id="incomingCallModal" class="incoming-backdrop">
+      <div class="incoming-card">
+        <div class="incoming-avatar">
+          <span id="incomingCallInitials">?</span>
+        </div>
+        <p class="incoming-label">Incoming Call</p>
+        <h2 id="incomingCallName" class="incoming-name">Unknown Caller</h2>
+        <p id="incomingCallAddress" class="incoming-address">...</p>
+        <div class="ringing-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <div id="incomingCallMediaOptions" class="incoming-media">
+          <label id="incomingAudioLabel">
+            <input type="checkbox" id="incomingAudioToggle" checked />
+            <span>Audio</span>
+          </label>
+          <label id="incomingVideoLabel">
+            <input type="checkbox" id="incomingVideoToggle" checked />
+            <span>Video</span>
+          </label>
+        </div>
+        <div class="incoming-actions">
+          <button id="rejectCallButton" class="reject-btn" title="Reject Call">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          <button id="acceptCallButton" class="accept-btn" title="Accept Call">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Templates -->
+    <template id="addressCardTemplate">
+      <div class="address-card">
+        <div class="address-avatar">
+          <span class="address-initials"></span>
+        </div>
+        <div class="address-info">
+          <p class="address-name"></p>
+          <p class="address-type"></p>
+        </div>
+        <span class="address-call-icon">&#x1F4DE;</span>
+      </div>
+    </template>
+
+    <template id="deviceItemTemplate">
+      <div class="device-list-item">
+        <p class="device-label"></p>
+        <p class="device-id"></p>
+      </div>
+    </template>
+
+    <template id="participantTemplate">
+      <div class="participant-header">
+        <div>
+          <h3 class="participant-name">Loading...</h3>
+          <p class="participant-type text-xs text-muted">Type: Loading...</p>
+          <span class="participant-self-badge badge badge-fuchsia">You</span>
+        </div>
+        <div class="participant-badges">
+          <span class="participant-talking badge badge-success hidden">Talking</span>
+          <span class="participant-handraised badge badge-gold hidden">Hand Raised</span>
+        </div>
+      </div>
+      <div class="participant-grid">
+        <div><span class="label-text">Audio:</span> <span class="participant-audio font-semibold">-</span></div>
+        <div><span class="label-text">Video:</span> <span class="participant-video font-semibold">-</span></div>
+        <div><span class="label-text">Visible:</span> <span class="participant-visible font-semibold">-</span></div>
+        <div><span class="label-text">Deaf:</span> <span class="participant-deaf font-semibold">-</span></div>
+      </div>
+      <div class="position-info">
+        <h4 style="margin-bottom:4px;">Position</h4>
+        <div class="position-grid">
+          <div><span class="pos-label">Position:</span><span class="participant-position pos-value">-</span></div>
+          <div><span class="pos-label">Layer:</span><span class="participant-layer pos-value">-</span></div>
+          <div><span class="pos-label">Z-Index:</span><span class="participant-zindex pos-value">-</span></div>
+          <div><span class="pos-label">X:</span><span class="participant-x pos-value">-</span></div>
+          <div><span class="pos-label">Y:</span><span class="participant-y pos-value">-</span></div>
+          <div><span class="pos-label">Size:</span><span class="participant-size pos-value">-</span></div>
+          <div><span class="pos-label">Visible:</span><span class="participant-position-visible pos-value">-</span></div>
+          <div><span class="pos-label">Height:</span><span class="participant-height pos-value">-</span></div>
+          <div><span class="pos-label">Width:</span><span class="participant-width pos-value">-</span></div>
+          <div><span class="pos-label">Playing:</span><span class="participant-playing pos-value">-</span></div>
+          <div><span class="pos-label">Reservation:</span><span class="participant-reservation pos-value">-</span></div>
+        </div>
+      </div>
+    </template>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

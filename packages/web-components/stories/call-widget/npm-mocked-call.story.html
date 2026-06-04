@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Call Widget — Mock</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/components/sw-local-camera.ts"></script>
+    <script type="module" src="/src/components/sw-call-controls.ts"></script>
+  </head>
+  <body>
+    <h1>Call Widget — Mock (no real connection)</h1>
+
+    <div class="toolbar">
+      <button onclick="pushCode()">Push code</button>
+      <button onclick="pushMarkdown()">Push markdown</button>
+      <button onclick="pushLinks()">Push links (transcript)</button>
+      <button onclick="pushCodeTranscript()">Code in transcript</button>
+      <button onclick="pushText()">Push text</button>
+      <button onclick="toggleTranscript()">Toggle transcript</button>
+    </div>
+
+    <div class="resizable" style="width: 700px; height: 420px; position: relative;">
+      <sw-ui-call-layout id="layout" shadow style="--roundness: 10px;">
+        <sw-ui-background slot="background" default></sw-ui-background>
+        <sw-call-media id="call-media" slot="video"></sw-call-media>
+        <sw-local-camera id="local-camera" slot="floating-video" mirror></sw-local-camera>
+        <sw-ui-control-bar id="control-bar" slot="controls"></sw-ui-control-bar>
+        <sw-ui-transcript-view id="tv" slot="transcript"></sw-ui-transcript-view>
+      </sw-ui-call-layout>
+
+      <sw-ui-content-drawer id="drawer"></sw-ui-content-drawer>
+    </div>
+
+    <script type="module">
+      import {
+        createMockBrowserCall,
+        createFakeMediaStream,
+      } from '/tests/fixtures/browser-mock-call.ts';
+
+      const remoteStream = createFakeMediaStream({ label: 'Remote', hue: 220 });
+      const localStream  = createFakeMediaStream({ label: 'Local',  hue: 140, width: 640, height: 480 });
+      const call = createMockBrowserCall({ remoteStream, localStream });
+
+      await Promise.all([
+        customElements.whenDefined('sw-call-media'),
+        customElements.whenDefined('sw-local-camera'),
+        customElements.whenDefined('sw-ui-control-bar'),
+        customElements.whenDefined('sw-ui-content-drawer'),
+      ]);
+
+      document.getElementById('call-media').call = call;
+      document.getElementById('local-camera').stream = call.localStream;
+
+      const bar = document.getElementById('control-bar');
+      bar.micDevices    = [{ id: 'mic-1', label: 'Microphone', selected: true }];
+      bar.cameraDevices = [{ id: 'cam-1', label: 'Camera',     selected: true }];
+      bar.speakerDevices = [{ id: 'spk-1', label: 'Speakers',  selected: true }];
+      bar.showTranscript = true;
+
+      const layout = document.getElementById('layout');
+      bar.addEventListener('sw-fullscreen-toggle', () => layout.toggleFullscreen());
+      bar.addEventListener('sw-transcript-toggle', () => {
+        layout.transcript = !layout.transcript;
+      });
+
+      const tv = document.getElementById('tv');
+      tv.entries = [
+        { id: '1', type: 'agent', state: 'complete', text: 'Hello! How can I help?' },
+        { id: '2', type: 'user',  state: 'complete', text: 'Show me some code.' },
+        { id: '3', type: 'agent', state: 'complete', text: 'Sure — use the buttons above.' },
+      ];
+
+      const drawer = document.getElementById('drawer');
+      drawer.addEventListener('sw-content-drawer-close', () => { drawer.open = false; });
+
+      // ── Push helpers (simulate what the AI agent would send) ──────────────
+      //
+      // Mirrors SwCallWidget._onDisplayContent: opens the drawer AND injects a
+      // system entry into the transcript so the download serializer picks it
+      // up via meta.displayContent.
+
+      function pushDisplayContent(payload) {
+        Object.assign(drawer, {
+          format: payload.format,
+          language: payload.language ?? '',
+          title: payload.title ?? '',
+          content: payload.content,
+        });
+        drawer.open = true;
+
+        tv.entries = [
+          ...tv.entries,
+          {
+            id: crypto.randomUUID(),
+            type: 'system',
+            state: 'complete',
+            text: payload.title ?? 'Agent shared content',
+            meta: { displayContent: payload },
+          },
+        ];
+      }
+
+      window.pushCode = () => pushDisplayContent({
+        format: 'code',
+        language: 'typescript',
+        title: 'SDK quickstart',
+        content:
+`import { SignalWire } from '@signalwire/js';
+
+const client = new SignalWire({ token: 'YOUR_SAT_TOKEN' });
+
+const call = await client.dial('/public/ai-agent', {
+  audio: true,
+  video: true,
+});
+
+call.status$.subscribe((status) => {
+  console.log('status:', status);
+});`,
+      });
+
+      window.pushMarkdown = () => pushDisplayContent({
+        format: 'markdown',
+        title: "Here's what I found",
+        content:
+`## SignalWire AI Agent
+
+The agent can push content directly to the caller mid-call.
+
+- **Code** — syntax-highlighted snippets
+- **Markdown** — rich text with links, lists, tables
+- **HTML** — sanitized markup
+- **Text** — plain whitespace-preserved text
+
+> Closes without ending the call.`,
+      });
+
+      window.pushText = () => pushDisplayContent({
+        format: 'text',
+        title: 'Order update',
+        content:
+`Order #1234 has shipped!
+
+Carrier:   FedEx Ground
+Tracking:  1Z999AA10123456784
+ETA:       Thursday, April 24`,
+      });
+
+      // Pushes a transcript entry with meta.code + meta.links
+      window.pushLinks = () => {
+        drawer.open = false;
+        const entries = tv.entries;
+        tv.entries = [...entries, {
+          id: crypto.randomUUID(),
+          type: 'agent',
+          state: 'complete',
+          text: 'Here are the relevant docs:',
+          meta: {
+            code: {
+              language: 'python',
+              content: "result.swml_user_event({'type':'display_content','format':'code'})",
+            },
+            links: [
+              { label: 'JS SDK docs',   url: 'https://developer.signalwire.com/sdks/reference/browser-sdk/' },
+              { label: 'API reference', url: 'https://developer.signalwire.com/rest/' },
+            ],
+          },
+        }];
+        layout.transcript = true;
+      };
+
+      // Pushes a transcript entry with just meta.code (no drawer, no links)
+      window.pushCodeTranscript = () => {
+        const entries = tv.entries;
+        tv.entries = [...entries, {
+          id: crypto.randomUUID(),
+          type: 'agent',
+          state: 'complete',
+          text: "Here's a quick example of how to subscribe to call status:",
+          meta: {
+            code: {
+              language: 'typescript',
+              content:
+`import { SignalWire } from '@signalwire/js';
+
+const client = new SignalWire({ token: 'YOUR_SAT_TOKEN' });
+const call = await client.dial('/public/ai-agent', {
+  audio: true,
+  video: true,
+});
+
+call.status$.subscribe((status) => {
+  if (status === 'hangup') console.log('Call ended');
+});`,
+            },
+          },
+        }];
+        layout.transcript = true;
+      };
+
+      window.toggleTranscript = () => {
+        layout.transcript = !layout.transcript;
+      };
+    </script>
+  </body>
+</html>

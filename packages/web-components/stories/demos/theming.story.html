@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Theming — SignalWire Web Components</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/components/sw-local-camera.ts"></script>
+    <style>
+      body {
+        max-width: 1200px;
+        padding: var(--sp-10) var(--sp-6);
+      }
+      .eyebrow {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-caption);
+        font-weight: var(--type-weight-semibold);
+        text-transform: uppercase;
+        letter-spacing: var(--type-letter-spacing-eyebrow);
+        color: var(--sw-blue);
+        margin-bottom: var(--sp-3);
+      }
+      .title {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-h1);
+        font-weight: var(--type-weight-heading);
+        line-height: var(--type-line-height-heading);
+        letter-spacing: var(--type-letter-spacing-heading);
+        margin-bottom: var(--sp-4);
+      }
+      .lead {
+        font-size: var(--type-prose-body);
+        line-height: var(--type-prose-line-height);
+        color: var(--fg-secondary);
+        margin-bottom: var(--sp-8);
+        max-width: 70ch;
+      }
+      .lead code {
+        font-family: var(--type-family-code);
+        font-size: 0.9em;
+        background: var(--code-bg);
+        color: var(--code-fg);
+        padding: 1px 6px;
+        border-radius: 3px;
+      }
+
+      h2.section {
+        font-family: var(--type-family-heading);
+        font-size: var(--type-size-small);
+        text-transform: uppercase;
+        letter-spacing: var(--type-letter-spacing-eyebrow);
+        color: var(--fg-muted);
+        margin: var(--sp-8) 0 var(--sp-3);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+        gap: var(--sp-5);
+      }
+
+      /* ── Theme card — re-skins everything inside via DTCG token overrides ─ */
+      .theme-card {
+        background: var(--bg-page);
+        color: var(--fg-default);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-4);
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-3);
+        transition: background var(--transition-normal), color var(--transition-normal);
+      }
+      .theme-label {
+        font-family: var(--type-family-code);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--fg-muted);
+        margin: 0;
+      }
+      .theme-label .name {
+        color: var(--fg-default);
+        font-weight: 600;
+      }
+
+      .frame {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background: #000;
+      }
+
+      /* Plain stand-in for the remote-video tile so we don't have to mock streams. */
+      .video-placeholder {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 30% 20%, rgba(4, 78, 244, 0.35), transparent 60%),
+          radial-gradient(ellipse at 70% 80%, rgba(247, 42, 114, 0.3), transparent 60%),
+          linear-gradient(135deg, #0a0a14, #1a1530);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.45);
+        font-family: var(--type-family-body);
+        font-size: var(--type-size-small);
+      }
+      .video-placeholder::before {
+        content: '';
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        position: absolute;
+      }
+      .video-placeholder .name-tag {
+        position: absolute;
+        left: 12px; bottom: 12px;
+        padding: 3px 10px;
+        background: rgba(0, 0, 0, 0.45);
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+      }
+
+      /* ── Theme variants ───────────────────────────────────── */
+
+      /* Dark — DTCG dark layer */
+      .theme-card[data-theme='dark'] {
+        --bg-page: #0e0e18;
+        --bg-surface: #181a28;
+        --bg-surface-raised: #222436;
+        --fg-default: #f0f0f4;
+        --fg-secondary: #e8e8ec;
+        --fg-muted: #a0a0aa;
+        --border-default: rgba(255, 255, 255, 0.12);
+        --code-bg: rgba(255, 255, 255, 0.06);
+        --code-fg: #40e0d0;
+        --interactive-dropdown-hover: #333338;
+        --interactive-button-primary-bg: #044ef4;
+        --interactive-button-primary-hover: #0342cf;
+        --interactive-button-primary-text: #ffffff;
+        --interactive-button-destructive-bg: #dc2626;
+        --interactive-button-destructive-hover: #b91c1c;
+      }
+
+      /* Light — DTCG light layer */
+      .theme-card[data-theme='light'] {
+        --bg-page: #fafbfc;
+        --bg-surface: #f3f4f6;
+        --bg-surface-raised: #e8eaf0;
+        --fg-default: #1a1a18;
+        --fg-secondary: #3a3a38;
+        --fg-muted: #737371;
+        --border-default: rgba(0, 0, 0, 0.1);
+        --code-bg: rgba(0, 0, 0, 0.06);
+        --code-fg: #044ef4;
+        --interactive-dropdown-hover: #ececea;
+        --interactive-button-primary-bg: #044ef4;
+        --interactive-button-primary-hover: #0342cf;
+        --interactive-button-primary-text: #ffffff;
+        --interactive-button-destructive-bg: #dc2626;
+        --interactive-button-destructive-hover: #b91c1c;
+      }
+
+      /* Fuchsia — branded variant: SignalWire fuchsia primary on warm dark */
+      .theme-card[data-theme='fuchsia'] {
+        --bg-page: #1a0a14;
+        --bg-surface: #261020;
+        --bg-surface-raised: #321628;
+        --fg-default: #fdf2f8;
+        --fg-secondary: #f3d6e6;
+        --fg-muted: #c98ab1;
+        --border-default: rgba(247, 42, 114, 0.2);
+        --code-bg: rgba(255, 255, 255, 0.06);
+        --code-fg: #f72a72;
+        --interactive-dropdown-hover: #3d1a32;
+        --interactive-button-primary-bg: #f72a72;
+        --interactive-button-primary-hover: #d92866;
+        --interactive-button-primary-text: #ffffff;
+        --interactive-button-destructive-bg: #ff4444;
+        --interactive-button-destructive-hover: #e03030;
+      }
+
+      /* High-contrast — pure black/white with gold accent */
+      .theme-card[data-theme='hc'] {
+        --bg-page: #000000;
+        --bg-surface: #0a0a0a;
+        --bg-surface-raised: #1a1a1a;
+        --fg-default: #ffffff;
+        --fg-secondary: #f0f0f0;
+        --fg-muted: #b0b0b0;
+        --border-default: #ffffff;
+        --code-bg: #1a1a1a;
+        --code-fg: #ffd700;
+        --interactive-dropdown-hover: #2a2a2a;
+        --interactive-button-primary-bg: #ffd700;
+        --interactive-button-primary-hover: #ffc400;
+        --interactive-button-primary-text: #000000;
+        --interactive-button-destructive-bg: #ff3030;
+        --interactive-button-destructive-hover: #e02020;
+      }
+
+      /* ── Recipe block ─────────────────────────────────────── */
+      .recipe {
+        margin-top: var(--sp-8);
+        padding: var(--sp-5);
+        background: var(--cb-bg);
+        color: var(--cb-fg);
+        border-radius: var(--radius-md);
+        font-family: var(--type-family-code);
+        font-size: 13px;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      .recipe .c { color: #898995; }
+      .recipe .k { color: #6e9eff; }
+      .recipe .s { color: #40e0d0; }
+      .recipe .v { color: #ff6da0; }
+    </style>
+  </head>
+  <body>
+    <div class="eyebrow">Demos</div>
+    <h1 class="title">Theming</h1>
+    <p class="lead">
+      Components consume the SignalWire DTCG token names directly
+      (<code>--bg-page</code>, <code>--fg-default</code>,
+      <code>--interactive-button-primary-bg</code>, <code>--type-family-body</code>, …).
+      Override any subset on an ancestor element and everything downstream re-skins —
+      including content inside shadow roots, since CSS custom properties inherit through them.
+      Each card below renders the same mocked call view — same components, different tokens.
+    </p>
+
+    <h2 class="section">Same components, four themes</h2>
+    <div class="grid">
+      <!-- ── Dark ───────────────────────────────────────────── -->
+      <div class="theme-card" data-theme="dark">
+        <p class="theme-label">Theme · <span class="name">Dark</span> <em>(default)</em></p>
+        <div class="frame">
+          <sw-ui-call-layout shadow style="height: 100%;">
+            <div slot="background" class="video-placeholder">
+              <span class="name-tag">Robin Park</span>
+            </div>
+            <sw-ui-control-bar
+              slot="controls"
+              show-screen-share
+              show-hand-raise
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </sw-ui-call-layout>
+        </div>
+      </div>
+
+      <!-- ── Light ──────────────────────────────────────────── -->
+      <div class="theme-card" data-theme="light">
+        <p class="theme-label">Theme · <span class="name">Light</span></p>
+        <div class="frame">
+          <sw-ui-call-layout shadow style="height: 100%;">
+            <div slot="background" class="video-placeholder">
+              <span class="name-tag">Robin Park</span>
+            </div>
+            <sw-ui-control-bar
+              slot="controls"
+              show-screen-share
+              show-hand-raise
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </sw-ui-call-layout>
+        </div>
+      </div>
+
+      <!-- ── Fuchsia ────────────────────────────────────────── -->
+      <div class="theme-card" data-theme="fuchsia">
+        <p class="theme-label">Theme · <span class="name">Fuchsia (custom)</span></p>
+        <div class="frame">
+          <sw-ui-call-layout shadow style="height: 100%;">
+            <div slot="background" class="video-placeholder">
+              <span class="name-tag">Robin Park</span>
+            </div>
+            <sw-ui-control-bar
+              slot="controls"
+              show-screen-share
+              show-hand-raise
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </sw-ui-call-layout>
+        </div>
+      </div>
+
+      <!-- ── High-contrast ──────────────────────────────────── -->
+      <div class="theme-card" data-theme="hc">
+        <p class="theme-label">Theme · <span class="name">High-contrast</span></p>
+        <div class="frame">
+          <sw-ui-call-layout shadow style="height: 100%;">
+            <div slot="background" class="video-placeholder">
+              <span class="name-tag">Robin Park</span>
+            </div>
+            <sw-ui-control-bar
+              slot="controls"
+              show-screen-share
+              show-hand-raise
+              show-fullscreen
+            ></sw-ui-control-bar>
+          </sw-ui-call-layout>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section">How to author a theme</h2>
+    <pre class="recipe"><span class="c">/* 1. Load the SignalWire token sheet (or write one with the same names). */</span>
+<span class="k">@import</span> <span class="s">'@signalwire/web-components/theme.css'</span>;
+
+<span class="c">/* 2. Override any subset of tokens on a wrapper element. */</span>
+<span class="v">[data-theme=</span><span class="s">'fuchsia'</span><span class="v">]</span> {
+  <span class="v">--bg-page</span>: <span class="s">#1a0a14</span>;
+  <span class="v">--fg-default</span>: <span class="s">#fdf2f8</span>;
+  <span class="v">--interactive-button-primary-bg</span>: <span class="s">var(--sw-fuchsia)</span>;
+  <span class="v">--interactive-button-primary-hover</span>: <span class="s">#d92866</span>;
+}
+
+<span class="c">/* 3. Toggle on the document — values cascade into every shadow root. */</span>
+<span class="k">document</span>.documentElement.dataset.theme = <span class="s">'fuchsia'</span>;</pre>
+
+    <script type="module">
+      // Wire the same dummy device list into every control bar so the chevrons
+      // render with menus available. No call activity — purely visual.
+      await Promise.all([
+        customElements.whenDefined('sw-ui-control-bar'),
+        customElements.whenDefined('sw-ui-call-layout'),
+      ]);
+
+      const devices = {
+        micDevices: [
+          { id: 'mic-1', label: 'Built-in Microphone', selected: true },
+          { id: 'mic-2', label: 'External Microphone' },
+        ],
+        cameraDevices: [
+          { id: 'cam-1', label: 'FaceTime HD Camera', selected: true },
+        ],
+        speakerDevices: [
+          { id: 'spk-1', label: 'Built-in Speakers', selected: true },
+        ],
+      };
+
+      document.querySelectorAll('sw-ui-control-bar').forEach((bar) => {
+        bar.micDevices = devices.micDevices;
+        bar.cameraDevices = devices.cameraDevices;
+        bar.speakerDevices = devices.speakerDevices;
+      });
+    </script>
+  </body>
+</html>

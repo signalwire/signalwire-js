@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Call Widget — Real</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/components/sw-call-widget/sw-call-widget.ts"></script>
+  </head>
+  <body>
+    <h1>Call Widget — Real Call</h1>
+
+    <!-- Inline widget -->
+    <div class="toolbar">
+      <button id="btn-dial" onclick="doDial()">Dial</button>
+      <button id="btn-hangup" onclick="doHangup()" style="display:none">Hang Up</button>
+    </div>
+    <div class="frame" style="width: 100%; height: 480px;">
+      <sw-call-widget id="widget" transcription>
+        <sw-ui-background slot="background" default></sw-ui-background>
+      </sw-call-widget>
+    </div>
+
+    <!-- Modal widget -->
+    <h2>Modal mode</h2>
+    <sw-call-widget id="widget-modal" modal transcription>
+      <sw-ui-background slot="background" default></sw-ui-background>
+      <button>Open &amp; Call</button>
+    </sw-call-widget>
+
+    <script type="module">
+      const widget = document.getElementById('widget');
+      const btnDial = document.getElementById('btn-dial');
+
+      function syncDialButton() {
+        const hasToken = !!window.__SW_CREDS?.token;
+        btnDial.disabled = !hasToken;
+        btnDial.textContent = hasToken ? 'Dial' : 'Select a credential in the top bar';
+      }
+
+      syncDialButton();
+      window.addEventListener('sw-creds-change', syncDialButton);
+
+      window.doDial = async () => {
+        document.getElementById('btn-dial').style.display = 'none';
+        document.getElementById('btn-hangup').style.display = '';
+        try {
+          await widget.dial();
+        } catch (e) {
+          console.error(e);
+          document.getElementById('btn-dial').style.display = '';
+          document.getElementById('btn-hangup').style.display = 'none';
+        }
+      };
+
+      window.doHangup = async () => {
+        await widget.hangup();
+        document.getElementById('btn-dial').style.display = '';
+        document.getElementById('btn-hangup').style.display = 'none';
+      };
+    </script>
+  </body>
+</html>

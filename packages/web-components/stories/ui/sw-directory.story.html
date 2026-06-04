@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-directory</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>sw-directory</h1>
+
+    <!-- ── Static list ────────────────────────────────────────────────── -->
+
+    <h2>Rooms &amp; people — static list</h2>
+    <p class="label">
+      Pass a <code>DirectoryService</code> with an <code>addresses$</code> observable.
+      Click a row to select it (<code>sw-address-select</code>); click the green phone
+      button or double-click a row to dial (<code>sw-dial</code>).
+    </p>
+
+    <div class="frame" style="width: 340px; height: 420px;">
+      <sw-directory id="dir-static"></sw-directory>
+    </div>
+
+    <pre class="log" id="log-static">Events will appear here…</pre>
+
+    <!-- ── Paginated ──────────────────────────────────────────────────── -->
+
+    <h2>Paginated — load more on scroll</h2>
+    <p class="label">
+      <code>hasMore$</code> is <code>true</code>; scrolling to the bottom triggers
+      <code>loadMore()</code>. A new batch is appended after a 600 ms simulated delay.
+    </p>
+
+    <div class="toolbar">
+      <button onclick="resetPaginated()">Reset</button>
+    </div>
+
+    <div class="frame" style="width: 340px; height: 360px;">
+      <sw-directory id="dir-paged"></sw-directory>
+    </div>
+
+    <!-- ── Empty state ────────────────────────────────────────────────── -->
+
+    <h2>Empty states</h2>
+    <div class="grid">
+      <div>
+        <p class="label">no directory assigned</p>
+        <div class="frame" style="width: 260px; height: 180px;">
+          <sw-directory></sw-directory>
+        </div>
+      </div>
+      <div>
+        <p class="label">directory with zero results</p>
+        <div class="frame" style="width: 260px; height: 180px;">
+          <sw-directory id="dir-empty"></sw-directory>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { BehaviorSubject } from 'rxjs';
+
+      // ── helpers ────────────────────────────────────────────────────────
+
+      function log(logId, text) {
+        const el = document.getElementById(logId);
+        el.textContent = text + '\n' + el.textContent.slice(0, 400);
+      }
+
+      function makeDevice(id, name, type, audio = true, video = false) {
+        return { id, name, displayName: name, type, channels: { audio, video } };
+      }
+
+      // ── Static list ────────────────────────────────────────────────────
+
+      const STATIC_ADDRESSES = [
+        makeDevice('r1', 'Main Conference Room',  'room',   true, true),
+        makeDevice('r2', 'Engineering Huddle',    'room',   true, true),
+        makeDevice('r3', 'Demo Room',             'room',   true, true),
+        makeDevice('p1', 'Alice Nguyen',          'person', true, false),
+        makeDevice('p2', 'Bob Kim',               'person', true, true),
+        makeDevice('p3', 'Carol Santos',          'person', true, false),
+        makeDevice('p4', 'David Okafor',          'person', true, true),
+        makeDevice('p5', 'Eve Müller',            'person', true, false),
+      ];
+
+      const staticDir = document.getElementById('dir-static');
+      staticDir.directory = {
+        addresses$: new BehaviorSubject(STATIC_ADDRESSES),
+        loading$:   new BehaviorSubject(false),
+        hasMore$:   new BehaviorSubject(false),
+        loadMore:   async () => {},
+      };
+
+      staticDir.addEventListener('sw-address-select', (e) => {
+        log('log-static', `sw-address-select  →  "${e.detail.address.displayName}"`);
+      });
+      staticDir.addEventListener('sw-dial', (e) => {
+        log('log-static', `sw-dial  →  "${e.detail.address.displayName}" (${e.detail.address.type})`);
+      });
+
+      // ── Paginated ──────────────────────────────────────────────────────
+
+      const PAGE_SIZE = 6;
+
+      function makePerson(n) {
+        const names = [
+          'Aaron Blake', 'Bianca Chen', 'Carlos Diaz', 'Diana Evans',
+          'Ethan Foster', 'Fatima Gomez', 'George Hall', 'Hannah Iyer',
+          'Ivan Jones', 'Julia Kim', 'Kevin Lee', 'Lena Martin',
+          'Marco Novak', 'Nina Ortiz', 'Oscar Patel', 'Paula Quinn',
+          'Raj Rossi', 'Sara Taylor', 'Tom Ueda', 'Uma Vargas',
+          'Victor Wang', 'Wendy Xu', 'Xander Yu', 'Yuki Zhang',
+        ];
+        return makeDevice(`gen-${n}`, names[n % names.length] + (n >= names.length ? ` ${Math.floor(n / names.length) + 1}` : ''), 'person', true, n % 3 === 0);
+      }
+
+      const TOTAL = 22;
+      let pagedLoaded = 0;
+      const pagedAddresses$ = new BehaviorSubject([]);
+      const pagedLoading$   = new BehaviorSubject(false);
+      const pagedHasMore$   = new BehaviorSubject(true);
+
+      async function loadMorePaged() {
+        if (pagedLoading$.value || !pagedHasMore$.value) return;
+        pagedLoading$.next(true);
+        await new Promise((r) => setTimeout(r, 600));
+        const next = [];
+        for (let i = pagedLoaded; i < Math.min(pagedLoaded + PAGE_SIZE, TOTAL); i++) {
+          next.push(makePerson(i));
+        }
+        pagedLoaded += next.length;
+        pagedAddresses$.next([...pagedAddresses$.value, ...next]);
+        pagedHasMore$.next(pagedLoaded < TOTAL);
+        pagedLoading$.next(false);
+      }
+
+      const dirPaged = document.getElementById('dir-paged');
+      dirPaged.directory = {
+        addresses$: pagedAddresses$,
+        loading$:   pagedLoading$,
+        hasMore$:   pagedHasMore$,
+        loadMore:   loadMorePaged,
+      };
+
+      window.resetPaginated = () => {
+        pagedLoaded = 0;
+        pagedAddresses$.next([]);
+        pagedHasMore$.next(true);
+        pagedLoading$.next(false);
+        loadMorePaged();
+      };
+
+      // ── Empty directory ────────────────────────────────────────────────
+
+      document.getElementById('dir-empty').directory = {
+        addresses$: new BehaviorSubject([]),
+        loading$:   new BehaviorSubject(false),
+        hasMore$:   new BehaviorSubject(false),
+        loadMore:   async () => {},
+      };
+    </script>
+  </body>
+</html>

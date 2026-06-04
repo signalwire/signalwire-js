@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Audio level &amp; device selector</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      /* ── mic preview card ─────────────────────────────────────── */
+      .mic-card {
+        background: #0d0e1a;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        width: 200px;
+        color: #fff;
+      }
+      .mic-card .label { color: rgba(255,255,255,0.4); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; }
+      .mic-icon {
+        width: 40px; height: 40px;
+        background: rgba(255,255,255,0.07);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(255,255,255,0.5);
+      }
+      .mic-icon svg { width: 20px; height: 20px; }
+
+      /* ── variants grid ────────────────────────────────────────── */
+      /* Cards get a fixed height so animated bars don't reflow the page. */
+      .variants {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-start;
+        min-height: 160px;
+      }
+      .variant {
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px;
+        background: #0d0e1a;
+        padding: 16px 20px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.55);
+        font-size: 0.7rem;
+        text-align: center;
+        height: 120px;
+        min-width: 100px;
+      }
+
+      /* ── device selector story area ──────────────────────────── */
+      .device-demo {
+        background: #111220;
+        border-radius: 10px;
+        padding: 24px;
+        display: inline-flex;
+        flex-direction: column;
+        gap: 16px;
+        position: relative;
+      }
+      .device-demo p { color: rgba(255,255,255,0.45); font-size: 0.75rem; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Audio level &amp; device selector</h1>
+
+    <!-- ── Live microphone level ───────────────────────────────────── -->
+
+    
+    <!-- ── Static variants ─────────────────────────────────────────── -->
+
+    <h2>Variants — bars, orientation, colour</h2>
+    <p class="label">All variants share the same live mic stream once granted.</p>
+
+    <div class="variants" id="variants-container">
+      <!-- populated by script once mic stream is available -->
+    </div>
+
+    <!-- ── Device selector standalone ─────────────────────────────── -->
+
+    <h2>Device selector — real devices</h2>
+    <p class="label">
+      Real devices from <code>navigator.mediaDevices.enumerateDevices()</code>, wrapped in a
+      <code>DeviceController</code>-compatible object. Labels are populated after mic permission
+      is granted above. Click the gear icon to open the popover.
+    </p>
+
+    <div class="device-demo">
+      <p>Click the gear button to open device settings ↓</p>
+      <sw-device-selector id="dev-sel"></sw-device-selector>
+      <p id="device-change-log" style="min-height: 1.4em;"></p>
+    </div>
+
+    <script type="module">
+      import { BehaviorSubject } from 'rxjs';
+
+      // ── Real DeviceController backed by navigator.mediaDevices ───────────
+      // Devices only have labels after mic/camera permission has been granted.
+      // We call getUserMedia first, then enumerate so labels are populated.
+
+      function makeRealDeviceController() {
+        const audioInputDevices$         = new BehaviorSubject([]);
+        const videoInputDevices$         = new BehaviorSubject([]);
+        const audioOutputDevices$        = new BehaviorSubject([]);
+        const selectedAudioInputDevice$  = new BehaviorSubject(null);
+        const selectedVideoInputDevice$  = new BehaviorSubject(null);
+        const selectedAudioOutputDevice$ = new BehaviorSubject(null);
+
+        async function refresh() {
+          const all = await navigator.mediaDevices.enumerateDevices();
+          const mics     = all.filter(d => d.kind === 'audioinput');
+          const cameras  = all.filter(d => d.kind === 'videoinput');
+          const speakers = all.filter(d => d.kind === 'audiooutput');
+
+          audioInputDevices$.next(mics);
+          videoInputDevices$.next(cameras);
+          audioOutputDevices$.next(speakers);
+
+          // Select first of each kind if not already set
+          if (!selectedAudioInputDevice$.value  && mics.length)     selectedAudioInputDevice$.next(mics[0]);
+          if (!selectedVideoInputDevice$.value  && cameras.length)  selectedVideoInputDevice$.next(cameras[0]);
+          if (!selectedAudioOutputDevice$.value && speakers.length) selectedAudioOutputDevice$.next(speakers[0]);
+        }
+
+        // Re-enumerate when devices are plugged / unplugged
+        navigator.mediaDevices.addEventListener('devicechange', refresh);
+
+        return {
+          audioInputDevices$,
+          videoInputDevices$,
+          audioOutputDevices$,
+          selectedAudioInputDevice$,
+          selectedVideoInputDevice$,
+          selectedAudioOutputDevice$,
+          selectAudioInputDevice:  (d) => selectedAudioInputDevice$.next(d),
+          selectVideoInputDevice:  (d) => selectedVideoInputDevice$.next(d),
+          selectAudioOutputDevice: (d) => selectedAudioOutputDevice$.next(d),
+          refresh,
+        };
+      }
+
+      const realDC = makeRealDeviceController();
+
+      // Standalone device selector
+      const devSel = document.getElementById('dev-sel');
+      devSel.deviceController = realDC;
+
+      const changeLog = document.getElementById('device-change-log');
+      devSel.addEventListener('sw-device-change', (e) => {
+        const { type, device } = e.detail;
+        changeLog.textContent = `sw-device-change → ${type}: "${device.label}"`;
+      });
+
+      // ── Live mic stream shared across all sw-audio-level instances ────
+
+      let micStream = null;
+
+      async function acquireMic() {
+        try {
+          // getUserMedia grants the permission that makes enumerateDevices return labels
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          await realDC.refresh();
+          buildVariants(micStream);
+        } catch {
+          // auto-request components handle their own fallback
+        }
+      }
+
+      // ── Variant cards (built once stream is available) ────────────────
+
+      function buildVariants(stream) {
+        const container = document.getElementById('variants-container');
+        const VARIANTS = [
+          { bars: 3,  orientation: 'vertical',   maxSize: 20, label: '3 bars · sm' },
+          { bars: 5,  orientation: 'vertical',   maxSize: 32, label: '5 bars · md' },
+          { bars: 9,  orientation: 'vertical',   maxSize: 40, label: '9 bars · lg' },
+          { bars: 5,  orientation: 'horizontal', maxSize: 28, label: '5 bars · horiz' },
+          { bars: 5,  orientation: 'vertical',   maxSize: 28, label: 'custom colours',
+            style: '--sw-success:#818cf8; --sw-warning:#f472b6; --sw-danger:#f43f5e;' },
+          { bars: 5,  orientation: 'vertical',   maxSize: 28, label: 'wide bars',
+            style: '--sw-audio-bar-width:7px; --sw-audio-bar-gap:3px;' },
+        ];
+
+        for (const v of VARIANTS) {
+          const card = document.createElement('div');
+          card.className = 'variant';
+
+          const el = document.createElement('sw-audio-level');
+          el.bars        = v.bars;
+          el.orientation = v.orientation;
+          el.maxSize     = v.maxSize;
+          el.stream      = stream;
+          if (v.style) el.setAttribute('style', v.style);
+
+          const lbl = document.createElement('span');
+          lbl.textContent = v.label;
+
+          card.appendChild(el);
+          card.appendChild(lbl);
+          container.appendChild(card);
+        }
+      }
+
+      acquireMic();
+    </script>
+  </body>
+</html>

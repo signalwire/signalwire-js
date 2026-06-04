@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+
+REMOTE_NAME=$1
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || true)
+
+echo "Pre-push: ${BRANCH} -> ${REMOTE_NAME}"
+
+# Warn if pushing a branch that looks like it targets the wrong remote
+if [ -n "$BRANCH" ]; then
+  case "$BRANCH" in
+    private/*|internal/*)
+      if [ "$REMOTE_NAME" != "origin" ] && [ "$REMOTE_NAME" != "private" ]; then
+        echo "WARNING: Branch '${BRANCH}' looks like a private branch but you're pushing to '${REMOTE_NAME}'."
+        echo "  Expected remote: origin or private"
+        echo "  Aborting push. Use --no-verify to override."
+        exit 1
+      fi
+      ;;
+    public/*)
+      if [ "$REMOTE_NAME" != "public" ]; then
+        echo "WARNING: Branch '${BRANCH}' looks like a public branch but you're pushing to '${REMOTE_NAME}'."
+        echo "  Expected remote: public"
+        echo "  Aborting push. Use --no-verify to override."
+        exit 1
+      fi
+      ;;
+  esac
+fi
+
+# Basic security scan: check for patterns that look like secrets in staged changes
+if command -v gitleaks > /dev/null 2>&1; then
+  echo "Running gitleaks security scan..."
+  gitleaks detect --source . --config .gitleaks.toml --no-banner 2>/dev/null
+  if [ $? -ne 0 ]; then
+    echo "ERROR: gitleaks detected potential secrets. Aborting push."
+    echo "  Review the findings and remove any secrets before pushing."
+    exit 1
+  fi
+fi
+
+echo "Pre-push checks passed."

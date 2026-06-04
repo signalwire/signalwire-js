@@ -1,0 +1,15 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "tsconfig": "tsconfig.typedoc.json",
+  "out": "../../dev-docs/web-components",
+  "name": "@signalwire/web-components API Reference",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "skipErrorChecking": true,
+  "navigationLinks": {
+    "JS SDK": "../main/index.html",
+    "Guides": "../guides/GETTING_STARTED.md"
+  }
+}

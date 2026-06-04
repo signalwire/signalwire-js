@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Call Controls</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+</head>
+<body>
+  <h1>Call Controls</h1>
+  <p class="description">Mute, hold, and send DTMF tones during a call.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Dial controls -->
+  <div id="dial-panel">
+    <div class="controls">
+      <input type="text" id="destination" value="/public/test-room" style="width:200px">
+      <button id="call-btn" class="btn-success">Call</button>
+    </div>
+  </div>
+
+  <!-- Active call controls -->
+  <div id="call-panel" style="display:none">
+    <div class="videos">
+      <div class="video-box">
+        <video id="local-video" autoplay muted playsinline></video>
+        <span class="label">You</span>
+      </div>
+      <div class="video-box">
+        <video id="remote-video" autoplay playsinline></video>
+        <span class="label">Remote</span>
+      </div>
+    </div>
+
+    <!-- Mute/Hold controls -->
+    <div class="list">
+      <h3>Media Controls</h3>
+      <div class="controls">
+        <button id="mute-audio-btn" class="btn-secondary">Mute Audio</button>
+        <button id="mute-video-btn" class="btn-secondary">Mute Video</button>
+        <button id="hold-btn" class="btn-secondary">Hold</button>
+      </div>
+    </div>
+
+    <!-- DTMF dialpad -->
+    <div class="list">
+      <h3>DTMF Dialpad</h3>
+      <div id="dialpad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;max-width:200px">
+        <button class="btn-secondary dtmf" data-digit="1">1</button>
+        <button class="btn-secondary dtmf" data-digit="2">2</button>
+        <button class="btn-secondary dtmf" data-digit="3">3</button>
+        <button class="btn-secondary dtmf" data-digit="4">4</button>
+        <button class="btn-secondary dtmf" data-digit="5">5</button>
+        <button class="btn-secondary dtmf" data-digit="6">6</button>
+        <button class="btn-secondary dtmf" data-digit="7">7</button>
+        <button class="btn-secondary dtmf" data-digit="8">8</button>
+        <button class="btn-secondary dtmf" data-digit="9">9</button>
+        <button class="btn-secondary dtmf" data-digit="*">*</button>
+        <button class="btn-secondary dtmf" data-digit="0">0</button>
+        <button class="btn-secondary dtmf" data-digit="#">#</button>
+      </div>
+      <p id="dtmf-display" style="margin-top:0.5rem;font-family:monospace"></p>
+    </div>
+
+    <div class="controls">
+      <button id="hangup-btn" class="btn-danger">Hang Up</button>
+    </div>
+  </div>
+
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script type="module">
+    import { setupClient, attachStream } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Call Controls - Mute, Hold, DTMF
+    // =========================================================================
+
+    /**
+     * Toggle audio mute on/off.
+     */
+    async function toggleAudioMute(call) {
+      await call.self.toggleMute();
+    }
+
+    /**
+     * Toggle video mute on/off.
+     */
+    async function toggleVideoMute(call) {
+      await call.self.toggleMuteVideo();
+    }
+
+    /**
+     * Toggle call hold.
+     */
+    async function toggleHold(call) {
+      await call.toggleHold();
+    }
+
+    /**
+     * Send DTMF tones (touch-tone digits).
+     * Common use: navigating phone menus ("Press 1 for sales...")
+     */
+    async function sendDTMF(call, digits) {
+      await call.sendDigits(digits);
+    }
+
+    /**
+     * Watch mute state changes to update UI.
+     */
+    function watchMuteState(call, { onAudioMute, onVideoMute }) {
+      call.self$.subscribe((self) => {
+        if (!self) return;
+
+        self.audioMuted$.subscribe(onAudioMute);
+        self.videoMuted$.subscribe(onVideoMute);
+      });
+    }
+
+    // =========================================================================
+    // UI Helpers
+    // =========================================================================
+
+    let currentCall = null;
+    let dtmfBuffer = '';
+
+    function updateMuteButtons(audioMuted, videoMuted) {
+      const audioBtn = document.getElementById('mute-audio-btn');
+      const videoBtn = document.getElementById('mute-video-btn');
+
+      audioBtn.textContent = audioMuted ? 'Unmute Audio' : 'Mute Audio';
+      audioBtn.className = audioMuted ? 'btn-danger' : 'btn-secondary';
+
+      videoBtn.textContent = videoMuted ? 'Unmute Video' : 'Mute Video';
+      videoBtn.className = videoMuted ? 'btn-danger' : 'btn-secondary';
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    async function init() {
+      const { client } = await setupClient();
+
+      document.getElementById('call-btn').onclick = async () => {
+        const dest = document.getElementById('destination').value.trim();
+        if (!dest) return;
+
+        currentCall = await client.dial(dest, { audio: true, video: true });
+
+        document.getElementById('dial-panel').style.display = 'none';
+        document.getElementById('call-panel').style.display = 'block';
+
+        currentCall.localStream$.subscribe(s => attachStream('local-video', s));
+        currentCall.remoteStream$.subscribe(s => attachStream('remote-video', s));
+
+        // Watch mute state
+        let audioMuted = false, videoMuted = false;
+        watchMuteState(currentCall, {
+          onAudioMute: (muted) => { audioMuted = muted; updateMuteButtons(audioMuted, videoMuted); },
+          onVideoMute: (muted) => { videoMuted = muted; updateMuteButtons(audioMuted, videoMuted); }
+        });
+
+        currentCall.status$.subscribe((status) => {
+          if (status === 'disconnected' || status === 'destroyed') {
+            document.getElementById('dial-panel').style.display = 'block';
+            document.getElementById('call-panel').style.display = 'none';
+            currentCall = null;
+            dtmfBuffer = '';
+            document.getElementById('dtmf-display').textContent = '';
+          }
+        });
+      };
+
+      // Mute buttons
+      document.getElementById('mute-audio-btn').onclick = () => {
+        if (currentCall) toggleAudioMute(currentCall);
+      };
+
+      document.getElementById('mute-video-btn').onclick = () => {
+        if (currentCall) toggleVideoMute(currentCall);
+      };
+
+      document.getElementById('hold-btn').onclick = () => {
+        if (currentCall) toggleHold(currentCall);
+      };
+
+      // DTMF buttons
+      document.querySelectorAll('.dtmf').forEach((btn) => {
+        btn.onclick = async () => {
+          if (!currentCall) return;
+
+          const digit = btn.dataset.digit;
+          dtmfBuffer += digit;
+          document.getElementById('dtmf-display').textContent = dtmfBuffer;
+
+          await sendDTMF(currentCall, digit);
+        };
+      });
+
+      document.getElementById('hangup-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>

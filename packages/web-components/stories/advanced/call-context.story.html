@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Context Provider</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>Context Provider</h1>
+    <p>
+      Wrap your UI in <code>&lt;sw-call-provider&gt;</code> and assign
+      <code>provider.call = call</code> after dialing. Every child component
+      picks up the call automatically. 
+    </p>
+
+    <!-- Key API lines -->
+    <details>
+      <summary>Key lines</summary>
+      <pre><code>// 1. Create the client and connect
+client = new SignalWire(new StaticCredentialProvider({ token }));
+await waitForConnection(client);
+
+// 2. Dial
+call = await client.dial(destination, { audio: true, video: true, receiveAudio: true, receiveVideo: true });
+
+// 3. Push the call into Lit context — this is the only wiring needed.
+//    sw-call-media, sw-call-status, etc. wake up automatically.
+provider.call = call;
+
+// 4. Tear down
+call.hangup();
+client.destroy();
+provider.call = null;</code></pre>
+    </details>
+
+    <div class="toolbar">
+      <button id="btn-dial" onclick="dial()">Start Call</button>
+    </div>
+
+    <!-- Call UI -->
+    <sw-call-provider id="provider">
+
+      <div class="frame" style="width:640px;height:360px;">
+        <sw-call-media style="width:100%;height:100%;display:block;"></sw-call-media>
+      </div>
+
+      <div class="toolbar" style="margin-top:8px;align-items:center;">
+        <sw-call-status></sw-call-status>
+        <button id="btn-mic" onclick="toggleMic()">Mic: ?</button>
+        <button id="btn-cam" onclick="toggleCam()">Camera: ?</button>
+        <button onclick="hangup()">Hang Up</button>
+      </div>
+
+    </sw-call-provider>
+
+    <pre class="log" id="log">Enter a SAT token and press Start Call.</pre>
+
+    <script type="module">
+      import { SignalWire, StaticCredentialProvider } from '@signalwire/js';
+
+      const provider = document.getElementById('provider');
+      const btnDial  = document.getElementById('btn-dial');
+      const btnMic   = document.getElementById('btn-mic');
+      const btnCam   = document.getElementById('btn-cam');
+      const log      = document.getElementById('log');
+
+      let client = null, call = null, self = null;
+
+      function appendLog(msg) {
+        log.textContent += '\n' + msg;
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function reset() {
+        provider.call = null;
+        call = null; client = null; self = null;
+        btnDial.disabled = false;
+        btnMic.textContent = 'Mic: ?';
+        btnCam.textContent = 'Camera: ?';
+      }
+
+      window.dial = async () => {
+        const { token, destination } = window.__SW_CREDS || {};
+        if (!token || !destination) return;
+
+        btnDial.disabled = true;
+        log.textContent = 'Connecting...';
+
+        try {
+          client = new SignalWire(new StaticCredentialProvider({ token }));
+
+          await new Promise((resolve, reject) => {
+            const sub = client.isConnected$.subscribe(c => { if (c) { sub.unsubscribe(); resolve(); } });
+            setTimeout(() => reject(new Error('Connection timeout after 15 s')), 15_000);
+          });
+
+          appendLog('Connected. Dialing ' + destination + '...');
+
+          call = await client.dial(destination, {
+            audio: true, video: true, receiveAudio: true, receiveVideo: true,
+          });
+
+          // The key line: push call into context — all child components wake up.
+          provider.call = call;
+
+          call.status$.subscribe(status => {
+            appendLog('status → ' + status);
+            if (['disconnected', 'destroyed', 'failed'].includes(status)) {
+              client?.destroy();
+              reset();
+            }
+          });
+
+          let muteSubs = [];
+          call.self$.subscribe(s => {
+            muteSubs.forEach(sub => sub.unsubscribe());
+            muteSubs = [];
+            self = s;
+            if (!s) return;
+            muteSubs.push(
+              s.audioMuted$.subscribe(m => { btnMic.textContent = 'Mic: ' + (m ? 'off' : 'on'); }),
+              s.videoMuted$.subscribe(m => { btnCam.textContent = 'Camera: ' + (m ? 'off' : 'on'); }),
+            );
+          });
+
+        } catch (err) {
+          appendLog('Error: ' + err.message);
+          reset();
+        }
+      };
+
+      window.toggleMic = () => self?.toggleMute();
+      window.toggleCam = () => self?.toggleMuteVideo();
+      window.hangup    = () => call?.hangup();
+    </script>
+  </body>
+</html>

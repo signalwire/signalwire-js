@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Host CSS leakage — regression</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/components/sw-local-camera.ts"></script>
+    <script type="module" src="/src/components/sw-call-controls.ts"></script>
+
+    <style>
+      /*
+       * Hostile inheritable CSS applied to the test region. These are the
+       * properties that cross the shadow DOM boundary by default. When the
+       * `hostile` class is on the wrapper, every shadow descendant should
+       * STILL render normally because each component resets these on :host.
+       *
+       * Reset properties (should NOT leak through):
+       *   text-align, letter-spacing, word-spacing, text-transform,
+       *   text-indent, line-height, font-style, font-weight, font-variant,
+       *   white-space, text-shadow
+       *
+       * NOT reset (should still leak — design tokens flow this way):
+       *   color, font-family, font-size
+       */
+      .hostile {
+        text-align: center;
+        letter-spacing: 6px;
+        word-spacing: 30px;
+        text-transform: uppercase;
+        text-indent: 40px;
+        line-height: 3;
+        font-style: italic;
+        font-weight: 900;
+        font-variant: small-caps;
+        white-space: pre;
+        text-shadow: 2px 2px 4px magenta;
+      }
+
+      .case {
+        border: 1px dashed var(--border-default, #888);
+        padding: 12px;
+        margin: 8px 0 24px;
+        border-radius: 6px;
+      }
+
+      .case > .case-label {
+        font-size: 12px;
+        opacity: 0.7;
+        margin: 0 0 8px;
+        font-style: normal;
+        font-weight: normal;
+        letter-spacing: normal;
+        word-spacing: normal;
+        text-transform: none;
+        text-indent: 0;
+        line-height: 1.4;
+        text-align: left;
+        white-space: normal;
+        text-shadow: none;
+      }
+
+      .control-row {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .frame-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .frame-row .frame {
+        width: 320px;
+        height: 360px;
+        border: 1px solid var(--border-default, #555);
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Host CSS leakage — regression</h1>
+
+    <p class="label">
+      Toggle the <strong>hostile</strong> ambient styles to verify components
+      ignore inheritable text-layout properties from the host page. The
+      surrounding plain text below changes; the rendered components should
+      stay visually identical.
+    </p>
+
+    <div class="control-row">
+      <label>
+        <input type="checkbox" id="toggle" checked />
+        Apply hostile inheritable CSS to wrapper
+      </label>
+      <span class="label" id="state-readout"></span>
+    </div>
+
+    <!-- ── Reference: plain page text vs hostile-wrapped page text ─────── -->
+
+    <div class="case" id="ref-plain">
+      <p class="case-label">control: plain text outside any shadow root</p>
+      <p>The quick brown fox jumps over the lazy dog.</p>
+    </div>
+
+    <div class="case hostile" id="ref-hostile">
+      <p class="case-label">control: same text inside the hostile wrapper</p>
+      <p>The quick brown fox jumps over the lazy dog.</p>
+    </div>
+
+    <!-- ── Components under test ──────────────────────────────────────── -->
+
+    <h2>Components</h2>
+    <p class="label">
+      Below, each component is rendered inside a wrapper that toggles the
+      hostile styles. Visual output should not change.
+    </p>
+
+    <div class="case" id="components">
+      <p class="case-label">components under (toggleable) hostile wrapper</p>
+
+      <h3>sw-ui-transcript-view</h3>
+      <div class="frame-row">
+        <div class="frame">
+          <sw-ui-transcript-view id="tv"></sw-ui-transcript-view>
+        </div>
+      </div>
+
+      <h3>sw-ui-alert (inline)</h3>
+      <sw-ui-alert
+        id="alert"
+        title="Confirm"
+        description="Are you sure you want to proceed?"
+      ></sw-ui-alert>
+
+      <h3>sw-ui-dialpad</h3>
+      <sw-ui-dialpad show-call-button></sw-ui-dialpad>
+
+      <h3>sw-ui-split-button (with open dropup so item labels render)</h3>
+      <sw-ui-split-button
+        id="split"
+        items='[{"id":"mic-1","label":"Built-in mic","selected":true},{"id":"mic-2","label":"Headset"}]'
+      >
+        <sw-ui-icon name="mic-on" slot="active" size="20"></sw-ui-icon>
+        <sw-ui-icon name="mic-off" slot="inactive" size="20"></sw-ui-icon>
+      </sw-ui-split-button>
+
+      <h3>sw-ui-dropup (forced open so menu items are visible)</h3>
+      <div style="position: relative; height: 140px;">
+        <sw-ui-dropup
+          id="dropup"
+          open
+          items='[{"id":"a","label":"Option A","selected":true},{"id":"b","label":"Option B"}]'
+        ></sw-ui-dropup>
+      </div>
+
+      <h3>sw-call-status (no call wired — empty render is fine)</h3>
+      <sw-call-status></sw-call-status>
+
+      <h3>sw-directory (mock)</h3>
+      <div class="frame-row">
+        <div class="frame">
+          <sw-directory id="directory"></sw-directory>
+        </div>
+      </div>
+
+      <h3>sw-click-to-call (renders trigger only)</h3>
+      <sw-click-to-call token="" destination="/public/test"></sw-click-to-call>
+
+      <h3>sw-call-widget (idle, with default trigger)</h3>
+      <div class="frame-row">
+        <div class="frame">
+          <sw-call-widget token="" destination="/public/test">
+            <sw-ui-background slot="background" default></sw-ui-background>
+            <button>Call</button>
+          </sw-call-widget>
+        </div>
+      </div>
+    </div>
+
+    <h2>Slotted content (intentionally inherits)</h2>
+    <p class="label">
+      Slotted nodes inherit from the flat-tree parent (the host page), not
+      from <code>:host</code> of the component they're slotted into. This is
+      correct: user-provided slot markup keeps the page's typography. The
+      &lt;button&gt; below visibly takes on the hostile styles when toggled,
+      while the widget's own chrome does not.
+    </p>
+
+    <div class="case" id="slot-case">
+      <p class="case-label">slotted &lt;button&gt; should change with toggle</p>
+      <sw-call-widget token="" destination="/public/test">
+        <sw-ui-background slot="background" default></sw-ui-background>
+        <button>Slotted trigger — should inherit hostile styles</button>
+      </sw-call-widget>
+    </div>
+
+    <script type="module">
+      // ── Toggle hostile wrapper ───────────────────────────────────────
+      const toggle = document.getElementById('toggle');
+      const targets = ['components', 'slot-case'];
+      const readout = document.getElementById('state-readout');
+
+      function apply() {
+        const on = toggle.checked;
+        readout.textContent = on
+          ? 'hostile wrapper: ON  (component output should still look normal)'
+          : 'hostile wrapper: OFF';
+        for (const id of targets) {
+          document.getElementById(id).classList.toggle('hostile', on);
+        }
+      }
+      toggle.addEventListener('change', apply);
+      apply();
+
+      // ── Populate transcript ──────────────────────────────────────────
+      await customElements.whenDefined('sw-ui-transcript-view');
+      document.getElementById('tv').entries = [
+        { id: '1', type: 'agent', state: 'complete', text: 'Hello! How can I help?' },
+        { id: '2', type: 'user',  state: 'complete', text: 'Show me a quick example.' },
+        { id: '3', type: 'agent', state: 'complete', text: 'Sure — bubbles should stay left/right aligned.' },
+        { id: '4', type: 'system', state: 'complete', text: 'system entry — centered by class, not by inheritance' },
+      ];
+
+      // ── Mock directory ───────────────────────────────────────────────
+      await customElements.whenDefined('sw-directory');
+      const { BehaviorSubject } = await import('rxjs');
+      const addresses$ = new BehaviorSubject([
+        { id: '1', name: 'Test Room',     display_name: 'Test Room',     type: 'room' },
+        { id: '2', name: 'Sales Line',    display_name: 'Sales Line',    type: 'app' },
+        { id: '3', name: 'Support Queue', display_name: 'Support Queue', type: 'app' },
+      ]);
+      document.getElementById('directory').directory = { addresses$ };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-device-selector — show-preview</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .stage {
+        background: #111220;
+        border-radius: 10px;
+        padding: 32px;
+        display: inline-flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: center;
+        position: relative;
+      }
+      .stage p { color: rgba(255,255,255,0.55); font-size: 0.8rem; margin: 0; }
+      .row { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+      .log {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.65);
+        background: #0d0e1a;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 6px;
+        padding: 8px 12px;
+        min-width: 320px;
+        min-height: 1.4em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-device-selector — <code>show-preview</code></h1>
+    <p class="label">
+      Click the gear icon to open the popover. With <code>show-preview</code>
+      enabled, the panel renders a live camera preview, a microphone level
+      meter for the selected input devices, and a test-speaker button for
+      the selected output.
+    </p>
+
+    <div class="row">
+      <div class="stage">
+        <p>With <code>show-preview</code></p>
+        <sw-device-selector id="dev-sel-preview" show-preview></sw-device-selector>
+      </div>
+
+      <div class="stage">
+        <p>Without preview (default)</p>
+        <sw-device-selector id="dev-sel-plain"></sw-device-selector>
+      </div>
+    </div>
+
+    <h2>sw-device-change events</h2>
+    <div class="log" id="log">(no events yet)</div>
+
+    <script type="module">
+      import { BehaviorSubject } from 'rxjs';
+
+      function makeRealDeviceController() {
+        const audioInputDevices$         = new BehaviorSubject([]);
+        const videoInputDevices$         = new BehaviorSubject([]);
+        const audioOutputDevices$        = new BehaviorSubject([]);
+        const selectedAudioInputDevice$  = new BehaviorSubject(null);
+        const selectedVideoInputDevice$  = new BehaviorSubject(null);
+        const selectedAudioOutputDevice$ = new BehaviorSubject(null);
+
+        async function refresh() {
+          const all = await navigator.mediaDevices.enumerateDevices();
+          const mics     = all.filter(d => d.kind === 'audioinput');
+          const cameras  = all.filter(d => d.kind === 'videoinput');
+          const speakers = all.filter(d => d.kind === 'audiooutput');
+
+          audioInputDevices$.next(mics);
+          videoInputDevices$.next(cameras);
+          audioOutputDevices$.next(speakers);
+
+          if (!selectedAudioInputDevice$.value  && mics.length)     selectedAudioInputDevice$.next(mics[0]);
+          if (!selectedVideoInputDevice$.value  && cameras.length)  selectedVideoInputDevice$.next(cameras[0]);
+          if (!selectedAudioOutputDevice$.value && speakers.length) selectedAudioOutputDevice$.next(speakers[0]);
+        }
+
+        navigator.mediaDevices.addEventListener('devicechange', refresh);
+
+        return {
+          audioInputDevices$,
+          videoInputDevices$,
+          audioOutputDevices$,
+          selectedAudioInputDevice$,
+          selectedVideoInputDevice$,
+          selectedAudioOutputDevice$,
+          selectAudioInputDevice:  (d) => selectedAudioInputDevice$.next(d),
+          selectVideoInputDevice:  (d) => selectedVideoInputDevice$.next(d),
+          selectAudioOutputDevice: (d) => selectedAudioOutputDevice$.next(d),
+          refresh,
+        };
+      }
+
+      const dc = makeRealDeviceController();
+
+      // Trigger the permission prompt so devices have labels and the previews
+      // can acquire streams the moment the panel opens.
+      try {
+        const tmp = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        tmp.getTracks().forEach(t => t.stop());
+      } catch {
+        // user denied — previews will show their error fallback when opened
+      }
+      await dc.refresh();
+
+      const previewSel = document.getElementById('dev-sel-preview');
+      const plainSel   = document.getElementById('dev-sel-plain');
+      previewSel.deviceController = dc;
+      plainSel.deviceController   = dc;
+
+      const log = document.getElementById('log');
+      const onChange = (e) => {
+        const { type, device } = e.detail;
+        log.textContent = `sw-device-change → ${type}: "${device.label}"`;
+      };
+      previewSel.addEventListener('sw-device-change', onChange);
+      plainSel.addEventListener('sw-device-change', onChange);
+    </script>
+  </body>
+</html>

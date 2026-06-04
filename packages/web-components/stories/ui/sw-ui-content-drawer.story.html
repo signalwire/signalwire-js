@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-content-drawer</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>sw-ui-content-drawer</h1>
+
+    <!-- ── Wide (slides from right) ──────────────────────────────────── -->
+
+    <h2>Wide container — slides in from right</h2>
+
+    <div class="toolbar">
+      <button onclick="show('code-py')">Python</button>
+      <button onclick="show('code-ts')">TypeScript</button>
+      <button onclick="show('code-json')">JSON</button>
+      <button onclick="show('code-bash')">Bash</button>
+      <button onclick="show('markdown')">Markdown</button>
+      <button onclick="show('html')">HTML</button>
+      <button onclick="show('text')">Text</button>
+      <button onclick="close('wide')">Close</button>
+    </div>
+
+    <div id="wide"
+      style="position:relative; width:680px; height:400px; overflow:hidden;
+             background:#0e0e18; border-radius:10px; border:1px solid rgba(255,255,255,0.1);">
+      <div class="slot-video">Video area</div>
+      <sw-ui-content-drawer id="wide-drawer"></sw-ui-content-drawer>
+    </div>
+
+    <!-- ── Narrow (slides from bottom) ──────────────────────────────── -->
+
+    <h2>Narrow container (&le;480 px) — slides up from bottom</h2>
+
+    <div class="toolbar">
+      <button onclick="show('code-py', 'narrow-drawer')">Python</button>
+      <button onclick="show('markdown', 'narrow-drawer')">Markdown</button>
+      <button onclick="close('narrow')">Close</button>
+    </div>
+
+    <div id="narrow"
+      style="position:relative; width:360px; height:460px; overflow:hidden;
+             background:#0e0e18; border-radius:10px; border:1px solid rgba(255,255,255,0.1);">
+      <div class="slot-video">Video area (narrow)</div>
+      <sw-ui-content-drawer id="narrow-drawer"></sw-ui-content-drawer>
+    </div>
+
+    <script>
+      const SAMPLES = {
+        'code-py': {
+          format: 'code', language: 'python', title: 'Python agent',
+          content:
+`from signalwire_agents import AgentBase
+
+class SupportAgent(AgentBase):
+    def on_call(self, call):
+        call.say("Hello! How can I help?")
+
+    def handle_intent(self, intent, call):
+        if intent == "order_status":
+            order = self.lookup_order(call.from_number)
+            call.say(f"Order {order.id} is {order.status}.")
+            call.user_event({
+                "type": "display_content",
+                "title": "Order details",
+                "content": str(order.to_dict()),
+                "format": "text",
+            })`
+        },
+        'code-ts': {
+          format: 'code', language: 'typescript', title: 'TypeScript SDK',
+          content:
+`import { SignalWire } from '@signalwire/js';
+
+const client = new SignalWire({ token: 'YOUR_SAT_TOKEN' });
+
+const call = await client.dial(destination, {
+  audio: true,
+  video: true,
+  receiveAudio: true,
+  receiveVideo: true,
+});
+
+call.status$.subscribe((status) => {
+  console.log('status:', status);
+});
+
+// Listen for content pushes from the AI agent
+widget.addEventListener('sw-display-content', (e) => {
+  console.log('agent pushed:', e.detail);
+});`
+        },
+        'code-json': {
+          format: 'code', language: 'json', title: 'Event payload',
+          content:
+`{
+  "event_type": "user_event",
+  "params": {
+    "type": "display_content",
+    "title": "Sample code",
+    "content": "print('hello from Sigmond')",
+    "format": "code",
+    "language": "python"
+  }
+}`
+        },
+        'code-bash': {
+          format: 'code', language: 'bash', title: 'CLI quickstart',
+          content:
+`# Install the SignalWire JS SDK
+npm install @signalwire/js
+
+# Set credentials
+export SW_PROJECT_ID=your-project-id
+export SW_TOKEN=your-sat-token
+
+# Run the demo
+node examples/basic-call.js`
+        },
+        'markdown': {
+          format: 'markdown', title: "Here's what I found",
+          content:
+`## Top SDK features
+
+- **WebRTC calls** with audio & video
+- **AI transcript** with real-time ASR
+- **Content push** from agent to caller
+
+> Perfect for guided sales and support flows.
+
+Check out the [full documentation](https://developer.signalwire.com/sdks/reference/browser-sdk/) for more.
+
+| Feature | Status |
+|---------|--------|
+| Audio calls | ✅ |
+| Video calls | ✅ |
+| AI transcript | ✅ |
+| Content drawer | ✅ |`
+        },
+        'html': {
+          format: 'html', title: 'Pricing',
+          content: `
+<h2>Plans</h2>
+<table>
+  <thead><tr><th>Plan</th><th>Price</th><th>Minutes</th></tr></thead>
+  <tbody>
+    <tr><td>Starter</td><td>$15/mo</td><td>500</td></tr>
+    <tr><td>Pro</td><td>$49/mo</td><td>2,000</td></tr>
+    <tr><td>Enterprise</td><td>Custom</td><td>Unlimited</td></tr>
+  </tbody>
+</table>
+<p>All plans include <strong>HD audio</strong> and <strong>AI transcription</strong>.</p>
+<p><a href="https://signalwire.com/pricing" target="_blank">See full pricing →</a></p>`
+        },
+        'text': {
+          format: 'text', title: 'Order update',
+          content:
+`Your order #1234 has shipped!
+
+Estimated delivery: Thursday, April 24.
+
+Carrier:   FedEx Ground
+Tracking:  1Z999AA10123456784
+Status:    In transit → Memphis, TN hub`
+        },
+      };
+
+      function show(key, drawerId = 'wide-drawer') {
+        const d = document.getElementById(drawerId);
+        const s = SAMPLES[key];
+        Object.assign(d, { format: s.format, language: s.language ?? '', title: s.title ?? '', content: s.content });
+        d.open = true;
+      }
+
+      function close(wrapperId) {
+        document.getElementById(wrapperId + '-drawer').open = false;
+      }
+
+      document.getElementById('wide').addEventListener('sw-content-drawer-close', () => close('wide'));
+      document.getElementById('narrow').addEventListener('sw-content-drawer-close', () => close('narrow'));
+    </script>
+  </body>
+</html>

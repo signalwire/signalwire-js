@@ -1,0 +1,86 @@
+{
+  "name": "@signalwire/js",
+  "version": "4.0.0-rc.0",
+  "description": "SignalWire Browser SDK",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    },
+    "./operators": {
+      "types": {
+        "import": "./dist/operators/index.d.mts",
+        "require": "./dist/operators/index.d.cts"
+      },
+      "import": "./dist/operators/index.mjs",
+      "require": "./dist/operators/index.cjs"
+    },
+    "./bundle": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/browser.mjs",
+      "browser": "./dist/browser.umd.js",
+      "default": "./dist/browser.mjs"
+    }
+  },
+  "unpkg": "./dist/browser.umd.js",
+  "jsdelivr": "./dist/browser.umd.js",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsdown --watch",
+    "build": "npm run build:main && npm run build:bundle",
+    "build:main": "tsdown",
+    "build:bundle": "tsdown --config tsdown.bundle.config.ts",
+    "build:browser": "npm run build:bundle",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "type-check": "tsc --noEmit",
+    "check:circular": "madge --circular --extensions ts src --warning",
+    "check:circular:error": "madge --circular --extensions ts src",
+    "check:exports": "publint"
+  },
+  "keywords": [
+    "signalwire",
+    "webrtc",
+    "verto",
+    "observable"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "jwt-decode": "^4.0.0",
+    "loglevel": "^1.9.2",
+    "uuid": "^14.0.0"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "@types/ws": "^8.18.1",
+    "@vitest/ui": "^4.0.7",
+    "happy-dom": "^20.9.0",
+    "madge": "^8.0.0",
+    "publint": "^0.3.16",
+    "rxjs": "^7.8.2",
+    "tsdown": "^0.16.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.7",
+    "ws": "^8.18.3"
+  }
+}

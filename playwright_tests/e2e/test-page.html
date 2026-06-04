@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalWire E2E Test Page</title>
+
+    <!-- Polyfill Node.js globals BEFORE loading any modules -->
+    <script>
+        if (typeof process === 'undefined') {
+            globalThis.process = { env: { NODE_ENV: 'production' } };
+        }
+    </script>
+
+    <!-- Import map to redirect Node.js crypto to browser Web Crypto API -->
+    <script type="importmap">
+    {
+      "imports": {
+        "crypto": "data:text/javascript,export function randomUUID(){return crypto.randomUUID()}export function randomFillSync(buf){return crypto.getRandomValues(buf)}export default{randomUUID,randomFillSync}",
+        "node:crypto": "data:text/javascript,export function randomUUID(){return crypto.randomUUID()}export function randomFillSync(buf){return crypto.getRandomValues(buf)}export default{randomUUID,randomFillSync}"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="rootElement"></div>
+
+    <script type="module">
+        try {
+            const { SignalWire, StaticCredentialProvider, setLogLevel, setDebugOptions } = await import('/dist/browser.mjs');
+
+            // Expose SDK classes on window for e2e tests
+            window.SignalWire = SignalWire;
+            window.StaticCredentialProvider = StaticCredentialProvider;
+            window.__setLogLevel = setLogLevel;
+            window.__setDebugOptions = setDebugOptions;
+
+            /**
+             * Wait for the first value from an observable that matches a predicate.
+             * Auto-unsubscribes on match or timeout — no subscription leaks.
+             *
+             * @param {Observable} observable - RxJS-compatible observable
+             * @param {Function} predicate - Returns true when the desired value arrives
+             * @param {number} timeoutMs - Max wait in milliseconds
+             * @param {string} label - Description for the timeout error message
+             * @returns {Promise<T>} The first matching value
+             */
+            window.__waitFor = (observable, predicate, timeoutMs, label) => {
+                return new Promise((resolve, reject) => {
+                    let sub;
+                    let settled = false;
+
+                    const timer = setTimeout(() => {
+                        if (!settled) {
+                            settled = true;
+                            sub?.unsubscribe();
+                            reject(new Error(`${label}: timed out after ${timeoutMs}ms`));
+                        }
+                    }, timeoutMs);
+
+                    sub = observable.subscribe({
+                        next: (value) => {
+                            if (!settled && predicate(value)) {
+                                settled = true;
+                                clearTimeout(timer);
+                                // Defer unsubscribe to avoid calling it during synchronous emission
+                                queueMicrotask(() => sub?.unsubscribe());
+                                resolve(value);
+                            }
+                        },
+                        error: (err) => {
+                            if (!settled) {
+                                settled = true;
+                                clearTimeout(timer);
+                                reject(new Error(`${label}: observable error — ${err}`));
+                            }
+                        },
+                        complete: () => {
+                            if (!settled) {
+                                settled = true;
+                                clearTimeout(timer);
+                                reject(new Error(`${label}: observable completed without matching value`));
+                            }
+                        }
+                    });
+                });
+            };
+        } catch (e) {
+            window.__sdkLoadError = e.message;
+            console.error('SDK load failed:', e);
+        }
+    </script>
+</body>
+</html>

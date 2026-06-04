@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Simple Dialer (allow-text)</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .dialer-layout {
+        display: flex;
+        gap: 24px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .frame {
+        width: 640px;
+        height: 360px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Simple Dialer</h1>
+    <p>
+      <code>&lt;sw-call-dialpad allow-text&gt;</code> accepts free-text
+      destinations (e.g. SIP URIs, room names). On
+      <code>sw-dial</code> this story creates a call and pushes it into
+      <code>&lt;sw-call-provider&gt;</code> — every child component wakes up
+      automatically. Once connected, keypad digits are sent as DTMF by
+      <code>sw-call-dialpad</code>.
+    </p>
+
+    <details>
+      <summary>Key lines</summary>
+      <pre><code>// Listen for dial events from the text-mode dialpad
+dialpad.addEventListener('sw-dial', async (e) =&gt; {
+  const destination = e.detail.digits;
+
+  client = new SignalWire(new StaticCredentialProvider({ token }));
+  await waitForConnection(client);
+
+  call = await client.dial(destination, {
+    audio: true, video: true, receiveAudio: true, receiveVideo: true,
+  });
+
+  // Push into context — sw-call-media, sw-call-status, etc. wake up.
+  provider.call = call;
+});</code></pre>
+    </details>
+
+    <sw-call-provider id="provider">
+      <div class="dialer-layout">
+        <sw-call-dialpad
+          id="dialpad"
+          allow-text
+          show-call-button
+          placeholder="SIP URI or number"
+        ></sw-call-dialpad>
+
+        <div>
+          <div class="frame">
+            <sw-call-media style="width:100%;height:100%;display:block;"></sw-call-media>
+          </div>
+          <div class="toolbar" style="margin-top:8px;align-items:center;">
+            <sw-call-status></sw-call-status>
+            <button id="btn-mic" onclick="toggleMic()" disabled>Mic: ?</button>
+            <button id="btn-cam" onclick="toggleCam()" disabled>Camera: ?</button>
+            <button id="btn-hangup" onclick="hangup()" disabled>Hang Up</button>
+          </div>
+        </div>
+      </div>
+    </sw-call-provider>
+
+    <pre class="log" id="log">Enter a SAT token above, type a destination, press Call.</pre>
+
+    <script type="module">
+      import { SignalWire, StaticCredentialProvider } from '@signalwire/js';
+
+      const provider  = document.getElementById('provider');
+      const dialpad   = document.getElementById('dialpad');
+      const btnMic    = document.getElementById('btn-mic');
+      const btnCam    = document.getElementById('btn-cam');
+      const btnHangup = document.getElementById('btn-hangup');
+      const log       = document.getElementById('log');
+
+      let client = null, call = null, self = null;
+
+      function appendLog(msg) {
+        log.textContent += '\n' + msg;
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function reset() {
+        provider.call = null;
+        call = null; client = null; self = null;
+        btnMic.disabled = true;
+        btnCam.disabled = true;
+        btnHangup.disabled = true;
+        btnMic.textContent = 'Mic: ?';
+        btnCam.textContent = 'Camera: ?';
+      }
+
+      dialpad.addEventListener('sw-dial', async (e) => {
+        const destination = e.detail.digits?.trim();
+        const { token } = window.__SW_CREDS || {};
+        if (!destination) return;
+        if (!token) { appendLog('No SAT token — set one above.'); return; }
+        if (call) { appendLog('Already in a call — hang up first.'); return; }
+
+        appendLog('Connecting...');
+
+        try {
+          client = new SignalWire(new StaticCredentialProvider({ token }));
+
+          await new Promise((resolve, reject) => {
+            const sub = client.isConnected$.subscribe(c => { if (c) { sub.unsubscribe(); resolve(); } });
+            setTimeout(() => reject(new Error('Connection timeout after 15 s')), 15_000);
+          });
+
+          appendLog('Connected. Dialing "' + destination + '"...');
+
+          call = await client.dial(destination, {
+            audio: true, video: true, receiveAudio: true, receiveVideo: true,
+          });
+
+          provider.call = call;
+          btnHangup.disabled = false;
+
+          call.status$.subscribe(status => {
+            appendLog('status → ' + status);
+            if (['disconnected', 'destroyed', 'failed'].includes(status)) {
+              client?.destroy();
+              reset();
+            }
+          });
+
+          let muteSubs = [];
+          call.self$.subscribe(s => {
+            muteSubs.forEach(sub => sub.unsubscribe());
+            muteSubs = [];
+            self = s;
+            if (!s) {
+              btnMic.disabled = true;
+              btnCam.disabled = true;
+              return;
+            }
+            btnMic.disabled = false;
+            btnCam.disabled = false;
+            muteSubs.push(
+              s.audioMuted$.subscribe(m => { btnMic.textContent = 'Mic: ' + (m ? 'off' : 'on'); }),
+              s.videoMuted$.subscribe(m => { btnCam.textContent = 'Camera: ' + (m ? 'off' : 'on'); }),
+            );
+          });
+        } catch (err) {
+          appendLog('Error: ' + err.message);
+          reset();
+        }
+      });
+
+      window.toggleMic = () => self?.toggleMute();
+      window.toggleCam = () => self?.toggleMuteVideo();
+      window.hangup    = () => call?.hangup();
+    </script>
+  </body>
+</html>

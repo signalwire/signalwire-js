@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Full Call Layout</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      /* Component themes — CSS custom properties exposed by layout/control-bar/transcript */
+      .theme-capsule {
+        --sw-bar-bg: rgba(0,0,0,0.5);
+        --sw-bar-padding: 6px 12px;
+        --sw-bar-gap: 6px;
+        --sw-bar-radius: 9999px;
+        --sw-btn-width: 56px;
+        --sw-btn-height: 36px;
+        --sw-btn-radius: 9999px;
+        --sw-btn-bg: rgba(255,255,255,0.1);
+        --sw-btn-bg-hover: rgba(255,255,255,0.2);
+        --sw-btn-color: #fff;
+        --sw-hangup-bg: #ef4444;
+        --sw-hangup-bg-hover: #dc2626;
+      }
+      .theme-light {
+        --sw-bar-bg: #f9fafb;
+        --sw-bar-padding: 10px 20px;
+        --sw-bar-radius: 0;
+        --sw-btn-bg: #e5e7eb;
+        --sw-btn-bg-hover: #d1d5db;
+        --sw-btn-color: #374151;
+        --sw-btn-size: 42px;
+        --sw-btn-radius: 10px;
+        --sw-hangup-bg: #ef4444;
+        --sw-hangup-bg-hover: #dc2626;
+        --sw-hangup-color: #fff;
+        --sw-transcript-bg: #f9fafb;
+        --sw-transcript-fg: #1f2937;
+        --sw-transcript-user-bg: #2563eb;
+        --sw-transcript-agent-bg: #e5e7eb;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Full Call Layout (real control-bar + transcript)</h1>
+
+    <div class="toolbar">
+      <button id="btn-theme-default" class="on" onclick="setTheme('')">Default</button>
+      <button id="btn-theme-capsule" onclick="setTheme('theme-capsule')">Capsule</button>
+      <button id="btn-theme-light" onclick="setTheme('theme-light')">Light</button>
+    </div>
+
+    <div class="resizable" style="width: 700px; height: 420px;">
+      <sw-ui-call-layout id="layout" transcript shadow style="--roundness: 10px;">
+        <sw-ui-background slot="background" default></sw-ui-background>
+        <div slot="video" class="slot-video">Remote Video</div>
+        <sw-ui-control-bar id="bar" slot="controls"></sw-ui-control-bar>
+        <sw-ui-transcript-view id="tv" slot="transcript"></sw-ui-transcript-view>
+      </sw-ui-call-layout>
+    </div>
+
+    <script>
+      const layout = document.getElementById('layout');
+      const bar = document.getElementById('bar');
+
+      bar.micDevices = [{ id: 'mic-1', label: 'Microphone', selected: true }];
+      bar.cameraDevices = [{ id: 'cam-1', label: 'Camera', selected: true }];
+      bar.speakerDevices = [{ id: 'spk-1', label: 'Speakers', selected: true }];
+
+      bar.addEventListener('sw-fullscreen-toggle', () => layout.toggleFullscreen());
+
+      document.getElementById('tv').entries = [
+        { id: '1', type: 'agent', state: 'complete', text: 'Hello! How can I help?' },
+        { id: '2', type: 'user', state: 'complete', text: 'Testing the layout with themes.' },
+        { id: '3', type: 'agent', state: 'complete', text: 'Try switching themes above — CSS custom properties cascade through.' },
+      ];
+
+      const themes = ['theme-capsule', 'theme-light'];
+      function setTheme(cls) {
+        themes.forEach(t => layout.classList.remove(t));
+        if (cls) layout.classList.add(cls);
+        const active = cls ? cls.replace('theme-', '') : 'default';
+        ['default', 'capsule', 'light'].forEach(name => {
+          document.getElementById('btn-theme-' + name).classList.toggle('on', name === active);
+        });
+      }
+    </script>
+  </body>
+</html>

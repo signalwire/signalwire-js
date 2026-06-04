@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-audio-level — mic visualizer</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+    <style>
+      .panel {
+        background: #0d0e1a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius-md);
+        padding: var(--sp-4);
+        color: rgba(255, 255, 255, 0.85);
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-3);
+        max-width: 420px;
+      }
+      .panel p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.75rem;
+      }
+      .meter {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-3);
+        padding: var(--sp-3);
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: var(--radius-sm);
+      }
+      .meter span {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.4);
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>sw-audio-level — mic visualizer</h1>
+    <p class="label">
+      Pick a microphone, watch the live level. Visualizer reopens the stream with
+      <code>{ deviceId: { exact } }</code> when you switch mics.
+    </p>
+
+    <div class="panel">
+      <sw-device-selector id="dev-sel"></sw-device-selector>
+
+      <div class="meter">
+        <span>Level</span>
+        <sw-audio-level id="mic-level" bars="9" orientation="horizontal" maxSize="24"></sw-audio-level>
+      </div>
+    </div>
+
+    <script type="module">
+      import { BehaviorSubject } from 'rxjs';
+
+      function makeRealDeviceController() {
+        const audioInputDevices$ = new BehaviorSubject([]);
+        const videoInputDevices$ = new BehaviorSubject([]);
+        const audioOutputDevices$ = new BehaviorSubject([]);
+        const selectedAudioInputDevice$ = new BehaviorSubject(null);
+        const selectedVideoInputDevice$ = new BehaviorSubject(null);
+        const selectedAudioOutputDevice$ = new BehaviorSubject(null);
+
+        async function refresh() {
+          const all = await navigator.mediaDevices.enumerateDevices();
+          const mics = all.filter((d) => d.kind === 'audioinput');
+          const cameras = all.filter((d) => d.kind === 'videoinput');
+          const speakers = all.filter((d) => d.kind === 'audiooutput');
+
+          audioInputDevices$.next(mics);
+          videoInputDevices$.next(cameras);
+          audioOutputDevices$.next(speakers);
+
+          if (!selectedAudioInputDevice$.value && mics.length) selectedAudioInputDevice$.next(mics[0]);
+          if (!selectedVideoInputDevice$.value && cameras.length) selectedVideoInputDevice$.next(cameras[0]);
+          if (!selectedAudioOutputDevice$.value && speakers.length) selectedAudioOutputDevice$.next(speakers[0]);
+        }
+
+        navigator.mediaDevices.addEventListener('devicechange', refresh);
+
+        return {
+          audioInputDevices$,
+          videoInputDevices$,
+          audioOutputDevices$,
+          selectedAudioInputDevice$,
+          selectedVideoInputDevice$,
+          selectedAudioOutputDevice$,
+          selectAudioInputDevice: (d) => selectedAudioInputDevice$.next(d),
+          selectVideoInputDevice: (d) => selectedVideoInputDevice$.next(d),
+          selectAudioOutputDevice: (d) => selectedAudioOutputDevice$.next(d),
+          refresh,
+        };
+      }
+
+      const dc = makeRealDeviceController();
+      const devSel = document.getElementById('dev-sel');
+      devSel.deviceController = dc;
+
+      const micLevel = document.getElementById('mic-level');
+      let micStream = null;
+
+      async function openMic(deviceId) {
+        if (micStream) micStream.getTracks().forEach((t) => t.stop());
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: deviceId ? { deviceId: { exact: deviceId } } : true,
+          });
+          micLevel.stream = micStream;
+        } catch {
+          micStream = null;
+          micLevel.stream = null;
+        }
+      }
+
+      devSel.addEventListener('sw-device-change', (e) => {
+        const { type, device } = e.detail;
+        if (type === 'microphone') openMic(device.deviceId);
+      });
+
+      await openMic();
+      await dc.refresh();
+    </script>
+  </body>
+</html>

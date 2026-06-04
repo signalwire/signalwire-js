@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Test Page</title>
+
+    <!-- Polyfill Node.js globals BEFORE loading any modules -->
+    <script>
+        if (typeof process === 'undefined') {
+            globalThis.process = { env: { NODE_ENV: 'production' } };
+        }
+    </script>
+
+    <!-- Import map to redirect Node.js crypto to browser Web Crypto API -->
+    <script type="importmap">
+    {
+      "imports": {
+        "crypto": "data:text/javascript,export function randomUUID(){return crypto.randomUUID()}export function randomFillSync(buf){return crypto.getRandomValues(buf)}export default{randomUUID,randomFillSync}",
+        "node:crypto": "data:text/javascript,export function randomUUID(){return crypto.randomUUID()}export function randomFillSync(buf){return crypto.getRandomValues(buf)}export default{randomUUID,randomFillSync}"
+      }
+    }
+    </script>
+</head>
+<body>
+    <h1>WebRTC Peer Connection Test</h1>
+    <div id="status">Ready for testing...</div>
+
+    <!-- Import browser bundle as ES module -->
+    <script type="module">
+        // Pre-load the module so it's available when tests need it
+        import * as controller from '/dist/browser.mjs';
+        console.log('RTCPeerConnectionController loaded and ready');
+    </script>
+</body>
+</html>

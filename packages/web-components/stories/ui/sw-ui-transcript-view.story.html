@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>sw-ui-transcript-view</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <h1>sw-ui-transcript-view</h1>
+
+    <!-- ── Live conversation ─────────────────────────────────────────── -->
+
+    <h2>Live playback — partial ASR + agent stream</h2>
+    <div class="toolbar">
+      <button id="btn-play" onclick="togglePlayback()">Start</button>
+      <button onclick="resetConversation()">Reset</button>
+    </div>
+
+    <div class="frame" style="width:300px; height:420px;">
+      <sw-ui-transcript-view id="tv"></sw-ui-transcript-view>
+    </div>
+
+    <!-- ── Rich content (meta.links + meta.code) ─────────────────────── -->
+
+    <h2>Rich content — code samples &amp; links</h2>
+    <p class="label">
+      Agent entries carry an optional <code>meta</code> field with
+      <code>code</code> and/or <code>links</code>.
+      The backend sends these via <code>ai.completion</code> with
+      <code>params.meta = &#123; code: &#123;…&#125;, links: […] &#125;</code>.
+    </p>
+
+    <div class="toolbar">
+      <button onclick="appendCode()">+ code snippet</button>
+      <button onclick="appendLinks()">+ links</button>
+      <button onclick="appendBoth()">+ code + links</button>
+      <button onclick="resetRich()">Reset</button>
+    </div>
+
+    <div class="frame" style="width:340px; height:480px;">
+      <sw-ui-transcript-view id="rich-tv"></sw-ui-transcript-view>
+    </div>
+
+    <!-- ── display_content user_event entries ──────────────────────────── -->
+
+    <h2>display_content (user_event popup) — serializable system entries</h2>
+    <p class="label">
+      When the agent fires a <code>display_content</code> user_event the widget shows
+      the content in the drawer <em>and</em> injects a system entry into the transcript
+      so it is included in the download. Buttons below simulate that injection.
+    </p>
+
+    <div class="toolbar">
+      <button onclick="appendDcMarkdown()">+ markdown popup</button>
+      <button onclick="appendDcCode()">+ code popup</button>
+      <button onclick="appendDcText()">+ text popup</button>
+      <button onclick="resetDc()">Reset</button>
+      <button onclick="downloadDc()">⬇ Download</button>
+    </div>
+
+    <div class="frame" style="width:340px; height:500px;">
+      <sw-ui-transcript-view id="dc-tv"></sw-ui-transcript-view>
+    </div>
+
+    <!-- ── Empty states ──────────────────────────────────────────────── -->
+
+    <h2>Empty states</h2>
+    <div class="grid">
+      <div>
+        <p class="label">default</p>
+        <div class="frame" style="width:260px; height:160px;">
+          <sw-ui-transcript-view></sw-ui-transcript-view>
+        </div>
+      </div>
+      <div>
+        <p class="label">custom header + placeholder</p>
+        <div class="frame" style="width:260px; height:160px;">
+          <sw-ui-transcript-view header="Captions" empty-text="Waiting for speech…"></sw-ui-transcript-view>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ── Live playback ──────────────────────────────────────────────────
+
+      const SCRIPT = [
+        { type: 'agent', state: 'complete', text: 'Hello! How can I help?' },
+        { type: 'user',  state: 'complete', text: 'I have a question about my account.' },
+        { type: 'agent', state: 'complete', text: 'Sure, happy to help.' },
+        { type: 'user',  state: 'complete', text: 'What plan am I on?' },
+        { type: 'agent', state: 'complete', text: "You're on the Business plan." },
+      ];
+
+      const tv = document.getElementById('tv');
+      let entries = [], cursor = 0, playing = false, timer = null;
+
+      function update() { tv.entries = [...entries]; }
+
+      function addNext() {
+        if (cursor >= SCRIPT.length) {
+          playing = false; clearInterval(timer); timer = null;
+          document.getElementById('btn-play').textContent = 'Start';
+          return;
+        }
+        const line = SCRIPT[cursor++];
+        if (line.type === 'user') {
+          const id = crypto.randomUUID();
+          const words = line.text.split(' ');
+          entries = [...entries, { id, type: 'user', state: 'partial', text: words.slice(0, 3).join(' ') + '…' }];
+          update();
+          setTimeout(() => {
+            entries = entries.map(e => e.id === id ? { ...e, text: line.text, state: 'complete' } : e);
+            update();
+          }, 400);
+        } else {
+          entries = [...entries, { id: crypto.randomUUID(), ...line }];
+          update();
+        }
+      }
+
+      function togglePlayback() {
+        const btn = document.getElementById('btn-play');
+        if (cursor >= SCRIPT.length) { resetConversation(); return; }
+        if (playing) {
+          playing = false; clearInterval(timer); timer = null; btn.textContent = 'Resume';
+        } else {
+          playing = true; btn.textContent = 'Pause'; addNext(); timer = setInterval(addNext, 1500);
+        }
+      }
+
+      function resetConversation() {
+        playing = false; clearInterval(timer); timer = null;
+        entries = []; cursor = 0;
+        document.getElementById('btn-play').textContent = 'Start';
+        update();
+      }
+
+      // ── Rich content ───────────────────────────────────────────────────
+      // meta.code and meta.links come from params.meta on ai.completion events.
+
+      const richTv = document.getElementById('rich-tv');
+
+      let richEntries = [{
+        id: crypto.randomUUID(),
+        type: 'user',
+        state: 'complete',
+        text: 'How do I start a call with the SignalWire SDK?',
+      }];
+
+      function updateRich() { richTv.entries = [...richEntries]; }
+      updateRich();
+
+      function appendCode() {
+        richEntries = [...richEntries, {
+          id: crypto.randomUUID(),
+          type: 'agent',
+          state: 'complete',
+          text: "Here's a minimal dial snippet:",
+          meta: {
+            code: {
+              language: 'typescript',
+              content:
+`import { SignalWire } from '@signalwire/js';
+
+const client = new SignalWire({ token: 'YOUR_SAT' });
+
+const call = await client.dial(destination, {
+  audio: true, video: true,
+});`,
+            },
+          },
+        }];
+        updateRich();
+      }
+
+      function appendLinks() {
+        richEntries = [...richEntries, {
+          id: crypto.randomUUID(),
+          type: 'agent',
+          state: 'complete',
+          text: 'Relevant documentation:',
+          meta: {
+            links: [
+              { label: 'JS SDK docs',   url: 'https://developer.signalwire.com/sdks/reference/browser-sdk/' },
+              { label: 'API reference', url: 'https://developer.signalwire.com/rest/' },
+              { label: 'GitHub',        url: 'https://github.com/signalwire/signalwire-js' },
+            ],
+          },
+        }];
+        updateRich();
+      }
+
+      function appendBoth() {
+        richEntries = [...richEntries, {
+          id: crypto.randomUUID(),
+          type: 'agent',
+          state: 'complete',
+          text: 'Pass audio/video constraints and an optional destination:',
+          meta: {
+            code: {
+              language: 'typescript',
+              content:
+`const call = await client.dial(destination, {
+  audio: true,
+  video: true,
+  receiveAudio: true,
+  receiveVideo: true,
+});`,
+            },
+            links: [
+              { label: 'dial() reference', url: 'https://developer.signalwire.com/sdks/reference/browser-sdk/core/signaliwre#dial' },
+            ],
+          },
+        }];
+        updateRich();
+      }
+
+      function resetRich() {
+        richEntries = [{
+          id: crypto.randomUUID(),
+          type: 'user',
+          state: 'complete',
+          text: 'How do I start a call with the SignalWire SDK?',
+        }];
+        updateRich();
+      }
+
+      // ── display_content ────────────────────────────────────────────────
+      // Simulates what SwCallWidget._onDisplayContent injects into the transcript
+      // when the agent fires a display_content user_event.
+
+      const dcTv = document.getElementById('dc-tv');
+      let dcEntries = [
+        { id: crypto.randomUUID(), type: 'user', state: 'complete', text: 'Can you show me the getting-started guide?' },
+        { id: crypto.randomUUID(), type: 'agent', state: 'complete', text: 'Sure! Opening the guide now.' },
+      ];
+
+      function updateDc() { dcTv.entries = [...dcEntries]; }
+      updateDc();
+
+      function appendDcMarkdown() {
+        dcEntries = [...dcEntries, {
+          id: crypto.randomUUID(),
+          type: 'system',
+          state: 'complete',
+          text: 'Getting Started Guide',
+          meta: {
+            displayContent: {
+              title: 'Getting Started Guide',
+              format: 'markdown',
+              content:
+`# Getting Started
+
+Welcome to SignalWire!
+
+1. Create a **project** in the dashboard
+2. Grab your **SAT token**
+3. Install the SDK
+
+\`\`\`bash
+npm install @signalwire/js
+\`\`\`
+
+Then dial your first call:
+
+\`\`\`typescript
+const client = new SignalWire({ token: 'YOUR_SAT' });
+const call = await client.dial('/public/test-room', { audio: true });
+\`\`\``,
+            },
+          },
+        }];
+        updateDc();
+      }
+
+      function appendDcCode() {
+        dcEntries = [...dcEntries, {
+          id: crypto.randomUUID(),
+          type: 'system',
+          state: 'complete',
+          text: 'Example: dial() snippet',
+          meta: {
+            displayContent: {
+              title: 'Example: dial() snippet',
+              format: 'code',
+              language: 'typescript',
+              content:
+`import { SignalWire } from '@signalwire/js';
+
+const client = new SignalWire({ token: 'YOUR_SAT' });
+
+const call = await client.dial('/public/test-room', {
+  audio: true,
+  video: true,
+  receiveAudio: true,
+  receiveVideo: true,
+});
+
+call.status$.subscribe(status => console.log('Status:', status));`,
+            },
+          },
+        }];
+        updateDc();
+      }
+
+      function appendDcText() {
+        dcEntries = [...dcEntries, {
+          id: crypto.randomUUID(),
+          type: 'system',
+          state: 'complete',
+          text: 'Support note',
+          meta: {
+            displayContent: {
+              title: 'Support note',
+              format: 'text',
+              content: 'Your trial expires in 7 days. Visit the dashboard to upgrade your plan before service is interrupted.',
+            },
+          },
+        }];
+        updateDc();
+      }
+
+      function resetDc() {
+        dcEntries = [
+          { id: crypto.randomUUID(), type: 'user', state: 'complete', text: 'Can you show me the getting-started guide?' },
+          { id: crypto.randomUUID(), type: 'agent', state: 'complete', text: 'Sure! Opening the guide now.' },
+        ];
+        updateDc();
+      }
+
+      async function downloadDc() {
+        // Import the serializer directly from the source tree for the story.
+        const { transcriptToMarkdown } = await import('/src/utils/transcriptToMarkdown.ts');
+        const md = transcriptToMarkdown(dcTv.entries);
+        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transcript-demo-${new Date().toISOString().slice(0, 10)}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </body>
+</html>

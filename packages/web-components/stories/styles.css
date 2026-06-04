@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import '../src/theme.css';
+
+/* Shared story styles — token-driven via src/theme.css */
+html {
+  background: var(--bg-page);
+  color: var(--fg-default);
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+body {
+  font-family: var(--type-family-body);
+  font-size: var(--type-size-body);
+  line-height: var(--type-line-height-body);
+  color: var(--fg-default);
+  background: var(--bg-page);
+  padding: var(--sp-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1, h2, h3 {
+  font-family: var(--type-family-heading);
+  font-weight: var(--type-weight-heading);
+  letter-spacing: var(--type-letter-spacing-heading);
+  line-height: var(--type-line-height-heading);
+  color: var(--fg-headings);
+}
+h1 { font-size: var(--type-size-h3); margin-bottom: var(--sp-4); }
+h2 { font-size: var(--type-size-small); color: var(--fg-muted); margin: var(--sp-6) 0 var(--sp-2); text-transform: uppercase; letter-spacing: var(--type-letter-spacing-eyebrow); }
+
+code, pre, .label {
+  font-family: var(--type-family-code);
+}
+
+.frame {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+}
+.resizable {
+  resize: both;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: #000;
+}
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: flex-start;
+}
+.toolbar {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+.toolbar button {
+  font-family: var(--type-family-body);
+  font-weight: var(--type-weight-medium);
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--fg-default);
+  cursor: pointer;
+  font-size: var(--type-size-small);
+  transition: var(--transition-fast);
+}
+.toolbar button:hover {
+  border-color: var(--sw-blue);
+  color: var(--sw-blue);
+}
+.toolbar button.on {
+  background: var(--sw-blue);
+  border-color: var(--sw-blue);
+  color: #fff;
+}
+.label {
+  font-size: var(--type-size-caption);
+  color: var(--fg-muted);
+  margin-bottom: var(--sp-1);
+}
+
+/* Slot placeholders for layout demos (visible against dark layout background) */
+.slot-video {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.15); font-size: var(--type-size-small);
+}
+.slot-pip {
+  width: 80px; aspect-ratio: 16/9;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.55rem; color: rgba(255,255,255,0.3);
+}
+.slot-controls {
+  padding: var(--sp-2) var(--sp-4);
+  background: rgba(0,0,0,0.85);
+  color: rgba(255,255,255,0.5);
+  text-align: center; font-size: var(--type-size-caption);
+}
+.slot-transcript {
+  height: 100%; padding: var(--sp-3);
+  background: #0d0d1a;
+  color: rgba(255,255,255,0.4);
+  font-size: var(--type-size-caption);
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: var(--sp-1);
+}
+
+pre.log {
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--cb-bg);
+  color: var(--cb-fg);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-size-caption);
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}

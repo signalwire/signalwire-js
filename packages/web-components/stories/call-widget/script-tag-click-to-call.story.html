@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Embed — sw-click-to-call</title>
+    <link rel="stylesheet" href="../styles.css" />
+
+    <!--
+      ┌─────────────────────────────────────────────────────────────────────┐
+      │  EMBED BUNDLE                                                        │
+      │  One script tag. Registers all custom elements. No bundler needed.  │
+      │  window.SignalWireUI exposes SDK classes for programmatic use.       │
+      └─────────────────────────────────────────────────────────────────────┘
+    -->
+    <script src="/dist/embed/signalwire-web-components-embed.iife.js"></script>
+
+    <style>
+      /* ── page chrome ───────────────────────────────────────── */
+      .section {
+        margin: 28px 0;
+      }
+
+      /* ── code snippet display ─────────────────────────────── */
+      .snippet {
+        background: #0d0e1a;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-family: 'Menlo', 'Consolas', monospace;
+        font-size: 0.78rem;
+        color: #c8d3f5;
+        line-height: 1.6;
+        white-space: pre;
+        overflow-x: auto;
+        margin: 8px 0 16px;
+      }
+      .snippet .attr  { color: #7aa2f7; }
+      .snippet .str   { color: #9ece6a; }
+      .snippet .tag   { color: #f7768e; }
+      .snippet .cmt   { color: rgba(255,255,255,0.28); }
+
+      /* ── live demo boxes ──────────────────────────────────── */
+      .demo-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+      .demo-card {
+        background: #0d0e1a;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .demo-card .card-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Embed — sw-click-to-call</h1>
+    <p class="label">
+      The simplest SignalWire embed. One script tag + one custom element —
+      no JavaScript required to get a working call button.
+    </p>
+
+    <!-- ── 1. Zero-config ────────────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>Zero-config usage</h2>
+      <p class="label">
+        Drop this anywhere on your page. Clicking the button opens a modal call widget,
+        dials the destination, and shows video + controls — all self-contained.
+      </p>
+
+      <div class="snippet"><span class="cmt">&lt;!-- 1. Load the embed bundle (once, in &lt;head&gt;) --&gt;</span>
+<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="str">"/dist/embed/signalwire-web-components-embed.iife.js"</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="cmt">&lt;!-- 2. Place the button anywhere in &lt;body&gt; --&gt;</span>
+<span class="tag">&lt;sw-click-to-call</span>
+  <span class="attr">token</span>=<span class="str">"c2c_your_token_here"</span>
+  <span class="attr">destination</span>=<span class="str">"/public/test-room"</span>
+  <span class="attr">label</span>=<span class="str">"Call Us"</span>
+<span class="tag">&gt;&lt;/sw-click-to-call&gt;</span></div>
+
+      <div class="demo-row">
+        <div class="demo-card">
+          <span class="card-label">live demo</span>
+          <sw-click-to-call
+            token="%VITE_C2C_TOKEN%"
+            destination="%VITE_C2C_DEST%"
+            label="Call Us"
+          ></sw-click-to-call>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 2. CSS customisation ──────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>CSS custom properties</h2>
+      <p class="label">
+        The button colour, size, and shape are fully themeable via CSS custom properties.
+        Set them on the element or any ancestor selector.
+      </p>
+
+      <div class="snippet"><span class="tag">&lt;sw-click-to-call</span>
+  <span class="attr">token</span>=<span class="str">"c2c_…"</span>  <span class="attr">destination</span>=<span class="str">"/public/test-room"</span>  <span class="attr">label</span>=<span class="str">"Sales"</span>
+  <span class="attr">style</span>=<span class="str">"--sw-c2c-bg:#7c3aed; --sw-c2c-bg-hover:#6d28d9; --sw-c2c-radius:100px;"</span>
+<span class="tag">&gt;&lt;/sw-click-to-call&gt;</span></div>
+
+      <div class="demo-row">
+        <div class="demo-card">
+          <span class="card-label">primary (default)</span>
+          <sw-click-to-call
+            token="%VITE_C2C_TOKEN%"
+            destination="%VITE_C2C_DEST%"
+            label="Support"
+          ></sw-click-to-call>
+        </div>
+
+        <div class="demo-card">
+          <span class="card-label">purple · pill shape</span>
+          <sw-click-to-call
+            token="%VITE_C2C_TOKEN%"
+            destination="%VITE_C2C_DEST%"
+            label="Sales"
+            style="--sw-c2c-bg:#7c3aed; --sw-c2c-bg-hover:#6d28d9; --sw-c2c-radius:100px;"
+          ></sw-click-to-call>
+        </div>
+
+        <div class="demo-card">
+          <span class="card-label">blue · square</span>
+          <sw-click-to-call
+            token="%VITE_C2C_TOKEN%"
+            destination="%VITE_C2C_DEST%"
+            label="Tech Help"
+            style="--sw-c2c-bg:#0ea5e9; --sw-c2c-bg-hover:#0284c7; --sw-c2c-radius:4px; --sw-c2c-font-size:14px;"
+          ></sw-click-to-call>
+        </div>
+
+        <div class="demo-card">
+          <span class="card-label">rose · large</span>
+          <sw-click-to-call
+            token="%VITE_C2C_TOKEN%"
+            destination="%VITE_C2C_DEST%"
+            label="Talk to Us"
+            style="--sw-c2c-bg:#e11d48; --sw-c2c-bg-hover:#be123c; --sw-c2c-font-size:18px; --sw-c2c-padding:16px 28px;"
+          ></sw-click-to-call>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. Event handling ─────────────────────────────────────────── -->
+
+    <div class="section">
+      <h2>Listening to events</h2>
+      <p class="label">
+        <code>sw-dial</code> fires when a call starts. <code>sw-hangup</code> fires when it ends.
+        Both bubble and cross shadow DOM — listen on the element or any ancestor.
+      </p>
+
+      <div class="snippet"><span class="tag">&lt;sw-click-to-call</span> <span class="attr">id</span>=<span class="str">"c2c"</span> <span class="attr">token</span>=<span class="str">"c2c_…"</span> <span class="attr">destination</span>=<span class="str">"/public/test-room"</span><span class="tag">&gt;&lt;/sw-click-to-call&gt;</span>
+
+<span class="tag">&lt;script&gt;</span>
+  document.getElementById(<span class="str">'c2c'</span>).addEventListener(<span class="str">'sw-dial'</span>, (e) => {
+    console.log(<span class="str">'call started'</span>, e.detail);
+  });
+  document.getElementById(<span class="str">'c2c'</span>).addEventListener(<span class="str">'sw-call-hangup'</span>, () => {
+    console.log(<span class="str">'call ended'</span>);
+  });
+<span class="tag">&lt;/script&gt;</span></div>
+
+      <div class="demo-row">
+        <div class="demo-card">
+          <span class="card-label">live — watch the event log</span>
+          <sw-click-to-call
+            id="c2c-events"
+            token="%VITE_C2C_TOKEN%"
+            destination="%VITE_C2C_DEST%"
+            label="Start Call"
+          ></sw-click-to-call>
+        </div>
+      </div>
+
+      <pre class="log" id="event-log">Events will appear here when you start and end a call…</pre>
+    </div>
+
+    <!-- ── 4. Programmatic control ───────────────────────────────────── -->
+
+    <div class="section">
+      <h2>Programmatic open / close</h2>
+      <p class="label">
+        <code>window.SignalWireUI</code> exposes <code>SignalWire</code>,
+        <code>StaticCredentialProvider</code>, and <code>EmbedTokenCredentialProvider</code>
+        for scripts that need to do more than click a button.
+        The widget's <code>.dial()</code> and <code>.hangup()</code> methods are also public.
+      </p>
+
+      <div class="snippet"><span class="cmt">// Classes available after the IIFE loads</span>
+const { SignalWire, EmbedTokenCredentialProvider } = window.SignalWireUI;
+
+<span class="cmt">// Or call dial/hangup on the element directly</span>
+document.querySelector(<span class="str">'sw-click-to-call'</span>)
+  .querySelector(<span class="str">'sw-call-widget'</span>)
+  .dial();</div>
+    </div>
+
+    <script>
+      // ── Event log ────────────────────────────────────────────────────────────
+      const logEl = document.getElementById('event-log');
+
+      function appendLog(msg) {
+        const ts = new Date().toLocaleTimeString();
+        logEl.textContent = `[${ts}]  ${msg}\n` + logEl.textContent.slice(0, 800);
+      }
+
+      const c2cEl = document.getElementById('c2c-events');
+      c2cEl.addEventListener('sw-dial', (e) => {
+        appendLog(`sw-dial  →  ${JSON.stringify(e.detail ?? {})}`);
+      });
+      c2cEl.addEventListener('sw-call-hangup', () => {
+        appendLog('sw-call-hangup  →  call ended');
+      });
+    </script>
+  </body>
+</html>

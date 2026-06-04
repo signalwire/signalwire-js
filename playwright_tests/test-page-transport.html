@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalWire Transport Bug Tests</title>
+
+    <!-- Polyfill Node.js globals BEFORE loading any modules -->
+    <script>
+        if (typeof process === 'undefined') {
+            globalThis.process = { env: { NODE_ENV: 'production' } };
+        }
+    </script>
+
+    <!-- Import map to redirect Node.js crypto to browser Web Crypto API -->
+    <script type="importmap">
+    {
+      "imports": {
+        "crypto": "data:text/javascript,export function randomUUID(){return crypto.randomUUID()}export function randomFillSync(buf){return crypto.getRandomValues(buf)}export default{randomUUID,randomFillSync}",
+        "node:crypto": "data:text/javascript,export function randomUUID(){return crypto.randomUUID()}export function randomFillSync(buf){return crypto.getRandomValues(buf)}export default{randomUUID,randomFillSync}"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="rootElement"></div>
+
+    <script type="module">
+        try {
+            const SDK = await import('/dist/browser.mjs');
+
+            // Expose SDK classes on window for Playwright tests
+            window.SignalWire = SDK.SignalWire;
+            window.StaticCredentialProvider = SDK.StaticCredentialProvider;
+
+            /**
+             * MockWebSocket — minimal WebSocket mock controllable from Playwright.
+             *
+             * Implements enough of the WebSocket API for the SDK's
+             * WebSocketController to use it as a transport:
+             *   - constructor(url) sets readyState to CONNECTING
+             *   - addEventListener / removeEventListener for open, close, message, error
+             *   - send() stores messages for later inspection
+             *   - close() triggers handleClose
+             *   - simulateOpen/Close/Message/Error for test control
+             *
+             * The static `instances` array lets tests access the most recent
+             * mock after the SDK constructs one internally.
+             */
+            class MockWebSocket {
+                static CONNECTING = 0;
+                static OPEN = 1;
+                static CLOSING = 2;
+                static CLOSED = 3;
+                static instances = [];
+
+                constructor(url) {
+                    this.url = url;
+                    this.readyState = MockWebSocket.CONNECTING;
+                    this._listeners = { open: [], close: [], message: [], error: [] };
+                    this._sentMessages = [];
+                    MockWebSocket.instances.push(this);
+                }
+
+                addEventListener(type, callback) {
+                    if (this._listeners[type]) {
+                        this._listeners[type].push(callback);
+                    }
+                }
+
+                removeEventListener(type, callback) {
+                    if (this._listeners[type]) {
+                        this._listeners[type] = this._listeners[type].filter(cb => cb !== callback);
+                    }
+                }
+
+                send(data) {
+                    this._sentMessages.push(data);
+                }
+
+                close(code, reason) {
+                    if (this.readyState === MockWebSocket.CLOSED) return;
+                    this.readyState = MockWebSocket.CLOSED;
+                    const event = new CloseEvent('close', {
+                        code: code || 1000,
+                        reason: reason || '',
+                        wasClean: true
+                    });
+                    this._emit('close', event);
+                }
+
+                // ── Test control methods ──
+
+                simulateOpen() {
+                    this.readyState = MockWebSocket.OPEN;
+                    this._emit('open', new Event('open'));
+                }
+
+                simulateMessage(data) {
+                    const event = new MessageEvent('message', { data });
+                    this._emit('message', event);
+                }
+
+                simulateClose(code) {
+                    this.readyState = MockWebSocket.CLOSED;
+                    const event = new CloseEvent('close', {
+                        code: code || 1000,
+                        reason: '',
+                        wasClean: code === 1000
+                    });
+                    this._emit('close', event);
+                }
+
+                simulateError() {
+                    this._emit('error', new Event('error'));
+                }
+
+                getSentMessages() {
+                    return this._sentMessages.slice();
+                }
+
+                getLastSentMessage() {
+                    return this._sentMessages[this._sentMessages.length - 1] || null;
+                }
+
+                // ── Internal ──
+
+                _emit(type, event) {
+                    const listeners = this._listeners[type] || [];
+                    for (const listener of listeners) {
+                        try {
+                            listener(event);
+                        } catch (e) {
+                            console.error(`MockWebSocket: listener error for "${type}":`, e);
+                        }
+                    }
+                }
+            }
+
+            window.MockWebSocket = MockWebSocket;
+
+            /**
+             * Wait for the first value from an observable that matches a predicate.
+             * Auto-unsubscribes on match or timeout.
+             */
+            window.__waitFor = (observable, predicate, timeoutMs, label) => {
+                return new Promise((resolve, reject) => {
+                    let sub;
+                    let settled = false;
+
+                    const timer = setTimeout(() => {
+                        if (!settled) {
+                            settled = true;
+                            sub?.unsubscribe();
+                            reject(new Error(`${label}: timed out after ${timeoutMs}ms`));
+                        }
+                    }, timeoutMs);
+
+                    sub = observable.subscribe({
+                        next: (value) => {
+                            if (!settled && predicate(value)) {
+                                settled = true;
+                                clearTimeout(timer);
+                                queueMicrotask(() => sub?.unsubscribe());
+                                resolve(value);
+                            }
+                        },
+                        error: (err) => {
+                            if (!settled) {
+                                settled = true;
+                                clearTimeout(timer);
+                                reject(new Error(`${label}: observable error - ${err}`));
+                            }
+                        },
+                        complete: () => {
+                            if (!settled) {
+                                settled = true;
+                                clearTimeout(timer);
+                                reject(new Error(`${label}: observable completed without matching value`));
+                            }
+                        }
+                    });
+                });
+            };
+
+            /**
+             * Helper: create a signalwire.connect JSON-RPC response for a given
+             * request id. This simulates a successful authentication response
+             * from the server.
+             */
+            window.__makeConnectResponse = (requestId) => {
+                return JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: requestId,
+                    result: {
+                        identity: 'test-user@example.com',
+                        authorization: {
+                            jti: 'test-jti-' + Date.now(),
+                            project_id: 'test-project',
+                            fabric_subscriber: {
+                                version: 1,
+                                expires_at: Math.floor(Date.now() / 1000) + 3600,
+                                subscriber_id: 'test-sub-id',
+                                application_id: null,
+                                project_id: 'test-project',
+                                space_id: 'test-space'
+                            }
+                        },
+                        protocol: 'signalwire-proto-test',
+                        ice_servers: []
+                    }
+                });
+            };
+
+            /**
+             * Helper: create a signalwire.event JSON-RPC request from "server"
+             * with a given event type.
+             */
+            window.__makeSignalwireEvent = (eventType, params) => {
+                return JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: crypto.randomUUID(),
+                    method: 'signalwire.event',
+                    params: {
+                        event_type: eventType,
+                        timestamp: Date.now() / 1000,
+                        ...params
+                    }
+                });
+            };
+
+        } catch (e) {
+            window.__sdkLoadError = e.message;
+            console.error('SDK load failed:', e);
+        }
+    </script>
+</body>
+</html>

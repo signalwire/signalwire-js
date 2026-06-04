@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example: Device Selection</title>
+  <link rel="stylesheet" href="../_shared/styles.css">
+</head>
+<body>
+  <h1>Device Selection</h1>
+  <p class="description">Choose camera, microphone, and speaker before and during a call.</p>
+
+  <div id="connection-status" class="status disconnected">Connecting...</div>
+
+  <!-- Device selectors -->
+  <div class="list">
+    <h3>Select Devices</h3>
+
+    <div style="margin-bottom:1rem">
+      <label style="display:block;color:#666;font-size:0.875rem;margin-bottom:0.25rem">Camera</label>
+      <select id="camera-select" style="width:100%"></select>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <label style="display:block;color:#666;font-size:0.875rem;margin-bottom:0.25rem">Microphone</label>
+      <select id="mic-select" style="width:100%"></select>
+    </div>
+
+    <div>
+      <label style="display:block;color:#666;font-size:0.875rem;margin-bottom:0.25rem">Speaker</label>
+      <select id="speaker-select" style="width:100%"></select>
+    </div>
+  </div>
+
+  <!-- Call controls -->
+  <div class="controls">
+    <input type="text" id="destination" placeholder="/public/test-room" value="/public/test-room" style="width:200px">
+    <button id="call-btn" class="btn-success">Start Call</button>
+    <button id="hangup-btn" class="btn-danger" disabled>Hang Up</button>
+  </div>
+
+  <!-- Video preview -->
+  <div class="videos">
+    <div class="video-box">
+      <video id="local-video" autoplay muted playsinline></video>
+      <span class="label">Local Preview</span>
+    </div>
+    <div class="video-box">
+      <video id="remote-video" autoplay playsinline></video>
+      <span class="label">Remote</span>
+    </div>
+  </div>
+
+  <script src="../../packages/main/dist/browser.umd.js"></script>
+  <script type="module">
+    import { setupClient, attachStream } from '../_shared/setup.js';
+
+    // =========================================================================
+    // EXAMPLE: Device Selection
+    // =========================================================================
+
+    /**
+     * Get available devices from the client.
+     * These observables update when devices are plugged/unplugged.
+     */
+    function watchDevices(client, callbacks) {
+      client.videoInputDevices$.subscribe(callbacks.onCameras);
+      client.audioInputDevices$.subscribe(callbacks.onMicrophones);
+      client.audioOutputDevices$.subscribe(callbacks.onSpeakers);
+    }
+
+    /**
+     * Select devices on the client (before call starts).
+     * Selected devices will be used for the next dial().
+     */
+    function selectDevices(client, { camera, microphone, speaker }) {
+      if (camera) client.selectVideoInputDevice(camera);
+      if (microphone) client.selectAudioInputDevice(microphone);
+      if (speaker) client.selectAudioOutputDevice(speaker);
+    }
+
+    /**
+     * Change devices during an active call.
+     * Use the self participant to switch devices mid-call.
+     */
+    function changeDevicesDuringCall(call, { camera, microphone, speaker }) {
+      const self = call.self;
+      if (!self) return;
+
+      if (camera) self.selectVideoInputDevice(camera);
+      if (microphone) self.selectAudioInputDevice(microphone);
+      if (speaker) self.selectAudioOutputDevice(speaker);
+    }
+
+    // =========================================================================
+    // UI Helpers
+    // =========================================================================
+
+    let client = null;
+    let currentCall = null;
+    let devices = { cameras: [], microphones: [], speakers: [] };
+
+    function populateSelect(selectId, deviceList, currentDeviceId) {
+      const select = document.getElementById(selectId);
+      select.innerHTML = '';
+
+      deviceList.forEach((device) => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.textContent = device.label || `Device ${device.deviceId.slice(0, 8)}`;
+        if (device.deviceId === currentDeviceId) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+    }
+
+    function getSelectedDevice(selectId, deviceList) {
+      const select = document.getElementById(selectId);
+      return deviceList.find(d => d.deviceId === select.value);
+    }
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+
+    async function init() {
+      const result = await setupClient();
+      client = result.client;
+
+      // Watch for device changes and populate dropdowns
+      watchDevices(client, {
+        onCameras: (list) => {
+          devices.cameras = list;
+          populateSelect('camera-select', list);
+        },
+        onMicrophones: (list) => {
+          devices.microphones = list;
+          populateSelect('mic-select', list);
+        },
+        onSpeakers: (list) => {
+          devices.speakers = list;
+          populateSelect('speaker-select', list);
+        }
+      });
+
+      // Handle device selection changes
+      document.getElementById('camera-select').onchange = () => {
+        const device = getSelectedDevice('camera-select', devices.cameras);
+        if (currentCall) {
+          changeDevicesDuringCall(currentCall, { camera: device });
+        } else {
+          selectDevices(client, { camera: device });
+        }
+      };
+
+      document.getElementById('mic-select').onchange = () => {
+        const device = getSelectedDevice('mic-select', devices.microphones);
+        if (currentCall) {
+          changeDevicesDuringCall(currentCall, { microphone: device });
+        } else {
+          selectDevices(client, { microphone: device });
+        }
+      };
+
+      document.getElementById('speaker-select').onchange = () => {
+        const device = getSelectedDevice('speaker-select', devices.speakers);
+        if (currentCall) {
+          changeDevicesDuringCall(currentCall, { speaker: device });
+        } else {
+          selectDevices(client, { speaker: device });
+        }
+      };
+
+      // Call button
+      document.getElementById('call-btn').onclick = async () => {
+        const dest = document.getElementById('destination').value.trim();
+        if (!dest) return;
+
+        currentCall = await client.dial(dest, { audio: true, video: true });
+
+        currentCall.localStream$.subscribe(s => attachStream('local-video', s));
+        currentCall.remoteStream$.subscribe(s => attachStream('remote-video', s));
+
+        currentCall.status$.subscribe((status) => {
+          if (status === 'disconnected' || status === 'destroyed') {
+            currentCall = null;
+            document.getElementById('hangup-btn').disabled = true;
+            document.getElementById('call-btn').disabled = false;
+          }
+        });
+
+        document.getElementById('hangup-btn').disabled = false;
+        document.getElementById('call-btn').disabled = true;
+      };
+
+      document.getElementById('hangup-btn').onclick = () => {
+        if (currentCall) currentCall.hangup();
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>
