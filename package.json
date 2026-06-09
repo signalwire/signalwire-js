@@ -36,7 +36,7 @@
     "build:docs": "node scripts/build-docs.mjs",
     "release": "changeset publish",
     "prepare": "husky",
-    "sw-repo": "npx tsx scripts/dual-repo/index.ts",
+    "sw-repo": "npx tsx --env-file-if-exists=.env scripts/dual-repo/index.ts",
     "test:dual-repo": "vitest --config scripts/dual-repo/vitest.config.ts --run",
     "test:dual-repo:coverage": "vitest --config scripts/dual-repo/vitest.config.ts --run --coverage"
   },
