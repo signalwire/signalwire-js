@@ -22,6 +22,8 @@ export interface MemberCapabilities {
   readonly meta: boolean;
   readonly remove: boolean;
   readonly audioFlags: boolean;
+  readonly denoise: boolean;
+  readonly lowbitrate: boolean;
 }
 
 /**
@@ -61,7 +63,9 @@ export const DEFAULT_MEMBER_CAPABILITIES: MemberCapabilities = {
   position: false,
   meta: false,
   remove: false,
-  audioFlags: false
+  audioFlags: false,
+  denoise: false,
+  lowbitrate: false
 };
 
 /**

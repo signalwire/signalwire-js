@@ -95,6 +95,16 @@ export interface RoomUpdatedPayload {
   room_session_id: string;
 }
 
+/**
+ * Describes the peer (remote) call referenced from a call.state event.
+ *
+ * Mirrors the backend (relay.c) `peer` shape.
+ */
+export interface CallStateRelatedCall {
+  call_id?: string;
+  node_id?: string;
+}
+
 export interface CallStatePayload {
   call_id: string;
   node_id: string;
@@ -102,10 +112,19 @@ export interface CallStatePayload {
   call_state: SignalingCallStates;
   direction: CallDirection;
   device: CallDevice;
-  start_time: number;
-  answer_time: number;
-  end_time: number;
+  /**
+   * Epoch timestamps for the call lifecycle. Optional because pre-answer
+   * states (e.g. `created`, `ringing`) do not have an `answer_time`/`end_time`
+   * and the backend reports them as `0` or omits them.
+   */
+  start_time?: number;
+  answer_time?: number;
+  end_time?: number;
   room_session_id: string;
+  /** The peer (remote) call this call is connected to, if any. */
+  peer?: CallStateRelatedCall;
+  /** Application-defined tag associated with the call. */
+  tag?: string;
 }
 
 export interface CallPlayPayload {

@@ -55,13 +55,13 @@ export type JSONRPCResponse<TResult = unknown> =
 /**
  * Extracts the params type from any request type.
  * @example
- * type Params = ExtractParams<SignalwireConnectRequest>; // SignalwireConnectParams
+ * type Params = ExtractParams<WebrtcVertoRequest>; // WebrtcVertoParams
  */
 export type ExtractParams<T> = T extends { params: infer P } ? P : never;
 
 /**
  * Extracts the result type from any response type.
  * @example
- * type Result = ExtractResult<SignalwireConnectResponse>; // SignalwireConnectResult
+ * type Result = ExtractResult<CallLayoutListResponse>; // CallLayoutListResult
  */
 export type ExtractResult<T> = T extends { result: infer R } ? R : never;

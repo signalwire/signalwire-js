@@ -87,6 +87,7 @@ export interface CallParticipant {
   readonly userId: string | undefined;
   readonly addressId: string | undefined;
   readonly nodeId: string | undefined;
+  readonly callId: string | undefined;
   readonly isTalking: boolean;
   readonly position: LayoutLayer | undefined;
   readonly isAudience: boolean;

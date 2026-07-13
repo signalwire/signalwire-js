@@ -94,7 +94,9 @@ function computeMemberCapabilities(flags: string[], memberType: MemberType): Mem
     position: hasBooleanCapability(flags, memberType, null, 'position'),
     meta: hasBooleanCapability(flags, memberType, null, 'meta'),
     remove: hasBooleanCapability(flags, memberType, null, 'remove'),
-    audioFlags: hasBooleanCapability(flags, memberType, null, 'audioflags')
+    audioFlags: hasBooleanCapability(flags, memberType, null, 'audioflags'),
+    denoise: hasBooleanCapability(flags, memberType, null, 'denoise'),
+    lowbitrate: hasBooleanCapability(flags, memberType, null, 'lowbitrate')
   };
 }
 

@@ -408,6 +408,11 @@ export class Participant extends Destroyable implements CallParticipant {
     return this._state$.value.node_id;
   }
 
+  /** Call ID for this participant's leg, or `undefined` if not available. */
+  public get callId(): string | undefined {
+    return this._state$.value.call_id;
+  }
+
   /** @internal */
   public get value(): Partial<Member> {
     return this._state$.value;
@@ -482,10 +487,11 @@ export class Participant extends Destroyable implements CallParticipant {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
+  /** Toggles low-bitrate mode for this participant's media. */
   public async toggleLowbitrate(): Promise<void> {
-    // NEEDS check backend implementation
-    throw new UnimplementedError();
+    await this.executeMethod(this.id, 'call.lowbitrate.set', {
+      lowbitrate: !this.lowbitrate
+    });
   }
 
   /**
@@ -542,11 +548,25 @@ export class Participant extends Destroyable implements CallParticipant {
 
   /**
    * Sets the participant's position in the video layout.
+   *
+   * Requires the `member.position` capability. The gateway keys positions by the
+   * **target member's own** `call_id`/`node_id` (see issue #19400 and the legacy
+   * `setPositions` implementation), so this sends the participant's own call
+   * context — matching {@link Participant.remove}. A resolved promise does not
+   * guarantee a visible change: the backend silently returns `200` (no-op) for
+   * non-conference targets.
+   *
    * @param value - The {@link VideoPosition} to assign (e.g. `'auto'`, `'reserved-0'`).
    */
   public async setPosition(value: VideoPosition): Promise<void> {
-    await this.executeMethod(this.id, 'call.member.position.set', {
-      position: value
+    const state = this._state$.value;
+    const target: MemberTarget = {
+      member_id: this.id,
+      call_id: state.call_id ?? '',
+      node_id: state.node_id ?? ''
+    };
+    await this.executeMethod(target, 'call.member.position.set', {
+      targets: [{ target, position: value }]
     });
   }
 

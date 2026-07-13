@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/web-components-demo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "SignalWire WebRTC Demo Application showcasing the @signalwire/js SDK and UI components",
@@ -14,8 +14,8 @@
     "test:debug": "playwright test --debug"
   },
   "dependencies": {
-    "@signalwire/js": "4.0.0-rc.0",
-    "@signalwire/web-components": "4.0.0-rc.0",
+    "@signalwire/js": "4.0.0-rc.1",
+    "@signalwire/web-components": "4.0.0-rc.1",
     "happy-dom": "^20.9.0"
   },
   "devDependencies": {

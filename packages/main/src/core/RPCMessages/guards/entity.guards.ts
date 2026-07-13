@@ -19,7 +19,7 @@ export function isMember(value: unknown): value is Member {
     hasProperty(value, 'call_id') &&
     hasProperty(value, 'room_session_id') &&
     hasProperty(value, 'type') &&
-    (value.type === 'member' || value.type === 'screen')
+    typeof value.type === 'string'
   );
 }
 

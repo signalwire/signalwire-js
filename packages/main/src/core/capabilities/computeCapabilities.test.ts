@@ -131,6 +131,8 @@ describe('computeCapabilities', () => {
       expect(result.self.meta).toBe(true);
       expect(result.self.remove).toBe(true);
       expect(result.self.audioFlags).toBe(true);
+      expect(result.self.denoise).toBe(true);
+      expect(result.self.lowbitrate).toBe(true);
     });
 
     describe('mute audio', () => {
@@ -248,6 +250,16 @@ describe('computeCapabilities', () => {
         const result = computeCapabilities(['self.audioflags.set']);
         expect(result.self.audioFlags).toBe(true);
       });
+
+      it('should grant denoise for self.denoise', () => {
+        const result = computeCapabilities(['self.denoise']);
+        expect(result.self.denoise).toBe(true);
+      });
+
+      it('should grant lowbitrate for self.lowbitrate', () => {
+        const result = computeCapabilities(['self.lowbitrate']);
+        expect(result.self.lowbitrate).toBe(true);
+      });
     });
   });
 
@@ -273,6 +285,8 @@ describe('computeCapabilities', () => {
       expect(result.member.meta).toBe(true);
       expect(result.member.remove).toBe(true);
       expect(result.member.audioFlags).toBe(true);
+      expect(result.member.denoise).toBe(true);
+      expect(result.member.lowbitrate).toBe(true);
     });
 
     it('should grant mute audio for member.mute.audio', () => {

@@ -10,6 +10,7 @@ import type { WebRTCVerto } from '../../interfaces/WebRTCVerto';
 import type { CallEventsManager } from '../../managers/CallEventsManager';
 import type { CallInitialization, CallManagers } from './Call';
 import type { CallOptions } from './types/call.types';
+import type { MemberTarget } from '../RPCMessages/types/common';
 
 // ---------------------------------------------------------------------------
 // Mock factories
@@ -52,6 +53,7 @@ function createMockVertoManager(): WebRTCVerto {
 function createMockCallEventsManager(): CallEventsManager {
   return {
     participants$: new BehaviorSubject([]),
+    participants: [],
     self$: new Subject(),
     recording$: new BehaviorSubject(false),
     recording: false,
@@ -699,6 +701,174 @@ describe('WebRTCCall - executeMethod', () => {
     // The target's call_id must be the member's own, not the caller's 'test-call-id'
     expect(request.params.targets[0].call_id).toBe('other-call-id');
     expect(request.params.targets[0].call_id).not.toBe('test-call-id');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// call.member.position.set — payload shape (issue #19400 item 1, Flag #5)
+// ---------------------------------------------------------------------------
+
+describe('WebRTCCall - call.member.position.set payload', () => {
+  let ctx: TestContext;
+  let call: WebRTCCall;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ctx = createTestContext();
+    call = createCall(ctx);
+  });
+
+  afterEach(() => {
+    call.destroy();
+  });
+
+  it('passes the caller-built targets[] through untouched alongside self', async () => {
+    // Participant.setPosition fully builds targets[], keyed by the TARGET
+    // member's own call context (#19400). The params builder must pass it
+    // through unmodified and only attach `self`.
+    const targets = [
+      {
+        target: {
+          member_id: 'remote-member-id',
+          call_id: 'remote-call-id',
+          node_id: 'remote-node-id'
+        },
+        position: 'reserved-1'
+      }
+    ];
+
+    await call.executeMethod('remote-member-id', 'call.member.position.set', { targets });
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const request = executeSpy.mock.calls[0][0] as { params: Record<string, unknown> };
+
+    expect(request.params).toEqual({
+      self: {
+        node_id: 'test-node-id',
+        call_id: 'test-call-id',
+        member_id: 'test-member-id'
+      },
+      targets
+    });
+  });
+
+  it('does not add a singular target or top-level position for position.set', async () => {
+    // The DTO requires targets[] of { target, position }; the legacy singular
+    // `target` and a bare `position` at the top level must NOT be present.
+    const targets = [
+      {
+        target: {
+          member_id: 'remote-member-id',
+          call_id: 'remote-call-id',
+          node_id: 'remote-node-id'
+        },
+        position: 'reserved-2'
+      }
+    ];
+
+    await call.executeMethod('remote-member-id', 'call.member.position.set', { targets });
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const request = executeSpy.mock.calls[0][0] as { params: Record<string, unknown> };
+
+    expect(request.params).not.toHaveProperty('target');
+    expect(request.params).not.toHaveProperty('position');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// setLayout — layout + positions (issue #19400 item 2, Flag #6)
+// ---------------------------------------------------------------------------
+
+describe('WebRTCCall - setLayout', () => {
+  let ctx: TestContext;
+  let call: WebRTCCall;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ctx = createTestContext();
+    (ctx.callEventsManager as unknown as { layouts: string[] }).layouts = ['grid-responsive'];
+    call = createCall(ctx);
+  });
+
+  afterEach(() => {
+    call.destroy();
+  });
+
+  it('rejects a layout that is not in the available layouts', async () => {
+    await expect(call.setLayout('not-a-layout', {})).rejects.toThrow();
+  });
+
+  it('sends call.layout.set WITHOUT a positions member (gateway DTO has none)', async () => {
+    await call.setLayout('grid-responsive', {});
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const layoutCall = executeSpy.mock.calls.find(
+      (c) => (c[0] as { method: string }).method === 'call.layout.set'
+    );
+    expect(layoutCall).toBeDefined();
+    const request = layoutCall![0] as { params: Record<string, unknown> };
+    expect(request.params).toMatchObject({ layout: 'grid-responsive' });
+    expect(request.params).not.toHaveProperty('positions');
+  });
+
+  it('does not issue call.member.position.set when positions is empty', async () => {
+    await call.setLayout('grid-responsive', {});
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const positionCall = executeSpy.mock.calls.find(
+      (c) => (c[0] as { method: string }).method === 'call.member.position.set'
+    );
+    expect(positionCall).toBeUndefined();
+  });
+
+  it('changes layout when called without a positions argument', async () => {
+    await call.setLayout('grid-responsive');
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const layoutCall = executeSpy.mock.calls.find(
+      (c) => (c[0] as { method: string }).method === 'call.layout.set'
+    );
+    expect(layoutCall).toBeDefined();
+    const positionCall = executeSpy.mock.calls.find(
+      (c) => (c[0] as { method: string }).method === 'call.member.position.set'
+    );
+    expect(positionCall).toBeUndefined();
+  });
+
+  it("delegates each position to that member's own setPosition", async () => {
+    // setLayout calls Participant.setPosition per member, which keys the position
+    // by the member's OWN call context (matching legacy `setPositions`). #19400.
+    const member1 = { id: 'member-1', setPosition: vi.fn().mockResolvedValue(undefined) };
+    const member2 = { id: 'member-2', setPosition: vi.fn().mockResolvedValue(undefined) };
+    (ctx.callEventsManager as unknown as { participants: unknown[] }).participants = [
+      member1,
+      member2
+    ];
+
+    await call.setLayout('grid-responsive', {
+      'member-1': 'reserved-0',
+      'member-2': 'reserved-1'
+    });
+
+    expect(member1.setPosition).toHaveBeenCalledTimes(1);
+    expect(member1.setPosition).toHaveBeenCalledWith('reserved-0');
+    expect(member2.setPosition).toHaveBeenCalledTimes(1);
+    expect(member2.setPosition).toHaveBeenCalledWith('reserved-1');
+  });
+
+  it('skips members not present in the participant list without throwing', async () => {
+    (ctx.callEventsManager as unknown as { participants: unknown[] }).participants = [];
+
+    await expect(
+      call.setLayout('grid-responsive', { 'ghost-member': 'reserved-0' })
+    ).resolves.toBeUndefined();
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const positionCall = executeSpy.mock.calls.find(
+      (c) => (c[0] as { method: string }).method === 'call.member.position.set'
+    );
+    expect(positionCall).toBeUndefined();
   });
 });
 

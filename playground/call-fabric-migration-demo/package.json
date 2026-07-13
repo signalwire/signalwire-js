@@ -1,7 +1,7 @@
 {
   "name": "@signalwire/call-fabric-migration-demo",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "Migration demo from call-fabric-client-beta (v3 @signalwire/client) to v4 @signalwire/js SDK",
   "scripts": {
@@ -11,8 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@signalwire/js": "4.0.0-rc.0",
-    "@signalwire/web-components": "4.0.0-rc.0",
+    "@signalwire/js": "4.0.0-rc.1",
+    "@signalwire/web-components": "4.0.0-rc.1",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {

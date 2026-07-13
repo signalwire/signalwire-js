@@ -2,19 +2,32 @@ import { describe, it, expect } from 'vitest';
 import {
   isVertoAttachMessage,
   isVertoAttachParamsGuard,
+  isVertoByeInboundMessage,
+  isVertoByeInboundParamsGuard,
+  isVertoByeParamsGuard,
+  getVertoMethodGuard,
   getVertoParamsGuard,
+  VertoMethodTypeMap,
   VertoParamsTypeMap
 } from './verto.guards';
-import type { VertoAttachMessage, VertoAttachParams } from '../types/verto';
+import type {
+  VertoAttachMessage,
+  VertoAttachParams,
+  VertoByeInboundMessage,
+  VertoByeParams
+} from '../types/verto';
 
 describe('Verto Attach Guards', () => {
   // Valid test fixtures
   const validAttachParams: VertoAttachParams = {
     callID: 'test-call-id-123',
+    sdp: 'v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\n',
     callee_id_number: '+1234567890',
     callee_id_name: 'Test Callee',
     caller_id_number: '+0987654321',
-    caller_id_name: 'Test Caller'
+    caller_id_name: 'Test Caller',
+    display_direction: 'outbound',
+    variables: { some: 'value' }
   };
 
   const validAttachMessage: VertoAttachMessage = {
@@ -95,6 +108,16 @@ describe('Verto Attach Guards', () => {
     it('should return false when callID is missing', () => {
       const { callID: _, ...noCallID } = validAttachParams;
       expect(isVertoAttachParamsGuard(noCallID)).toBe(false);
+    });
+
+    it('should return false when sdp is missing', () => {
+      const { sdp: _, ...noSdp } = validAttachParams;
+      expect(isVertoAttachParamsGuard(noSdp)).toBe(false);
+    });
+
+    it('should return false when sdp is not a string', () => {
+      const invalidSdp = { ...validAttachParams, sdp: 123 };
+      expect(isVertoAttachParamsGuard(invalidSdp)).toBe(false);
     });
 
     it('should return false when callee_id_number is missing', () => {
@@ -219,5 +242,113 @@ describe('Verto Attach Guards', () => {
         expect(unknownParams.caller_id_name).toBe('Test Caller');
       }
     });
+  });
+});
+
+describe('isVertoByeParamsGuard', () => {
+  const validByeParams: VertoByeParams = {
+    dialogParams: { callID: 'test-call-id-123' },
+    cause: 'NORMAL_CLEARING',
+    causeCode: '16'
+  };
+
+  it('should return true for params carrying dialogParams.callID', () => {
+    expect(isVertoByeParamsGuard(validByeParams)).toBe(true);
+  });
+
+  it('should return true without cause/causeCode (both optional)', () => {
+    expect(isVertoByeParamsGuard({ dialogParams: { callID: 'abc' } })).toBe(true);
+  });
+
+  it('should return false when dialogParams is missing', () => {
+    expect(isVertoByeParamsGuard({ cause: 'USER_BUSY', causeCode: '17' })).toBe(false);
+  });
+
+  it('should return false when dialogParams.callID is missing', () => {
+    expect(isVertoByeParamsGuard({ dialogParams: {} })).toBe(false);
+  });
+
+  it('should return false when dialogParams.callID is not a string', () => {
+    expect(isVertoByeParamsGuard({ dialogParams: { callID: 123 } })).toBe(false);
+  });
+
+  it('should return false for non-object values', () => {
+    expect(isVertoByeParamsGuard(null)).toBe(false);
+    expect(isVertoByeParamsGuard(undefined)).toBe(false);
+    expect(isVertoByeParamsGuard('string')).toBe(false);
+    expect(isVertoByeParamsGuard({})).toBe(false);
+  });
+
+  it('should be wired into VertoParamsTypeMap', () => {
+    expect(VertoParamsTypeMap['verto.bye']).toBe(isVertoByeParamsGuard);
+    expect(getVertoParamsGuard('verto.bye')).toBe(isVertoByeParamsGuard);
+  });
+});
+
+describe('isVertoByeInboundMessage', () => {
+  const validInboundBye: VertoByeInboundMessage = {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'verto.bye',
+    params: { callID: 'test-call-id-123', cause: 'NORMAL_CLEARING', causeCode: '16' }
+  };
+
+  it('should return true for an inbound verto.bye frame', () => {
+    expect(isVertoByeInboundMessage(validInboundBye)).toBe(true);
+  });
+
+  it('should return true without params (server may omit them)', () => {
+    expect(isVertoByeInboundMessage({ jsonrpc: '2.0', id: 1, method: 'verto.bye' })).toBe(true);
+  });
+
+  it('should return false for a different verto method', () => {
+    expect(isVertoByeInboundMessage({ ...validInboundBye, method: 'verto.media' })).toBe(false);
+  });
+
+  it('should return false when the JSON-RPC envelope is malformed', () => {
+    expect(isVertoByeInboundMessage({ method: 'verto.bye', params: { callID: 'abc' } })).toBe(
+      false
+    );
+    expect(isVertoByeInboundMessage({ jsonrpc: '1.0', id: 1, method: 'verto.bye' })).toBe(false);
+  });
+
+  it('should return false for non-object values', () => {
+    expect(isVertoByeInboundMessage(null)).toBe(false);
+    expect(isVertoByeInboundMessage(undefined)).toBe(false);
+    expect(isVertoByeInboundMessage('verto.bye')).toBe(false);
+    expect(isVertoByeInboundMessage({})).toBe(false);
+  });
+
+  it('should be wired into VertoMethodTypeMap', () => {
+    expect(VertoMethodTypeMap['verto.bye']).toBe(isVertoByeInboundMessage);
+    expect(getVertoMethodGuard('verto.bye')).toBe(isVertoByeInboundMessage);
+  });
+});
+
+describe('isVertoByeInboundParamsGuard', () => {
+  it('should return true for inbound bye params carrying a top-level callID', () => {
+    expect(isVertoByeInboundParamsGuard({ callID: 'test-call-id-123' })).toBe(true);
+    expect(
+      isVertoByeInboundParamsGuard({ callID: 'abc', cause: 'NORMAL_CLEARING', causeCode: '16' })
+    ).toBe(true);
+  });
+
+  // Crux: vertoBye$ emits this params object while answered$ emits a boolean.
+  // The guard must distinguish the bye object from the accept/reject signals.
+  it('should return false for boolean answer/reject signals', () => {
+    expect(isVertoByeInboundParamsGuard(true)).toBe(false);
+    expect(isVertoByeInboundParamsGuard(false)).toBe(false);
+  });
+
+  it('should return false when callID is missing or not a string', () => {
+    expect(isVertoByeInboundParamsGuard({ cause: 'USER_BUSY' })).toBe(false);
+    expect(isVertoByeInboundParamsGuard({ callID: 123 })).toBe(false);
+  });
+
+  it('should return false for non-object values', () => {
+    expect(isVertoByeInboundParamsGuard(null)).toBe(false);
+    expect(isVertoByeInboundParamsGuard(undefined)).toBe(false);
+    expect(isVertoByeInboundParamsGuard('verto.bye')).toBe(false);
+    expect(isVertoByeInboundParamsGuard({})).toBe(false);
   });
 });

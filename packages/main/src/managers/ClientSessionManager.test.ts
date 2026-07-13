@@ -150,6 +150,39 @@ describe('ClientSessionManager', () => {
     });
   });
 
+  describe('teardownSessionState', () => {
+    it('should clear resume state AND attach records atomically', async () => {
+      await storage.setItem('auth_state_key', 'live-authorization-state');
+
+      const csm = buildCSM();
+      await firstValueFrom(csm.initialized$);
+
+      await csm.teardownSessionState();
+
+      // Resume state cleared (protocol + authorization_state)
+      expect(transport.setProtocol).toHaveBeenCalledWith(undefined);
+      expect(storage.removeItem).toHaveBeenCalledWith('auth_state_key');
+      // Attach records cleared too — the coupling invariant
+      expect(attachManager.detachAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('disconnect', () => {
+    it('should tear down the transport and clear both resume state and attach records', async () => {
+      await storage.setItem('auth_state_key', 'live-authorization-state');
+
+      const csm = buildCSM();
+      await firstValueFrom(csm.initialized$);
+
+      await csm.disconnect();
+
+      expect(transport.disconnect).toHaveBeenCalled();
+      expect(transport.setProtocol).toHaveBeenCalledWith(undefined);
+      expect(storage.removeItem).toHaveBeenCalledWith('auth_state_key');
+      expect(attachManager.detachAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('handleAuthenticationError - recoverable auth error', () => {
     it('should clean up stale state and reconnect when auth fails with stored state', async () => {
       // Seed storage with authorization state
@@ -183,6 +216,10 @@ describe('ClientSessionManager', () => {
 
       // Transport should have been told to reconnect
       expect(transport.reconnect).toHaveBeenCalled();
+
+      // Attach records MUST survive the stale-auth recovery path so
+      // post-reconnect reattach still works.
+      expect(attachManager.detachAll).not.toHaveBeenCalled();
     });
 
     it('should NOT emit to errors$ for recoverable auth errors with stored state', async () => {
