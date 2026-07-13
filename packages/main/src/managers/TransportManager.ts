@@ -97,6 +97,15 @@ export class TransportManager extends Destroyable {
         .event_channel as string | undefined;
       if (!eventChannel) return true;
 
+      if (message.params.event_type.startsWith('conversation.')) {
+        // Conversation events are broadcast using a channel that is not tied to the current protocol
+        logger.debug(
+          `[Transport] Received conversation event: ${message.params.event_type}` +
+            ` (event_channel: ${eventChannel})`
+        );
+        return true;
+      }
+
       const currentProtocol = this._currentProtocol;
       if (!currentProtocol) return true;
 

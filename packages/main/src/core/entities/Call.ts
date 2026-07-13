@@ -86,6 +86,13 @@ import type { Observable, BehaviorSubject } from 'rxjs';
 const logger = getLogger();
 
 /**
+ * Verto method for setting member layout positions. Its gateway DTO requires a
+ * `targets` array whose entries are `{ target, position }` (NOT bare targets),
+ * so {@link WebRTCCall.buildMethodParams} special-cases it. See issue #19400.
+ */
+const POSITION_SET_METHOD = 'call.member.position.set';
+
+/**
  * Ratio between the critical and warning RTT spike multipliers.
  * Warning threshold = baseline * warningMultiplier (default 3x)
  * Critical threshold = baseline * warningMultiplier * RTT_CRITICAL_TO_WARNING_RATIO
@@ -426,7 +433,7 @@ export class WebRTCCall extends Destroyable implements CallManager {
     method: string,
     args: Record<string, unknown>
   ): Promise<T> {
-    const params = this.buildMethodParams(target, args);
+    const params = this.buildMethodParams(target, args, method);
 
     const request = buildRPCRequest({
       method,
@@ -453,13 +460,21 @@ export class WebRTCCall extends Destroyable implements CallManager {
 
   private buildMethodParams(
     target: string | MemberTarget,
-    args: Record<string, unknown>
+    args: Record<string, unknown>,
+    method: string
   ): JSONRPCParams {
     const self: MemberTarget = {
       node_id: this.nodeId ?? '',
       call_id: this.id,
       member_id: this.vertoManager.selfId ?? ''
     };
+
+    if (method === POSITION_SET_METHOD) {
+      // The caller (Participant.setPosition) fully builds the `targets` array,
+      // keying the position by the target member's own call_id/node_id (issue
+      // #19400). Pass it through untouched alongside `self`.
+      return { ...args, self };
+    }
 
     if (typeof target === 'object') {
       // Full MemberTarget provided — use targets array with the member's actual call_id
@@ -1272,10 +1287,21 @@ export class WebRTCCall extends Destroyable implements CallManager {
   }
 
   /**
-   * Sets the call layout and participant positions.
+   * Sets the call layout and, optionally, individual participant positions.
+   *
+   * The gateway `call.layout.set` DTO has **no** `positions` member, so when
+   * `positions` is provided this method issues a `call.member.position.set`
+   * request per member (via {@link Participant.setPosition}, which keys each
+   * position by that member's own call context) alongside `call.layout.set`
+   * (issue #19400, Flag #6).
+   *
+   * **These operations are NOT atomic.** The layout is applied first, then each
+   * member position sequentially, so members may briefly flash into their
+   * default slots before being moved to the requested positions.
    *
    * @param layout - Layout name (must be one of {@link layouts}).
-   * @param positions - Map of member IDs to {@link VideoPosition} values.
+   * @param positions - Optional map of member IDs to {@link VideoPosition} values.
+   *   When omitted or empty, only the layout is changed.
    * @throws {InvalidParams} If the layout is not in the available {@link layouts}.
    *
    * @example
@@ -1285,7 +1311,7 @@ export class WebRTCCall extends Destroyable implements CallManager {
    * });
    * ```
    */
-  async setLayout(layout: string, positions: Record<string, VideoPosition>): Promise<void> {
+  async setLayout(layout: string, positions?: Record<string, VideoPosition>): Promise<void> {
     if (!this.layouts.includes(layout)) {
       throw new InvalidParams(
         `Layout ${layout} is not available in the current call layouts: ${this.layouts.join(', ')}`
@@ -1296,10 +1322,23 @@ export class WebRTCCall extends Destroyable implements CallManager {
       this.selfId$.pipe(filter((id): id is string => id !== null))
     );
 
-    await this.executeMethod(selfId, 'call.layout.set', {
-      layout,
-      positions
-    });
+    await this.executeMethod(selfId, 'call.layout.set', { layout });
+
+    const positionEntries = Object.entries(positions ?? {});
+    if (positionEntries.length === 0) {
+      return;
+    }
+
+    for (const [memberId, position] of positionEntries) {
+      const participant = this.participants.find((p) => p.id === memberId);
+      if (!participant) {
+        logger.warn(
+          `[Call] setLayout: member ${memberId} not found in participants; skipping position ${position}`
+        );
+        continue;
+      }
+      await participant.setPosition(position);
+    }
   }
 
   /**

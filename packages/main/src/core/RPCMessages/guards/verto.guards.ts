@@ -14,7 +14,8 @@ import type {
   VertoAnswerResultMessage,
   VertoAttachMessage,
   VertoAttachParams,
-  VertoByeMessage,
+  VertoByeInboundMessage,
+  VertoByeInboundParams,
   VertoByeParams,
   VertoInviteMessage,
   VertoInviteParams,
@@ -92,7 +93,11 @@ export function isVertoInviteMessage(value: unknown): value is VertoInviteMessag
   );
 }
 
-export function isVertoByeMessage(value: unknown): value is VertoByeMessage {
+/**
+ * Guards inbound `verto.bye` frames (server → client). Outbound bye messages are
+ * built locally and never type-guarded, so only the inbound shape is asserted.
+ */
+export function isVertoByeInboundMessage(value: unknown): value is VertoByeInboundMessage {
   if (!isVertoMethodMessage(value)) return false;
   const msg = value as unknown as Record<string, unknown>;
   return msg.method === 'verto.bye';
@@ -232,11 +237,20 @@ export function isVertoInviteParamsGuard(value: unknown): value is VertoInvitePa
 export function isVertoByeParamsGuard(value: unknown): value is VertoByeParams {
   return (
     isObject(value) &&
-    hasProperty(value, 'callID') &&
-    typeof value.callID === 'string' &&
-    hasProperty(value, 'cause') &&
-    typeof value.cause === 'string'
+    hasProperty(value, 'dialogParams') &&
+    isObject(value.dialogParams) &&
+    hasProperty(value.dialogParams, 'callID') &&
+    typeof value.dialogParams.callID === 'string'
   );
+}
+
+/**
+ * Guards the params of an inbound `verto.bye` frame (top-level `callID`). Use
+ * this to recognise the bye payload extracted by `vertoBye$`, e.g. when racing
+ * it against a boolean answer/reject signal.
+ */
+export function isVertoByeInboundParamsGuard(value: unknown): value is VertoByeInboundParams {
+  return isObject(value) && hasProperty(value, 'callID') && typeof value.callID === 'string';
 }
 
 export function isVertoAttachParamsGuard(value: unknown): value is VertoAttachParams {
@@ -244,6 +258,8 @@ export function isVertoAttachParamsGuard(value: unknown): value is VertoAttachPa
     isObject(value) &&
     hasProperty(value, 'callID') &&
     typeof value.callID === 'string' &&
+    hasProperty(value, 'sdp') &&
+    typeof value.sdp === 'string' &&
     hasProperty(value, 'callee_id_number') &&
     typeof value.callee_id_number === 'string' &&
     hasProperty(value, 'callee_id_name') &&
@@ -266,7 +282,7 @@ export const VertoMethodTypeMap = {
   'verto.ping': isVertoPingMessage,
   'verto.pong': isVertoPongMessage,
   'verto.invite': isVertoInviteMessage,
-  'verto.bye': isVertoByeMessage
+  'verto.bye': isVertoByeInboundMessage
 } as const satisfies Partial<Record<VertoMethod, TypeGuard<VertoMethodMessage>>>;
 
 export type VertoMethodType = keyof typeof VertoMethodTypeMap;

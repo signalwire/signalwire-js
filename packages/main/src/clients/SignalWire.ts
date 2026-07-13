@@ -72,8 +72,12 @@ export interface SignalWireOptions {
    * When `false` (default), session data lives in `sessionStorage` and is
    * lost on reload.
    *
-   * Call {@link SignalWire.destroy | destroy()} to clear all persisted state
-   * (explicit logout).
+   * Both {@link SignalWire.disconnect | disconnect()} and
+   * {@link SignalWire.destroy | destroy()} end the session and clear the
+   * persisted resume state and attach records; credentials and device
+   * preferences survive. Use `resetToDefaults()` for a full wipe, or
+   * `unregister()` to temporarily stop receiving inbound calls while keeping
+   * the session alive.
    */
   persistSession?: boolean;
   /** Custom storage implementation for persistence. */
@@ -886,6 +890,14 @@ class SignalWire extends Destroyable implements DeviceController {
   /**
    * Disconnects the WebSocket and tears down the current session.
    *
+   * Ends the session identified by the protocol and clears its persisted
+   * resume state (`authorization_state` + protocol) and attach records
+   * together — a later {@link connect} with the same credentials starts a
+   * fresh session and cannot reattach to the ended session's calls.
+   * Credentials and device preferences are preserved. To temporarily stop
+   * receiving inbound calls while keeping the session alive, use
+   * `unregister()` instead.
+   *
    * The client can be reconnected by calling {@link connect} again,
    * which creates a fresh transport and session.
    */
@@ -1401,16 +1413,26 @@ class SignalWire extends Destroyable implements DeviceController {
     await this._deviceController.clearDeviceState();
   }
 
-  /** Destroys the client, clearing timers and releasing all resources. */
+  /**
+   * Destroys the client, clearing timers and releasing all resources.
+   *
+   * Intentionally destroying the client ends its session: the resume state
+   * (`authorization_state` + protocol) and the attach records are both
+   * cleared. Credentials and device preferences are preserved — use
+   * {@link resetToDefaults} for a full wipe. To temporarily stop receiving
+   * inbound calls while keeping the session alive, use `unregister()`.
+   */
   public override destroy(): void {
     this._refreshCoordinator?.destroy();
     this._refreshCoordinator = undefined;
     this._dpopManager?.destroy();
 
-    // Clear attached call references (logout — calls won't survive)
-    if (this._attachManager) {
-      void this._attachManager.detachAll();
-    }
+    // Intentionally destroying the client ends its session: clear the
+    // resume state (authorization_state + protocol) AND the attach records
+    // together (they are a coupled unit). Run before tearing down the
+    // transport/session so the storage writes still go through. Credentials
+    // and device preferences survive — resetToDefaults() is the full wipe.
+    void this._clientSession.teardownSessionState();
 
     // Stop the transport to prevent reconnection loops
     this._transport.destroy();
@@ -1435,11 +1457,6 @@ class SignalWire extends Destroyable implements DeviceController {
     this._networkMonitor = undefined;
     this._visibilityController = undefined;
     this._diagnosticsCollector = undefined;
-
-    // Note: persisted session state (cached credential, authorization_state,
-    // protocol) is NOT cleared here. destroy() stops the client but preserves
-    // storage for reload reconnects. Use disconnect() for explicit logout
-    // which clears stored state via cleanupStoredConnectionParams().
 
     super.destroy();
   }

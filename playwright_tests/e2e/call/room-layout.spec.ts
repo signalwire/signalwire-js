@@ -267,4 +267,11 @@ test.describe('Room Layout', () => {
     expect(result.success, `setLayout with invalid name threw error — ${result.error ?? ''}`).toBe(true);
     expect(result.threwError, 'setLayout rejected with an error for invalid layout').toBe(true);
   });
+
+  // NOTE: `setLayout(layout, positions)` (#19400 item 2) is covered by
+  // `member-positioning-multi.spec.ts`. Verifying that `positions` is actually
+  // honored requires a second participant and a slot the layout truly exposes
+  // (the member moving into it is observed via `position$`) — neither possible
+  // with a single client. It lives in the multi-client spec rather than being
+  // faked here with a non-existent slot like `reserved-0`.
 });

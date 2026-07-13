@@ -30,7 +30,8 @@ import { isCallJoinedPayload } from '../core/RPCMessages/guards/events.guards';
 import {
   isVertoAnswerInnerParams,
   isVertoAttachMessage,
-  isVertoByeMessage,
+  isVertoByeInboundMessage,
+  isVertoByeInboundParamsGuard,
   isVertoInviteMessage,
   isVertoMediaInnerParams,
   isVertoMediaParamsInnerParams,
@@ -58,7 +59,7 @@ import type {
   VertoAnswerParams,
   VertoAttachParams,
   VertoByeCause,
-  VertoByeParams,
+  VertoByeInboundParams,
   VertoMediaParams,
   VertoMediaParamsParams,
   VertoPingParams
@@ -550,7 +551,7 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
   private get vertoBye$() {
     return this.cachedObservable('vertoBye$', () =>
       this.webRtcCallSession.webrtcMessages$.pipe(
-        filterAs(isVertoByeMessage, 'params'),
+        filterAs(isVertoByeInboundMessage, 'params'),
         takeUntil(this.destroyed$)
       )
     );
@@ -787,7 +788,7 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
     rtcPeerConnController: RTCPeerConnectionController
   ): Promise<void> {
     logger.debug('[WebRTCManager] Waiting for inbound call to be accepted or rejected');
-    const vertoByeOrAccepted: boolean | VertoByeParams | null = await firstValueFrom(
+    const vertoByeOrAccepted: boolean | VertoByeInboundParams | null = await firstValueFrom(
       race(this.vertoBye$, this.webRtcCallSession.answered$).pipe(takeUntil(this.destroyed$))
     ).catch(() => null);
 
@@ -796,7 +797,7 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
       return;
     }
 
-    if (isVertoByeMessage(vertoByeOrAccepted)) {
+    if (isVertoByeInboundParamsGuard(vertoByeOrAccepted)) {
       logger.info('[WebRTCManager] Inbound call ended by remote before answer.');
       this.callSession?.destroy();
     } else if (!vertoByeOrAccepted) {
@@ -932,7 +933,7 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
     rtcPeerConnectionController: RTCPeerConnectionController
   ): Promise<void> {
     logger.debug('[WebRTCManager] Waiting for call to be accepted or ended before sending answer');
-    const vertoByeOrAccepted: boolean | VertoByeParams | null = await firstValueFrom(
+    const vertoByeOrAccepted: boolean | VertoByeInboundParams | null = await firstValueFrom(
       race(this.vertoBye$, this.webRtcCallSession.answered$).pipe(takeUntil(this.destroyed$))
     ).catch(() => null);
 
@@ -941,7 +942,7 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
       return;
     }
 
-    if (isVertoByeMessage(vertoByeOrAccepted)) {
+    if (isVertoByeInboundParamsGuard(vertoByeOrAccepted)) {
       logger.info('[WebRTCManager] Call ended before answer was sent.');
       this.callSession?.destroy();
     } else if (!vertoByeOrAccepted) {

@@ -155,6 +155,14 @@ describe('SelfCapabilities', () => {
     it('should return self.audioFlags', () => {
       expect(capabilities.self.audioFlags).toBe(true);
     });
+
+    it('should return self.denoise', () => {
+      expect(capabilities.self.denoise).toBe(true);
+    });
+
+    it('should return self.lowbitrate', () => {
+      expect(capabilities.self.lowbitrate).toBe(true);
+    });
   });
 
   describe('member capability getters', () => {
@@ -208,6 +216,14 @@ describe('SelfCapabilities', () => {
 
     it('should return member.audioFlags', () => {
       expect(capabilities.member.audioFlags).toBe(true);
+    });
+
+    it('should return member.denoise', () => {
+      expect(capabilities.member.denoise).toBe(true);
+    });
+
+    it('should return member.lowbitrate', () => {
+      expect(capabilities.member.lowbitrate).toBe(true);
     });
   });
 

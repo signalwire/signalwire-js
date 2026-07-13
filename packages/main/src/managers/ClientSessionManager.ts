@@ -489,13 +489,41 @@ export class ClientSessionManager extends Destroyable implements SessionState {
     }
   }
 
+  /**
+   * Clear the resume state (authorization_state + protocol) only.
+   *
+   * This is the stale-auth-state recovery helper used by handleAuthError:
+   * the server rejected a reconnect, so the resume state is discarded and a
+   * fresh connect follows. Attach records are deliberately preserved — the
+   * session lives on through the reconnect and reattachCalls() needs the
+   * stored call references afterwards. Do NOT add detachAll() here.
+   *
+   * For public teardown (disconnect/destroy), use {@link teardownSessionState}
+   * instead, which clears the attach records as well.
+   */
   async cleanupStoredConnectionParams(): Promise<void> {
     await this.transport.setProtocol(undefined);
     await this.updateAuthorizationStateInStorage(undefined);
     this._authorization$.next(undefined);
-    // Do NOT detachAll here — attached calls are still valid.
-    // Only the authorization_state and protocol are stale.
-    // reattachCalls() needs the stored call references after recovery.
+  }
+
+  /**
+   * Public-teardown helper for disconnect()/destroy(). Clears the resume
+   * state (authorization_state + protocol) AND the attach records as one
+   * atomic unit.
+   *
+   * The two stores are coupled: the backend only honors attach records
+   * within the session identified by the resume state, so ending the
+   * session must clear both. Clearing one without the other strands records
+   * no future session can honor (disconnect) or revives a session the
+   * developer explicitly ended (destroy).
+   *
+   * Distinct from {@link cleanupStoredConnectionParams}, which keeps the
+   * attach records for the stale-auth-state recovery path.
+   */
+  async teardownSessionState(): Promise<void> {
+    await this.cleanupStoredConnectionParams();
+    await this.attachManager.detachAll();
   }
 
   protected async updateAuthState(authorization_state: string): Promise<void> {
@@ -671,7 +699,10 @@ export class ClientSessionManager extends Destroyable implements SessionState {
   async disconnect(): Promise<void> {
     this.transport.disconnect();
     this._authState$.next({ kind: 'unauthenticated' });
-    await this.cleanupStoredConnectionParams();
+    // disconnect() ends the session — clear the resume state AND attach
+    // records together (they are a coupled unit). A new session created
+    // later via connect() with the same credentials starts clean.
+    await this.teardownSessionState();
   }
 
   private async createInboundCall(invite: VertoInviteParams & { node_id: string }): Promise<void> {

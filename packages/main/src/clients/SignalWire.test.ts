@@ -169,4 +169,39 @@ describe('SignalWire', () => {
       expect(transport2).not.toBe(transport1);
     }, 35000); // Allow time for auth gate timeout (15s × 2 connect attempts)
   });
+
+  describe('destroy()', () => {
+    it('clears resume state AND attach records via the coupled teardown', async () => {
+      const client = createClient();
+      injectMockUser(client);
+
+      // Connect to create the session + attach manager (auth fails on the
+      // mock WS, but the instances are wired up by then).
+      try {
+        await client.connect();
+      } catch {
+        /* WS connect or auth gate timeout */
+      }
+
+      const session = getPrivate<{ teardownSessionState: () => Promise<void> }>(
+        client,
+        '_clientSession'
+      );
+      const attachManager = getPrivate<{ detachAll: () => Promise<void> }>(
+        client,
+        '_attachManager'
+      );
+      const teardownSpy = vi
+        .spyOn(session, 'teardownSessionState')
+        .mockResolvedValue(undefined);
+      const detachSpy = vi.spyOn(attachManager, 'detachAll').mockResolvedValue(undefined);
+
+      client.destroy();
+
+      // destroy() routes through the coupled teardown (resume state + attach
+      // records), not a bare detachAll().
+      expect(teardownSpy).toHaveBeenCalledTimes(1);
+      expect(detachSpy).not.toHaveBeenCalled();
+    }, 35000);
+  });
 });

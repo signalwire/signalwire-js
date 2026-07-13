@@ -686,8 +686,7 @@ test.describe('SelfParticipant API', () => {
     expect(r.afterToggle, 'toggleNoiseSuppression() flips noiseSuppression$ state').toBe(!r.initialNoise);
   });
 
-  // SDK bug: self.toggleLowbitrate() throws UnimplementedError: Not Implemented
-  test.skip('toggleLowbitrate() — toggles lowbitrate$ state', async ({ page, resource }) => {
+  test('toggleLowbitrate() — toggles lowbitrate$ state', async ({ page, resource }) => {
     // ── SETUP ──────────────────────────────────────────────
     await setupRoomCall({ page, resource, prefix: 'e2e-sp-lowbr', channel: 'audio' });
 

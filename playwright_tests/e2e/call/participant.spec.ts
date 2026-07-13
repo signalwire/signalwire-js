@@ -812,8 +812,7 @@ test.describe('Participant API', () => {
     );
   });
 
-  // SDK bug: toggleLowbitrate() throws UnimplementedError: Not Implemented
-  test.skip('participant.toggleLowbitrate() toggles lowbitrate$', async ({
+  test('participant.toggleLowbitrate() toggles lowbitrate$', async ({
     page,
     resource,
   }) => {
@@ -1260,5 +1259,46 @@ test.describe('Participant API', () => {
     );
 
     expect(result.success, 'participant.setPosition() completes without crash').toBe(true);
+  });
+
+  // Regression for issue #19400 item 1 (Flag #5): the corrected
+  // `call.member.position.set` payload uses `targets: [{ target, position }]`.
+  // The previous singular `{ target, position }` payload was rejected by the
+  // gateway with JSON-RPC -32602 "Invalid parameters" on every call.
+  test('participant.setPosition() is not rejected with -32602', async ({
+    page,
+    resource,
+  }) => {
+    // ── SETUP ──────────────────────────────────────────────
+    await setupRoomCall({ page, resource, prefix: 'e2e-part-setpos-ok', channel: 'video' });
+
+    // ── CHECK ──────────────────────────────────────────────
+    const result = await page.evaluate(
+      async ({ obsTimeout }) => {
+        const waitFor = window.__waitFor;
+        const call = window.__swCall;
+
+        const participants = await waitFor(
+          call.participants$,
+          (p) => p.length >= 1,
+          obsTimeout,
+          'participants$ → at least 1 participant'
+        );
+
+        try {
+          await participants[0].setPosition('reserved-0');
+          return { resolved: true };
+        } catch (error) {
+          const err = error as { code?: number | string; message?: string };
+          return { resolved: false, code: err?.code, error: err?.message ?? String(error) };
+        }
+      },
+      { obsTimeout: OBSERVABLE_TIMEOUT }
+    );
+
+    // The corrected payload must deserialize at the gateway — it must never
+    // produce the -32602 rejection that the old singular payload triggered.
+    expect(result.code, 'setPosition must not reject with -32602').not.toBe(-32602);
+    expect(result.resolved, `setPosition resolved — ${result.error ?? ''}`).toBe(true);
   });
 });

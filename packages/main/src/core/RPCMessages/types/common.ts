@@ -16,22 +16,6 @@ export interface Version {
   revision: number;
 }
 
-export interface FabricSubscriber {
-  version: number;
-  expires_at: number;
-  subscriber_id: string;
-  application_id: string;
-  project_id: string;
-  space_id: string;
-}
-
-export interface AuthorizationInfo {
-  jti: string;
-  project_id: string;
-  data_zone: string;
-  fabric_subscriber: FabricSubscriber;
-}
-
 export interface IceServer {
   urls: string[];
   credential: string;
@@ -55,7 +39,9 @@ export interface Member {
   member_id: string;
   call_id: string;
   name: string;
-  type: 'member' | 'screen';
+  // Tolerate unknown member kinds: 'member'/'screen' on direct calls,
+  // 'device' on conference, plus any future server-defined kind.
+  type: 'member' | 'screen' | 'device' | (string & {});
   parent_id?: string;
   requested_position?: string;
   handraised: boolean;
@@ -63,17 +49,17 @@ export interface Member {
   audio_muted: boolean;
   video_muted: boolean;
   deaf: boolean;
-  input_volume: number;
-  output_volume: number;
-  input_sensitivity: number;
+  input_volume?: number;
+  output_volume?: number;
+  input_sensitivity?: number;
   echo_cancellation: boolean;
   auto_gain: boolean;
   noise_suppression: boolean;
   lowbitrate: boolean;
   denoise: boolean;
-  talking: boolean;
-  isAudience: boolean;
-  meta: Record<string, unknown>;
+  talking?: boolean;
+  isAudience?: boolean;
+  meta?: Record<string, unknown>;
   subscriber_id: string;
   address_id: string;
   updated?: string[];
@@ -131,45 +117,14 @@ export interface ConversationDetails {
   end_time?: number;
 }
 
-export interface UserVariables {
-  cameraLabel: string;
-  company: string;
-  country: string;
-  displayName: string;
-  email: string;
-  firstName: string;
-  fullBrowserVersion: string;
-  gmtOffset: number;
-  hostname: string;
-  isAndroid: boolean;
-  isChrome: boolean;
-  isChromium: boolean;
-  isEdge: boolean;
-  isFirefox: boolean;
-  isIE: boolean;
-  isIOS: boolean;
-  isMobile: boolean;
-  isOpera: boolean;
-  isSafari: boolean;
-  isTablet: boolean;
-  isWinPhone: boolean;
-  isYandex: boolean;
-  lastName: string;
-  memberId: string;
-  microphoneLabel: string;
-  name: string;
-  osName: string;
-  osVersion: string;
-  timezone: string;
-  tzString: string;
-  userAgent: string;
-  memberCallId?: string;
-}
-
 export interface DialogParams {
   attach: boolean;
   reattaching: boolean;
-  userVariables: UserVariables;
+  /**
+   * Free-form bag of variables echoed back by the server opaquely. The builder
+   * only populates `memberCallId`, `memberId`, and any caller-supplied entries.
+   */
+  userVariables: Record<string, unknown>;
   screenShare: boolean;
   additionalDevice: boolean;
   pingSupported: boolean;

@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/web-components",
-  "version": "4.0.0-rc.0",
+  "version": "4.0.0-rc.1",
   "description": "UI components library built with Lit",
   "type": "module",
   "main": "./dist/index.js",
@@ -176,7 +176,7 @@
     "rxjs": "^7.8.2"
   },
   "peerDependencies": {
-    "@signalwire/js": "4.0.0-rc.0"
+    "@signalwire/js": "4.0.0-rc.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

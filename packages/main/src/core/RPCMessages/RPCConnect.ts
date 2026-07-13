@@ -61,13 +61,18 @@ export interface RPCConnectResult {
   ice_servers?: RTCIceServer[];
 }
 
+export interface RPCConnectRequest extends JSONRPCRequest<RPCConnectParams> {
+  method: 'signalwire.connect';
+  params: RPCConnectParams;
+}
+
 export const DEFAULT_CONNECT_VERSION = {
   major: 4,
   minor: 0,
   revision: 0
 };
 
-export const RPCConnect = (params: RPCConnectParams): JSONRPCRequest => {
+export const RPCConnect = (params: RPCConnectParams): RPCConnectRequest => {
   return buildRPCRequest({
     method: 'signalwire.connect',
     params: {

@@ -97,18 +97,39 @@ export interface VertoInviteParams extends VertoParams {
 
 export type VertoByeCause = 'NORMAL_CLEARING' | 'USER_BUSY' | 'MEDIA_TIMEOUT';
 
+/**
+ * Outbound `verto.bye` params — the shape the `VertoBye` builder sends to the
+ * server. `callID` travels inside `dialogParams`; `cause`/`causeCode` are sent
+ * together when the hangup carries a reason.
+ */
 export interface VertoByeParams extends VertoParams {
-  callID: string;
-  causeCode: number | string;
-  cause: VertoByeCause;
+  dialogParams: PartialDialogParams;
+  cause?: VertoByeCause;
+  causeCode?: number | string;
 }
+
+/**
+ * Inbound `verto.bye` params — the shape the server emits when the remote ends
+ * the call. Unlike the outbound builder, `callID` is top-level (no
+ * `dialogParams`) and `cause`/`causeCode` describe why the call ended.
+ */
+export interface VertoByeInboundParams extends VertoParams {
+  callID: string;
+  cause?: VertoByeCause;
+  causeCode?: number | string;
+}
+
+export type VertoDisplayDirection = 'inbound' | 'outbound';
 
 export interface VertoAttachParams extends VertoParams {
   callID: string;
+  sdp: string;
   callee_id_number: string;
   callee_id_name: string;
   caller_id_number: string;
   caller_id_name: string;
+  display_direction: VertoDisplayDirection;
+  variables?: Record<string, unknown>;
 }
 
 export interface VertoAnswerResultParams {
@@ -151,6 +172,11 @@ export interface VertoByeMessage extends VertoMethodMessage<VertoByeParams> {
   params: VertoByeParams;
 }
 
+export interface VertoByeInboundMessage extends VertoMethodMessage<VertoByeInboundParams> {
+  method: 'verto.bye';
+  params: VertoByeInboundParams;
+}
+
 export interface VertoAttachMessage extends VertoMethodMessage<VertoAttachParams> {
   method: 'verto.attach';
   params: VertoAttachParams;
@@ -165,7 +191,7 @@ export type InboundVertoMessage =
   | VertoMediaMessage
   | VertoMediaParamsMessage
   | VertoPingMessage
-  | VertoByeMessage;
+  | VertoByeInboundMessage;
 
 export type OutboundVertoMessage =
   | VertoInviteMessage

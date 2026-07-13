@@ -4,9 +4,10 @@ import {
   isRoomUpdatedMetadata,
   isRoomUpdatedPayload,
   isSignalwireCallRequest,
-  isSignalwireCallMetadata
+  isSignalwireCallMetadata,
+  isCallStatePayload
 } from './events.guards';
-import type { RoomUpdatedPayload } from '../types/events';
+import type { CallStatePayload, RoomUpdatedPayload } from '../types/events';
 
 const validRoomSession = {
   room_session_id: 'rs-123',
@@ -116,5 +117,40 @@ describe('room.updated guards', () => {
     it('should return true for room.updated metadata', () => {
       expect(isSignalwireCallMetadata(validRoomUpdatedMetadata)).toBe(true);
     });
+  });
+});
+
+describe('call.state guards', () => {
+  const preAnswerPayload: CallStatePayload = {
+    call_id: 'call-1',
+    node_id: 'node-1',
+    segment_id: 'seg-1',
+    call_state: 'ringing',
+    direction: 'inbound',
+    device: { type: 'webrtc', params: { from: 'a', to: 'b' } },
+    room_session_id: 'rs-1'
+  };
+
+  const endedPayload: CallStatePayload = {
+    ...preAnswerPayload,
+    call_state: 'ended',
+    start_time: 1,
+    answer_time: 2,
+    end_time: 3,
+    peer: { call_id: 'peer-1', node_id: 'node-2' },
+    tag: 'my-tag'
+  };
+
+  it('should accept a pre-answer payload without lifecycle timestamps', () => {
+    expect(isCallStatePayload(preAnswerPayload)).toBe(true);
+  });
+
+  it('should accept an ended payload with the additive server fields', () => {
+    expect(isCallStatePayload(endedPayload)).toBe(true);
+  });
+
+  it('should return false for payload missing call_state', () => {
+    const { call_state: _, ...noState } = preAnswerPayload;
+    expect(isCallStatePayload(noState)).toBe(false);
   });
 });

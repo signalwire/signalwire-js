@@ -90,6 +90,110 @@ describe('Participant - remove()', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Participant - setPosition() (issue #19400 item 1, Flag #5)
+// ---------------------------------------------------------------------------
+
+describe('Participant - setPosition()', () => {
+  let executeMethod: ReturnType<typeof vi.fn>;
+  let participant: Participant;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    executeMethod = createMockExecuteMethod();
+    participant = createParticipant('member-abc', executeMethod as ExecuteMethod);
+    participant.upnext({
+      member_id: 'member-abc',
+      call_id: 'participant-call-id',
+      node_id: 'participant-node-id',
+      name: 'Test User',
+      type: 'member'
+    } as Parameters<typeof participant.upnext>[0]);
+  });
+
+  afterEach(() => {
+    participant.destroy();
+  });
+
+  it('calls executeMethod with "call.member.position.set"', async () => {
+    await participant.setPosition('reserved-1');
+
+    expect(executeMethod).toHaveBeenCalledOnce();
+    expect(executeMethod.mock.calls[0][1]).toBe('call.member.position.set');
+  });
+
+  it('builds the targets[] entry with the participant own call_id/node_id', async () => {
+    await participant.setPosition('reserved-1');
+
+    // The gateway keys positions by the TARGET member's own call context, so the
+    // RPC must carry this participant's own member_id/call_id/node_id (matching
+    // the legacy `setPositions` behavior and `Participant.remove`). #19400.
+    const args = executeMethod.mock.calls[0][2] as { targets: { target: MemberTarget }[] };
+    const target = args.targets[0].target;
+    expect(target.member_id).toBe('member-abc');
+    expect(target.call_id).toBe('participant-call-id');
+    expect(target.node_id).toBe('participant-node-id');
+  });
+
+  it('builds the full targets[] payload in the args (caller owns the targets shape)', async () => {
+    await participant.setPosition('reserved-1');
+
+    const args = executeMethod.mock.calls[0][2] as Record<string, unknown>;
+    expect(args).toEqual({
+      targets: [
+        {
+          target: {
+            member_id: 'member-abc',
+            call_id: 'participant-call-id',
+            node_id: 'participant-node-id'
+          },
+          position: 'reserved-1'
+        }
+      ]
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Participant - toggleLowbitrate() (issue #18326)
+// ---------------------------------------------------------------------------
+
+describe('Participant - toggleLowbitrate()', () => {
+  let executeMethod: ReturnType<typeof vi.fn>;
+  let participant: Participant;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    executeMethod = createMockExecuteMethod();
+    participant = createParticipant('member-abc', executeMethod as ExecuteMethod);
+  });
+
+  afterEach(() => {
+    participant.destroy();
+  });
+
+  it('calls executeMethod with "call.lowbitrate.set" and the negated current value', async () => {
+    expect(participant.lowbitrate).toBe(false);
+
+    await participant.toggleLowbitrate();
+
+    expect(executeMethod).toHaveBeenCalledOnce();
+    expect(executeMethod).toHaveBeenCalledWith('member-abc', 'call.lowbitrate.set', {
+      lowbitrate: true
+    });
+  });
+
+  it('negates the current lowbitrate value rather than always sending true', async () => {
+    participant.upnext({ lowbitrate: true } as Parameters<typeof participant.upnext>[0]);
+
+    await participant.toggleLowbitrate();
+
+    expect(executeMethod).toHaveBeenCalledWith('member-abc', 'call.lowbitrate.set', {
+      lowbitrate: false
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // SelfParticipant - Studio Audio Mode
 // ---------------------------------------------------------------------------
 
