@@ -8,6 +8,7 @@ import {
 import { WebRTCCall } from '../core/entities/Call';
 import {
   JSONRPCError,
+  MediaAccessError,
   MediaTrackError,
   RPCTimeoutError,
   TransportConnectionError,
@@ -33,6 +34,7 @@ function inferCallErrorKind(error: Error): CallError['kind'] {
   if (error instanceof RPCTimeoutError) return 'timeout';
   if (error instanceof JSONRPCError) return 'signaling';
   if (error instanceof MediaTrackError) return 'media';
+  if (error instanceof MediaAccessError) return 'media';
   if (error instanceof WebSocketConnectionError || error instanceof TransportConnectionError)
     return 'network';
   return 'internal';
@@ -54,6 +56,9 @@ function isFatalError(error: Error): boolean {
   if (error instanceof VertoPongError) return false;
   // Media device errors degrade quality but don't end the call
   if (error instanceof MediaTrackError) return false;
+  // Local media acquisition failures: the wrapping site knows whether the
+  // call can continue (receive-only fallback, aux connection) and sets fatal.
+  if (error instanceof MediaAccessError) return error.fatal;
   // RPC timeouts during active calls are transient (network outage) — recovery may retry
   if (error instanceof RPCTimeoutError) return false;
   // JSONRPCError covers both hard signaling failures and transient auth-recoverable
@@ -93,10 +98,10 @@ export class CallFactory {
             this.webRTCApiProvider,
             {
               nodeId: options.nodeId,
-              onError: (error: Error) => {
+              onError: (error: Error, options?: { fatal?: boolean }) => {
                 const callError: CallError = {
                   kind: inferCallErrorKind(error),
-                  fatal: isFatalError(error),
+                  fatal: options?.fatal ?? isFatalError(error),
                   error,
                   callId: callInstance.id
                 };

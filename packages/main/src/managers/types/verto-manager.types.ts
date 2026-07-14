@@ -38,7 +38,12 @@ export type SignalingStatus = Extract<
 export interface WebRTCVertoManagerOptions {
   nodeId?: string;
   reattach?: boolean;
-  onError?: (error: Error) => void;
+  /**
+   * Surface a call-level error. `options.fatal` overrides the default
+   * fatality classification — auxiliary peer connections (screenshare /
+   * additional-device) use it so their failures never destroy the call.
+   */
+  onError?: (error: Error, options?: { fatal?: boolean }) => void;
   onModifyFailed?: () => void;
 }
 

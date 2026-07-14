@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { firstValueFrom, take, combineLatest, BehaviorSubject, ReplaySubject } from 'rxjs';
-import { ClientSessionManager } from './ClientSessionManager';
+import { ClientSessionManager, shouldAbortDial } from './ClientSessionManager';
+import { JSONRPCError, MediaAccessError } from '../core/errors';
+import type { CallError } from '../core/errors';
 import type { StorageManager } from './StorageManager';
 import type { TransportManager } from './TransportManager';
 import type { AttachManager } from './AttachManager';
@@ -263,5 +265,39 @@ describe('ClientSessionManager', () => {
       expect(errors).toHaveLength(1);
       expect(transport.reconnect).not.toHaveBeenCalled();
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// shouldAbortDial — the dial-time errors$ race predicate
+// ---------------------------------------------------------------------------
+
+describe('shouldAbortDial', () => {
+  const asCallError = (error: Error, fatal: boolean): CallError => ({
+    kind: 'media',
+    fatal,
+    error,
+    callId: 'call-1'
+  });
+
+  it('does not abort for a non-fatal MediaAccessError (receive-only fallback)', () => {
+    const error = new MediaAccessError('acquireLocalMedia', 'audiovideo', new Error('denied'));
+    expect(shouldAbortDial(asCallError(error, false))).toBe(false);
+  });
+
+  it('aborts for a fatal MediaAccessError (fallback disabled or no receive intent)', () => {
+    const error = new MediaAccessError('acquireLocalMedia', 'audiovideo', new Error('denied'), true);
+    expect(shouldAbortDial(asCallError(error, true))).toBe(true);
+  });
+
+  it('aborts for other non-fatal errors so dial() rejects with the real cause', () => {
+    // e.g. a recoverable JSONRPCError is non-fatal for an established call,
+    // but during dial nothing retries the invite — reject immediately.
+    const error = new JSONRPCError(-32002, 'authentication failed');
+    expect(shouldAbortDial(asCallError(error, false))).toBe(true);
+  });
+
+  it('aborts for fatal errors of any type', () => {
+    expect(shouldAbortDial(asCallError(new Error('boom'), true))).toBe(true);
   });
 });

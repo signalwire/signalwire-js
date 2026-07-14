@@ -726,6 +726,23 @@ function subscribeToCallObservables(call) {
     })
   );
 
+  // --- Call Errors ---
+  // v4: call.errors$ emits { kind, fatal, error, callId }. Non-fatal errors
+  // (e.g. MediaAccessError when camera/mic is denied and the call degrades to
+  // receive-only) do NOT end the call — just inform the user.
+  callSubscriptions.push(
+    call.errors$.subscribe(({ kind, fatal, error }) => {
+      if (fatal) {
+        console.error(`Fatal call error (${kind}):`, error);
+        return;
+      }
+      console.warn(`Non-fatal call error (${kind}):`, error);
+      if (error.name === 'MediaAccessError') {
+        console.info('Local media unavailable — call continues in receive-only mode.');
+      }
+    })
+  );
+
   // --- Call Direction ---
   DOM.callDirectionText.textContent = call.direction.toUpperCase();
 
@@ -1010,6 +1027,13 @@ function setupSelfControls(call, self) {
       }
       updateScreenShareBtn();
     } catch (error) {
+      // v4: startScreenShare() rejects with the raw getDisplayMedia error and
+      // the call is unaffected (v3 parity: no more full-call teardown).
+      // A dismissed picker / permission denial is a benign cancel — stay quiet.
+      if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+        console.info('Screen share cancelled by user:', error.name);
+        return;
+      }
       console.error('Error toggling screen share:', error);
       alert('Error toggling screen share: ' + error.message);
     }

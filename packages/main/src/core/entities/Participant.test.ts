@@ -357,3 +357,80 @@ describe('SelfParticipant - Studio Audio Mode', () => {
     expect(emissions).toEqual([false, true, false]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// SelfParticipant - screen share / additional device error propagation
+// ---------------------------------------------------------------------------
+
+describe('SelfParticipant - media acquisition error propagation', () => {
+  let executeMethod: ReturnType<typeof vi.fn>;
+
+  const createDeniedError = (): Error => {
+    const error = new Error('Permission denied');
+    error.name = 'NotAllowedError';
+    return error;
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    executeMethod = createMockExecuteMethod();
+  });
+
+  it('startScreenShare rethrows the original error when addScreenMedia rejects', async () => {
+    const original = createDeniedError();
+    const vertoManager = createMockVertoManager();
+    (vertoManager.addScreenMedia as ReturnType<typeof vi.fn>).mockRejectedValue(original);
+    const selfParticipant = createSelfParticipant(
+      'self-member',
+      executeMethod as ExecuteMethod,
+      vertoManager
+    );
+
+    await expect(selfParticipant.startScreenShare()).rejects.toBe(original);
+
+    selfParticipant.destroy();
+  });
+
+  it('startScreenShare resolves on success', async () => {
+    const vertoManager = createMockVertoManager();
+    const selfParticipant = createSelfParticipant(
+      'self-member',
+      executeMethod as ExecuteMethod,
+      vertoManager
+    );
+
+    await expect(selfParticipant.startScreenShare()).resolves.toBeUndefined();
+    expect(vertoManager.addScreenMedia).toHaveBeenCalledOnce();
+
+    selfParticipant.destroy();
+  });
+
+  it('addAdditionalDevice rethrows the original error when addInputDevice rejects', async () => {
+    const original = createDeniedError();
+    const vertoManager = createMockVertoManager();
+    (vertoManager.addInputDevice as ReturnType<typeof vi.fn>).mockRejectedValue(original);
+    const selfParticipant = createSelfParticipant(
+      'self-member',
+      executeMethod as ExecuteMethod,
+      vertoManager
+    );
+
+    await expect(selfParticipant.addAdditionalDevice({ video: true })).rejects.toBe(original);
+
+    selfParticipant.destroy();
+  });
+
+  it('addAdditionalDevice resolves on success', async () => {
+    const vertoManager = createMockVertoManager();
+    const selfParticipant = createSelfParticipant(
+      'self-member',
+      executeMethod as ExecuteMethod,
+      vertoManager
+    );
+
+    await expect(selfParticipant.addAdditionalDevice({ video: true })).resolves.toBeUndefined();
+    expect(vertoManager.addInputDevice).toHaveBeenCalledWith({ video: true });
+
+    selfParticipant.destroy();
+  });
+});

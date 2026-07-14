@@ -58,6 +58,13 @@ export const RPC_ERROR_INVALID_PARAMS = -32602;
 /** JSON-RPC error code for authentication failure (invalid token, missing DPoP, etc.). */
 export const RPC_ERROR_AUTHENTICATION_FAILED = -32002;
 
+/** Error names browsers use for a media permission denial (user or policy). */
+export const MEDIA_ACCESS_DENIAL_NAMES = [
+  'NotAllowedError',
+  'SecurityError',
+  'PermissionDeniedError'
+];
+
 // =============================================================================
 // STATS MONITORING DEFAULTS (Section 1)
 // =============================================================================

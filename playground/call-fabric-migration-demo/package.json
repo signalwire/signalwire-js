@@ -11,8 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@signalwire/js": "4.0.0-rc.1",
-    "@signalwire/web-components": "4.0.0-rc.1",
+    "@signalwire/js": "4.0.0-rc.2",
+    "@signalwire/web-components": "4.0.0-rc.2",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {

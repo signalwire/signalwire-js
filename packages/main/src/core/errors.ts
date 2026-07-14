@@ -1,3 +1,5 @@
+import { MEDIA_ACCESS_DENIAL_NAMES } from './constants';
+
 export class UnexpectedError extends Error {
   constructor(
     public at?: string,
@@ -389,6 +391,46 @@ export class MediaTrackError extends Error {
       cause: originalError instanceof Error ? originalError : undefined
     });
     this.name = 'MediaTrackError';
+  }
+}
+
+/** True when a `getUserMedia`/`getDisplayMedia` rejection is a permission denial. */
+function isMediaAccessDenial(originalError: unknown): boolean {
+  return originalError instanceof Error && MEDIA_ACCESS_DENIAL_NAMES.includes(originalError.name);
+}
+
+/**
+ * Failure to acquire local media (camera, microphone, or screen capture)
+ * via `getUserMedia`/`getDisplayMedia`.
+ *
+ * Non-fatal by default: screenshare and additional-device failures never
+ * end the call, and main-connection failures degrade to receive-only when
+ * possible. The wrapping site sets `fatal` to `true` only when the call
+ * cannot continue (receive-only fallback disabled or no receive intent).
+ */
+export class MediaAccessError extends Error {
+  constructor(
+    /** The SDK operation that failed, e.g. `'acquireLocalMedia'`, `'startScreenShare'`, `'addInputDevice'`. */
+    public operation: string,
+    /** The media being acquired: `'audio' | 'video' | 'audiovideo' | 'screen'`. */
+    public media: string,
+    /** The raw `getUserMedia`/`getDisplayMedia` error (typically a `DOMException`). */
+    public originalError: unknown,
+    /** Whether this failure terminates the call. */
+    public readonly fatal: boolean = false
+  ) {
+    super(
+      `Media access ${isMediaAccessDenial(originalError) ? 'denied' : 'failed'} for ${operation} (${media})`,
+      {
+        cause: originalError instanceof Error ? originalError : undefined
+      }
+    );
+    this.name = 'MediaAccessError';
+  }
+
+  /** True when the underlying failure is a permission denial (user or policy). */
+  get denied(): boolean {
+    return isMediaAccessDenial(this.originalError);
   }
 }
 

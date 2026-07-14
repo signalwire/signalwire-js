@@ -1,5 +1,13 @@
 # @signalwire/react-demo
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [ee06f27]
+  - @signalwire/js@4.0.0
+  - @signalwire/web-components@4.0.0
+
 ## 0.0.2
 
 ### Patch Changes

@@ -35,6 +35,7 @@ export {
   DeviceTokenError,
   DPoPInitError,
   InvalidCredentialsError,
+  MediaAccessError,
   MediaTrackError,
   MessageParseError,
   TokenRefreshError,
