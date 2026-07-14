@@ -1,6 +1,16 @@
+// @vitest-environment jsdom
+// dompurify >= 3.4.8 silently fails to sanitize under happy-dom, so these
+// tests must run in jsdom (see https://github.com/capricorn86/happy-dom).
 import { describe, it, expect, afterEach } from 'vitest';
 import './sw-ui-content-drawer.js';
 import type { SwUiContentDrawer } from './sw-ui-content-drawer.js';
+
+// jsdom does not implement ResizeObserver, which connectedCallback needs.
+globalThis.ResizeObserver ??= class {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+};
 
 async function mountDrawer(props: Partial<SwUiContentDrawer>): Promise<SwUiContentDrawer> {
   const el = document.createElement('sw-ui-content-drawer') as SwUiContentDrawer;

@@ -27,4 +27,10 @@ export interface MediaOptions {
   receiveAudio?: boolean;
   /** Whether to receive remote video. */
   receiveVideo?: boolean;
+  /**
+   * When local media can't be acquired (permission denied or device
+   * unavailable), continue the call in receive-only mode instead of failing.
+   * Defaults to `true`. Ignored when the call is not set to receive any media.
+   */
+  fallbackToReceiveOnly?: boolean;
 }

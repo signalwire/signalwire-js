@@ -6,6 +6,8 @@ import {
 } from './RTCPeerConnectionController';
 import { filter, firstValueFrom, take, timeout } from 'rxjs';
 
+import { InvalidParams, MediaAccessError, MediaTrackError } from '../core/errors';
+
 import type { WebRTCApiProvider, WebRTCMediaDevices } from '../dependencies/interfaces';
 import type { DeviceController } from '../interfaces/DeviceController';
 
@@ -1385,11 +1387,41 @@ describe('RTCPeerConnectionController', () => {
       const sub = errorController.localDescription$.subscribe();
       await vi.runAllTimersAsync();
 
+      // getUserMedia failures surface as MediaAccessError; with default
+      // receive intent the connection degrades to receive-only (non-fatal).
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0].message).toContain('Permission denied');
+      expect(errors[0]).toBeInstanceOf(MediaAccessError);
+      expect((errors[0] as MediaAccessError).originalError).toMatchObject({
+        message: 'Permission denied'
+      });
 
       sub.unsubscribe();
       errorController.destroy();
+    });
+
+    it('emits a non-fatal MediaTrackError when adding a local track fails mid-call', async () => {
+      const sub = controller.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      const errors: Error[] = [];
+      controller.errors$.subscribe((e) => errors.push(e));
+
+      (mockPeerConnection.addTrack as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
+        throw new Error('addTrack failed');
+      });
+
+      const track = new MockMediaStreamTrack('audio');
+      expect(() => controller.addLocalTrack(track as unknown as MediaStreamTrack)).toThrow(
+        'addTrack failed'
+      );
+
+      // Mid-call track failures are typed MediaTrackError → non-fatal in
+      // CallFactory (the call survives losing the track op).
+      const emitted = errors.at(-1);
+      expect(emitted).toBeInstanceOf(MediaTrackError);
+      expect((emitted as MediaTrackError).operation).toBe('addLocalTrack');
+
+      sub.unsubscribe();
     });
   });
 
@@ -1910,6 +1942,304 @@ describe('RTCPeerConnectionController', () => {
       expect(answerController.receiveVideo).toBe(false);
       expect(answerController.receiveAudio).toBe(true);
       expect(mockPeerConnection.createAnswer).toHaveBeenCalled();
+
+      sub.unsubscribe();
+      answerController.destroy();
+    });
+  });
+
+  describe('Receive-only fallback on media denial', () => {
+    const createDeniedGetUserMedia = (): ((
+      constraints: MediaStreamConstraints
+    ) => Promise<MediaStream>) =>
+      vi.fn(async () => {
+        const error = new Error('Permission denied');
+        error.name = 'NotAllowedError';
+        throw error;
+      }) as unknown as (constraints: MediaStreamConstraints) => Promise<MediaStream>;
+
+    const createDeniedController = (options?: RTCPeerConnectionControllerOptionsPartial) => {
+      const MockPeerConnectionConstructor = vi.fn(function (this: unknown) {
+        return mockPeerConnection as unknown as RTCPeerConnection;
+      });
+      return createTestController({
+        webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor, {
+          getUserMedia: createDeniedGetUserMedia()
+        }),
+        audio: true,
+        video: true,
+        receiveAudio: true,
+        receiveVideo: false,
+        ...options
+      });
+    };
+
+    it('continues receive-only and emits a non-fatal MediaAccessError by default', async () => {
+      const deniedController = createDeniedController();
+      const errors: Error[] = [];
+      deniedController.errors$.subscribe((e) => errors.push(e));
+
+      const sub = deniedController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect(errors).toHaveLength(1);
+      const error = errors[0] as MediaAccessError;
+      expect(error).toBeInstanceOf(MediaAccessError);
+      expect(error.fatal).toBe(false);
+      expect(error.operation).toBe('acquireLocalMedia');
+      expect(error.media).toBe('audiovideo');
+      expect(error.denied).toBe(true);
+
+      // Connection survives and negotiates receive-only m-lines
+      expect(mockPeerConnection.close).not.toHaveBeenCalled();
+      expect(mockPeerConnection.addTransceiver).toHaveBeenCalledWith('audio', {
+        direction: 'recvonly'
+      });
+      expect(mockPeerConnection.addTransceiver).toHaveBeenCalledWith('video', {
+        direction: 'inactive'
+      });
+      expect(mockPeerConnection.createOffer).toHaveBeenCalled();
+
+      sub.unsubscribe();
+      deniedController.destroy();
+    });
+
+    it('maps receive intent to transceiver directions', async () => {
+      const deniedController = createDeniedController({
+        receiveAudio: true,
+        receiveVideo: true
+      });
+
+      const sub = deniedController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect(mockPeerConnection.addTransceiver).toHaveBeenCalledWith('audio', {
+        direction: 'recvonly'
+      });
+      expect(mockPeerConnection.addTransceiver).toHaveBeenCalledWith('video', {
+        direction: 'recvonly'
+      });
+
+      sub.unsubscribe();
+      deniedController.destroy();
+    });
+
+    it('fails fatally when fallbackToReceiveOnly is false', async () => {
+      const deniedController = createDeniedController({ fallbackToReceiveOnly: false });
+      const errors: Error[] = [];
+      deniedController.errors$.subscribe((e) => errors.push(e));
+
+      const sub = deniedController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect(errors).toHaveLength(1);
+      const error = errors[0] as MediaAccessError;
+      expect(error).toBeInstanceOf(MediaAccessError);
+      expect(error.fatal).toBe(true);
+      expect(mockPeerConnection.close).toHaveBeenCalled();
+      expect(mockPeerConnection.addTransceiver).not.toHaveBeenCalled();
+
+      sub.unsubscribe();
+      deniedController.destroy();
+    });
+
+    it('fails fatally when the call has no receive intent', async () => {
+      const deniedController = createDeniedController({
+        receiveAudio: false,
+        receiveVideo: false
+      });
+      const errors: Error[] = [];
+      deniedController.errors$.subscribe((e) => errors.push(e));
+
+      const sub = deniedController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect(errors).toHaveLength(1);
+      const error = errors[0] as MediaAccessError;
+      expect(error).toBeInstanceOf(MediaAccessError);
+      expect(error.fatal).toBe(true);
+      expect(mockPeerConnection.close).toHaveBeenCalled();
+
+      sub.unsubscribe();
+      deniedController.destroy();
+    });
+
+    it('derives media from the requested kinds', async () => {
+      const deniedController = createDeniedController({
+        video: false,
+        fallbackToReceiveOnly: false
+      });
+      const errors: Error[] = [];
+      deniedController.errors$.subscribe((e) => errors.push(e));
+
+      const sub = deniedController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect((errors[0] as MediaAccessError).media).toBe('audio');
+
+      sub.unsubscribe();
+      deniedController.destroy();
+    });
+
+    it('skips media acquisition entirely for an intentional receive-only call', async () => {
+      const MockPeerConnectionConstructor = vi.fn(function (this: unknown) {
+        return mockPeerConnection as unknown as RTCPeerConnection;
+      });
+      const receiveOnlyGetUserMedia = vi.fn(async () => {
+        throw new Error('should not be called');
+      }) as unknown as (constraints: MediaStreamConstraints) => Promise<MediaStream>;
+      const receiveOnlyController = createTestController({
+        webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor, {
+          getUserMedia: receiveOnlyGetUserMedia
+        }),
+        audio: false,
+        video: false,
+        receiveAudio: true,
+        receiveVideo: false
+      });
+      const errors: Error[] = [];
+      receiveOnlyController.errors$.subscribe((e) => errors.push(e));
+
+      const sub = receiveOnlyController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect(receiveOnlyGetUserMedia).not.toHaveBeenCalled();
+      expect(errors).toHaveLength(0);
+      expect(mockPeerConnection.close).not.toHaveBeenCalled();
+      expect(mockPeerConnection.addTransceiver).toHaveBeenCalledWith('audio', {
+        direction: 'recvonly'
+      });
+      expect(mockPeerConnection.createOffer).toHaveBeenCalled();
+
+      sub.unsubscribe();
+      receiveOnlyController.destroy();
+    });
+
+    it('does not offer to receive audio when receiveAudio is false', async () => {
+      const deniedController = createDeniedController({
+        receiveAudio: false,
+        receiveVideo: true
+      });
+
+      const sub = deniedController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect(mockPeerConnection.addTransceiver).toHaveBeenCalledWith('audio', {
+        direction: 'inactive'
+      });
+      // The legacy offerToReceive* flags must not re-enable the opted-out kind
+      expect(mockPeerConnection.createOffer).toHaveBeenCalledWith(
+        expect.objectContaining({ offerToReceiveAudio: false, offerToReceiveVideo: true })
+      );
+
+      sub.unsubscribe();
+      deniedController.destroy();
+    });
+
+    it('fails with InvalidParams when the call has no media to send or receive', async () => {
+      const MockPeerConnectionConstructor = vi.fn(function (this: unknown) {
+        return mockPeerConnection as unknown as RTCPeerConnection;
+      });
+      const noMediaController = createTestController({
+        webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor),
+        audio: false,
+        video: false,
+        receiveAudio: false,
+        receiveVideo: false
+      });
+      const errors: Error[] = [];
+      noMediaController.errors$.subscribe((e) => errors.push(e));
+
+      const sub = noMediaController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(InvalidParams);
+      expect(mockPeerConnection.close).toHaveBeenCalled();
+
+      sub.unsubscribe();
+      noMediaController.destroy();
+    });
+
+    it('honors fallbackToReceiveOnly:false passed via acceptInbound overrides', async () => {
+      const remoteSdp = [
+        'v=0',
+        'o=- 123 2 IN IP4 127.0.0.1',
+        's=-',
+        'm=audio 9 UDP/TLS/RTP/SAVPF 111',
+        'a=sendrecv',
+        'm=video 9 UDP/TLS/RTP/SAVPF 96',
+        'a=sendrecv'
+      ].join('\r\n');
+
+      const MockPeerConnectionConstructor = vi.fn(function (this: unknown) {
+        return mockPeerConnection as unknown as RTCPeerConnection;
+      });
+      const answerController = createTestController(
+        {
+          webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor, {
+            getUserMedia: createDeniedGetUserMedia()
+          }),
+          audio: true,
+          video: true,
+          receiveAudio: true,
+          receiveVideo: true
+        },
+        remoteSdp
+      );
+
+      const sub = answerController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      await expect(
+        answerController.acceptInbound({ fallbackToReceiveOnly: false })
+      ).rejects.toMatchObject({ name: 'MediaAccessError', fatal: true });
+
+      sub.unsubscribe();
+      answerController.destroy();
+    });
+
+    it('degrades an inbound answer to receive-only on denial without extra transceivers', async () => {
+      const remoteSdp = [
+        'v=0',
+        'o=- 123 2 IN IP4 127.0.0.1',
+        's=-',
+        'm=audio 9 UDP/TLS/RTP/SAVPF 111',
+        'a=sendrecv',
+        'm=video 9 UDP/TLS/RTP/SAVPF 96',
+        'a=sendrecv'
+      ].join('\r\n');
+
+      const MockPeerConnectionConstructor = vi.fn(function (this: unknown) {
+        return mockPeerConnection as unknown as RTCPeerConnection;
+      });
+      const answerController = createTestController(
+        {
+          webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor, {
+            getUserMedia: createDeniedGetUserMedia()
+          }),
+          audio: true,
+          video: true,
+          receiveAudio: true,
+          receiveVideo: true
+        },
+        remoteSdp
+      );
+      const errors: Error[] = [];
+      answerController.errors$.subscribe((e) => errors.push(e));
+
+      const sub = answerController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      await answerController.acceptInbound();
+      await vi.runAllTimersAsync();
+
+      expect(errors).toHaveLength(1);
+      expect((errors[0] as MediaAccessError).fatal).toBe(false);
+      // Answer side reuses the transceivers from the remote offer
+      expect(mockPeerConnection.addTransceiver).not.toHaveBeenCalled();
+      expect(mockPeerConnection.createAnswer).toHaveBeenCalled();
+      expect(mockPeerConnection.close).not.toHaveBeenCalled();
 
       sub.unsubscribe();
       answerController.destroy();

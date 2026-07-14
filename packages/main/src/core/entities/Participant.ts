@@ -694,12 +694,21 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
     });
   }
 
-  /** Starts sharing the local screen. */
+  /**
+   * Starts sharing the local screen.
+   *
+   * The call is unaffected when acquisition fails.
+   *
+   * @throws The raw `getDisplayMedia` error. A dismissed picker or a
+   * permission denial rejects with a `NotAllowedError` `DOMException` —
+   * inspect `error.name` to tell benign cancels apart from real failures.
+   */
   public async startScreenShare(): Promise<void> {
     try {
       await this.vertoManager.addScreenMedia();
     } catch (error) {
       logger.error('[Participant.startScreenShare] Screen share error:', error);
+      throw error;
     }
   }
 
@@ -718,12 +727,20 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
     return this.vertoManager.removeScreenMedia();
   }
 
-  /** Adds an additional media input device to the call. */
+  /**
+   * Adds an additional media input device to the call.
+   *
+   * The call is unaffected when acquisition fails.
+   *
+   * @throws The raw `getUserMedia` error (e.g. `NotAllowedError` on
+   * permission denial) — inspect `error.name` to decide how to react.
+   */
   public async addAdditionalDevice(options: MediaOptions): Promise<void> {
     try {
       await this.vertoManager.addInputDevice(options);
     } catch (error) {
-      logger.error('[Participant.startScreenShare] Screen share error:', error);
+      logger.error('[Participant.addAdditionalDevice] Additional device error:', error);
+      throw error;
     }
   }
 

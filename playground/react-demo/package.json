@@ -1,7 +1,7 @@
 {
   "name": "@signalwire/react-demo",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "description": "React demo showcasing @signalwire/js and @signalwire/web-components with RxJS-to-React integration",
   "scripts": {
@@ -11,8 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@signalwire/js": "4.0.0-rc.1",
-    "@signalwire/web-components": "4.0.0-rc.1",
+    "@signalwire/js": "4.0.0-rc.2",
+    "@signalwire/web-components": "4.0.0-rc.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "rxjs": "^7.8.2"

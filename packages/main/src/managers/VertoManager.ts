@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import {
+  EmptyError,
   filter,
   firstValueFrom,
   map,
@@ -15,7 +16,13 @@ import { Destroyable } from '../behaviors/Destroyable';
 import { PreferencesContainer } from '../containers/PreferencesContainer';
 import { RTCPeerConnectionController } from '../controllers/RTCPeerConnectionController';
 import { INVITE_VERSION } from '../core/constants';
-import { DependencyError, InvalidParams, JSONRPCError, VertoPongError } from '../core/errors';
+import {
+  DependencyError,
+  InvalidParams,
+  JSONRPCError,
+  MediaAccessError,
+  VertoPongError
+} from '../core/errors';
 import {
   VertoAnswer,
   VertoBye,
@@ -115,7 +122,7 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
   public mediaDirections$!: Observable<MediaDirections>;
   public localStream$!: Observable<MediaStream>;
   public remoteStream$!: Observable<MediaStream>;
-  private readonly onError?: (error: Error) => void;
+  private readonly onError?: (error: Error, options?: { fatal?: boolean }) => void;
   private readonly onModifyFailed?: () => void;
   private _rtcPeerConnections$ = this.createBehaviorSubject<RTCPeerConnectionController[]>([]);
 
@@ -759,6 +766,7 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
         inputVideoStream: options.inputVideoStream,
         receiveAudio: options.receiveAudio,
         receiveVideo: options.receiveVideo,
+        fallbackToReceiveOnly: options.fallbackToReceiveOnly,
         webRTCApiProvider: this.webRTCApiProvider,
         preferredVideoCodecs: options.preferredVideoCodecs,
         preferredAudioCodecs: options.preferredAudioCodecs,
@@ -1079,9 +1087,13 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
     propose: RTCPeerConnectionPropose,
     options: MediaOptions
   ): Promise<string | undefined> {
+    const isScreenShare = propose === 'screenshare';
+    let firstPeerConnectionError: Error | undefined;
     let rtcPeerConnController: RTCPeerConnectionController | null = null;
     try {
-      this._screenShareStatus$.next('starting');
+      if (isScreenShare) {
+        this._screenShareStatus$.next('starting');
+      }
       rtcPeerConnController = new RTCPeerConnectionController(
         {
           ...options,
@@ -1093,13 +1105,17 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
         this.deviceController
       );
       this.setupLocalDescriptionHandler(rtcPeerConnController);
-      if (propose === 'screenshare') {
+      if (isScreenShare) {
         this._screenShareId = rtcPeerConnController.id;
       }
       this._rtcPeerConnectionsMap.set(rtcPeerConnController.id, rtcPeerConnController);
       this._rtcPeerConnections$.next(Array.from(this._rtcPeerConnectionsMap.values()));
       this.subscribeTo(rtcPeerConnController.errors$, (error) => {
-        this.onError?.(error);
+        // Forward auxiliary errors with their real type (the controller
+        // already emits typed MediaAccessError for acquisition failures) but
+        // never fatal: an auxiliary leg failure must not destroy the call.
+        firstPeerConnectionError ??= error;
+        this.onError?.(error, { fatal: false });
       });
       await firstValueFrom(
         rtcPeerConnController.connectionState$.pipe(
@@ -1109,16 +1125,34 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
           takeUntil(this.destroyed$)
         )
       );
-      this._screenShareStatus$.next('started');
-      logger.info('[WebRTCManager] Screen share started successfully.');
+      if (isScreenShare) {
+        this._screenShareStatus$.next('started');
+      }
+      logger.info(`[WebRTCManager] Additional peer connection connected (${propose}).`);
       return rtcPeerConnController.id;
     } catch (error) {
       logger.warn('[WebRTCManager] Error initializing additional peer connection:', error);
-      this.onError?.(error instanceof Error ? error : new Error(String(error), { cause: error }));
       if (rtcPeerConnController) {
         rtcPeerConnController.destroy();
       }
-      this._screenShareStatus$.next('none');
+      if (isScreenShare) {
+        this._screenShareStatus$.next('none');
+      }
+      if (firstPeerConnectionError) {
+        // Reject the public API with the raw getUserMedia/getDisplayMedia
+        // error so apps can inspect error.name (e.g. 'NotAllowedError').
+        throw firstPeerConnectionError instanceof MediaAccessError &&
+          firstPeerConnectionError.originalError instanceof Error
+          ? firstPeerConnectionError.originalError
+          : firstPeerConnectionError;
+      }
+      if (error instanceof EmptyError) {
+        // The wait for 'connected' was aborted with no failure: the call was
+        // hung up or the device removed while connecting — a benign cancel.
+        logger.debug('[WebRTCManager] Additional peer connection aborted before connecting.');
+        return undefined;
+      }
+      throw error instanceof Error ? error : new Error(String(error), { cause: error });
     }
   }
 

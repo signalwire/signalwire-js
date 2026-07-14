@@ -34,6 +34,7 @@ import {
   CallCreateError,
   DependencyError,
   JSONRPCError,
+  MediaAccessError,
   UnexpectedError,
   VertoAttachHandlerError,
   VertoInviteHandlerError
@@ -61,6 +62,7 @@ import type { NetworkChangeEvent } from '../controllers/NetworkMonitor';
 import type { WebRTCCall } from '../core/entities/Call';
 import type { Directory } from '../core/entities/Directory';
 import type { Call, CallOptions } from '../core/entities/types/call.types';
+import type { CallError } from '../core/errors';
 import type {
   RPCConnectParams,
   RPCConnectAuthentication,
@@ -77,6 +79,18 @@ import type { SessionState } from '../interfaces/SessionState';
 import type { Observable } from 'rxjs';
 
 const logger = getLogger();
+
+/**
+ * Decide whether an error emitted on `call.errors$` during dial should
+ * abort the dial. A non-fatal MediaAccessError means the call degraded to
+ * receive-only and still connects — everything else rejects `dial()` with
+ * the real cause.
+ *
+ * Pure function — exported for unit testing.
+ */
+export function shouldAbortDial(callError: CallError): boolean {
+  return callError.fatal || !(callError.error instanceof MediaAccessError);
+}
 
 const getAddressSearchURI = (options: CallOptions): string => {
   const to = options.to?.split('?')[0];
@@ -796,6 +810,7 @@ export class ClientSessionManager extends Destroyable implements SessionState {
             timeout(this.callCreateTimeout)
           ),
           callSession.errors$.pipe(
+            filter(shouldAbortDial),
             take(1),
             switchMap((callError) => throwError(() => callError.error))
           )

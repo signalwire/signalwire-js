@@ -26,7 +26,7 @@ import { TransceiverController } from './TransceiverController';
 import { Destroyable } from '../behaviors/Destroyable';
 import { PreferencesContainer } from '../containers/PreferencesContainer';
 import { ICE_GATHERING_COMPLETE_TIMEOUT_MS } from '../core/constants';
-import { DependencyError } from '../core/errors';
+import { DependencyError, InvalidParams, MediaAccessError, MediaTrackError } from '../core/errors';
 import {
   enableStereoOpus,
   extractMediaDirectionsFromSDP,
@@ -203,7 +203,8 @@ export class RTCPeerConnectionController extends Destroyable {
       );
     } catch (error) {
       logger.error(`[RTCPeerConnectionController] Failed to select ${kind} input device:`, error);
-      this._errors$.next(toError(error));
+      // Mid-call track op: non-fatal — the call continues with the old device.
+      this._errors$.next(new MediaTrackError('updateSelectedInputDevice', kind, error));
       throw error;
     }
   };
@@ -585,7 +586,7 @@ export class RTCPeerConnectionController extends Destroyable {
       default:
         return {
           ...options,
-          offerToReceiveAudio: true,
+          offerToReceiveAudio: this.options.receiveAudio ?? true,
           offerToReceiveVideo:
             this.options.receiveVideo ?? Boolean(this.inputVideoDeviceConstraints)
         };
@@ -805,13 +806,14 @@ export class RTCPeerConnectionController extends Destroyable {
    */
   public async acceptInbound(mediaOverrides?: MediaOptions): Promise<void> {
     if (mediaOverrides) {
-      const { audio, video, receiveAudio, receiveVideo } = mediaOverrides;
+      const { audio, video, receiveAudio, receiveVideo, fallbackToReceiveOnly } = mediaOverrides;
       this.options = {
         ...this.options,
         ...(audio !== undefined ? { audio } : {}),
         ...(video !== undefined ? { video } : {}),
         ...(receiveAudio !== undefined ? { receiveAudio } : {}),
-        ...(receiveVideo !== undefined ? { receiveVideo } : {})
+        ...(receiveVideo !== undefined ? { receiveVideo } : {}),
+        ...(fallbackToReceiveOnly !== undefined ? { fallbackToReceiveOnly } : {})
       };
       this.transceiverController?.updateOptions({
         receiveAudio: this.receiveAudio,
@@ -1077,7 +1079,30 @@ export class RTCPeerConnectionController extends Destroyable {
 
   private async setupLocalTracks(): Promise<void> {
     logger.debug('[RTCPeerConnectionController] Setting up local tracks/transceivers.');
-    const localStream = this.localStream ?? (await this.localStreamController.buildLocalStream());
+
+    // Intentional receive-only call: nothing to send, so skip acquisition
+    // (getUserMedia rejects when neither kind is requested).
+    if (this.hasNoLocalMediaToSend()) {
+      if (!this.receiveAudio && !this.receiveVideo) {
+        // Degenerate configuration: nothing to send AND nothing to receive.
+        throw new InvalidParams(
+          'Call requests no media: enable audio/video or receiveAudio/receiveVideo'
+        );
+      }
+      logger.debug(
+        '[RTCPeerConnectionController] No local media requested; negotiating receive-only.'
+      );
+      this.setupReceiveOnlyTransceivers();
+      return;
+    }
+
+    let localStream: MediaStream;
+    try {
+      localStream = this.localStream ?? (await this.localStreamController.buildLocalStream());
+    } catch (error) {
+      this.handleLocalMediaFailure(error);
+      return;
+    }
 
     if (this.transceiverController?.useAddStream ?? false) {
       logger.warn(
@@ -1122,6 +1147,84 @@ export class RTCPeerConnectionController extends Destroyable {
       }
     }
   }
+
+  /** True for a main connection with no local media to send. */
+  private hasNoLocalMediaToSend(): boolean {
+    const hasInputStreams = Boolean(this.options.inputAudioStream ?? this.options.inputVideoStream);
+    return (
+      this.propose === 'main' &&
+      !this.localStream &&
+      !hasInputStreams &&
+      !this.inputAudioDeviceConstraints &&
+      !this.inputVideoDeviceConstraints
+    );
+  }
+
+  /** The media kinds this connection wants to send: 'audiovideo' | 'video' | 'audio'. */
+  private get requestedMediaKinds(): string {
+    const wantsAudio = Boolean(this.inputAudioDeviceConstraints);
+    const wantsVideo = Boolean(this.inputVideoDeviceConstraints);
+    if (wantsAudio && wantsVideo) {
+      return 'audiovideo';
+    }
+    return wantsVideo ? 'video' : 'audio';
+  }
+
+  /**
+   * Handle a local media acquisition failure with a typed, semantically
+   * accurate MediaAccessError created at the acquisition site:
+   * - Auxiliary connections (screenshare / additional-device) throw a
+   *   non-fatal error — VertoManager surfaces it and the call is unaffected.
+   * - The main connection degrades to receive-only when allowed (default),
+   *   otherwise fails with a fatal error.
+   */
+  private handleLocalMediaFailure(error: unknown): void {
+    if (this.propose === 'screenshare') {
+      throw new MediaAccessError('startScreenShare', 'screen', error, false);
+    }
+    if (this.propose === 'additional-device') {
+      throw new MediaAccessError('addInputDevice', this.requestedMediaKinds, error, false);
+    }
+    const canReceive = this.receiveAudio || this.receiveVideo;
+    const wantsFallback = this.options.fallbackToReceiveOnly ?? true;
+    if (!(wantsFallback && canReceive)) {
+      // Fatal: doInit's catch emits the error and destroys the connection.
+      throw new MediaAccessError('acquireLocalMedia', this.requestedMediaKinds, error, true);
+    }
+    logger.warn(
+      '[RTCPeerConnectionController] Local media unavailable; continuing receive-only:',
+      error
+    );
+    this._errors$.next(
+      new MediaAccessError('acquireLocalMedia', this.requestedMediaKinds, error, false)
+    );
+    this.setupReceiveOnlyTransceivers();
+  }
+
+  /**
+   * Negotiate receive-only m-lines when there are no local tracks to send.
+   * Only offer-type connections add transceivers — answer-type connections
+   * reuse the transceivers created from the remote offer.
+   */
+  private setupReceiveOnlyTransceivers(): void {
+    if (this.type !== 'offer') {
+      return;
+    }
+    if (this.transceiverController?.useAddTransceivers ?? false) {
+      this.peerConnection?.addTransceiver('audio', {
+        direction: this.receiveAudio ? 'recvonly' : 'inactive'
+      });
+      this.peerConnection?.addTransceiver('video', {
+        direction: this.receiveVideo ? 'recvonly' : 'inactive'
+      });
+    }
+    // With no addTrack/addTransceiver call the browser may never fire
+    // negotiationneeded — force the offer.
+    if (!this.isNegotiating) {
+      this.negotiationNeeded$.next();
+    }
+  }
+
   private async getUserMedia(constraints: MediaStreamConstraints): Promise<MediaStream> {
     const mediaDevices = this.options.webRTCApiProvider?.mediaDevices ?? navigator.mediaDevices;
     return mediaDevices.getUserMedia(constraints);
@@ -1184,7 +1287,8 @@ export class RTCPeerConnectionController extends Destroyable {
         '[RTCPeerConnectionController] Failed to re-acquire mic for pipeline restore:',
         error
       );
-      this._errors$.next(toError(error));
+      // Mid-call track op: non-fatal — the pipeline just stays silent.
+      this._errors$.next(new MediaTrackError('restoreAudioPipelineInput', 'audio', error));
       return;
     }
     const newTrack = stream.getAudioTracks().at(0);
@@ -1276,7 +1380,8 @@ export class RTCPeerConnectionController extends Destroyable {
       logger.debug(`[RTCPeerConnectionController] ${track.kind} track added:`, track.id);
     } catch (error) {
       logger.error(`[RTCPeerConnectionController] Failed to add ${track.kind} track:`, error);
-      this._errors$.next(toError(error));
+      // Mid-call track op: non-fatal — the call continues without the track.
+      this._errors$.next(new MediaTrackError('addLocalTrack', track.kind, error));
       throw error;
     }
   }
@@ -1310,7 +1415,10 @@ export class RTCPeerConnectionController extends Destroyable {
         `[RTCPeerConnectionController] Failed to remove ${sender.track?.kind} track:`,
         error
       );
-      this._errors$.next(toError(error));
+      // Mid-call track op: non-fatal — the call continues as-is.
+      this._errors$.next(
+        new MediaTrackError('removeLocalTrack', sender.track?.kind ?? 'unknown', error)
+      );
       throw error;
     }
   }

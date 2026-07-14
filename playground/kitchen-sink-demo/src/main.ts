@@ -17,7 +17,8 @@ import {
   type QualityLevel,
   type DeviceRecoveryEvent,
   type PlatformCapabilities,
-  type SessionDiagnostics
+  type SessionDiagnostics,
+  MediaAccessError
 } from '@signalwire/js';
 import { UserCredentialProvider } from './UserCredentialProvider';
 import {
@@ -996,6 +997,16 @@ const subscribeToCallObservables = (call: Call) => {
       // Update button state after the API resolves
       updateScreenShareButton();
     } catch (error) {
+      // startScreenShare() rejects with the raw getDisplayMedia error and the
+      // call is unaffected. A dismissed picker or a permission denial rejects
+      // with NotAllowedError (AbortError on some platforms) — that's a benign
+      // cancel, so don't alarm the user with an error toast.
+      const name = (error as Error).name;
+      if (name === 'NotAllowedError' || name === 'AbortError') {
+        console.info('Screen share cancelled by user:', name);
+        updateScreenShareButton();
+        return;
+      }
       console.error('Error toggling screen share:', error);
       showToast('Screen Share Error', (error as Error).message, 'error');
     }
@@ -1333,6 +1344,19 @@ const subscribeToCallObservables = (call: Call) => {
       callId: callError.callId,
       stack: callError.error.stack
     });
+    // Non-fatal MediaAccessError: camera/mic was denied or unavailable and the
+    // call degraded to receive-only instead of failing (fallbackToReceiveOnly).
+    // Note: errors$ emits a CallError wrapper — the typed error is on `.error`.
+    if (!callError.fatal && callError.error instanceof MediaAccessError) {
+      showToast(
+        'Media unavailable',
+        callError.error.media === 'screen'
+          ? 'Could not access screen — continuing call'
+          : 'Could not access audio/video — call continues in receive-only mode.',
+        'warning'
+      );
+      return;
+    }
     const toastType = callError.fatal ? 'error' : 'warning';
     showToast(`${label} [${callError.kind}]`, callError.error.message, toastType);
   });

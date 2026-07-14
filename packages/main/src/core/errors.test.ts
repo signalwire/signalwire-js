@@ -34,6 +34,7 @@ import {
   MessageParseError,
   CollectionFetchError,
   MediaTrackError,
+  MediaAccessError,
   DPoPInitError,
   DeviceTokenError,
   TokenRefreshError
@@ -348,6 +349,88 @@ describe('CallError interface and CallErrorKind', () => {
     ];
     expect(kinds).toHaveLength(6);
     kinds.forEach((k) => expect(typeof k).toBe('string'));
+  });
+});
+
+describe('MediaAccessError', () => {
+  const makeDomException = (name: string) => {
+    const error = new Error('denied');
+    error.name = name;
+    return error;
+  };
+
+  it('sets name, message, and cause from originalError', () => {
+    const original = makeDomException('NotAllowedError');
+    const error = new MediaAccessError('startScreenShare', 'screen', original);
+    expect(error.name).toBe('MediaAccessError');
+    expect(error.message).toBe('Media access denied for startScreenShare (screen)');
+    expect(error.cause).toBe(original);
+    expect(error.originalError).toBe(original);
+    expect(error.operation).toBe('startScreenShare');
+    expect(error.media).toBe('screen');
+  });
+
+  it('defaults fatal to false', () => {
+    const error = new MediaAccessError('acquireLocalMedia', 'audiovideo', makeDomException('NotAllowedError'));
+    expect(error.fatal).toBe(false);
+  });
+
+  it('accepts fatal true', () => {
+    const error = new MediaAccessError(
+      'acquireLocalMedia',
+      'audiovideo',
+      makeDomException('NotAllowedError'),
+      true
+    );
+    expect(error.fatal).toBe(true);
+  });
+
+  it('cause is undefined when originalError is not an Error', () => {
+    const error = new MediaAccessError('acquireLocalMedia', 'audio', 'denied');
+    expect(error.cause).toBeUndefined();
+    expect(error.originalError).toBe('denied');
+  });
+
+  it('message says "denied" only for permission denials', () => {
+    const denied = new MediaAccessError(
+      'acquireLocalMedia',
+      'audiovideo',
+      makeDomException('NotAllowedError')
+    );
+    expect(denied.message).toBe('Media access denied for acquireLocalMedia (audiovideo)');
+  });
+
+  it('message says "failed" for non-denial causes (e.g. missing device)', () => {
+    const failed = new MediaAccessError(
+      'acquireLocalMedia',
+      'video',
+      makeDomException('NotFoundError')
+    );
+    expect(failed.message).toBe('Media access failed for acquireLocalMedia (video)');
+    expect(failed.denied).toBe(false);
+  });
+
+  describe('denied getter', () => {
+    it.each(['NotAllowedError', 'SecurityError', 'PermissionDeniedError'])(
+      'is true for %s',
+      (name) => {
+        const error = new MediaAccessError('startScreenShare', 'screen', makeDomException(name));
+        expect(error.denied).toBe(true);
+      }
+    );
+
+    it.each(['NotFoundError', 'NotReadableError', 'AbortError', 'OverconstrainedError'])(
+      'is false for %s',
+      (name) => {
+        const error = new MediaAccessError('startScreenShare', 'screen', makeDomException(name));
+        expect(error.denied).toBe(false);
+      }
+    );
+
+    it('is false when originalError is not an Error', () => {
+      const error = new MediaAccessError('startScreenShare', 'screen', 'nope');
+      expect(error.denied).toBe(false);
+    });
   });
 });
 
