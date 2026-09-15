@@ -4,7 +4,11 @@ import { Destroyable } from '../../behaviors/Destroyable';
 import { PreferencesContainer } from '../../containers/PreferencesContainer';
 import { getLogger } from '../../utils/logger';
 import { SelfCapabilities } from '../capabilities';
-import { UnimplementedError } from '../errors';
+import {
+  AuxiliaryLegCancelledError,
+  ParticipantNotReadyError,
+  UnimplementedError
+} from '../errors';
 import { toggleDeafMethod, toggleHandraiseMethod } from '../RPCMessages/utils';
 
 import type { CallParticipant, CallSelfParticipant } from './types/call.types';
@@ -15,7 +19,7 @@ import type { ScreenShareStatus } from '../../managers/types/verto-manager.types
 import type { JSONRPCResponse } from '../RPCMessages/types/base';
 import type { Member, LayoutLayer, MemberTarget } from '../RPCMessages/types/common';
 import type { VideoPosition } from '../types/call.types';
-import type { MediaOptions } from '../types/media.types';
+import type { MediaOptions, ScreenShareOptions } from '../types/media.types';
 import type { Observable } from 'rxjs';
 
 const logger = getLogger();
@@ -47,7 +51,7 @@ export class Participant extends Destroyable implements CallParticipant {
   private _state$ = this.createBehaviorSubject<Partial<ParticipantState>>(initialState);
   constructor(
     id: string,
-    protected executeMethod: ExecuteMethod,
+    private callExecuteMethod: ExecuteMethod,
     protected deviceController: DeviceController
   ) {
     super();
@@ -418,26 +422,61 @@ export class Participant extends Destroyable implements CallParticipant {
     return this._state$.value;
   }
 
+  /**
+   * Target triple for member RPCs, built from the participant's own state.
+   * The backend locates the member's session by the target `call_id`/`node_id`,
+   * so this must always be the participant's own call context — never the
+   * local call's id (issue #19400).
+   *
+   * Reading it doubles as a readiness probe: it throws until the first full
+   * member event (`member.joined`/`member.updated` or the `call.joined`
+   * roster) arrives, and never regresses afterwards.
+   *
+   * @throws {ParticipantNotReadyError} If the member state has not been
+   * received yet (e.g. a participant first seen via `member.talking`) — an
+   * empty call context can never address the member, so fail fast instead of
+   * sending a doomed RPC.
+   */
+  public get target(): MemberTarget {
+    const { call_id, node_id } = this._state$.value;
+    if (!call_id || !node_id) {
+      throw new ParticipantNotReadyError(this.id);
+    }
+    return { member_id: this.id, call_id, node_id };
+  }
+
+  /**
+   * Executes a member RPC against this participant, injecting its own
+   * {@link target} as the target.
+   *
+   * @throws {ParticipantNotReadyError} Via {@link target}, when the
+   * member state has not been received yet.
+   */
+  protected async executeMethod(
+    method: string,
+    args: Record<string, unknown>
+  ): Promise<JSONRPCResponse> {
+    return this.callExecuteMethod(this.target, method, args);
+  }
+
   /** Toggles the deafened state (mutes/unmutes incoming audio). */
   public async toggleDeaf(): Promise<void> {
-    const method = toggleDeafMethod(this.deaf);
-    const params = {};
-    await this.executeMethod(this.id, method, params);
+    await this.executeMethod(toggleDeafMethod(this.deaf), {});
   }
 
   /** Toggles the hand-raised state. */
   public async toggleHandraise(): Promise<void> {
-    await this.executeMethod(this.id, toggleHandraiseMethod(this.handraised), {});
+    await this.executeMethod(toggleHandraiseMethod(this.handraised), {});
   }
 
   /** Mutes the participant's audio. */
   public async mute(): Promise<void> {
-    await this.executeMethod(this.id, 'call.mute', { channels: ['audio'] });
+    await this.executeMethod('call.mute', { channels: ['audio'] });
   }
 
   /** Unmutes the participant's audio. */
   public async unmute(): Promise<void> {
-    await this.executeMethod(this.id, 'call.unmute', { channels: ['audio'] });
+    await this.executeMethod('call.unmute', { channels: ['audio'] });
   }
 
   /** Toggles the participant's audio mute state. */
@@ -447,12 +486,12 @@ export class Participant extends Destroyable implements CallParticipant {
 
   /** Mutes the participant's video. */
   public async muteVideo(): Promise<void> {
-    await this.executeMethod(this.id, 'call.mute', { channels: ['video'] });
+    await this.executeMethod('call.mute', { channels: ['video'] });
   }
 
   /** Unmutes the participant's video. */
   public async unmuteVideo(): Promise<void> {
-    await this.executeMethod(this.id, 'call.unmute', { channels: ['video'] });
+    await this.executeMethod('call.unmute', { channels: ['video'] });
   }
 
   /** Toggles the participant's video mute state. */
@@ -462,7 +501,7 @@ export class Participant extends Destroyable implements CallParticipant {
 
   /** Toggles echo cancellation on the audio input. */
   public async toggleEchoCancellation(): Promise<void> {
-    await this.executeMethod(this.id, 'call.audioflags.set', {
+    await this.executeMethod('call.audioflags.set', {
       echo_cancellation: !this.echoCancellation,
       auto_gain: this.autoGain,
       noise_suppression: this.noiseSuppression
@@ -471,7 +510,7 @@ export class Participant extends Destroyable implements CallParticipant {
 
   /** Toggles automatic gain control on the audio input. */
   public async toggleAudioInputAutoGain(): Promise<void> {
-    await this.executeMethod(this.id, 'call.audioflags.set', {
+    await this.executeMethod('call.audioflags.set', {
       echo_cancellation: this.echoCancellation,
       auto_gain: !this.autoGain,
       noise_suppression: this.noiseSuppression
@@ -480,7 +519,7 @@ export class Participant extends Destroyable implements CallParticipant {
 
   /** Toggles noise suppression on the audio input. */
   public async toggleNoiseSuppression(): Promise<void> {
-    await this.executeMethod(this.id, 'call.audioflags.set', {
+    await this.executeMethod('call.audioflags.set', {
       echo_cancellation: this.echoCancellation,
       auto_gain: this.autoGain,
       noise_suppression: !this.noiseSuppression
@@ -489,7 +528,7 @@ export class Participant extends Destroyable implements CallParticipant {
 
   /** Toggles low-bitrate mode for this participant's media. */
   public async toggleLowbitrate(): Promise<void> {
-    await this.executeMethod(this.id, 'call.lowbitrate.set', {
+    await this.executeMethod('call.lowbitrate.set', {
       lowbitrate: !this.lowbitrate
     });
   }
@@ -508,7 +547,7 @@ export class Participant extends Destroyable implements CallParticipant {
    *   (integer, larger values are more sensitive).
    */
   public async setAudioInputSensitivity(value: number): Promise<void> {
-    await this.executeMethod(this.id, 'call.microphone.sensitivity.set', {
+    await this.executeMethod('call.microphone.sensitivity.set', {
       sensitivity: value
     });
   }
@@ -524,7 +563,7 @@ export class Participant extends Destroyable implements CallParticipant {
    * @param value - Volume level (0-100).
    */
   public async setAudioInputVolume(value: number): Promise<void> {
-    await this.executeMethod(this.id, 'call.microphone.volume.set', {
+    await this.executeMethod('call.microphone.volume.set', {
       volume: value
     });
   }
@@ -541,7 +580,7 @@ export class Participant extends Destroyable implements CallParticipant {
    * @param value - Volume level (0-100).
    */
   public async setAudioOutputVolume(value: number): Promise<void> {
-    await this.executeMethod(this.id, 'call.speaker.volume.set', {
+    await this.executeMethod('call.speaker.volume.set', {
       volume: value
     });
   }
@@ -549,41 +588,27 @@ export class Participant extends Destroyable implements CallParticipant {
   /**
    * Sets the participant's position in the video layout.
    *
-   * Requires the `member.position` capability. The gateway keys positions by the
-   * **target member's own** `call_id`/`node_id` (see issue #19400 and the legacy
-   * `setPositions` implementation), so this sends the participant's own call
-   * context — matching {@link Participant.remove}. A resolved promise does not
-   * guarantee a visible change: the backend silently returns `200` (no-op) for
-   * non-conference targets.
+   * Requires the `member.position` capability. The gateway requires a
+   * `targets` array of `{ target, position }` entries (issue #19400). A
+   * resolved promise does not guarantee a visible change: the backend silently
+   * returns `200` (no-op) for non-conference targets.
    *
    * @param value - The {@link VideoPosition} to assign (e.g. `'auto'`, `'reserved-0'`).
    */
   public async setPosition(value: VideoPosition): Promise<void> {
-    const state = this._state$.value;
-    const target: MemberTarget = {
-      member_id: this.id,
-      call_id: state.call_id ?? '',
-      node_id: state.node_id ?? ''
-    };
-    await this.executeMethod(target, 'call.member.position.set', {
-      targets: [{ target, position: value }]
+    await this.executeMethod('call.member.position.set', {
+      targets: [{ target: this.target, position: value }]
     });
   }
 
   /** Removes this participant from the call. */
   public async remove(): Promise<void> {
-    const state = this._state$.value;
-    const target: MemberTarget = {
-      member_id: this.id,
-      call_id: state.call_id ?? '',
-      node_id: state.node_id ?? ''
-    };
-    await this.executeMethod(target, 'call.member.remove', {});
+    await this.executeMethod('call.member.remove', { targets: [this.target] });
   }
 
   /** Ends the call for this participant. */
   public async end(): Promise<void> {
-    await this.executeMethod(this.id, 'call.end', {});
+    await this.executeMethod('call.end', {});
   }
 
   /**
@@ -611,7 +636,7 @@ export class Participant extends Destroyable implements CallParticipant {
   public destroy(): void {
     // Cleanup callback reference - intentionally breaking type safety for cleanup
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-    this.executeMethod = undefined as any;
+    this.callExecuteMethod = undefined as any;
     super.destroy();
   }
 }
@@ -639,11 +664,11 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
   /** @internal */
   constructor(
     id: string,
-    executeMethod: ExecuteMethod,
+    callExecuteMethod: ExecuteMethod,
     private vertoManager: VertoManager,
     deviceController: DeviceController
   ) {
-    super(id, executeMethod, deviceController);
+    super(id, callExecuteMethod, deviceController);
     this.capabilities = new SelfCapabilities();
   }
 
@@ -671,7 +696,7 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
       return;
     }
     this._studioAudio$.next(true);
-    await this.executeMethod(this.id, 'call.audioflags.set', {
+    await this.executeMethod('call.audioflags.set', {
       echo_cancellation: false,
       auto_gain: false,
       noise_suppression: false
@@ -687,7 +712,7 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
       return;
     }
     this._studioAudio$.next(false);
-    await this.executeMethod(this.id, 'call.audioflags.set', {
+    await this.executeMethod('call.audioflags.set', {
       echo_cancellation: true,
       auto_gain: true,
       noise_suppression: true
@@ -697,17 +722,32 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
   /**
    * Starts sharing the local screen.
    *
+   * A call carries at most one screen share. Read `screenShareStatus` before
+   * calling and treat `'starting'`/`'stopping'` as busy.
+   *
    * The call is unaffected when acquisition fails.
    *
+   * @param options - Pass `{ audio: true }` to also request the shared
+   * surface's audio. Defaults to video only.
+   * @throws {ScreenShareAlreadyActiveError} When this call is already
+   * sharing a screen. Call {@link stopScreenShare} before starting another.
+   * @throws {AuxiliaryLegCancelledError} When {@link stopScreenShare} removes
+   * the share before its leg finishes connecting.
    * @throws The raw `getDisplayMedia` error. A dismissed picker or a
    * permission denial rejects with a `NotAllowedError` `DOMException` —
    * inspect `error.name` to tell benign cancels apart from real failures.
    */
-  public async startScreenShare(): Promise<void> {
+  public async startScreenShare(options?: ScreenShareOptions): Promise<void> {
     try {
-      await this.vertoManager.addScreenMedia();
+      await this.vertoManager.addScreenMedia(options);
     } catch (error) {
-      logger.error('[Participant.startScreenShare] Screen share error:', error);
+      // A cancel is the app getting what it asked for, so it is reported to
+      // the caller but never logged as a failure.
+      if (error instanceof AuxiliaryLegCancelledError) {
+        logger.debug('[Participant.startScreenShare] Screen share cancelled before connecting.');
+      } else {
+        logger.error('[Participant.startScreenShare] Screen share error:', error);
+      }
       throw error;
     }
   }
@@ -732,14 +772,23 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
    *
    * The call is unaffected when acquisition fails.
    *
+   * @throws {AuxiliaryLegCancelledError} When {@link removeAdditionalDevice}
+   * removes the device before its leg finishes connecting.
    * @throws The raw `getUserMedia` error (e.g. `NotAllowedError` on
-   * permission denial) — inspect `error.name` to decide how to react.
+   * permission denial) — inspect `error.name` to decide how to react — or
+   * `AuxiliaryLegTimeoutError` if the leg does not connect in time.
    */
   public async addAdditionalDevice(options: MediaOptions): Promise<void> {
     try {
       await this.vertoManager.addInputDevice(options);
     } catch (error) {
-      logger.error('[Participant.addAdditionalDevice] Additional device error:', error);
+      // A cancel is the app getting what it asked for, so it is reported to
+      // the caller but never logged as a failure.
+      if (error instanceof AuxiliaryLegCancelledError) {
+        logger.debug('[Participant.addAdditionalDevice] Device removed before connecting.');
+      } else {
+        logger.error('[Participant.addAdditionalDevice] Additional device error:', error);
+      }
       throw error;
     }
   }
@@ -794,17 +843,25 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
     }
   }
 
-  /** Updates the audio input track constraints for the active call. */
-  public async setAudioInputDeviceConstraints(constraints: MediaTrackConstraints): Promise<void> {
-    await this.vertoManager.updateMediaConstraints({ audio: constraints });
+  /**
+   * Updates the audio input track constraints for the active call.
+   * @returns whether the constraints reached the media the call is sending.
+   */
+  public async setAudioInputDeviceConstraints(
+    constraints: MediaTrackConstraints
+  ): Promise<boolean> {
+    return this.vertoManager.updateMediaConstraints({ audio: constraints });
   }
 
-  /** Updates both audio and video input track constraints for the active call. */
+  /**
+   * Updates both audio and video input track constraints for the active call.
+   * @returns whether both kinds took the constraints.
+   */
   public async setInputDevicesConstraints(constraints: {
     audio: MediaTrackConstraints;
     video: MediaTrackConstraints;
-  }): Promise<void> {
-    await this.vertoManager.updateMediaConstraints(constraints);
+  }): Promise<boolean> {
+    return this.vertoManager.updateMediaConstraints(constraints);
   }
 
   /** Selects the video input device for future calls. Optionally saves as a preference. */
@@ -815,9 +872,14 @@ export class SelfParticipant extends Participant implements CallSelfParticipant 
     }
   }
 
-  /** Updates the video input track constraints for the active call. */
-  public async setVideoInputDeviceConstraints(constraints: MediaTrackConstraints): Promise<void> {
-    await this.vertoManager.updateMediaConstraints({ video: constraints });
+  /**
+   * Updates the video input track constraints for the active call.
+   * @returns whether the constraints reached the media the call is sending.
+   */
+  public async setVideoInputDeviceConstraints(
+    constraints: MediaTrackConstraints
+  ): Promise<boolean> {
+    return this.vertoManager.updateMediaConstraints({ video: constraints });
   }
 
   /** Selects the audio output device. Optionally saves as a preference. */

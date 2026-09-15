@@ -993,7 +993,7 @@ test.describe('SelfParticipant API', () => {
 
   // ── Group 9: Device selection ─────────────────────────────────────────────────
 
-  test('selectAudioInputDevice() — can be called without error', async ({ page, resource }) => {
+  test('selectAudioInputDevice() — keeps a live audio track sending', async ({ page, resource }) => {
     // ── SETUP ──────────────────────────────────────────────
     await setupRoomCall({ page, resource, prefix: 'e2e-sp-audioin', channel: 'audio' });
 
@@ -1007,16 +1007,36 @@ test.describe('SelfParticipant API', () => {
 
           // Enumerate available audio input devices
           const devices = await navigator.mediaDevices.enumerateDevices();
-          const audioInputDevice = devices.find((d) => d.kind === 'audioinput');
+          const audioInputs = devices.filter((d) => d.kind === 'audioinput');
 
-          if (!audioInputDevice) {
+          if (audioInputs.length === 0) {
             return { success: false, error: 'No audioinput device found (fake devices not enumerated)' };
           }
 
-          // selectAudioInputDevice is synchronous — it should not throw
-          self.selectAudioInputDevice(audioInputDevice);
+          const before = call.localStream?.getAudioTracks()[0];
+          const beforeId = before?.id;
+          // Prefer a genuinely different device when the browser exposes one.
+          const target = audioInputs.find((d) => d.deviceId !== before?.getSettings().deviceId) ?? audioInputs[0];
 
-          return { success: true, deviceLabel: audioInputDevice.label || 'fake-device' };
+          self.selectAudioInputDevice(target);
+
+          await waitFor(
+            call.localStream$,
+            (s: MediaStream | null) => {
+              const track = s?.getAudioTracks()[0];
+              return !!track && track.readyState === 'live' && track.id !== beforeId;
+            },
+            obsTimeout,
+            'localStream$ → swapped live audio track'
+          );
+
+          const after = call.localStream?.getAudioTracks()[0];
+          return {
+            success: true,
+            swapped: after?.id !== beforeId,
+            afterState: after?.readyState,
+            trackCount: call.localStream?.getAudioTracks().length ?? 0
+          };
         } catch (error) {
           return { success: false, error: String(error) };
         }
@@ -1024,10 +1044,13 @@ test.describe('SelfParticipant API', () => {
       { obsTimeout: OBSERVABLE_TIMEOUT }
     );
 
-    expect(result.success, 'selectAudioInputDevice() succeeded').toBe(true);
+    expect(result.success, `selectAudioInputDevice() succeeded: ${result.error ?? ''}`).toBe(true);
+    expect(result.swapped, 'a new audio track replaced the previous one').toBe(true);
+    expect(result.afterState, 'the replacement audio track is live').toBe('live');
+    expect(result.trackCount, 'exactly one audio track remains').toBe(1);
   });
 
-  test('selectVideoInputDevice() — can be called without error', async ({ page, resource }) => {
+  test('selectVideoInputDevice() — keeps a live video track sending', async ({ page, resource }) => {
     // ── SETUP ──────────────────────────────────────────────
     await setupRoomCall({ page, resource, prefix: 'e2e-sp-videoin', channel: 'video' });
 
@@ -1040,15 +1063,35 @@ test.describe('SelfParticipant API', () => {
                     const self = (await waitFor(call.self$, (s: unknown) => s !== null, obsTimeout, 'self$ → non-null'))!;
 
           const devices = await navigator.mediaDevices.enumerateDevices();
-          const videoInputDevice = devices.find((d) => d.kind === 'videoinput');
+          const videoInputs = devices.filter((d) => d.kind === 'videoinput');
 
-          if (!videoInputDevice) {
+          if (videoInputs.length === 0) {
             return { success: false, error: 'No videoinput device found (fake devices not enumerated)' };
           }
 
-          self.selectVideoInputDevice(videoInputDevice);
+          const before = call.localStream?.getVideoTracks()[0];
+          const beforeId = before?.id;
+          const target = videoInputs.find((d) => d.deviceId !== before?.getSettings().deviceId) ?? videoInputs[0];
 
-          return { success: true, deviceLabel: videoInputDevice.label || 'fake-device' };
+          self.selectVideoInputDevice(target);
+
+          await waitFor(
+            call.localStream$,
+            (s: MediaStream | null) => {
+              const track = s?.getVideoTracks()[0];
+              return !!track && track.readyState === 'live' && track.id !== beforeId;
+            },
+            obsTimeout,
+            'localStream$ → swapped live video track'
+          );
+
+          const after = call.localStream?.getVideoTracks()[0];
+          return {
+            success: true,
+            swapped: after?.id !== beforeId,
+            afterState: after?.readyState,
+            trackCount: call.localStream?.getVideoTracks().length ?? 0
+          };
         } catch (error) {
           return { success: false, error: String(error) };
         }
@@ -1056,7 +1099,10 @@ test.describe('SelfParticipant API', () => {
       { obsTimeout: OBSERVABLE_TIMEOUT }
     );
 
-    expect(result.success, 'selectVideoInputDevice() succeeded').toBe(true);
+    expect(result.success, `selectVideoInputDevice() succeeded: ${result.error ?? ''}`).toBe(true);
+    expect(result.swapped, 'a new video track replaced the previous one').toBe(true);
+    expect(result.afterState, 'the replacement video track is live').toBe('live');
+    expect(result.trackCount, 'exactly one video track remains').toBe(1);
   });
 
   test('selectAudioOutputDevice() — can be called without error', async ({ page, resource }) => {

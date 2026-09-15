@@ -21,23 +21,27 @@ export class UserCredentialProvider {
   }
 
   /**
-   * Called once by the SDK during client initialization.
-   * Fetches a SAT via the Vite middleware proxy.
+   * Called by the SDK during client initialization (and when re-minting a
+   * base SAT before a client-bound reconnect). Fetches a SAT via the Vite
+   * middleware proxy.
    *
    * When the SDK provides a DPoP fingerprint, it is forwarded to the token
    * endpoint to request a Client Bound SAT with sat:refresh scope. The DPoP
-   * key pair is persisted in IndexedDB so the same fingerprint survives page
-   * reload, keeping the SAT valid and refresh working.
+   * key pair is persisted in IndexedDB, so the binding — and with it the
+   * session — survives page reloads; the SDK then owns token renewal via
+   * the Client Bound SAT pipeline instead of the refresh() timer.
    */
   async authenticate(
-    _context?: AuthenticateContext
+    context?: AuthenticateContext
   ): Promise<{ token: string; expiry_at: number }> {
-    // Don't pass DPoP fingerprint — get a plain SAT (no cnf.jkt).
-    // Plain SATs work for login, reconnect, and reattach on reload.
-    // The SDK's credentialProvider.refresh() timer handles token renewal.
-    const token = await fetchSubscriberToken(this.#reference, this.#password);
+    const { token, expiresAt } = await fetchSubscriberToken(this.#reference, this.#password, {
+      fingerprint: context?.fingerprint
+    });
     storeToken(token, AUTH_METHODS.USER);
-    return { token, expiry_at: Date.now() + TOKEN_EXPIRY_MS };
+    // Report the token's REAL expiry: the SDK arms its proactive refresh timer
+    // from expiry_at, so an inflated value would let the token die before the
+    // timer fires (and dial/register would fail -32003).
+    return { token, expiry_at: expiresAt ?? Date.now() + TOKEN_EXPIRY_MS };
   }
 
   /**

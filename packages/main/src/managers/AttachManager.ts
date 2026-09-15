@@ -1,3 +1,4 @@
+import { isRequesterValidationError } from '../utils/authRecovery';
 import { getLogger } from '../utils/logger';
 
 import type { StorageManager } from './StorageManager';
@@ -39,7 +40,16 @@ export class AttachManager {
 
     private readonly deviceController: DeviceController,
     private readonly reconnectCallsTimeout: number,
-    private attachKey: string
+    private attachKey: string,
+    /**
+     * Whether a credential recovery has been verified on this client — the
+     * session reauthenticated with a fresh token AND the operation that
+     * reauthentication was meant to unblock then succeeded. Gates attach-record
+     * discard together with the failure kind: a record is dropped only when
+     * this is true AND the reattach refusal was NOT a credential refusal
+     * (-32003). See {@link reattachCalls}.
+     */
+    private readonly credentialRecovered: () => boolean
   ) {}
 
   async detachAll(): Promise<void> {
@@ -98,8 +108,38 @@ export class AttachManager {
       logger.warn('[AttachManager] Skip attach for calls with no destination');
       return;
     }
+    const attachment = this.buildAttachment(call, call.to);
+    await this.mutate((attached) => ({ ...attached, [call.id]: attachment }));
+  }
+
+  /**
+   * Keep an already-stored call's reference alive and current — the periodic
+   * refresh the `verto.ping` keepalive drives.
+   *
+   * Only ever updates: a call with no record is one nothing wants reattached,
+   * and re-creating it here would undo a `detach`. That matters because a ping
+   * can land in the window between `bye()` detaching and the call being torn
+   * down, and a record revived there survives the hangup — so the next page
+   * load dials a call nobody is on. The existence check and the write share
+   * one {@link mutate} turn, so a concurrent detach cannot slip between them.
+   */
+  public async refresh(call: AttachableCall): Promise<void> {
+    if (!call.to) {
+      return;
+    }
     const destination = call.to;
-    const attachment: Attachment = {
+    await this.mutate((attached) => {
+      // Object.hasOwn — see consumePendingAttachment on why a truthy check
+      // on the value would not type-check here.
+      if (!Object.hasOwn(attached, call.id)) {
+        return attached;
+      }
+      return { ...attached, [call.id]: this.buildAttachment(call, destination) };
+    });
+  }
+
+  private buildAttachment(call: AttachableCall, destination: string): Attachment {
+    return {
       nodeId: call.nodeId,
       destination,
       mediaDirections: call.mediaDirections,
@@ -113,7 +153,6 @@ export class AttachManager {
           : null,
       attachedAt: Date.now()
     };
-    await this.mutate((attached) => ({ ...attached, [call.id]: attachment }));
   }
 
   public async detach(call: AttachableCall): Promise<void> {
@@ -139,8 +178,14 @@ export class AttachManager {
    * rejecting. Once that fix is deployed, this will work for both
    * page reloads and WebSocket reconnects.
    *
-   * Failed reattach attempts are handled gracefully — the stale call
-   * reference is cleaned up from storage.
+   * A failed reattach does NOT generally cost the stored reference. It is
+   * discarded only when the server denied the reattach on a session whose
+   * credential it had already accepted — a verified reauthentication followed
+   * by a refusal is the server saying the call is gone, and that is the one
+   * refusal worth acting on. Until then the credential may be what is being
+   * refused, and the record is the only way a later reload can try again;
+   * keeping it costs nothing, since `detachExpired` reaps it once it is older
+   * than `reconnectCallsTimeout`.
    */
   public async reattachCalls(): Promise<void> {
     const attached = await this.readAttached();
@@ -152,6 +197,7 @@ export class AttachManager {
       const options = this.buildCallOptions(attachment);
 
       let succeeded = false;
+      let refusedOnCredentials = false;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           await this.session.createOutboundCall(destination, { callId, ...options });
@@ -163,6 +209,20 @@ export class AttachManager {
             `[AttachManager] Reattach attempt ${attempt}/3 failed for call ${callId}:`,
             error
           );
+          if (isRequesterValidationError(error)) {
+            // The session credential is what the server refused, so every
+            // attempt gets the same answer. Healing it belongs to the
+            // credential path; spending the remaining attempts and their
+            // backoff here only delays the failure. Deliberately narrower than
+            // isRecoverableAuthError: -32002 is overloaded server-side for
+            // call-level rejections (CALL ERROR / INVALID_MSG_UNSPECIFIED),
+            // which say nothing about the credential.
+            refusedOnCredentials = true;
+            logger.warn(
+              `[AttachManager] Reattach of ${callId} was refused on credentials; not retrying.`
+            );
+            break;
+          }
           if (attempt < 3) {
             await new Promise((r) => setTimeout(r, (attempt + 1) * 1000));
           }
@@ -170,10 +230,21 @@ export class AttachManager {
       }
 
       if (!succeeded) {
-        logger.warn(
-          `[AttachManager] Reattach failed after 3 attempts for call ${callId}, removing reference`
-        );
-        await this.detach({ id: callId, mediaDirections: attachment.mediaDirections });
+        // A credential refusal is never grounds to discard, even after a verified
+        // reauthentication: -32003 means the credential is what the server just
+        // refused, so the call may still be there and a later reload can retry.
+        // Discarding is reserved for a refusal on a credential the server DID
+        // accept — that is the server saying the call itself is gone.
+        if (this.credentialRecovered() && !refusedOnCredentials) {
+          logger.warn(
+            `[AttachManager] Reattach of ${callId} was denied after a verified reauthentication, removing reference`
+          );
+          await this.detach({ id: callId, mediaDirections: attachment.mediaDirections });
+        } else {
+          logger.warn(
+            `[AttachManager] Reattach failed for call ${callId}; keeping the reference (credential refused or never proven good)`
+          );
+        }
       }
     }
   }

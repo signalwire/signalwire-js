@@ -101,7 +101,7 @@ export function createMockSelfParticipant(
 ): MockSelfParticipant {
   const _audioMuted$ = new BehaviorSubject(overrides.audioMuted ?? false);
   const _videoMuted$ = new BehaviorSubject(overrides.videoMuted ?? false);
-  const _screenShareStatus$ = new BehaviorSubject(overrides.screenShareStatus ?? 'inactive');
+  const _screenShareStatus$ = new BehaviorSubject(overrides.screenShareStatus ?? 'none');
 
   return {
     id: overrides.id ?? 'mock-self',
@@ -112,8 +112,8 @@ export function createMockSelfParticipant(
     unmute: async () => { _audioMuted$.next(false); },
     muteVideo: async () => { _videoMuted$.next(true); },
     unmuteVideo: async () => { _videoMuted$.next(false); },
-    startScreenShare: async () => { _screenShareStatus$.next('active'); },
-    stopScreenShare: async () => { _screenShareStatus$.next('inactive'); },
+    startScreenShare: async () => { _screenShareStatus$.next('started'); },
+    stopScreenShare: async () => { _screenShareStatus$.next('none'); },
     // Expose subjects so callers can push state from the outside
     _audioMuted$,
     _videoMuted$,

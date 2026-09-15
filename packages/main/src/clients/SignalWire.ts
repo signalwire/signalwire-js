@@ -5,6 +5,7 @@ import { Destroyable } from '../behaviors/Destroyable';
 import { DependencyContainer } from '../containers/DependencyContainer';
 import { ClientPreferences, PreferencesContainer } from '../containers/PreferencesContainer';
 import { CryptoController } from '../controllers/CryptoController';
+import { HTTPRequestController } from '../controllers/HTTPRequestController';
 import { NetworkMonitor } from '../controllers/NetworkMonitor';
 import { detectPlatformCapabilities } from '../controllers/PlatformCapabilities';
 import { PreflightRunner } from '../controllers/PreflightRunner';
@@ -19,6 +20,7 @@ import { CredentialRefreshCoordinator } from '../managers/CredentialRefreshCoord
 import { DiagnosticsCollector } from '../managers/DiagnosticsCollector';
 import { DirectoryManager } from '../managers/DirectoryManager';
 import { TransportManager } from '../managers/TransportManager';
+import { isRecoverableAuthError } from '../utils/authRecovery';
 import { getLogger, setLogger, setDebugOptions, setLogLevel } from '../utils/logger';
 
 import type { Address } from '../core/entities/Address';
@@ -44,6 +46,14 @@ import type { DeviceController } from '../interfaces/DeviceController';
 import type { SDKLogger, LogLevel, DebugOptions } from '../utils/logger';
 
 const logger = getLogger();
+
+/**
+ * Storage key for the client-bound marker. The SAT and authorization_state are
+ * both opaque to the SDK, so on a page reload the preflight recovery — which
+ * runs before any session exists — has no other way to know the session was
+ * client-bound. See {@link SignalWire.persistClientBoundMarker}.
+ */
+const CLIENT_BOUND_STORAGE_KEY = 'sw:client_bound';
 
 interface JWTHeader {
   ch?: string;
@@ -103,6 +113,24 @@ export interface SignalWireOptions {
   logLevel?: LogLevel;
   /** Debug options for verbose SDK diagnostics (e.g., `{ logWsTraffic: true }`). */
   debug?: DebugOptions;
+  /**
+   * Control transport for `call.*` verbs across ALL calls in this session:
+   * - `'routed'` (default) sends them on the client's session channel.
+   * - `'in-dialog'` carries them on each call's own signaling channel via `verto.info`,
+   *   so control works without the client needing to know how the conference is hosted.
+   *
+   * `'in-dialog'` is opt-in because it does not reach everywhere `'routed'` does: use it
+   * only for calls that join a conference over SWML (e.g. an SWML `join_conference`).
+   *
+   * It is a client-wide setting rather than per-`dial()` because the SDK issues some
+   * control RPCs itself (fetching the layout list on join, for example), and those must
+   * travel the same way as the app's own, or reads and writes land on different transports.
+   *
+   * @experimental A rollout switch, not a long-term part of the API. Expected to
+   * disappear once `'in-dialog'` becomes the only transport, so it carries no semver
+   * promise and application code should not depend on it.
+   */
+  callControl?: 'routed' | 'in-dialog';
 }
 
 /** Options for {@link SignalWire.dial}. Extends {@link MediaOptions} with dial-specific settings. */
@@ -163,6 +191,13 @@ class SignalWire extends Destroyable implements DeviceController {
   private _publicSession!: ClientSessionWrapper;
   private _deviceController!: DeviceController;
   private _attachManager?: AttachManager;
+  /**
+   * Set once a credential recovery has been *verified* — reauthenticated and
+   * then proven by the operation it was meant to unblock. Read by the attach
+   * path, which may only discard an attach record when a reattach is refused
+   * on a credential the server has already accepted.
+   */
+  private _credentialRecovered = false;
   private _isConnected$ = this.createBehaviorSubject<boolean>(false);
   private _isRegistered$ = this.createBehaviorSubject<boolean>(false);
   private _errors$ = this.createReplaySubject<Error>(1);
@@ -170,6 +205,10 @@ class SignalWire extends Destroyable implements DeviceController {
   private _options: SignalWireOptions = {};
   private _dpopManager?: CryptoController;
   private _refreshCoordinator?: CredentialRefreshCoordinator;
+  /** The refresh path's own HTTP controller — see resolveCredentials. */
+  private _refreshHttp?: HTTPRequestController;
+  /** Host `_refreshHttp` was built against, so it can be rebuilt when the token's `ch` changes. */
+  private _refreshHttpHost?: string;
   private _credentialProvider?: CredentialProvider;
   private _deps = new DependencyContainer();
 
@@ -258,6 +297,17 @@ class SignalWire extends Destroyable implements DeviceController {
   }
 
   /**
+   * Build the refresh path's own HTTP controller, against whatever host is current.
+   *
+   * Called on first use rather than up front, so `apiHost` already reflects the
+   * token's `ch` claim. Same credential source as the container's controller — only
+   * the instance, and therefore its observable streams, is separate.
+   */
+  private createRefreshHttpController(): HTTPRequestController {
+    return new HTTPRequestController(this._deps.apiHost, () => this._deps.credential);
+  }
+
+  /**
    * Initializes DPoP if not already set up. Returns the fingerprint on success.
    */
   private async initDPoP(): Promise<string | undefined> {
@@ -291,11 +341,37 @@ class SignalWire extends Destroyable implements DeviceController {
     // and Client Bound SAT paths. Constructed after DPoP init so it can decide
     // whether the internal path is available.
     this._refreshCoordinator = new CredentialRefreshCoordinator(this._dpopManager, {
-      http: this._deps.http,
+      // Dedicated and lazily built, and both halves are load-bearing.
+      //
+      // Lazy, because this constructor runs BEFORE validateCredentials decodes the
+      // token's `ch` claim, so the host is not known yet. Resolving on first use
+      // instead means `_deps.apiHost` has already been corrected.
+      //
+      // Dedicated, because the obvious lazy form — `() => this._deps.http` — hands
+      // this path the container's SHARED controller, and that regressed reattach:
+      // register came back "Requester validation failed" on a reload, on a host
+      // where no request changed URL at all. Reading `_deps.http` eagerly, as the
+      // original code did, memoized a controller that `set ch` then discarded, so
+      // the refresh path had an instance of its own with its own status/error/
+      // response subjects. That isolation was accidental but it is real, so keep it
+      // deliberately rather than moving device-token traffic onto the shared one.
+      http: () => {
+        // Rebuild if the host changed since the cached controller was built. A second
+        // credential with a different `ch` claim repoints _deps.apiHost (the container
+        // drops its own controller too); refresh/device-token traffic must follow it or
+        // it 401s against the old host with the same misleading bare `Unauthorized`.
+        if (!this._refreshHttp || this._refreshHttpHost !== this._deps.apiHost) {
+          this._refreshHttp?.destroy();
+          this._refreshHttp = this.createRefreshHttpController();
+          this._refreshHttpHost = this._deps.apiHost;
+        }
+        return this._refreshHttp;
+      },
       notifier: {
         onError: (error) => this._errors$.next(error),
         onWarning: (warning) => this._warnings$.next(warning),
-        onRefreshExhausted: () => void this.disconnect()
+        onRefreshExhausted: () => void this.disconnect(),
+        onCredentialRefreshed: async (credential) => this.reauthenticateLiveSession(credential)
       },
       store: {
         read: () => this._deps.credential,
@@ -304,6 +380,10 @@ class SignalWire extends Destroyable implements DeviceController {
         },
         merge: (partial) => {
           this._deps.credential = { ...this._deps.credential, ...partial };
+          // Persist so a Client Bound SAT survives a page reload. The stored
+          // token is useless without the DPoP key (IndexedDB) — the binding
+          // itself is the theft protection.
+          this.persistCredential(this._deps.credential);
         },
         persist: (credential) => this.persistCredential(credential)
       }
@@ -410,16 +490,227 @@ class SignalWire extends Destroyable implements DeviceController {
     this._deps.credential = _credentials;
     this.persistCredential(_credentials);
 
-    if (this.isConnected && this._clientSession.authenticated && _credentials.token) {
-      try {
-        await this._clientSession.reauthenticate(_credentials.token);
-        logger.info('[SignalWire] Session refreshed with new credentials.');
-      } catch (error: unknown) {
-        logger.error('[SignalWire] Failed to refresh session with new credentials:', error);
-        this._errors$.next(
-          error instanceof Error ? error : new Error(String(error), { cause: error })
+    await this.reauthenticateLiveSession(_credentials);
+  }
+
+  /**
+   * Reauthenticate the currently-open session with a freshly obtained
+   * credential so the new token takes effect on the live socket immediately —
+   * not just on the next reconnect. No-op when the session is not
+   * connected/authenticated or the credential carries no token (e.g. an
+   * authorization-state-only refresh). Non-fatal: reauth failures surface on
+   * `errors$` without aborting the refresh that triggered this.
+   */
+  private async reauthenticateLiveSession(credential: SDKCredential): Promise<void> {
+    if (!this.isConnected || !this._clientSession.authenticated || !credential.token) {
+      return;
+    }
+    try {
+      await this._clientSession.reauthenticate(credential.token);
+      logger.info('[SignalWire] Session refreshed with new credentials.');
+    } catch (error: unknown) {
+      logger.error('[SignalWire] Failed to refresh session with new credentials:', error);
+      this._errors$.next(
+        error instanceof Error ? error : new Error(String(error), { cause: error })
+      );
+    }
+  }
+
+  /**
+   * Recover a session the server is refusing: mint a fresh credential,
+   * reauthenticate the live session with it, and retry the operation.
+   *
+   * The connection is deliberately kept. A reload authenticates the new socket
+   * against the persisted `authorization_state`, and that handshake is what
+   * associates the socket with the previous session — the association reattach
+   * depends on. `signalwire.reauthenticate` swaps the credential *on that same
+   * session*, so recovery never touches the resume state. Discarding it would
+   * heal the credential by destroying the very thing the caller is trying to
+   * get back to.
+   *
+   * The operation is still the verdict, never the RPC. Reauthenticating with
+   * the in-memory token is accepted by a resume even while requests stay
+   * refused, because the persisted `authorization_state` short-circuits token
+   * validation — and `signalwire.reauthenticate` with a *freshly minted* token
+   * has also been observed accepted while `subscriber.online` keeps being
+   * refused (staging run 33826974634). Both look like success and are not.
+   *
+   * @returns the operation's value, or the reason recovery could not deliver
+   *   one. `error` is undefined when there was no way to mint at all.
+   */
+  private async recoverAndRetry<T>(
+    operation: () => Promise<T>
+  ): Promise<{ ok: true; value: T } | { ok: false; error?: unknown }> {
+    if (!(await this.remintAndReauthenticate())) {
+      return { ok: false };
+    }
+    try {
+      const value = await operation();
+      // The reauthentication is only now known to have taken effect. Anything
+      // that must distinguish "the server refuses this credential" from "the
+      // server refuses this request" reads this, not the RPC result.
+      this._credentialRecovered = true;
+      return { ok: true, value };
+    } catch (error) {
+      logger.warn(
+        '[SignalWire] Reauthentication was accepted but the operation is still refused:',
+        error
+      );
+      return { ok: false, error };
+    }
+  }
+
+  /**
+   * Re-mint a credential and adopt it only if the live session accepts it.
+   *
+   * The mechanism follows the binding: a client-bound session re-mints a bound
+   * base SAT through `authenticate()` with the DPoP fingerprint, because the
+   * developer refresh handler would hand back an unbound token and silently
+   * degrade the session. An unbound session uses the refresh handler. Rotation
+   * cost is not a reason to skip this — the only reason is having no mechanism.
+   *
+   * @returns whether the session is now running on a freshly accepted credential.
+   */
+  private async remintAndReauthenticate(): Promise<boolean> {
+    const provider = this._credentialProvider;
+    if (!provider) {
+      return false;
+    }
+    const { clientBound } = this._clientSession;
+    if (!clientBound && !provider.refresh) {
+      // authenticate() may be interactive, so it is not a silent fallback here.
+      logger.debug(
+        '[SignalWire] [SW-NO-REFRESH-HANDLER] Unbound session with no refresh handler; cannot re-mint.'
+      );
+      return false;
+    }
+
+    try {
+      const newCredentials = clientBound
+        ? await provider.authenticate(
+            this._dpopManager?.initialized
+              ? { fingerprint: this._dpopManager.fingerprint }
+              : undefined
+          )
+        : await this.remintCredential(provider);
+
+      if (!newCredentials.token) {
+        logger.warn('[SignalWire] Re-minted credential has no token; keeping the current one.');
+        return false;
+      }
+
+      // Adopt only after the server accepts it, so a refused token is never
+      // left behind as the current credential.
+      await this._clientSession.reauthenticate(newCredentials.token);
+      this._deps.credential = newCredentials;
+      this.persistCredential(newCredentials);
+      if (newCredentials.expiry_at && provider.refresh) {
+        this._refreshCoordinator?.scheduleDeveloperRefresh(provider, newCredentials.expiry_at);
+      }
+      return true;
+    } catch (error) {
+      logger.warn('[SignalWire] Re-mint recovery failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Re-mint a credential via `provider.refresh()`, routed through the
+   * coordinator's shared in-flight guard so concurrent re-mint paths (a
+   * scheduled/resume refresh, -32003 recovery, and reconnect) never fire a
+   * second `provider.refresh()` in parallel — which rotating one-time-use
+   * refresh tokens reject. Falls back to a direct call only if the coordinator
+   * has not been constructed yet.
+   */
+  private async remintCredential(provider: CredentialProvider): Promise<SDKCredential> {
+    if (this._refreshCoordinator) {
+      return this._refreshCoordinator.refreshCredential(provider);
+    }
+    if (!provider.refresh) {
+      throw new InvalidCredentialsError('Credential provider does not support refresh');
+    }
+    return provider.refresh();
+  }
+
+  /**
+   * Re-mint credentials before a fresh (re)connect (`onBeforeReconnect` hook).
+   * The session invokes this only when it is client-bound OR the in-memory
+   * token is expired. The re-mint mechanism depends on the binding:
+   *   - Client-bound: `authenticate()` with the DPoP fingerprint to obtain a
+   *     fresh base SAT the upcoming reconnect can re-bind (the
+   *     DeviceTokenManager re-activates afterwards).
+   *   - Unbound: the developer's non-interactive `refresh()` handler.
+   *     `authenticate()` is deliberately NOT used here — it may be interactive
+   *     (a login prompt) and must not fire on a background reconnect.
+   *
+   * Rejects on failure so the session aborts the reconnect rather than
+   * replaying a stale token.
+   */
+  private async refreshCredentialForReconnect(): Promise<void> {
+    if (!this._credentialProvider) return;
+    try {
+      let newCredentials: SDKCredential;
+      // A live session reports its own binding. The preflight-fetch recovery runs
+      // before any session exists (page reload), where the token and
+      // authorization_state are both opaque to the SDK — so the persisted marker
+      // is the only way to know the reloaded session was client-bound. Without it
+      // a client-bound session with a refresh handler is re-minted as an unbound
+      // token and silently degraded.
+      // `_clientSession` is `!`-typed so the optional chain looks unnecessary to
+      // the linter, but it is genuinely undefined on that pre-connect path. `??`
+      // (not `||`) is deliberate: a live unbound session reports `false` and must
+      // keep it, not fall through to the marker.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const clientBound = this._clientSession?.clientBound ?? (await this.wasClientBound());
+      if (clientBound) {
+        logger.debug('[SignalWire] Re-minting client-bound base SAT before reconnect');
+        newCredentials = await this._credentialProvider.authenticate(
+          this._dpopManager?.initialized
+            ? { fingerprint: this._dpopManager.fingerprint }
+            : undefined
+        );
+      } else if (this._credentialProvider.refresh) {
+        logger.debug('[SignalWire] Refreshing unbound credential before reconnect');
+        newCredentials = await this.remintCredential(this._credentialProvider);
+      } else {
+        // Unbound and expired but no refresh handler: cannot re-mint
+        // non-interactively. Let the connect proceed with the existing token
+        // (it will fail and surface a credentials error) rather than trigger
+        // a potentially-interactive authenticate().
+        logger.warn(
+          '[SignalWire] [SW-NO-REFRESH-HANDLER] Token expired on reconnect but no refresh handler; reconnecting with the existing token.'
+        );
+        return;
+      }
+      if (!newCredentials.token) {
+        // A fresh connect authenticates with jwt_token; an authorization-state-
+        // only re-mint cannot satisfy it. Keep the existing credential so the
+        // reconnect surfaces a clear failure rather than a DependencyError.
+        logger.warn(
+          '[SignalWire] Re-minted credential has no token; keeping the existing credential for reconnect.'
+        );
+        return;
+      }
+      this._deps.credential = newCredentials;
+      this.persistCredential(newCredentials);
+      // Re-arm the developer refresh timer against the new credential's expiry.
+      // If Client Bound SAT activation succeeds on the upcoming reconnect, the
+      // coordinator will cancel it. This closes the "reconnect did not re-arm
+      // developer refresh" gap.
+      if (newCredentials.expiry_at && this._credentialProvider.refresh) {
+        this._refreshCoordinator?.scheduleDeveloperRefresh(
+          this._credentialProvider,
+          newCredentials.expiry_at
         );
       }
+      logger.debug('[SignalWire] Credential refreshed successfully for reconnect');
+    } catch (error) {
+      logger.error('[SignalWire] Failed to refresh credentials for reconnect:', error);
+      this._errors$.next(
+        error instanceof Error ? error : new Error(String(error), { cause: error })
+      );
+      // Propagate to prevent reconnect with stale credentials
+      throw error;
     }
   }
 
@@ -432,6 +723,43 @@ class SignalWire extends Destroyable implements DeviceController {
     if (this._deps.persistSession) {
       void this._deps.storage.setItem('sw:cached_credential', credential, 'local');
     }
+  }
+
+  /**
+   * Persist whether the session is client-bound, mirroring the credential's
+   * storage scopes so it survives a reload. The preflight recovery reads it
+   * before any session exists to decide whether to re-bind via `authenticate()`
+   * or refresh an unbound token; the marker tracks the latest binding, so an
+   * unbound reconnect clears a stale marker from an earlier client-bound login.
+   */
+  private persistClientBoundMarker(bound: boolean): void {
+    const scopes = this._deps.persistSession
+      ? (['session', 'local'] as const)
+      : (['session'] as const);
+    for (const scope of scopes) {
+      if (bound) {
+        void this._deps.storage.setItem(CLIENT_BOUND_STORAGE_KEY, true, scope);
+      } else {
+        void this._deps.storage.removeItem(CLIENT_BOUND_STORAGE_KEY, scope);
+      }
+    }
+  }
+
+  /** Read the persisted client-bound marker (see {@link persistClientBoundMarker}). */
+  private async wasClientBound(): Promise<boolean> {
+    const scopes = this._deps.persistSession
+      ? (['local', 'session'] as const)
+      : (['session'] as const);
+    for (const scope of scopes) {
+      try {
+        if (await this._deps.storage.getItem<boolean>(CLIENT_BOUND_STORAGE_KEY, scope)) {
+          return true;
+        }
+      } catch {
+        // try the next scope
+      }
+    }
+    return false;
   }
 
   private async init() {
@@ -478,6 +806,56 @@ class SignalWire extends Destroyable implements DeviceController {
       this._errors$.next(
         error instanceof Error ? error : new Error(String(error), { cause: error })
       );
+    } finally {
+      // Consume the recovery signal: reattach has read it, and a stale `true`
+      // must not authorize a discard on a later reattach whose failure was only
+      // transient. It reflects a recovery since the last reattach, nothing older.
+      this._credentialRecovered = false;
+    }
+  }
+
+  /**
+   * Fetch the authenticated user profile, recovering a stale credential.
+   *
+   * On a reload the persisted credential can be expired. Unlike the WS resume —
+   * which the server accepts against the persisted `authorization_state` even
+   * with an expired token — this REST preflight has no such short-circuit and is
+   * refused (401). There is no session yet to reauthenticate, so recovery
+   * re-mints the credential through the provider ({@link refreshCredentialForReconnect})
+   * and retries with a FRESH {@link User}: Fetchable memoizes its result
+   * (shareReplay), so reusing the instance would replay the 401 instead of
+   * re-fetching with the new token. Without the user id the transport/session —
+   * and the reattach a reload is trying to preserve — cannot even be addressed.
+   */
+  private async fetchUserOrRecover(): Promise<void> {
+    const fetchUser = async (user: User): Promise<void> => {
+      const fetched = await firstValueFrom(user.fetched$);
+      if (!fetched) {
+        throw new UnexpectedError('Failed to fetch user information - fetched$ emitted false');
+      }
+      this._deps.user = user;
+    };
+
+    const user = this._user$.value;
+    if (!user) {
+      throw new UnexpectedError('User not initialized before connect');
+    }
+
+    try {
+      await fetchUser(user);
+    } catch (firstError) {
+      logger.error(
+        `[SignalWire] Failed to fetch user information: ${firstError instanceof Error ? firstError.message : 'Unknown error'}. ` +
+          `This usually means the user token is invalid or expired. Re-minting the credential and retrying.`
+      );
+      try {
+        await this.refreshCredentialForReconnect();
+        const refetched = new User(this._deps.http);
+        await fetchUser(refetched);
+        this._user$.next(refetched);
+      } catch (retryError) {
+        throw new UnexpectedError('Error fetching user information', { cause: retryError });
+      }
     }
   }
 
@@ -526,28 +904,10 @@ class SignalWire extends Destroyable implements DeviceController {
     // most recent ClientSessionManager.
     await this.teardownTransportAndSession();
 
-    // Wait for user to be fetched first to get the user ID
-    try {
-      const user = this._user$.value;
-      if (!user) {
-        throw new UnexpectedError('User not initialized before connect');
-      }
-
-      const fetched = await firstValueFrom(user.fetched$);
-
-      if (!fetched) {
-        throw new UnexpectedError('Failed to fetch user information - fetched$ emitted false');
-      }
-
-      // Set the user in the dependency container
-      this._deps.user = user;
-    } catch (error) {
-      logger.error(
-        `[SignalWire] Failed to fetch user information: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
-          `This usually means the user token is invalid or expired.`
-      );
-      throw new UnexpectedError('Error fetching user information', { cause: error });
-    }
+    // Fetch the user before building the transport/session: their storage keys
+    // (protocol / authorization_state / attach records) are all namespaced by
+    // the user id, including the resume/attach state a reload depends on.
+    await this.fetchUserOrRecover();
 
     const errorHandler = (error: Error) => {
       this._errors$.next(error);
@@ -567,7 +927,8 @@ class SignalWire extends Destroyable implements DeviceController {
       this._deps.storage,
       this._deps.deviceController,
       PreferencesContainer.instance.reconnectCallsTimeout,
-      this._deps.attachedCallsKey
+      this._deps.attachedCallsKey,
+      () => this._credentialRecovered
     );
 
     this._clientSession = new ClientSessionManager(
@@ -583,41 +944,32 @@ class SignalWire extends Destroyable implements DeviceController {
     );
     this._publicSession = new ClientSessionWrapper(this._clientSession);
 
-    // Hook: refresh credentials before fresh reconnect when token may be expired
-    this._clientSession.onBeforeReconnect = async () => {
-      if (!this._credentialProvider) return;
-      try {
-        const fingerprint = this._dpopManager?.initialized
-          ? this._dpopManager.fingerprint
-          : undefined;
-        logger.debug('[SignalWire] Credential expired, refreshing before reconnect');
-        const newCredentials = await this._credentialProvider.authenticate(
-          fingerprint ? { fingerprint } : undefined
-        );
-        this._deps.credential = newCredentials;
-        // Re-arm the developer refresh timer against the new credential's expiry.
-        // If Client Bound SAT activation succeeds on the upcoming reconnect, the
-        // coordinator will cancel it. This closes the "reconnect did not re-arm
-        // developer refresh" gap.
-        if (newCredentials.expiry_at && this._credentialProvider.refresh) {
-          this._refreshCoordinator?.scheduleDeveloperRefresh(
-            this._credentialProvider,
-            newCredentials.expiry_at
-          );
-        }
-        logger.debug('[SignalWire] Credential refreshed successfully for reconnect');
-      } catch (error) {
-        logger.error('[SignalWire] Failed to refresh credentials for reconnect:', error);
-        this._errors$.next(
-          error instanceof Error ? error : new Error(String(error), { cause: error })
-        );
-        // Propagate to prevent reconnect with stale credentials
-        throw error;
-      }
-    };
+    // Session-wide control transport for every call in this session (see
+    // SignalWireOptions.callControl). Client config, so a reattached call reads it here
+    // rather than restoring it from persisted attachment state.
+    this._clientSession.callControl = this._options.callControl ?? 'routed';
+
+    // Hook: re-mint credentials before a fresh (re)connect. Invoked by the
+    // session only when it is client-bound OR the in-memory token is expired.
+    this._clientSession.onBeforeReconnect = async () => this.refreshCredentialForReconnect();
 
     this.subscribeTo(this._clientSession.errors$, (error) => {
       this._errors$.next(error);
+    });
+
+    // Server-authoritative expiry: every connect/resume response carries the
+    // decrypted SAT's `fabric_subscriber.expires_at` — the token is opaque to
+    // the client, so this is the only trustworthy source of its real expiry.
+    this.subscribeTo(this._clientSession.authorization$, (authorization) => {
+      this._refreshCoordinator?.syncExpiryFromAuthorization(
+        authorization,
+        this._credentialProvider
+      );
+      // Server-authoritative binding: cnf.jkt rides in every connect/resume
+      // authorization when the session is client-bound. Persist it so a later
+      // reload's preflight recovery re-binds via authenticate() rather than
+      // degrading the session to an unbound refresh token.
+      this.persistClientBoundMarker(Boolean(authorization?.cnf?.jkt));
     });
 
     await this._clientSession.connect();
@@ -854,6 +1206,24 @@ class SignalWire extends Destroyable implements DeviceController {
     try {
       this._visibilityController = new VisibilityController();
 
+      // Resume from suspension: when the tab becomes visible again, revalidate
+      // the credential deadline and force a refresh if the armed pre-expiry
+      // refresh was throttled past due while backgrounded. Without this, a slept
+      // tab wakes with a stale token and fails -32003 until the (late) timer
+      // eventually fires.
+      this.subscribeTo(
+        this._visibilityController.visibilityChange$.pipe(
+          filter((event) => event.to === 'visible')
+        ),
+        () => {
+          try {
+            this._refreshCoordinator?.forceRefreshIfDue();
+          } catch (error) {
+            logger.warn('[SignalWire] Resume credential revalidation failed (non-fatal):', error);
+          }
+        }
+      );
+
       // Re-enumerate devices when page becomes visible (if pref enabled)
       this.subscribeTo(
         this._visibilityController.visibilityChange$.pipe(
@@ -966,26 +1336,31 @@ class SignalWire extends Destroyable implements DeviceController {
         throw error;
       }
 
-      logger.debug('[SignalWire] Failed to register user, trying reauthentication...');
-      try {
-        await this._clientSession.reauthenticate(this._deps.credential.token);
-        logger.debug('[SignalWire] Reauthentication successful, retrying register()');
+      logger.debug('[SignalWire] Failed to register user, attempting credential recovery...');
+      // Not gated on the error kind. A rotation spent on a failure that turned
+      // out to be transient costs one token; skipping the re-mint on a failure
+      // that was not transient costs the session.
+      const outcome = await this.recoverAndRetry(async () => {
         await this._transport.execute(RPCExecute({ method: 'subscriber.online', params: {} }));
+      });
+      if (outcome.ok) {
+        logger.debug('[SignalWire] Recovery restored registration');
         this._isRegistered$.next(true);
-      } catch (reauthError) {
-        logger.error('[SignalWire] Reauthentication failed during register():', reauthError);
-        const registerError = new InvalidCredentialsError(
-          'Failed to register user, and reauthentication attempt also failed. Please check your credentials.',
-          {
-            cause:
-              reauthError instanceof Error
-                ? reauthError
-                : new Error(String(reauthError), { cause: reauthError })
-          }
-        );
-        this._errors$.next(registerError);
-        throw registerError;
+        return;
       }
+      const failureCause: unknown = outcome.error ?? error;
+
+      const registerError = new InvalidCredentialsError(
+        'Failed to register user, and credential recovery also failed. Please check your credentials.',
+        {
+          cause:
+            failureCause instanceof Error
+              ? failureCause
+              : new Error(String(failureCause), { cause: failureCause })
+        }
+      );
+      this._errors$.next(registerError);
+      throw registerError;
     }
   }
 
@@ -1017,6 +1392,11 @@ class SignalWire extends Destroyable implements DeviceController {
    * Returns a {@link Call} in `'ringing'` state. Subscribe to {@link Call.status$}
    * to track progression through `'connected'` → `'disconnected'`.
    *
+   * Local media acquisition is deliberately unbounded: an unanswered permission
+   * prompt leaves this promise pending indefinitely, so apply your own bound if
+   * your UI needs one. The 12 s signaling budget starts only once acquisition
+   * settles.
+   *
    * @param destination - Address URI string (e.g. `'/public/my-room'`) or {@link Address} instance.
    * @param options - Media and dial options (audio/video, device constraints). Overrides defaults.
    * @returns The created {@link Call} instance.
@@ -1042,7 +1422,27 @@ class SignalWire extends Destroyable implements DeviceController {
     await this.waitAuthentication();
 
     logger.debug('[SignalWire] Dialing with options:', computed_options);
-    return this._clientSession.createOutboundCall(destination, computed_options);
+    try {
+      return await this._clientSession.createOutboundCall(destination, computed_options);
+    } catch (error) {
+      // A -32002/-32003 on the invite means the session token went stale
+      // (e.g. a throttled refresh timer). Recover the credential and retry the
+      // dial once. Any other error, or a failed recovery, propagates.
+      if (!isRecoverableAuthError(error)) {
+        throw error;
+      }
+      logger.debug(
+        '[SignalWire] Dial hit a recoverable auth error; recovering the session and retrying'
+      );
+      const outcome = await this.recoverAndRetry(async () => {
+        await this.waitAuthentication();
+        return this._clientSession.createOutboundCall(destination, computed_options);
+      });
+      if (outcome.ok) {
+        return outcome.value;
+      }
+      throw outcome.error ?? error;
+    }
   }
 
   /**
@@ -1425,6 +1825,8 @@ class SignalWire extends Destroyable implements DeviceController {
   public override destroy(): void {
     this._refreshCoordinator?.destroy();
     this._refreshCoordinator = undefined;
+    this._refreshHttp?.destroy();
+    this._refreshHttp = undefined;
     this._dpopManager?.destroy();
 
     // Intentionally destroying the client ends its session: clear the
@@ -1432,11 +1834,15 @@ class SignalWire extends Destroyable implements DeviceController {
     // together (they are a coupled unit). Run before tearing down the
     // transport/session so the storage writes still go through. Credentials
     // and device preferences survive — resetToDefaults() is the full wipe.
-    void this._clientSession.teardownSessionState();
+    // Session/transport only exist after a successful connect() (and are
+    // reset by cleanupSession) — a never-connected or already-disconnected
+    // client must still destroy cleanly.
+    const session = this._clientSession as ClientSessionManager | undefined;
+    void session?.teardownSessionState();
 
     // Stop the transport to prevent reconnection loops
-    this._transport.destroy();
-    this._clientSession.destroy();
+    (this._transport as TransportManager | undefined)?.destroy();
+    session?.destroy();
 
     // Destroy resilience subsystems
     try {

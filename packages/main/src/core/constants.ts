@@ -4,6 +4,25 @@ export const DEFAULT_ICE_GATHERING_TIMEOUT_MS = 6_000;
 export const DEFAULT_RECONNECT_CALLS_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 export const DEFAULT_REATTACH_WAIT_TIMEOUT_MS = 10_000; // 10 seconds to wait for server verto.attach
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 10_000;
+/**
+ * How long call setup may wait for the network, measured from local media
+ * settling until the member id arrives.
+ *
+ * Local media acquisition is deliberately NOT inside this: a permission prompt
+ * or a device picker is human time, and a human may take as long as they like
+ * without spending the server's budget. The clock starts when acquisition ends.
+ *
+ * Must exceed `iceGatheringTimeout + the RPC timeout`, which both run inside it.
+ */
+export const DEFAULT_CALL_SIGNALING_TIMEOUT_MS = 12_000;
+/**
+ * How long an auxiliary leg (screen share, additional device) may take to
+ * connect once its media is in hand.
+ *
+ * One bound for both: the picker is human time and sits outside it. What remains
+ * — offer, ICE, invite, answer, DTLS — is the same work for either leg kind.
+ */
+export const DEFAULT_AUX_LEG_CONNECT_TIMEOUT_MS = 15_000;
 export const DEFAULT_RECONNECT_DELAY_MIN_MS = 100;
 export const DEFAULT_RECONNECT_DELAY_MAX_MS = 3000;
 export const DEFAULT_DEVICE_DEBOUNCE_TIME_MS = 1500;
@@ -42,6 +61,15 @@ export const CREDENTIAL_REFRESH_MAX_DELAY_MS = 30_000;
 export const CREDENTIAL_REFRESH_BUFFER_MS = 5000;
 
 /**
+ * Clock-skew allowance (ms) for treating an in-memory credential as expired
+ * when deciding whether a fresh (re)connect must re-mint the token before
+ * authenticating. A token within this window of its `expiry_at` is treated as
+ * stale so the reconnect re-mints via the credential provider instead of
+ * replaying a dead token (which the server rejects with -32003).
+ */
+export const CREDENTIAL_EXPIRY_SKEW_MS = 30_000;
+
+/**
  * Maximum time the coordinator will wait for `DeviceTokenManager.activate()`
  * to resolve before treating the activation as failed and falling back to
  * the developer-provided refresh path. Prevents a wedged HTTP layer from
@@ -64,6 +92,9 @@ export const MEDIA_ACCESS_DENIAL_NAMES = [
   'SecurityError',
   'PermissionDeniedError'
 ];
+
+/** Error names browsers use when the capture hardware is already held exclusively. */
+export const MEDIA_DEVICE_IN_USE_NAMES = ['NotReadableError', 'TrackStartError'];
 
 // =============================================================================
 // STATS MONITORING DEFAULTS (Section 1)

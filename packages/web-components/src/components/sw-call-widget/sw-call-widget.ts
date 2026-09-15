@@ -51,6 +51,7 @@ const logger = getLogger();
  * @prop {string}  destination   - Call destination (address or resource)
  * @prop {boolean} modal         - Render in a `<sw-ui-modal>` overlay
  * @prop {boolean} transcription - Show AI transcript panel
+ * @prop {boolean} screenShareAudio - Also request the shared surface's audio
  *
  * @slot background - Background element (e.g. `<sw-ui-background default>`)
  * @slot (default)  - Trigger element (click to dial, shown when idle)
@@ -76,6 +77,7 @@ export class SwCallWidget extends LitElement {
   @property({ type: String }) destination = '';
   @property({ type: Boolean, reflect: true }) modal = false;
   @property({ type: Boolean, reflect: true }) transcription = false;
+  @property({ type: Boolean, reflect: true, attribute: 'screen-share-audio' }) screenShareAudio = false;
   @property({ type: Boolean, reflect: true, attribute: 'allow-incoming-calls' }) allowIncomingCalls = false;
   @property({ type: Boolean, reflect: true, attribute: 'audio-only' }) audioOnly = false;
 
@@ -440,6 +442,7 @@ export class SwCallWidget extends LitElement {
     const body = this._call
       ? renderCallView({
           transcription: this.transcription,
+          screenShareAudio: this.screenShareAudio,
           hasLayoutLayers: this._hasLayoutLayers,
           drawer: this._drawer,
           transcriptEntries: this._transcript.state.entries,

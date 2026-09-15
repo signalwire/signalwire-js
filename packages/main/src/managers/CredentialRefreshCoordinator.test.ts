@@ -15,6 +15,7 @@ import type { ClientSessionManager } from './ClientSessionManager';
 import type { CryptoController } from '../controllers/CryptoController';
 import type { HTTPRequestController } from '../controllers/HTTPRequestController';
 import type { User } from '../core/entities/User';
+import type { Authorization } from '../core/RPCMessages';
 import type { SATClaims } from '../core/types/crypto.types';
 import type { SDKCredential } from '../core/types/common.types';
 import type { SDKWarning } from '../core/types/warnings.types';
@@ -50,6 +51,7 @@ interface MockNotifier {
   onError: ReturnType<typeof vi.fn>;
   onWarning: ReturnType<typeof vi.fn>;
   onRefreshExhausted: ReturnType<typeof vi.fn>;
+  onCredentialRefreshed: ReturnType<typeof vi.fn>;
 }
 
 interface MockStore {
@@ -60,18 +62,19 @@ interface MockStore {
 }
 
 interface MockDeps {
-  http: HTTPRequestController;
+  http: () => HTTPRequestController;
   notifier: MockNotifier;
   store: MockStore;
 }
 
 function createDeps(): MockDeps {
   return {
-    http: { request: vi.fn() } as unknown as HTTPRequestController,
+    http: () => ({ request: vi.fn() }) as unknown as HTTPRequestController,
     notifier: {
       onError: vi.fn(),
       onWarning: vi.fn(),
-      onRefreshExhausted: vi.fn()
+      onRefreshExhausted: vi.fn(),
+      onCredentialRefreshed: vi.fn().mockResolvedValue(undefined)
     },
     store: {
       read: vi.fn(() => ({}) as SDKCredential),
@@ -250,6 +253,245 @@ describe('CredentialRefreshCoordinator', () => {
       const lastError = deps.notifier.onError.mock.calls.at(-1)?.[0] as unknown;
       expect(lastError).toBeInstanceOf(TokenRefreshError);
     });
+
+    // Item 1: a successful developer refresh must reauthenticate the live
+    // session, not just store the new token. The coordinator signals this
+    // through the onCredentialRefreshed notifier hook.
+    it('invokes onCredentialRefreshed with the new credential after a successful refresh', async () => {
+      const provider = createProvider();
+      const newCred: SDKCredential = { token: 'fresh-token', expiry_at: Date.now() + 120_000 };
+      provider.refresh.mockResolvedValueOnce(newCred);
+
+      coordinator.scheduleDeveloperRefresh(provider, Date.now() + 60_000);
+      await vi.advanceTimersByTimeAsync(Math.max(60_000 - CREDENTIAL_REFRESH_BUFFER_MS, 1000));
+
+      expect(deps.notifier.onCredentialRefreshed).toHaveBeenCalledWith(newCred);
+    });
+
+    it('does NOT retry or reschedule differently when onCredentialRefreshed rejects (best-effort)', async () => {
+      const provider = createProvider();
+      const newCred: SDKCredential = { token: 'fresh-token' }; // no expiry → no reschedule
+      provider.refresh.mockResolvedValueOnce(newCred);
+      deps.notifier.onCredentialRefreshed.mockRejectedValueOnce(new Error('reauth failed'));
+
+      coordinator.scheduleDeveloperRefresh(provider, Date.now() + 60_000);
+      await vi.advanceTimersByTimeAsync(Math.max(60_000 - CREDENTIAL_REFRESH_BUFFER_MS, 1000));
+
+      // Refresh treated as successful: no retry, no exhaustion signal.
+      expect(provider.refresh).toHaveBeenCalledTimes(1);
+      expect(deps.notifier.onRefreshExhausted).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // forceRefreshIfDue() — resume-from-suspension
+  // =========================================================================
+
+  describe('forceRefreshIfDue', () => {
+    let coordinator: CredentialRefreshCoordinator;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      coordinator = new CredentialRefreshCoordinator(createMockCryptoController(), deps);
+    });
+
+    afterEach(() => {
+      coordinator.destroy();
+      vi.useRealTimers();
+    });
+
+    it('forces an immediate developer refresh when the credential is past the refresh window', async () => {
+      const provider = createProvider();
+      const newCred: SDKCredential = { token: 'fresh-token' }; // no expiry → no reschedule
+      provider.refresh.mockResolvedValueOnce(newCred);
+      coordinator.scheduleDeveloperRefresh(provider, Date.now() + 60_000);
+
+      // Simulate a throttled-timer resume: the credential is now within the
+      // refresh buffer (past due) but the armed timer has not fired.
+      deps.store.read.mockReturnValue({ expiry_at: Date.now() + 1000 } as SDKCredential);
+
+      coordinator.forceRefreshIfDue();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(provider.refresh).toHaveBeenCalledTimes(1);
+      // Timer was consumed (no reschedule since newCred has no expiry).
+      expect(coordinator.developerRefreshArmed).toBe(false);
+    });
+
+    it('is a no-op when the credential still has headroom', () => {
+      const provider = createProvider();
+      coordinator.scheduleDeveloperRefresh(provider, Date.now() + 60_000);
+      deps.store.read.mockReturnValue({ expiry_at: Date.now() + 60_000 } as SDKCredential);
+
+      coordinator.forceRefreshIfDue();
+
+      expect(provider.refresh).not.toHaveBeenCalled();
+      expect(coordinator.developerRefreshArmed).toBe(true);
+    });
+
+    it('delegates to the Client Bound SAT pipeline when the developer timer is not armed', () => {
+      const refreshNowIfDue = vi.fn();
+      const stubbed = createWithStubManager(deps, { refreshNowIfDue });
+
+      stubbed.forceRefreshIfDue();
+
+      expect(refreshNowIfDue).toHaveBeenCalledTimes(1);
+      stubbed.destroy();
+    });
+  });
+
+  // =========================================================================
+  // refreshCredential() — shared in-flight dedupe (concurrency safety)
+  // =========================================================================
+
+  describe('refreshCredential', () => {
+    let coordinator: CredentialRefreshCoordinator;
+
+    beforeEach(() => {
+      coordinator = new CredentialRefreshCoordinator(createMockCryptoController(), deps);
+    });
+
+    afterEach(() => {
+      coordinator.destroy();
+    });
+
+    it('dedupes concurrent callers into a single provider.refresh()', async () => {
+      const provider = createProvider();
+      let resolveRefresh: ((cred: SDKCredential) => void) | undefined;
+      provider.refresh.mockReturnValueOnce(
+        new Promise<SDKCredential>((resolve) => {
+          resolveRefresh = resolve;
+        })
+      );
+
+      const p1 = coordinator.refreshCredential(provider);
+      const p2 = coordinator.refreshCredential(provider);
+
+      // Both callers share one in-flight network call.
+      expect(provider.refresh).toHaveBeenCalledTimes(1);
+
+      const cred: SDKCredential = { token: 'fresh' };
+      resolveRefresh?.(cred);
+      const [c1, c2] = await Promise.all([p1, p2]);
+      expect(c1).toBe(cred);
+      expect(c2).toBe(cred);
+    });
+
+    it('allows a new refresh once the previous one settles', async () => {
+      const provider = createProvider();
+      provider.refresh.mockResolvedValue({ token: 'fresh' } as SDKCredential);
+
+      await coordinator.refreshCredential(provider);
+      await coordinator.refreshCredential(provider);
+
+      expect(provider.refresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('rejects when the provider has no refresh handler', async () => {
+      const provider = { authenticate: vi.fn() } as unknown as CredentialProvider;
+      await expect(coordinator.refreshCredential(provider)).rejects.toBeDefined();
+    });
+  });
+
+  // =========================================================================
+  // syncExpiryFromAuthorization() — server-authoritative expiry
+  // =========================================================================
+
+  describe('syncExpiryFromAuthorization', () => {
+    let coordinator: CredentialRefreshCoordinator;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      coordinator = new CredentialRefreshCoordinator(createMockCryptoController(), deps);
+    });
+
+    afterEach(() => {
+      coordinator.destroy();
+      vi.useRealTimers();
+    });
+
+    function makeAuthorization(expiresAtSec: number): Authorization {
+      return {
+        jti: 'jti-1',
+        project_id: 'proj-1',
+        fabric_subscriber: {
+          version: 1,
+          expires_at: expiresAtSec,
+          subscriber_id: 'sub-1',
+          application_id: null,
+          project_id: 'proj-1',
+          space_id: 'space-1'
+        }
+      };
+    }
+
+    it('corrects the stored credential expiry from fabric_subscriber.expires_at (seconds → ms)', () => {
+      deps.store.read.mockReturnValue({ token: 'sat' } as SDKCredential);
+      const expiresAtSec = Math.floor(Date.now() / 1000) + 180;
+
+      coordinator.syncExpiryFromAuthorization(makeAuthorization(expiresAtSec), createProvider());
+
+      const expected = { token: 'sat', expiry_at: expiresAtSec * 1000 };
+      expect(deps.store.write).toHaveBeenCalledWith(expected);
+      expect(deps.store.persist).toHaveBeenCalledWith(expected);
+    });
+
+    it('re-arms the developer refresh timer against the server expiry when refresh() exists', () => {
+      deps.store.read.mockReturnValue({ token: 'sat' } as SDKCredential);
+
+      coordinator.syncExpiryFromAuthorization(
+        makeAuthorization(Math.floor(Date.now() / 1000) + 180),
+        createProvider()
+      );
+
+      expect(coordinator.developerRefreshArmed).toBe(true);
+    });
+
+    it('updates the credential but does NOT arm the timer without a refresh handler', () => {
+      deps.store.read.mockReturnValue({ token: 'sat' } as SDKCredential);
+      const provider = { authenticate: vi.fn() } as unknown as CredentialProvider;
+
+      coordinator.syncExpiryFromAuthorization(
+        makeAuthorization(Math.floor(Date.now() / 1000) + 180),
+        provider
+      );
+
+      expect(deps.store.write).toHaveBeenCalledTimes(1);
+      expect(coordinator.developerRefreshArmed).toBe(false);
+    });
+
+    it('is a no-op for an undefined authorization', () => {
+      coordinator.syncExpiryFromAuthorization(undefined, createProvider());
+
+      expect(deps.store.write).not.toHaveBeenCalled();
+      expect(coordinator.developerRefreshArmed).toBe(false);
+    });
+
+    it('is a no-op when the authorization lacks fabric_subscriber at runtime', () => {
+      // The type marks fabric_subscriber as required, but the value is
+      // server-supplied — a variant omitting it must not throw inside the
+      // authorization$ subscription (which would kill the subscription).
+      const authorization = { jti: 'jti-1', project_id: 'proj-1' } as Authorization;
+
+      expect(() =>
+        coordinator.syncExpiryFromAuthorization(authorization, createProvider())
+      ).not.toThrow();
+      expect(deps.store.write).not.toHaveBeenCalled();
+      expect(coordinator.developerRefreshArmed).toBe(false);
+    });
+
+    it('is a no-op when the stored expiry already matches (no timer churn)', () => {
+      const expiresAtSec = Math.floor(Date.now() / 1000) + 180;
+      deps.store.read.mockReturnValue({
+        token: 'sat',
+        expiry_at: expiresAtSec * 1000
+      } as SDKCredential);
+
+      coordinator.syncExpiryFromAuthorization(makeAuthorization(expiresAtSec), createProvider());
+
+      expect(deps.store.write).not.toHaveBeenCalled();
+      expect(coordinator.developerRefreshArmed).toBe(false);
+    });
   });
 
   // =========================================================================
@@ -329,6 +571,54 @@ describe('CredentialRefreshCoordinator', () => {
       expect(activateStub).toHaveBeenCalledTimes(1);
       expect(deps.notifier.onWarning).not.toHaveBeenCalled();
       expect(deps.notifier.onError).not.toHaveBeenCalled();
+      coordinator.destroy();
+    });
+
+    it('cancels a timer re-armed by syncExpiryFromAuthorization while activate() was in flight', async () => {
+      // Reconnect interleaving: cycle N's authorization$ arms the developer
+      // timer while cycle N-1's activate() is still in flight, so cycle N's
+      // own activate() is dropped by the re-entrancy guard. The in-flight
+      // activation must cancel the timer armed AFTER it started — otherwise
+      // the developer timer and the Client Bound SAT pipeline would both
+      // stay live (double-refresh).
+      let resolveActivate: ((result: ActivationResult) => void) | undefined;
+      const activateStub = vi.fn().mockReturnValue(
+        new Promise<ActivationResult>((resolve) => {
+          resolveActivate = resolve;
+        })
+      );
+      const coordinator = createWithStubManager(deps, { activate: activateStub });
+      deps.store.read.mockReturnValue({ token: 'sat' } as SDKCredential);
+
+      const inFlight = coordinator.activate(createMockUser(), createMockSession());
+
+      vi.useFakeTimers();
+      coordinator.syncExpiryFromAuthorization(
+        {
+          jti: 'jti-1',
+          project_id: 'proj-1',
+          fabric_subscriber: {
+            version: 1,
+            expires_at: Math.floor(Date.now() / 1000) + 180,
+            subscriber_id: 'sub-1',
+            application_id: null,
+            project_id: 'proj-1',
+            space_id: 'space-1'
+          }
+        },
+        createProvider()
+      );
+      vi.useRealTimers();
+      expect(coordinator.developerRefreshArmed).toBe(true);
+
+      const dropped = coordinator.activate(createMockUser(), createMockSession());
+
+      resolveActivate?.({ activated: true });
+      await Promise.all([inFlight, dropped]);
+
+      expect(activateStub).toHaveBeenCalledTimes(1);
+      expect(coordinator.developerRefreshArmed).toBe(false);
+      expect(deps.notifier.onWarning).not.toHaveBeenCalled();
       coordinator.destroy();
     });
 

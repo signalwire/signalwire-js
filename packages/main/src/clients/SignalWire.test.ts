@@ -203,5 +203,30 @@ describe('SignalWire', () => {
       expect(teardownSpy).toHaveBeenCalledTimes(1);
       expect(detachSpy).not.toHaveBeenCalled();
     }, 35000);
+
+    it('destroys cleanly when the client never connected', () => {
+      // Session/transport are only created during connect(); a failed or
+      // skipped connect leaves them undefined — destroy() must not throw
+      // (e.g. app boot tries a cache restore, fails, and destroys the client).
+      const client = createClient();
+
+      expect(() => client.destroy()).not.toThrow();
+    });
+
+    it('destroys cleanly after a disconnect already cleaned up the session', async () => {
+      const client = createClient();
+      injectMockUser(client);
+      try {
+        await client.connect();
+      } catch {
+        /* WS connect or auth gate timeout */
+      }
+
+      await client.disconnect().catch(() => {
+        /* mock WS — ignore */
+      });
+
+      expect(() => client.destroy()).not.toThrow();
+    }, 35000);
   });
 });

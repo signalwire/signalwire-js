@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BehaviorSubject, Subject } from 'rxjs';
 
 import { PreferencesContainer } from '../../containers/PreferencesContainer';
+import { CallNotReadyError, InvalidParams, ParticipantNotReadyError } from '../errors';
 import { WebRTCCall } from './Call';
+import { Participant } from './Participant';
 
 import type { ClientSession } from '../../interfaces/ClientSession';
 import type { DeviceController } from '../../interfaces/DeviceController';
@@ -23,6 +25,7 @@ function createMockClientSession(
     signalingEvent$: signalingEvent$ ?? new Subject<Record<string, unknown>>(),
     authenticated$: new BehaviorSubject<boolean>(true),
     iceServers: undefined,
+    callControl: 'routed',
     execute: vi.fn().mockResolvedValue({ id: 1, result: {} })
   } as unknown as ClientSession;
 }
@@ -43,10 +46,12 @@ function createMockVertoManager(): WebRTCVerto {
     mainPeerConnection: { peerConnection: undefined },
     bye: vi.fn().mockResolvedValue(undefined),
     sendDigits: vi.fn().mockResolvedValue(undefined),
+    sendCallControl: vi.fn().mockResolvedValue({ id: 1, result: {} }),
     hold: vi.fn().mockResolvedValue(undefined),
     unhold: vi.fn().mockResolvedValue(undefined),
     destroy: vi.fn(),
-    transfer: vi.fn().mockResolvedValue(undefined)
+    transfer: vi.fn().mockResolvedValue(undefined),
+    updateMediaConstraints: vi.fn().mockResolvedValue(true)
   } as unknown as WebRTCVerto;
 }
 
@@ -634,8 +639,8 @@ describe('WebRTCCall - executeMethod', () => {
     call.destroy();
   });
 
-  it('sends target (singular) when called with a string member_id', async () => {
-    await call.executeMethod('remote-member-id', 'call.mute', { channels: ['audio'] });
+  it('resolves the self member ID string to the self triple (self-operations)', async () => {
+    await call.executeMethod('test-member-id', 'call.lock', {});
 
     const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
     expect(executeSpy).toHaveBeenCalledOnce();
@@ -643,27 +648,36 @@ describe('WebRTCCall - executeMethod', () => {
     const request = executeSpy.mock.calls[0][0] as { params: Record<string, unknown> };
     expect(request.params).toMatchObject({
       self: {
-        node_id: expect.any(String),
+        node_id: 'test-node-id',
         call_id: 'test-call-id',
         member_id: 'test-member-id'
       },
       target: {
-        node_id: expect.any(String),
+        node_id: 'test-node-id',
         call_id: 'test-call-id',
-        member_id: 'remote-member-id'
+        member_id: 'test-member-id'
       }
     });
     expect(request.params).not.toHaveProperty('targets');
   });
 
-  it("sends targets (array) with the member's actual call_id when called with a MemberTarget", async () => {
+  it('rejects a string target that is not the self member ID (no RPC sent)', async () => {
+    // A bare member id cannot carry a remote member's own call context, so
+    // strings are valid for self-operations only — full MemberTarget otherwise.
+    await expect(
+      call.executeMethod('remote-member-id', 'call.mute', { channels: ['audio'] })
+    ).rejects.toBeInstanceOf(InvalidParams);
+    expect(ctx.clientSession.execute).not.toHaveBeenCalled();
+  });
+
+  it('sends the provided MemberTarget as the singular target, untouched', async () => {
     const targetMember = {
       member_id: 'remote-member-id',
       call_id: 'remote-call-id',
       node_id: 'remote-node-id'
     };
 
-    await call.executeMethod(targetMember, 'call.member.remove', {});
+    await call.executeMethod(targetMember, 'call.mute', { channels: ['audio'] });
 
     const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
     expect(executeSpy).toHaveBeenCalledOnce();
@@ -675,15 +689,9 @@ describe('WebRTCCall - executeMethod', () => {
         call_id: 'test-call-id',
         member_id: 'test-member-id'
       },
-      targets: [
-        {
-          member_id: 'remote-member-id',
-          call_id: 'remote-call-id',
-          node_id: 'remote-node-id'
-        }
-      ]
+      target: targetMember
     });
-    expect(request.params).not.toHaveProperty('target');
+    expect(request.params).not.toHaveProperty('targets');
   });
 
   it("does not use the caller's call_id for the target when MemberTarget is provided", async () => {
@@ -693,14 +701,98 @@ describe('WebRTCCall - executeMethod', () => {
       node_id: 'other-node-id'
     };
 
-    await call.executeMethod(targetMember, 'call.member.remove', {});
+    await call.executeMethod(targetMember, 'call.mute', { channels: ['audio'] });
 
     const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
-    const request = executeSpy.mock.calls[0][0] as { params: { targets: { call_id: string }[] } };
+    const request = executeSpy.mock.calls[0][0] as { params: { target: { call_id: string } } };
 
     // The target's call_id must be the member's own, not the caller's 'test-call-id'
-    expect(request.params.targets[0].call_id).toBe('other-call-id');
-    expect(request.params.targets[0].call_id).not.toBe('test-call-id');
+    expect(request.params.target.call_id).toBe('other-call-id');
+    expect(request.params.target.call_id).not.toBe('test-call-id');
+  });
+
+  it("mute() on a remote Participant puts the member's own call_id on the wire", async () => {
+    // Composition test for the seam where the bug lived: a real Participant
+    // wired to the real Call.executeMethod. The backend locates the member's
+    // session by target.call_id, so it must be the member's own leg id.
+    const participant = new Participant(
+      'remote-member-id',
+      call.executeMethod.bind(call),
+      {} as DeviceController
+    );
+    participant.upnext({
+      call_id: 'remote-call-id',
+      node_id: 'remote-node-id'
+    } as Parameters<typeof participant.upnext>[0]);
+
+    await participant.mute();
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const request = executeSpy.mock.calls[0][0] as { params: Record<string, unknown> };
+    expect(request.params).toEqual({
+      channels: ['audio'],
+      self: {
+        node_id: 'test-node-id',
+        call_id: 'test-call-id',
+        member_id: 'test-member-id'
+      },
+      target: {
+        member_id: 'remote-member-id',
+        call_id: 'remote-call-id',
+        node_id: 'remote-node-id'
+      }
+    });
+
+    participant.destroy();
+  });
+
+  it('rejects with CallNotReadyError before self context is known (no RPC sent)', async () => {
+    // Simulate pre-join: call.joined has not delivered selfId/nodeId yet
+    (ctx.vertoManager as { selfId: string | null }).selfId = null;
+    (ctx.vertoManager as { nodeId: string | null }).nodeId = null;
+
+    await expect(
+      call.executeMethod('remote-member-id', 'call.mute', { channels: ['audio'] })
+    ).rejects.toBeInstanceOf(CallNotReadyError);
+    expect(ctx.clientSession.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects with CallNotReadyError when only nodeId is missing, even with a full MemberTarget', async () => {
+    // The envelope always carries `self`, so a missing local context must
+    // fail fast regardless of how the target is provided.
+    (ctx.vertoManager as { nodeId: string | null }).nodeId = null;
+    const targetMember = {
+      member_id: 'remote-member-id',
+      call_id: 'remote-call-id',
+      node_id: 'remote-node-id'
+    };
+
+    await expect(
+      call.executeMethod(targetMember, 'call.mute', { channels: ['audio'] })
+    ).rejects.toBeInstanceOf(CallNotReadyError);
+    expect(ctx.clientSession.execute).not.toHaveBeenCalled();
+  });
+
+  it('passes a caller-built targets[] through untouched (call.member.remove)', async () => {
+    const targetMember = {
+      member_id: 'remote-member-id',
+      call_id: 'remote-call-id',
+      node_id: 'remote-node-id'
+    };
+
+    await call.executeMethod(targetMember, 'call.member.remove', { targets: [targetMember] });
+
+    const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
+    const request = executeSpy.mock.calls[0][0] as { params: Record<string, unknown> };
+    expect(request.params).toMatchObject({
+      self: {
+        node_id: expect.any(String),
+        call_id: 'test-call-id',
+        member_id: 'test-member-id'
+      },
+      target: targetMember,
+      targets: [targetMember]
+    });
   });
 });
 
@@ -722,22 +814,18 @@ describe('WebRTCCall - call.member.position.set payload', () => {
     call.destroy();
   });
 
-  it('passes the caller-built targets[] through untouched alongside self', async () => {
+  it('passes the caller-built targets[] through untouched alongside self and target', async () => {
     // Participant.setPosition fully builds targets[], keyed by the TARGET
     // member's own call context (#19400). The params builder must pass it
-    // through unmodified and only attach `self`.
-    const targets = [
-      {
-        target: {
-          member_id: 'remote-member-id',
-          call_id: 'remote-call-id',
-          node_id: 'remote-node-id'
-        },
-        position: 'reserved-1'
-      }
-    ];
+    // through unmodified — no method-specific special casing.
+    const target = {
+      member_id: 'remote-member-id',
+      call_id: 'remote-call-id',
+      node_id: 'remote-node-id'
+    };
+    const targets = [{ target, position: 'reserved-1' }];
 
-    await call.executeMethod('remote-member-id', 'call.member.position.set', { targets });
+    await call.executeMethod(target, 'call.member.position.set', { targets });
 
     const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
     const request = executeSpy.mock.calls[0][0] as { params: Record<string, unknown> };
@@ -748,30 +836,27 @@ describe('WebRTCCall - call.member.position.set payload', () => {
         call_id: 'test-call-id',
         member_id: 'test-member-id'
       },
+      target,
       targets
     });
   });
 
-  it('does not add a singular target or top-level position for position.set', async () => {
-    // The DTO requires targets[] of { target, position }; the legacy singular
-    // `target` and a bare `position` at the top level must NOT be present.
-    const targets = [
-      {
-        target: {
-          member_id: 'remote-member-id',
-          call_id: 'remote-call-id',
-          node_id: 'remote-node-id'
-        },
-        position: 'reserved-2'
-      }
-    ];
+  it('does not overwrite the caller-built targets[] with bare MemberTargets', async () => {
+    // The DTO requires targets[] entries shaped { target, position } — the
+    // builder must never replace them with plain target triples.
+    const target = {
+      member_id: 'remote-member-id',
+      call_id: 'remote-call-id',
+      node_id: 'remote-node-id'
+    };
+    const targets = [{ target, position: 'reserved-2' }];
 
-    await call.executeMethod('remote-member-id', 'call.member.position.set', { targets });
+    await call.executeMethod(target, 'call.member.position.set', { targets });
 
     const executeSpy = ctx.clientSession.execute as ReturnType<typeof vi.fn>;
     const request = executeSpy.mock.calls[0][0] as { params: Record<string, unknown> };
 
-    expect(request.params).not.toHaveProperty('target');
+    expect(request.params.targets).toEqual(targets);
     expect(request.params).not.toHaveProperty('position');
   });
 });
@@ -839,8 +924,16 @@ describe('WebRTCCall - setLayout', () => {
   it("delegates each position to that member's own setPosition", async () => {
     // setLayout calls Participant.setPosition per member, which keys the position
     // by the member's OWN call context (matching legacy `setPositions`). #19400.
-    const member1 = { id: 'member-1', setPosition: vi.fn().mockResolvedValue(undefined) };
-    const member2 = { id: 'member-2', setPosition: vi.fn().mockResolvedValue(undefined) };
+    const member1 = {
+      id: 'member-1',
+      target: { member_id: 'member-1', call_id: 'call-1', node_id: 'node-1' },
+      setPosition: vi.fn().mockResolvedValue(undefined)
+    };
+    const member2 = {
+      id: 'member-2',
+      target: { member_id: 'member-2', call_id: 'call-2', node_id: 'node-2' },
+      setPosition: vi.fn().mockResolvedValue(undefined)
+    };
     (ctx.callEventsManager as unknown as { participants: unknown[] }).participants = [
       member1,
       member2
@@ -869,6 +962,37 @@ describe('WebRTCCall - setLayout', () => {
       (c) => (c[0] as { method: string }).method === 'call.member.position.set'
     );
     expect(positionCall).toBeUndefined();
+  });
+
+  it('throws ParticipantNotReadyError before ANY RPC when a targeted member is not ready', async () => {
+    // Validation must run upfront so the layout is untouched when a targeted
+    // member cannot be addressed yet — not after call.layout.set was sent.
+    // Reading `target` IS the validation: it throws when state is missing.
+    const ready = {
+      id: 'member-1',
+      target: { member_id: 'member-1', call_id: 'call-1', node_id: 'node-1' },
+      setPosition: vi.fn().mockResolvedValue(undefined)
+    };
+    const notReady = {
+      id: 'member-2',
+      get target(): never {
+        throw new ParticipantNotReadyError('member-2');
+      },
+      setPosition: vi.fn()
+    };
+    (ctx.callEventsManager as unknown as { participants: unknown[] }).participants = [
+      ready,
+      notReady
+    ];
+
+    await expect(
+      call.setLayout('grid-responsive', { 'member-1': 'reserved-0', 'member-2': 'reserved-1' })
+    ).rejects.toBeInstanceOf(ParticipantNotReadyError);
+
+    // Nothing was sent: no layout.set, no position.set on any member
+    expect(ctx.clientSession.execute).not.toHaveBeenCalled();
+    expect(ready.setPosition).not.toHaveBeenCalled();
+    expect(notReady.setPosition).not.toHaveBeenCalled();
   });
 });
 
@@ -943,6 +1067,25 @@ describe('WebRTCCall - emitError', () => {
     call.emitError({ kind: 'media', fatal: true, error: new Error('media fail'), callId: call.id });
 
     expect(ctx.vertoManager.destroy).toHaveBeenCalled();
+  });
+
+  it('a fatal error during hangup does not start a second teardown', async () => {
+    // hangup() moves the call to 'disconnecting' and owns the bye + destroy. A fatal
+    // error racing that teardown (e.g. the server erroring our own bye) must only surface
+    // on errors$ — it must NOT send a second bye or flip the call to 'failed'.
+    const errors: import('../../errors').CallError[] = [];
+    const sub = call.errors$.subscribe((e) => errors.push(e));
+    (call as unknown as { _status$: { next: (s: string) => void } })._status$.next('disconnecting');
+
+    call.emitError({ kind: 'signaling', fatal: true, error: new Error('bye raced'), callId: call.id });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(errors).toHaveLength(1); // still reported
+    expect(ctx.vertoManager.bye).not.toHaveBeenCalled(); // no SECOND bye from emitError
+    expect(ctx.vertoManager.destroy).not.toHaveBeenCalled(); // no competing teardown
+
+    sub.unsubscribe();
+    call.destroy();
   });
 
   it('emitError on an already-destroyed call is a no-op', () => {
@@ -1402,5 +1545,303 @@ describe('WebRTCCall - resilience subsystems', () => {
 
     handleReconnectSpy.mockRestore();
     call.destroy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// WebRTCCall - sendCommand()
+//
+// The in-dialog alternative to executeMethod. The two transports are NOT
+// interchangeable: executeMethod addresses the member with an explicit
+// {node_id, call_id, member_id} tuple over the routed session, which does not
+// resolve for every conference; sendCommand puts the verb on the member's own
+// signaling channel instead. The reach is inverted too — the in-dialog transport
+// only works for SWML-backed calls. These tests pin the distinction, because a
+// silent swap of one for the other regresses one case or the other.
+// ---------------------------------------------------------------------------
+
+describe('WebRTCCall - sendCommand()', () => {
+  let ctx: TestContext;
+  let call: WebRTCCall;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ctx = createTestContext();
+    call = createCall(ctx);
+  });
+
+  afterEach(() => {
+    call.destroy();
+  });
+
+  it('sends the verb in-dialog and never over the routed session', async () => {
+    await call.sendCommand('call.mute', { target: { call_id: 'other-call-id' } });
+
+    expect(ctx.vertoManager.sendCallControl).toHaveBeenCalledOnce();
+    // The routed transport must stay untouched — that is the whole point of
+    // having both.
+    expect(ctx.clientSession.execute).not.toHaveBeenCalled();
+  });
+
+  it('forwards method and params verbatim, adding no self tuple', async () => {
+    const params = { target: { call_id: 'other-call-id' } };
+    await call.sendCommand('call.mute', params);
+
+    const [method, sent] = (ctx.vertoManager.sendCallControl as ReturnType<typeof vi.fn>).mock
+      .calls[0];
+    expect(method).toBe('call.mute');
+    // The acting member is resolved server-side from the dialog, so a `self`
+    // here would be both redundant and (per the gateway) grounds for rejection.
+    expect(sent).toEqual(params);
+    expect(sent).not.toHaveProperty('self');
+  });
+
+  it('defaults params to an empty object', async () => {
+    await call.sendCommand('call.layout.list');
+
+    expect(
+      (ctx.vertoManager.sendCallControl as ReturnType<typeof vi.fn>).mock.calls[0][1]
+    ).toEqual({});
+  });
+
+  it('unwraps the verto envelope so response.result IS the method payload', async () => {
+    // What the wire actually returns: the method's reply nested two levels down.
+    (ctx.vertoManager.sendCallControl as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'outer',
+      result: {
+        node_id: 'node-1',
+        code: '200',
+        result: { jsonrpc: '2.0', id: 'inner', result: { layouts: ['grid', '1x1'] } }
+      }
+    });
+
+    const response = await call.sendCommand<{ result: { layouts: string[] } }>(
+      'call.layout.list'
+    );
+
+    // Without the unwrap this is `undefined` and nothing throws — the exact
+    // silent failure that produced an empty layout dropdown.
+    expect(response.result.layouts).toEqual(['grid', '1x1']);
+  });
+
+  it('passes a non-nested envelope through untouched (plain ack)', async () => {
+    const ack = { id: 'outer', result: { code: '200', message: 'Success' } };
+    (ctx.vertoManager.sendCallControl as ReturnType<typeof vi.fn>).mockResolvedValue(ack);
+
+    await expect(call.sendCommand('call.mute')).resolves.toEqual(ack);
+  });
+
+  it('propagates a control failure to the caller', async () => {
+    (ctx.vertoManager.sendCallControl as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('Bad request')
+    );
+
+    await expect(call.sendCommand('call.mute')).rejects.toThrow('Bad request');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// WebRTCCall - callControl: 'in-dialog'
+//
+// Opting a call into the in-dialog transport must redirect EVERY control verb,
+// including the ones the SDK issues itself (the layout-list fetch on join). If the
+// app's writes and the SDK's reads travelled differently, a caller could see its
+// own layout change succeed while `layouts$` came back empty.
+//
+// The routed transport is the default and is covered by the executeMethod suite
+// above; these tests pin the translation and that opting in is required.
+// ---------------------------------------------------------------------------
+
+describe("WebRTCCall - callControl: 'in-dialog'", () => {
+  let ctx: TestContext;
+  let call: WebRTCCall;
+
+  const sentControl = () =>
+    (ctx.vertoManager.sendCallControl as ReturnType<typeof vi.fn>).mock.calls[0][1] as Record<
+      string,
+      unknown
+    >;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ctx = createTestContext();
+    // callControl is a session-wide client config now, not a per-call option.
+    (ctx.clientSession as unknown as { callControl: string }).callControl = 'in-dialog';
+    call = createCall(ctx);
+  });
+
+  afterEach(() => {
+    call.destroy();
+  });
+
+  it('routes control in-dialog and never over the session', async () => {
+    await call.executeMethod('test-member-id', 'call.mute', { channels: ['audio'] });
+
+    expect(ctx.vertoManager.sendCallControl).toHaveBeenCalledOnce();
+    expect(ctx.clientSession.execute).not.toHaveBeenCalled();
+  });
+
+  it('is opt-in — the default keeps using the session', async () => {
+    // A separate session with the default 'routed' control transport.
+    const routedCtx = createTestContext();
+    const routed = createCall(routedCtx);
+    await routed.executeMethod('test-member-id', 'call.mute', { channels: ['audio'] });
+
+    expect(routedCtx.clientSession.execute).toHaveBeenCalledOnce();
+    expect(routedCtx.vertoManager.sendCallControl).not.toHaveBeenCalled();
+    routed.destroy();
+  });
+
+  it('attaches the self target (no self tuple) for a bare-selfId self op', async () => {
+    await call.executeMethod('test-member-id', 'call.mute', { channels: ['audio'] });
+
+    const control = sentControl();
+    // No `self` tuple (that is the routed convention), but the self target IS attached —
+    // {call_id, member_id}, mirroring the routed transport, so call-scoped self verbs
+    // (layout.set, lock) are not refused for lack of a target.
+    expect(control).not.toHaveProperty('self');
+    expect(control).toMatchObject({
+      channels: ['audio'],
+      target: { call_id: call.id, member_id: 'test-member-id' }
+    });
+  });
+
+  it('STILL attaches the target when a self op arrives as a MemberTarget object', async () => {
+    // Every Participant method injects `this.target`, so a self mute arrives here as an
+    // object rather than a bare id — and the target must survive.
+    //
+    // An explicit target naming our own call is what lets a self-directed op go through;
+    // drop it and the op is refused — a participant gets a refusal muting ITSELF.
+    // Confirmed live before this was pinned.
+    const selfTarget: MemberTarget = {
+      member_id: 'test-member-id',
+      call_id: 'test-call-id',
+      node_id: 'test-node-id'
+    };
+    await call.executeMethod(selfTarget, 'call.mute', { channels: ['audio'] });
+
+    expect(sentControl().target).toEqual({
+      call_id: 'test-call-id',
+      member_id: 'test-member-id'
+    });
+  });
+
+  it('attaches the self target when a Call-level op passes a bare self id', async () => {
+    // toggleLock/layout and friends pass a bare id equal to selfId. The routed transport
+    // sends `target: self` for these, so in-dialog carries the same self target too —
+    // omitting it got call-scoped verbs like call.layout.set refused for lack of permission.
+    await call.executeMethod('test-member-id', 'call.lock', {});
+
+    expect(sentControl()).toMatchObject({
+      target: { call_id: call.id, member_id: 'test-member-id' }
+    });
+  });
+
+  it('attaches a singular target carrying call_id AND member_id for a cross-member op', async () => {
+    const other: MemberTarget = {
+      member_id: 'other-member',
+      call_id: 'other-call-id',
+      node_id: 'other-node-id'
+    };
+    await call.executeMethod(other, 'call.mute', { channels: ['audio'] });
+
+    // Both ids, and no node_id: the handlers key authorization on member_id, while
+    // sending our OWN node/call ids alongside another member's id is what produced 403s.
+    expect(sentControl().target).toEqual({
+      call_id: 'other-call-id',
+      member_id: 'other-member'
+    });
+    expect(sentControl().target).not.toHaveProperty('node_id');
+  });
+
+  it('uses the plural targets array for call.member.remove', async () => {
+    const other: MemberTarget = {
+      member_id: 'other-member',
+      call_id: 'other-call-id',
+      node_id: 'other-node-id'
+    };
+    await call.executeMethod(other, 'call.member.remove', {});
+
+    const control = sentControl();
+    expect(control.targets).toEqual([
+      { call_id: 'other-call-id', member_id: 'other-member' }
+    ]);
+    expect(control).not.toHaveProperty('target');
+  });
+
+  it('flattens the member triple out of call.member.position.set targets', async () => {
+    // Participant.setPosition builds `{ target: <triple>, position }` for the routed
+    // transport; in-dialog wants `{ call_id, position }`.
+    await call.executeMethod('test-member-id', 'call.member.position.set', {
+      targets: [
+        {
+          target: { member_id: 'm1', call_id: 'c1', node_id: 'n1' },
+          position: 'reserved-1'
+        }
+      ]
+    });
+
+    const entry = (sentControl().targets as Record<string, unknown>[])[0];
+    expect(entry).toEqual({ call_id: 'c1', position: 'reserved-1' });
+    expect(entry).not.toHaveProperty('target');
+    expect(entry).not.toHaveProperty('node_id');
+  });
+
+  it('unwraps the verto envelope so callers see the method payload', async () => {
+    (ctx.vertoManager.sendCallControl as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'outer',
+      result: {
+        node_id: 'node-1',
+        code: '200',
+        result: { jsonrpc: '2.0', id: 'inner', result: { layouts: ['grid'] } }
+      }
+    });
+
+    const response = await call.executeMethod<{ result: { layouts: string[] } }>(
+      'test-member-id',
+      'call.layout.list',
+      {}
+    );
+
+    // CallEventsManager.updateLayouts reads exactly this path.
+    expect(response.result.layouts).toEqual(['grid']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
+/**
+ * These setters used to resolve identically whether the constraint reached the
+ * microphone or was silently skipped, so an application had no way to offer the
+ * user a working toggle.
+ */
+describe('WebRTCCall - runtime audio constraint setters report the outcome', () => {
+  let ctx: TestContext;
+  let call: WebRTCCall;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ctx = createTestContext();
+    call = createCall(ctx);
+  });
+
+  afterEach(() => {
+    call.destroy();
+  });
+
+  const updateMediaConstraints = (): ReturnType<typeof vi.fn> =>
+    ctx.vertoManager.updateMediaConstraints as unknown as ReturnType<typeof vi.fn>;
+
+  it.each([
+    ['setEchoCancellation', (enabled: boolean) => call.setEchoCancellation(enabled), 'echoCancellation'],
+    ['setNoiseSuppression', (enabled: boolean) => call.setNoiseSuppression(enabled), 'noiseSuppression'],
+    ['setAutoGainControl', (enabled: boolean) => call.setAutoGainControl(enabled), 'autoGainControl']
+  ])('%s passes the outcome through', async (_name, invoke, constraint) => {
+    updateMediaConstraints().mockResolvedValue(true);
+    await expect(invoke(false)).resolves.toBe(true);
+    expect(updateMediaConstraints()).toHaveBeenCalledWith({ audio: { [constraint]: false } });
+
+    updateMediaConstraints().mockResolvedValue(false);
+    await expect(invoke(true)).resolves.toBe(false);
   });
 });

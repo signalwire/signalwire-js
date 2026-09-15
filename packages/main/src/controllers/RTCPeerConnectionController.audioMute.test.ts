@@ -71,18 +71,45 @@ interface FakeRawTrack {
   kind: 'audio';
   readyState: 'live' | 'ended';
   stop: ReturnType<typeof vi.fn>;
+  getConstraints: ReturnType<typeof vi.fn>;
+  getSettings: ReturnType<typeof vi.fn>;
+  applyConstraints: ReturnType<typeof vi.fn>;
+  addEventListener: ReturnType<typeof vi.fn>;
+  removeEventListener: ReturnType<typeof vi.fn>;
 }
 
 function createFakeRawTrack(id: string): FakeRawTrack {
+  const constraints: MediaTrackConstraints = {};
   const track: FakeRawTrack = {
     id,
     kind: 'audio',
     readyState: 'live',
     stop: vi.fn(() => {
       track.readyState = 'ended';
-    })
+    }),
+    getConstraints: vi.fn(() => constraints),
+    getSettings: vi.fn(() => ({ deviceId: `${id}-device` })),
+    applyConstraints: vi.fn(async () => undefined),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn()
   };
   return track;
+}
+
+function createFakeStream(): MediaStream {
+  const tracks: MediaStreamTrack[] = [];
+  return {
+    addTrack: (track: MediaStreamTrack) => tracks.push(track),
+    removeTrack: (track: MediaStreamTrack) => {
+      const index = tracks.indexOf(track);
+      if (index >= 0) {
+        tracks.splice(index, 1);
+      }
+    },
+    getTracks: () => [...tracks],
+    getAudioTracks: () => tracks.filter((track) => track.kind === 'audio'),
+    getVideoTracks: () => tracks.filter((track) => track.kind === 'video')
+  } as unknown as MediaStream;
 }
 
 // ---------------------------------------------------------------------------
@@ -94,6 +121,7 @@ describe('RTCPeerConnectionController audio mute path with LocalAudioPipeline', 
   let getUserMediaMock: ReturnType<typeof vi.fn>;
   let stopTrackSenderSpy: ReturnType<typeof vi.fn>;
   let restoreTrackSenderSpy: ReturnType<typeof vi.fn>;
+  let updateSendersConstraintsSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     getUserMediaMock = vi.fn();
@@ -117,11 +145,13 @@ describe('RTCPeerConnectionController audio mute path with LocalAudioPipeline', 
     // surface for these targeted mute path tests.
     stopTrackSenderSpy = vi.fn();
     restoreTrackSenderSpy = vi.fn().mockResolvedValue(undefined);
+    updateSendersConstraintsSpy = vi.fn().mockResolvedValue(true);
     Object.defineProperty(controller, 'transceiverController', {
       value: {
         stopTrackSender: stopTrackSenderSpy,
         restoreTrackSender: restoreTrackSenderSpy,
         getConstraintsFor: vi.fn(() => ({ echoCancellation: true })),
+        updateSendersConstraints: updateSendersConstraintsSpy,
         audioTransceivers: []
       },
       configurable: true
@@ -162,14 +192,22 @@ describe('RTCPeerConnectionController audio mute path with LocalAudioPipeline', 
     return raw;
   }
 
+  /** The spy installed by {@link seedRawAudioTrack}. */
+  function removeTrackSpy(): ReturnType<typeof vi.fn> {
+    return (
+      (controller as unknown as { localStreamController: unknown })
+        .localStreamController as { removeTrack: ReturnType<typeof vi.fn> }
+    ).removeTrack;
+  }
+
   describe('stopTrackSender("audio")', () => {
-    it('stops the raw mic track and disconnects pipeline input', () => {
+    it('releases the raw mic track and disconnects pipeline input', () => {
       const pipeline = engagePipeline();
       const raw = seedRawAudioTrack();
 
       controller.stopTrackSender('audio');
 
-      expect(raw.stop).toHaveBeenCalledTimes(1);
+      expect(removeTrackSpy()).toHaveBeenCalledWith(raw.id);
       expect(pipeline.setInputTrack).toHaveBeenCalledWith(null);
     });
 
@@ -201,18 +239,55 @@ describe('RTCPeerConnectionController audio mute path with LocalAudioPipeline', 
       expect(stopTrackSenderSpy).not.toHaveBeenCalledWith('audio', expect.any(Object));
     });
 
-    it('skips track.stop() on already-ended raw tracks', () => {
+    it('skips already-ended raw tracks', () => {
       const pipeline = engagePipeline();
-      const raw = createFakeRawTrack('raw-1');
+      const raw = seedRawAudioTrack('raw-1');
       raw.readyState = 'ended';
-      const lsc = (controller as unknown as { localStreamController: unknown })
-        .localStreamController as { _localAudioTracks$: BehaviorSubject<MediaStreamTrack[]> };
-      lsc._localAudioTracks$.next([raw as unknown as MediaStreamTrack]);
 
       controller.stopTrackSender('audio');
 
-      expect(raw.stop).not.toHaveBeenCalled();
+      expect(removeTrackSpy()).not.toHaveBeenCalled();
       expect(pipeline.setInputTrack).toHaveBeenCalledWith(null);
+    });
+  });
+
+  /**
+   * The suite above stubs `removeTrack`, so it cannot see which collaborator
+   * actually ends the capture. These drive the real LocalStreamController.
+   */
+  describe('stopTrackSender("audio") against the real local stream', () => {
+    function seedLiveLocalStream(id = 'raw-mic-1'): {
+      raw: FakeRawTrack;
+      localStream: () => MediaStream | null;
+    } {
+      const raw = createFakeRawTrack(id);
+      const lsc = (controller as unknown as { localStreamController: unknown })
+        .localStreamController as {
+        setLocalStream: (stream: MediaStream) => void;
+        addTrack: (track: MediaStreamTrack) => MediaStream;
+        localStream: MediaStream | null;
+      };
+      lsc.setLocalStream(createFakeStream());
+      lsc.addTrack(raw as unknown as MediaStreamTrack);
+      return { raw, localStream: () => lsc.localStream };
+    }
+
+    it('ends the raw mic capture', () => {
+      engagePipeline();
+      const { raw } = seedLiveLocalStream();
+
+      controller.stopTrackSender('audio');
+
+      expect(raw.readyState).toBe('ended');
+    });
+
+    it('drops the raw mic capture from the local stream', () => {
+      engagePipeline();
+      const { raw, localStream } = seedLiveLocalStream();
+
+      controller.stopTrackSender('audio');
+
+      expect(localStream()?.getAudioTracks()).not.toContain(raw);
     });
   });
 
@@ -275,6 +350,179 @@ describe('RTCPeerConnectionController audio mute path with LocalAudioPipeline', 
       expect(pipeline.setInputTrack).toHaveBeenCalledWith(newRaw);
       expect(restoreTrackSenderSpy).toHaveBeenCalledWith('video');
       expect(restoreTrackSenderSpy).not.toHaveBeenCalledWith('audio');
+    });
+  });
+
+  /**
+   * Once the pipeline is engaged the audio sender carries the processed
+   * destination track, so a scan of the senders finds nothing it is allowed to
+   * touch and every audio constraint API silently no-ops — server-pushed params
+   * included. The constraints belong to the pipeline's device source, which is
+   * the capture the sender ultimately carries.
+   */
+  describe("updateSendersConstraints('audio') with the pipeline engaged", () => {
+    function seedTaggedRawTrack(id = 'raw-mic-1'): FakeRawTrack {
+      const raw = seedRawAudioTrack(id);
+      const lsc = (controller as unknown as { localStreamController: unknown })
+        .localStreamController as {
+        setTrackOrigin: (t: MediaStreamTrack, o: string) => void;
+      };
+      lsc.setTrackOrigin(raw as unknown as MediaStreamTrack, 'device');
+      return raw;
+    }
+
+    it('applies the merged constraints to the pipeline input capture', async () => {
+      engagePipeline();
+      const raw = seedTaggedRawTrack();
+
+      await controller.updateSendersConstraints('audio', { echoCancellation: false });
+
+      expect(raw.applyConstraints).toHaveBeenCalledWith(
+        expect.objectContaining({ echoCancellation: false })
+      );
+    });
+
+    it('reports the constraints as applied', async () => {
+      engagePipeline();
+      seedTaggedRawTrack();
+
+      await expect(
+        controller.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(true);
+    });
+
+    it('does not route audio through the sender scan, which would skip it', async () => {
+      engagePipeline();
+      seedTaggedRawTrack();
+
+      await controller.updateSendersConstraints('audio', { echoCancellation: false });
+
+      expect(updateSendersConstraintsSpy).not.toHaveBeenCalled();
+    });
+
+    it('re-acquires and re-hooks the input when applyConstraints fails', async () => {
+      const pipeline = engagePipeline();
+      const raw = seedTaggedRawTrack();
+      raw.applyConstraints = vi.fn().mockRejectedValue(new Error('not supported'));
+
+      const fresh = createFakeRawTrack('raw-mic-fresh');
+      getUserMediaMock.mockResolvedValueOnce({
+        getAudioTracks: () => [fresh as unknown as MediaStreamTrack],
+        getTracks: () => [fresh as unknown as MediaStreamTrack]
+      } as unknown as MediaStream);
+      const lsc = (controller as unknown as { localStreamController: unknown })
+        .localStreamController as { addTrack: ReturnType<typeof vi.fn> };
+      lsc.addTrack = vi.fn();
+
+      await expect(
+        controller.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(true);
+
+      expect(lsc.addTrack).toHaveBeenCalledWith(fresh);
+      expect(pipeline.setInputTrack).toHaveBeenCalledWith(fresh);
+    });
+
+    it('reports not applied and surfaces a MediaTrackError when re-acquisition fails', async () => {
+      engagePipeline();
+      const raw = seedTaggedRawTrack();
+      raw.applyConstraints = vi.fn().mockRejectedValue(new Error('not supported'));
+      getUserMediaMock.mockRejectedValueOnce(new Error('gUM failed'));
+
+      const errors: Error[] = [];
+      const sub = controller.errors$.subscribe((error) => errors.push(error));
+
+      await expect(
+        controller.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(false);
+
+      expect(errors.map((e) => e.name)).toContain('MediaTrackError');
+      sub.unsubscribe();
+    });
+
+    it('leaves an application-supplied pipeline input untouched', async () => {
+      engagePipeline();
+      const raw = seedRawAudioTrack();
+      const lsc = (controller as unknown as { localStreamController: unknown })
+        .localStreamController as {
+        setTrackOrigin: (t: MediaStreamTrack, o: string) => void;
+      };
+      lsc.setTrackOrigin(raw as unknown as MediaStreamTrack, 'application');
+
+      await expect(
+        controller.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(false);
+      expect(raw.applyConstraints).not.toHaveBeenCalled();
+      expect(getUserMediaMock).not.toHaveBeenCalled();
+    });
+
+    it('still routes video through the transceiver controller', async () => {
+      engagePipeline();
+      seedTaggedRawTrack();
+
+      await controller.updateSendersConstraints('video', { width: 1920 });
+
+      expect(updateSendersConstraintsSpy).toHaveBeenCalledWith('video', { width: 1920 });
+    });
+
+    it('routes audio through the sender scan when no pipeline is engaged', async () => {
+      seedTaggedRawTrack();
+
+      await controller.updateSendersConstraints('audio', { echoCancellation: false });
+
+      expect(updateSendersConstraintsSpy).toHaveBeenCalledWith('audio', {
+        echoCancellation: false
+      });
+    });
+  });
+
+  /**
+   * Omitted constraints mean "release the sender", which the sender scan
+   * implements as `sender.track.stop()`. With the pipeline engaged that track
+   * is the destination track, and ending it breaks the pipeline for the rest of
+   * the call — the mute path routes around the scan for exactly this reason.
+   */
+  describe("updateSendersConstraints('audio') with no constraints and the pipeline engaged", () => {
+    it('does not reach the sender scan, which would end the pipeline output track', async () => {
+      engagePipeline();
+      seedRawAudioTrack();
+
+      await controller.updateSendersConstraints('audio', undefined);
+
+      expect(updateSendersConstraintsSpy).not.toHaveBeenCalled();
+    });
+
+    it('releases the mic through the pipeline-aware stop path', async () => {
+      const pipeline = engagePipeline();
+      const raw = seedRawAudioTrack();
+
+      await controller.updateSendersConstraints('audio', undefined);
+
+      expect(removeTrackSpy()).toHaveBeenCalledWith(raw.id);
+      expect(pipeline.setInputTrack).toHaveBeenCalledWith(null);
+    });
+
+    it('reports the constraints as not applied', async () => {
+      engagePipeline();
+      seedRawAudioTrack();
+
+      await expect(controller.updateSendersConstraints('audio', undefined)).resolves.toBe(false);
+    });
+
+    it('still routes video through the sender scan', async () => {
+      engagePipeline();
+      seedRawAudioTrack();
+
+      await controller.updateSendersConstraints('video', undefined);
+
+      expect(updateSendersConstraintsSpy).toHaveBeenCalledWith('video', undefined);
+    });
+
+    it('still routes audio through the sender scan when no pipeline is engaged', async () => {
+      seedRawAudioTrack();
+
+      await controller.updateSendersConstraints('audio', undefined);
+
+      expect(updateSendersConstraintsSpy).toHaveBeenCalledWith('audio', undefined);
     });
   });
 });

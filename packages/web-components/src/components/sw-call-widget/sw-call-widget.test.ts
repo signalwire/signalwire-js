@@ -33,11 +33,13 @@ vi.mock('../../context/DevicesContextController.js', () => ({
 }));
 
 let mockTranscriptSetCall = vi.fn();
+let mockTranscriptInjectEntry = vi.fn();
 
 vi.mock('../../context/TranscriptController.js', () => ({
   TranscriptController: vi.fn().mockImplementation(() => ({
     setCall: (...a: any[]) => mockTranscriptSetCall(...a),
-    injectEntry: vi.fn(), state: { entries: [] },
+    injectEntry: (...a: any[]) => mockTranscriptInjectEntry(...a),
+    state: { entries: [] },
     hostConnected: vi.fn(), hostDisconnected: vi.fn(), hostUpdated: vi.fn(),
   })),
 }));
@@ -49,12 +51,16 @@ vi.mock('../../context/UserEventController.js', () => ({
   })),
 }));
 
+let mockIncomingConnect = vi.fn();
+let mockIncomingDisconnect = vi.fn();
+
 vi.mock('../../context/call-state-context.js', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
     IncomingCallController: vi.fn().mockImplementation(() => ({
-      connect: vi.fn(), disconnect: vi.fn(),
+      connect: (...a: any[]) => mockIncomingConnect(...a),
+      disconnect: (...a: any[]) => mockIncomingDisconnect(...a),
       set onIncomingCall(_: any) {},
       hostConnected: vi.fn(), hostDisconnected: vi.fn(), hostUpdated: vi.fn(),
     })),
@@ -95,6 +101,7 @@ vi.mock('@signalwire/js', () => ({
 }));
 
 import * as themeLoader from '../../utils/theme-loader.js';
+import { SignalWire } from '@signalwire/js';
 
 import './sw-call-widget.js';
 import type { SwCallWidget } from './sw-call-widget.js';
@@ -133,6 +140,9 @@ describe('sw-call-widget', () => {
     mockDevicesDisconnect = vi.fn();
     mockDevicesRefresh = vi.fn();
     mockTranscriptSetCall = vi.fn();
+    mockTranscriptInjectEntry = vi.fn();
+    mockIncomingConnect = vi.fn();
+    mockIncomingDisconnect = vi.fn();
   });
 
   afterEach(() => { el?.remove(); el = null; });
@@ -376,5 +386,188 @@ describe('sw-call-widget', () => {
     await el.updateComplete;
     const modal = el.shadowRoot!.querySelector('sw-ui-modal');
     expect(modal!.hasAttribute('open')).toBe(true);
+  });
+
+  it('shows a Client Error prompt when client init fails', async () => {
+    vi.mocked(SignalWire).mockImplementationOnce(() => { throw new Error('init fail'); });
+    el = await mount({ token: 'tok' });
+    expect(mockShowPrompt).toHaveBeenCalledWith(
+      // description pins the `e instanceof Error ? e.message` branch.
+      expect.objectContaining({ title: 'Client Error', description: 'init fail' })
+    );
+  });
+
+  it('does not throw when client.destroy fails on disconnect', async () => {
+    mockDestroy.mockImplementation(() => { throw new Error('destroy fail'); });
+    el = await mount({ token: 'tok' });
+    expect(() => el!.remove()).not.toThrow();
+    el = null;
+  });
+
+  it('connects incoming calls once connected when allowIncomingCalls is set', async () => {
+    el = await mount({ token: 'tok', allowIncomingCalls: true });
+    mockIsConnected$.next(true);
+    expect(mockIncomingConnect).toHaveBeenCalled();
+  });
+
+  // The sibling test above reaches _connectIncomingCalls from _refreshClient, so
+  // this covers the other caller: the allowIncomingCalls-turned-on branch in
+  // updated(), which only runs when the flag changes without a token change.
+  it('connects incoming calls when allowIncomingCalls is turned on', async () => {
+    el = await mount({ token: 'tok', allowIncomingCalls: false });
+    mockIncomingConnect.mockClear();
+
+    el.allowIncomingCalls = true;
+    await el.updateComplete;
+    mockIsConnected$.next(true);
+
+    expect(mockIncomingConnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('disconnects incoming calls when allowIncomingCalls is turned off', async () => {
+    el = await mount({ token: 'tok', allowIncomingCalls: true });
+    // mount() already routes through _refreshClient -> _destroyClient, which
+    // disconnects unconditionally. Without clearing, this passes even if the
+    // allowIncomingCalls branch is deleted.
+    mockIncomingDisconnect.mockClear();
+    el.allowIncomingCalls = false;
+    await el.updateComplete;
+    expect(mockIncomingDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('_handleIncomingCall answers the call when the user accepts', async () => {
+    mockShowPrompt.mockResolvedValue(true);
+    el = await mount({ token: 'tok' });
+    const call = makeMockCall();
+    await (el as any)._handleIncomingCall({ call, callerName: 'Alice' });
+    expect(call.answer).toHaveBeenCalled();
+  });
+
+  it('_handleIncomingCall rejects the call when the user declines', async () => {
+    mockShowPrompt.mockResolvedValue(false);
+    el = await mount({ token: 'tok' });
+    const call = makeMockCall();
+    await (el as any)._handleIncomingCall({ call, callerNumber: '+15551234' });
+    expect(call.reject).toHaveBeenCalled();
+  });
+
+  // The handlers below are reached through the bindings in
+  // sw-call-widget.templates.ts rather than called directly, so each test covers
+  // the handler and its wiring, and survives a rename.
+  describe('call view event bindings', () => {
+    async function mountWithActiveCall(props: Partial<SwCallWidget> = {}) {
+      const call = makeMockCall();
+      const widget = await mount({ token: 'tok', ...props });
+      (widget as any)._call = call;
+      await widget.updateComplete;
+      return { widget, call };
+    }
+
+    function controls(widget: SwCallWidget) {
+      return widget.shadowRoot!.querySelector('sw-call-controls')!;
+    }
+
+    it('toggles transcription on sw-transcript-toggle from the controls', async () => {
+      const { widget } = await mountWithActiveCall({ transcription: false });
+      el = widget;
+
+      controls(widget).dispatchEvent(new CustomEvent('sw-transcript-toggle'));
+      expect(widget.transcription).toBe(true);
+
+      await widget.updateComplete;
+      controls(widget).dispatchEvent(new CustomEvent('sw-transcript-toggle'));
+      expect(widget.transcription).toBe(false);
+    });
+
+    it('hangs up on sw-call-hangup from the controls', async () => {
+      const { widget, call } = await mountWithActiveCall();
+      el = widget;
+
+      controls(widget).dispatchEvent(new CustomEvent('sw-call-hangup'));
+      expect(call.hangup).toHaveBeenCalled();
+    });
+
+    it('toggles fullscreen on the layout on sw-fullscreen-toggle', async () => {
+      const { widget } = await mountWithActiveCall();
+      el = widget;
+
+      const layout = widget.shadowRoot!.querySelector('sw-ui-call-layout') as any;
+      const toggleFullscreen = vi.fn();
+      layout.toggleFullscreen = toggleFullscreen;
+
+      controls(widget).dispatchEvent(new CustomEvent('sw-fullscreen-toggle'));
+      expect(toggleFullscreen).toHaveBeenCalled();
+    });
+
+    it('is a no-op on sw-fullscreen-toggle when no layout is rendered', async () => {
+      el = await mount({ token: 'tok' });
+      expect(() => (el as any)._onFullscreenToggle()).not.toThrow();
+    });
+
+    it('clears the drawer on sw-content-drawer-close', async () => {
+      const { widget } = await mountWithActiveCall();
+      el = widget;
+      (widget as any)._drawer = { title: 'x' };
+      await widget.updateComplete;
+
+      widget.shadowRoot!
+        .querySelector('sw-ui-content-drawer')!
+        .dispatchEvent(new CustomEvent('sw-content-drawer-close'));
+      expect((widget as any)._drawer).toBeNull();
+    });
+
+    it('hangs up on sw-modal-close when a call is active', async () => {
+      const { widget, call } = await mountWithActiveCall({ modal: true });
+      el = widget;
+
+      widget.shadowRoot!
+        .querySelector('sw-ui-modal')!
+        .dispatchEvent(new CustomEvent('sw-modal-close'));
+      expect(call.hangup).toHaveBeenCalled();
+    });
+
+    it('prevents sw-modal-close when idle with no destination', async () => {
+      el = await mount({ token: 'tok', modal: true });
+      const event = new CustomEvent('sw-modal-close', { cancelable: true });
+
+      el.shadowRoot!.querySelector('sw-ui-modal')!.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+    });
+  });
+
+  describe('sw-display-content', () => {
+    const detail = { title: 'Shared content' };
+
+    it('sets the drawer and injects a system transcript entry', async () => {
+      el = await mount({ token: 'tok' });
+      // _wireCall registers the listener; dispatching covers the wiring too.
+      (el as any)._wireCall(makeMockCall());
+
+      el.dispatchEvent(new CustomEvent('sw-display-content', { detail }));
+
+      expect((el as any)._drawer).toBe(detail);
+      expect(mockTranscriptInjectEntry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'system',
+          state: 'complete',
+          text: 'Shared content',
+          meta: { displayContent: detail },
+        })
+      );
+    });
+
+    it('stops handling the event once the call is unwired', async () => {
+      el = await mount({ token: 'tok' });
+      const call = makeMockCall('connected');
+      (el as any)._wireCall(call);
+      await el.updateComplete;
+
+      call.status$.next('disconnected');
+      await el.updateComplete;
+      mockTranscriptInjectEntry.mockClear();
+
+      el.dispatchEvent(new CustomEvent('sw-display-content', { detail }));
+      expect(mockTranscriptInjectEntry).not.toHaveBeenCalled();
+    });
   });
 });

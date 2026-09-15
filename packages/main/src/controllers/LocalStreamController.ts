@@ -3,7 +3,7 @@ import { takeUntil } from 'rxjs';
 import { Destroyable } from '../behaviors/Destroyable';
 import { getLogger } from '../utils/logger';
 
-import type { MediaOptions } from '../core/types/media.types';
+import type { MediaOptions, TrackOrigin } from '../core/types/media.types';
 import type { Observable } from 'rxjs';
 
 const logger = getLogger();
@@ -17,6 +17,7 @@ export interface LocalStreamControllerOptions extends Omit<
   propose: 'main' | 'screenshare' | 'additional-device';
   inputAudioDeviceConstraints?: MediaTrackConstraints | boolean;
   inputVideoDeviceConstraints?: MediaTrackConstraints | boolean;
+  screenShareAudio?: boolean;
 }
 
 export class LocalStreamController extends Destroyable {
@@ -27,6 +28,8 @@ export class LocalStreamController extends Destroyable {
   private _localAudioTracks$ = this.createBehaviorSubject<MediaStreamTrack[]>([]);
   private _localVideoTracks$ = this.createBehaviorSubject<MediaStreamTrack[]>([]);
   private _mediaTrackEnded$ = this.createSubject<MediaStreamTrack>();
+  /** A lookup, not a subject — nothing observes provenance. */
+  private _trackOrigins = new WeakMap<MediaStreamTrack, TrackOrigin>();
 
   constructor(private options: LocalStreamControllerOptions) {
     super();
@@ -60,6 +63,28 @@ export class LocalStreamController extends Destroyable {
     return this._localVideoTracks$.value;
   }
 
+  private tagTracks(tracks: MediaStreamTrack[], origin: TrackOrigin): void {
+    for (const track of tracks) {
+      this._trackOrigins.set(track, origin);
+    }
+  }
+
+  public setTrackOrigin(track: MediaStreamTrack, origin: TrackOrigin): void {
+    this._trackOrigins.set(track, origin);
+  }
+
+  public getTrackOrigin(track: MediaStreamTrack): TrackOrigin | undefined {
+    return this._trackOrigins.get(track);
+  }
+
+  /**
+   * Fail-safe: an unrecorded track reads as not-a-device-capture, so a missed
+   * tagging site leaves media alone rather than destroying it.
+   */
+  public isDeviceCapture(track: MediaStreamTrack): boolean {
+    return this._trackOrigins.get(track) === 'device';
+  }
+
   /**
    * Build the local media stream based on the provided options.
    */
@@ -72,16 +97,19 @@ export class LocalStreamController extends Destroyable {
         ...(this.options.inputVideoStream?.getTracks() ?? [])
       ];
       stream = new MediaStream(tracks);
+      this.tagTracks(tracks, 'application');
     } else if (this.options.propose === 'screenshare') {
+      const audio = this.options.screenShareAudio ?? false;
       logger.debug(
         '[LocalStreamController] Requesting display media for screen sharing with audio:',
-        Boolean(this.options.inputAudioDeviceConstraints)
+        audio
       );
       stream = await this.options.getDisplayMedia({
         video: true,
-        audio: Boolean(this.options.inputAudioDeviceConstraints)
+        audio
       });
       logger.debug('[LocalStreamController] Screen share media obtained:', stream);
+      this.tagTracks(stream.getTracks(), 'display');
     } else {
       const constraints: MediaStreamConstraints = {
         audio: this.options.inputAudioDeviceConstraints,
@@ -90,6 +118,7 @@ export class LocalStreamController extends Destroyable {
       logger.debug('[LocalStreamController] Requesting user media with constraints:', constraints);
       stream = await this.options.getUserMedia(constraints);
       logger.debug('[LocalStreamController] User media obtained:', stream);
+      this.tagTracks(stream.getTracks(), 'device');
     }
     this._localStream$.next(stream);
     // Emit the kind-specific track lists so observers (and synchronous
@@ -106,11 +135,14 @@ export class LocalStreamController extends Destroyable {
   /**
    * Add a local media track to the local stream.
    * @param track - The MediaStreamTrack to add
+   * @param origin - Defaults to `'device'`; every internal caller passes a
+   * fresh `getUserMedia` capture.
    * @returns The MediaStream (either existing or newly created)
    */
-  public addTrack(track: MediaStreamTrack): MediaStream {
+  public addTrack(track: MediaStreamTrack, origin: TrackOrigin = 'device'): MediaStream {
     const localStream = this._localStream$.value ?? new MediaStream();
 
+    this._trackOrigins.set(track, origin);
     track.addEventListener('ended', this.mediaTrackEndedHandler);
     localStream.addTrack(track);
     this._localStream$.next(localStream);

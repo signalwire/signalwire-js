@@ -10,7 +10,7 @@ import {
   from,
   lastValueFrom,
   map,
-  race,
+  merge,
   share,
   shareReplay,
   switchMap,
@@ -26,7 +26,9 @@ import { CallFactory } from './CallFactory';
 import {
   RPC_ERROR_REQUESTER_VALIDATION_FAILED,
   RPC_ERROR_INVALID_PARAMS,
-  RPC_ERROR_AUTHENTICATION_FAILED
+  RPC_ERROR_AUTHENTICATION_FAILED,
+  CREDENTIAL_EXPIRY_SKEW_MS,
+  DEFAULT_CALL_SIGNALING_TIMEOUT_MS
 } from '../core/constants';
 import { Address } from '../core/entities/Address';
 import {
@@ -92,6 +94,52 @@ export function shouldAbortDial(callError: CallError): boolean {
   return callError.fatal || !(callError.error instanceof MediaAccessError);
 }
 
+/**
+ * Wait for a dialed call to be ready, or for the failure that stops it.
+ *
+ * Local media acquisition is deliberately unbounded: a permission prompt or a
+ * device picker is human time, and `getUserMedia` cannot be cancelled anyway.
+ * The clock starts only once acquisition settles, so a slow human never spends
+ * the server's budget.
+ *
+ * `merge` rather than `race`, because the two legs settle asymmetrically. A
+ * fatal acquisition failure reports the error and then destroys the call in the
+ * same synchronous step; `errors$` defers delivery by a microtask while
+ * `localMediaSettled$` completes immediately. Under `race` that bare completion
+ * ended the wait first and `dial()` rejected with an RxJS `EmptyError`, burying
+ * the `NotAllowedError` applications are told to inspect. Under `merge` the
+ * completed leg is simply spent, and the queued error — enqueued before the
+ * completion, so delivered before it — arrives to reject the wait. A dial
+ * abandoned with no error at all still ends both legs, and the resulting
+ * `EmptyError` remains the benign-cancel signal.
+ *
+ * Exported for unit testing.
+ */
+export async function awaitDialReady(
+  session: Pick<WebRTCCall, 'localMediaSettled$' | 'selfId$' | 'errors$'>,
+  signalingTimeoutMs: number
+): Promise<unknown> {
+  return firstValueFrom(
+    merge(
+      session.localMediaSettled$.pipe(
+        take(1),
+        switchMap(() =>
+          session.selfId$.pipe(
+            filter((id) => Boolean(id)),
+            take(1),
+            timeout(signalingTimeoutMs)
+          )
+        )
+      ),
+      session.errors$.pipe(
+        filter(shouldAbortDial),
+        take(1),
+        switchMap((callError) => throwError(() => callError.error))
+      )
+    )
+  );
+}
+
 const getAddressSearchURI = (options: CallOptions): string => {
   const to = options.to?.split('?')[0];
   const from = options.from?.startsWith('subscriber://')
@@ -113,7 +161,6 @@ export type SessionAuthState = { kind: 'unauthenticated' } | { kind: 'authentica
 
 export class ClientSessionManager extends Destroyable implements SessionState {
   private callFactory: CallFactory;
-  private callCreateTimeout = 6000;
   private readonly agent = `signalwire-js/4.0.0`;
   private readonly eventAcks = true;
   public initialized$: Observable<boolean>;
@@ -129,6 +176,12 @@ export class ClientSessionManager extends Destroyable implements SessionState {
    * @internal
    */
   public onBeforeReconnect?: () => Promise<void>;
+  /**
+   * Session-wide call control transport (see {@link ClientSession.callControl}).
+   * Set from {@link SignalWireOptions.callControl} by SignalWire after construction;
+   * defaults to `'routed'`. Read by every Call, so it needs no per-call persistence.
+   */
+  public callControl: 'routed' | 'in-dialog' = 'routed';
   private _authorization$ = this.createBehaviorSubject<Authorization | undefined>(undefined);
   private _errors$ = this.createReplaySubject<Error>(1);
   private _directory?: Directory;
@@ -490,13 +543,7 @@ export class ClientSessionManager extends Destroyable implements SessionState {
       logger.debug(
         '[Session] Recoverable auth error — cleaning up stored state and reconnecting fresh'
       );
-      try {
-        await this.cleanupStoredConnectionParams();
-      } catch (cleanupError) {
-        logger.error('Failed to cleanup stored connection params:', cleanupError);
-      } finally {
-        this.transport.reconnect();
-      }
+      await this.discardResumeStateAndReconnect();
     } else {
       // Fatal auth error — surface to consumers
       this._errors$.next(error);
@@ -504,7 +551,10 @@ export class ClientSessionManager extends Destroyable implements SessionState {
   }
 
   /**
-   * Clear the resume state (authorization_state + protocol) only.
+   * Clear the resume state (authorization_state + protocol) and ask the
+   * transport to reconnect. The `connected` event re-triggers
+   * `authenticate()`, which now has no stored state and so performs a fresh
+   * connect.
    *
    * This is the stale-auth-state recovery helper used by handleAuthError:
    * the server rejected a reconnect, so the resume state is discarded and a
@@ -512,9 +562,25 @@ export class ClientSessionManager extends Destroyable implements SessionState {
    * session lives on through the reconnect and reattachCalls() needs the
    * stored call references afterwards. Do NOT add detachAll() here.
    *
+   * Connect-time recovery only. A *request* refused on an already
+   * authenticated session is never healed here: dropping the resume state
+   * destroys the association between the socket and the previous session,
+   * which is what reattach depends on. That path mints a fresh credential and
+   * reauthenticates instead (see `SignalWire.recoverAndRetry`).
+   *
    * For public teardown (disconnect/destroy), use {@link teardownSessionState}
    * instead, which clears the attach records as well.
    */
+  private async discardResumeStateAndReconnect(): Promise<void> {
+    try {
+      await this.cleanupStoredConnectionParams();
+    } catch (cleanupError) {
+      logger.error('Failed to cleanup stored connection params:', cleanupError);
+    } finally {
+      this.transport.reconnect();
+    }
+  }
+
   async cleanupStoredConnectionParams(): Promise<void> {
     await this.transport.setProtocol(undefined);
     await this.updateAuthorizationStateInStorage(undefined);
@@ -631,19 +697,32 @@ export class ClientSessionManager extends Destroyable implements SessionState {
       // authorization_state short-circuits token validation; jwt_token is needed for session classification
       logger.debug('[Session] Reconnecting with stored jwt_token + authorization_state');
     } else {
-      // FRESH CONNECT: refresh credentials if needed, then use fresh SAT + DPoP
-      if (this.onBeforeReconnect && this.clientBound) {
+      // FRESH CONNECT: refresh credentials if needed, then use fresh SAT + DPoP.
+      // Invoke the reconnect hook when the session is client-bound (it needs a
+      // fresh base SAT to re-bind) OR when the in-memory token is expired. An
+      // unbound SAT that is expired must be re-minted via the developer's
+      // refresh handler before authenticating — otherwise the fresh connect
+      // replays a dead token and the server rejects it with -32003.
+      const credential = this.getCredential();
+      const credentialExpired =
+        credential.expiry_at !== undefined &&
+        credential.expiry_at <= Date.now() + CREDENTIAL_EXPIRY_SKEW_MS;
+      if (this.onBeforeReconnect && (this.clientBound || credentialExpired)) {
         logger.debug('[Session] Refreshing credentials before fresh connect');
         await this.onBeforeReconnect();
       }
     }
 
-    // DPoP proof:
-    // - Fresh connect: always send (server needs it for DPoP binding)
-    // - Live WS reconnect (_clientBound=true): send (session expects DPoP)
-    // - Page reload reconnect (_clientBound=false): skip (original SAT has no cnf.jkt,
-    //   DeviceTokenManager re-activates after reconnect to restore DPoP binding)
-    if ((!isReconnect || this.clientBound) && this.dpopManager?.initialized) {
+    // DPoP proof: send a fresh proof whenever the key is available.
+    // - Fresh connect: the server needs it to mint a DPoP binding.
+    // - Resume (live reconnect OR page reload): the persisted
+    //   authorization_state carries the BOUND authorization when the session
+    //   was client-bound — the server re-verifies the proof against its
+    //   cnf.jkt and rejects the resume with -32002 when it is missing. The
+    //   sticky clientBound flag does not survive a reload, so the initialized
+    //   DPoP key (restored from IndexedDB) is the trigger; an unsolicited
+    //   proof on an unbound resume is ignored by the server.
+    if (this.dpopManager?.initialized) {
       try {
         dpopToken = await this.dpopManager.createRpcProof({
           method: 'signalwire.connect'
@@ -704,6 +783,13 @@ export class ClientSessionManager extends Destroyable implements SessionState {
       await this.transport.setProtocol(response.protocol);
     }
     this._authorization$.next(response.authorization);
+    // Server-authoritative binding classification: the authorization carries
+    // cnf.jkt when the session is client-bound (it rides in the persisted
+    // authorization_state, so this also restores the sticky flag after a
+    // page-reload resume — the in-memory flag does not survive the reload).
+    if (response.authorization.cnf?.jkt) {
+      this._wasClientBound = true;
+    }
     this._iceServers$.next(response.ice_servers ?? []);
     this._authState$.next({ kind: 'authenticated' });
 
@@ -802,20 +888,7 @@ export class ClientSessionManager extends Destroyable implements SessionState {
         ...options
       });
 
-      await firstValueFrom(
-        race(
-          callSession.selfId$.pipe(
-            filter((id) => Boolean(id)),
-            take(1),
-            timeout(this.callCreateTimeout)
-          ),
-          callSession.errors$.pipe(
-            filter(shouldAbortDial),
-            take(1),
-            switchMap((callError) => throwError(() => callError.error))
-          )
-        )
-      );
+      await awaitDialReady(callSession, DEFAULT_CALL_SIGNALING_TIMEOUT_MS);
 
       this._calls$.next({
         [`${callSession.id}`]: callSession,
@@ -904,6 +977,15 @@ export class ClientSessionWrapper implements SessionState {
     return this.clientSessionManager.authenticated;
   }
 
+  /**
+   * Whether the session is using a Client Bound SAT (DPoP). Sticky — set
+   * when the binding is established or restored from a resumed session's
+   * server authorization.
+   */
+  public get clientBound(): boolean {
+    return this.clientSessionManager.clientBound;
+  }
+
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public get signalingEvent$() {
     return this.clientSessionManager.signalingEvent$;
@@ -911,6 +993,10 @@ export class ClientSessionWrapper implements SessionState {
 
   public get iceServers(): RTCIceServer[] | undefined {
     return this.clientSessionManager.iceServers;
+  }
+
+  public get callControl(): 'routed' | 'in-dialog' {
+    return this.clientSessionManager.callControl;
   }
 
   public async execute<T extends JSONRPCResponse = JSONRPCResponse>(

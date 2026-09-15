@@ -30,8 +30,8 @@ export const AUTH_METHODS = {
 
 export type AuthMethod = (typeof AUTH_METHODS)[keyof typeof AUTH_METHODS];
 
-/** Default token expiry duration (1 hour). Used by CredentialProviders to set expiry_at. */
-export const TOKEN_EXPIRY_MS = 3600 * 1000;
+/** Fallback token expiry duration, used only when the token endpoint doesn't report one. */
+export const TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
 // ============================================================
 // USER TOKEN FLOW
@@ -43,13 +43,13 @@ export const TOKEN_EXPIRY_MS = 3600 * 1000;
  * @param reference - Subscriber reference (email)
  * @param password - Subscriber password
  * @param options - Optional parameters (e.g., DPoP fingerprint for Client Bound SAT)
- * @returns SAT token string
+ * @returns SAT token string and its expiry in ms since epoch (when known)
  */
 export async function fetchSubscriberToken(
   reference: string,
   password: string,
   options?: { fingerprint?: string }
-): Promise<string> {
+): Promise<{ token: string; expiresAt?: number }> {
   const base = import.meta.env.BASE_URL ?? '/';
   const response = await fetch(`${base}api/subscriber/token`, {
     method: 'POST',
@@ -67,7 +67,12 @@ export async function fetchSubscriberToken(
   }
 
   const data = await response.json();
-  return data.token;
+  // The middleware echoes the expire_at (unix seconds) it requested from the
+  // token API; convert to ms so it can be reported to the SDK as expiry_at.
+  return {
+    token: data.token,
+    expiresAt: typeof data.expire_at === 'number' ? data.expire_at * 1000 : undefined
+  };
 }
 
 // ============================================================

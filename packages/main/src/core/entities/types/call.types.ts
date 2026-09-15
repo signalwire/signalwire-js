@@ -11,7 +11,7 @@ import type {
 } from '../../../managers/types/verto-manager.types';
 import type { CallError } from '../../errors';
 import type { JSONRPCRequest, JSONRPCResponse } from '../../RPCMessages/types/base';
-import type { LayoutLayer } from '../../RPCMessages/types/common';
+import type { LayoutLayer, MemberTarget } from '../../RPCMessages/types/common';
 import type {
   CallStatePayload,
   CallUpdatedPayload,
@@ -22,7 +22,7 @@ import type {
   MemberUpdatedPayload
 } from '../../RPCMessages/types/events';
 import type { Capability, CallDirection, VideoPosition } from '../../types/call.types';
-import type { MediaOptions, MediaDirections } from '../../types/media.types';
+import type { MediaOptions, MediaDirections, ScreenShareOptions } from '../../types/media.types';
 import type {
   RecoveryEvent,
   RecoveryState,
@@ -88,6 +88,9 @@ export interface CallParticipant {
   readonly addressId: string | undefined;
   readonly nodeId: string | undefined;
   readonly callId: string | undefined;
+  /** The member's own RPC target triple. Throws `ParticipantNotReadyError`
+   *  until the member's call context has been received. */
+  readonly target: MemberTarget;
   readonly isTalking: boolean;
   readonly position: LayoutLayer | undefined;
   readonly isAudience: boolean;
@@ -130,7 +133,7 @@ export interface CallSelfParticipant extends CallParticipant {
   disableStudioAudio(): Promise<void>;
 
   // Self-only control methods
-  startScreenShare(): Promise<void>;
+  startScreenShare(options?: ScreenShareOptions): Promise<void>;
   stopScreenShare(): Promise<void>;
   selectAudioInputDevice(device: MediaDeviceInfo, options?: SelectDeviceOptions): void;
   selectVideoInputDevice(device: MediaDeviceInfo, options?: SelectDeviceOptions): void;
@@ -150,12 +153,12 @@ export interface CallSelfParticipant extends CallParticipant {
   addInputDevices(options?: MediaOptions): Promise<void>;
 
   // Constraint management
-  setAudioInputDeviceConstraints(constraints: MediaTrackConstraints): Promise<void>;
-  setVideoInputDeviceConstraints(constraints: MediaTrackConstraints): Promise<void>;
+  setAudioInputDeviceConstraints(constraints: MediaTrackConstraints): Promise<boolean>;
+  setVideoInputDeviceConstraints(constraints: MediaTrackConstraints): Promise<boolean>;
   setInputDevicesConstraints(constraints: {
     audio: MediaTrackConstraints;
     video: MediaTrackConstraints;
-  }): Promise<void>;
+  }): Promise<boolean>;
 }
 
 // =============================================================================
@@ -279,7 +282,8 @@ export interface Call extends CallState {
   readonly capabilities: Capability[];
   readonly mediaDirections$: Observable<MediaDirections>;
   readonly mediaDirections: MediaDirections;
-  readonly self$: Observable<CallSelfParticipant | null>;
+  /** Withholds emission until self exists, so it never emits `null` — unlike {@link Call.self}. */
+  readonly self$: Observable<CallSelfParticipant>;
   readonly self: CallSelfParticipant | null;
   readonly to?: string;
   readonly toName?: string;
@@ -336,6 +340,23 @@ export interface Call extends CallState {
   answer(options?: MediaOptions): void;
   reject(): void;
   sendDigits(digits: string): Promise<void>;
+
+  // Audio levels
+  readonly localAudioLevel$: Observable<number>;
+  readonly localSpeaking$: Observable<boolean>;
+  readonly remoteAudioLevel$: Observable<number>;
+
+  // Microphone gain & push-to-talk
+  readonly localMicrophoneGain$: Observable<number>;
+  setLocalMicrophoneGain(value: number): void;
+  enablePushToTalk(): void;
+  disablePushToTalk(): void;
+  setPushToTalkActive(active: boolean): void;
+
+  // Microphone processing
+  setEchoCancellation(enabled: boolean): Promise<boolean>;
+  setNoiseSuppression(enabled: boolean): Promise<boolean>;
+  setAutoGainControl(enabled: boolean): Promise<boolean>;
   executeMethod<T extends JSONRPCResponse = JSONRPCResponse>(
     target: string,
     method: string,

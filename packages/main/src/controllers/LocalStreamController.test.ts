@@ -92,6 +92,7 @@ describe('[LocalStreamController]', () => {
       inputVideoStream: MediaStream;
       inputAudioDeviceConstraints: MediaTrackConstraints;
       inputVideoDeviceConstraints: MediaTrackConstraints;
+      screenShareAudio: boolean;
     }> = {}
   ) => {
     mockGetUserMedia = vi
@@ -114,6 +115,7 @@ describe('[LocalStreamController]', () => {
         width: 1280,
         height: 720
       },
+      screenShareAudio: options.screenShareAudio,
       getUserMedia: mockGetUserMedia as (
         constraints: MediaStreamConstraints
       ) => Promise<MediaStream>,
@@ -166,7 +168,36 @@ describe('[LocalStreamController]', () => {
 
       expect(mockGetDisplayMedia).toHaveBeenCalledWith({
         video: true,
-        audio: true // echoCancellation: true is truthy
+        audio: false
+      });
+      screenshareController.destroy();
+    });
+
+    it('requests display audio when screenShareAudio is set', async () => {
+      const screenshareController = createController({
+        propose: 'screenshare',
+        screenShareAudio: true
+      });
+      await screenshareController.buildLocalStream();
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith({
+        video: true,
+        audio: true
+      });
+      screenshareController.destroy();
+    });
+
+    it('ignores the microphone constraints when deciding on display audio', async () => {
+      const screenshareController = createController({
+        propose: 'screenshare',
+        screenShareAudio: false,
+        inputAudioDeviceConstraints: { deviceId: 'a-selected-microphone' }
+      });
+      await screenshareController.buildLocalStream();
+
+      expect(mockGetDisplayMedia).toHaveBeenCalledWith({
+        video: true,
+        audio: false
       });
       screenshareController.destroy();
     });

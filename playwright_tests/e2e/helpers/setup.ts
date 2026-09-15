@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from '../fixtures';
 import type { SignalWireOptions } from '@signalwire/js';
-import { createSATToken } from './api';
+import { createSATToken, getResourceAddresses } from './api';
 import type { Resource } from './api';
 
 const TEST_PAGE_URL = 'http://localhost:8765/e2e';
@@ -121,6 +121,126 @@ export async function dialAndJoin(
 }
 
 // ── Composite setup helpers ──────────────────────────────────────────────────
+
+/**
+ * Minimal SWML that answers and drops the caller into a video conference.
+ *
+ * `min_participants: 1` keeps a lone participant's conference alive instead of
+ * ending it at zero and re-creating it on the next join, and an empty `wait_url`
+ * suppresses hold music for that lone participant.
+ */
+export function joinConferenceSwml(conferenceName: string): Record<string, unknown> {
+  return {
+    version: '1.0.0',
+    sections: {
+      main: [
+        { answer: {} },
+        {
+          join_conference: {
+            name: conferenceName,
+            video: true,
+            min_participants: 1,
+            wait_url: '',
+          },
+        },
+      ],
+    },
+  };
+}
+
+interface SetupSwmlConferenceCallOptions {
+  page: Page;
+  resource: {
+    createSWMLApp: (name: string, contents: Record<string, unknown>) => Promise<Resource>;
+  };
+  prefix: string;
+  clientOptions?: SignalWireOptions;
+}
+
+/**
+ * Setup for tests that need an SWML-backed conference rather than a
+ * `conference_rooms` resource.
+ *
+ * The distinction matters for in-dialog control: the in-dialog transport
+ * (`sendCommand`) is only accepted for SWML-backed calls — which is what a
+ * `join_conference` SWML gives us, and what production consumers of `sendCommand`
+ * actually dial.
+ *
+ * @returns The conference name (also the resource name)
+ */
+export async function setupSwmlConferenceCall({
+  page,
+  resource,
+  prefix,
+  clientOptions,
+}: SetupSwmlConferenceCallOptions): Promise<string> {
+  const name = `${prefix}-${roomId()}`;
+
+  const app = await resource.createSWMLApp(name, joinConferenceSwml(name));
+  expect(app.id, `SWML app "${name}" created`).toBeTruthy();
+
+  // Ask for the destination rather than assuming a prefix — an SWML script's
+  // address is not necessarily public the way a conference room's is.
+  const addresses = await getResourceAddresses(app.id);
+  const destination = addresses[0]?.channels?.video;
+  expect(destination, `SWML app "${name}" exposes a video address`).toBeTruthy();
+
+  const token = await createSATToken();
+  expect(token, 'SAT token created').toBeTruthy();
+
+  await gotoTestPage(page);
+  await initializeClient(page, token, clientOptions);
+  await dialAndJoin(page, destination);
+  await waitForConferenceJoin(page);
+
+  return name;
+}
+
+/**
+ * Wait until the call is a member of the SWML conference, not merely answered.
+ *
+ * An SWML `join_conference` produces **two** `call.joined` events: the first when
+ * the call is answered, before any conference exists, and the second on entering
+ * the conference. `dialAndJoin` only waits for `status$ === 'connected'`, which the
+ * first one satisfies — for a `conference_rooms` dial the two coincide, which is
+ * why no other spec needs this.
+ *
+ * The first join carries only a minimal capability set, so a control op attempted
+ * against it is refused; gating here on the arrival of a self-scoped capability both
+ * tells the two joins apart and asserts the grant the caller is about to exercise has
+ * actually arrived. `capabilities$` replays its current value, so subscribing after
+ * the second join still sees it.
+ *
+ * Matching the bare `self` root as well as `self.*` leaves is load-bearing: depending
+ * on how the conference is configured the grant may arrive as a root (`self`) or as
+ * leaves (`self.*`), and a leaf-only predicate would wait out the clock on a call that
+ * already joined. The first join carries neither form, so the two are still told apart.
+ */
+async function waitForConferenceJoin(page: Page): Promise<void> {
+  const result = await page.evaluate(async () => {
+    try {
+      await window.__waitFor(
+        window.__swCall.capabilities$,
+        (capabilities: string[] | undefined) =>
+          !!capabilities?.some(
+            (capability) => capability === 'self' || capability.startsWith('self.')
+          ),
+        // Comfortably under Playwright's 30s test timeout, so this reports which
+        // signal never arrived instead of being cut off by the runner. The join
+        // itself lands ~3s after the answer.
+        15000,
+        'call.capabilities$ → holds a self-scoped grant (conference joined)'
+      );
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: String(error) };
+    }
+  });
+
+  if (!result.success) {
+    throw new Error(`Setup failed: call never joined the conference — ${result.error}`);
+  }
+}
 
 interface SetupRoomCallOptions {
   /** Page instance from Playwright fixture */

@@ -101,6 +101,20 @@ export class SwUiSplitButton extends LitElement {
     .solo:hover {
       background: var(--sw-split-button-bg-hover, var(--bg-surface-raised));
     }
+
+    /* ── Disabled ───────────────────────────────────────────────── */
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .main:disabled:hover {
+      background: none;
+    }
+
+    .solo:disabled:hover {
+      background: var(--sw-split-button-bg, var(--bg-surface));
+    }
   `];
 
   @property({
@@ -123,6 +137,9 @@ export class SwUiSplitButton extends LitElement {
 
   @property({ reflect: true })
   active: boolean = false;
+
+  @property({ type: Boolean, reflect: true })
+  disabled: boolean = false;
 
   @state()
   private _dropupOpen: boolean = false;
@@ -153,6 +170,7 @@ export class SwUiSplitButton extends LitElement {
   }
 
   private _onMainClick() {
+    if (this.disabled) return;
     if (!this._hasNamedSlots) {
       this.dispatchEvent(new CustomEvent('sw-split-button-click', { bubbles: true, composed: true }));
       return;
@@ -179,7 +197,7 @@ export class SwUiSplitButton extends LitElement {
     if (!hasItems) {
       // Solo pill — no chevron
       return html`
-        <button class="solo" part="button" @click=${this._onMainClick}>
+        <button class="solo" part="button" ?disabled=${this.disabled} @click=${this._onMainClick}>
           ${iconSlots}
         </button>
       `;
@@ -188,7 +206,7 @@ export class SwUiSplitButton extends LitElement {
     // Split pill — icon zone | divider | chevron zone
     return html`
       <div class="pill" part="button">
-        <button class="main" @click=${this._onMainClick}>
+        <button class="main" ?disabled=${this.disabled} @click=${this._onMainClick}>
           ${iconSlots}
         </button>
         <button class="chevron" part="chevron" id="chevron-zone"

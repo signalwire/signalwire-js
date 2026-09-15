@@ -41,6 +41,18 @@ function makeCallState(overrides: Partial<CallState> = {}): CallState {
   };
 }
 
+function makeSelf(overrides: Record<string, unknown> = {}) {
+  return {
+    startScreenShare: vi.fn().mockResolvedValue(undefined),
+    stopScreenShare: vi.fn().mockResolvedValue(undefined),
+    toggleHandraise: vi.fn().mockResolvedValue(undefined),
+    screenShareStatus: 'none',
+    screenShareStatus$: new BehaviorSubject<string>('none'),
+    handraised: false,
+    ...overrides,
+  };
+}
+
 function makeCall(opts: { self?: any } = {}) {
   return {
     id: 'c1',
@@ -155,7 +167,7 @@ describe('sw-call-controls', () => {
   });
 
   it('calls self.startScreenShare when sw-screen-share-toggle fires with active=true', async () => {
-    const self = { startScreenShare: vi.fn().mockResolvedValue(undefined), stopScreenShare: vi.fn(), toggleHandraise: vi.fn(), screenShareStatus: 'none', handraised: false };
+    const self = makeSelf();
     const callState = makeCallState({ self: self as any });
     const result = await mountWithContext(callState);
     host = result.host;
@@ -164,8 +176,30 @@ describe('sw-call-controls', () => {
     expect(self.startScreenShare).toHaveBeenCalled();
   });
 
+  it('does not request screen-share audio by default', async () => {
+    const self = makeSelf();
+    const callState = makeCallState({ self: self as any });
+    const result = await mountWithContext(callState);
+    host = result.host;
+    getControlBar(result.el).dispatchEvent(new CustomEvent('sw-screen-share-toggle', { detail: { active: true }, bubbles: true }));
+    await result.el.updateComplete;
+    expect(self.startScreenShare).toHaveBeenCalledWith({ audio: false });
+  });
+
+  it('requests screen-share audio when screen-share-audio is set', async () => {
+    const self = makeSelf();
+    const callState = makeCallState({ self: self as any });
+    const result = await mountWithContext(callState);
+    host = result.host;
+    result.el.screenShareAudio = true;
+    await result.el.updateComplete;
+    getControlBar(result.el).dispatchEvent(new CustomEvent('sw-screen-share-toggle', { detail: { active: true }, bubbles: true }));
+    await result.el.updateComplete;
+    expect(self.startScreenShare).toHaveBeenCalledWith({ audio: true });
+  });
+
   it('calls self.toggleHandraise when sw-hand-raise-toggle fires', async () => {
-    const self = { toggleHandraise: vi.fn().mockResolvedValue(undefined), startScreenShare: vi.fn(), stopScreenShare: vi.fn(), screenShareStatus: 'none', handraised: false };
+    const self = makeSelf();
     const callState = makeCallState({ self: self as any });
     const result = await mountWithContext(callState);
     host = result.host;
@@ -193,7 +227,7 @@ describe('sw-call-controls', () => {
   });
 
   it('subscribes to call.self$ when call prop is set', async () => {
-    const self = { screenShareStatus: 'started', handraised: true, startScreenShare: vi.fn(), stopScreenShare: vi.fn(), toggleHandraise: vi.fn() };
+    const self = makeSelf({ screenShareStatus: 'started', handraised: true });
     const call = makeCall({ self });
     el = await mountDirect({ call: call as any });
     await el.updateComplete;
@@ -206,5 +240,59 @@ describe('sw-call-controls', () => {
     el.remove();
     expect(() => call.self$.next(null)).not.toThrow();
     el = null;
+  });
+
+  describe('screen share status', () => {
+    const bar = (host: SwCallControls) =>
+      getControlBar(host) as HTMLElement & { screenSharing: boolean; screenShareBusy: boolean };
+
+    it('tracks screenShareStatus$ onto the control bar', async () => {
+      const status$ = new BehaviorSubject<string>('none');
+      const self = makeSelf({ screenShareStatus$: status$ });
+      const result = await mountWithContext(makeCallState({ self: self as any }));
+      host = result.host;
+      expect(bar(result.el).screenSharing).toBe(false);
+      expect(bar(result.el).screenShareBusy).toBe(false);
+
+      status$.next('starting');
+      await result.el.updateComplete;
+      expect(bar(result.el).screenShareBusy).toBe(true);
+      expect(bar(result.el).screenSharing).toBe(false);
+
+      status$.next('started');
+      await result.el.updateComplete;
+      expect(bar(result.el).screenShareBusy).toBe(false);
+      expect(bar(result.el).screenSharing).toBe(true);
+
+      status$.next('stopping');
+      await result.el.updateComplete;
+      expect(bar(result.el).screenShareBusy).toBe(true);
+    });
+
+    it('does not start a second share while one is starting', async () => {
+      const self = makeSelf({ screenShareStatus$: new BehaviorSubject<string>('starting') });
+      const result = await mountWithContext(makeCallState({ self: self as any }));
+      host = result.host;
+
+      getControlBar(result.el).dispatchEvent(
+        new CustomEvent('sw-screen-share-toggle', { detail: { active: true }, bubbles: true })
+      );
+      await result.el.updateComplete;
+
+      expect(self.startScreenShare).not.toHaveBeenCalled();
+    });
+
+    it('does not stop a share while one is stopping', async () => {
+      const self = makeSelf({ screenShareStatus$: new BehaviorSubject<string>('stopping') });
+      const result = await mountWithContext(makeCallState({ self: self as any }));
+      host = result.host;
+
+      getControlBar(result.el).dispatchEvent(
+        new CustomEvent('sw-screen-share-toggle', { detail: { active: false }, bubbles: true })
+      );
+      await result.el.updateComplete;
+
+      expect(self.stopScreenShare).not.toHaveBeenCalled();
+    });
   });
 });

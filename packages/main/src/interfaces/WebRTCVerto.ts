@@ -11,6 +11,8 @@ import type { Observable } from 'rxjs';
  */
 export interface WebRTCVerto extends VertoManager {
   readonly selfId$: Observable<string | null>;
+  /** Separates the media phase of call creation from the signalling phase. */
+  readonly localMediaSettled$: Observable<void>;
   readonly selfId: string | null;
   readonly nodeId$: Observable<string | null>;
   readonly nodeId: string | null;
@@ -24,6 +26,15 @@ export interface WebRTCVerto extends VertoManager {
   readonly mainPeerConnection: RTCPeerConnectionController;
   bye(cause?: string): Promise<void>;
   sendDigits(dtmf: string): Promise<void>;
+  /**
+   * Send a member-control op in-dialog via verto.info (no self/target member
+   * tuple). The payload rides in the verto.info `params.command` body — a
+   * sibling of `dialogParams`, same level as `dtmf` — matched to this call's
+   * channel by `dialogParams.callID`, so control lands on the call's own channel
+   * without relying on the {node_id,call_id,member_id} addressing the routed
+   * transport uses.
+   */
+  sendCallControl(method: string, params: Record<string, unknown>): Promise<unknown>;
   hold(): Promise<void>;
   unhold(): Promise<void>;
   destroy(): void;
