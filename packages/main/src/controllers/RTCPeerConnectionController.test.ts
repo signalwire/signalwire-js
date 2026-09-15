@@ -1751,6 +1751,14 @@ describe('RTCPeerConnectionController', () => {
       const sender = new MockRTCRtpSender(track);
       mockPeerConnection.getSenders = vi.fn(() => [sender]);
 
+      // Fabricated rather than captured, so it has no recorded provenance and
+      // the fail-safe default would skip it.
+      (
+        controller as unknown as {
+          localStreamController: { setTrackOrigin: (t: unknown, o: string) => void };
+        }
+      ).localStreamController.setTrackOrigin(track, 'device');
+
       await controller.updateSendersConstraints('audio', {
         echoCancellation: false,
         noiseSuppression: true
@@ -2246,23 +2254,132 @@ describe('RTCPeerConnectionController', () => {
     });
   });
 
-  describe('replaceAudioTrackWithConstraints', () => {
-    it('should replace the audio track with new constraints preserving deviceId', async () => {
-      const oldAudioTrack = new MockMediaStreamTrack('audio', 'old-audio');
-      const newAudioTrack = new MockMediaStreamTrack('audio', 'new-audio');
-      const newStream = new MockMediaStream([newAudioTrack]);
+  describe('abandoned local media acquisition', () => {
+    it('releases tracks acquired after teardown and adds no transceiver', async () => {
+      // cloud-product#20521: getUserMedia is not cancellable, so a caller that
+      // gave up leaves it in flight. Resuming used to add transceivers to a
+      // closed connection and leave the devices open — and release depended on
+      // that throw happening at all.
+      const lateTrack = new MockMediaStreamTrack('audio', 'late-audio');
+      let releaseGum: ((stream: MediaStream) => void) | undefined;
+      const pendingGetUserMedia = vi.fn(
+        () =>
+          new Promise<MediaStream>((resolve) => {
+            releaseGum = resolve;
+          })
+      );
 
-      // Track call count to distinguish init getUserMedia from replaceAudioTrack getUserMedia
-      let getUserMediaCallCount = 0;
-      const customGetUserMedia = vi.fn(async () => {
-        getUserMediaCallCount++;
-        if (getUserMediaCallCount === 1) {
-          // First call: buildLocalStream during init
-          return new MockMediaStream([oldAudioTrack]) as unknown as MediaStream;
-        }
-        // Second call: track replacement
-        return newStream as unknown as MediaStream;
+      const MockPeerConnectionConstructor = vi.fn(function (
+        this: unknown,
+        config?: RTCConfiguration
+      ) {
+        mockPeerConnection = new MockRTCPeerConnection(config);
+        return mockPeerConnection as unknown as RTCPeerConnection;
       });
+
+      const testController = createTestController({
+        webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor, {
+          getUserMedia: pendingGetUserMedia
+        }),
+        audio: true
+      });
+
+      const sub = testController.localDescription$.subscribe({ error: () => undefined });
+      await vi.runAllTimersAsync();
+
+      // The acquisition is still in flight; tear the call down underneath it.
+      expect(releaseGum, 'acquisition is pending').toBeDefined();
+      testController.destroy();
+
+      const addTransceiverCallsBefore = mockPeerConnection.addTransceiver.mock.calls.length;
+
+      // Now let the capture land, for a call that no longer exists.
+      releaseGum?.(new MockMediaStream([lateTrack]) as unknown as MediaStream);
+      await vi.runAllTimersAsync();
+
+      expect(lateTrack.readyState, 'the abandoned capture is released').toBe('ended');
+      expect(
+        mockPeerConnection.addTransceiver.mock.calls.length,
+        'no transceiver is added to a torn-down connection'
+      ).toBe(addTransceiverCallsBefore);
+
+      sub.unsubscribe();
+    });
+
+    it('does not continue to remote-track setup once the local setup aborted', async () => {
+      // The abort released the media and returned, but the caller then walked
+      // on to setupRemoteTracks() — which on a torn-down connection throws
+      // 'RTCPeerConnection is not initialized', logs at error level and runs a
+      // second full destroy(). The abort has to stop the whole init, not just
+      // the local half.
+      const lateTrack = new MockMediaStreamTrack('audio', 'late-audio-2');
+      let releaseGum: ((stream: MediaStream) => void) | undefined;
+      const pendingGetUserMedia = vi.fn(
+        () =>
+          new Promise<MediaStream>((resolve) => {
+            releaseGum = resolve;
+          })
+      );
+
+      const MockPeerConnectionConstructor = vi.fn(function (
+        this: unknown,
+        config?: RTCConfiguration
+      ) {
+        mockPeerConnection = new MockRTCPeerConnection(config);
+        return mockPeerConnection as unknown as RTCPeerConnection;
+      });
+
+      const testController = createTestController({
+        webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor, {
+          getUserMedia: pendingGetUserMedia
+        }),
+        audio: true
+      });
+
+      const sub = testController.localDescription$.subscribe({ error: () => undefined });
+      // initialized$ only emits once initialization succeeds, so an empty
+      // collection is the assertion that the aborted init stopped short.
+      const initializedSeen: boolean[] = [];
+      const initSub = testController.initialized$.subscribe((value) =>
+        initializedSeen.push(value)
+      );
+      await vi.runAllTimersAsync();
+
+      expect(releaseGum, 'acquisition is pending').toBeDefined();
+      // The connection is closed under the acquisition but the object survives,
+      // so a resumed init would reach the remote setup rather than throwing on a
+      // missing peer connection.
+      mockPeerConnection.signalingState = 'closed';
+
+      releaseGum?.(new MockMediaStream([lateTrack]) as unknown as MediaStream);
+      await vi.runAllTimersAsync();
+
+      expect(lateTrack.readyState, 'the abandoned capture is released').toBe('ended');
+      expect(
+        typeof mockPeerConnection.ontrack,
+        'remote-track setup is not attempted on a closed connection'
+      ).not.toBe('function');
+      expect(
+        initializedSeen,
+        'an aborted setup does not report the leg initialized'
+      ).toEqual([]);
+
+      initSub.unsubscribe();
+      sub.unsubscribe();
+      testController.destroy();
+    });
+  });
+
+  describe('server-pushed audio constraints', () => {
+    // Server-pushed audio now shares the applyConstraints-then-fallback
+    // primitive with video, which skips tracks the SDK did not capture.
+
+    it('applies constraints to a device-captured audio track', async () => {
+      const audioTrack = new MockMediaStreamTrack('audio', 'device-audio');
+      const applySpy = vi.spyOn(audioTrack, 'applyConstraints');
+      const customGetUserMedia = vi.fn(
+        async () => new MockMediaStream([audioTrack]) as unknown as MediaStream
+      );
 
       const MockPeerConnectionConstructor = vi.fn(function (
         this: unknown,
@@ -2279,36 +2396,75 @@ describe('RTCPeerConnectionController', () => {
         audio: true
       });
 
-      // Subscribe to trigger init
       const sub = testController.localDescription$.subscribe();
       await vi.runAllTimersAsync();
 
-      // After init, the peer connection has a sender with the old track
-      // The init process adds transceivers with tracks
-      const callCountBeforeReplace = getUserMediaCallCount;
+      await testController.updateSendersConstraints('audio', { echoCancellation: false });
 
-      await testController.replaceAudioTrackWithConstraints({ echoCancellation: false });
-
-      // getUserMedia should have been called again for the replacement
-      expect(getUserMediaCallCount).toBeGreaterThan(callCountBeforeReplace);
-      // The second call should be for audio replacement
-      const secondCall = customGetUserMedia.mock.calls[callCountBeforeReplace];
-      expect(secondCall[0]).toHaveProperty('audio');
-      expect((secondCall[0] as { audio: MediaTrackConstraints }).audio).toMatchObject({
-        echoCancellation: false
-      });
+      expect(applySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ echoCancellation: false })
+      );
+      expect(audioTrack.readyState).toBe('live');
 
       sub.unsubscribe();
       testController.destroy();
     });
 
-    it('should not call getUserMedia for replacement when no live audio senders exist', async () => {
-      // Use video-only controller so no audio senders are created
-      const customGetUserMedia = vi.fn(async () => {
-        return new MockMediaStream([
-          new MockMediaStreamTrack('video', 'vid-track')
-        ]) as unknown as MediaStream;
+    it('leaves an application-supplied audio track untouched', async () => {
+      // #20524: a supplied track's synthetic deviceId is unsatisfiable, and the
+      // mic processing flags throw on it too — so neither path may be tried.
+      const suppliedTrack = new MockMediaStreamTrack('audio', 'supplied-audio');
+      const applySpy = vi.spyOn(suppliedTrack, 'applyConstraints');
+      const customGetUserMedia = vi.fn(
+        async () => new MockMediaStream([]) as unknown as MediaStream
+      );
+
+      const MockPeerConnectionConstructor = vi.fn(function (
+        this: unknown,
+        config?: RTCConfiguration
+      ) {
+        mockPeerConnection = new MockRTCPeerConnection(config);
+        return mockPeerConnection as unknown as RTCPeerConnection;
       });
+
+      const testController = createTestController({
+        webRTCApiProvider: createMockWebRTCApiProvider(MockPeerConnectionConstructor, {
+          getUserMedia: customGetUserMedia
+        }),
+        audio: false,
+        video: false,
+        inputAudioStream: new MockMediaStream([suppliedTrack]) as unknown as MediaStream
+      });
+
+      const sub = testController.localDescription$.subscribe();
+      await vi.runAllTimersAsync();
+
+      const gumCallsBefore = customGetUserMedia.mock.calls.length;
+
+      await testController.updateSendersConstraints('audio', {
+        autoGainControl: false,
+        echoCancellation: false,
+        noiseSuppression: false
+      });
+
+      expect(applySpy, 'applyConstraints is not attempted on a supplied track').not.toHaveBeenCalled();
+      expect(
+        customGetUserMedia.mock.calls.length,
+        'no re-acquisition is attempted for a supplied track'
+      ).toBe(gumCallsBefore);
+      expect(suppliedTrack.readyState, 'the supplied track is still live').toBe('live');
+
+      sub.unsubscribe();
+      testController.destroy();
+    });
+
+    it('does nothing when there is no live audio sender', async () => {
+      const customGetUserMedia = vi.fn(
+        async () =>
+          new MockMediaStream([
+            new MockMediaStreamTrack('video', 'vid-track')
+          ]) as unknown as MediaStream
+      );
 
       const MockPeerConnectionConstructor = vi.fn(function (
         this: unknown,
@@ -2326,17 +2482,14 @@ describe('RTCPeerConnectionController', () => {
         video: true
       });
 
-      // Subscribe to trigger init
       const sub = testController.localDescription$.subscribe();
       await vi.runAllTimersAsync();
 
-      const callCountBeforeReplace = customGetUserMedia.mock.calls.length;
+      const callCountBefore = customGetUserMedia.mock.calls.length;
 
-      // No audio senders - should not throw or call getUserMedia again
-      await testController.replaceAudioTrackWithConstraints({ echoCancellation: false });
+      await testController.updateSendersConstraints('audio', { echoCancellation: false });
 
-      // getUserMedia should NOT have been called again
-      expect(customGetUserMedia.mock.calls.length).toBe(callCountBeforeReplace);
+      expect(customGetUserMedia.mock.calls.length).toBe(callCountBefore);
 
       sub.unsubscribe();
       testController.destroy();

@@ -4,6 +4,7 @@
 // This file contains types extracted from VertoManager.ts for better organization.
 
 import type { CallStatus } from '../../core/entities/types/call.types';
+import type { RTCPeerConnectionPropose } from '../../core/types/call.types';
 
 // =============================================================================
 // EXECUTE VERTO OPTIONS
@@ -39,11 +40,15 @@ export interface WebRTCVertoManagerOptions {
   nodeId?: string;
   reattach?: boolean;
   /**
-   * Surface a call-level error. `options.fatal` overrides the default
-   * fatality classification — auxiliary peer connections (screenshare /
-   * additional-device) use it so their failures never destroy the call.
+   * `fatal` overrides the default classification; `leg` / `legId` identify the
+   * failing peer connection and are absent for call- and session-level errors.
+   *
+   * Prefer `WebRTCVertoManager.reportLegError`, which derives all three.
    */
-  onError?: (error: Error, options?: { fatal?: boolean }) => void;
+  onError?: (
+    error: Error,
+    options?: { fatal?: boolean; leg?: RTCPeerConnectionPropose; legId?: string }
+  ) => void;
   onModifyFailed?: () => void;
 }
 

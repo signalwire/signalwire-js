@@ -198,3 +198,41 @@ describe('CallEventsManager', () => {
     eventsManager.destroy();
   });
 });
+
+describe('CallEventsManager.updateLayouts', () => {
+  it('keeps the current layouts when the response carries no layouts', async () => {
+    // A malformed / not-fully-unwrapped reply resolves `.result` to a shape with
+    // no `layouts`. Blanking the list behind a successful request would leave an
+    // empty layout dropdown with no error — keep what we have instead.
+    const { callManager } = createMockCallManager();
+    (callManager.executeMethod as ReturnType<typeof vi.fn>).mockResolvedValue({
+      result: { code: '200', message: 'OK' }
+    });
+    const eventsManager = new CallEventsManager(callManager);
+    (eventsManager as any).selfId = 'self-1';
+    (eventsManager as any)._sessionState$.next({ layouts: ['grid', 'speaker'] });
+
+    (eventsManager as any).updateLayouts();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(eventsManager.layouts).toEqual(['grid', 'speaker']);
+
+    eventsManager.destroy();
+  });
+
+  it('updates the layouts when the response resolves them', async () => {
+    const { callManager } = createMockCallManager();
+    (callManager.executeMethod as ReturnType<typeof vi.fn>).mockResolvedValue({
+      result: { layouts: ['grid', 'speaker'] }
+    });
+    const eventsManager = new CallEventsManager(callManager);
+    (eventsManager as any).selfId = 'self-1';
+
+    (eventsManager as any).updateLayouts();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(eventsManager.layouts).toEqual(['grid', 'speaker']);
+
+    eventsManager.destroy();
+  });
+});

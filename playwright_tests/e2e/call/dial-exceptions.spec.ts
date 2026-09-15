@@ -13,12 +13,33 @@ import { gotoTestPage, setupClient, roomId } from '../helpers/setup';
 
 const CALL_CONNECT_TIMEOUT = 30_000;
 
+/** base64url with no padding, as a JWT segment requires. */
+const b64urlSegment = (value: object): string =>
+  Buffer.from(JSON.stringify(value))
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
 /**
  * A structurally valid JWT whose signature does NOT match any real SignalWire
- * signing key. Header: {"alg":"HS256","typ":"JWT"}, payload: {"sub":"1234567890"}
+ * signing key — payload `{"sub":"1234567890"}`, filler signature. The server
+ * rejects it, which is the point: the client must never reach `isConnected$`.
+ *
+ * The `ch` header claim aims it at the environment under test. The SDK derives its
+ * fabric host from `ch`, and without one the container keeps its default
+ * (`fabric.signalwire.com`) — so on a staging run this lone request went to
+ * production. The assertion held either way (a bad token is rejected on any host),
+ * but it was cross-environment traffic from a staging job, waiting out the connect
+ * timeout against a host that could never have accepted it. `puc.<domain>` mirrors
+ * the shape real SATs carry (e.g. `puc.swire.io`); `apiHost` uses the part after the
+ * first dot, giving `fabric.<domain>`.
  */
-const FAKE_JWT_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U';
+const FAKE_JWT_TOKEN = [
+  b64urlSegment({ alg: 'HS256', typ: 'JWT', ch: `puc.${process.env.SW_DOMAIN ?? 'signalwire.com'}` }),
+  b64urlSegment({ sub: '1234567890' }),
+  'dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U'
+].join('.');
 
 test.describe('dial() Exceptions', () => {
   test.afterEach(async ({ page }) => {

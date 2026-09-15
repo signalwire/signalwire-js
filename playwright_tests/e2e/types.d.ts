@@ -43,6 +43,12 @@ declare global {
       label: string
     ) => Promise<T>;
 
+    /**
+     * Mint a fresh SAT from Node. Exposed by tests whose client needs to
+     * re-credential rather than replay a static token.
+     */
+    __mintSat: () => Promise<string>;
+
     /** Set if the SDK module failed to load */
     __sdkLoadError?: string;
 
@@ -63,6 +69,9 @@ declare global {
 
     /** Set SDK debug options (exposed from test-page.html) */
     __setDebugOptions: (options: DebugOptions | null) => void;
+
+    /** Constraints each faked `getDisplayMedia` call received — screen-share tests */
+    __displayMediaCalls: (DisplayMediaStreamOptions | undefined)[];
   }
 }
 

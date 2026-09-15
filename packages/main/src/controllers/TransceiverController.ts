@@ -1,3 +1,4 @@
+import { getUserMediaWithFallback } from './ConstraintFallbackHelper';
 import { Destroyable } from '../behaviors/Destroyable';
 import { MediaTrackError } from '../core/errors';
 import { getLogger } from '../utils/logger';
@@ -320,22 +321,41 @@ export class TransceiverController extends Destroyable {
     }
   }
 
+  /**
+   * @returns whether every live sender of the kind took the constraints. A
+   * skipped non-device sender, an exhausted fallback, and having no live sender
+   * at all all report `false` — `mediaParamsUpdated.applied` is built from this,
+   * and an application told `true` cannot tell a working push from a no-op.
+   */
   public async updateSendersConstraints(
     kind: 'audio' | 'video',
     constraints?: MediaTrackConstraints
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!constraints) {
       this.stopTrackSender(kind);
-      return Promise.resolve();
+      return false;
     }
 
     const senders = this.peerConnection
       .getSenders()
       .filter((sender) => sender.track?.kind === kind && sender.track.readyState === 'live');
 
+    let applied = senders.length > 0;
+
     for (const sender of senders) {
       const { track } = sender;
       if (track) {
+        // Non-device tracks report synthetic deviceIds no getUserMedia can
+        // satisfy, and replacing one would swap out media the SDK does not own.
+        if (!this.options.localStreamController.isDeviceCapture(track)) {
+          logger.debug(
+            `[TransceiverController] Skipping ${kind} constraints for a non-device track ` +
+              `(origin: ${this.options.localStreamController.getTrackOrigin(track) ?? 'unrecorded'}), ` +
+              `track ${track.id}`
+          );
+          applied = false;
+          continue;
+        }
         const constraintsToApply: MediaTrackConstraints = {
           ...track.getConstraints(),
           ...constraints
@@ -365,19 +385,21 @@ export class TransceiverController extends Destroyable {
             this.options.onError?.(
               new MediaTrackError('updateSendersConstraints', kind, fallbackError)
             );
+            applied = false;
           }
         }
       }
     }
+
+    return applied;
   }
 
   /**
-   * Fallback when applyConstraints fails: stop the current track, acquire a new
-   * one via getUserMedia with the merged constraints (preserving the current
-   * deviceId), replace the sender track, and update the localStream.
+   * Fallback when applyConstraints fails, which on iOS Safari it silently does.
    *
-   * This is critical for iOS Safari where applyConstraints on audio tracks
-   * silently fails or throws.
+   * Order matters: acquiring before stopping means a failed acquisition leaves
+   * the existing media playing. The deviceId goes through the fallback ladder
+   * rather than pinned `{ exact }`, so a stale id degrades instead of failing.
    */
   private async replaceTrackFallback(
     sender: RTCRtpSender,
@@ -385,24 +407,20 @@ export class TransceiverController extends Destroyable {
     kind: 'audio' | 'video',
     mergedConstraints: MediaTrackConstraints
   ): Promise<void> {
-    // Preserve the current deviceId so we stay on the same physical device
-    const currentSettings = oldTrack.getSettings();
-    const { deviceId } = currentSettings;
-    const constraintsWithDevice: MediaTrackConstraints = {
-      ...mergedConstraints,
-      ...(deviceId ? { deviceId: { exact: deviceId } } : {})
-    };
+    const { deviceId } = oldTrack.getSettings();
 
-    // Stop the old track
-    const trackId = oldTrack.id;
-    oldTrack.stop();
-    this.options.localStreamController.removeTrack(trackId);
-
-    // Acquire a replacement track
-    const stream = await this.options.getUserMedia({ [kind]: constraintsWithDevice });
+    // A rejection here must leave the current track sending.
+    const { stream, fallbackLevel } = await getUserMediaWithFallback(
+      { getUserMedia: this.options.getUserMedia },
+      { [kind]: mergedConstraints },
+      kind,
+      deviceId
+    );
     const newTrack = stream.getTracks().find((t) => t.kind === kind);
 
     if (!newTrack) {
+      // Nothing was swapped; release only what we just acquired.
+      stream.getTracks().forEach((t) => t.stop());
       throw new MediaTrackError(
         'replaceTrackFallback',
         kind,
@@ -410,12 +428,24 @@ export class TransceiverController extends Destroyable {
       );
     }
 
-    // Replace on the sender and update localStream
-    await sender.replaceTrack(newTrack);
+    try {
+      await sender.replaceTrack(newTrack);
+    } catch (error) {
+      // The leg can be torn down inside the ladder's getUserMedia round-trips.
+      // Nothing holds this capture yet — not the sender, not the local stream —
+      // so no destroy path could reach it and the device would stay open for the
+      // lifetime of the page.
+      stream.getTracks().forEach((t) => t.stop());
+      throw error;
+    }
+    const oldTrackId = oldTrack.id;
+    this.options.localStreamController.removeTrack(oldTrackId);
+    oldTrack.stop();
     this.options.localStreamController.addTrack(newTrack);
 
     logger.debug(
-      `[TransceiverController] Track replacement fallback succeeded for ${kind}. New track: ${newTrack.id}`
+      `[TransceiverController] Track replacement fallback succeeded for ${kind} ` +
+        `(deviceId fallback level: ${fallbackLevel}). New track: ${newTrack.id}`
     );
   }
 

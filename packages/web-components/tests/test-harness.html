@@ -237,7 +237,7 @@
         id = 'self-user',
         audioMuted = false,
         videoMuted = false,
-        screenShareStatus = 'inactive',
+        screenShareStatus = 'none',
       } = options;
 
       const audioMuted$ = new BehaviorSubject(audioMuted);
@@ -266,11 +266,11 @@
           console.log('Video unmuted');
         },
         startScreenShare: async () => {
-          screenShareStatus$.next('active');
+          screenShareStatus$.next('started');
           console.log('Screen share started');
         },
         stopScreenShare: async () => {
-          screenShareStatus$.next('inactive');
+          screenShareStatus$.next('none');
           console.log('Screen share stopped');
         },
       };

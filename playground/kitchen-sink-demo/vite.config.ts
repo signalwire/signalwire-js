@@ -107,6 +107,8 @@ export default defineConfig({
             const url = `https://${space}.${domain}/api/fabric/subscribers/tokens`;
             const auth = Buffer.from(`${projectId}:${apiToken}`).toString('base64');
 
+            const expireAt = Math.floor((Date.now() + 60 * 60 * 1000) / 1000);
+
             const tokenResponse = await fetch(url, {
               method: 'POST',
               headers: {
@@ -118,6 +120,7 @@ export default defineConfig({
                 ...(applicationId && { application_id: applicationId }),
                 reference,
                 password,
+                expire_at: expireAt,
                 ...(fingerprint && { fingerprint, scope: 'sat:refresh' }),
               }),
             });
@@ -132,7 +135,9 @@ export default defineConfig({
 
             const data = await tokenResponse.json();
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(data));
+            // The API does not echo the token expiry, so include the value we
+            // requested — the client reports it to the SDK as expiry_at.
+            res.end(JSON.stringify({ ...data, expire_at: expireAt }));
           } catch (error) {
             if (!res.writableEnded) {
               res.statusCode = 500;

@@ -23,7 +23,10 @@ import type {
   Layout,
   MemberTalkingInfo
 } from '../core/RPCMessages/types/common';
-import type { CallLayoutListResponse } from '../core/RPCMessages/types/methods';
+import type {
+  CallLayoutListResponse,
+  CallLayoutListResult
+} from '../core/RPCMessages/types/methods';
 import type { Capability } from '../core/types/call.types';
 import type { Observable } from 'rxjs';
 
@@ -382,9 +385,24 @@ export class CallEventsManager extends Destroyable {
     this.webRtcCallSession
       .executeMethod<CallLayoutListResponse>(this.selfId, 'call.layout.list', {})
       .then((response) => {
+        // Both transports resolve the method payload under `.result` by the time
+        // it reaches here: the routed transport does so directly, and the in-dialog
+        // transport already unwrapped its verto envelope in Call.sendCommand. Do NOT
+        // unwrap again — a second pass would over-unwrap any future payload that
+        // itself carries a `result` key.
+        const layouts = (response.result as CallLayoutListResult | undefined)?.layouts;
+        if (!layouts) {
+          // A malformed or not-fully-unwrapped reply would blank the list behind a
+          // resolved request (an empty dropdown, no error). Keep the current
+          // layouts and surface the anomaly instead.
+          logger.warn(
+            '[CallEventsManager] Layout list response carried no layouts; keeping current layouts'
+          );
+          return;
+        }
         this._sessionState$.next({
           ...this._sessionState$.value,
-          layouts: response.result.layouts
+          layouts
         });
       })
       .catch((error) => {

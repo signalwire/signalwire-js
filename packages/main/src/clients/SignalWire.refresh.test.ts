@@ -22,6 +22,7 @@ import type { User } from '../core/entities/User';
 import type { SDKWarning } from '../core/types/warnings.types';
 import type { SATClaims } from '../core/types/crypto.types';
 import type { CredentialProvider, WebRTCApiProvider } from '../dependencies/interfaces';
+import type { HTTPRequestController } from '../controllers/HTTPRequestController';
 import type { CredentialRefreshCoordinator } from '../managers/CredentialRefreshCoordinator';
 import type {
   DeviceTokenManager,
@@ -414,6 +415,42 @@ describe('SignalWire refresh precedence (issue #19074)', () => {
       }
 
       expect(errorEvents).toEqual([]);
+    });
+  });
+
+  // ==========================================================================
+  // The HTTP controller the refresh path uses. Both properties are regressions
+  // that already happened once each, in opposite directions.
+  // ==========================================================================
+
+  describe('refresh HTTP controller', () => {
+    it('targets the ch-derived host and stays off the shared controller', async () => {
+      const client = createClient(createProvider({ withRefresh: false }));
+      await settleAsyncInit(client);
+
+      const deps = getPrivate<{ ch: string; http: HTTPRequestController }>(client, '_deps');
+      // What validateCredentials does once it decodes the token: repoints the
+      // container at the token's host and drops its memoized controller.
+      deps.ch = 'puc.swire.io';
+
+      const resolve = getPrivate<{ http: () => HTTPRequestController }>(
+        getCoordinator(client),
+        'deps'
+      ).http;
+
+      const first = resolve();
+
+      // Built late enough to see the real host. Capturing a controller up front
+      // sent staging-minted tokens to production, where they 401.
+      expect(getPrivate<string>(first, 'baseURL')).toBe('https://fabric.swire.io');
+
+      // And built for this path alone. Handing it the container's shared
+      // controller instead regressed reattach: register answered "Requester
+      // validation failed" on a reload, on a host where no URL changed at all.
+      expect(first).not.toBe(deps.http);
+
+      // Memoized, so a refresh does not leak a controller per request.
+      expect(resolve()).toBe(first);
     });
   });
 });

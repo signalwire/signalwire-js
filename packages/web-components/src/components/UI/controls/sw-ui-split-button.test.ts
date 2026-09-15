@@ -6,10 +6,12 @@ async function mount(opts: {
   items?: SwUiSplitButton['items'];
   active?: boolean;
   toggleSlots?: boolean;
+  disabled?: boolean;
 }): Promise<SwUiSplitButton> {
   const el = document.createElement('sw-ui-split-button') as SwUiSplitButton;
   if (opts.items) el.items = opts.items;
   if (opts.active !== undefined) el.active = opts.active;
+  if (opts.disabled !== undefined) el.disabled = opts.disabled;
   if (opts.toggleSlots) {
     const a = document.createElement('span');
     a.setAttribute('slot', 'active');
@@ -100,5 +102,24 @@ describe('sw-ui-split-button', () => {
     const items = el.items as { id: string; selected?: boolean }[];
     expect(items.find((i) => i.id === 'a')?.selected).toBe(false);
     expect(items.find((i) => i.id === 'b')?.selected).toBe(true);
+  });
+
+  it('marks the underlying button disabled when `disabled` is set', async () => {
+    el = await mount({ disabled: true });
+    expect(el.shadowRoot!.querySelector<HTMLButtonElement>('.solo')!.disabled).toBe(true);
+  });
+
+  it('emits nothing and does not flip active while disabled', async () => {
+    el = await mount({ toggleSlots: true, disabled: true });
+    const click = vi.fn();
+    const toggle = vi.fn();
+    el.addEventListener('sw-split-button-click', click as EventListener);
+    el.addEventListener('sw-split-button-toggle', toggle as EventListener);
+
+    el.shadowRoot!.querySelector<HTMLButtonElement>('.solo')!.click();
+
+    expect(click).not.toHaveBeenCalled();
+    expect(toggle).not.toHaveBeenCalled();
+    expect(el.active).toBe(false);
   });
 });

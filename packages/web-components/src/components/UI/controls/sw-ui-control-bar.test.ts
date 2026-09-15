@@ -141,4 +141,44 @@ describe('sw-ui-control-bar', () => {
     expect(detailAt(ss, 0)).toEqual({ active: true });
     expect(el.screenSharing).toBe(true);
   });
+
+  describe('screen share busy', () => {
+    // sw-ui-split-button is registered by the consumer, not by the bar, so the
+    // children are not upgraded here — assert the attribute the bar binds.
+    const screenShareButton = (bar: SwUiControlBar) =>
+      bar.shadowRoot!.querySelector<HTMLElement>('sw-ui-split-button.screen-share')!;
+
+    it('disables the screen-share button while busy', async () => {
+      el = await mount({ showScreenShare: true, screenShareBusy: true });
+      expect(screenShareButton(el).hasAttribute('disabled')).toBe(true);
+    });
+
+    it('leaves the screen-share button enabled when not busy', async () => {
+      el = await mount({ showScreenShare: true });
+      expect(screenShareButton(el).hasAttribute('disabled')).toBe(false);
+    });
+
+    it('ignores a screen-share click while busy', async () => {
+      el = await mount({ showScreenShare: true, screenShareBusy: true });
+      const ss = vi.fn();
+      el.addEventListener('sw-screen-share-toggle', ss as EventListener);
+
+      fire(screenShareButton(el), 'sw-split-button-click');
+
+      expect(ss).not.toHaveBeenCalled();
+      expect(el.screenSharing).toBe(false);
+    });
+
+    it('ignores the overflow screen-share entry while busy', async () => {
+      el = await mount({ showScreenShare: true, screenShareBusy: true });
+      const ss = vi.fn();
+      el.addEventListener('sw-screen-share-toggle', ss as EventListener);
+
+      const overflow = el.shadowRoot!.querySelector<HTMLElement>('.bar > sw-ui-split-button.overflow')!;
+      fire(overflow, 'sw-dropup-select', { id: '__overflow:screen-share', label: 'Share screen' });
+
+      expect(ss).not.toHaveBeenCalled();
+      expect(el.screenSharing).toBe(false);
+    });
+  });
 });

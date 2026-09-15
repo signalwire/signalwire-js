@@ -23,8 +23,9 @@ import { filterAs } from '../../operators';
 import { getValueFrom } from '../../utils/getValueFrom';
 import { getLogger } from '../../utils/logger';
 import { computeMOS, mosToQualityLevel } from '../../utils/qualityScore';
+import { unwrapVertoReply } from '../../utils/unwrapVertoReply';
 import { PEER_CONNECTION_RECOVERY_POLL_MS, PEER_CONNECTION_RECOVERY_WAIT_MS } from '../constants';
-import { InvalidParams, JSONRPCError, UnimplementedError } from '../errors';
+import { CallNotReadyError, InvalidParams, JSONRPCError, UnimplementedError } from '../errors';
 import { buildRPCRequest, VertoSubscribe, WebrtcVerto } from '../RPCMessages';
 import { isJSONRPCErrorResponse } from '../RPCMessages/guards/base.guards';
 import {
@@ -42,6 +43,7 @@ import {
 import type { Address } from './Address';
 import type { Participant, SelfParticipant } from './Participant';
 import type {
+  Call,
   CallStatus,
   CallOptions,
   CallManager,
@@ -84,13 +86,6 @@ import type { PendingRPCOptions } from '../utils';
 import type { Observable, BehaviorSubject } from 'rxjs';
 
 const logger = getLogger();
-
-/**
- * Verto method for setting member layout positions. Its gateway DTO requires a
- * `targets` array whose entries are `{ target, position }` (NOT bare targets),
- * so {@link WebRTCCall.buildMethodParams} special-cases it. See issue #19400.
- */
-const POSITION_SET_METHOD = 'call.member.position.set';
 
 /**
  * Ratio between the critical and warning RTT spike multipliers.
@@ -156,7 +151,7 @@ const fromDestinationParams = (destination?: string): Record<string, unknown> =>
  * participants, layout, and event routing. Created via {@link SignalWire.dial}
  * or received as an inbound call.
  */
-export class WebRTCCall extends Destroyable implements CallManager {
+export class WebRTCCall extends Destroyable implements CallManager, Call {
   /** Unique identifier for this call. */
   public readonly id: string;
   /** Destination URI this call was placed to. */
@@ -281,8 +276,21 @@ export class WebRTCCall extends Destroyable implements CallManager {
   public emitError(callError: CallError): void {
     if (this._status$.value === 'destroyed' || this._status$.value === 'failed') return;
     this._errors$.next(callError);
-    if (callError.fatal) {
+    // A fatal error arriving while hangup() is already tearing the call down must not
+    // start a SECOND teardown: hangup() has already sent its own bye and will destroy
+    // in its `finally`. Report the error on errors$, then let the graceful path finish —
+    // otherwise a normal hangup whose bye races a remote hangup emits a duplicate bye and
+    // reports 'failed' for what the app asked to be a clean teardown.
+    if (callError.fatal && this._status$.value !== 'disconnecting') {
       this._status$.next('failed');
+      // Best-effort: send verto.bye so the server releases our leg instead of
+      // leaving it to linger as a stale member. The bye frame is flushed
+      // synchronously here; signaling may already be dead, so ignore failures
+      // and destroy immediately rather than awaiting a response that may never
+      // come. (hangup() is the graceful path; this covers fatal teardown.)
+      void this.vertoManager.bye().catch((error: unknown) => {
+        logger.debug('[Call] fatal-teardown bye failed (signaling likely already dead):', error);
+      });
       this.destroy();
     }
   }
@@ -352,7 +360,7 @@ export class WebRTCCall extends Destroyable implements CallManager {
   /** Toggles the call lock state, preventing or allowing new participants from joining. */
   async toggleLock(): Promise<void> {
     const method = this.locked ? 'call.unlock' : 'call.lock';
-    await this.executeMethod(this.selfId ?? '', method, {});
+    await this.executeMethod(this.callSelf, method, {});
   }
 
   /**
@@ -422,10 +430,14 @@ export class WebRTCCall extends Destroyable implements CallManager {
    *
    * Constructs call context (node_id, call_id, member_id) and sends the RPC request.
    *
-   * @param target - Target member ID string, or a {@link MemberTarget} object.
+   * @param target - Target {@link MemberTarget} triple, or the local member's
+   *   ID string for self-operations (any other string is rejected — a bare
+   *   member id cannot carry the remote member's own call context).
    * @param method - Verto method name (e.g. `'call.mute'`, `'call.member.remove'`).
    * @param args - Parameters for the RPC method.
    * @returns The RPC response.
+   * @throws {CallNotReadyError} If the call has no self member context yet.
+   * @throws {InvalidParams} If a string target is not the local member's ID.
    * @throws {JSONRPCError} If the RPC call returns an error.
    */
   public async executeMethod<T extends JSONRPCResponse = JSONRPCResponse>(
@@ -433,7 +445,26 @@ export class WebRTCCall extends Destroyable implements CallManager {
     method: string,
     args: Record<string, unknown>
   ): Promise<T> {
-    const params = this.buildMethodParams(target, args, method);
+    // Readiness + target-validity guards run on BOTH transports (see @throws above):
+    // fail fast before the call has joined, and reject a string target that is not our
+    // own member id. The in-dialog branch used to return before these ran, so both were
+    // silently skipped for in-dialog callers.
+    const self = this.callSelf;
+    if (typeof target === 'string' && target !== self.member_id) {
+      throw new InvalidParams(
+        `Target member ID ${target} does not match call's self member ID ${self.member_id}`
+      );
+    }
+
+    if (this.clientSession.callControl === 'in-dialog') {
+      return this.executeMethodInDialog<T>(target, method, args);
+    }
+
+    const params: JSONRPCParams = {
+      ...args,
+      self,
+      target: typeof target === 'string' ? self : target
+    };
 
     const request = buildRPCRequest({
       method,
@@ -458,35 +489,125 @@ export class WebRTCCall extends Destroyable implements CallManager {
     }
   }
 
-  private buildMethodParams(
+  /**
+   * `executeMethod` for a call opened with `callControl: 'in-dialog'`.
+   *
+   * Translates the routed transport's calling convention into the in-dialog one. No
+   * `self` tuple is sent, but a `target` is — the same {call_id, member_id} the routed
+   * transport puts in `target` (minus node_id), for self-ops and cross-member ops alike.
+   *
+   * Target shapes are per-verb and irregular, so they are centralised here rather
+   * than left to callers: most verbs take a singular `target`, `call.member.remove`
+   * takes a plural `targets` array, and `call.member.position.set` takes a flat
+   * `targets` of `{call_id, position}` — the one verb keyed on call_id rather than
+   * member_id, so the member triple `Participant.setPosition` built is unwrapped.
+   */
+  private async executeMethodInDialog<T extends JSONRPCResponse = JSONRPCResponse>(
     target: string | MemberTarget,
-    args: Record<string, unknown>,
-    method: string
-  ): JSONRPCParams {
-    const self: MemberTarget = {
-      node_id: this.nodeId ?? '',
-      call_id: this.id,
-      member_id: this.vertoManager.selfId ?? ''
-    };
+    method: string,
+    args: Record<string, unknown>
+  ): Promise<T> {
+    const control: Record<string, unknown> = { ...args };
 
-    if (method === POSITION_SET_METHOD) {
-      // The caller (Participant.setPosition) fully builds the `targets` array,
-      // keying the position by the target member's own call_id/node_id (issue
-      // #19400). Pass it through untouched alongside `self`.
-      return { ...args, self };
+    if (method === 'call.member.position.set') {
+      const entries =
+        (args.targets as
+          | { target?: MemberTarget; call_id?: string; position?: unknown }[]
+          | undefined) ?? [];
+      // Accept both the member-triple shape Participant.setPosition builds and the flat
+      // {call_id, position} shape sendCommand documents — a caller reaching executeMethod
+      // directly may pass either, and reading the wrong one sends call_id: undefined,
+      // which the server takes as a silent no-op.
+      control.targets = entries.map((entry) => ({
+        call_id: entry.target?.call_id ?? entry.call_id,
+        position: entry.position
+      }));
+    } else {
+      // Attach the member target, mirroring the routed transport which always sends
+      // `target` (its `self` triple for a call-scoped op, the named member otherwise);
+      // in-dialog carries the same {call_id, member_id}, minus node_id. An object names a
+      // member (self or another); a bare string is our own selfId (guaranteed by the
+      // InvalidParams guard in executeMethod) and addresses self, so it must carry the
+      // self target too — omitting it gets call-scoped verbs like call.layout.set refused
+      // for lack of permission.
+      const member =
+        typeof target === 'object'
+          ? { call_id: target.call_id, member_id: target.member_id }
+          : { call_id: this.id, member_id: target };
+      if (method === 'call.member.remove') {
+        control.targets = [member];
+      } else {
+        control.target = member;
+      }
     }
 
-    if (typeof target === 'object') {
-      // Full MemberTarget provided — use targets array with the member's actual call_id
-      return { ...args, self, targets: [target] };
-    }
+    return this.sendCommand<T>(method, control);
+  }
 
-    // String member_id provided — use target singular with the call's node/call reference
-    return {
-      ...args,
-      self,
-      target: { node_id: this.nodeId ?? '', call_id: this.id, member_id: target }
-    };
+  /**
+   * Sends a `call.*` control verb **in-dialog** via `verto.info`, as an alternative
+   * to the routed {@link executeMethod} transport.
+   *
+   * Why both exist: `executeMethod` addresses the member with an explicit
+   * `{node_id, call_id, member_id}` tuple, which does not resolve for every conference,
+   * so the op can fail. An in-dialog frame carries the verb on the member's own
+   * signaling channel instead, so control works without the client needing to know how
+   * the conference is hosted.
+   *
+   * The trade-off is reach: the in-dialog transport is only accepted for calls that
+   * join a conference over SWML (e.g. an SWML `join_conference`); use the routed
+   * default otherwise.
+   *
+   * `params` are sent verbatim — nothing is built for you, which includes the target.
+   * **A self-directed op still needs one**, or it is refused; name yourself explicitly:
+   *
+   * ```ts
+   * const { call_id, member_id } = call.self.target;
+   * await call.sendCommand('call.mute', { channels: ['audio'], target: { call_id, member_id } });
+   * ```
+   *
+   * Never include `node_id` — only the two ids. The shapes are per-verb: most take a
+   * singular `target`, `call.member.remove` takes a plural `targets` array, and
+   * `call.member.position.set` takes a flat `targets: [{call_id, position}]` (the one
+   * verb keyed on `call_id` rather than `member_id`). Verbs that act on the call as a
+   * whole, or that the SDK does not wrap at all, take no target.
+   *
+   * For the typed alternative that handles all of this, create the client with
+   * `callControl: 'in-dialog'` and use the ordinary `Call`/`Participant` methods.
+   *
+   * @internal Not part of the supported surface while the in-dialog transport is still
+   * rolling out. `WebRTCCall` is exported from the package entry, so without this tag
+   * TypeDoc publishes the method — and the example above — as public API.
+   *
+   * @param method - A `call.*` method name (e.g. `'call.mute'`).
+   * @param params - Method parameters, sent verbatim.
+   * @returns The method's own reply, unwrapped from the `verto.info` envelope.
+   * @throws {JSONRPCError} If the control op fails.
+   */
+  public async sendCommand<T extends JSONRPCResponse = JSONRPCResponse>(
+    method: string,
+    params: Record<string, unknown> = {}
+  ): Promise<T> {
+    const response = await this.vertoManager.sendCallControl(method, params);
+    return unwrapVertoReply<T>(response);
+  }
+
+  /**
+   * The local leg's member triple — sent as `self` in every member RPC
+   * envelope, and as the `target` of call-scoped self-operations (e.g. lock,
+   * layout).
+   *
+   * @throws {CallNotReadyError} Before `call.joined` delivers the self member
+   * context (`selfId`/`nodeId`) — an RPC without it cannot be routed, so fail
+   * fast instead of sending a doomed request.
+   */
+  private get callSelf(): MemberTarget {
+    const node_id = this.nodeId;
+    const member_id = this.vertoManager.selfId;
+    if (!node_id || !member_id) {
+      throw new CallNotReadyError(this.id);
+    }
+    return { node_id, call_id: this.id, member_id };
   }
 
   /** Observable of the current call status (e.g. `'ringing'`, `'connected'`). */
@@ -689,14 +810,14 @@ export class WebRTCCall extends Destroyable implements CallManager {
     return this.deferEmission(this._bandwidthConstrained$.asObservable());
   }
 
-  /** Observable that emits when server-pushed media params are applied. */
+  /** Observable that emits when the server pushes media params. */
   public get mediaParamsUpdated$(): Observable<MediaParamsEvent> {
     return this.deferEmission(this._mediaParamsUpdated$.asObservable());
   }
 
   /**
    * @internal Emit a media params update event.
-   * Called by the VertoManager when server-pushed media params are applied.
+   * Called by the VertoManager when the server pushes media params.
    */
   public emitMediaParamsUpdated(event: MediaParamsEvent): void {
     this._mediaParamsUpdated$.next(event);
@@ -986,6 +1107,11 @@ export class WebRTCCall extends Destroyable implements CallManager {
   /** Observable of the local participant's member ID. */
   public get selfId$(): Observable<string | null> {
     return this.vertoManager.selfId$;
+  }
+
+  /** @internal Lets call creation bound the media and signalling phases apart. */
+  public get localMediaSettled$(): Observable<void> {
+    return this.vertoManager.localMediaSettled$;
   }
 
   /** Local participant's member ID, or `null` if not joined. */
@@ -1297,12 +1423,17 @@ export class WebRTCCall extends Destroyable implements CallManager {
    *
    * **These operations are NOT atomic.** The layout is applied first, then each
    * member position sequentially, so members may briefly flash into their
-   * default slots before being moved to the requested positions.
+   * default slots before being moved to the requested positions. Targeted
+   * members are validated upfront, though: when any of them has no
+   * {@link Participant.target | member call context} yet, the whole call
+   * rejects before any request is sent and the layout is left unchanged.
    *
    * @param layout - Layout name (must be one of {@link layouts}).
    * @param positions - Optional map of member IDs to {@link VideoPosition} values.
    *   When omitted or empty, only the layout is changed.
    * @throws {InvalidParams} If the layout is not in the available {@link layouts}.
+   * @throws {ParticipantNotReadyError} If a targeted member's call context has
+   *   not been received yet — thrown before any request is sent.
    *
    * @example
    * ```ts
@@ -1318,18 +1449,11 @@ export class WebRTCCall extends Destroyable implements CallManager {
       );
     }
 
-    const selfId = await firstValueFrom(
-      this.selfId$.pipe(filter((id): id is string => id !== null))
-    );
-
-    await this.executeMethod(selfId, 'call.layout.set', { layout });
-
-    const positionEntries = Object.entries(positions ?? {});
-    if (positionEntries.length === 0) {
-      return;
-    }
-
-    for (const [memberId, position] of positionEntries) {
+    // Resolve and validate targets BEFORE any RPC: a known-but-not-ready
+    // member fails the whole operation while the layout is still unchanged.
+    // Unknown members keep the lenient warn+skip behavior.
+    const targets: [CallParticipant, VideoPosition][] = [];
+    for (const [memberId, position] of Object.entries(positions ?? {})) {
       const participant = this.participants.find((p) => p.id === memberId);
       if (!participant) {
         logger.warn(
@@ -1337,6 +1461,19 @@ export class WebRTCCall extends Destroyable implements CallManager {
         );
         continue;
       }
+      // Reading target validates the member's call context — it throws
+      // ParticipantNotReadyError when the member state has not arrived yet.
+      void participant.target;
+      targets.push([participant, position]);
+    }
+
+    const selfId = await firstValueFrom(
+      this.selfId$.pipe(filter((id): id is string => id !== null))
+    );
+
+    await this.executeMethod(selfId, 'call.layout.set', { layout });
+
+    for (const [participant, position] of targets) {
       await participant.setPosition(position);
     }
   }
@@ -1475,19 +1612,30 @@ export class WebRTCCall extends Destroyable implements CallManager {
    * (notably iOS Safari) fall back to re-acquiring the track with the new
    * constraint set and plumbing the replacement through the local audio
    * pipeline if one is active.
+   *
+   * @returns whether the constraint reached the microphone. `false` is an
+   * outcome rather than an error — a leg sending media the SDK did not capture
+   * is left alone — so a UI that reflects the toggle must read it. Any failure
+   * behind a `false` is also reported on {@link errors$}.
    */
-  public async setEchoCancellation(enabled: boolean): Promise<void> {
-    await this.vertoManager.updateMediaConstraints({ audio: { echoCancellation: enabled } });
+  public async setEchoCancellation(enabled: boolean): Promise<boolean> {
+    return this.vertoManager.updateMediaConstraints({ audio: { echoCancellation: enabled } });
   }
 
-  /** Toggle browser noise suppression on the local mic at runtime. */
-  public async setNoiseSuppression(enabled: boolean): Promise<void> {
-    await this.vertoManager.updateMediaConstraints({ audio: { noiseSuppression: enabled } });
+  /**
+   * Toggle browser noise suppression on the local mic at runtime.
+   * @returns whether the constraint reached the microphone.
+   */
+  public async setNoiseSuppression(enabled: boolean): Promise<boolean> {
+    return this.vertoManager.updateMediaConstraints({ audio: { noiseSuppression: enabled } });
   }
 
-  /** Toggle browser automatic gain control on the local mic at runtime. */
-  public async setAutoGainControl(enabled: boolean): Promise<void> {
-    await this.vertoManager.updateMediaConstraints({ audio: { autoGainControl: enabled } });
+  /**
+   * Toggle browser automatic gain control on the local mic at runtime.
+   * @returns whether the constraint reached the microphone.
+   */
+  public async setAutoGainControl(enabled: boolean): Promise<boolean> {
+    return this.vertoManager.updateMediaConstraints({ audio: { autoGainControl: enabled } });
   }
 
   /**

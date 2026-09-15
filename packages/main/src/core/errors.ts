@@ -1,4 +1,6 @@
-import { MEDIA_ACCESS_DENIAL_NAMES } from './constants';
+import { MEDIA_ACCESS_DENIAL_NAMES, MEDIA_DEVICE_IN_USE_NAMES } from './constants';
+
+import type { RTCPeerConnectionPropose } from './types/call.types';
 
 export class UnexpectedError extends Error {
   constructor(
@@ -261,6 +263,14 @@ export interface CallError {
   readonly error: Error;
   /** ID of the call that produced this error. */
   readonly callId: string;
+  /**
+   * Which peer connection failed. Auxiliary legs are never fatal, so a consumer
+   * can surface "screen share failed, call continues". Absent for call- and
+   * session-level errors.
+   */
+  readonly leg?: RTCPeerConnectionPropose;
+  /** `callId` is always the call's id, never the leg's. Use this for the leg. */
+  readonly legId?: string;
 }
 
 export class CallCreateError extends Error {
@@ -275,6 +285,32 @@ export class CallCreateError extends Error {
       cause: options?.cause ?? (error instanceof Error ? error : undefined)
     });
     this.name = 'CallCreateError';
+  }
+}
+
+export class CallNotReadyError extends Error {
+  constructor(
+    public callId: string,
+    options?: ErrorOptions
+  ) {
+    super(
+      `Call "${callId}" has no self member context yet: selfId/nodeId have not been received from the server`,
+      options
+    );
+    this.name = 'CallNotReadyError';
+  }
+}
+
+export class ParticipantNotReadyError extends Error {
+  constructor(
+    public memberId: string,
+    options?: ErrorOptions
+  ) {
+    super(
+      `Participant "${memberId}" has no call context yet: its member state (call_id/node_id) has not been received from the server`,
+      options
+    );
+    this.name = 'ParticipantNotReadyError';
   }
 }
 
@@ -381,6 +417,36 @@ export class CollectionFetchError extends Error {
   }
 }
 
+/**
+ * An auxiliary leg did not connect within its budget. Typed rather than a bare
+ * RxJS `TimeoutError` so the leg and cause survive.
+ */
+export class AuxiliaryLegTimeoutError extends Error {
+  constructor(
+    public readonly leg: RTCPeerConnectionPropose,
+    public readonly originalError?: Error
+  ) {
+    super(`Timed out waiting for the ${leg} connection to be established`, {
+      cause: originalError
+    });
+    this.name = 'AuxiliaryLegTimeoutError';
+  }
+}
+
+/**
+ * An auxiliary leg was removed before it finished connecting.
+ *
+ * Typed rather than a bare resolve so a caller awaiting the start can tell a
+ * cancel apart from a share that actually came up — the public methods return
+ * `void`, so the promise is the only signal they have.
+ */
+export class AuxiliaryLegCancelledError extends Error {
+  constructor(public readonly leg: RTCPeerConnectionPropose) {
+    super(`The ${leg} leg was removed before it finished connecting`);
+    this.name = 'AuxiliaryLegCancelledError';
+  }
+}
+
 export class MediaTrackError extends Error {
   constructor(
     public operation: string,
@@ -397,6 +463,11 @@ export class MediaTrackError extends Error {
 /** True when a `getUserMedia`/`getDisplayMedia` rejection is a permission denial. */
 function isMediaAccessDenial(originalError: unknown): boolean {
   return originalError instanceof Error && MEDIA_ACCESS_DENIAL_NAMES.includes(originalError.name);
+}
+
+/** True when a `getUserMedia` rejection means the hardware is already held exclusively. */
+export function isMediaDeviceInUse(originalError: unknown): boolean {
+  return originalError instanceof Error && MEDIA_DEVICE_IN_USE_NAMES.includes(originalError.name);
 }
 
 /**
@@ -431,6 +502,30 @@ export class MediaAccessError extends Error {
   /** True when the underlying failure is a permission denial (user or policy). */
   get denied(): boolean {
     return isMediaAccessDenial(this.originalError);
+  }
+}
+
+/**
+ * Thrown by `startScreenShare()` when the call is already sharing a screen.
+ *
+ * A call carries at most one screen share. Accepting a second one would
+ * overwrite the only reference the SDK holds to the first, leaving it
+ * capturing and sending with no way to stop it — so the second request is
+ * rejected and the live share is left untouched. Call `stopScreenShare()`
+ * first to replace it.
+ */
+export class ScreenShareAlreadyActiveError extends Error {
+  constructor(
+    /** Id of the screen share leg that is already active. */
+    public readonly screenShareId: string,
+    options?: ErrorOptions
+  ) {
+    super(
+      `A screen share is already active on this call (${screenShareId}). ` +
+        'Call stopScreenShare() before starting another one.',
+      options
+    );
+    this.name = 'ScreenShareAlreadyActiveError';
   }
 }
 

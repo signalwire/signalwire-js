@@ -1,4 +1,4 @@
-import type { MediaOptions } from '../core/types/media.types';
+import type { MediaOptions, ScreenShareOptions } from '../core/types/media.types';
 import type { ScreenShareStatus } from '../managers/types/verto-manager.types';
 import type { Observable } from 'rxjs';
 
@@ -10,7 +10,7 @@ export interface VertoManager {
   // Screen share
   readonly screenShareStatus$: Observable<ScreenShareStatus>;
   readonly screenShareStatus: ScreenShareStatus;
-  addScreenMedia(): Promise<void>;
+  addScreenMedia(options?: ScreenShareOptions): Promise<void>;
   removeScreenMedia(): Promise<void>;
 
   // Device management
@@ -22,7 +22,7 @@ export interface VertoManager {
   updateMediaConstraints(options?: {
     audio?: MediaTrackConstraints;
     video?: MediaTrackConstraints;
-  }): Promise<void>;
+  }): Promise<boolean>;
 
   // Audio/Video muting
   muteMainAudioInputDevice(): void;

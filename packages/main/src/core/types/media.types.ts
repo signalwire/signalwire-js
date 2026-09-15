@@ -9,6 +9,32 @@ export interface MediaDirections {
   video: MediaDirection;
 }
 
+/**
+ * Where a local track came from. Only a `'device'` capture may be re-acquired:
+ * the others carry synthetic `deviceId`s no `getUserMedia` can satisfy, and
+ * re-capturing would replace media the SDK does not own.
+ */
+export type TrackOrigin =
+  | 'device'
+  /** Supplied via `inputAudioStream` / `inputVideoStream`. */
+  | 'application'
+  /** `getDisplayMedia` — screen or tab capture. */
+  | 'display'
+  /** `LocalAudioPipeline` output (a `MediaStreamAudioDestinationNode`). */
+  | 'processed';
+
+/** Options for starting a screen share. */
+export interface ScreenShareOptions {
+  /**
+   * Request the shared surface's audio. Defaults to `false`.
+   *
+   * Whether audio can actually be captured depends on the browser, the OS and
+   * the surface the user picks — Chrome offers it for tabs and windows, and a
+   * share the user grants without audio yields a video-only stream.
+   */
+  audio?: boolean;
+}
+
 /** Options controlling which media tracks to send and receive. */
 export interface MediaOptions {
   /** Enable audio input. Defaults to `true` when not specified. */

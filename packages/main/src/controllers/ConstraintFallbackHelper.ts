@@ -38,7 +38,8 @@ export interface GetUserMediaFallbackResult {
  * an OverconstrainedError. Non-OverconstrainedError failures (e.g.,
  * NotAllowedError) are thrown immediately without fallback.
  *
- * @param mediaDevices - The media devices API to use
+ * @param mediaDevices - Anything exposing `getUserMedia` (a full
+ *   `WebRTCMediaDevices`, or a shim wrapping one)
  * @param constraints - The full MediaStreamConstraints to use as a base
  * @param kind - Which track kind to apply fallback to ('audio' | 'video')
  * @param deviceId - The device ID to try (if undefined, calls getUserMedia as-is)
@@ -46,7 +47,7 @@ export interface GetUserMediaFallbackResult {
  * @throws When all fallback levels fail, or when a non-OverconstrainedError occurs
  */
 export async function getUserMediaWithFallback(
-  mediaDevices: WebRTCMediaDevices,
+  mediaDevices: Pick<WebRTCMediaDevices, 'getUserMedia'>,
   constraints: MediaStreamConstraints,
   kind: 'audio' | 'video',
   deviceId?: string

@@ -22,10 +22,18 @@ const OBSERVABLE_TIMEOUT = 10_000;
 /**
  * Inject a fake `getDisplayMedia` override into the browser context.
  * Must be called BEFORE any `startScreenShare()` invocation.
+ *
+ * The override records the constraints it was asked for on
+ * `window.__displayMediaCalls`, and honours an `audio: true` request with a
+ * silent oscillator track — headless Chromium has no capturable surface, so a
+ * real "share tab audio" grant cannot be exercised here.
  */
 async function injectGetDisplayMediaMock(page: import('@playwright/test').Page): Promise<void> {
   await page.evaluate(() => {
-    navigator.mediaDevices.getDisplayMedia = async () => {
+    window.__displayMediaCalls = [];
+    navigator.mediaDevices.getDisplayMedia = async (options?: DisplayMediaStreamOptions) => {
+      window.__displayMediaCalls.push(options);
+
       const canvas = document.createElement('canvas');
       canvas.width = 640;
       canvas.height = 480;
@@ -34,7 +42,15 @@ async function injectGetDisplayMediaMock(page: import('@playwright/test').Page):
         ctx.fillStyle = 'blue';
         ctx.fillRect(0, 0, 640, 480);
       }
-      return canvas.captureStream(30);
+      const stream = canvas.captureStream(30);
+
+      if (options?.audio) {
+        const audioContext = new AudioContext();
+        const destination = audioContext.createMediaStreamDestination();
+        audioContext.createOscillator().connect(destination);
+        stream.addTrack(destination.stream.getAudioTracks()[0]);
+      }
+      return stream;
     };
   });
 }
@@ -54,7 +70,7 @@ test.describe('Screen Share', () => {
           /* client may already be disconnected */
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   });
 
   // ── Test 1: Initial screenShareStatus$ is 'off' ────────────────────────────
@@ -391,5 +407,101 @@ test.describe('Screen Share', () => {
     expect(result.success, `screen share session check — ${(result as { error?: string }).error ?? ''}`).toBe(true);
     expect(result.status, 'screen share status is started').toBe('started');
     expect(result.hasScreenParticipant, 'screen share added a participant').toBe(true);
+  });
+
+  // ── Test 6: startScreenShare does not request display audio by default ──────
+
+  test('startScreenShare requests video only by default', async ({ page, resource }) => {
+    // ── SETUP ──────────────────────────────────────────────
+    await setupRoomCall({ page, resource, prefix: 'e2e-screenshare', channel: 'video' });
+    await injectGetDisplayMediaMock(page);
+
+    // ── CHECK ──────────────────────────────────────────────
+    const result = await page.evaluate(
+      async ({ obsTimeout }) => {
+        const waitFor = window.__waitFor;
+        try {
+          const call = window.__swCall;
+          const self = (await waitFor(
+            call.self$,
+            (s: unknown) => s !== null,
+            obsTimeout,
+            'self$ → non-null'
+          ))!;
+
+          await self.startScreenShare();
+          await waitFor(
+            self.screenShareStatus$,
+            (s: unknown) => s === 'started',
+            obsTimeout,
+            'screenShareStatus$ → started'
+          );
+
+          return { success: true, constraints: window.__displayMediaCalls[0] };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      },
+      { obsTimeout: OBSERVABLE_TIMEOUT }
+    );
+
+    expect(result.success, `default screen share — ${(result as { error?: string }).error ?? ''}`).toBe(true);
+    expect(
+      (result as { constraints: DisplayMediaStreamOptions }).constraints,
+      'getDisplayMedia asked for video only'
+    ).toEqual({ video: true, audio: false });
+  });
+
+  // ── Test 7: startScreenShare({ audio: true }) requests the surface audio ────
+  // Asserts the request the SDK makes, and that a surface granting an audio
+  // track still negotiates through to 'started'. The leg's senders are not on
+  // the public API, so the track itself is covered by unit tests, not here.
+
+  test('startScreenShare({ audio: true }) requests the shared surface audio', async ({
+    page,
+    resource,
+  }) => {
+    // ── SETUP ──────────────────────────────────────────────
+    await setupRoomCall({ page, resource, prefix: 'e2e-screenshare', channel: 'video' });
+    await injectGetDisplayMediaMock(page);
+
+    // ── CHECK ──────────────────────────────────────────────
+    const result = await page.evaluate(
+      async ({ obsTimeout }) => {
+        const waitFor = window.__waitFor;
+        try {
+          const call = window.__swCall;
+          const self = (await waitFor(
+            call.self$,
+            (s: unknown) => s !== null,
+            obsTimeout,
+            'self$ → non-null'
+          ))!;
+
+          await self.startScreenShare({ audio: true });
+          const status = await waitFor(
+            self.screenShareStatus$,
+            (s: unknown) => s === 'started',
+            obsTimeout,
+            'screenShareStatus$ → started'
+          );
+
+          return { success: true, status, constraints: window.__displayMediaCalls[0] };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      },
+      { obsTimeout: OBSERVABLE_TIMEOUT }
+    );
+
+    expect(result.success, `screen share with audio — ${(result as { error?: string }).error ?? ''}`).toBe(true);
+    expect(
+      (result as { constraints: DisplayMediaStreamOptions }).constraints,
+      'getDisplayMedia asked for the surface audio'
+    ).toEqual({ video: true, audio: true });
+    expect(
+      (result as { status: string }).status,
+      'a share carrying an audio track still reaches started'
+    ).toBe('started');
   });
 });
