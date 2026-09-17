@@ -74,7 +74,10 @@ export function renderCallView(container, state) {
         </div>
 
         <div class="call-footer">
-          <sw-call-controls></sw-call-controls>
+          <!-- screen-share-audio asks for the shared tab/window's audio too.
+               Chrome shows a "share audio" checkbox in the picker; the user
+               still chooses, and a surface without audio shares video only. -->
+          <sw-call-controls screen-share-audio></sw-call-controls>
         </div>
       </div>
     </sw-call-provider>

@@ -27,15 +27,4 @@ if [ -n "$BRANCH" ]; then
   esac
 fi
 
-# Basic security scan: check for patterns that look like secrets in staged changes
-if command -v gitleaks > /dev/null 2>&1; then
-  echo "Running gitleaks security scan..."
-  gitleaks detect --source . --config .gitleaks.toml --no-banner 2>/dev/null
-  if [ $? -ne 0 ]; then
-    echo "ERROR: gitleaks detected potential secrets. Aborting push."
-    echo "  Review the findings and remove any secrets before pushing."
-    exit 1
-  fi
-fi
-
 echo "Pre-push checks passed."

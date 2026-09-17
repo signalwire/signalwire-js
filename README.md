@@ -134,104 +134,24 @@ npm run test:integration       # Playwright integration tests
 
 ## Release Process
 
-This project uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing. There are three release channels: **dev** (snapshots), **beta** (pre-release), and **production** (stable).
+This project uses [Changesets](https://github.com/changesets/changesets). Every PR that
+changes a published package must include one (`npx changeset`); PRs that don't need one
+carry the `skip-changeset` label.
 
-### Adding a Changeset
+Packages are published to npm on four channels:
 
-Every PR that affects published packages must include a changeset (enforced by CI):
+| Channel | Install | Version format |
+| --- | --- | --- |
+| Dev snapshot, every merge to `main` | `npm install @signalwire/js@dev` | `X.Y.Z-dev-<datetime>` |
+| Beta | `npm install @signalwire/js@beta` | `X.Y.Z-beta.N` |
+| Release candidate | `npm install @signalwire/js@rc` | `X.Y.Z-rc.N` |
+| Default | `npm install @signalwire/js` | whatever is promoted to `latest` |
 
-```bash
-npx changeset
-```
+`latest` is promoted by hand after a release has soaked, never by automation. While 4.x is
+in its release-candidate period, `latest` points at an RC.
 
-Follow the prompts to select affected packages and describe the change. To skip this requirement for docs-only or CI changes, add the `skip-changeset` label to the PR.
-
-### Dev Releases (Automatic)
-
-Every push to `main` that is **not** a release or beta commit automatically publishes a dev snapshot to npm under the `dev` tag.
-
-- **Trigger:** Push to `main` (commit message does NOT start with `"Version Packages"` or `"Ready for beta"`)
-- **npm tag:** `dev`
-- **Version format:** `X.Y.Z-dev-{datetime}`
-- **Install:** `npm install @signalwire/js@dev`
-
-No manual action is required — dev releases happen on every merge to `main`.
-
-### Beta Releases
-
-Beta releases are triggered by a commit with a message starting with `"Ready for beta"`.
-
-1. Prepare and commit your changes on `main`
-2. Create a commit with the message:
-
-   ```bash
-   git commit --allow-empty -m "Ready for beta"
-   git push origin main
-   ```
-
-3. The workflow will:
-   - Calculate the next beta version based on existing npm beta tags (e.g., `4.0.0-beta.0`, `4.0.0-beta.1`, ...)
-   - Publish all workspace packages to npm under the `beta` tag
-
-- **npm tag:** `beta`
-- **Version format:** `X.Y.Z-beta.N`
-- **Install:** `npm install @signalwire/js@beta`
-
-### Production Releases
-
-Production releases follow a two-stage process: an RC (release candidate) is published to the private repo, then synced to the public repo for the final `@latest` publish.
-
-#### Step 1: Version Packages
-
-```bash
-npx changeset version
-```
-
-This consumes all pending changesets, updates `CHANGELOG.md` files, and bumps package versions. Review the changes, then commit:
-
-```bash
-git add .
-git commit -m "Version Packages"
-git push origin main
-```
-
-#### Step 2: Automated RC Publish & Sync
-
-When the `"Version Packages"` commit is pushed to `main`, the release workflow automatically:
-
-1. Builds all packages
-2. Creates a git tag (e.g., `v4.1.0-rc.0`)
-3. Creates a GitHub pre-release with changelog notes
-4. Publishes to npm under the `rc` tag
-5. Triggers the **Sync to Public Repository** workflow
-
-#### Step 3: Public Repository Sync
-
-The sync workflow (also available as a manual `workflow_dispatch`):
-
-1. Checks out the RC tag
-2. Removes private content using `.gitignore-private`
-3. Strips `-rc.N` suffixes from package versions to produce clean versions
-4. Creates a PR on the public repository (`signalwire/typescript-web`)
-5. When the PR is merged, the `@latest` npm publish is triggered
-
-### CI Workflows Summary
-
-| Workflow               | Trigger                                         | Purpose                                                              |
-| ---------------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
-| **CI**                 | PR to `main`, push to `main`                    | Build, type-check, lint, and test                                    |
-| **Validate Changeset** | PR to `main`                                    | Ensures a changeset is included (skip with `skip-changeset` label)   |
-| **Dev Release**        | Push to `main` (non-release commits)            | Publishes `@dev` snapshot to npm                                     |
-| **Beta Release**       | Push to `main` (`"Ready for beta"` commit)      | Publishes `@beta` to npm                                             |
-| **Release**            | Push to `main` (`"Version Packages"` commit)    | Publishes `@rc` to npm, creates GitHub release, triggers public sync |
-| **Sync to Public**     | Called by Release workflow or manual dispatch    | Syncs sanitized code to public repo via PR                           |
-
-### Required Secrets
-
-| Secret | Purpose |
-|---|---|
-| `NPM_TOKEN` | npm authentication for publishing packages |
-| `PUBLIC_REPO_PAT` | GitHub PAT with access to the public repository |
+Cutting a release, syncing to the public repository, secrets, and the manual fallback are
+documented in `docs/RELEASING.md` (internal — private repository only).
 
 ## Requirements
 

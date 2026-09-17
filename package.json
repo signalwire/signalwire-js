@@ -1,6 +1,6 @@
 {
   "name": "signalwire-browser-sdk",
-  "version": "3.30.0-rc.0",
+  "version": "4.0.0-rc.3",
   "description": "SignalWire Browser SDK Monorepo",
   "private": true,
   "type": "module",
@@ -36,7 +36,7 @@
     "build:docs": "node scripts/build-docs.mjs",
     "release": "changeset publish",
     "prepare": "husky",
-    "sw-repo": "npx tsx --env-file-if-exists=.env scripts/dual-repo/index.ts",
+    "sw-repo": "tsx --env-file-if-exists=.env scripts/dual-repo/index.ts",
     "test:dual-repo": "vitest --config scripts/dual-repo/vitest.config.ts --run",
     "test:dual-repo:coverage": "vitest --config scripts/dual-repo/vitest.config.ts --run --coverage"
   },
@@ -53,6 +53,7 @@
     "@size-limit/preset-small-lib": "^11.2.0",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "dotenv": "^16.4.5",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
@@ -67,6 +68,7 @@
     "publint": "^0.3.15",
     "puppeteer": "^24.35.0",
     "size-limit": "^11.2.0",
+    "tsx": "^4.23.13",
     "typedoc": "^0.28.18",
     "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "^5.9.3",

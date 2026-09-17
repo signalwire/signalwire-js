@@ -165,6 +165,10 @@ export class SwUiControlBar extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: 'screen-sharing' })
   screenSharing = false;
 
+  /** A start/stop is in flight: the screen-share control is inert until it settles. */
+  @property({ type: Boolean, reflect: true, attribute: 'screen-share-busy' })
+  screenShareBusy = false;
+
   @property({ type: Boolean, reflect: true, attribute: 'hand-raised' })
   handRaised = false;
 
@@ -236,6 +240,7 @@ export class SwUiControlBar extends LitElement {
   }
 
   private _onScreenShareToggle() {
+    if (this.screenShareBusy) return;
     this.screenSharing = !this.screenSharing;
     this._dispatch('sw-screen-share-toggle', { active: this.screenSharing });
   }
@@ -360,7 +365,8 @@ export class SwUiControlBar extends LitElement {
         ${this.showScreenShare
           ? html`
               <sw-ui-split-button
-                class="optional ${this.screenSharing ? 'active-toggle' : ''}"
+                class="optional screen-share ${this.screenSharing ? 'active-toggle' : ''}"
+                ?disabled=${this.screenShareBusy}
                 @sw-split-button-click=${this._onScreenShareToggle}
               >
                 <sw-ui-icon name=${this.screenSharing ? 'screen-share-off' : 'screen-share'}></sw-ui-icon>

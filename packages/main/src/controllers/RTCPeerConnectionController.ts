@@ -19,6 +19,7 @@ import {
 } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 
+import { getUserMediaWithFallback } from './ConstraintFallbackHelper';
 import { ICEGatheringController } from './ICEGatheringController';
 import { LocalAudioPipeline } from './LocalAudioPipeline';
 import { LocalStreamController } from './LocalStreamController';
@@ -26,7 +27,13 @@ import { TransceiverController } from './TransceiverController';
 import { Destroyable } from '../behaviors/Destroyable';
 import { PreferencesContainer } from '../containers/PreferencesContainer';
 import { ICE_GATHERING_COMPLETE_TIMEOUT_MS } from '../core/constants';
-import { DependencyError, InvalidParams, MediaAccessError, MediaTrackError } from '../core/errors';
+import {
+  DependencyError,
+  InvalidParams,
+  isMediaDeviceInUse,
+  MediaAccessError,
+  MediaTrackError
+} from '../core/errors';
 import {
   enableStereoOpus,
   extractMediaDirectionsFromSDP,
@@ -64,6 +71,11 @@ export interface RTCPeerConnectionControllerOptions extends MediaOptions {
   preferredAudioCodecs?: string[];
   /** Per-call stereo Opus setting (overrides global preferences). */
   stereo?: boolean;
+  /**
+   * Request the shared surface's audio on a `'screenshare'` connection. Kept
+   * apart from `audio`, which selects a microphone the share must not inherit.
+   */
+  screenShareAudio?: boolean;
 }
 
 export type RTCPeerConnectionControllerOptionsPartial = Partial<RTCPeerConnectionControllerOptions>;
@@ -148,69 +160,50 @@ export class RTCPeerConnectionController extends Destroyable {
     kind: 'audio' | 'video',
     deviceInfo: MediaDeviceInfo | null
   ): Promise<void> => {
-    try {
-      const { localStream } = this;
-      if (!localStream) {
-        logger.warn(
-          '[RTCPeerConnectionController] No local stream available to update input device.'
-        );
-        return;
-      }
-
-      logger.debug(
-        `[RTCPeerConnectionController] Updating selected ${kind} input device:`,
-        localStream.getTracks()
+    const { localStream } = this;
+    if (!localStream) {
+      logger.warn(
+        '[RTCPeerConnectionController] No local stream available to update input device.'
       );
-      // Stop existing audio tracks
-      const track = localStream.getTracks().find((track: MediaStreamTrack) => track.kind === kind);
+      return;
+    }
 
-      if (track) {
-        this.transceiverController?.stopTrackSender(kind);
-        this.localStreamController.removeTrack(track.id);
-        logger.debug(
-          `[RTCPeerConnectionController] Stopped existing ${kind} track: ${track.id}`,
-          localStream.getTracks()
-        );
+    const currentTrack = localStream.getTracks().find((track) => track.kind === kind);
+    if (!currentTrack) {
+      logger.debug(`[RTCPeerConnectionController] No ${kind} track to switch.`);
+      return;
+    }
 
-        if (!deviceInfo) {
-          logger.debug(`[RTCPeerConnectionController] ${kind} input device selected: none`);
-          return;
-        }
+    if (!deviceInfo) {
+      logger.debug(`[RTCPeerConnectionController] ${kind} input device selected: none`);
+      this.stopTrackSender(kind);
+      return;
+    }
 
-        const stream = await this.getUserMedia({
-          [kind]: {
-            ...track.getConstraints(),
-            ...this.deviceController.deviceInfoToConstraints(deviceInfo)
-          }
-        });
+    const constraints: MediaTrackConstraints = {
+      ...currentTrack.getConstraints(),
+      ...this.deviceController.deviceInfoToConstraints(deviceInfo)
+    };
 
-        const streamTrack = stream.getTracks().find((t) => t.kind === kind);
-
-        if (streamTrack) {
-          logger.debug(`[RTCPeerConnectionController] Adding new ${kind} track: ${streamTrack.id}`);
-          this.localStreamController.addTrack(streamTrack);
-          await this.transceiverController?.replaceSenderTrack(kind, streamTrack);
-          logger.debug(
-            `[RTCPeerConnectionController] Added new ${kind} track: ${streamTrack.id}`,
-            this.localStream?.getTracks()
-          );
-        }
-      }
-
+    try {
+      const newTrack = await this.acquireInputTrack(kind, constraints, deviceInfo, currentTrack);
+      await this.attachInputTrack(kind, newTrack, currentTrack);
       logger.debug(
         `[RTCPeerConnectionController] ${kind} input device selected:`,
-        deviceInfo?.label
+        deviceInfo.label,
+        newTrack.id
       );
     } catch (error) {
       logger.error(`[RTCPeerConnectionController] Failed to select ${kind} input device:`, error);
-      // Mid-call track op: non-fatal — the call continues with the old device.
+      // Reported, not thrown: the only caller is an async subscriber callback
+      // nobody awaits, so a rejection here would surface as an unhandled one.
       this._errors$.next(new MediaTrackError('updateSelectedInputDevice', kind, error));
-      throw error;
     }
   };
   private _isNegotiating$ = this.createBehaviorSubject<boolean>(false);
   private _iceGatheringController?: ICEGatheringController;
   private _memberId: string | null = null;
+  private _nodeId: string | null = null;
   private _type: RTCPeerConnectionType;
   // Observable state streams - exposed as public observables
   private _iceConnectionState$ = this.createReplaySubject<RTCIceConnectionState>(1);
@@ -221,6 +214,13 @@ export class RTCPeerConnectionController extends Destroyable {
   private _errors$ = this.createReplaySubject<Error>(1);
   // ICE candidates stream
   private _iceCandidates$ = this.createReplaySubject<RTCIceCandidate[]>(1);
+  /**
+   * Emits once local media is settled: acquired, intentionally receive-only, or
+   * failed and degraded. Separates the media and signalling phases of call
+   * creation. Not `localStream$` — the receive-only paths never build a stream,
+   * so that would hang exactly the calls with nothing to acquire.
+   */
+  private _localMediaSettled$ = this.createReplaySubject<void>(1);
   // Initialization state
   private _initialized$ = this.createReplaySubject<boolean>(1);
   // Remote description
@@ -283,6 +283,7 @@ export class RTCPeerConnectionController extends Destroyable {
       inputVideoStream: this.options.inputVideoStream,
       inputAudioDeviceConstraints: this.inputAudioDeviceConstraints,
       inputVideoDeviceConstraints: this.inputVideoDeviceConstraints,
+      screenShareAudio: this.options.screenShareAudio,
       getUserMedia: async (constraints: MediaStreamConstraints) => this.getUserMedia(constraints),
       getDisplayMedia: async (options: DisplayMediaStreamOptions) => this.getDisplayMedia(options)
     });
@@ -327,6 +328,15 @@ export class RTCPeerConnectionController extends Destroyable {
     return this._memberId;
   }
 
+  /** The node this leg's invite landed on — auxiliary legs are placed independently. */
+  public setNodeId(nodeId: string | null): void {
+    this._nodeId = nodeId;
+  }
+
+  public get nodeId(): string | null {
+    return this._nodeId;
+  }
+
   public stopTrackSender(
     kind: 'audio' | 'video' | 'both',
     options = { updateTransceiverDirection: false }
@@ -356,7 +366,6 @@ export class RTCPeerConnectionController extends Destroyable {
     const rawTracks = this.localStreamController.localAudioTracks;
     for (const track of rawTracks) {
       if (track.readyState === 'live') {
-        track.stop();
         this.localStreamController.removeTrack(track.id);
       }
     }
@@ -417,6 +426,13 @@ export class RTCPeerConnectionController extends Destroyable {
     );
   }
 
+  /** Emits once local media is settled — acquired, or knowingly receive-only. */
+  public get localMediaSettled$(): Observable<void> {
+    return this.cachedObservable('localMediaSettled$', () =>
+      this._localMediaSettled$.asObservable().pipe(takeUntil(this.destroyed$))
+    );
+  }
+
   public get localStream$(): Observable<MediaStream | null> {
     return this.cachedObservable('localStream$', () =>
       this.localStreamController.localStream$.pipe(takeUntil(this.destroyed$))
@@ -465,6 +481,10 @@ export class RTCPeerConnectionController extends Destroyable {
 
   public get propose(): RTCPeerConnectionPropose {
     return this.options.propose ?? 'main';
+  }
+
+  public get connectionState(): RTCPeerConnectionState | undefined {
+    return this.peerConnection?.connectionState;
   }
 
   public get isAdditionalDevice(): boolean {
@@ -670,7 +690,11 @@ export class RTCPeerConnectionController extends Destroyable {
         this._isNegotiating$.next(true);
         await this._setRemoteDescription(this.sdpInit);
       } else {
-        await this.setupTrackHandling();
+        if (!(await this.setupTrackHandling())) {
+          // The connection went away while media was being acquired; there is
+          // nothing left to initialize.
+          return;
+        }
 
         this._initialized$.next(true);
       }
@@ -828,7 +852,12 @@ export class RTCPeerConnectionController extends Destroyable {
     // Setup local tracks after remote description is set and media overrides applied.
     // This ensures local tracks reuse transceivers from the remote offer
     // instead of creating duplicate transceivers via addTransceiver().
-    await this.setupLocalTracks();
+    if (!(await this.setupLocalTracks())) {
+      logger.debug(
+        '[RTCPeerConnectionController] Inbound answer abandoned; the connection went away.'
+      );
+      return;
+    }
 
     const { answerOptions } = this;
     logger.debug(
@@ -1066,18 +1095,29 @@ export class RTCPeerConnectionController extends Destroyable {
   }
   /**
    * Setup track handling for remote tracks.
+   *
+   * @returns `false` when the connection went away while local media was being
+   * acquired — see {@link setupLocalTracks}.
    */
-  private async setupTrackHandling(): Promise<void> {
+  private async setupTrackHandling(): Promise<boolean> {
     if (!this.peerConnection) {
       throw new DependencyError('RTCPeerConnection is not initialized');
     }
 
-    await this.setupLocalTracks();
+    if (!(await this.setupLocalTracks())) {
+      return false;
+    }
 
     await this.setupRemoteTracks();
+    return true;
   }
 
-  private async setupLocalTracks(): Promise<void> {
+  /**
+   * @returns `false` when the connection was torn down while getUserMedia was
+   * in flight. The acquisition is not cancellable, so the caller must stop
+   * rather than go on to touch a peer connection that is closed or gone.
+   */
+  private async setupLocalTracks(): Promise<boolean> {
     logger.debug('[RTCPeerConnectionController] Setting up local tracks/transceivers.');
 
     // Intentional receive-only call: nothing to send, so skip acquisition
@@ -1093,16 +1133,33 @@ export class RTCPeerConnectionController extends Destroyable {
         '[RTCPeerConnectionController] No local media requested; negotiating receive-only.'
       );
       this.setupReceiveOnlyTransceivers();
-      return;
+      this._localMediaSettled$.next();
+      return true;
     }
 
     let localStream: MediaStream;
     try {
       localStream = this.localStream ?? (await this.localStreamController.buildLocalStream());
     } catch (error) {
+      // A fatal failure throws out of here; a handled one (receive-only
+      // fallback) leaves the connection usable, so the init continues.
       this.handleLocalMediaFailure(error);
-      return;
+      this._localMediaSettled$.next();
+      return true;
     }
+
+    // getUserMedia is not cancellable, so a caller that gave up leaves this
+    // promise in flight. Resuming would add transceivers to a closed connection
+    // and leave the devices open for a call that no longer exists.
+    if (!this.peerConnection || this.peerConnection.signalingState === 'closed') {
+      logger.debug(
+        '[RTCPeerConnectionController] Local media arrived after teardown; releasing it.'
+      );
+      localStream.getTracks().forEach((track) => track.stop());
+      return false;
+    }
+
+    this._localMediaSettled$.next();
 
     if (this.transceiverController?.useAddStream ?? false) {
       logger.warn(
@@ -1110,7 +1167,7 @@ export class RTCPeerConnectionController extends Destroyable {
       );
       //@ts-expect-error -- Ignore -- useAddStream checked if the deprecated API should be used
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      this.peerConnection?.addStream(localStream);
+      this.peerConnection.addStream(localStream);
       // In case the browser doesn't fire negotiationneeded automatically
       if (!this.isNegotiating) {
         logger.debug(
@@ -1118,7 +1175,7 @@ export class RTCPeerConnectionController extends Destroyable {
         );
         this.negotiationNeeded$.next();
       }
-      return;
+      return true;
     }
 
     for (const kind of ['audio', 'video']) {
@@ -1142,10 +1199,12 @@ export class RTCPeerConnectionController extends Destroyable {
             `[RTCPeerConnectionController] Using addTrack for local ${kind} track:`,
             track.id
           );
-          this.peerConnection?.addTrack(track, localStream);
+          this.peerConnection.addTrack(track, localStream);
         }
       }
     }
+
+    return true;
   }
 
   /** True for a main connection with no local media to send. */
@@ -1298,6 +1357,114 @@ export class RTCPeerConnectionController extends Destroyable {
   }
 
   /**
+   * Capture the newly selected device, leaving the current capture running.
+   *
+   * A rejection must leave the current track sending, so nothing is released
+   * until the replacement is in hand. The one exception is hardware that admits
+   * a single opener — a phone's front and back cameras, typically — which
+   * rejects the second capture until the first is closed.
+   */
+  private async acquireInputTrack(
+    kind: 'audio' | 'video',
+    constraints: MediaTrackConstraints,
+    deviceInfo: MediaDeviceInfo,
+    currentTrack: MediaStreamTrack
+  ): Promise<MediaStreamTrack> {
+    try {
+      return await this.captureTrack(kind, constraints, deviceInfo.deviceId);
+    } catch (error) {
+      if (!isMediaDeviceInUse(error)) {
+        throw error;
+      }
+      logger.warn(
+        `[RTCPeerConnectionController] ${kind} device is held exclusively; releasing the current capture to retry:`,
+        error
+      );
+      const previousDeviceId = currentTrack.getSettings().deviceId;
+      this.stopTrackSender(kind);
+      try {
+        return await this.captureTrack(kind, constraints, deviceInfo.deviceId);
+      } catch (retryError) {
+        await this.restorePreviousInputTrack(kind, constraints, previousDeviceId, currentTrack);
+        throw retryError;
+      }
+    }
+  }
+
+  private async captureTrack(
+    kind: 'audio' | 'video',
+    constraints: MediaTrackConstraints,
+    deviceId?: string
+  ): Promise<MediaStreamTrack> {
+    const { stream, fallbackLevel } = await getUserMediaWithFallback(
+      { getUserMedia: async (c: MediaStreamConstraints) => this.getUserMedia(c) },
+      { [kind]: constraints },
+      kind,
+      deviceId
+    );
+    const track = stream.getTracks().find((t) => t.kind === kind);
+    if (!track) {
+      stream.getTracks().forEach((t) => t.stop());
+      throw new MediaTrackError(
+        'updateSelectedInputDevice',
+        kind,
+        new Error('getUserMedia returned no track of the requested kind')
+      );
+    }
+    if (fallbackLevel !== 'exact') {
+      logger.warn(
+        `[RTCPeerConnectionController] ${kind} device acquired at fallback level '${fallbackLevel}'; ` +
+          `the capture may not be the requested device.`
+      );
+    }
+    return track;
+  }
+
+  /** Best-effort return to the device that was released for an exclusive retry. */
+  private async restorePreviousInputTrack(
+    kind: 'audio' | 'video',
+    constraints: MediaTrackConstraints,
+    previousDeviceId: string | undefined,
+    releasedTrack: MediaStreamTrack
+  ): Promise<void> {
+    try {
+      const restored = await this.captureTrack(kind, constraints, previousDeviceId);
+      await this.attachInputTrack(kind, restored, releasedTrack);
+    } catch (error) {
+      logger.error(
+        `[RTCPeerConnectionController] Failed to restore the previous ${kind} device:`,
+        error
+      );
+    }
+  }
+
+  private async attachInputTrack(
+    kind: 'audio' | 'video',
+    newTrack: MediaStreamTrack,
+    oldTrack: MediaStreamTrack
+  ): Promise<void> {
+    // With the pipeline engaged the audio sender carries pipeline.outputTrack;
+    // pointing it at the raw capture instead would drop the processing and race
+    // the re-hook driven by localAudioTracks$.
+    const pipelineOwnsAudio = kind === 'audio' && this._localAudioPipeline;
+    if (!pipelineOwnsAudio) {
+      try {
+        await this.transceiverController?.replaceSenderTrack(kind, newTrack);
+      } catch (error) {
+        // Nothing holds this capture yet, so no destroy path could reach it.
+        newTrack.stop();
+        throw error;
+      }
+    }
+
+    this.localStreamController.removeTrack(oldTrack.id);
+    this.localStreamController.addTrack(newTrack);
+    if (pipelineOwnsAudio) {
+      this._localAudioPipeline?.setInputTrack(newTrack);
+    }
+  }
+
+  /**
    * Return the lazily-created {@link LocalAudioPipeline}, constructing it on
    * first access. On creation the current audio sender's track is routed
    * through the pipeline (input → gain → analyser → destination) and the
@@ -1351,6 +1518,8 @@ export class RTCPeerConnectionController extends Destroyable {
       return;
     }
     try {
+      // Not a device capture, so the constraint paths must never re-acquire it.
+      this.localStreamController.setTrackOrigin(this._localAudioPipeline.outputTrack, 'processed');
       await sender.replaceTrack(this._localAudioPipeline.outputTrack);
     } catch (error) {
       logger.warn(
@@ -1441,56 +1610,91 @@ export class RTCPeerConnectionController extends Destroyable {
     // Add the new track
     this.addLocalTrack(track);
   }
+  /**
+   * @returns whether the constraints reached the media the leg is sending.
+   *
+   * With the pipeline engaged the audio sender carries the processed
+   * destination track, so the sender scan would find nothing it may touch and
+   * every audio constraint API would silently no-op. The constraints belong to
+   * the pipeline's device source, which is the capture that sender ultimately
+   * carries.
+   */
   public async updateSendersConstraints(
     kind: 'audio' | 'video',
     constraints?: MediaTrackConstraints
-  ): Promise<void> {
-    await this.transceiverController?.updateSendersConstraints(kind, constraints);
+  ): Promise<boolean> {
+    if (kind === 'audio' && this._localAudioPipeline) {
+      if (!constraints) {
+        // Omitted constraints mean "release the sender", which the scan
+        // implements as sender.track.stop() — here the destination track, which
+        // would stay ended for the rest of the call.
+        this.stopTrackSender('audio');
+        return false;
+      }
+      return this.applyPipelineSourceConstraints(constraints);
+    }
+    return (await this.transceiverController?.updateSendersConstraints(kind, constraints)) ?? false;
   }
 
   /**
-   * Replace the current audio track with a new one using the given constraints.
-   * Used for server-pushed audio constraint changes where applyConstraints
-   * fails on iOS Safari. Stops the current track, acquires a new one via
-   * getUserMedia, and replaces the sender track.
+   * Mirror of the sender path for a piped audio leg: same merge, same fallback
+   * ladder, same device-capture invariant — but the swap target is the pipeline
+   * input, so the sender keeps emitting the pipeline's output track and its
+   * identity survives the change.
    */
-  public async replaceAudioTrackWithConstraints(constraints: MediaTrackConstraints): Promise<void> {
-    const senders = this.peerConnection
-      ?.getSenders()
-      .filter((s) => s.track?.kind === 'audio' && s.track.readyState === 'live');
-
-    if (!senders || senders.length === 0) {
-      logger.warn('[RTCPeerConnectionController] No live audio sender to replace');
-      return;
+  private async applyPipelineSourceConstraints(
+    constraints: MediaTrackConstraints
+  ): Promise<boolean> {
+    const pipeline = this._localAudioPipeline;
+    const source = this.localStreamController.localAudioTracks.at(0);
+    if (!pipeline || !source) {
+      logger.debug('[RTCPeerConnectionController] No pipeline input to constrain.');
+      return false;
+    }
+    if (!this.localStreamController.isDeviceCapture(source)) {
+      logger.debug(
+        '[RTCPeerConnectionController] Skipping audio constraints for a non-device pipeline ' +
+          `input (origin: ${this.localStreamController.getTrackOrigin(source) ?? 'unrecorded'}).`
+      );
+      return false;
     }
 
-    for (const sender of senders) {
-      const oldTrack = sender.track;
-      if (!oldTrack) continue;
-
-      // Merge new constraints with current deviceId
-      const currentSettings = oldTrack.getSettings();
-      const { deviceId } = currentSettings;
-      const mergedConstraints: MediaTrackConstraints = {
-        ...oldTrack.getConstraints(),
-        ...constraints,
-        ...(deviceId ? { deviceId: { exact: deviceId } } : {})
-      };
-
-      // Stop old track
-      const trackId = oldTrack.id;
-      oldTrack.stop();
-      this.localStreamController.removeTrack(trackId);
-
-      // Acquire new track
-      const stream = await this.getUserMedia({ audio: mergedConstraints });
-      const newTrack = stream.getAudioTracks()[0];
-
-      await sender.replaceTrack(newTrack);
-      this.localStreamController.addTrack(newTrack);
-      logger.debug(
-        `[RTCPeerConnectionController] Audio track replaced for server-pushed params. New track: ${newTrack.id}`
+    const merged: MediaTrackConstraints = { ...source.getConstraints(), ...constraints };
+    try {
+      await source.applyConstraints(merged);
+      logger.debug('[RTCPeerConnectionController] Pipeline input constraints updated:', merged);
+      return true;
+    } catch (error) {
+      logger.warn(
+        '[RTCPeerConnectionController] applyConstraints failed on the pipeline input, re-acquiring:',
+        error
       );
+    }
+
+    try {
+      const { stream } = await getUserMediaWithFallback(
+        { getUserMedia: async (c: MediaStreamConstraints) => this.getUserMedia(c) },
+        { audio: merged },
+        'audio',
+        source.getSettings().deviceId
+      );
+      const newTrack = stream.getAudioTracks().at(0);
+      if (!newTrack) {
+        stream.getTracks().forEach((track) => track.stop());
+        throw new Error('getUserMedia returned no audio track');
+      }
+      this.localStreamController.removeTrack(source.id);
+      this.localStreamController.addTrack(newTrack);
+      pipeline.setInputTrack(newTrack);
+      return true;
+    } catch (error) {
+      logger.warn(
+        '[RTCPeerConnectionController] Failed to re-acquire the pipeline input for constraints:',
+        error
+      );
+      // Mid-call track op: non-fatal — the constraints just did not take.
+      this._errors$.next(new MediaTrackError('updateSendersConstraints', 'audio', error));
+      return false;
     }
   }
 

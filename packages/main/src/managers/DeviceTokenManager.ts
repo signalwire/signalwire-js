@@ -94,7 +94,14 @@ export class DeviceTokenManager extends Destroyable {
 
   constructor(
     private readonly dpopManager: CryptoController,
-    private readonly http: HTTPRequestController,
+    /**
+     * Resolved per request, NOT captured. The container swaps its HTTP controller
+     * once the credential's `ch` claim reveals the real host; anything holding an
+     * instance from before that keeps the default host and talks to the wrong
+     * environment. Holding a reference here sent staging-minted tokens to
+     * production, where they 401.
+     */
+    private readonly http: () => HTTPRequestController,
     private readonly errorHandler: (error: Error) => void,
     private readonly getCredential: () => SDKCredential
   ) {
@@ -201,7 +208,7 @@ export class DeviceTokenManager extends Destroyable {
       logger.info('[DeviceToken] Client Bound SAT activated successfully');
 
       // Emit token to trigger reactive refresh pipeline
-      this._currentToken$.next(tokenData);
+      this.emitCurrentToken(tokenData);
       return { activated: true };
     } catch (error) {
       logger.error('[DeviceToken] Failed to activate Client Bound SAT:', error);
@@ -213,6 +220,21 @@ export class DeviceTokenManager extends Destroyable {
       // the orchestrator keeps the developer-provided refresh path armed.
       return { activated: false, reason: 'endpoint-failed' };
     }
+  }
+
+  /**
+   * Emit a freshly received token to the reactive pipeline, stamping an
+   * absolute `expires_at` when the response carried only `expires_in`.
+   * Resolving the expiry at RECEIVE time (not at read time) is what lets
+   * {@link refreshNowIfDue} detect due-ness on resume: a bare `expires_in`
+   * re-resolved later would always compute a full TTL from "now" and never
+   * cross the refresh buffer.
+   */
+  private emitCurrentToken(token: DeviceTokenResponse): void {
+    const stamped: DeviceTokenResponse = token.expires_at
+      ? token
+      : { ...token, expires_at: resolveExpiresAt(token) };
+    this._currentToken$.next(stamped);
   }
 
   /**
@@ -236,7 +258,7 @@ export class DeviceTokenManager extends Destroyable {
       uri: DEVICE_TOKEN_ENDPOINT
     });
 
-    const response = await this.http.request({
+    const response = await this.http().request({
       url: DEVICE_TOKEN_ENDPOINT,
       ...POST_PARAMS,
       body: JSON.stringify({
@@ -279,7 +301,7 @@ export class DeviceTokenManager extends Destroyable {
       accessToken: currentToken
     });
 
-    const response = await this.http.request({
+    const response = await this.http().request({
       url: DEVICE_REFRESH_ENDPOINT,
       ...POST_PARAMS,
       body: JSON.stringify({
@@ -361,7 +383,7 @@ export class DeviceTokenManager extends Destroyable {
       }
 
       const newTokenData = await this.retryRefresh(session, currentToken, updateCredential);
-      this._currentToken$.next(newTokenData);
+      this.emitCurrentToken(newTokenData);
     } catch (error) {
       logger.error('[DeviceToken] Automatic Client Bound SAT refresh failed:', error);
       this.errorHandler(
@@ -403,6 +425,26 @@ export class DeviceTokenManager extends Destroyable {
     throw lastError instanceof Error
       ? lastError
       : new TokenRefreshError('All refresh retries exhausted', lastError);
+  }
+
+  /**
+   * Force an immediate refresh when the cached Client Bound SAT is already
+   * past its refresh window. Called on resume from suspension where
+   * background-tab throttling can delay the reactive timer past the buffer.
+   * A no-op when no token is cached or it still has headroom; the normal
+   * {@link executeRefresh} guards (paused / in-progress / unauthenticated)
+   * still apply.
+   */
+  public refreshNowIfDue(): void {
+    const token = this._currentToken$.value;
+    if (!token) {
+      return;
+    }
+    const dueWithinMs = resolveExpiresAt(token) * 1000 - Date.now();
+    if (dueWithinMs <= DEVICE_TOKEN_REFRESH_BUFFER_MS) {
+      logger.debug('[DeviceToken] Resume: cached SAT past refresh window; refreshing now');
+      void this.executeRefresh();
+    }
   }
 
   /**

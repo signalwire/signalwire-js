@@ -7,15 +7,25 @@ on:
     branches: [main]
   schedule:
     - cron: '0 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'SignalWire environment to test against'
+        type: choice
+        options: [production, staging]
+        default: production
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment || 'production' }}
   cancel-in-progress: true
 
 jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    # Selects which GitHub Environment supplies the SW_* vars/secrets below.
+    # Automatic triggers have no `inputs`, so they use the fallback.
+    environment: ${{ inputs.environment || 'production' }}
     timeout-minutes: 45
     env:
       SW_SPACE: ${{ vars.SW_SPACE }}
@@ -24,9 +34,28 @@ jobs:
       SW_API_TOKEN: ${{ secrets.SW_API_TOKEN }}
       SW_SUBSCRIBER_REFERENCE: ${{ vars.SW_SUBSCRIBER_REFERENCE }}
       SW_SUBSCRIBER_PASSWORD: ${{ secrets.SW_SUBSCRIBER_PASSWORD }}
-      SW_APPLICATION_ID: ${{ vars.SW_APPLICATION_ID }}
+      # application_id is optional — prime-rails skips validation when it is blank,
+      # and api.ts omits it from the token mint when falsy. But an environment that
+      # does not define it inherits the repo-level (production) id, which then fails
+      # with no_installed_applications against another project, and GitHub will not
+      # accept an empty variable value. So `none` means "send no application_id".
+      SW_APPLICATION_ID: ${{ vars.SW_APPLICATION_ID != 'none' && vars.SW_APPLICATION_ID || '' }}
+      # Gates the in-dialog control suite (needs verto.info params.command,
+      # mod_infrastructure #1828). Defaults to 'true' now that #1828 ships on both
+      # production and staging; set the env variable to 'false' to opt an environment out.
+      SW_IN_DIALOG_CONTROL: ${{ vars.SW_IN_DIALOG_CONTROL || 'true' }}
 
     steps:
+      # An environment that does not define a value silently inherits the
+      # repo-level (production) one, so print the non-sensitive vars to make the
+      # real target visible on the run.
+      - name: Show target
+        run: |
+          echo "host:       ${SW_SPACE}.${SW_DOMAIN}"
+          echo "project:    ${SW_PROJECT_ID}"
+          echo "subscriber: ${SW_SUBSCRIBER_REFERENCE}"
+          echo "app id:     ${SW_APPLICATION_ID:-<unset>}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BehaviorSubject } from 'rxjs';
 
 vi.mock('../UI/icons/sw-ui-icon.js', () => ({}));
@@ -237,5 +237,140 @@ describe('sw-device-selector', () => {
     getTrigger(el).click();
     await el.updateComplete;
     expect(getTrigger(el).getAttribute('aria-expanded')).toBe('true');
+  });
+
+  describe('preview mode', () => {
+    let getUserMedia: ReturnType<typeof vi.fn>;
+    let videoTrack: { stop: ReturnType<typeof vi.fn> };
+    let audioTrack: { stop: ReturnType<typeof vi.fn> };
+    let originalMediaDevices: PropertyDescriptor | undefined;
+
+    beforeEach(() => {
+      // Separate tracks per kind: a shared array would let this suite pass with
+      // only one of _stopVideoPreview / _stopAudioPreview running.
+      videoTrack = { stop: vi.fn() };
+      audioTrack = { stop: vi.fn() };
+      getUserMedia = vi.fn().mockImplementation((constraints: MediaStreamConstraints) =>
+        Promise.resolve({ getTracks: () => (constraints.video ? [videoTrack] : [audioTrack]) })
+      );
+      originalMediaDevices = Object.getOwnPropertyDescriptor(navigator, 'mediaDevices');
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia },
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      // Restore rather than leave navigator patched and Audio stubbed for
+      // whoever appends the next describe block.
+      if (originalMediaDevices) {
+        Object.defineProperty(navigator, 'mediaDevices', originalMediaDevices);
+      } else {
+        delete (navigator as unknown as Record<string, unknown>)['mediaDevices'];
+      }
+      vi.unstubAllGlobals();
+    });
+
+    function selectedController() {
+      const mic = makeDevice('a1', 'Mic');
+      const cam = { ...makeDevice('v1', 'Cam'), kind: 'videoinput' as MediaDeviceKind };
+      return makeController({ audioIn: [mic], videoIn: [cam], selAudioIn: mic, selVideoIn: cam });
+    }
+
+    // Opening the panel renders it, then the getUserMedia promises resolve and
+    // re-render with the preview elements — hence two flushes.
+    async function openPanelWithPreviews(el: SwDeviceSelector) {
+      getTrigger(el).click();
+      await el.updateComplete;
+      await el.updateComplete;
+    }
+
+    it('starts camera and mic previews when the panel opens', async () => {
+      el = await mount({ deviceController: selectedController() as any, showPreview: true });
+      await openPanelWithPreviews(el);
+      expect(getUserMedia).toHaveBeenCalledTimes(2);
+      expect(getUserMedia).toHaveBeenCalledWith({ video: { deviceId: { exact: 'v1' } } });
+      expect(getUserMedia).toHaveBeenCalledWith({ audio: { deviceId: { exact: 'a1' } } });
+      expect(el.shadowRoot!.querySelector('.preview-camera')).toBeTruthy();
+      expect(el.shadowRoot!.querySelector('.preview-mic')).toBeTruthy();
+    });
+
+    it('stops preview tracks when the panel closes', async () => {
+      el = await mount({ deviceController: selectedController() as any, showPreview: true });
+      await openPanelWithPreviews(el);
+      getTrigger(el).click();
+      await el.updateComplete;
+      expect(videoTrack.stop).toHaveBeenCalled();
+      expect(audioTrack.stop).toHaveBeenCalled();
+    });
+
+    it('renders the test-speaker button when show-preview is enabled', async () => {
+      const spk = { ...makeDevice('o1', 'Speaker'), kind: 'audiooutput' as MediaDeviceKind };
+      const dc = makeController({ audioOut: [spk], selAudioOut: spk });
+      el = await mount({ deviceController: dc as any, showPreview: true });
+      getTrigger(el).click();
+      await el.updateComplete;
+      expect(el.shadowRoot!.querySelector('.test-speaker')).toBeTruthy();
+    });
+
+    function stubAudio() {
+      const mockAudio = {
+        loop: false,
+        src: '',
+        play: vi.fn().mockResolvedValue(undefined),
+        pause: vi.fn(),
+        setSinkId: vi.fn().mockResolvedValue(undefined),
+        addEventListener: vi.fn(),
+      };
+      vi.stubGlobal('Audio', vi.fn(() => mockAudio));
+      return mockAudio;
+    }
+
+    function speakerController() {
+      const spk = { ...makeDevice('o1', 'Speaker'), kind: 'audiooutput' as MediaDeviceKind };
+      return makeController({ audioOut: [spk], selAudioOut: spk });
+    }
+
+    it('starts and stops the speaker test tone', async () => {
+      const mockAudio = stubAudio();
+      el = await mount({ deviceController: speakerController() as any, showPreview: true });
+
+      await (el as any)._testSpeaker();
+      expect(mockAudio.play).toHaveBeenCalled();
+      expect(mockAudio.setSinkId).toHaveBeenCalledWith('o1');
+      expect((el as any)._testingSpeaker).toBe(true);
+
+      await (el as any)._testSpeaker();
+      expect(mockAudio.pause).toHaveBeenCalled();
+      expect((el as any)._testingSpeaker).toBe(false);
+    });
+
+    // Goes through the button's click binding rather than calling _testSpeaker
+    // directly, so a rename or a dropped @click handler fails here.
+    it('starts the test tone when the test-speaker button is clicked', async () => {
+      const mockAudio = stubAudio();
+      el = await mount({ deviceController: speakerController() as any, showPreview: true });
+      getTrigger(el).click();
+      await el.updateComplete;
+
+      const button = el.shadowRoot!.querySelector('.test-speaker') as HTMLButtonElement;
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+
+      // The click handler doesn't await _testSpeaker, and the flag is only set
+      // after setSinkId and play resolve.
+      await vi.waitFor(() => {
+        expect(mockAudio.play).toHaveBeenCalled();
+        expect((el as any)._testingSpeaker).toBe(true);
+      });
+      expect(el.shadowRoot!.querySelector('.panel')).toBeTruthy();
+    });
+
+    it('does not render previews when show-preview is disabled', async () => {
+      el = await mount({ deviceController: selectedController() as any });
+      getTrigger(el).click();
+      await el.updateComplete;
+      expect(el.shadowRoot!.querySelector('.preview-camera')).toBeNull();
+      expect(getUserMedia).not.toHaveBeenCalled();
+    });
   });
 });

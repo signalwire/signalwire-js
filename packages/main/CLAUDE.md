@@ -52,9 +52,10 @@ The package exports a minimal public API. Internal modules must **never** import
 **Exported:** `SignalWire`, domain models (`Call`, `Participant`, `Address`), types
 **Not Exported:** Controllers, Managers, Containers, behaviors, RPC internals
 
-### Destroyable Pattern
+### Destroyable Pattern (`src/behaviors/Destroyable.ts`)
 
-All stateful classes extend `Destroyable` for automatic cleanup:
+All stateful classes extend `Destroyable` for automatic cleanup of subscriptions and subjects.
+It creates managed `BehaviorSubject`, `ReplaySubject`, and `Subject` instances:
 
 ```typescript
 class MyClass extends Destroyable {
@@ -73,6 +74,10 @@ class MyClass extends Destroyable {
   }
 }
 ```
+
+### Dependency Injection (`src/containers/DependencyContainer.ts`)
+
+Singleton container for shared dependencies: storage, the WebSocket constructor, and credentials.
 
 ### Manager Initialization Pattern
 

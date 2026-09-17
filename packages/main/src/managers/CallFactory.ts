@@ -21,6 +21,7 @@ import type { NetworkChangeEvent } from '../controllers/NetworkMonitor';
 import type { Address } from '../core/entities/Address';
 import type { CallOptions } from '../core/entities/types/call.types';
 import type { CallError } from '../core/errors';
+import type { RTCPeerConnectionPropose } from '../core/types/call.types';
 import type { WebRTCApiProvider } from '../dependencies/interfaces';
 import type { ClientSession } from '../interfaces/ClientSession';
 import type { DeviceController } from '../interfaces/DeviceController';
@@ -29,8 +30,11 @@ import type { Observable } from 'rxjs';
 /**
  * Infers the semantic error category from a raw Error thrown by VertoManager
  * or an RTCPeerConnection layer.
+ *
+ * Pure function — exported for unit testing.
+ * @internal
  */
-function inferCallErrorKind(error: Error): CallError['kind'] {
+export function inferCallErrorKind(error: Error): CallError['kind'] {
   if (error instanceof RPCTimeoutError) return 'timeout';
   if (error instanceof JSONRPCError) return 'signaling';
   if (error instanceof MediaTrackError) return 'media';
@@ -50,8 +54,15 @@ const RECOVERABLE_RPC_CODES = new Set<number | string>([
   RPC_ERROR_INVALID_PARAMS
 ]);
 
-/** Determines whether an error should be fatal (destroy the call). */
-function isFatalError(error: Error): boolean {
+/**
+ * A *fallback*: callers knowing which leg failed pass an explicit `fatal` and
+ * never reach here, so the default-fatal branch only sees call- and main-leg
+ * errors. Auxiliary legs go through `WebRTCVertoManager.reportLegError`.
+ *
+ * Pure function — exported for unit testing.
+ * @internal
+ */
+export function isFatalError(error: Error): boolean {
   // Transient signaling issues — the call may survive
   if (error instanceof VertoPongError) return false;
   // Media device errors degrade quality but don't end the call
@@ -98,12 +109,17 @@ export class CallFactory {
             this.webRTCApiProvider,
             {
               nodeId: options.nodeId,
-              onError: (error: Error, options?: { fatal?: boolean }) => {
+              onError: (
+                error: Error,
+                options?: { fatal?: boolean; leg?: RTCPeerConnectionPropose; legId?: string }
+              ) => {
                 const callError: CallError = {
                   kind: inferCallErrorKind(error),
                   fatal: options?.fatal ?? isFatalError(error),
                   error,
-                  callId: callInstance.id
+                  callId: callInstance.id,
+                  ...(options?.leg ? { leg: options.leg } : {}),
+                  ...(options?.legId ? { legId: options.legId } : {})
                 };
                 callInstance.emitError(callError);
               },

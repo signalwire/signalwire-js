@@ -76,13 +76,62 @@ describe('DeviceTokenManager', () => {
     errorHandler = vi.fn();
     credential = { token: 'original-sat', authorizationState: 'some-state' } as SDKCredential;
     getCredential = vi.fn(() => credential);
-    manager = new DeviceTokenManager(dpop, http, errorHandler, getCredential);
+    // Provider, not instance — the real container swaps its controller once the
+    // token's `ch` claim is known, so holding one talks to the wrong environment.
+    manager = new DeviceTokenManager(dpop, () => http, errorHandler, getCredential);
     updateCredential = vi.fn();
   });
 
   afterEach(() => {
     manager.destroy();
     vi.restoreAllMocks();
+  });
+
+  // =========================================================================
+  // HTTP controller resolution
+  //
+  // The container replaces its HTTP controller once the credential's `ch` claim
+  // reveals the real host — before that it carries a default. This manager is
+  // constructed BEFORE the token is decoded, so capturing the controller pins the
+  // default host for the life of the client. That shipped: staging-minted SATs
+  // were POSTed to production's fabric host and came back 401, on the one code
+  // path that captured an instance while 185 other requests went to the right
+  // host. Invisible against production, where the default happens to be correct.
+  // =========================================================================
+
+  describe('HTTP controller resolution', () => {
+    it('resolves the controller per request rather than capturing it', async () => {
+      const stale = createMockHTTP();
+      const fresh = createMockHTTP();
+      let current = stale;
+
+      const lateBound = new DeviceTokenManager(dpop, () => current, errorHandler, getCredential);
+      // Stand in for the container swapping controllers once `ch` is applied.
+      current = fresh;
+
+      (fresh.request as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        body: JSON.stringify({
+          token: 'client-bound-sat',
+          expires_at: Math.floor(Date.now() / 1000) + 900
+        })
+      });
+
+      const user = createMockUser({
+        scope: ['sat:refresh'],
+        expires_at: Math.floor(Date.now() / 1000) + 900
+      });
+
+      const result = await lateBound.activate(user, session, updateCredential);
+
+      expect(result).toEqual({ activated: true });
+      expect(fresh.request).toHaveBeenCalledOnce();
+      expect(stale.request).not.toHaveBeenCalled();
+
+      lateBound.destroy();
+    });
   });
 
   // =========================================================================
@@ -674,6 +723,87 @@ describe('DeviceTokenManager', () => {
       manager.destroy();
 
       expect(refreshCalls).toBe(1);
+    });
+  });
+
+  // =========================================================================
+  // refreshNowIfDue() — resume-from-suspension
+  // =========================================================================
+
+  describe('refreshNowIfDue()', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('refreshes immediately when the cached SAT is within the refresh window', async () => {
+      // Activate with a token that expires just inside the refresh buffer, so
+      // its scheduled timer sits at the 1s floor but has not fired yet.
+      const nearExpiry = Math.floor(Date.now() / 1000) + 2;
+      (http.request as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        body: JSON.stringify({ token: 'mock-client-bound-sat', expires_at: nearExpiry })
+      });
+      const user = createMockUser({ scope: ['sat:refresh'] });
+      await manager.activate(user, session, updateCredential);
+
+      // activate() reauthenticated once. Force a resume-triggered refresh.
+      (session.reauthenticate as ReturnType<typeof vi.fn>).mockClear();
+      manager.refreshNowIfDue();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(session.reauthenticate).toHaveBeenCalledTimes(1);
+    });
+
+    it('is a no-op when the cached SAT still has headroom', async () => {
+      const farExpiry = Math.floor(Date.now() / 1000) + 900;
+      (http.request as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        body: JSON.stringify({ token: 'mock-client-bound-sat', expires_at: farExpiry })
+      });
+      const user = createMockUser({ scope: ['sat:refresh'] });
+      await manager.activate(user, session, updateCredential);
+
+      (session.reauthenticate as ReturnType<typeof vi.fn>).mockClear();
+      manager.refreshNowIfDue();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(session.reauthenticate).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op when no token has been cached yet', () => {
+      manager.refreshNowIfDue();
+      expect(session.reauthenticate).not.toHaveBeenCalled();
+    });
+
+    it('detects due-ness for an expires_in-only token when the timer was throttled', async () => {
+      // Server returns only expires_in (60s). The absolute expiry is stamped at
+      // receive time, so due-ness is correct even when the scheduled timer is
+      // frozen and the clock jumps forward (background-tab throttling).
+      (http.request as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        body: JSON.stringify({ token: 'mock-client-bound-sat', expires_in: 60 })
+      });
+      const user = createMockUser({ scope: ['sat:refresh'] });
+      await manager.activate(user, session, updateCredential);
+
+      (session.reauthenticate as ReturnType<typeof vi.fn>).mockClear();
+      // Advance the clock 58s WITHOUT firing the 55s refresh timer (simulates a
+      // frozen background timer). setSystemTime moves Date.now() but not timers.
+      vi.setSystemTime(Date.now() + 58_000);
+      manager.refreshNowIfDue();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(session.reauthenticate).toHaveBeenCalledTimes(1);
     });
   });
 

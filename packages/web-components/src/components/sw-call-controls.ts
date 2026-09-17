@@ -12,7 +12,7 @@ import type {
   SettingsChangeDetail,
 } from './UI/controls/sw-ui-control-bar.js';
 import { getLogger } from '@signalwire/js';
-import type { CallSelfParticipant } from '@signalwire/js';
+import type { CallSelfParticipant, ScreenShareStatus } from '@signalwire/js';
 import type { Call } from '../types/index.js';
 
 const logger = getLogger();
@@ -28,6 +28,7 @@ const logger = getLogger();
  *
  * @prop {Call}    call             - explicit Call object (overrides context)
  * @prop {boolean} showScreenShare  - show the screen-share button
+ * @prop {boolean} screenShareAudio - also request the shared surface's audio
  * @prop {boolean} showHandRaise   - show the hand-raise button
  * @prop {boolean} showTranscript  - show the transcript toggle button
  * @prop {boolean} transcriptActive - current transcript panel visibility
@@ -58,10 +59,18 @@ export class SwCallControls extends LitElement {
 
   private _directSubscriptions: Subscription[] = [];
 
+  @state() private _screenShareStatus: ScreenShareStatus = 'none';
+
+  private _screenShareStatusSelf: CallSelfParticipant | null = null;
+  private _screenShareStatusSub?: Subscription;
+
   @state() private _fullscreen = false;
 
   @property({ type: Boolean, reflect: true, attribute: 'show-screen-share' })
   showScreenShare = true;
+
+  @property({ type: Boolean, reflect: true, attribute: 'screen-share-audio' })
+  screenShareAudio = false;
 
   @property({ type: Boolean, reflect: true, attribute: 'show-hand-raise' })
   showHandRaise = true;
@@ -90,17 +99,48 @@ export class SwCallControls extends LitElement {
         );
       }
     }
+    this._trackScreenShareStatus();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._teardownDirect();
+    this._untrackScreenShareStatus();
   }
 
   private _teardownDirect(): void {
     this._directSubscriptions.forEach((s) => s.unsubscribe());
     this._directSubscriptions = [];
     this._directSelf = null;
+  }
+
+  /**
+   * Re-render on status transitions: the self object's identity doesn't change
+   * when only its status does — including a share stopped from the browser's
+   * own sharing chrome.
+   */
+  private _trackScreenShareStatus(): void {
+    const self = this._effectiveSelf;
+    if (self === this._screenShareStatusSelf) return;
+
+    this._untrackScreenShareStatus();
+    this._screenShareStatusSelf = self;
+    this._screenShareStatus = self?.screenShareStatus ?? 'none';
+    if (self) {
+      this._screenShareStatusSub = self.screenShareStatus$.subscribe(
+        (status) => (this._screenShareStatus = status)
+      );
+    }
+  }
+
+  private _untrackScreenShareStatus(): void {
+    this._screenShareStatusSub?.unsubscribe();
+    this._screenShareStatusSub = undefined;
+    this._screenShareStatusSelf = null;
+  }
+
+  private get _screenShareBusy(): boolean {
+    return this._screenShareStatus === 'starting' || this._screenShareStatus === 'stopping';
   }
 
   private get _effectiveSelf(): CallSelfParticipant | null {
@@ -152,9 +192,11 @@ export class SwCallControls extends LitElement {
   private _onScreenShareToggle(e: CustomEvent<ScreenShareToggleDetail>) {
     const self = this._effectiveSelf;
     if (!self) return;
+    // The SDK rejects a second start, and a stop mid-stop is a no-op — send neither.
+    if (this._screenShareBusy) return;
 
     if (e.detail.active) {
-      self.startScreenShare().catch((err) => {
+      self.startScreenShare({ audio: this.screenShareAudio }).catch((err) => {
         logger.error('[CallControls] Screen share failed:', err);
       });
     } else {
@@ -220,7 +262,7 @@ export class SwCallControls extends LitElement {
     if (!this._devices && !this.call) return html``;
 
     const self = this._effectiveSelf;
-    const isScreenSharing = self?.screenShareStatus === 'started';
+    const isScreenSharing = this._screenShareStatus === 'started';
     const isHandRaised = self?.handraised ?? false;
 
     const d = this._devices;
@@ -232,6 +274,7 @@ export class SwCallControls extends LitElement {
         .speakerMuted=${d?.speakerMuted ?? false}
         .fullscreen=${this._fullscreen}
         .screenSharing=${isScreenSharing}
+        .screenShareBusy=${this._screenShareBusy}
         .handRaised=${isHandRaised}
         .transcriptActive=${this.transcriptActive}
         .showScreenShare=${this.showScreenShare}

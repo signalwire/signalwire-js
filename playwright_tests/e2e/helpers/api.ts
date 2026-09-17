@@ -147,6 +147,37 @@ export async function createSWMLAppResource(
   return response.json();
 }
 
+export interface ResourceAddress {
+  id: string;
+  name: string;
+  /** Dialable destinations by channel, e.g. `{ video: '/private/my-app?channel=video' }`. */
+  channels: Record<string, string>;
+}
+
+/**
+ * List a resource's dialable addresses.
+ *
+ * A `conference_rooms` resource is reachable at `/public/<name>` by convention, but
+ * an SWML script's address prefix is not something to assume — ask the API for the
+ * destination string and dial it verbatim.
+ */
+export async function getResourceAddresses(id: string): Promise<ResourceAddress[]> {
+  const response = await fetch(
+    `https://${API_HOST}/api/fabric/resources/${id}/addresses`,
+    { headers: HEADERS }
+  );
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(
+      `Failed to list addresses for resource "${id}": ${response.status} ${response.statusText} — ${body}`
+    );
+  }
+
+  const body = (await response.json()) as { data?: ResourceAddress[] };
+  return body.data ?? [];
+}
+
 /** Delete a resource by ID. Swallows errors (cleanup best-effort). */
 export async function deleteResource(id: string): Promise<void> {
   try {

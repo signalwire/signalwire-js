@@ -1008,6 +1008,13 @@ function setupSelfControls(call, self) {
   // --- Screen Share ---
   // v3: roomObj.startScreenShare({ audio, video, positions, layout })
   // v4: self.startScreenShare() / self.stopScreenShare()
+  // v4: a call carries one screen share, so a second startScreenShare() is
+  // rejected. 'starting'/'stopping' mean a start/stop is in flight — treat
+  // them as busy rather than testing only for 'started', or a double-click
+  // during 'starting' asks for a second share.
+  const isScreenShareBusy = () =>
+    self.screenShareStatus === 'starting' || self.screenShareStatus === 'stopping';
+
   const updateScreenShareBtn = () => {
     const isSharing = self.screenShareStatus === 'started';
     DOM.screenShareBtn.innerHTML = isSharing
@@ -1016,9 +1023,11 @@ function setupSelfControls(call, self) {
     DOM.screenShareBtn.className = isSharing
       ? 'btn btn-warning btn-sm'
       : 'btn btn-outline-info btn-sm';
+    DOM.screenShareBtn.disabled = isScreenShareBusy();
   };
 
   DOM.screenShareBtn.onclick = async () => {
+    if (isScreenShareBusy()) return;
     try {
       if (self.screenShareStatus === 'started') {
         await self.stopScreenShare();

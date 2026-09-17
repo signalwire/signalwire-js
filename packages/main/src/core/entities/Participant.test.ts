@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BehaviorSubject, of } from 'rxjs';
 
+import { ParticipantNotReadyError } from '../errors';
 import { Participant, SelfParticipant } from './Participant';
 
 import type { ExecuteMethod } from './Participant';
@@ -28,6 +29,116 @@ function createParticipant(id: string, executeMethod: ExecuteMethod): Participan
 // Tests
 // ---------------------------------------------------------------------------
 
+// The backend locates the member's session by the target's `call_id`, so every
+// member RPC must carry the participant's OWN call_id/node_id from state —
+// never the local call's id (issue #19400).
+const OWN_TARGET: MemberTarget = {
+  member_id: 'member-abc',
+  call_id: 'participant-call-id',
+  node_id: 'participant-node-id'
+};
+
+const OWN_CALL_CONTEXT = {
+  member_id: 'member-abc',
+  call_id: 'participant-call-id',
+  node_id: 'participant-node-id',
+  name: 'Test User',
+  type: 'member'
+};
+
+describe('Participant - RPC target uses the participant own call context', () => {
+  let executeMethod: ReturnType<typeof vi.fn>;
+  let participant: Participant;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    executeMethod = createMockExecuteMethod();
+    participant = createParticipant('member-abc', executeMethod as ExecuteMethod);
+    participant.upnext(OWN_CALL_CONTEXT as Parameters<typeof participant.upnext>[0]);
+  });
+
+  afterEach(() => {
+    participant.destroy();
+  });
+
+  const cases: [string, (p: Participant) => Promise<void>][] = [
+    ['toggleDeaf', (p) => p.toggleDeaf()],
+    ['toggleHandraise', (p) => p.toggleHandraise()],
+    ['mute', (p) => p.mute()],
+    ['unmute', (p) => p.unmute()],
+    ['muteVideo', (p) => p.muteVideo()],
+    ['unmuteVideo', (p) => p.unmuteVideo()],
+    ['toggleEchoCancellation', (p) => p.toggleEchoCancellation()],
+    ['toggleAudioInputAutoGain', (p) => p.toggleAudioInputAutoGain()],
+    ['toggleNoiseSuppression', (p) => p.toggleNoiseSuppression()],
+    ['toggleLowbitrate', (p) => p.toggleLowbitrate()],
+    ['setAudioInputSensitivity', (p) => p.setAudioInputSensitivity(50)],
+    ['setAudioInputVolume', (p) => p.setAudioInputVolume(30)],
+    ['setAudioOutputVolume', (p) => p.setAudioOutputVolume(30)],
+    ['setPosition', (p) => p.setPosition('reserved-1')],
+    ['remove', (p) => p.remove()],
+    ['end', (p) => p.end()]
+  ];
+
+  it.each(cases)('%s targets the participant own call_id/node_id', async (_name, invoke) => {
+    await invoke(participant);
+
+    expect(executeMethod).toHaveBeenCalledOnce();
+    expect(executeMethod.mock.calls[0][0]).toEqual(OWN_TARGET);
+  });
+
+  it('rejects with ParticipantNotReadyError before member state arrives (no RPC sent)', async () => {
+    const freshExecute = createMockExecuteMethod();
+    const fresh = createParticipant('member-new', freshExecute as ExecuteMethod);
+
+    await expect(fresh.mute()).rejects.toBeInstanceOf(ParticipantNotReadyError);
+    expect(freshExecute).not.toHaveBeenCalled();
+
+    fresh.destroy();
+  });
+
+  it('rejects with ParticipantNotReadyError when node_id is still missing', async () => {
+    const freshExecute = createMockExecuteMethod();
+    const fresh = createParticipant('member-new', freshExecute as ExecuteMethod);
+    fresh.upnext({ call_id: 'some-call-id' } as Parameters<typeof fresh.upnext>[0]);
+
+    await expect(fresh.remove()).rejects.toBeInstanceOf(ParticipantNotReadyError);
+    expect(freshExecute).not.toHaveBeenCalled();
+
+    fresh.destroy();
+  });
+});
+
+describe('Participant - target', () => {
+  let participant: Participant;
+
+  beforeEach(() => {
+    participant = createParticipant('member-abc', createMockExecuteMethod() as ExecuteMethod);
+  });
+
+  afterEach(() => {
+    participant.destroy();
+  });
+
+  it('throws ParticipantNotReadyError before member state arrives', () => {
+    expect(() => participant.target).toThrow(ParticipantNotReadyError);
+  });
+
+  it('throws ParticipantNotReadyError when only call_id has arrived', () => {
+    participant.upnext({ call_id: 'participant-call-id' } as Parameters<
+      typeof participant.upnext
+    >[0]);
+
+    expect(() => participant.target).toThrow(ParticipantNotReadyError);
+  });
+
+  it('returns the member triple once call_id and node_id are known', () => {
+    participant.upnext(OWN_CALL_CONTEXT as Parameters<typeof participant.upnext>[0]);
+
+    expect(participant.target).toEqual(OWN_TARGET);
+  });
+});
+
 describe('Participant - remove()', () => {
   let executeMethod: ReturnType<typeof vi.fn>;
   let participant: Participant;
@@ -36,6 +147,7 @@ describe('Participant - remove()', () => {
     vi.clearAllMocks();
     executeMethod = createMockExecuteMethod();
     participant = createParticipant('member-abc', executeMethod as ExecuteMethod);
+    participant.upnext(OWN_CALL_CONTEXT as Parameters<typeof participant.upnext>[0]);
   });
 
   afterEach(() => {
@@ -66,13 +178,7 @@ describe('Participant - remove()', () => {
 
   it("uses the participant's own call_id from state (not a hardcoded fallback)", async () => {
     // Simulate receiving member data with a specific call_id
-    participant.upnext({
-      member_id: 'member-abc',
-      call_id: 'participant-call-id',
-      node_id: 'participant-node-id',
-      name: 'Test User',
-      type: 'member'
-    } as Parameters<typeof participant.upnext>[0]);
+    participant.upnext(OWN_CALL_CONTEXT as Parameters<typeof participant.upnext>[0]);
 
     await participant.remove();
 
@@ -81,11 +187,13 @@ describe('Participant - remove()', () => {
     expect(target.node_id).toBe('participant-node-id');
   });
 
-  it('does not send the empty args object as part of the target', async () => {
+  it('builds the targets[] payload in the args (gateway requires targets for member.remove)', async () => {
+    participant.upnext(OWN_CALL_CONTEXT as Parameters<typeof participant.upnext>[0]);
+
     await participant.remove();
 
     const args = executeMethod.mock.calls[0][2];
-    expect(args).toEqual({});
+    expect(args).toEqual({ targets: [OWN_TARGET] });
   });
 });
 
@@ -121,20 +229,20 @@ describe('Participant - setPosition()', () => {
     expect(executeMethod.mock.calls[0][1]).toBe('call.member.position.set');
   });
 
-  it('builds the targets[] entry with the participant own call_id/node_id', async () => {
+  it('wraps the member triple in each targets[] entry (gateway DTO shape)', async () => {
     await participant.setPosition('reserved-1');
 
-    // The gateway keys positions by the TARGET member's own call context, so the
-    // RPC must carry this participant's own member_id/call_id/node_id (matching
-    // the legacy `setPositions` behavior and `Participant.remove`). #19400.
-    const args = executeMethod.mock.calls[0][2] as { targets: { target: MemberTarget }[] };
-    const target = args.targets[0].target;
-    expect(target.member_id).toBe('member-abc');
-    expect(target.call_id).toBe('participant-call-id');
-    expect(target.node_id).toBe('participant-node-id');
+    const args = executeMethod.mock.calls[0][2] as { targets: Record<string, unknown>[] };
+    const entry = args.targets[0];
+    expect(entry.target).toEqual({
+      member_id: 'member-abc',
+      call_id: 'participant-call-id',
+      node_id: 'participant-node-id'
+    });
+    expect(entry.position).toBe('reserved-1');
   });
 
-  it('builds the full targets[] payload in the args (caller owns the targets shape)', async () => {
+  it('builds the full targets[] payload in the args', async () => {
     await participant.setPosition('reserved-1');
 
     const args = executeMethod.mock.calls[0][2] as Record<string, unknown>;
@@ -165,6 +273,7 @@ describe('Participant - toggleLowbitrate()', () => {
     vi.clearAllMocks();
     executeMethod = createMockExecuteMethod();
     participant = createParticipant('member-abc', executeMethod as ExecuteMethod);
+    participant.upnext(OWN_CALL_CONTEXT as Parameters<typeof participant.upnext>[0]);
   });
 
   afterEach(() => {
@@ -177,7 +286,7 @@ describe('Participant - toggleLowbitrate()', () => {
     await participant.toggleLowbitrate();
 
     expect(executeMethod).toHaveBeenCalledOnce();
-    expect(executeMethod).toHaveBeenCalledWith('member-abc', 'call.lowbitrate.set', {
+    expect(executeMethod).toHaveBeenCalledWith(OWN_TARGET, 'call.lowbitrate.set', {
       lowbitrate: true
     });
   });
@@ -187,7 +296,7 @@ describe('Participant - toggleLowbitrate()', () => {
 
     await participant.toggleLowbitrate();
 
-    expect(executeMethod).toHaveBeenCalledWith('member-abc', 'call.lowbitrate.set', {
+    expect(executeMethod).toHaveBeenCalledWith(OWN_TARGET, 'call.lowbitrate.set', {
       lowbitrate: false
     });
   });
@@ -206,7 +315,7 @@ function createMockVertoManager(): VertoManager {
     addInputDevice: vi.fn().mockResolvedValue(undefined),
     removeInputDevices: vi.fn().mockResolvedValue(undefined),
     addMainInputDevices: vi.fn().mockResolvedValue(undefined),
-    updateMediaConstraints: vi.fn().mockResolvedValue(undefined),
+    updateMediaConstraints: vi.fn().mockResolvedValue(true),
     muteMainAudioInputDevice: vi.fn(),
     unmuteMainAudioInputDevice: vi.fn().mockResolvedValue(undefined),
     muteMainVideoInputDevice: vi.fn(),
@@ -227,6 +336,12 @@ function createSelfParticipant(
   );
 }
 
+const SELF_TARGET: MemberTarget = {
+  member_id: 'self-member',
+  call_id: 'self-call-id',
+  node_id: 'self-node-id'
+};
+
 describe('SelfParticipant - Studio Audio Mode', () => {
   let executeMethod: ReturnType<typeof vi.fn>;
   let selfParticipant: SelfParticipant;
@@ -235,6 +350,11 @@ describe('SelfParticipant - Studio Audio Mode', () => {
     vi.clearAllMocks();
     executeMethod = createMockExecuteMethod();
     selfParticipant = createSelfParticipant('self-member', executeMethod as ExecuteMethod);
+    selfParticipant.upnext({
+      member_id: 'self-member',
+      call_id: 'self-call-id',
+      node_id: 'self-node-id'
+    } as Parameters<typeof selfParticipant.upnext>[0]);
   });
 
   afterEach(() => {
@@ -249,7 +369,7 @@ describe('SelfParticipant - Studio Audio Mode', () => {
     await selfParticipant.enableStudioAudio();
 
     expect(selfParticipant.studioAudio).toBe(true);
-    expect(executeMethod).toHaveBeenCalledWith('self-member', 'call.audioflags.set', {
+    expect(executeMethod).toHaveBeenCalledWith(SELF_TARGET, 'call.audioflags.set', {
       echo_cancellation: false,
       auto_gain: false,
       noise_suppression: false
@@ -263,7 +383,7 @@ describe('SelfParticipant - Studio Audio Mode', () => {
     await selfParticipant.disableStudioAudio();
 
     expect(selfParticipant.studioAudio).toBe(false);
-    expect(executeMethod).toHaveBeenCalledWith('self-member', 'call.audioflags.set', {
+    expect(executeMethod).toHaveBeenCalledWith(SELF_TARGET, 'call.audioflags.set', {
       echo_cancellation: true,
       auto_gain: true,
       noise_suppression: true
@@ -300,7 +420,7 @@ describe('SelfParticipant - Studio Audio Mode', () => {
 
     expect(selfParticipant.studioAudio).toBe(false);
     // The toggle should have called call.audioflags.set
-    expect(executeMethod).toHaveBeenCalledWith('self-member', 'call.audioflags.set', {
+    expect(executeMethod).toHaveBeenCalledWith(SELF_TARGET, 'call.audioflags.set', {
       echo_cancellation: true,
       auto_gain: false,
       noise_suppression: false
@@ -320,7 +440,7 @@ describe('SelfParticipant - Studio Audio Mode', () => {
     await selfParticipant.toggleAudioInputAutoGain();
 
     expect(selfParticipant.studioAudio).toBe(false);
-    expect(executeMethod).toHaveBeenCalledWith('self-member', 'call.audioflags.set', {
+    expect(executeMethod).toHaveBeenCalledWith(SELF_TARGET, 'call.audioflags.set', {
       echo_cancellation: false,
       auto_gain: true,
       noise_suppression: false
@@ -340,7 +460,7 @@ describe('SelfParticipant - Studio Audio Mode', () => {
     await selfParticipant.toggleNoiseSuppression();
 
     expect(selfParticipant.studioAudio).toBe(false);
-    expect(executeMethod).toHaveBeenCalledWith('self-member', 'call.audioflags.set', {
+    expect(executeMethod).toHaveBeenCalledWith(SELF_TARGET, 'call.audioflags.set', {
       echo_cancellation: false,
       auto_gain: false,
       noise_suppression: true
@@ -405,6 +525,21 @@ describe('SelfParticipant - media acquisition error propagation', () => {
     selfParticipant.destroy();
   });
 
+  it('startScreenShare forwards its options to addScreenMedia', async () => {
+    const vertoManager = createMockVertoManager();
+    const selfParticipant = createSelfParticipant(
+      'self-member',
+      executeMethod as ExecuteMethod,
+      vertoManager
+    );
+
+    await selfParticipant.startScreenShare({ audio: true });
+
+    expect(vertoManager.addScreenMedia).toHaveBeenCalledWith({ audio: true });
+
+    selfParticipant.destroy();
+  });
+
   it('addAdditionalDevice rethrows the original error when addInputDevice rejects', async () => {
     const original = createDeniedError();
     const vertoManager = createMockVertoManager();
@@ -432,5 +567,60 @@ describe('SelfParticipant - media acquisition error propagation', () => {
     expect(vertoManager.addInputDevice).toHaveBeenCalledWith({ video: true });
 
     selfParticipant.destroy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SelfParticipant - constraint updates report whether they took
+// ---------------------------------------------------------------------------
+
+describe('SelfParticipant - constraint setters report the outcome', () => {
+  let vertoManager: VertoManager;
+  let selfParticipant: SelfParticipant;
+
+  const updateMediaConstraints = (): ReturnType<typeof vi.fn> =>
+    vertoManager.updateMediaConstraints as unknown as ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vertoManager = createMockVertoManager();
+    selfParticipant = createSelfParticipant(
+      'self-member',
+      createMockExecuteMethod() as ExecuteMethod,
+      vertoManager
+    );
+  });
+
+  afterEach(() => {
+    selfParticipant.destroy();
+  });
+
+  it('setAudioInputDeviceConstraints passes the outcome through', async () => {
+    updateMediaConstraints().mockResolvedValue(true);
+    await expect(
+      selfParticipant.setAudioInputDeviceConstraints({ echoCancellation: false })
+    ).resolves.toBe(true);
+
+    updateMediaConstraints().mockResolvedValue(false);
+    await expect(
+      selfParticipant.setAudioInputDeviceConstraints({ echoCancellation: false })
+    ).resolves.toBe(false);
+  });
+
+  it('setVideoInputDeviceConstraints passes the outcome through', async () => {
+    updateMediaConstraints().mockResolvedValue(false);
+    await expect(selfParticipant.setVideoInputDeviceConstraints({ width: 1920 })).resolves.toBe(
+      false
+    );
+  });
+
+  it('setInputDevicesConstraints passes the outcome through', async () => {
+    updateMediaConstraints().mockResolvedValue(false);
+    await expect(
+      selfParticipant.setInputDevicesConstraints({
+        audio: { echoCancellation: false },
+        video: { width: 1920 }
+      })
+    ).resolves.toBe(false);
   });
 });

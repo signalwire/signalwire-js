@@ -31,13 +31,18 @@ export type {
 
 export {
   CallCreateError,
+  CallNotReadyError,
   CollectionFetchError,
   DeviceTokenError,
   DPoPInitError,
   InvalidCredentialsError,
+  AuxiliaryLegCancelledError,
+  AuxiliaryLegTimeoutError,
   MediaAccessError,
   MediaTrackError,
   MessageParseError,
+  ParticipantNotReadyError,
+  ScreenShareAlreadyActiveError,
   TokenRefreshError,
   UnexpectedError,
   VertoPongError,
@@ -116,7 +121,12 @@ export type { PendingRPCOptions } from './core/utils';
 export type { LayoutLayer } from './core/RPCMessages/types/common';
 
 // Media types
-export type { MediaOptions, MediaDirections, MediaDirection } from './core/types/media.types';
+export type {
+  MediaOptions,
+  MediaDirections,
+  MediaDirection,
+  ScreenShareOptions
+} from './core/types/media.types';
 
 // Conversation types
 export type { AddressHistory, TextMessage } from './core/types/conversation.types';

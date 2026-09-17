@@ -1,4 +1,4 @@
-import { filter, type Subscription } from 'rxjs';
+import { EMPTY, filter, switchMap, type Subscription } from 'rxjs';
 import './style.css';
 import {
   StaticCredentialProvider,
@@ -17,7 +17,6 @@ import {
   type QualityLevel,
   type DeviceRecoveryEvent,
   type PlatformCapabilities,
-  type SessionDiagnostics,
   MediaAccessError
 } from '@signalwire/js';
 import { UserCredentialProvider } from './UserCredentialProvider';
@@ -32,7 +31,6 @@ import {
   clearPersistedToken,
   storeLastDestination,
   getLastDestination,
-  clearLastDestination,
   setAutoConnect,
   getAutoConnect,
   clearAllPersisted
@@ -110,6 +108,7 @@ const DOM = {
   toggleAudioButton: document.querySelector<HTMLButtonElement>('#toggleAudioButton')!,
   toggleVideoButton: document.querySelector<HTMLButtonElement>('#toggleVideoButton')!,
   screenShareButton: document.querySelector<HTMLButtonElement>('#screenShareButton')!,
+  screenShareAudioToggle: document.querySelector<HTMLInputElement>('#screenShareAudioToggle')!,
   toggleDeafButton: document.querySelector<HTMLButtonElement>('#toggleDeafButton')!,
   toggleHandRaiseButton: document.querySelector<HTMLButtonElement>('#toggleHandRaiseButton')!,
   inputVolumeSlider: document.querySelector<HTMLInputElement>('#inputVolumeSlider')!,
@@ -470,37 +469,6 @@ const createBooleanBadge = (value: boolean): string => {
     : '<span class="text-subtle font-semibold">&#10007; No</span>';
 };
 
-// Helper function to render device list
-const renderDeviceList = (
-  devices: MediaDeviceInfo[],
-  container: HTMLDivElement,
-  emptyMessage: string
-): void => {
-  container.innerHTML = '';
-
-  if (devices.length === 0) {
-    container.innerHTML = `<p class="text-subtle text-xs">${emptyMessage}</p>`;
-    return;
-  }
-
-  devices.forEach((device) => {
-    const template = DOM.deviceItemTemplate.content.cloneNode(true) as DocumentFragment;
-    const labelElement = template.querySelector('.device-label') as HTMLParagraphElement;
-    const idElement = template.querySelector('.device-id') as HTMLParagraphElement;
-
-    const label = device.label || 'Unknown device';
-    const deviceIdShort = `ID: ${device.deviceId.substring(0, 12)}...`;
-
-    labelElement.textContent = label;
-    labelElement.title = label;
-
-    idElement.textContent = deviceIdShort;
-    idElement.title = device.deviceId;
-
-    container.appendChild(template);
-  });
-};
-
 // Device subscriptions are set up in initializeApp() after authentication
 
 // Helper function to get initials from name (returns phone emoji for phone numbers)
@@ -644,6 +612,14 @@ const subscribeToDirectory = () => {
 // Helper function to check if screen share is active
 const isScreenShareActive = (call: Call): boolean => {
   return call.self?.screenShareStatus === 'started';
+};
+
+// A start/stop is in flight. A call carries one screen share, so a second
+// startScreenShare() is rejected — block the toggle while busy, or a
+// double-click during 'starting' asks for a second share.
+const isScreenShareBusy = (call: Call): boolean => {
+  const status = call.self?.screenShareStatus;
+  return status === 'starting' || status === 'stopping';
 };
 
 // Helper function to setup the dialpad
@@ -983,16 +959,20 @@ const subscribeToCallObservables = (call: Call) => {
   const updateScreenShareButton = () => {
     const isSharing = isScreenShareActive(call);
     DOM.screenShareButton.classList.toggle('active', isSharing);
+    DOM.screenShareButton.disabled = isScreenShareBusy(call);
   };
 
   // Enable screen share button
   DOM.screenShareButton.disabled = false;
   DOM.screenShareButton.onclick = async () => {
+    if (isScreenShareBusy(call)) return;
     try {
       if (isScreenShareActive(call)) {
         await call.self?.stopScreenShare();
       } else {
-        await call.self?.startScreenShare();
+        // Opt into the shared surface's audio. Chrome shows a "share audio"
+        // checkbox in the picker for tabs and windows; the user still decides.
+        await call.self?.startScreenShare({ audio: DOM.screenShareAudioToggle.checked });
       }
       // Update button state after the API resolves
       updateScreenShareButton();
@@ -1011,6 +991,12 @@ const subscribeToCallObservables = (call: Call) => {
       showToast('Screen Share Error', (error as Error).message, 'error');
     }
   };
+
+  // Follow every status transition, not just the end of the await: the button
+  // has to be disabled *while* a share is starting.
+  call.self$
+    .pipe(switchMap((self) => self?.screenShareStatus$ ?? EMPTY))
+    .subscribe(() => updateScreenShareButton());
 
   // Subscribe to self participant and setup controls when available
   call.self$.subscribe((self) => {
@@ -2075,6 +2061,22 @@ function initializeApp(
   const clientInfoElement = DOM.clientInfoElement;
   statusElement.textContent = 'Connecting...';
 
+  // Render subscriber identity + session binding. The DPoP line shows whether
+  // the session uses a Client Bound SAT — the binding is established (or
+  // restored from a resumed session) shortly after connect, so this is
+  // re-rendered on user updates and once more after a short delay.
+  function renderClientInfo(): void {
+    const user = client?.user;
+    if (!user) return;
+    // client.session is only available once connected — user$ can emit earlier.
+    const bound = client?.session?.clientBound ?? false;
+    clientInfoElement.innerHTML = `
+      <p><strong>ID:</strong> ${user.id || '...'}</p>
+      <p><strong>Email:</strong> ${user.email || '...'}</p>
+      <p><strong>DPoP:</strong> ${bound ? 'Client Bound SAT' : 'Unbound SAT'}</p>
+    `;
+  }
+
   // Populate device dropdowns from device observables.
   // These run immediately on connect so the sidebar selects are populated before any call.
   // Each subscription also syncs the selected value from the SDK's current selection.
@@ -2154,14 +2156,11 @@ function initializeApp(
       DOM.connectionDot.classList.add('connected');
       resolveConnected();
 
-      // Display user info if available
-      const sub = client!.user;
-      if (sub) {
-        clientInfoElement.innerHTML = `
-          <p><strong>ID:</strong> ${sub.id || '...'}</p>
-          <p><strong>Email:</strong> ${sub.email || '...'}</p>
-        `;
-      }
+      // Display user info if available. Re-render after a short delay so the
+      // DPoP line reflects Client Bound SAT activation, which completes
+      // asynchronously after connect.
+      renderClientInfo();
+      setTimeout(renderClientInfo, 3000);
 
       // Subscribe to directory addresses
       subscribeToDirectory();
@@ -2237,10 +2236,7 @@ function initializeApp(
     next: (user) => {
       if (user) {
         console.log('User ready:', user.email);
-        clientInfoElement.innerHTML = `
-          <p><strong>ID:</strong> ${user.id}</p>
-          <p><strong>Email:</strong> ${user.email}</p>
-        `;
+        renderClientInfo();
       }
     },
     error: (error: Error) => {
@@ -2477,32 +2473,36 @@ function setupAuthModal(): void {
 setupAuthModal();
 
 // Boot priority:
-// 1. Build-time token (dev workflow, SAT_TOKEN env var)
-// 2. Persisted token with auto-reconnect (reattach testing)
-// 3. Persisted token without auto-reconnect (pre-fill auth modal)
-// 4. Show auth modal
+// 1. SDK session cache (persistSession) — resume the previous session after a
+//    reload, including Client Bound SAT sessions (credential + authorization
+//    state in storage, DPoP key in IndexedDB). Sign out clears the cache.
+// 2. Build-time token (dev workflow, SAT_TOKEN env var)
+// 3. Show auth modal
 
-const persistedToken = getPersistedToken();
 const persistedMethod = getPersistedAuthMethod() as AuthMethod | null;
 
-if (buildTimeToken) {
-  // Auto-login with build-time token (preserves original behavior for dev workflow)
-  const provider = new StaticCredentialProvider({ token: buildTimeToken });
-  storeToken(buildTimeToken, AUTH_METHODS.BUILD_TIME);
-  initializeApp(provider, AUTH_METHODS.BUILD_TIME);
-} else {
-  // Try to restore session from SDK cache (persistSession stored credential
-  // in localStorage + DPoP key in IndexedDB on previous login).
-  // Pass undefined as provider — SDK uses cached credential if available.
-  console.log('[Boot] Attempting session restore from SDK cache');
-  showAuthLoading();
-  initializeApp(undefined, persistedMethod ?? AUTH_METHODS.BUILD_TIME).catch((err) => {
-    console.log('[Boot] No cached session, showing auth modal:', err.message);
-    if (client) {
-      client.destroy();
-      client = null;
-    }
-    hideAuthLoading();
-    showAuthModal();
-  });
+function bootFresh(): void {
+  if (buildTimeToken) {
+    // Auto-login with build-time token (dev workflow)
+    const provider = new StaticCredentialProvider({ token: buildTimeToken });
+    storeToken(buildTimeToken, AUTH_METHODS.BUILD_TIME);
+    initializeApp(provider, AUTH_METHODS.BUILD_TIME);
+    return;
+  }
+  hideAuthLoading();
+  showAuthModal();
 }
+
+// Try to restore the previous session from the SDK cache first — a fresh
+// build-time login would otherwise replace the session under test.
+// Pass undefined as provider — the SDK uses the cached credential if present.
+console.log('[Boot] Attempting session restore from SDK cache');
+showAuthLoading();
+initializeApp(undefined, persistedMethod ?? AUTH_METHODS.BUILD_TIME).catch((err) => {
+  console.log('[Boot] No cached session, starting fresh:', err.message);
+  if (client) {
+    client.destroy();
+    client = null;
+  }
+  bootFresh();
+});

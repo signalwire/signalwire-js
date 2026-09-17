@@ -14,6 +14,7 @@ import type { ClientSessionManager } from './ClientSessionManager';
 import type { CryptoController } from '../controllers/CryptoController';
 import type { HTTPRequestController } from '../controllers/HTTPRequestController';
 import type { User } from '../core/entities/User';
+import type { Authorization } from '../core/RPCMessages';
 import type { SDKCredential } from '../core/types/common.types';
 import type { SDKWarning } from '../core/types/warnings.types';
 import type { CredentialProvider } from '../dependencies/interfaces';
@@ -59,6 +60,14 @@ export interface RefreshNotifier {
    * typically disconnects in response.
    */
   onRefreshExhausted(): void;
+  /**
+   * Fired after a successful developer refresh so the orchestrator can
+   * reauthenticate the **live** session with the new token — without this,
+   * the fresh token only takes effect on the next reconnect and the open
+   * socket keeps failing `-32003`. The orchestrator handles its own errors;
+   * a rejection here does not abort or retry the refresh.
+   */
+  onCredentialRefreshed(credential: SDKCredential): void | Promise<void>;
 }
 
 /**
@@ -68,7 +77,7 @@ export interface RefreshNotifier {
  */
 export type DeviceTokenManagerFactory = (
   dpopManager: CryptoController,
-  http: HTTPRequestController,
+  http: () => HTTPRequestController,
   errorHandler: (error: Error) => void,
   getCredential: () => SDKCredential
 ) => DeviceTokenManager;
@@ -76,7 +85,8 @@ export type DeviceTokenManagerFactory = (
 /** Callbacks the coordinator needs from the orchestrator. */
 export interface RefreshCoordinatorDeps {
   /** HTTP client used by the internal Client Bound SAT path. */
-  http: HTTPRequestController;
+  /** Provider, not an instance — see DeviceTokenManager's `http`. */
+  http: () => HTTPRequestController;
   /** Outbound notification port. */
   notifier: RefreshNotifier;
   /** Credential read/write port. */
@@ -110,6 +120,18 @@ export class CredentialRefreshCoordinator extends Destroyable {
   private _deviceTokenManager?: DeviceTokenManager;
   private _activating = false;
   private _activationGeneration = 0;
+  /** Provider bound to the armed developer timer; reused by {@link forceRefreshIfDue}. */
+  private _activeProvider?: CredentialProvider;
+  /** Guards against the scheduled tick and a forced refresh running concurrently. */
+  private _developerRefreshInProgress = false;
+  /**
+   * In-flight `provider.refresh()` shared across every re-mint path (scheduled
+   * tick, resume-forced refresh, and the orchestrator's -32003 recovery /
+   * reconnect re-mint). Concurrent callers await the same promise so a provider
+   * backed by one-time-use rotating refresh tokens is never hit twice in
+   * parallel — the exact failure this coordinator exists to prevent.
+   */
+  private _refreshInFlight?: Promise<SDKCredential>;
 
   constructor(
     dpopManager: CryptoController | undefined,
@@ -149,6 +171,7 @@ export class CredentialRefreshCoordinator extends Destroyable {
     expiresAt: number,
     attempt = 0
   ): void {
+    this._activeProvider = provider;
     if (this._developerTimerId !== undefined) {
       clearTimeout(this._developerTimerId);
     }
@@ -161,38 +184,162 @@ export class CredentialRefreshCoordinator extends Destroyable {
             CREDENTIAL_REFRESH_MAX_DELAY_MS
           );
 
-    this._developerTimerId = setTimeout(async () => {
-      try {
-        if (!provider.refresh) {
-          throw new InvalidCredentialsError('Credential provider does not support refresh');
-        }
-        const newCredentials = await provider.refresh();
-        this.deps.store.write(newCredentials);
-        this.deps.store.persist(newCredentials);
-        logger.info('[Coordinator] Credentials refreshed successfully.');
-        if (newCredentials.expiry_at) {
-          this.scheduleDeveloperRefresh(provider, newCredentials.expiry_at, 0);
-        }
-      } catch (error: unknown) {
-        const nextAttempt = attempt + 1;
-        logger.error(
-          `[Coordinator] Credential refresh failed (attempt ${nextAttempt}/${CREDENTIAL_REFRESH_MAX_RETRIES}):`,
-          error
-        );
-        this.deps.notifier.onError(
-          error instanceof Error ? error : new Error(String(error), { cause: error })
-        );
-        if (nextAttempt < CREDENTIAL_REFRESH_MAX_RETRIES) {
-          this.scheduleDeveloperRefresh(provider, expiresAt, nextAttempt);
-        } else {
-          logger.error('[Coordinator] Credential refresh exhausted all retries. Disconnecting.');
-          this.deps.notifier.onError(
-            new TokenRefreshError('Credential refresh failed after max retries')
-          );
-          this.deps.notifier.onRefreshExhausted();
-        }
-      }
+    this._developerTimerId = setTimeout(() => {
+      // Clear the handle before running so developerRefreshArmed reflects
+      // reality mid-tick and a concurrent forceRefreshIfDue() cannot re-fire.
+      this._developerTimerId = undefined;
+      void this.executeDeveloperRefresh(provider, expiresAt, attempt);
     }, refreshInterval);
+  }
+
+  /**
+   * Runs the developer-provided refresh once: mints a new credential, stores
+   * and persists it, reauthenticates the live session (via the notifier), and
+   * reschedules against the new expiry. On failure retries with backoff up to
+   * {@link CREDENTIAL_REFRESH_MAX_RETRIES}, then signals exhaustion.
+   *
+   * Shared by the scheduled timer tick and {@link forceRefreshIfDue}. The
+   * `_developerRefreshInProgress` guard prevents the two from overlapping.
+   */
+  private async executeDeveloperRefresh(
+    provider: CredentialProvider,
+    expiresAt: number,
+    attempt: number
+  ): Promise<void> {
+    if (this._developerRefreshInProgress) {
+      logger.debug('[Coordinator] Developer refresh already in progress; skipping');
+      return;
+    }
+    this._developerRefreshInProgress = true;
+    try {
+      const newCredentials = await this.refreshCredential(provider);
+      this.deps.store.write(newCredentials);
+      this.deps.store.persist(newCredentials);
+      // Reauthenticate the live session with the new token. Best-effort:
+      // a rejection here must NOT be treated as a refresh failure (no retry),
+      // since the refresh itself succeeded and the schedule must continue.
+      try {
+        await this.deps.notifier.onCredentialRefreshed(newCredentials);
+      } catch (reauthError) {
+        logger.warn('[Coordinator] onCredentialRefreshed rejected (non-fatal):', reauthError);
+      }
+      logger.info('[Coordinator] Credentials refreshed successfully.');
+      if (newCredentials.expiry_at) {
+        this.scheduleDeveloperRefresh(provider, newCredentials.expiry_at, 0);
+      }
+    } catch (error: unknown) {
+      const nextAttempt = attempt + 1;
+      logger.error(
+        `[Coordinator] Credential refresh failed (attempt ${nextAttempt}/${CREDENTIAL_REFRESH_MAX_RETRIES}):`,
+        error
+      );
+      this.deps.notifier.onError(
+        error instanceof Error ? error : new Error(String(error), { cause: error })
+      );
+      if (nextAttempt < CREDENTIAL_REFRESH_MAX_RETRIES) {
+        this.scheduleDeveloperRefresh(provider, expiresAt, nextAttempt);
+      } else {
+        logger.error('[Coordinator] Credential refresh exhausted all retries. Disconnecting.');
+        this.deps.notifier.onError(
+          new TokenRefreshError('Credential refresh failed after max retries')
+        );
+        this.deps.notifier.onRefreshExhausted();
+      }
+    } finally {
+      this._developerRefreshInProgress = false;
+    }
+  }
+
+  /**
+   * Force an immediate refresh when the current credential is already past its
+   * scheduled refresh window. Called on resume from suspension, where
+   * background-tab timer throttling can delay the armed refresh well past
+   * expiry, leaving the live session stale.
+   *
+   * Routes to whichever mechanism is armed: the developer timer if armed,
+   * otherwise the Client Bound SAT pipeline. A no-op when nothing is due.
+   */
+  public forceRefreshIfDue(): void {
+    if (this._developerTimerId !== undefined && this._activeProvider) {
+      const expiry = this.deps.store.read().expiry_at;
+      const due = expiry !== undefined && Date.now() >= expiry - CREDENTIAL_REFRESH_BUFFER_MS;
+      if (due) {
+        logger.debug('[Coordinator] Resume: credential past refresh window; forcing refresh');
+        clearTimeout(this._developerTimerId);
+        this._developerTimerId = undefined;
+        void this.executeDeveloperRefresh(this._activeProvider, expiry, 0);
+      }
+      return;
+    }
+    // Developer path not armed — the Client Bound SAT pipeline (if active)
+    // owns refresh; let it revalidate its own cached token.
+    this._deviceTokenManager?.refreshNowIfDue();
+  }
+
+  /**
+   * Sync the credential's expiry from the server-provided authorization (the
+   * `signalwire.connect` result). SATs are opaque JWE, so
+   * `fabric_subscriber.expires_at` is the authoritative expiry of the token
+   * the session actually connected with — the provider-reported `expiry_at`
+   * is only a hint (and may be wrong or absent). Corrects the stored
+   * credential and re-arms the developer refresh timer against the real
+   * deadline when the provider supports `refresh()`.
+   */
+  public syncExpiryFromAuthorization(
+    authorization: Authorization | undefined,
+    provider?: CredentialProvider
+  ): void {
+    // fabric_subscriber is required by the type but server-supplied at
+    // runtime — guard it so a variant omitting it cannot throw inside the
+    // authorization$ subscription (which would silently kill the sync).
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const expiresAtSec = authorization?.fabric_subscriber?.expires_at;
+    if (!expiresAtSec) {
+      return;
+    }
+    const expiryAt = expiresAtSec * 1000;
+    const credential = this.deps.store.read();
+    if (credential.expiry_at === expiryAt) {
+      return;
+    }
+    logger.debug(
+      `[Coordinator] Correcting credential expiry from server authorization: ${new Date(expiryAt).toISOString()}`
+    );
+    const updated = { ...credential, expiry_at: expiryAt };
+    this.deps.store.write(updated);
+    this.deps.store.persist(updated);
+    if (provider?.refresh) {
+      this.scheduleDeveloperRefresh(provider, expiryAt);
+    }
+  }
+
+  /**
+   * Invoke `provider.refresh()` deduped against any concurrent developer
+   * refresh. Concurrent callers — the scheduled tick, a resume-forced refresh,
+   * and the orchestrator's -32003 recovery / reconnect re-mint — share one
+   * in-flight promise, so a provider backed by one-time-use rotating refresh
+   * tokens is never invoked twice in parallel.
+   *
+   * The caller owns applying the returned credential (store write, session
+   * reauth, rescheduling); this method only serializes the network call.
+   */
+  public async refreshCredential(provider: CredentialProvider): Promise<SDKCredential> {
+    if (this._refreshInFlight) {
+      return this._refreshInFlight;
+    }
+    if (!provider.refresh) {
+      throw new InvalidCredentialsError('Credential provider does not support refresh');
+    }
+    const run = provider.refresh();
+    this._refreshInFlight = run;
+    const clear = (): void => {
+      if (this._refreshInFlight === run) {
+        this._refreshInFlight = undefined;
+      }
+    };
+    // Clear the handle on settle without swallowing the result the caller awaits.
+    run.then(clear, clear);
+    return run;
   }
 
   /**

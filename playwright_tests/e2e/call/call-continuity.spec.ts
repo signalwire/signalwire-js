@@ -478,10 +478,40 @@ test.describe('Call Continuity', () => {
     await gotoTestPage(page);
 
     // ── Phase 3: Re-initialize client and wait for reattached call ────────
+    // The reloaded client needs a provider that can re-credential, not just a
+    // static token. If the server refuses the resumed session's credential
+    // (-32003 on subscriber.online), the only recovery a static token can reach
+    // is discarding the resume state and reconnecting fresh — and the backend
+    // only honors attach records within the session that resume state
+    // identifies, so the reattach dies with CALL ERROR /
+    // INVALID_MSG_UNSPECIFIED. Re-minting keeps the session identity, so it
+    // heals the credential without costing the attachment. The SDK warns about
+    // the no-refresh-handler configuration for exactly this reason.
+    await page.exposeFunction('__mintSat', async () => createSATToken());
     const reattachToken = await createSATToken();
     expect(reattachToken, 'SAT token created for reattach').toBeTruthy();
 
-    await initializeClient(page, reattachToken, { reconnectAttachedCalls: true });
+    await page.evaluate(
+      async ({ token, connTimeout }) => {
+        const provider = {
+          authenticate: async () => ({ token }),
+          refresh: async () => ({ token: await window.__mintSat() }),
+        };
+        const client = new window.SignalWire(provider, {
+          logLevel: 'debug',
+          debug: { logWsTraffic: true },
+          reconnectAttachedCalls: true,
+        });
+        window.__swClient = client;
+        await window.__waitFor(
+          client.isConnected$,
+          (c) => c === true,
+          connTimeout,
+          'Client isConnected$'
+        );
+      },
+      { token: reattachToken, connTimeout: 15_000 }
+    );
 
     const reattachResult = await page.evaluate(
       async ({ timeout, originalCallId }) => {
@@ -526,6 +556,174 @@ test.describe('Call Continuity', () => {
     expect(
       reattachResult.success,
       `reattach completed without error — ${reattachResult.error ?? ''}`
+    ).toBe(true);
+
+    expect(
+      reattachResult.callIdMatches,
+      `reattached call ID "${reattachResult.callId}" matches original "${originalCall.callId}"`
+    ).toBe(true);
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Test 7 — Reattach that must RECOVER from an expired credential on reload
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // The happy-path reattach test above only proves reattach works when the
+  // reloaded client authenticates with a valid (freshly minted) token, so the
+  // credential-recovery path never runs.
+  //
+  // This test forces that path: the reloaded client authenticates with an
+  // already-expired token. The resume handshake still succeeds (the persisted
+  // authorization_state short-circuits token validation), but the very next step
+  // — the REST `subscriber/info` preflight — has no such short-circuit and 401s.
+  // The SDK must re-mint via the refresh handler, reauthenticate the SAME session
+  // (keeping the resume state the attach records live in), retry the preflight,
+  // and complete the reattach.
+  //
+  // Leaving `authenticate()` free of `expiry_at` is deliberate: the client stays
+  // blind to the expiry and replays the dead token, so the SERVER drives the
+  // refusal — the reload-with-stale-credential condition recovery exists for.
+
+  /**
+   * SAT lifetime for the expired-token reattach. Only the remaining lifetime is
+   * waited out after the reload, so the reload→reconnect gap stays inside the
+   * server's reattach window (30s recovers, per Test 3) while still guaranteeing
+   * the token is dead when the resumed session registers.
+   */
+  const EXPIRED_REATTACH_TTL_S = 20;
+
+  test('page reload — reattach RECOVERS when the reloaded credential is expired', async ({
+    page,
+    resource,
+  }) => {
+    test.setTimeout(120_000);
+
+    // First page load: establish a call with reconnectAttachedCalls enabled.
+    await setupRoomCall({
+      page,
+      resource,
+      prefix: 'e2e-cont-reattach-recover',
+      channel: 'audio',
+      clientOptions: { reconnectAttachedCalls: true },
+    });
+
+    // ── Phase 1: Wait for call.joined then capture call identity ──────────
+    const originalCall = await page.evaluate(async () => {
+      const call = window.__swCall;
+      await window.__waitFor(
+        call.self$,
+        (self: unknown) => self !== null,
+        15_000,
+        'call.self$ → non-null (call.joined received)'
+      );
+      return { callId: call.id, destination: call.to };
+    });
+
+    expect(originalCall.callId, 'original call has an id').toBeTruthy();
+
+    // Mint the reattach token now and let it age out while we reload. Minting
+    // before the reload keeps the reload→reconnect gap small — only the token's
+    // remaining lifetime is waited out below — so the attach records are still
+    // alive when the resumed session finally registers.
+    await page.exposeFunction('__mintSat', async () => createSATToken());
+    const expiredMintedAtMs = Date.now();
+    const expiredToken = await createSATToken({
+      expire_at: Math.floor(expiredMintedAtMs / 1000) + EXPIRED_REATTACH_TTL_S,
+    });
+    expect(expiredToken, 'short-lived SAT created for reattach').toBeTruthy();
+
+    // ── Phase 2: Navigate away and back (same-origin to preserve sessionStorage) ─
+    await page.goto(`${page.url().split('/e2e')[0]}/`);
+    await page.waitForTimeout(500);
+    await gotoTestPage(page);
+
+    // Wait out whatever remains of the token's lifetime (plus a buffer) so the
+    // server is certain to refuse subscriber.online with -32003.
+    const remainingMs =
+      EXPIRED_REATTACH_TTL_S * 1000 - (Date.now() - expiredMintedAtMs) + 2_000;
+    if (remainingMs > 0) {
+      await page.waitForTimeout(remainingMs);
+    }
+
+    // Capture the console (WS traffic is logged at debug level) so we can prove
+    // the -32003 refusal actually happened — a green reattach alone would not
+    // tell us the recovery path ran.
+    const consoleLogs: string[] = [];
+    page.on('console', (msg) => consoleLogs.push(msg.text()));
+
+    // ── Phase 3: Re-initialize the client with the now-EXPIRED token ──────
+    await page.evaluate(
+      async ({ token, connTimeout }) => {
+        const provider = {
+          // No `expiry_at`: the client stays blind and replays the dead token,
+          // forcing the server to refuse it after the resume handshake.
+          authenticate: async () => ({ token }),
+          // Recovery re-mints a fresh SAT through here.
+          refresh: async () => ({ token: await window.__mintSat() }),
+        };
+        const client = new window.SignalWire(provider, {
+          logLevel: 'debug',
+          debug: { logWsTraffic: true },
+          reconnectAttachedCalls: true,
+        });
+        window.__swClient = client;
+        await window.__waitFor(
+          client.isConnected$,
+          (c) => c === true,
+          connTimeout,
+          'Client isConnected$'
+        );
+      },
+      { token: expiredToken, connTimeout: 30_000 }
+    );
+
+    const reattachResult = await page.evaluate(
+      async ({ timeout, originalCallId }) => {
+        try {
+          const client = window.__swClient;
+          const calls = await window.__waitFor(
+            client.session.calls$,
+            (c: unknown[]) => c.length > 0,
+            timeout,
+            'client.session.calls$ → reattached call appears'
+          );
+
+          const call = calls[0] as typeof window.__swCall;
+          window.__swCall = call;
+
+          return {
+            success: true,
+            callId: call.id,
+            callIdMatches: call.id === originalCallId,
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: String(error),
+            callId: null,
+            callIdMatches: false,
+          };
+        }
+      },
+      { timeout: REATTACH_TIMEOUT, originalCallId: originalCall.callId }
+    );
+
+    // ── Assertions ────────────────────────────────────────────────────────
+
+    // The whole point of this test: the expired token must have been refused, so
+    // the recovery path actually ran. The refusal surfaces as the preflight
+    // failing to fetch user info (401). If this log never appears, the condition
+    // was not reproduced (the token was still valid, or the server honored it) —
+    // raise EXPIRED_REATTACH_TTL_S, don't trust a green reattach.
+    expect(
+      consoleLogs.some((line) => line.includes('Failed to fetch user information')),
+      'reloaded credential was refused at the preflight (recovery path was exercised)'
+    ).toBe(true);
+
+    // And recovery must have healed it: the reattach completes to the same call.
+    expect(
+      reattachResult.success,
+      `reattach recovered without error — ${reattachResult.error ?? ''}`
     ).toBe(true);
 
     expect(

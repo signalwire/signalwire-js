@@ -36,4 +36,14 @@ export interface ClientSession {
    * indicates a re-authentication after the initial connect).
    */
   readonly authenticated$: Observable<boolean>;
+
+  /**
+   * Control transport for every call in this session: `'routed'` (default) sends
+   * call.* verbs on the client's session channel; `'in-dialog'` carries them on
+   * each call's own signaling channel via `verto.info`. Set once as a client
+   * config ({@link SignalWireOptions.callControl}) — it is session-wide, so a
+   * reattached call reads it here rather than restoring it from persisted state.
+   * Read by {@link Call.executeMethod}.
+   */
+  readonly callControl: 'routed' | 'in-dialog';
 }

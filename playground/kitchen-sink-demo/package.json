@@ -1,15 +1,16 @@
 {
   "name": "@signalwire/kitchen-sink-js",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "scripts": {
     "dev": "rm -rf node_modules/.vite && SAT_TOKEN=$(node ../../scripts/issue-sat.js --env-file ../../.env) vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@signalwire/js": "4.0.0-rc.2",
+    "@signalwire/js": "4.0.0-rc.3",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {

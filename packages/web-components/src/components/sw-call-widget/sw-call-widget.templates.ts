@@ -26,6 +26,7 @@ export const widgetStyles = css`
 
 export interface CallViewOpts {
   transcription: boolean;
+  screenShareAudio: boolean;
   hasLayoutLayers: boolean;
   drawer: DisplayContentPayload | null;
   transcriptEntries: TranscriptEntry[];
@@ -56,6 +57,7 @@ export function renderCallView(opts: CallViewOpts): TemplateResult {
           show-screen-share
           show-hand-raise
           show-transcript
+          ?screen-share-audio=${opts.screenShareAudio}
           .transcriptActive=${opts.transcription}
           @sw-call-hangup=${opts.onHangUp}
           @sw-fullscreen-toggle=${opts.onFullscreenToggle}

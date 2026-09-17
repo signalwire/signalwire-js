@@ -181,10 +181,20 @@ class MockRTCPeerConnection {
 // Mock LocalStreamController
 class MockLocalStreamController {
   private _localStream: MockMediaStream | null = null;
+  private _origins = new Map<unknown, string>();
 
   constructor(localStream?: MockMediaStream | null) {
     this._localStream = localStream ?? null;
   }
+
+  /** Defaults to `'device'`; tests needing another origin set it explicitly. */
+  setTrackOrigin = vi.fn((track: unknown, origin: string) => {
+    this._origins.set(track, origin);
+  });
+
+  getTrackOrigin = vi.fn((track: unknown) => this._origins.get(track) ?? 'device');
+
+  isDeviceCapture = vi.fn((track: unknown) => (this._origins.get(track) ?? 'device') === 'device');
 
   get localStream(): MockMediaStream | null {
     return this._localStream;
@@ -708,6 +718,169 @@ describe('[TransceiverController]', () => {
 
       // onError should be called with the fallback error
       expect(onError).toHaveBeenCalled();
+
+      testController.destroy();
+    });
+  });
+
+  /**
+   * The outcome is reported back because `mediaParamsUpdated.applied` is built
+   * from it: a skipped sender and an exhausted fallback both mean the server's
+   * params never reached the wire, and an application told otherwise cannot
+   * tell a working push from a silent no-op.
+   */
+  describe('updateSendersConstraints - reported outcome', () => {
+    it('reports applied when a live device sender takes the constraints', async () => {
+      const audioTrack = new MockMediaStreamTrack('audio');
+      mockPeerConnection.addMockSender(audioTrack);
+
+      await expect(
+        controller.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(true);
+    });
+
+    it('reports not applied when the only sender carries media the SDK did not capture', async () => {
+      const appTrack = new MockMediaStreamTrack('audio');
+      mockLocalStreamController.setTrackOrigin(appTrack, 'application');
+      mockPeerConnection.addMockSender(appTrack);
+
+      await expect(
+        controller.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(false);
+      expect(appTrack.applyConstraints).not.toHaveBeenCalled();
+    });
+
+    it('reports not applied when no live sender of the kind exists', async () => {
+      const endedTrack = new MockMediaStreamTrack('audio');
+      endedTrack.readyState = 'ended';
+      mockPeerConnection.addMockSender(endedTrack);
+
+      await expect(
+        controller.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(false);
+    });
+
+    it('reports applied when applyConstraints fails but the replacement fallback succeeds', async () => {
+      const oldTrack = new MockMediaStreamTrack('audio', 'old-audio-id');
+      oldTrack.setSettings({ deviceId: 'mic-123' });
+      oldTrack.applyConstraints = vi.fn().mockRejectedValue(new Error('not supported'));
+
+      const newTrack = new MockMediaStreamTrack('audio', 'new-audio-id');
+      const testController = createController({
+        getUserMedia: vi.fn().mockResolvedValue(new MockMediaStream([newTrack])) as unknown as (
+          c: MediaStreamConstraints
+        ) => Promise<MediaStream>
+      });
+      mockPeerConnection.addMockSender(oldTrack);
+
+      await expect(
+        testController.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(true);
+
+      testController.destroy();
+    });
+
+    it('reports not applied when the replacement fallback also fails', async () => {
+      const oldTrack = new MockMediaStreamTrack('audio', 'old-audio-id');
+      oldTrack.setSettings({});
+      oldTrack.applyConstraints = vi.fn().mockRejectedValue(new Error('not supported'));
+
+      const testController = createController({
+        getUserMedia: vi.fn().mockRejectedValue(new Error('gUM failed')) as unknown as (
+          c: MediaStreamConstraints
+        ) => Promise<MediaStream>
+      });
+      mockPeerConnection.addMockSender(oldTrack);
+
+      await expect(
+        testController.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(false);
+
+      testController.destroy();
+    });
+
+    it('reports the kinds independently when one applies and the other cannot', async () => {
+      const audioTrack = new MockMediaStreamTrack('audio');
+      const appVideoTrack = new MockMediaStreamTrack('video');
+      mockLocalStreamController.setTrackOrigin(appVideoTrack, 'application');
+      mockPeerConnection.addMockSender(audioTrack);
+      mockPeerConnection.addMockSender(appVideoTrack);
+
+      await expect(controller.updateSendersConstraints('audio', { noiseSuppression: false })).resolves.toBe(
+        true
+      );
+      await expect(controller.updateSendersConstraints('video', { width: 1920 })).resolves.toBe(
+        false
+      );
+    });
+  });
+
+  /**
+   * The ladder can take three getUserMedia round-trips, and the leg can be torn
+   * down inside that window. A rejected replaceTrack must not leave the capture
+   * we just opened running: nothing else holds a reference to it, so no destroy
+   * path can reach it and the device light stays on for the page lifetime.
+   */
+  describe('updateSendersConstraints - fallback resource safety', () => {
+    const createLeakFixture = () => {
+      const oldTrack = new MockMediaStreamTrack('audio', 'old-audio-id');
+      oldTrack.setSettings({ deviceId: 'mic-123' });
+      oldTrack.applyConstraints = vi.fn().mockRejectedValue(new Error('not supported'));
+
+      const newTrack = new MockMediaStreamTrack('audio', 'new-audio-id');
+      const onError = vi.fn();
+
+      mockPeerConnection = new MockRTCPeerConnection();
+      mockLocalStreamController = new MockLocalStreamController(new MockMediaStream());
+      const sender = mockPeerConnection.addMockSender(oldTrack);
+      sender.replaceTrack = vi.fn().mockRejectedValue(new Error('InvalidStateError'));
+
+      const testController = new TransceiverController({
+        peerConnection: mockPeerConnection as unknown as RTCPeerConnection,
+        propose: 'main',
+        receiveAudio: true,
+        receiveVideo: true,
+        localStreamController: mockLocalStreamController as unknown as LocalStreamController,
+        getInputAudioDeviceConstraints: () => ({ echoCancellation: true }),
+        getInputVideoDeviceConstraints: () => ({ width: 1280, height: 720 }),
+        getUserMedia: vi.fn().mockResolvedValue(new MockMediaStream([newTrack])) as (
+          c: MediaStreamConstraints
+        ) => Promise<MediaStream>,
+        onError
+      });
+
+      return { testController, oldTrack, newTrack, onError };
+    };
+
+    it('stops the capture it acquired when replaceTrack rejects', async () => {
+      const { testController, newTrack, onError } = createLeakFixture();
+
+      await testController.updateSendersConstraints('audio', { echoCancellation: false });
+
+      expect(newTrack.stop, 'the acquired track is released, not leaked').toHaveBeenCalled();
+      expect(onError).toHaveBeenCalled();
+
+      testController.destroy();
+    });
+
+    it('leaves the current track sending when replaceTrack rejects', async () => {
+      const { testController, oldTrack, newTrack } = createLeakFixture();
+
+      await testController.updateSendersConstraints('audio', { echoCancellation: false });
+
+      expect(oldTrack.stop, 'the sending track survives a failed swap').not.toHaveBeenCalled();
+      expect(mockLocalStreamController.removeTrack).not.toHaveBeenCalled();
+      expect(mockLocalStreamController.addTrack).not.toHaveBeenCalledWith(newTrack);
+
+      testController.destroy();
+    });
+
+    it('reports not applied when replaceTrack rejects', async () => {
+      const { testController } = createLeakFixture();
+
+      await expect(
+        testController.updateSendersConstraints('audio', { echoCancellation: false })
+      ).resolves.toBe(false);
 
       testController.destroy();
     });

@@ -254,7 +254,7 @@ export interface AudioConstraintsEvent {
   readonly timestamp: number;
 }
 
-/** Event emitted when server-pushed media params are applied. */
+/** Event emitted when the server pushes media params. */
 export interface MediaParamsEvent {
   /** Audio constraints pushed by the server, if any. */
   readonly audio?: MediaTrackConstraints;
@@ -262,6 +262,15 @@ export interface MediaParamsEvent {
   readonly video?: MediaTrackConstraints;
   /** Timestamp when the event occurred (epoch ms). */
   readonly timestamp: number;
+  /**
+   * `false` when the constraints did not reach every sender of a pushed kind:
+   * the sender carries media the SDK did not capture, the browser refused the
+   * constraints and re-acquisition failed, or the leg sends no media of that
+   * kind at all. The event is emitted whether or not they were applied, but a
+   * push naming a leg this call does not hold emits nothing at all — the event
+   * carries no leg identity to report it against.
+   */
+  readonly applied: boolean;
 }
 
 // =============================================================================
