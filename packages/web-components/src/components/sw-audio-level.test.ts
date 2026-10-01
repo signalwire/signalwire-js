@@ -54,7 +54,7 @@ beforeEach(() => {
     resume: vi.fn().mockResolvedValue(undefined),
     close: vi.fn().mockResolvedValue(undefined),
   };
-  vi.stubGlobal('AudioContext', vi.fn().mockImplementation(() => mockAudioContext));
+  vi.stubGlobal('AudioContext', vi.fn().mockImplementation(function () { return mockAudioContext; }));
   vi.stubGlobal('requestAnimationFrame', vi.fn().mockReturnValue(1));
   vi.stubGlobal('cancelAnimationFrame', vi.fn());
 });

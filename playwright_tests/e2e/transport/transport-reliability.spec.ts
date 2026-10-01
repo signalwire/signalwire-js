@@ -22,6 +22,7 @@
  *   `isConnected$` remains `true` (never went fatally false) AND that no
  *   fatal error was emitted during the brief offline period.
  */
+import type { WebSocketRoute } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { setupClient, setupErrorListener } from '../helpers/setup';
 
@@ -32,6 +33,15 @@ const RECONNECT_TIMEOUT = 30_000;
 // Shorter than dial's internal timeout so the race always resolves via
 // the timeout branch rather than waiting for dial to fail on its own.
 const DIAL_RACE_TIMEOUT_MS = 5_000;
+
+// The server's first ping was observed 11-18s after connect. It aborts the
+// session 4s after an unanswered ping.
+const SERVER_PING_WAIT_TIMEOUT = 30_000;
+const SERVER_ABORT_TIMEOUT = 10_000;
+// The SDK's 15s ping watchdog, its 10s probe, and the reconnect backoff.
+const HALF_OPEN_DETECTION_TIMEOUT = 30_000;
+// Two watchdog windows, each ending in an answered probe.
+const QUIET_SOCKET_OBSERVATION_TIMEOUT = 45_000;
 
 test.describe('Transport Reliability', () => {
   // ── Shared teardown ─────────────────────────────────────────
@@ -423,5 +433,162 @@ test.describe('Transport Reliability', () => {
       dialAfterDisconnect.dialSucceeded,
       'dial() correctly rejected after client.disconnect()'
     ).toBe(false);
+  });
+
+  // ── Test 6: Server pings pause → watchdog probes and keeps the socket ─
+  test('should keep a quiet but healthy WebSocket after probing the server', async ({ page }) => {
+    test.setTimeout(90_000);
+
+    // ── SETUP ────────────────────────────────────────────────
+    // Answer the server's pings on the page's behalf and hide them from the
+    // SDK. The session stays alive on the server, but the SDK sees the same
+    // silence as when a congested server defers its pings.
+    let sockets = 0;
+    const probeIds = new Set<string>();
+    let answeredProbes = 0;
+
+    await page.routeWebSocket(/.*/, (ws) => {
+      sockets += 1;
+      const server = ws.connectToServer();
+
+      ws.onMessage((frame) => {
+        const message = JSON.parse(String(frame)) as { id: string; method?: string };
+        if (message.method === 'signalwire.ping') probeIds.add(message.id);
+        server.send(frame);
+      });
+      server.onMessage((frame) => {
+        const message = JSON.parse(String(frame)) as {
+          id: string;
+          method?: string;
+          params?: { timestamp?: number };
+          result?: unknown;
+        };
+        if (message.method === 'signalwire.ping') {
+          server.send(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: message.id,
+              result: { timestamp: message.params?.timestamp },
+            })
+          );
+          return;
+        }
+        if (probeIds.has(message.id) && message.result !== undefined) answeredProbes += 1;
+        ws.send(frame);
+      });
+    });
+
+    await setupClient(page);
+
+    // ── CHECK: SDK probes instead of replacing the socket ────
+    await expect
+      .poll(() => answeredProbes, {
+        message: 'Unexpected result: the server did not answer two SDK ping probes',
+        timeout: QUIET_SOCKET_OBSERVATION_TIMEOUT,
+      })
+      .toBeGreaterThanOrEqual(2);
+    expect(sockets, 'Side effect: SDK replaced a healthy socket whose pings paused').toBe(1);
+
+    const isRegistered = await page.evaluate(() => window.__swClient.isRegistered);
+    expect(isRegistered, 'Side effect: subscriber should stay registered').toBe(true);
+  });
+
+  // ── Test 7: Half-open socket → watchdog replaces it ─────────
+  test('should replace a half-open WebSocket and re-register', async ({ page }) => {
+    test.setTimeout(90_000);
+
+    // ── SETUP ────────────────────────────────────────────────
+    // Proxy the SDK's WebSocket. Once blackholed, the first socket drops every
+    // frame both ways and hides the server's close from the browser, so the
+    // browser keeps a socket that is open locally but dead on the server.
+    const sockets: WebSocketRoute[] = [];
+    const secondSocketFrames: string[] = [];
+    const secondSocketServerFrames: string[] = [];
+    let blackholedAt = 0;
+    let serverAbortedAt = 0;
+    let firstSocketClosedByPage = false;
+
+    await page.routeWebSocket(/.*/, (ws) => {
+      sockets.push(ws);
+      const isFirst = sockets.length === 1;
+      const server = ws.connectToServer();
+
+      ws.onMessage((frame) => {
+        if (isFirst && blackholedAt) return;
+        if (!isFirst) secondSocketFrames.push(String(frame));
+        server.send(frame);
+      });
+      ws.onClose(() => {
+        if (isFirst) firstSocketClosedByPage = true;
+        server.close();
+      });
+      server.onMessage((frame) => {
+        if (isFirst && blackholedAt) return;
+        if (!isFirst) secondSocketServerFrames.push(String(frame));
+        ws.send(frame);
+        // Blackhole right after a ping so the SDK's pong is lost.
+        if (isFirst && String(frame).includes('signalwire.ping')) {
+          blackholedAt = Date.now();
+        }
+      });
+      server.onClose((code, reason) => {
+        if (isFirst && blackholedAt) {
+          serverAbortedAt = Date.now();
+          return;
+        }
+        ws.close({ code, reason });
+      });
+    });
+
+    await setupClient(page);
+
+    await expect
+      .poll(() => blackholedAt, {
+        message: 'Setup failed: no signalwire.ping arrived to start the blackhole',
+        timeout: SERVER_PING_WAIT_TIMEOUT,
+      })
+      .toBeGreaterThan(0);
+    await expect
+      .poll(() => serverAbortedAt, {
+        message: 'Setup failed: server did not abort the session after the lost pong',
+        timeout: SERVER_ABORT_TIMEOUT,
+      })
+      .toBeGreaterThan(0);
+
+    // ── CHECK: SDK notices the dead socket and replaces it ───
+    await expect
+      .poll(() => sockets.length, {
+        message: 'Unexpected result: SDK kept the half-open socket instead of opening a new one',
+        timeout: HALF_OPEN_DETECTION_TIMEOUT,
+      })
+      .toBeGreaterThan(1);
+    expect(
+      firstSocketClosedByPage,
+      'Unexpected result: SDK opened a new socket without closing the half-open one'
+    ).toBe(true);
+
+    // ── CHECK: The new session registers the subscriber again ─
+    const registrationRequestId = () => {
+      const frame = secondSocketFrames.find((f) => f.includes('subscriber.online'));
+      return frame ? (JSON.parse(frame) as { id: string }).id : undefined;
+    };
+    await expect
+      .poll(
+        () => {
+          const id = registrationRequestId();
+          return secondSocketServerFrames.some((f) => {
+            const message = JSON.parse(f) as { id?: string; result?: unknown };
+            return message.id === id && message.result !== undefined;
+          });
+        },
+        {
+          message: 'Unexpected result: subscriber.online did not succeed on the new socket',
+          timeout: RECONNECT_TIMEOUT,
+        }
+      )
+      .toBe(true);
+
+    const isRegistered = await page.evaluate(() => window.__swClient.isRegistered);
+    expect(isRegistered, 'Unexpected result: isRegistered should be true after re-registering').toBe(true);
   });
 });

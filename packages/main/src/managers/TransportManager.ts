@@ -15,11 +15,15 @@ import {
 
 import { PreferencesContainer } from '../containers/PreferencesContainer';
 import { WebSocketController } from '../controllers/WebSocketController';
+import { SERVER_PING_PROBE_TIMEOUT_MS, SERVER_PING_TIMEOUT_MS } from '../core/constants';
 import { MessageParseError, TransportConnectionError } from '../core/errors';
-import { RPCEventAckResponse, RPCPingResponse } from '../core/RPCMessages';
+import { RPCEventAckResponse, RPCPing, RPCPingResponse } from '../core/RPCMessages';
 import { isJSONRPCRequest, isJSONRPCResponse } from '../core/RPCMessages/guards/base.guards';
 import { isSignalwireRequest } from '../core/RPCMessages/guards/events.guards';
-import { isSignalwirePingRequest } from '../core/RPCMessages/guards/methods.guards';
+import {
+  isSignalwireConnectRequest,
+  isSignalwirePingRequest
+} from '../core/RPCMessages/guards/methods.guards';
 import { Destroyable, PendingRPC } from '../core/utils';
 import { getLogger } from '../utils/logger';
 
@@ -42,6 +46,13 @@ export class TransportManager extends Destroyable {
   // Connection state tracking
   private isConnecting = false;
   private isConnected = false;
+  // Outbound gate: requests wait until signalwire.connect succeeds on the
+  // current socket, and responses are dropped while no socket is open.
+  private socketStatus = 'disconnected';
+  private sessionAuthenticated = false;
+  private heldRequests: { id: string; payload: string }[] = [];
+  private serverPingTimer?: ReturnType<typeof setTimeout>;
+  private serverPingWatch = 0;
 
   // Session epoch for stale event detection (epoch seconds).
   // Set from the first timestamped event after each signalwire.connect.
@@ -69,6 +80,7 @@ export class TransportManager extends Destroyable {
           logger.debug('[Transport] Received ping, sending pong', {
             pingId: message.id
           });
+          if (this.sessionAuthenticated) this.armServerPingWatchdog();
           this.send(RPCPingResponse(message.id));
         } catch (error) {
           logger.error('[Transport] Failed to send ping response:', error);
@@ -150,6 +162,18 @@ export class TransportManager extends Destroyable {
     this.subscribeTo(this._webSocketConnections.errors$, (error) => {
       this.onError?.(error);
     });
+    this.subscribeTo(this._webSocketConnections.status$, (status) => {
+      this.socketStatus = status;
+      if (status !== 'connected') {
+        this.sessionAuthenticated = false;
+        this.clearServerPingWatchdog();
+      }
+      // An explicit disconnect ends the session: held requests must not go
+      // out on a later connect. A reconnect keeps them.
+      if (status === 'disconnected') {
+        this.heldRequests = [];
+      }
+    });
     this.initialized$ = defer(() => from(this._init())).pipe(
       shareReplay(1),
       takeUntil(this.destroyed$)
@@ -201,6 +225,10 @@ export class TransportManager extends Destroyable {
 
   public get connectionStatus$(): Observable<string> {
     return this._webSocketConnections.status$;
+  }
+
+  public get connectionStatus(): string {
+    return this.socketStatus;
   }
 
   public async connect(): Promise<void> {
@@ -272,17 +300,49 @@ export class TransportManager extends Destroyable {
     this.send(request as unknown as JSONSerializable);
 
     // Create and return a PendingRPC promise that will resolve when the matching response arrives
-    return new PendingRPC<T>(request, this._jsonRPCResponse$ as Observable<T>, options).promise;
+    const pending = new PendingRPC<T>(request, this._jsonRPCResponse$ as Observable<T>, options)
+      .promise;
+    // The caller already saw the failure, so a held request must not go out later.
+    pending.catch(() => {
+      this.heldRequests = this.heldRequests.filter((held) => held.id !== request.id);
+    });
+    return pending;
   }
   public send(message: unknown): void {
     const payload = JSON.stringify(message);
+    if (isJSONRPCResponse(message)) {
+      // A response answers a request received on the current socket. The
+      // server rejects a response that arrives before signalwire.connect on a
+      // new socket and closes it, so drop it when no socket is open.
+      if (this.socketStatus !== 'connected') {
+        logger.debug('[Transport] Dropping response while disconnected', { id: message.id });
+        return;
+      }
+    } else if (!this.sessionAuthenticated && !isSignalwireConnectRequest(message)) {
+      this.heldRequests.push({ id: (message as JSONRPCRequest).id, payload });
+      return;
+    }
     this._outgoingMessages$.next(payload);
+  }
+
+  /**
+   * Called by the session when signalwire.connect succeeds on the current
+   * socket. Sends the requests held since the socket opened, in order.
+   */
+  public setAuthenticated(): void {
+    if (this.socketStatus !== 'connected') return;
+    this.sessionAuthenticated = true;
+    this.armServerPingWatchdog();
+    const held = this.heldRequests;
+    this.heldRequests = [];
+    held.forEach(({ payload }) => this._outgoingMessages$.next(payload));
   }
   //   request(request: HTTPRequest): Promise<HTTPResponse> {}
   public disconnect(): void {
     logger.debug('[Transport] Disconnecting');
     this.isConnected = false;
     this.isConnecting = false;
+    this.clearServerPingWatchdog();
 
     // Disconnect WebSocket
     this._webSocketConnections.disconnect();
@@ -293,6 +353,33 @@ export class TransportManager extends Destroyable {
     super.destroy();
     this._webSocketConnections.destroy();
   }
+  private armServerPingWatchdog(): void {
+    this.clearServerPingWatchdog();
+    const watch = this.serverPingWatch;
+    this.serverPingTimer = setTimeout(() => void this.probeServer(watch), SERVER_PING_TIMEOUT_MS);
+  }
+
+  /** Bumps the watch so a probe still in flight no longer acts on its result. */
+  private clearServerPingWatchdog(): void {
+    clearTimeout(this.serverPingTimer);
+    this.serverPingTimer = undefined;
+    this.serverPingWatch += 1;
+  }
+
+  private async probeServer(watch: number): Promise<void> {
+    logger.debug(
+      `[Transport] No signalwire.ping for ${SERVER_PING_TIMEOUT_MS}ms, probing the server`
+    );
+    try {
+      await this.execute(RPCPing(), { timeoutMs: SERVER_PING_PROBE_TIMEOUT_MS });
+      if (watch === this.serverPingWatch) this.armServerPingWatchdog();
+    } catch (error) {
+      if (watch !== this.serverPingWatch) return;
+      logger.warn('[Transport] Server did not answer the ping probe, replacing the socket', error);
+      this.reconnect();
+    }
+  }
+
   private async _loadProtocolFromStorage(): Promise<void> {
     try {
       const storedProtocol = await this.storage.getItem<string>(this.protocolKey);

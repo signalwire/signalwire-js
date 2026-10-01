@@ -8,11 +8,11 @@ let mockCallStateConnect = vi.fn();
 let mockCallStateDisconnect = vi.fn();
 
 vi.mock('../../context/CallStateContextController.js', () => ({
-  CallStateContextController: vi.fn().mockImplementation(() => ({
+  CallStateContextController: vi.fn().mockImplementation(function () { return {
     connect: (...a: any[]) => mockCallStateConnect(...a),
     disconnect: (...a: any[]) => mockCallStateDisconnect(...a),
     hostConnected: vi.fn(), hostDisconnected: vi.fn(), hostUpdated: vi.fn(),
-  })),
+  }; }),
 }));
 
 let mockDevicesConnectCall = vi.fn();
@@ -22,33 +22,33 @@ let mockDevicesDisconnect = vi.fn();
 let mockDevicesRefresh = vi.fn();
 
 vi.mock('../../context/DevicesContextController.js', () => ({
-  DevicesContextController: vi.fn().mockImplementation(() => ({
+  DevicesContextController: vi.fn().mockImplementation(function () { return {
     connectCall: (...a: any[]) => mockDevicesConnectCall(...a),
     disconnectCall: (...a: any[]) => mockDevicesDisconnectCall(...a),
     connectDevices: (...a: any[]) => mockDevicesConnectDevices(...a),
     disconnect: (...a: any[]) => mockDevicesDisconnect(...a),
     refreshDevices: (...a: any[]) => mockDevicesRefresh(...a),
     hostConnected: vi.fn(), hostDisconnected: vi.fn(), hostUpdated: vi.fn(),
-  })),
+  }; }),
 }));
 
 let mockTranscriptSetCall = vi.fn();
 let mockTranscriptInjectEntry = vi.fn();
 
 vi.mock('../../context/TranscriptController.js', () => ({
-  TranscriptController: vi.fn().mockImplementation(() => ({
+  TranscriptController: vi.fn().mockImplementation(function () { return {
     setCall: (...a: any[]) => mockTranscriptSetCall(...a),
     injectEntry: (...a: any[]) => mockTranscriptInjectEntry(...a),
     state: { entries: [] },
     hostConnected: vi.fn(), hostDisconnected: vi.fn(), hostUpdated: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock('../../context/UserEventController.js', () => ({
-  UserEventController: vi.fn().mockImplementation(() => ({
+  UserEventController: vi.fn().mockImplementation(function () { return {
     setCall: vi.fn(),
     hostConnected: vi.fn(), hostDisconnected: vi.fn(), hostUpdated: vi.fn(),
-  })),
+  }; }),
 }));
 
 let mockIncomingConnect = vi.fn();
@@ -58,12 +58,12 @@ vi.mock('../../context/call-state-context.js', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
-    IncomingCallController: vi.fn().mockImplementation(() => ({
+    IncomingCallController: vi.fn().mockImplementation(function () { return {
       connect: (...a: any[]) => mockIncomingConnect(...a),
       disconnect: (...a: any[]) => mockIncomingDisconnect(...a),
       set onIncomingCall(_: any) {},
       hostConnected: vi.fn(), hostDisconnected: vi.fn(), hostUpdated: vi.fn(),
-    })),
+    }; }),
   };
 });
 
@@ -91,12 +91,12 @@ const mockDial = vi.fn();
 const mockDestroy = vi.fn();
 
 vi.mock('@signalwire/js', () => ({
-  SignalWire: vi.fn().mockImplementation(() => ({
+  SignalWire: vi.fn().mockImplementation(function () { return {
     isConnected$: mockIsConnected$,
     dial: mockDial,
     destroy: mockDestroy,
     session: { incomingCalls$: new BehaviorSubject([]) },
-  })),
+  }; }),
   getLogger: vi.fn().mockReturnValue({ error: vi.fn(), debug: vi.fn(), warn: vi.fn(), info: vi.fn() }),
 }));
 
@@ -389,7 +389,7 @@ describe('sw-call-widget', () => {
   });
 
   it('shows a Client Error prompt when client init fails', async () => {
-    vi.mocked(SignalWire).mockImplementationOnce(() => { throw new Error('init fail'); });
+    vi.mocked(SignalWire).mockImplementationOnce(function () { throw new Error('init fail'); });
     el = await mount({ token: 'tok' });
     expect(mockShowPrompt).toHaveBeenCalledWith(
       // description pins the `e instanceof Error ? e.message` branch.

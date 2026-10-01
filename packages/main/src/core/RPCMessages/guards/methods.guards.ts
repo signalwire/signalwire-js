@@ -11,3 +11,7 @@ import type { SignalwirePingRequest } from '../types/events';
 export function isSignalwirePingRequest(value: unknown): value is SignalwirePingRequest {
   return isJSONRPCRequest(value) && value.method === 'signalwire.ping';
 }
+
+export function isSignalwireConnectRequest(value: unknown): boolean {
+  return isJSONRPCRequest(value) && value.method === 'signalwire.connect';
+}

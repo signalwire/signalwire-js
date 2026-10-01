@@ -322,7 +322,7 @@ describe('sw-device-selector', () => {
         setSinkId: vi.fn().mockResolvedValue(undefined),
         addEventListener: vi.fn(),
       };
-      vi.stubGlobal('Audio', vi.fn(() => mockAudio));
+      vi.stubGlobal('Audio', vi.fn(function () { return mockAudio; }));
       return mockAudio;
     }
 

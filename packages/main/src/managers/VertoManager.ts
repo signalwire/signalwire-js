@@ -6,6 +6,7 @@ import {
   map,
   merge,
   race,
+  skip,
   startWith,
   take,
   takeUntil,
@@ -201,6 +202,8 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
   private _screenShareStatus$ = this.createBehaviorSubject<ScreenShareStatus>('none');
   private _rtcPeerConnectionsMap = new Map<string, RTCPeerConnectionController>();
   private _screenShareId?: string;
+  /** Last verto.ping of each leg, answered again after a reconnect. */
+  private _lastVertoPings = new Map<string, VertoPingParams>();
   /** Every leg-scoped error report, so a wait on one leg can end with it. */
   private _legErrors$ = this.createSubject<{ legId: string; error: Error }>();
 
@@ -382,9 +385,21 @@ export class WebRTCVertoManager extends VertoManager implements WebRTCVerto {
     });
 
     this.subscribeTo(this.vertoPing$, (vertoPing: VertoPingParams) => {
+      this._lastVertoPings.set(vertoPing.callID, vertoPing);
       void this.attachManager.refresh(this.buildAttachableCall());
       void this.sendVertoPong(vertoPing);
     });
+
+    // The server ends a call when no verto.pong arrives for a full ping
+    // interval. It checks only the callID, not which ping the pong answers. A
+    // pong lost in a reconnect, or a ping never delivered, is not sent again,
+    // so answer the last ping of each leg when the session re-authenticates.
+    this.subscribeTo(
+      this.webRtcCallSession.clientSession.authenticated$.pipe(skip(1), filter(Boolean)),
+      () => {
+        this._lastVertoPings.forEach((vertoPing) => void this.sendVertoPong(vertoPing));
+      }
+    );
   }
 
   /**

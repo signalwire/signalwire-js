@@ -5,6 +5,18 @@ export const DEFAULT_RECONNECT_CALLS_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 export const DEFAULT_REATTACH_WAIT_TIMEOUT_MS = 10_000; // 10 seconds to wait for server verto.attach
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 10_000;
 /**
+ * The server sends `signalwire.ping` every 10s. A socket that stays silent
+ * longer than this is half-open: the server has dropped the session but the
+ * browser never fired `close`.
+ */
+export const SERVER_PING_TIMEOUT_MS = 15_000;
+/**
+ * How long a `signalwire.ping` the client sends after the server's pings
+ * stopped may take to be answered. The server defers its own pings while its
+ * threadpool is congested, so silence alone does not mean the socket is dead.
+ */
+export const SERVER_PING_PROBE_TIMEOUT_MS = 10_000;
+/**
  * How long call setup may wait for the network, measured from local media
  * settling until the member id arrives.
  *

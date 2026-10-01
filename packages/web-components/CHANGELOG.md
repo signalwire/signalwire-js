@@ -1,6 +1,6 @@
 # @signalwire/web-components
 
-## 4.0.0
+# 4.0.0
 
 ### Minor Changes
 
@@ -110,6 +110,7 @@
 - Updated dependencies [0de3f81]
 - Updated dependencies [cc41782]
 - Updated dependencies [27a9ecf]
+- Updated dependencies [09468a8]
   - @signalwire/js@4.0.0
 
 ## 4.0.0

@@ -211,6 +211,9 @@ export class WebSocketController extends Destroyable {
 
   private handleClose(_event: CloseEvent): void {
     this.clearConnectionTimeout();
+    // A frame belongs to the socket it was written for. The server closes a
+    // new socket whose first frame is not signalwire.connect.
+    this.messageQueue = [];
 
     if (this.shouldReconnect) {
       this._status$.next('reconnecting');

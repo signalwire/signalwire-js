@@ -645,6 +645,23 @@ describe('WebSocketController - Message Queuing', () => {
       expect(mockWebSocket.send).toHaveBeenCalledWith('message during reconnection');
     });
 
+    it('should drop messages queued on a closing socket', () => {
+      manager.connect();
+      const firstSocket = mockWebSocket;
+      firstSocket.simulateOpen();
+
+      // Status is still connected, but the socket is closing
+      firstSocket.readyState = MockWebSocket.CLOSING;
+      manager.send('frame for the old socket');
+      firstSocket.simulateClose(1006);
+
+      vi.advanceTimersByTime(1000);
+      mockWebSocket.simulateOpen();
+
+      expect(firstSocket.send).not.toHaveBeenCalled();
+      expect(mockWebSocket.send).not.toHaveBeenCalled();
+    });
+
     it('should handle mixed immediate and queued messages', () => {
       manager.send('queued 1');
 
