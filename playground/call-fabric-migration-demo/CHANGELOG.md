@@ -1,5 +1,13 @@
 # @signalwire/call-fabric-migration-demo
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [09468a8]
+  - @signalwire/js@4.0.0
+  - @signalwire/web-components@4.0.0
+
 ## 0.0.3
 
 ### Patch Changes

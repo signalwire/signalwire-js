@@ -1,6 +1,6 @@
 {
   "name": "@signalwire/web-components",
-  "version": "4.0.0-rc.3",
+  "version": "4.0.0-rc.4",
   "description": "UI components library built with Lit",
   "type": "module",
   "main": "./dist/index.js",
@@ -176,7 +176,7 @@
     "rxjs": "^7.8.2"
   },
   "peerDependencies": {
-    "@signalwire/js": "4.0.0-rc.3"
+    "@signalwire/js": "4.0.0-rc.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
@@ -184,13 +184,13 @@
     "@types/prismjs": "^1.26.6",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@vaadin/router": "^2.0.1",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^9.39.1",
     "happy-dom": "^20.9.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
     "vite": "^6.0.5",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
   }
 }

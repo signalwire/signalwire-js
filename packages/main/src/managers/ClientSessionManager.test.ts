@@ -16,7 +16,7 @@ import {
   ClientSessionWrapper,
   shouldAbortDial
 } from './ClientSessionManager';
-import { JSONRPCError, MediaAccessError } from '../core/errors';
+import { JSONRPCError, MediaAccessError, TransportConnectionError } from '../core/errors';
 import type { CallError } from '../core/errors';
 import type { StorageManager } from './StorageManager';
 import type { TransportManager } from './TransportManager';
@@ -53,6 +53,8 @@ function createMockTransport(): TransportManager {
   return {
     protocol$,
     connectionStatus$,
+    // Tests that call authenticate() directly assume an open socket
+    connectionStatus: 'connected',
     incomingEvent$,
     connect: vi.fn(async () => {
       connectionStatus$.next('connected');
@@ -61,6 +63,7 @@ function createMockTransport(): TransportManager {
     reconnect: vi.fn(),
     execute: vi.fn(),
     send: vi.fn(),
+    setAuthenticated: vi.fn(),
     setProtocol: vi.fn(async (p: string | undefined) => {
       protocol$.next(p);
     }),
@@ -357,6 +360,99 @@ describe('ClientSessionManager', () => {
       await invokeAuthenticate(session);
 
       expect(hook).not.toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // A socket that closes while signalwire.connect is pending must
+  // not block authentication of the next socket for the full RPC timeout.
+  // ==========================================================================
+
+  describe('socket closed during authentication', () => {
+    const connectionStatus$ = () =>
+      (transport as unknown as { connectionStatus$: BehaviorSubject<string> }).connectionStatus$;
+
+    it('rejects at once with TransportConnectionError when the socket closes', async () => {
+      const session = buildCSM();
+      await firstValueFrom(session.initialized$);
+      // Never answered: the socket closes first
+      vi.mocked(transport.execute).mockReturnValue(new Promise(() => {}) as never);
+
+      const authenticating = (
+        session as unknown as { authenticate: () => Promise<void> }
+      ).authenticate();
+      await vi.waitFor(() => expect(transport.execute).toHaveBeenCalledTimes(1));
+      connectionStatus$().next('reconnecting');
+
+      await expect(authenticating).rejects.toBeInstanceOf(TransportConnectionError);
+    });
+
+    it('does not send connect when the socket closed during the credential refresh', async () => {
+      const session = new ClientSessionManager(
+        () => ({ token: 'stale', expiry_at: Date.now() - 1000 }),
+        transport as unknown as TransportManager,
+        storage,
+        'auth_state_key',
+        createMockDeviceController(),
+        attachManager,
+        createMockWebRTCApiProvider()
+      );
+      await firstValueFrom(session.initialized$);
+      let releaseHook: () => void = () => {};
+      const hookDone = new Promise<void>((resolve) => {
+        session.onBeforeReconnect = vi.fn(
+          () =>
+            new Promise<void>((release) => {
+              releaseHook = () => {
+                release();
+                resolve();
+              };
+            })
+        );
+      });
+
+      connectionStatus$().next('connected');
+      await vi.waitFor(() => expect(session.onBeforeReconnect).toHaveBeenCalledTimes(1));
+      // The socket closes while the credential refresh runs
+      (transport as unknown as { connectionStatus: string }).connectionStatus = 'reconnecting';
+      connectionStatus$().next('reconnecting');
+      releaseHook();
+      await hookDone;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(transport.execute).not.toHaveBeenCalled();
+    });
+
+    it('authenticates the next socket after the previous one closed mid-auth', async () => {
+      const session = buildCSM();
+      await firstValueFrom(session.initialized$);
+      vi.mocked(transport.execute).mockReturnValue(new Promise(() => {}) as never);
+
+      connectionStatus$().next('connected');
+      await vi.waitFor(() => expect(transport.execute).toHaveBeenCalledTimes(1));
+      connectionStatus$().next('reconnecting');
+      // The next socket opens from a reconnect timer, never in the same tick
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      connectionStatus$().next('connected');
+
+      await vi.waitFor(() => expect(transport.execute).toHaveBeenCalledTimes(2));
+    });
+
+    it('does not surface the error or reconnect', async () => {
+      await storage.setItem('auth_state_key', 'stored-auth-state');
+      const session = buildCSM();
+      await firstValueFrom(session.initialized$);
+
+      const errors: Error[] = [];
+      session.errors$.subscribe((e) => errors.push(e));
+
+      const handleAuthError = (
+        session as unknown as { handleAuthenticationError: (e: Error) => Promise<void> }
+      ).handleAuthenticationError.bind(session);
+      await handleAuthError(new TransportConnectionError('WebSocket closed during authentication'));
+
+      expect(errors).toHaveLength(0);
+      expect(transport.reconnect).not.toHaveBeenCalled();
     });
   });
 

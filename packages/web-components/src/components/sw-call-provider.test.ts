@@ -4,13 +4,13 @@ const mockCallStateConnect = vi.fn();
 const mockCallStateDisconnect = vi.fn();
 
 vi.mock('../context/CallStateContextController.js', () => ({
-  CallStateContextController: vi.fn().mockImplementation(() => ({
+  CallStateContextController: vi.fn().mockImplementation(function () { return {
     connect: mockCallStateConnect,
     disconnect: mockCallStateDisconnect,
     hostConnected: vi.fn(),
     hostDisconnected: vi.fn(),
     hostUpdated: vi.fn(),
-  })),
+  }; }),
 }));
 
 const mockDevicesConnectCall = vi.fn();
@@ -19,7 +19,7 @@ const mockDevicesConnectDevices = vi.fn();
 const mockDevicesDisconnect = vi.fn();
 
 vi.mock('../context/DevicesContextController.js', () => ({
-  DevicesContextController: vi.fn().mockImplementation(() => ({
+  DevicesContextController: vi.fn().mockImplementation(function () { return {
     connectCall: mockDevicesConnectCall,
     disconnectCall: mockDevicesDisconnectCall,
     connectDevices: mockDevicesConnectDevices,
@@ -27,7 +27,7 @@ vi.mock('../context/DevicesContextController.js', () => ({
     hostConnected: vi.fn(),
     hostDisconnected: vi.fn(),
     hostUpdated: vi.fn(),
-  })),
+  }; }),
 }));
 
 import './sw-call-provider.js';

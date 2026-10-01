@@ -11,8 +11,10 @@ import {
   lastValueFrom,
   map,
   merge,
+  race,
   share,
   shareReplay,
+  skip,
   switchMap,
   take,
   takeUntil,
@@ -37,6 +39,7 @@ import {
   DependencyError,
   JSONRPCError,
   MediaAccessError,
+  TransportConnectionError,
   UnexpectedError,
   VertoAttachHandlerError,
   VertoInviteHandlerError
@@ -522,6 +525,13 @@ export class ClientSessionManager extends Destroyable implements SessionState {
   }
 
   private async handleAuthenticationError(error: Error): Promise<void> {
+    // The socket closed before signalwire.connect was answered. The next
+    // 'connected' event starts authentication again.
+    if (error instanceof TransportConnectionError) {
+      logger.debug('[Session] Socket closed during authentication, waiting for reconnect');
+      return;
+    }
+
     logger.error('Authentication error:', error);
 
     const isRecoverableAuthError =
@@ -757,8 +767,26 @@ export class ClientSessionManager extends Destroyable implements SessionState {
 
     const rpcConnectRequest = RPCConnect(params);
 
+    // The socket can close during the awaits above. Do not send connect for a
+    // socket that is gone: the next 'connected' event authenticates again.
+    if (this.transport.connectionStatus !== 'connected') {
+      throw new TransportConnectionError('WebSocket closed during authentication');
+    }
+
+    // Fail at once if the socket closes before the server answers. Otherwise
+    // the request waits for the full RPC timeout, and exhaustMap ignores the
+    // next socket until then.
+    const socketClosed$ = this.transport.connectionStatus$.pipe(
+      skip(1),
+      filter((status) => status === 'reconnecting' || status === 'disconnected'),
+      take(1),
+      switchMap(() =>
+        throwError(() => new TransportConnectionError('WebSocket closed during authentication'))
+      )
+    );
+
     const response = await lastValueFrom(
-      from(this.transport.execute(rpcConnectRequest)).pipe(
+      race(from(this.transport.execute(rpcConnectRequest)), socketClosed$).pipe(
         throwOnRPCError(),
         map((res) => res.result),
         filter(isRPCConnectResult),
@@ -791,6 +819,7 @@ export class ClientSessionManager extends Destroyable implements SessionState {
       this._wasClientBound = true;
     }
     this._iceServers$.next(response.ice_servers ?? []);
+    this.transport.setAuthenticated();
     this._authState$.next({ kind: 'authenticated' });
 
     logger.debug('[Session] Authentication completed successfully');

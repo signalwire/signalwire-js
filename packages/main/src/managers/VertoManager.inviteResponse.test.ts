@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { NEVER, Subject } from 'rxjs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { WebRTCVertoManager } from './VertoManager';
@@ -62,7 +62,7 @@ const createMockCallSession = (execute: ReturnType<typeof vi.fn>): WebRTCCall =>
     toName: 'Test Room',
     userVariables: {},
     options: { audio: true, video: false, receiveAudio: true },
-    clientSession: { iceServers: [] },
+    clientSession: { iceServers: [], authenticated$: NEVER },
     webrtcMessages$: new Subject(),
     callEvent$: new Subject(),
     answered$: new Subject(),

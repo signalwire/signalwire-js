@@ -1,5 +1,12 @@
 # @signalwire/kitchen-sink-js
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [09468a8]
+  - @signalwire/js@4.0.0
+
 ## 0.0.4
 
 ### Patch Changes
