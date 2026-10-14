@@ -180,6 +180,12 @@ export class ClientSessionManager extends Destroyable implements SessionState {
    */
   public onBeforeReconnect?: () => Promise<void>;
   /**
+   * Called when the server refuses a fresh connect on authentication and no
+   * re-minted credential is left to try; the session has stopped reconnecting.
+   * @internal
+   */
+  public onAuthenticationRejected?: () => void;
+  /**
    * Session-wide call control transport (see {@link ClientSession.callControl}).
    * Set from {@link SignalWireOptions.callControl} by SignalWire after construction;
    * defaults to `'routed'`. Read by every Call, so it needs no per-call persistence.
@@ -192,6 +198,8 @@ export class ClientSessionManager extends Destroyable implements SessionState {
   private _authState$ = this.createBehaviorSubject<SessionAuthState>({ kind: 'unauthenticated' });
   /** Sticky flag — once true, stays true for the session lifetime. */
   private _wasClientBound = false;
+  private _lastFreshConnectReminted = false;
+  private _remintBeforeNextFreshConnect = false;
 
   private _userInfo$ = this.createBehaviorSubject<Address | null>(null);
   private _calls$ = this.createBehaviorSubject<Record<string, Call>>({});
@@ -554,9 +562,25 @@ export class ClientSessionManager extends Destroyable implements SessionState {
         '[Session] Recoverable auth error — cleaning up stored state and reconnecting fresh'
       );
       await this.discardResumeStateAndReconnect();
+    } else if (
+      isRecoverableAuthError &&
+      this.onBeforeReconnect &&
+      !this._lastFreshConnectReminted
+    ) {
+      // The token went out unrefreshed because it looked valid by this
+      // client's clock, which can be wrong; a re-minted one may be accepted.
+      logger.debug('[Session] Fresh connect refused — re-minting the credential and retrying once');
+      this._remintBeforeNextFreshConnect = true;
+      this.transport.reconnect();
     } else {
       // Fatal auth error — surface to consumers
       this._errors$.next(error);
+      if (isRecoverableAuthError) {
+        // The server closes the socket after refusing it, and the transport
+        // would reconnect straight into the same refusal.
+        this.transport.disconnect();
+        this.onAuthenticationRejected?.();
+      }
     }
   }
 
@@ -682,6 +706,7 @@ export class ClientSessionManager extends Destroyable implements SessionState {
 
   private async authenticate(): Promise<void> {
     logger.debug('[Session] Starting authentication process');
+    this._lastFreshConnectReminted = false;
 
     const persistedParams = await firstValueFrom(
       combineLatest({
@@ -709,16 +734,20 @@ export class ClientSessionManager extends Destroyable implements SessionState {
     } else {
       // FRESH CONNECT: refresh credentials if needed, then use fresh SAT + DPoP.
       // Invoke the reconnect hook when the session is client-bound (it needs a
-      // fresh base SAT to re-bind) OR when the in-memory token is expired. An
-      // unbound SAT that is expired must be re-minted via the developer's
-      // refresh handler before authenticating — otherwise the fresh connect
-      // replays a dead token and the server rejects it with -32003.
+      // fresh base SAT to re-bind) OR when the in-memory token is expired OR
+      // when the server refused the token the previous fresh connect sent
+      // as-is. An unbound SAT that is expired must be re-minted via the
+      // developer's refresh handler before authenticating — otherwise the
+      // fresh connect replays a dead token and the server rejects it with -32003.
       const credential = this.getCredential();
       const credentialExpired =
         credential.expiry_at !== undefined &&
         credential.expiry_at <= Date.now() + CREDENTIAL_EXPIRY_SKEW_MS;
-      if (this.onBeforeReconnect && (this.clientBound || credentialExpired)) {
+      const remint = this.clientBound || credentialExpired || this._remintBeforeNextFreshConnect;
+      this._remintBeforeNextFreshConnect = false;
+      if (this.onBeforeReconnect && remint) {
         logger.debug('[Session] Refreshing credentials before fresh connect');
+        this._lastFreshConnectReminted = true;
         await this.onBeforeReconnect();
       }
     }

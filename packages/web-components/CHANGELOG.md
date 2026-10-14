@@ -111,6 +111,7 @@
 - Updated dependencies [cc41782]
 - Updated dependencies [27a9ecf]
 - Updated dependencies [09468a8]
+- Updated dependencies [9f8c383]
   - @signalwire/js@4.0.0
 
 ## 4.0.0

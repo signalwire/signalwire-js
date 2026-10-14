@@ -286,6 +286,134 @@ describe('ClientSessionManager', () => {
     });
   });
 
+  describe('handleAuthenticationError - refused fresh connect', () => {
+    function handleAuthError(session: ClientSessionManager): (e: Error) => Promise<void> {
+      return (
+        session as unknown as { handleAuthenticationError: (e: Error) => Promise<void> }
+      ).handleAuthenticationError.bind(session);
+    }
+
+    async function authenticate(session: ClientSessionManager): Promise<void> {
+      // The mock transport answers no connect, so authenticate() throws after
+      // the credential gate has run.
+      try {
+        await (session as unknown as { authenticate: () => Promise<void> }).authenticate();
+      } catch {
+        /* expected */
+      }
+    }
+
+    async function buildWired(credential: SDKCredential) {
+      const session = new ClientSessionManager(
+        () => credential,
+        transport as unknown as TransportManager,
+        storage,
+        'auth_state_key',
+        createMockDeviceController(),
+        attachManager,
+        createMockWebRTCApiProvider()
+      );
+      await firstValueFrom(session.initialized$);
+      const onBeforeReconnect = vi.fn().mockResolvedValue(undefined);
+      const onAuthenticationRejected = vi.fn();
+      session.onBeforeReconnect = onBeforeReconnect;
+      session.onAuthenticationRejected = onAuthenticationRejected;
+      const errors: Error[] = [];
+      session.errors$.subscribe((e) => errors.push(e));
+      return { session, onBeforeReconnect, onAuthenticationRejected, errors };
+    }
+
+    it.each([
+      [-32002, 'Authentication failed, expired token'],
+      [-32003, 'Requester validation failed'],
+      [-32602, 'Invalid params']
+    ])(
+      'stops reconnecting when a fresh connect that re-minted first is refused with %i',
+      async (code, message) => {
+        const { session, onBeforeReconnect, onAuthenticationRejected, errors } = await buildWired({
+          token: 'expired',
+          expiry_at: Date.now() - 1000
+        });
+        const refusal = new JSONRPCError(code, message);
+
+        await authenticate(session);
+        await handleAuthError(session)(refusal);
+
+        expect(onBeforeReconnect).toHaveBeenCalledTimes(1);
+        expect(transport.disconnect).toHaveBeenCalledTimes(1);
+        expect(transport.reconnect).not.toHaveBeenCalled();
+        expect(onAuthenticationRejected).toHaveBeenCalledTimes(1);
+        expect(errors).toEqual([refusal]);
+      }
+    );
+
+    it('re-mints and retries once when the refused fresh connect sent its credential as-is', async () => {
+      const { session, onBeforeReconnect, onAuthenticationRejected, errors } = await buildWired({
+        token: 'looks-valid',
+        expiry_at: Date.now() + 120_000
+      });
+      const refusal = new JSONRPCError(-32002, 'Authentication failed, expired token');
+
+      await authenticate(session);
+      await handleAuthError(session)(refusal);
+
+      expect(onBeforeReconnect).not.toHaveBeenCalled();
+      expect(transport.reconnect).toHaveBeenCalledTimes(1);
+      expect(transport.disconnect).not.toHaveBeenCalled();
+      expect(onAuthenticationRejected).not.toHaveBeenCalled();
+      expect(errors).toEqual([]);
+
+      await authenticate(session);
+      await handleAuthError(session)(refusal);
+
+      expect(onBeforeReconnect).toHaveBeenCalledTimes(1);
+      expect(transport.reconnect).toHaveBeenCalledTimes(1);
+      expect(transport.disconnect).toHaveBeenCalledTimes(1);
+      expect(onAuthenticationRejected).toHaveBeenCalledTimes(1);
+      expect(errors).toEqual([refusal]);
+    });
+
+    it('stops the transport even when no hooks are wired', async () => {
+      const csm = buildCSM();
+      await firstValueFrom(csm.initialized$);
+
+      await handleAuthError(csm)(new JSONRPCError(-32002, 'Authentication failed, expired token'));
+
+      expect(transport.disconnect).toHaveBeenCalledTimes(1);
+      expect(transport.reconnect).not.toHaveBeenCalled();
+    });
+
+    it('keeps the session when a refused resume can still be retried as a fresh connect', async () => {
+      await storage.setItem('auth_state_key', 'stale-auth-state');
+      const csm = buildCSM();
+      await firstValueFrom(csm.initialized$);
+      const onAuthenticationRejected = vi.fn();
+      csm.onAuthenticationRejected = onAuthenticationRejected;
+
+      await handleAuthError(csm)(new JSONRPCError(-32002, 'Authentication failed, expired token'));
+
+      expect(transport.reconnect).toHaveBeenCalledTimes(1);
+      expect(transport.disconnect).not.toHaveBeenCalled();
+      expect(onAuthenticationRejected).not.toHaveBeenCalled();
+    });
+
+    it('leaves reconnection running when the connect failure is not a refusal', async () => {
+      const csm = buildCSM();
+      await firstValueFrom(csm.initialized$);
+      const onAuthenticationRejected = vi.fn();
+      csm.onAuthenticationRejected = onAuthenticationRejected;
+      const errors: Error[] = [];
+      csm.errors$.subscribe((e) => errors.push(e));
+      const internalError = new JSONRPCError(-32603, 'Internal error');
+
+      await handleAuthError(csm)(internalError);
+
+      expect(transport.disconnect).not.toHaveBeenCalled();
+      expect(onAuthenticationRejected).not.toHaveBeenCalled();
+      expect(errors).toEqual([internalError]);
+    });
+  });
+
   // ==========================================================================
   // onBeforeReconnect gating (issue: -32003 staleness).
   // On a FRESH connect the hook must fire when the session is client-bound OR
