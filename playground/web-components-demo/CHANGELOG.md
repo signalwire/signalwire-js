@@ -1,5 +1,13 @@
 # @signalwire/web-components-demo
 
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies [9f8c383]
+  - @signalwire/js@4.0.0
+  - @signalwire/web-components@4.0.0
+
 ## 1.0.5
 
 ### Patch Changes

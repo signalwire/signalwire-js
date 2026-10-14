@@ -974,6 +974,10 @@ class SignalWire extends Destroyable implements DeviceController {
 
     await this._clientSession.connect();
 
+    // Assigned only after the session authenticates: disconnecting earlier
+    // would destroy the session that connect() above is still waiting on.
+    this._clientSession.onAuthenticationRejected = () => void this.disconnect();
+
     // Delegate refresh arbitration to the coordinator. It only cancels the
     // developer refresh timer when the Client Bound SAT path actually takes
     // ownership; otherwise the developer path remains armed.

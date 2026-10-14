@@ -1,6 +1,6 @@
 {
   "name": "signalwire-browser-sdk",
-  "version": "4.0.0-rc.4",
+  "version": "4.0.0-rc.5",
   "description": "SignalWire Browser SDK Monorepo",
   "private": true,
   "type": "module",

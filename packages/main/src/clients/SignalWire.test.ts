@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { BehaviorSubject, firstValueFrom, of } from 'rxjs';
 
 import { SignalWire } from './SignalWire';
 import { StaticCredentialProvider } from '../dependencies/StaticCredentialProvider';
+import { ClientSessionManager } from '../managers/ClientSessionManager';
 
 import type { WebRTCApiProvider } from '../dependencies/interfaces';
 
@@ -168,6 +169,27 @@ describe('SignalWire', () => {
       expect(session2).not.toBe(session1);
       expect(transport2).not.toBe(transport1);
     }, 35000); // Allow time for auth gate timeout (15s × 2 connect attempts)
+  });
+
+  describe('refused fresh connect', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('disconnects a connected client whose credential the server refuses', async () => {
+      vi.spyOn(ClientSessionManager.prototype, 'connect').mockResolvedValue(undefined);
+      const client = createClient();
+      injectMockUser(client);
+      await client.connect();
+      expect(client.isConnected).toBe(true);
+
+      getPrivate<ClientSessionManager>(client, '_clientSession').onAuthenticationRejected?.();
+
+      await vi.waitFor(() => {
+        expect(client.isConnected).toBe(false);
+      });
+      expect(getPrivate(client, '_clientSession')).toBeUndefined();
+    });
   });
 
   describe('destroy()', () => {
